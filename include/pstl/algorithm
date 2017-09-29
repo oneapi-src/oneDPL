@@ -1,0 +1,888 @@
+/*
+    Copyright (c) 2017 Intel Corporation
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+
+
+
+*/
+
+#ifndef __PSTL_algorithm_H
+#define __PSTL_algorithm_H
+
+#include <functional>
+
+#include "_internal/pstl_config.h"
+#include "_internal/common.h"
+#include "_internal/simd_impl.h"
+#include "_internal/algorithm_impl.h"
+#include "_internal/numeric_impl.h"  /* count and count_if use pattern_transform_reduce */
+#if __PSTL_USE_TBB
+    #include "_internal/parallel_impl_tbb.h"
+#else
+    __PSTL_PRAGMA_MESSAGE("Backend was not specified");
+#endif
+
+namespace std {
+
+// [alg.any_of]
+
+template<class ExecutionPolicy, class InputIterator, class Predicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+any_of( ExecutionPolicy&& exec, InputIterator first, InputIterator last, Predicate pred ) {
+    return __icp_algorithm::pattern_any_of( first, last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec));
+}
+
+// [alg.all_of]
+
+template<class ExecutionPolicy, class InputIterator, class Pred>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+all_of(ExecutionPolicy&& exec, InputIterator first, InputIterator last, Pred pred) {
+    return !any_of(std::forward<ExecutionPolicy>(exec), first, last, __icp_algorithm::not_pred<Pred>(pred));
+}
+
+// [alg.none_of]
+
+template<class ExecutionPolicy, class InputIterator, class Predicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+none_of( ExecutionPolicy&& exec, InputIterator first, InputIterator last, Predicate pred ) {
+    return !any_of( std::forward<ExecutionPolicy>(exec), first, last, pred );
+}
+
+// [alg.foreach]
+
+template<class ExecutionPolicy, class InputIterator, class Function>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+for_each(ExecutionPolicy&& exec, InputIterator first, InputIterator last, Function f) {
+    __icp_algorithm::pattern_walk1(
+        first, last, f,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class Size, class Function>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, InputIterator>
+for_each_n(ExecutionPolicy&& exec, InputIterator first, Size n, Function f) {
+    return __icp_algorithm::pattern_walk1_n( first, n, f,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec));
+}
+
+// [alg.find]
+
+template<class ExecutionPolicy, class InputIterator, class Predicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, InputIterator>
+find_if(ExecutionPolicy&& exec, InputIterator first, InputIterator last,
+Predicate pred) {
+    return __icp_algorithm::pattern_find_if( first, last, pred, 
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class Predicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, InputIterator>
+find_if_not(ExecutionPolicy&& exec, InputIterator first, InputIterator last,
+Predicate pred) {
+    return find_if(exec,first,last,__icp_algorithm::not_pred<Predicate>(pred));
+}
+
+template<class ExecutionPolicy, class InputIterator, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, InputIterator>
+find(ExecutionPolicy&& exec, InputIterator first, InputIterator last,
+const T& value) {
+    return find_if(exec, first, last, __icp_algorithm::equal_value<T>(value));
+}
+
+// [alg.find.end]
+template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
+find_end(ExecutionPolicy &&exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred) {
+    return __icp_algorithm::pattern_find_end(first, last, s_first, s_last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator1, ForwardIterator2>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator1, ForwardIterator2>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
+find_end(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last) {
+    return find_end(exec, first, last, s_first, s_last, std::equal_to<typename iterator_traits<ForwardIterator1>::value_type>());
+}
+
+// [alg.find_first_of]
+template<class ExecutionPolicy, class InputIterator, class ForwardIterator, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, InputIterator>
+find_first_of(ExecutionPolicy&& exec, InputIterator first, InputIterator last, ForwardIterator s_first, ForwardIterator s_last, BinaryPredicate pred) {
+    return __icp_algorithm::pattern_find_first_of(first, last, s_first, s_last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator, ForwardIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class ForwardIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, InputIterator>
+find_first_of(ExecutionPolicy&& exec, InputIterator first, InputIterator last, ForwardIterator s_first, ForwardIterator s_last) {
+    return find_first_of(exec, first, last, s_first, s_last, std::equal_to<typename iterator_traits<InputIterator>::value_type>());
+}
+
+// [alg.adjacent_find]
+template< class ExecutionPolicy, class ForwardIt >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIt>
+adjacent_find(ExecutionPolicy&& exec, ForwardIt first, ForwardIt last) {
+    typedef typename iterator_traits<ForwardIt>::value_type value_type;
+
+    return __icp_algorithm::pattern_adjacent_find(first, last, std::equal_to<value_type>(),
+       __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIt>(exec),
+       __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIt>(exec), /*first_semantic*/ false);
+}
+
+template< class ExecutionPolicy, class ForwardIt, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIt>
+adjacent_find(ExecutionPolicy&& exec, ForwardIt first, ForwardIt last, BinaryPredicate pred) {
+return __icp_algorithm::pattern_adjacent_find(first, last, pred,
+       __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIt>(exec),
+       __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIt>(exec), /*first_semantic*/ false);
+}
+
+// [alg.count]
+
+// Implementation note: count and count_if call the pattern directly instead of calling std::transform_reduce
+// so that we do not have to include <numeric>.
+
+template<class ExecutionPolicy, class InputIterator, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,typename iterator_traits<InputIterator>::difference_type>
+count(ExecutionPolicy&& exec, InputIterator first, InputIterator last, const T& value) {
+    typedef typename iterator_traits<InputIterator>::value_type value_type;
+
+    return __icp_algorithm::pattern_count(first, last, [&value](value_type x) {return value==x;},
+       __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec),
+       __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class Predicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,typename iterator_traits<InputIterator>::difference_type>
+count_if(ExecutionPolicy&& exec, InputIterator first, InputIterator last, Predicate pred) {
+    return __icp_algorithm::pattern_count(first, last, pred,
+       __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec),
+       __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec));
+}
+
+// [alg.search]
+
+template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
+search(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred) {
+    return __icp_algorithm::pattern_search(first, last, s_first, s_last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator1, ForwardIterator2>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator1, ForwardIterator2>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
+search(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last) {
+    typedef typename iterator_traits<ForwardIterator1>::value_type value_type;
+
+    return search(exec, first, last, s_first, s_last, std::equal_to<value_type>());
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class Size, class T, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+search_n(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Size count, const T& value, BinaryPredicate pred) {
+    return __icp_algorithm::pattern_search_n(first, last, count, value, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class Size, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+search_n(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Size count, const T& value) {
+    return search_n(exec, first, last, count, value, std::equal_to<typename iterator_traits<ForwardIterator>::value_type>());
+}
+
+// [alg.copy]
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result) {
+    return __icp_algorithm::pattern_copy(
+        first, last, result,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class Size, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+copy_n(ExecutionPolicy&& exec, InputIterator first, Size n, OutputIterator result) {
+    return __icp_algorithm::pattern_copy_n(
+        first, n, result,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator, class Predicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+copy_if(ExecutionPolicy&& exec,
+        InputIterator first, InputIterator last,
+        OutputIterator result, Predicate pred) {
+    return __icp_algorithm::pattern_copy_if(
+        first, last, result, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
+}
+
+// [alg.swap]
+
+template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator2>
+swap_ranges(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2) {
+    return __icp_algorithm::pattern_swap_ranges(first1, last1, first2,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator1, ForwardIterator2>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator1, ForwardIterator2>(exec));
+}
+
+// [alg.transform]
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator, class UnaryOperation>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+transform( ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, UnaryOperation op ) {
+    typedef typename iterator_traits<InputIterator>::value_type input_type;
+    typedef typename iterator_traits<OutputIterator>::value_type output_type;
+    return __icp_algorithm::pattern_walk2(first, last, result, 
+        [op]( input_type x, output_type& y ) mutable {y = op(x);},
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator, class BinaryOperation>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+transform( ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, OutputIterator result, BinaryOperation op ) {
+    typedef typename iterator_traits<InputIterator1>::value_type input1_type;
+    typedef typename iterator_traits<InputIterator2>::value_type input2_type;
+    typedef typename iterator_traits<OutputIterator>::value_type output_type;
+    return __icp_algorithm::pattern_walk3(first1, last1, first2, result, [op]( input1_type x, input2_type y, output_type& z ) mutable {z = op(x,y);},
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator1,InputIterator2,OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator1,InputIterator2,OutputIterator>(exec));
+}
+
+// [alg.replace]
+
+template<class ExecutionPolicy, class ForwardIterator, class UnaryPredicate, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+replace_if(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, UnaryPredicate pred, const T& new_value) {
+    __icp_algorithm::pattern_replace_if(first, last, pred, new_value,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+replace(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& old_value, const T& new_value) {
+    replace_if(exec, first, last, __icp_algorithm::equal_value<T>(old_value), new_value);
+}
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator, class UnaryPredicate, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+replace_copy_if(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred, const T& new_value) {
+    typedef typename iterator_traits<InputIterator>::value_type input_type;
+    typedef typename iterator_traits<OutputIterator>::value_type output_type;
+    return __icp_algorithm::pattern_walk2(
+        first, last, result,
+        [pred, &new_value](input_type x, output_type& y) mutable { y = pred(x) ? new_value : x; },
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+replace_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, const T& old_value, const T& new_value) {
+    return replace_copy_if(exec, first, last, result, __icp_algorithm::equal_value<T>(old_value), new_value);
+}
+
+// [alg.fill]
+
+template <class ExecutionPolicy, class ForwardIterator, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+fill( ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& value ) {
+    __icp_algorithm::pattern_fill(first, last, value,
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,ForwardIterator>(exec),
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template< class ExecutionPolicy, class OutputIterator, class Size, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+fill_n( ExecutionPolicy&& exec, OutputIterator first, Size count, const T& value ) {
+    if(count <= 0)
+        return first;
+
+    return __icp_algorithm::pattern_fill_n(first, count, value,
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, OutputIterator>(exec),
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, OutputIterator>(exec));
+}
+
+// [alg.generate]
+template< class ExecutionPolicy, class ForwardIterator, class Generator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+generate( ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Generator g ) {
+    __icp_algorithm::pattern_generate(first, last, g,
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,ForwardIterator>(exec),
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template< class ExecutionPolicy, class OutputIterator, class Size, class Generator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+generate_n( ExecutionPolicy&& exec, OutputIterator first, Size count, Generator g ) {
+    if(count <= 0)
+        return first;
+
+    return __icp_algorithm::pattern_generate_n(first, count, g,
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, OutputIterator>(exec),
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, OutputIterator>(exec));
+}
+
+// [alg.remove]
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator, class Predicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+remove_copy_if(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, Predicate pred) {
+    return copy_if( exec, first, last, result, __icp_algorithm::not_pred<Predicate>(pred));
+}
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+remove_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, const T& value) {
+    return copy_if( exec, first, last, result, __icp_algorithm::not_equal_value<T>(value));
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class UnaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+remove_if(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, UnaryPredicate pred) {
+    return __icp_algorithm::pattern_remove_if(first, last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class T>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+remove(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& value) {
+    return remove_if(exec, first, last, __icp_algorithm::equal_value<T>(value));
+}
+
+// [alg.unique]
+
+template<class ExecutionPolicy, class ForwardIterator, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+unique(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, BinaryPredicate pred) {
+    return __icp_algorithm::pattern_unique(first, last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+unique(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last) {
+    return unique(exec, first, last, __icp_algorithm::pstl_equal());
+}
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+unique_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, BinaryPredicate pred) {
+    return __icp_algorithm::pattern_unique_copy(first, last, result, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+unique_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result) {
+    return unique_copy( exec, first, last, result, __icp_algorithm::pstl_equal() );
+}
+
+// [alg.reverse]
+
+template<class ExecutionPolicy, class BidirectionalIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+reverse(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator last) {
+    __icp_algorithm::pattern_reverse(first, last,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, BidirectionalIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, BidirectionalIterator>(exec));
+}
+
+template<class ExecutionPolicy, class BidirectionalIterator, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+reverse_copy(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator last, OutputIterator d_first) {
+    return __icp_algorithm::pattern_reverse_copy(first, last, d_first,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, BidirectionalIterator, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, BidirectionalIterator, OutputIterator>(exec));
+}
+
+// [alg.rotate]
+
+template<class ExecutionPolicy, class ForwardIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+rotate(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator middle, ForwardIterator last) {
+    return __icp_algorithm::pattern_rotate(first, middle, last,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+rotate_copy(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator middle, ForwardIterator last, OutputIterator result) {
+    return __icp_algorithm::pattern_rotate_copy(first, middle, last, result,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator, OutputIterator>(exec));
+}
+
+// [alg.partitions]
+
+template<class ExecutionPolicy, class InputIterator, class UnaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+is_partitioned(ExecutionPolicy&& exec, InputIterator first, InputIterator last, UnaryPredicate pred) {
+    return __icp_algorithm::pattern_is_partitioned(first, last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class UnaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+partition(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, UnaryPredicate pred) {
+    return __icp_algorithm::pattern_partition(first, last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template<class ExecutionPolicy, class BidirectionalIterator, class UnaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, BidirectionalIterator>
+stable_partition(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator last, UnaryPredicate pred) {
+    return __icp_algorithm::pattern_stable_partition(first, last, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, BidirectionalIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, BidirectionalIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class OutputIterator1, class OutputIterator2, class UnaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, std::pair<OutputIterator1, OutputIterator2>>
+partition_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator1 out_true, OutputIterator2 out_false, UnaryPredicate pred) {
+    return __icp_algorithm::pattern_partition_copy(first, last, out_true, out_false, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator, OutputIterator1, OutputIterator2>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator, OutputIterator1, OutputIterator2>(exec));
+}
+
+// [alg.sort]
+
+template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
+    typedef typename iterator_traits<RandomAccessIterator>::value_type input_type;
+
+    return __icp_algorithm::pattern_sort(first, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,RandomAccessIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,RandomAccessIterator>(exec),
+        typename std::is_move_constructible<input_type>::type());
+}
+
+template<class ExecutionPolicy, class RandomAccessIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename iterator_traits<RandomAccessIterator>::value_type input_type;
+    sort(exec, first, last, std::less<input_type>());
+}
+
+// [stable.sort]
+
+template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+stable_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
+    typedef typename iterator_traits<RandomAccessIterator>::value_type input_type;
+
+    return __icp_algorithm::pattern_stable_sort(first, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,RandomAccessIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,RandomAccessIterator>(exec));
+}
+
+template<class ExecutionPolicy, class RandomAccessIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+stable_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename iterator_traits<RandomAccessIterator>::value_type input_type;
+    stable_sort(exec, first, last, std::less<input_type>());
+}
+
+// [mismatch]
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2, class BinaryPredicate >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, std::pair<InputIterator1, InputIterator2>>
+mismatch(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, BinaryPredicate pred) {
+    return __icp_algorithm::pattern_mismatch(first1, last1, first2, last2, pred,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
+}
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2, class BinaryPredicate >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, std::pair<InputIterator1, InputIterator2>>
+mismatch(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred) {
+    return mismatch(exec, first1, last1, first2, std::next(first2, std::distance(first1, last1)), pred);
+}
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2 >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, std::pair<InputIterator1, InputIterator2>>
+mismatch(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return mismatch(exec, first1, last1, first2, last2, std::equal_to<value_type>());
+}
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2 >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, std::pair<InputIterator1, InputIterator2>>
+mismatch(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2) {
+    return mismatch(exec, first1, last1, first2, std::next(first2, std::distance(first1, last1)));
+}
+
+// [alg.equal]
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+equal(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate p) {
+    return __icp_algorithm::pattern_equal(first1, last1, first2, p,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1>(exec)
+        );
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+equal(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2) {
+    return equal(exec, first1, last1, first2, __icp_algorithm::pstl_equal());
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class BinaryPredicate>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+equal(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, BinaryPredicate p) {
+    if ( std::distance(first1, last1) == std::distance(first2, last2) )
+        return std::equal(first1, last1, first2, p);
+    else
+        return false;
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+equal(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) {
+    if ( std::distance(first1, last1) == std::distance(first2, last2) )
+        return equal(first1, last1, first2, __icp_algorithm::pstl_equal());
+    else
+        return false;
+}
+
+// [alg.move]
+template< class ExecutionPolicy, class InputIterator, class OutputIterator >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+move(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator d_first) {
+    return __icp_algorithm::pattern_move(first, last, d_first,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec));
+}
+
+// [partial.sort]
+
+template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+partial_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp) {
+    __icp_algorithm::pattern_partial_sort(first, middle, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, RandomAccessIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, RandomAccessIterator>(exec));
+}
+
+template<class ExecutionPolicy, class RandomAccessIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+partial_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last) {
+    typedef typename iterator_traits<RandomAccessIterator>::value_type input_type;
+    partial_sort(exec, first, middle, last, std::less<input_type>());
+}
+
+// [partial.sort.copy]
+
+template<class ExecutionPolicy, class InputIterator, class RandomAccessIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
+partial_sort_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last, Compare comp) {
+    return __icp_algorithm::pattern_partial_sort_copy(first, last, d_first, d_last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator, RandomAccessIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator, RandomAccessIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator, class RandomAccessIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
+partial_sort_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last) {
+    typedef typename iterator_traits<InputIterator>::value_type input_type;
+    return partial_sort_copy(exec, first, last, d_first, d_last, std::less<input_type>());
+}
+
+// [is.sorted]
+template<class ExecutionPolicy, class ForwardIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+is_sorted_until(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp) {
+    const ForwardIterator res = __icp_algorithm::pattern_adjacent_find(first, last, __icp_algorithm::reorder_pred<Compare>(comp),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec), /*first_semantic*/ false);
+    return res==last ? last : std::next(res);
+}
+
+template<class ExecutionPolicy, class ForwardIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+is_sorted_until(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last) {
+    typedef typename iterator_traits<ForwardIterator>::value_type input_type;
+    return is_sorted_until(exec, first, last, std::less<input_type>());
+}
+
+template<class ExecutionPolicy, class ForwardIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+is_sorted(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp) {
+    return __icp_algorithm::pattern_adjacent_find(first, last, __icp_algorithm::reorder_pred<Compare>(comp),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec), /*or_semantic*/ true)==last;
+}
+
+template<class ExecutionPolicy, class ForwardIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+is_sorted(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last) {
+    typedef typename iterator_traits<ForwardIterator>::value_type input_type;
+    return is_sorted(exec, first, last, std::less<input_type>());
+}
+
+// [alg.nth.element]
+
+template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+nth_element(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator nth, RandomAccessIterator last, Compare comp) {
+    __icp_algorithm::pattern_nth_element(first, nth, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, RandomAccessIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, RandomAccessIterator>(exec));
+}
+
+template<class ExecutionPolicy, class RandomAccessIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+nth_element(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator nth, RandomAccessIterator last) {
+    typedef typename iterator_traits<RandomAccessIterator>::value_type input_type;
+    nth_element(exec, first, nth, last, std::less<input_type>());
+}
+
+// [alg.merge]
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+merge(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator d_first, Compare comp) {
+    return __icp_algorithm::pattern_merge(first1, last1, first2, last2, d_first, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec));
+}
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+merge(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator d_first) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return merge(exec, first1, last1, first2, last2, d_first, std::less<value_type>());
+}
+
+template< class ExecutionPolicy, class BidirectionalIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+inplace_merge(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, Compare comp) {
+    __icp_algorithm::pattern_inplace_merge(first, middle, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, BidirectionalIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, BidirectionalIterator>(exec));
+}
+
+template< class ExecutionPolicy, class BidirectionalIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, void>
+inplace_merge(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last) {
+    typedef typename std::iterator_traits<BidirectionalIterator>::value_type input_type;
+    inplace_merge(exec, first, middle, last, std::less<input_type>());
+}
+
+// [includes]
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+includes(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp) {
+    return __icp_algorithm::pattern_includes(first1, last1, first2, last2, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
+}
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+includes(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return includes(exec, first1, last1, first2, last2, std::less<value_type>());
+}
+
+// [set.union] 
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_union(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, Compare comp) {
+    return __icp_algorithm::pattern_set_union(first1, last1, first2, last2, result, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_union(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+    InputIterator2 last2, OutputIterator result) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return set_union(exec, first1, last1, first2, last2, result, std::less<value_type>());
+}
+
+// [set.intersection]
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_intersection(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, Compare comp) {
+    return __icp_algorithm::pattern_set_intersection(first1, last1, first2, last2, result, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_intersection(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return set_intersection(exec, first1, last1, first2, last2, result, std::less<value_type>());
+}
+
+// [set.difference]
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_difference(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, Compare comp) {
+    return __icp_algorithm::pattern_set_difference(first1, last1, first2, last2, result, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_difference(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return set_difference(exec, first1, last1, first2, last2, result, std::less<value_type>());
+}
+
+// [set.symmetric.difference]
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator, class Compare>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_symmetric_difference(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, Compare comp) {
+    return __icp_algorithm::pattern_set_symmetric_difference(first1, last1, first2, last2, result, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator>(exec));
+}
+
+template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator>
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+set_symmetric_difference(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return set_symmetric_difference(exec, first1, last1, first2, last2, result, std::less<value_type>());
+}
+
+// [is.heap]
+template< class ExecutionPolicy, class RandomAccessIterator, class Compare >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
+is_heap_until(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
+    return __icp_algorithm::pattern_is_heap_until(first, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, RandomAccessIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, RandomAccessIterator>(exec));
+}
+
+template< class ExecutionPolicy, class RandomAccessIterator >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
+is_heap_until(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<RandomAccessIterator>::value_type input_type;
+    return is_heap_until(exec, first, last, std::less<input_type>());
+}
+
+template< class ExecutionPolicy, class RandomAccessIterator, class Compare >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+is_heap(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
+    return is_heap_until(exec, first, last, comp) == last;
+}
+
+template< class ExecutionPolicy, class RandomAccessIterator >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+is_heap(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<RandomAccessIterator>::value_type input_type;
+    return is_heap(exec, first, last, std::less<input_type>());
+}
+
+// [alg.min.max]
+
+template< class ExecutionPolicy, class ForwardIterator, class Compare >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+min_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp) {
+    return __icp_algorithm::pattern_min_element(first, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template< class ExecutionPolicy, class ForwardIterator >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+min_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last) {
+    typedef typename std::iterator_traits<ForwardIterator>::value_type input_type;
+    return min_element(exec, first, last, std::less<input_type>());
+}
+
+template< class ExecutionPolicy, class ForwardIterator, class Compare >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+max_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp) {
+    return __icp_algorithm::pattern_max_element(first, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template< class ExecutionPolicy, class ForwardIterator >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
+max_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last) {
+    typedef typename std::iterator_traits<ForwardIterator>::value_type input_type;
+    return max_element(exec, first, last, std::less<input_type>());
+}
+
+template< class ExecutionPolicy, class ForwardIterator, class Compare >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator, ForwardIterator>>
+minmax_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp) {
+    return __icp_algorithm::pattern_minmax_element(first, last, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, ForwardIterator>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, ForwardIterator>(exec));
+}
+
+template< class ExecutionPolicy, class ForwardIterator >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator, ForwardIterator>>
+minmax_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last) {
+    typedef typename iterator_traits<ForwardIterator>::value_type value_type;
+    return minmax_element(exec, first, last, std::less<value_type>());
+}
+
+// [alg.lex.comparison]
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2, class Compare >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+lexicographical_compare(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp) {
+    return __icp_algorithm::pattern_lexicographical_compare(first1, last1, first2, last2, comp,
+        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
+        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
+}
+
+template< class ExecutionPolicy, class InputIterator1, class InputIterator2 >
+__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, bool>
+lexicographical_compare(ExecutionPolicy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) {
+    typedef typename iterator_traits<InputIterator1>::value_type value_type;
+    return lexicographical_compare(policy, first1, last1, first2, last2, std::less<value_type>());
+}
+
+} // namespace std
+
+#endif /* __PSTL_algorithm_H */

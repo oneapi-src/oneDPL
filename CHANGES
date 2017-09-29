@@ -1,0 +1,55 @@
+------------------------------------------------------------------------
+Parallel STL release within Intel(R) Parallel Studio XE 2018
+
+Features / APIs:
+
+- Aligned the implementation with the draft N4659 of the C++ standard.
+    In particular, inner_product no longer supports execution policies.
+- reduce and transform_reduce support unseq and par_unseq execution 
+    policies if std::plus<> is used for reduction.
+- Added counting_iterator and zip_iterator to support advanced use cases.
+   To use, include pstl/iterators.h header file.
+- Added macro PSTL_USE_PARALLEL_POLICIES to control usage of parallel
+    execution policies (par, par_unseq); by default these are enabled.
+
+Examples:
+
+- Added dot_product and convex_hull samples to demonstrate Parallel STL
+    usage.
+
+------------------------------------------------------------------------
+Parallel STL beta update release
+
+Features / APIs:
+
+- sequenced_policy is supported by all C++17 algorithms.
+- Added other execution policies support for inner_product algorithm.
+
+------------------------------------------------------------------------
+Parallel STL beta initial release
+
+Features / APIs:
+
+- Implemented C++17 execution policies: sequenced_policy,
+    parallel_policy, parallel_unsequenced_policy.
+- Implemented unsequenced_policy based on the ISO C++ working group
+    paper P0076R3.
+- sequenced_policy is supported by all except a few C++17 algorithms.
+- Other execution policies are supported by the following algorithms:
+    adjacent_find, all_of, any_of, copy, copy_if, copy_n, count,
+    count_if, equal, exclusive_scan, fill, fill_n, find, find_if,
+    find_if_not, for_each, for_each_n, generate, generate_n,
+    inclusive_scan, none_of, is_sorted, is_sorted_until, reduce,
+    remove_copy, remove_copy_if, sort, stable_sort, transform,
+    transform_exclusive_scan, transform_inclusive_scan,
+    transform_reduce, unique_copy.
+
+Documentation:
+
+- Initial set of documents: Getting Started Guide, Release Notes.
+
+Examples:
+
+- Added gamma_correction sample to demonstrate Parallel STL usage.
+
+------------------------------------------------------------------------

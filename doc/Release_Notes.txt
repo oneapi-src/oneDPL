@@ -1,0 +1,102 @@
+------------------------------------------------------------------------
+                           Parallel STL 
+------------------------------------------------------------------------
+
+System Requirements
+-------------------
+
+Parallel STL is available as a part of Intel(R) Parallel Studio XE 2018
+    and Intel(R) System Studio 2018.
+
+    Parallel STL distributions are validated and officially supported for
+the hardware, software, operating systems and compilers listed here.
+
+Hardware - Recommended
+
+    Microsoft* Windows* Systems
+        Intel(R) Core(TM) processor family
+        Intel(R) Xeon(R) processor family
+        Intel(R) Xeon Phi(TM) processor family
+    Linux* Systems
+        Intel(R) Core(TM) processor family
+        Intel(R) Xeon(R) processor family
+        Intel(R) Xeon Phi(TM) processor family
+    macOS* Systems
+        Intel(R) Core(TM) processor family
+    Android* Systems
+        Intel(R) Atom(TM) processor family
+
+Hardware - Supported
+
+    Intel(R) Pentium(R) 4 processor family
+    Intel(R) Xeon Phi(TM) coprocessor
+    Intel(R) Atom(TM) processor family
+    Non Intel(R) processors compatible with the above processors
+
+Software - Minimum Requirements
+
+    Supported operating system (see below)
+    Supported compiler (see below)
+
+Software - Recommended
+
+    Intel(R) Parallel Studio XE 2017, 2018
+    Intel(R) System Studio 2017, 2018
+
+Software - Supported Operating Systems
+
+    Systems with Microsoft* Windows* operating systems
+        Microsoft* Windows* 10
+        Microsoft* Windows* 8.1
+        Microsoft* Windows* 7 SP1
+        Microsoft* Windows* Server 2016
+        Microsoft* Windows* Server 2012 R2
+        Microsoft* Windows* Server 2008 R2 SP1
+        Windows* Embedded 10
+        Windows* Embedded 8.1
+    Systems with Linux* operating systems
+        CentOS 7.1
+        Debian* 8, 9
+        Fedora* 24, 25
+        Red Hat* Enterprise Linux* 7
+        SuSE* Linux* Enterprise Server 12
+        Ubuntu* 14.04 LTS, 16.04 LTS, 17.04
+        Yocto 2.2, 2.3
+    Systems with OS X* and macOS* operating systems
+        OS X* 10.10, 10.11
+        macOS* 10.12
+    Systems with Android* operating systems
+        Android* 5.x, 6.x, 7.x
+
+Software - Supported Compilers
+
+    Intel(R) C++ Compiler 16, 17 and 18 version
+    Microsoft* Visual C++ 14.0 (Microsoft* Visual Studio* 2015,
+        Windows* OS only)
+    Microsoft* Visual C++ 14.1 (Microsoft* Visual Studio* 2017,
+        Windows* OS only)
+    Microsoft* Windows* Software Development Kit for Windows* 10
+    For each supported Linux* operating system, the standard gcc
+        version provided with that operating system is supported
+            GNU Compilers (gcc) 4.8 - 7.1
+    Clang* 3.3 - 3.8
+    Xcode* 6.3 - 8.3
+    Android* NDK r13 - r15b
+
+Known Issues or limitations
+
+    unseq and par_unseq policies only have effect with compilers that
+        support '#pragma omp simd' or '#pragma simd'
+    Parallel and vector execution is only supported for a subset of
+        algorithms if random access iterators are provided, while for
+        the rest execution will remain serial.
+    Depending on a compiler, zip_iterator may not work with
+        unseq and par_unseq policies.
+
+------------------------------------------------------------------------
+
+Intel, the Intel logo, Intel Core, Intel Atom, Xeon, Intel Xeon Phi, and
+Pentium are trademarks of Intel Corporation in the U.S. and/or other
+countries.
+
+* Other names and brands may be claimed as the property of others.
