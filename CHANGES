@@ -1,4 +1,42 @@
 ------------------------------------------------------------------------
+The list of most significant changes made over time in Parallel STL.
+
+Parallel STL 20171127 release
+PSTL_VERSION == 102
+
+Features / APIs:
+
+- Added Parallel STL version macros:
+    PSTL_VERSION, PSTL_VERSION_MAJOR, PSTL_VERSION_MINOR.
+- More algorithms support parallel and vector execution policies:
+    move, partition_copy, mismatch.
+- More algorithms support parallel execution policies:
+    min_element, max_element, minmax_element.
+
+------------------------------------------------------------------------
+Parallel STL release within Intel(R) Parallel Studio XE 2018 Update 1
+
+Features / APIs:
+
+- More algorithms support parallel and vector execution policies:
+    destroy, destroy_n, uninitialized_copy, uninitialized_copy_n,
+    uninitialized_default_construct, uninitialized_default_construct_n,
+    uninitialized_fill, uninitialized_fill_n, uninitialized_move,
+    uninitialized_move_n, uninitialized_value_construct,
+    uninitialized_value_construct_n.
+- Improved performance in find_end and search algorithms.
+- Added macro PSTL_USE_NONTEMPORAL_STORES that can improve performance
+    of copy, copy_n, fill, fill_n, generate, generate_n algorithms with
+    unseq and par_unseq policies; by default the macro is not defined.
+
+Bugs fixed:
+
+- Fixed transform_inclusive_scan to correctly process the first element.
+- Fixed compile time error in sort algorithm when used with zip_iterator
+    and some other custom iterator types.
+- Fixed several algorithms to allow use of non-const functors.
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2018
 
 Features / APIs:

@@ -28,21 +28,16 @@
 #include <algorithm>
 
 #include "execution_policy_impl.h"
+#include "simd_impl.h"
 
-namespace __icp_algorithm {
-//------------------------------------------------------------------------
-// forward
-//------------------------------------------------------------------------
-template<class Index, class F>
-void parallel_for(Index first, Index last, F f);
-template<class Index, class Brick>
-Index parallel_first(Index first, Index last, Brick f);
-template<class Index, class Brick>
-bool parallel_or(Index first, Index last, Brick f);
-template<typename Index, typename T, typename R, typename C, typename S, typename A>
-void parallel_strict_scan(Index n, T initial, R reduce, C combine, S scan, A apex);
-template<typename RandomAccessIterator, typename Compare, typename LeafSort>
-void parallel_stable_sort(RandomAccessIterator xs, RandomAccessIterator xe, Compare comp, LeafSort leaf_sort);
+#if __PSTL_USE_TBB
+    #include "parallel_impl_tbb.h"
+#else
+    __PSTL_PRAGMA_MESSAGE("Backend was not specified");
+#endif
+
+namespace pstl {
+namespace internal {
 
 //------------------------------------------------------------------------
 // any_of
@@ -66,24 +61,35 @@ bool pattern_any_of( InputIterator first, InputIterator last, Pred pred, IsVecto
 
 template<class InputIterator, class Pred, class IsVector>
 bool pattern_any_of( InputIterator first, InputIterator last, Pred pred, IsVector is_vector, /*parallel=*/std::true_type ) {
-    return parallel_or( first, last,
-        [pred, is_vector](InputIterator i, InputIterator j) {return brick_any_of(i, j, pred, is_vector);} );
+    return except_handler([=]() {
+        return par_backend::parallel_or( first, last,
+            [pred, is_vector](InputIterator i, InputIterator j) {return brick_any_of(i, j, pred, is_vector);} );
+    });
 }
 
+
+// [alg.foreach]
+// for_each_n with no policy
+
+template<class InputIterator, class Size, class Function>
+InputIterator for_each_n_serial(InputIterator first, Size n, Function f) {
+    for(; n > 0; ++first, --n)
+        f(first);
+    return first;
+}
+
+template<class InputIterator, class Size, class Function>
+InputIterator for_each_n(InputIterator first, Size n, Function f) {
+    return for_each_n_serial(first, n, [&f](InputIterator it) { f(*it); });
+}
 
 //------------------------------------------------------------------------
 // walk1 (pseudo)
 //
-// walk1 evaluates f(x) for each x drawn from [first,last)
+// walk1 evaluates f(x) for each dereferenced value x drawn from [first,last)
 //------------------------------------------------------------------------
 template<class Iterator, class Function>
 void brick_walk1( Iterator first, Iterator last, Function f, /*vector=*/std::false_type ) noexcept {
-    for(; first!=last; ++first )
-        f(*first);
-}
-
-template<class T, class Function>
-void brick_walk1( T* __restrict first, T* __restrict last, Function f, /*vector=*/std::false_type ) noexcept {
     for(; first!=last; ++first )
         f(*first);
 }
@@ -101,41 +107,69 @@ void pattern_walk1( Iterator first, Iterator last, Function f, IsVector is_vecto
 
 template<class Iterator, class Function, class IsVector>
 void pattern_walk1( Iterator first, Iterator last, Function f, IsVector is_vector, /*parallel=*/std::true_type ) {
-    parallel_for( first, last, [f,is_vector](Iterator i, Iterator j) {
-        brick_walk1(i,j,f,is_vector);
+    except_handler([=]() {
+        par_backend::parallel_for( first, last, [f,is_vector](Iterator i, Iterator j) {
+            brick_walk1(i,j,f,is_vector);
+        });
+    });
+}
+
+template<class Iterator, class Brick>
+void pattern_walk_brick( Iterator first, Iterator last, Brick brick, /*parallel=*/std::false_type ) noexcept {
+    brick(first, last);
+}
+
+template<class Iterator, class Brick>
+void pattern_walk_brick( Iterator first, Iterator last, Brick brick, /*parallel=*/std::true_type ) {
+    except_handler([=]() {
+        par_backend::parallel_for( first, last, [brick](Iterator i, Iterator j) {
+            brick(i,j);
+        });
     });
 }
 
 
-// [alg.foreach]
-// for_each_n with no policy
-template<class InputIterator, class Size, class Function>
-InputIterator for_each_n(InputIterator first, Size n, Function f) {
-    for( ; n > 0; ++first, --n )
-        f(*first);
-    return first;
+//------------------------------------------------------------------------
+// it_walk1 (pseudo)
+//
+// it_walk1 evaluates f(it) for each iterator it drawn from [first,last)
+//------------------------------------------------------------------------
+template<class Iterator, class Function>
+void brick_it_walk1( Iterator first, Iterator last, Function f, /*vector=*/std::false_type ) noexcept {
+    for(; first!=last; ++first )
+        f(first);
+}
+
+template<class Iterator, class Function>
+void brick_it_walk1( Iterator first, Iterator last, Function f, /*vector=*/std::true_type ) noexcept {
+    simd_it_walk_1(first, last-first, f);
+}
+
+template<class Iterator, class Function, class IsVector>
+void pattern_it_walk1( Iterator first, Iterator last, Function f, IsVector is_vector, /*parallel=*/std::false_type ) noexcept {
+    brick_it_walk1( first, last, f, is_vector );
+}
+
+template<class Iterator, class Function, class IsVector>
+void pattern_it_walk1( Iterator first, Iterator last, Function f, IsVector is_vector, /*parallel=*/std::true_type ) {
+    except_handler([=]() {
+        par_backend::parallel_for( first, last, [f,is_vector](Iterator i, Iterator j) {
+            brick_it_walk1(i,j,f,is_vector);
+        });
+    });
 }
 
 //------------------------------------------------------------------------
 // walk1_n
 //------------------------------------------------------------------------
 template<class InputIterator, class Size, class Function>
-InputIterator brick_walk1_n(InputIterator first, Size n, Function f,
-                            /*IsVectorTag=*/std::false_type ) {
+InputIterator brick_walk1_n(InputIterator first, Size n, Function f, /*IsVectorTag=*/std::false_type ) {
     return for_each_n( first, n, f ); // calling serial version
 }
 
-template<class RandomAccessIterator, class Size, class Function>
-RandomAccessIterator brick_walk1_n( RandomAccessIterator first, Size n, Function f,
-                                    /*vectorTag=*/std::true_type ) noexcept(noexcept(f(first[0]))) {
-    RandomAccessIterator last = first + n;
-    RandomAccessIterator begin = first < last ? first : last;
-    RandomAccessIterator end = first < last ? last : first;
-    Size positive_n = end - begin;
-__PSTL_PRAGMA_SIMD
-    for( Size i = 0; i < positive_n; ++i )
-        f( begin[i] );
-    return end;
+template<class RandomAccessIterator, class DifferenceType, class Function>
+RandomAccessIterator brick_walk1_n( RandomAccessIterator first, DifferenceType n, Function f, /*vectorTag=*/std::true_type ) noexcept {
+    return simd_walk_1(first, n, f);
 }
 
 template<class InputIterator, class Size, class Function, class IsVector>
@@ -145,24 +179,57 @@ InputIterator pattern_walk1_n( InputIterator first, Size n, Function f, IsVector
 
 template<class RandomAccessIterator, class Size, class Function, class IsVector>
 RandomAccessIterator pattern_walk1_n( RandomAccessIterator first, Size n, Function f, IsVector is_vector, /*is_parallel=*/std::true_type ) {
-    RandomAccessIterator last = first + n;
-    parallel_for( first, last,
-                  [ &f, is_vector ]( RandomAccessIterator first, RandomAccessIterator last ) {
-                      brick_walk1_n( first, last - first, f, is_vector );
-                  } );
-    return last;
+    pattern_walk1(first, first + n, f, is_vector, std::true_type());
+    return first + n;
 }
 
+template<class InputIterator, class Size, class Brick>
+InputIterator pattern_walk_brick_n( InputIterator first, Size n, Brick brick, /*is_parallel=*/std::false_type ) noexcept {
+    return brick(first, n);
+}
+
+template<class RandomAccessIterator, class Size, class Brick>
+RandomAccessIterator pattern_walk_brick_n( RandomAccessIterator first, Size n, Brick brick, /*is_parallel=*/std::true_type ) {
+    return except_handler([=]() {
+        par_backend::parallel_for(first, first + n, [brick](RandomAccessIterator i, RandomAccessIterator j) {
+            brick(i, j-i);
+        });
+        return first + n;
+    });
+}
+
+
+
+template<class InputIterator, class Size, class Function>
+InputIterator brick_it_walk1_n(InputIterator first, Size n, Function f, /*IsVectorTag=*/std::false_type ) {
+    return for_each_n_serial(first, n, f); // calling serial version
+}
+
+template<class RandomAccessIterator, class DifferenceType, class Function>
+RandomAccessIterator brick_it_walk1_n( RandomAccessIterator first, DifferenceType n, Function f, /*vectorTag=*/std::true_type ) noexcept {
+    return simd_it_walk_1(first, n, f);
+}
+
+template<class InputIterator, class Size, class Function, class IsVector>
+InputIterator pattern_it_walk1_n( InputIterator first, Size n, Function f, IsVector is_vector, /*is_parallel=*/std::false_type ) noexcept {
+    return brick_it_walk1_n(first, n, f, is_vector);
+}
+
+template<class RandomAccessIterator, class Size, class Function, class IsVector>
+RandomAccessIterator pattern_it_walk1_n( RandomAccessIterator first, Size n, Function f, IsVector is_vector, /*is_parallel=*/std::true_type ) {
+    pattern_it_walk1(first, first + n, f, is_vector, std::true_type());
+    return first + n;
+}
 
 //------------------------------------------------------------------------
 // walk2 (pseudo)
 //
-// walk2 evaluates f(x,y) for (x,y) drawn from [first1,last1) and [first2,...)
+// walk2 evaluates f(x,y) for deferenced values (x,y) drawn from [first1,last1) and [first2,...)
 //------------------------------------------------------------------------
 template<class Iterator1, class Iterator2, class Function>
 Iterator2 brick_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::false_type ) noexcept {
     for(; first1!=last1; ++first1, ++first2 )
-        f(*first1,*first2);
+        f(*first1, *first2);
     return first2;
 }
 
@@ -170,6 +237,19 @@ template<class Iterator1, class Iterator2, class Function>
 Iterator2 brick_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
     return simd_walk_2(first1, last1-first1, first2, f);
 }
+
+template<class Iterator1, class Size, class Iterator2, class Function>
+Iterator2 brick_walk2_n( Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::false_type ) noexcept {
+    for(; n > 0; --n, ++first1, ++first2 )
+        f(*first1, *first2);
+    return first2;
+}
+
+template<class Iterator1, class Size, class Iterator2, class Function>
+Iterator2 brick_walk2_n(Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
+    return simd_walk_2(first1, n, first2, f);
+}
+
 
 
 template<class Iterator1, class Iterator2, class Function, class IsVector>
@@ -179,15 +259,120 @@ Iterator2 pattern_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Fu
 
 template<class Iterator1, class Iterator2, class Function, class IsVector>
 Iterator2 pattern_walk2(Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::true_type ) {
-    parallel_for(
-        first1, last1,
-        [f,first1,first2,is_vector](Iterator1 i, Iterator1 j) {
-            brick_walk2(i,j,first2+(i-first1),f,is_vector);
-        }
-    );
-    return first2+(last1-first1);
+    return except_handler([=]() {
+        par_backend::parallel_for(
+            first1, last1,
+            [f,first1,first2,is_vector](Iterator1 i, Iterator1 j) {
+                brick_walk2(i,j,first2+(i-first1),f,is_vector);
+            }
+        );
+        return first2+(last1-first1);
+    });
 }
 
+template<class Iterator1, class Size, class Iterator2, class Function, class IsVector>
+Iterator2 pattern_walk2_n( Iterator1 first1, Size n, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::false_type ) noexcept {
+    return brick_walk2_n(first1, n, first2, f, is_vector);
+}
+
+template<class Iterator1, class Size, class Iterator2, class Function, class IsVector>
+Iterator2 pattern_walk2_n(Iterator1 first1, Size n, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::true_type ) {
+    return pattern_walk2(first1, first1 + n, first2, f, is_vector, std::true_type());
+}
+
+template<class Iterator1, class Iterator2, class Brick>
+Iterator2 pattern_walk2_brick( Iterator1 first1, Iterator1 last1, Iterator2 first2, Brick brick, /*parallel=*/std::false_type ) noexcept {
+    return brick(first1,last1,first2);
+}
+
+template<class Iterator1, class Iterator2, class Brick>
+Iterator2 pattern_walk2_brick(Iterator1 first1, Iterator1 last1, Iterator2 first2, Brick brick, /*parallel=*/std::true_type ) {
+    return except_handler([=]() {
+        par_backend::parallel_for(
+            first1, last1,
+            [first1,first2, brick](Iterator1 i, Iterator1 j) {
+                brick(i,j,first2+(i-first1));
+            }
+        );
+        return first2+(last1-first1);
+    });
+}
+
+template<class Iterator1, class Size, class Iterator2, class Brick>
+Iterator2 pattern_walk2_brick_n(Iterator1 first1, Size n, Iterator2 first2, Brick brick, /*parallel=*/std::true_type ) {
+    return except_handler([=]() {
+        par_backend::parallel_for(
+            first1, first1+n,
+            [first1,first2, brick](Iterator1 i, Iterator1 j) {
+                brick(i, j-i, first2+(i-first1));
+            }
+        );
+        return first2 + n;
+    });
+}
+
+template<class Iterator1, class Size, class Iterator2, class Brick>
+Iterator2 pattern_walk2_brick_n( Iterator1 first1, Size n, Iterator2 first2, Brick brick, /*parallel=*/std::false_type ) noexcept {
+    return brick(first1, n, first2);
+}
+
+
+//------------------------------------------------------------------------
+// it_walk2 (pseudo)
+//
+// it_walk2 evaluates f(it1, it2) for iterators (it1, it2) drawn from [first1,last1) and [first2,...)
+//------------------------------------------------------------------------
+template<class Iterator1, class Iterator2, class Function>
+Iterator2 brick_it_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::false_type ) noexcept {
+    for(; first1!=last1; ++first1, ++first2 )
+        f(first1, first2);
+    return first2;
+}
+
+template<class Iterator1, class Iterator2, class Function>
+Iterator2 brick_it_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
+    return simd_it_walk_2(first1, last1-first1, first2, f);
+}
+
+template<class Iterator1, class Size, class Iterator2, class Function>
+Iterator2 brick_it_walk2_n( Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::false_type ) noexcept {
+    for(; n > 0; --n, ++first1, ++first2 )
+        f(first1, first2);
+    return first2;
+}
+
+template<class Iterator1, class Size, class Iterator2, class Function>
+Iterator2 brick_it_walk2_n(Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
+    return simd_it_walk_2(first1, n, first2, f);
+}
+
+template<class Iterator1, class Iterator2, class Function, class IsVector>
+Iterator2 pattern_it_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::false_type ) noexcept {
+    return brick_it_walk2(first1,last1,first2,f,is_vector);
+}
+
+template<class Iterator1, class Iterator2, class Function, class IsVector>
+Iterator2 pattern_it_walk2(Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::true_type ) {
+    return except_handler([=]() {
+        par_backend::parallel_for(
+            first1, last1,
+            [f,first1,first2,is_vector](Iterator1 i, Iterator1 j) {
+                brick_it_walk2(i,j,first2+(i-first1),f,is_vector);
+            }
+        );
+        return first2+(last1-first1);
+    });
+}
+
+template<class Iterator1, class Size, class Iterator2, class Function, class IsVector>
+Iterator2 pattern_it_walk2_n( Iterator1 first1, Size n, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::false_type ) noexcept {
+    return brick_it_walk2_n(first1, n, first2, f, is_vector);
+}
+
+template<class Iterator1, class Size, class Iterator2, class Function, class IsVector>
+Iterator2 pattern_it_walk2_n(Iterator1 first1, Size n, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::true_type ) {
+    return pattern_it_walk2(first1, first1 + n, first2, f, is_vector, std::true_type());
+}
 
 //------------------------------------------------------------------------
 // walk3 (pseudo)
@@ -214,13 +399,14 @@ Iterator3 pattern_walk3( Iterator1 first1, Iterator1 last1, Iterator2 first2, It
 
 template<class Iterator1, class Iterator2, class Iterator3, class Function, class IsVector>
 Iterator3 pattern_walk3(Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator3 first3, Function f, IsVector is_vector, /*parallel=*/std::true_type ) {
-    parallel_for(
-        first1, last1,
-        [f, first1, first2, first3, is_vector](Iterator1 i, Iterator1 j) {
-        brick_walk3(i, j, first2+(i-first1), first3+(i-first1), f, is_vector);
-    }
-    );
-    return first3+(last1-first1);
+    return except_handler([=]() {
+        par_backend::parallel_for(
+            first1, last1,
+            [f, first1, first2, first3, is_vector](Iterator1 i, Iterator1 j) {
+            brick_walk3(i, j, first2+(i-first1), first3+(i-first1), f, is_vector);
+        });
+        return first3+(last1-first1);
+    });
 }
 
 
@@ -244,39 +430,19 @@ InputIterator pattern_find_if( InputIterator first, InputIterator last, Predicat
 
 template<class InputIterator, class Predicate, class IsVector>
 InputIterator pattern_find_if( InputIterator first, InputIterator last, Predicate pred, IsVector is_vector, /*is_parallel=*/std::true_type ) {
-     return parallel_first( first, last, [pred,is_vector](InputIterator i, InputIterator j) {
-         return brick_find_if(i,j,pred,is_vector);
-     });
+    return except_handler([=]() {
+        return par_backend::parallel_first( first, last, [pred,is_vector](InputIterator i, InputIterator j) {
+            return brick_find_if(i,j,pred,is_vector);
+         });
+    });
 }
 
 //------------------------------------------------------------------------
 // find_end
 //------------------------------------------------------------------------
-template<class ForwardIt1, class ForwardIt2, class BinaryPredicate>
-ForwardIt1 search_serial(ForwardIt1 first, ForwardIt1 last, ForwardIt2 s_first, ForwardIt2 s_last, BinaryPredicate p, bool b_first) {
-    if(s_first == s_last)
-        return last;
-
-    ForwardIt1 result = last;
-    for(; first != last; ++first) {
-        auto it1 = first;
-        auto it2 = s_first;
-        for(; it2 != s_last && it1 != last; ++it2, ++it1) {
-            if(!p(*it1, *it2))
-                break;
-        }
-        if(it2 == s_last) {//subsequence was found
-            result = first;
-            if(b_first) //first occurrence semantic
-                break;
-        }
-    }
-    return result;
-}
-
 template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
 ForwardIterator1 brick_find_end(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred, /*is_vector=*/std::false_type) noexcept {
-    return search_serial(first, last, s_first, s_last, pred, false);
+    return std::find_end(first, last, s_first, s_last, pred);
 }
 
 template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
@@ -325,7 +491,7 @@ InputIterator pattern_find_first_of(InputIterator first, InputIterator last, For
 //------------------------------------------------------------------------
 template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
 ForwardIterator1 brick_search(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred, /*vector=*/std::false_type) noexcept {
-    return search_serial(first, last, s_first, s_last, pred, true);
+    return std::search(first, last, s_first, s_last, pred);
 }
 
 template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
@@ -379,23 +545,10 @@ OutputIterator brick_copy_n(InputIterator first, Size n, OutputIterator result, 
 
 template<class InputIterator, class Size, class OutputIterator>
 OutputIterator brick_copy_n(InputIterator first, Size n, OutputIterator result, /*vector=*/std::true_type) noexcept {
-    return simd_copy_n(first, n, result);
-}
-
-template<class InputIterator, class Size, class OutputIterator, class IsVector>
-OutputIterator pattern_copy_n(InputIterator first, Size n, OutputIterator result, IsVector is_vector, /*parallel=*/std::false_type) noexcept {
-    return brick_copy_n(first, n, result, is_vector);
-}
-
-template<class InputIterator, class Size, class OutputIterator, class IsVector>
-OutputIterator pattern_copy_n(InputIterator first, Size n, OutputIterator result, IsVector is_vector, /*parallel=*/std::true_type) {
-    parallel_for(
-        Size(0), n,
-        [first,result,is_vector](Size i, Size j) {
-            brick_copy_n(first+i, j-i, result+i, is_vector);
-        }
-    );
-    return result+n;
+    return simd_copy_move(first, n, result,
+        [](InputIterator first, OutputIterator result) {
+            *result = *first;
+    });
 }
 
 //------------------------------------------------------------------------
@@ -408,17 +561,26 @@ OutputIterator brick_copy(InputIterator first, InputIterator last, OutputIterato
 
 template<class InputIterator, class OutputIterator>
 OutputIterator brick_copy(InputIterator first, InputIterator last, OutputIterator result, /*vector=*/std::true_type) noexcept {
-    return brick_copy_n(first, last - first, result, std::true_type());
+    return simd_copy_move(first, last - first, result,
+        [](InputIterator first, OutputIterator result) {
+            *result = *first;
+    });
 }
 
-template<class InputIterator, class OutputIterator, class IsVector>
-OutputIterator pattern_copy(InputIterator first, InputIterator last, OutputIterator result, IsVector is_vector, /*parallel=*/std::false_type) noexcept {
-    return brick_copy(first, last, result, is_vector);
+//------------------------------------------------------------------------
+// move
+//------------------------------------------------------------------------
+template<class InputIterator, class OutputIterator>
+OutputIterator brick_move(InputIterator first, InputIterator last, OutputIterator result, /*vector=*/std::false_type) noexcept {
+    return std::move(first, last, result);
 }
 
-template<class InputIterator, class OutputIterator, class IsVector>
-OutputIterator pattern_copy(InputIterator first, InputIterator last, OutputIterator result, IsVector is_vector, /*parallel=*/std::true_type) {
-    return pattern_copy_n(first, last - first, result, is_vector, std::true_type());
+template<class InputIterator, class OutputIterator>
+OutputIterator brick_move(InputIterator first, InputIterator last, OutputIterator result, /*vector=*/std::true_type) noexcept {
+    return simd_copy_move(first, last - first, result,
+        [](InputIterator first, OutputIterator result) {
+        *result = std::move(*first);
+    });
 }
 
 //------------------------------------------------------------------------
@@ -440,24 +602,32 @@ OutputIterator brick_copy_if(InputIterator first, InputIterator last, OutputIter
 
 // TODO: Try to use transform_reduce for combining brick_copy_if_phase1 on IsVector.
 template<class DifferenceType, class InputIterator, class UnaryPredicate>
-DifferenceType brick_calc_mask_1(InputIterator first, InputIterator last, bool* __restrict mask, UnaryPredicate pred, /*vector=*/std::false_type) noexcept {
-    DifferenceType count = 0;
+std::pair<DifferenceType, DifferenceType> brick_calc_mask_1(
+    InputIterator first, InputIterator last, bool* __restrict mask, UnaryPredicate pred, /*vector=*/std::false_type) noexcept {
+    auto count_true  = DifferenceType(0);
+    auto count_false = DifferenceType(0);
+    auto size = std::distance(first, last);
+
     for (; first != last; ++first, ++mask) {
         *mask = pred(*first);
-        count += *mask;
+        if (*mask) {
+            ++count_true;
+        }
     }
-    return count;
+    return std::make_pair(count_true, size - count_true);
 }
 
 template<class DifferenceType, class InputIterator, class UnaryPredicate>
-DifferenceType brick_calc_mask_1(InputIterator first, InputIterator last, bool* __restrict mask, UnaryPredicate pred, /*vector=*/std::true_type) noexcept {
-    return simd_calc_mask_1(first, last-first, mask, pred);
+std::pair<DifferenceType, DifferenceType> brick_calc_mask_1(
+    InputIterator first, InputIterator last, bool* __restrict mask, UnaryPredicate pred, /*vector=*/std::true_type) noexcept {
+    auto result = simd_calc_mask_1(first, last - first, mask, pred);
+    return std::make_pair(result, (last - first) - result);
 }
 
 template<class InputIterator, class OutputIterator>
-void brick_copy_by_mask(InputIterator first, InputIterator last, OutputIterator result, bool* mask, /*vector=*/std::false_type ) noexcept {
-    for(;first!=last; ++first, ++mask) {
-        if( *mask ) {
+void brick_copy_by_mask(InputIterator first, InputIterator last, OutputIterator result, bool* mask, /*vector=*/std::false_type) noexcept {
+    for (; first != last; ++first, ++mask) {
+        if (*mask) {
             *result = *first;
             ++result;
         }
@@ -467,9 +637,35 @@ void brick_copy_by_mask(InputIterator first, InputIterator last, OutputIterator 
 template<class InputIterator, class OutputIterator>
 void brick_copy_by_mask(InputIterator first, InputIterator last, OutputIterator result, bool* __restrict mask, /*vector=*/std::true_type) noexcept {
 #if (__PSTL_MONOTONIC_PRESENT)
-    simd_copy_by_mask(first, last-first, result, mask);
+    simd_copy_by_mask(first, last - first, result, mask);
 #else
     brick_copy_by_mask(first, last, result, mask, std::false_type());
+#endif
+
+}
+
+template<class InputIterator, class OutputIterator1, class OutputIterator2>
+void brick_partition_by_mask(InputIterator first, InputIterator last, OutputIterator1 out_true,
+    OutputIterator2 out_false, bool* mask, /*vector=*/std::false_type) noexcept {
+    for (; first != last; ++first, ++mask) {
+        if (*mask) {
+            *out_true = *first;
+            ++out_true;
+        }
+        else {
+            *out_false = *first;
+            ++out_false;
+        }
+    }
+}
+
+template<class InputIterator, class OutputIterator1, class OutputIterator2>
+void brick_partition_by_mask(InputIterator first, InputIterator last, OutputIterator1 out_true,
+    OutputIterator2 out_false, bool* mask, /*vector=*/std::true_type) noexcept {
+#if (__PSTL_MONOTONIC_PRESENT)
+    simd_partition_by_mask(first, last - first, out_true, out_false, mask);
+#else
+    brick_partition_by_mask(first, last, out_true, out_false, mask, std::false_type());
 #endif
 
 }
@@ -482,28 +678,30 @@ OutputIterator pattern_copy_if(InputIterator first, InputIterator last, OutputIt
 template<class InputIterator, class OutputIterator, class UnaryPredicate, class IsVector>
 OutputIterator pattern_copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred, IsVector is_vector, /*parallel=*/std::true_type) {
     typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
-    difference_type n = last-first;
+    const difference_type n = last-first;
     if( difference_type(1) < n ) {
-        raw_buffer mask_buf(n*sizeof(bool));
+        par_backend::raw_buffer mask_buf(n*sizeof(bool));
         if( mask_buf ) {
-            bool* mask = static_cast<bool*>(mask_buf.get());
-            difference_type m;
-            parallel_strict_scan( n, difference_type(0),
-                [=](difference_type i, difference_type len) {                               // Reduce
-                    return brick_calc_mask_1<difference_type>(first+i, first+(i+len),
+            return except_handler([n, first, last, result, is_vector, pred, &mask_buf]() {
+                bool* mask = static_cast<bool*>(mask_buf.get());
+                difference_type m;
+                par_backend::parallel_strict_scan( n, difference_type(0),
+                    [=](difference_type i, difference_type len) {                               // Reduce
+                        return brick_calc_mask_1<difference_type>(first+i, first+(i+len),
                                                                  mask + i,
                                                                  pred,
-                                                                 is_vector);
-                },
-                std::plus<difference_type>(),                                               // Combine
-                [=](difference_type i, difference_type len, difference_type initial) {      // Scan
-                    brick_copy_by_mask(first+i, first+(i+len),
-                                                          result+initial,
-                                                          mask + i,
-                                                          is_vector);
-                },
-                [&m](difference_type total) {m=total;});
-            return result + m;
+                                                                 is_vector).first;
+                    },
+                    std::plus<difference_type>(),                                               // Combine
+                    [=](difference_type i, difference_type len, difference_type initial) {      // Scan
+                        brick_copy_by_mask(first+i, first+(i+len),
+                                                            result+initial,
+                                                            mask + i,
+                                                            is_vector);
+                    },
+                    [&m](difference_type total) {m=total;});
+                return result + m;
+            });
         }
     }
     // Out of memory or trivial sequence - use serial algorithm
@@ -577,39 +775,41 @@ DifferenceType brick_calc_mask_2(InputIterator first, InputIterator last, bool* 
 template<class InputIterator, class OutputIterator, class BinaryPredicate, class IsVector>
 OutputIterator pattern_unique_copy(InputIterator first, InputIterator last, OutputIterator result, BinaryPredicate pred, IsVector is_vector, /*parallel=*/std::true_type) {
     typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
-    difference_type n = last-first;
+    const difference_type n = last-first;
     if( difference_type(2)<n ) {
-        raw_buffer mask_buf(n*sizeof(bool));
+        par_backend::raw_buffer mask_buf(n*sizeof(bool));
         if( difference_type(2)<n && mask_buf ) {
-            bool* mask = static_cast<bool*>(mask_buf.get());
-            difference_type m;
-            parallel_strict_scan( n, difference_type(0),
-                [=](difference_type i, difference_type len) -> difference_type {          // Reduce
-                    difference_type extra = 0;
-                    if( i==0 ) {
-                        // Special boundary case
-                        mask[i] = true;
-                        if( --len==0 ) return 1;
-                        ++i;
-                        ++extra;
-                    }
-                    return brick_calc_mask_2<difference_type>(
-                        first+i, first+(i+len),
-                        mask + i,
-                        pred,
-                        is_vector) + extra;
-                },
-                std::plus<difference_type>(),                                               // Combine
-                [=](difference_type i, difference_type len, difference_type initial) {      // Scan
-                    // Phase 2 is same as for pattern_copy_if
-                    brick_copy_by_mask(
-                        first+i, first+(i+len),
-                        result+initial,
-                        mask + i,
-                        is_vector);
-                },
-                [&m](difference_type total) {m=total;});
-            return result + m;
+            return except_handler([n, first, result, pred, is_vector, &mask_buf]() {
+                bool* mask = static_cast<bool*>(mask_buf.get());
+                difference_type m;
+                par_backend::parallel_strict_scan( n, difference_type(0),
+                    [=](difference_type i, difference_type len) -> difference_type {          // Reduce
+                        difference_type extra = 0;
+                        if( i==0 ) {
+                            // Special boundary case
+                            mask[i] = true;
+                            if( --len==0 ) return 1;
+                            ++i;
+                            ++extra;
+                        }
+                        return brick_calc_mask_2<difference_type>(
+                            first+i, first+(i+len),
+                            mask + i,
+                            pred,
+                            is_vector) + extra;
+                    },
+                    std::plus<difference_type>(),                                               // Combine
+                    [=](difference_type i, difference_type len, difference_type initial) {      // Scan
+                        // Phase 2 is same as for pattern_copy_if
+                        brick_copy_by_mask(
+                            first+i, first+(i+len),
+                            result+initial,
+                            mask + i,
+                            is_vector);
+                    },
+                    [&m](difference_type total) {m=total;});
+                return result + m;
+            });
         }
     }
     // Out of memory or trivial sequence - use serial algorithm
@@ -626,7 +826,7 @@ ForwardIterator2 brick_swap_ranges(ForwardIterator1 first1, ForwardIterator1 las
 }
 
 template<class ForwardIterator1, class ForwardIterator2>
-ForwardIterator2 brick_swap_ranges(ForwardIterator1 first1, ForwardIterator2 last1, ForwardIterator2 first2, /*is_vector=*/std::true_type) noexcept {
+ForwardIterator2 brick_swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, /*is_vector=*/std::true_type) noexcept {
     __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
     return std::swap_ranges(first1, last1, first2);
 }
@@ -723,15 +923,13 @@ OutputIterator pattern_reverse_copy(BidirectionalIterator first, BidirectionalIt
 //------------------------------------------------------------------------
 // rotate
 //------------------------------------------------------------------------
-
 template<class ForwardIterator>
 ForwardIterator brick_rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last, /*is_vector=*/std::false_type) noexcept {
-
 #if __PSTL_CPP11_STD_ROTATE_BROKEN
-    std::rotate(first, middle, last);   
+    std::rotate(first, middle, last);
     return std::next(first, std::distance(middle, last));
 #else
-    return std::rotate(first, middle, last);   
+    return std::rotate(first, middle, last);
 #endif
 }
 
@@ -871,8 +1069,11 @@ brick_partition_copy(InputIterator first, InputIterator last, OutputIterator1 ou
 template<class InputIterator, class OutputIterator1, class OutputIterator2, class UnaryPredicate>
 std::pair<OutputIterator1, OutputIterator2>
 brick_partition_copy(InputIterator first, InputIterator last, OutputIterator1 out_true, OutputIterator2 out_false, UnaryPredicate pred, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return brick_partition_copy(first, last, out_true, out_false, pred, std::false_type());
+#if (__PSTL_MONOTONIC_PRESENT)
+    return simd_partition_copy(first, last - first, out_true, out_false, pred);
+#else
+    return std::partition_copy(first, last, out_true, out_false, pred);
+#endif
 }
 
 
@@ -885,7 +1086,38 @@ pattern_partition_copy(InputIterator first, InputIterator last, OutputIterator1 
 template<class InputIterator, class OutputIterator1, class OutputIterator2, class UnaryPredicate, class IsVector>
 std::pair<OutputIterator1, OutputIterator2>
 pattern_partition_copy(InputIterator first, InputIterator last, OutputIterator1 out_true, OutputIterator2 out_false, UnaryPredicate pred, IsVector is_vector, /*is_parallelization=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
+    typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
+    typedef std::pair<difference_type, difference_type> return_type;
+    const difference_type n = last - first;
+    if (difference_type(1) < n) {
+        par_backend::raw_buffer mask_buf(n * sizeof(bool));
+        if (mask_buf) {
+            return except_handler([n, first, last, out_true, out_false, is_vector, pred, &mask_buf]() {
+                bool* mask = static_cast<bool*>(mask_buf.get());
+                return_type m;
+                par_backend::parallel_strict_scan(n, std::make_pair(difference_type(0), difference_type(0)),
+                    [=](difference_type i, difference_type len) {                             // Reduce
+                    return brick_calc_mask_1<difference_type>(first + i, first + (i + len),
+                        mask + i,
+                        pred,
+                        is_vector);
+                },
+                    [](const return_type& x, const return_type& y)-> return_type {
+                    return std::make_pair(x.first + y.first, x.second + y.second);
+                },                                                                            // Combine
+                    [=](difference_type i, difference_type len, return_type initial) {        // Scan
+                    brick_partition_by_mask(first + i, first + (i + len),
+                        out_true + initial.first,
+                        out_false + initial.second,
+                        mask + i,
+                        is_vector);
+                },
+                    [&m](return_type total) {m = total; });
+                return std::make_pair(out_true + m.first, out_false + m.second);
+            });
+        }
+    }
+    // Out of memory or trivial sequence - use serial algorithm
     return brick_partition_copy(first, last, out_true, out_false, pred, is_vector);
 }
 
@@ -901,9 +1133,11 @@ void pattern_sort(RandomAccessIterator first, RandomAccessIterator last, Compare
 
 template<class RandomAccessIterator, class Compare, class IsVector>
 void pattern_sort(RandomAccessIterator first, RandomAccessIterator last, Compare comp, IsVector /*is_vector*/, /*is_parallel=*/std::true_type, /*is_move_constructible=*/std::true_type ) {
-    parallel_stable_sort(first, last, comp,
-        [](RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
-        std::sort(first, last, comp);
+    except_handler([=]() {
+        par_backend::parallel_stable_sort(first, last, comp,
+            [](RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
+            std::sort(first, last, comp);
+        });
     });
 }
 
@@ -918,9 +1152,11 @@ void pattern_stable_sort(RandomAccessIterator first, RandomAccessIterator last, 
 
 template<class RandomAccessIterator, class Compare, class IsVector>
 void pattern_stable_sort(RandomAccessIterator first, RandomAccessIterator last, Compare comp, IsVector /*is_vector*/, /*is_parallel=*/std::true_type) {
-    parallel_stable_sort(first, last, comp,
-        [](RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
-        std::stable_sort(first, last, comp);
+    except_handler([=]() {
+        par_backend::parallel_stable_sort(first, last, comp,
+            [](RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
+            std::stable_sort(first, last, comp);
+        });
     });
 }
 
@@ -987,12 +1223,21 @@ bool brick_equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 fir
 
 template<class InputIterator1, class InputIterator2, class BinaryPredicate>
 bool brick_equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate p, /* is_vector = */ std::true_type) noexcept {
-    return simd_first(first1, last1-first1, first2, __icp_algorithm::not_pred<BinaryPredicate>(p)) == last1;
+    return simd_first(first1, last1-first1, first2, not_pred<BinaryPredicate>(p)).first == last1;
 }
 
 template<class InputIterator1, class InputIterator2, class BinaryPredicate, class IsVector>
 bool pattern_equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate p, IsVector is_vector, /* is_parallel = */ std::false_type) noexcept {
     return brick_equal(first1, last1, first2, p, is_vector);
+}
+
+template<class InputIterator1, class InputIterator2, class BinaryPredicate, class IsVector>
+bool pattern_equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate p, IsVector vec, /*is_parallel=*/std::true_type) {
+    return except_handler([=]() {
+        return !par_backend::parallel_or(first1, last1,
+            [first1, first2, p, vec](InputIterator1 i, InputIterator1 j) {return !brick_equal(i, j,
+                first2 + (i - first1), p, vec); });
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1016,6 +1261,20 @@ pattern_count(InputIterator first, InputIterator last, Predicate pred, /* is_par
     return brick_count(first, last, pred, vec);
 }
 
+template<class InputIterator, class Predicate, class IsVector>
+typename std::iterator_traits<InputIterator>::difference_type
+pattern_count(InputIterator first, InputIterator last, Predicate pred, /* is_parallel */ std::true_type, IsVector vec) {
+    typedef typename std::iterator_traits<InputIterator>::difference_type size_type;
+    return except_handler([=]() {
+        return par_backend::parallel_reduce(first, last, size_type(0),
+            [pred, vec](InputIterator begin, InputIterator end, size_type value)->size_type {
+            return value + brick_count(begin, end, pred, vec);
+            },
+            std::plus<size_type>()
+        );
+    });
+}
+
 //------------------------------------------------------------------------
 // adjacent_find
 //------------------------------------------------------------------------
@@ -1032,6 +1291,42 @@ ForwardIt brick_adjacent_find(ForwardIt first, ForwardIt last, BinaryPredicate p
 template<class ForwardIt, class BinaryPredicate, class IsVector>
 ForwardIt pattern_adjacent_find(ForwardIt first, ForwardIt last, BinaryPredicate pred, /* is_parallel */ std::false_type, IsVector vec, bool or_semantic) noexcept {
     return brick_adjacent_find(first, last, pred, vec, or_semantic);
+}
+
+template<class ForwardIt, class BinaryPredicate, class IsVector>
+ForwardIt pattern_adjacent_find(ForwardIt first, ForwardIt last, BinaryPredicate pred, /* is_parallel */ std::true_type, IsVector vec, bool or_semantic) {
+    if (last - first < 2)
+        return last;
+
+    return except_handler([=]() {
+        return par_backend::parallel_reduce(first, last, last,
+            [last, pred, vec, or_semantic](ForwardIt begin, ForwardIt end, ForwardIt value)->ForwardIt {
+
+            // TODO: investigate performance benefits from the use of shared variable for the result,
+            // checking (compare_and_swap idiom) its value at first.
+            if (or_semantic && value < last) {//found
+                par_backend::cancel_execution();
+                return value;
+            }
+
+            if (value > begin) {
+                // modify end to check the predicate on the boundary values;
+                // TODO: to use a custom range with boundaries overlapping
+                // TODO: investigate what if we remove "if" below and run algorithm on range [first, last-1)
+                // then check the pair [last-1, last)
+                if (end != last) 
+                    ++end;
+
+                //correct the global result iterator if the "brick" returns a local "last"
+                const ForwardIt res = brick_adjacent_find(begin, end, pred, vec, or_semantic);
+                if (res < end)
+                    value = res;
+            }
+            return value;
+        },
+            [](ForwardIt x, ForwardIt y)->ForwardIt { return x < y ? x : y; } //reduce a value
+        );
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1078,9 +1373,18 @@ void pattern_fill(ForwardIterator first, ForwardIterator last, const T& value, /
     brick_fill(first, last, value, vec);
 }
 
+template<class ForwardIterator, class T, class IsVector>
+ForwardIterator pattern_fill(ForwardIterator first, ForwardIterator last, const T& value, /*is_parallel=*/std::true_type, IsVector vec) {
+    return except_handler([=]() {
+        par_backend::parallel_for(first, last, [&value, vec](ForwardIterator begin, ForwardIterator end) {
+            brick_fill(begin, end, value, vec); });
+        return last;
+    });
+}
+
 template<class OutputIterator, class Size, class T>
 OutputIterator brick_fill_n(OutputIterator first, Size count, const T& value, /* is_vector = */ std::true_type) noexcept {
-    return simd_fill_n(first, count, value);;
+    return simd_fill_n(first, count, value);
 }
 
 template<class OutputIterator, class Size, class T>
@@ -1091,6 +1395,11 @@ OutputIterator brick_fill_n(OutputIterator first, Size count, const T& value, /*
 template<class OutputIterator, class Size, class T, class IsVector>
 OutputIterator pattern_fill_n(OutputIterator first, Size count, const T& value, /*is_parallel=*/std::false_type, IsVector vec) noexcept {
     return brick_fill_n(first, count, value, vec);
+}
+
+template<class OutputIterator, class Size, class T, class IsVector>
+OutputIterator pattern_fill_n(OutputIterator first, Size count, const T& value, /*is_parallel=*/std::true_type, IsVector vec) {
+    return pattern_fill(first, first + count, value, std::true_type(), vec);
 }
 
 //------------------------------------------------------------------------
@@ -1111,6 +1420,15 @@ void pattern_generate(ForwardIterator first, ForwardIterator last, Generator g, 
     brick_generate(first, last, g, vec);
 }
 
+template<class ForwardIterator, class Generator, class IsVector>
+ForwardIterator pattern_generate(ForwardIterator first, ForwardIterator last, Generator g, /*is_parallel=*/std::true_type, IsVector vec) {
+    return except_handler([=]() {
+        par_backend::parallel_for(first, last, [g, vec](ForwardIterator begin, ForwardIterator end) {
+            brick_generate(begin, end, g, vec); });
+        return last;
+    });
+}
+
 template<class OutputIterator, class Size, class Generator>
 OutputIterator brick_generate_n(OutputIterator first, Size count, Generator g, /* is_vector = */ std::true_type) noexcept {
     return simd_generate_n(first, count, g);
@@ -1124,6 +1442,11 @@ OutputIterator brick_generate_n(OutputIterator first, Size count, Generator g, /
 template<class OutputIterator, class Size, class Generator, class IsVector>
 OutputIterator pattern_generate_n(OutputIterator first, Size count, Generator g, /*is_parallel=*/std::false_type, IsVector vec) noexcept {
     return brick_generate_n(first, count, g, vec);
+}
+
+template<class OutputIterator, class Size, class Generator, class IsVector>
+OutputIterator pattern_generate_n(OutputIterator first, Size count, Generator g, /*is_parallel=*/std::true_type, IsVector vec) {
+    return pattern_generate(first, first + count, g, std::true_type(), vec);
 }
 
 //------------------------------------------------------------------------
@@ -1365,78 +1688,80 @@ RandomAccessIterator pattern_is_heap_until(RandomAccessIterator first, RandomAcc
 // min_element
 //------------------------------------------------------------------------
 
-template <class ForwardIterator, class Compare>
+template <typename ForwardIterator, typename Compare>
 ForwardIterator brick_min_element(ForwardIterator first, ForwardIterator last, Compare comp, /* is_vector = */ std::false_type) noexcept {
     return std::min_element(first, last, comp);
 }
 
-template <class ForwardIterator, class Compare>
+template <typename ForwardIterator, typename Compare>
 ForwardIterator brick_min_element(ForwardIterator first, ForwardIterator last, Compare comp, /* is_vector = */ std::true_type) noexcept {
     __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
     return std::min_element(first, last, comp);
 }
 
-template <class ForwardIterator, class Compare, class IsVector>
+template <typename ForwardIterator, typename Compare, typename IsVector>
 ForwardIterator pattern_min_element(ForwardIterator first, ForwardIterator last, Compare comp, IsVector is_vector, /* is_parallel = */ std::false_type) noexcept {
     return brick_min_element(first, last, comp, is_vector);
 }
 
-template <class ForwardIterator, class Compare, class IsVector>
+template <typename ForwardIterator, typename Compare, typename IsVector>
 ForwardIterator pattern_min_element(ForwardIterator first, ForwardIterator last, Compare comp, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_min_element(first, last, comp, is_vector);
-}
+    if(first == last)
+        return last;
 
-//------------------------------------------------------------------------
-// max_element
-//------------------------------------------------------------------------
-
-template <class ForwardIterator, class Compare>
-ForwardIterator brick_max_element(ForwardIterator first, ForwardIterator last, Compare comp, /* is_vector = */ std::false_type) noexcept {
-    return std::max_element(first, last, comp);
-}
-
-template <class ForwardIterator, class Compare>
-ForwardIterator brick_max_element(ForwardIterator first, ForwardIterator last, Compare comp, /* is_vector = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::max_element(first, last, comp);
-}
-
-template <class ForwardIterator, class Compare, class IsVector>
-ForwardIterator pattern_max_element(ForwardIterator first, ForwardIterator last, Compare comp, IsVector is_vector, /* is_parallel = */ std::false_type) noexcept {
-    return brick_max_element(first, last, comp, is_vector);
-}
-
-template <class ForwardIterator, class Compare, class IsVector>
-ForwardIterator pattern_max_element(ForwardIterator first, ForwardIterator last, Compare comp, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_max_element(first, last, comp, is_vector);
+    return except_handler([=]() {
+        return par_backend::parallel_reduce(
+            first + 1, last, first,
+            [=](ForwardIterator begin, ForwardIterator end, ForwardIterator init) -> ForwardIterator {
+                const ForwardIterator subresult = brick_min_element(begin, end, comp, is_vector);
+                return cmp_iterators_by_values(init, subresult, comp);
+            },
+            [=](ForwardIterator it1, ForwardIterator it2) -> ForwardIterator {
+                return cmp_iterators_by_values(it1, it2, comp);
+            }
+        );
+    });
 }
 
 //------------------------------------------------------------------------
 // minmax_element
 //------------------------------------------------------------------------
 
-template <class ForwardIterator, class Compare>
+template <typename ForwardIterator, typename Compare>
 std::pair<ForwardIterator, ForwardIterator> brick_minmax_element(ForwardIterator first, ForwardIterator last, Compare comp, /* is_vector = */ std::false_type) noexcept {
     return std::minmax_element(first, last, comp);
 }
 
-template <class ForwardIterator, class Compare>
+template <typename ForwardIterator, typename Compare>
 std::pair<ForwardIterator, ForwardIterator> brick_minmax_element(ForwardIterator first, ForwardIterator last, Compare comp, /* is_vector = */ std::true_type) noexcept {
     __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
     return std::minmax_element(first, last, comp);
 }
 
-template <class ForwardIterator, class Compare, class IsVector>
+template <typename ForwardIterator, typename Compare, typename IsVector>
 std::pair<ForwardIterator, ForwardIterator> pattern_minmax_element(ForwardIterator first, ForwardIterator last, Compare comp, IsVector is_vector, /* is_parallel = */ std::false_type) noexcept {
     return brick_minmax_element(first, last, comp, is_vector);
 }
 
-template <class ForwardIterator, class Compare, class IsVector>
+template <typename ForwardIterator, typename Compare, typename IsVector>
 std::pair<ForwardIterator, ForwardIterator> pattern_minmax_element(ForwardIterator first, ForwardIterator last, Compare comp, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_minmax_element(first, last, comp, is_vector);
+    if(first == last)
+        return std::make_pair(first, first);
+
+    return except_handler([=]() {
+        typedef std::pair<ForwardIterator, ForwardIterator> result_t;
+
+        return par_backend::parallel_reduce(
+            first + 1, last, std::make_pair(first, first),
+            [=](ForwardIterator begin, ForwardIterator end, result_t init) -> result_t {
+                const result_t subresult = brick_minmax_element(begin, end, comp, is_vector);
+                return std::make_pair(cmp_iterators_by_values(subresult.first, init.first, comp), cmp_iterators_by_values(init.second, subresult.second, not_pred<Compare>(comp)));
+            },
+            [=](result_t p1, result_t p2) -> result_t {
+                return std::make_pair(cmp_iterators_by_values(p1.first, p2.first, comp), cmp_iterators_by_values(p2.second, p1.second, not_pred<Compare>(comp)));
+            }
+        );
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1444,8 +1769,12 @@ std::pair<ForwardIterator, ForwardIterator> pattern_minmax_element(ForwardIterat
 //------------------------------------------------------------------------
 template<class InputIterator1, class InputIterator2, class BinaryPredicate>
 std::pair<InputIterator1, InputIterator2> mismatch_serial(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, BinaryPredicate pred) {
+#if __PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT
+    return std::mismatch(first1, last1, first2, last2, pred);
+#else
     for (; first1 != last1 && first2 != last2 && pred(*first1, *first2); ++first1,++first2){ }
-    return std::pair<InputIterator1, InputIterator2>(first1, first2);
+    return std::make_pair(first1, first2);
+#endif
 }
 
 template <class InputIterator1, class InputIterator2, class Predicate>
@@ -1455,8 +1784,8 @@ std::pair<InputIterator1, InputIterator2> brick_mismatch(InputIterator1 first1, 
 
 template <class InputIterator1, class InputIterator2, class Predicate>
 std::pair<InputIterator1, InputIterator2> brick_mismatch(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Predicate pred, /* is_vector = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return mismatch_serial(first1, last1, first2, last2, pred);
+    auto n = std::min(last1 - first1, last2 - first2);
+    return simd_first(first1, n, first2, not_pred<Predicate>(pred));
 }
 
 template <class InputIterator1, class InputIterator2, class Predicate, class IsVector>
@@ -1466,8 +1795,13 @@ std::pair<InputIterator1, InputIterator2> pattern_mismatch(InputIterator1 first1
 
 template <class InputIterator1, class InputIterator2, class Predicate, class IsVector>
 std::pair<InputIterator1, InputIterator2> pattern_mismatch(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Predicate pred, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_mismatch(first1, last1, first2, last2, pred, is_vector);
+    return except_handler([=]() {
+        auto n = std::min(last1 - first1, last2 - first2);
+        auto result = par_backend::parallel_first(first1, first1+n, [first1, first2, pred, is_vector](InputIterator1 i, InputIterator1 j) {
+            return brick_mismatch(i, j, first2 + (i - first1), first2 + (j - first1), pred, is_vector).first;
+        });
+        return std::make_pair(result, first2 + (result - first1));
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1496,32 +1830,7 @@ bool pattern_lexicographical_compare(InputIterator1 first1, InputIterator1 last1
     return brick_lexicographical_compare(first1, last1, first2, last2, comp, is_vector);
 }
 
-//------------------------------------------------------------------------
-// move
-//------------------------------------------------------------------------
-
-template <class InputIterator, class OutputIterator>
-OutputIterator brick_move(InputIterator first, InputIterator last, OutputIterator d_first, /* is_vector = */ std::false_type) noexcept {
-    return std::move(first, last, d_first);
-}
-
-template <class InputIterator, class OutputIterator>
-OutputIterator brick_move(InputIterator first, InputIterator last, OutputIterator d_first, /* is_vector = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::move(first, last, d_first);
-}
-
-template <class InputIterator, class OutputIterator, class IsVector>
-OutputIterator pattern_move(InputIterator first, InputIterator last, OutputIterator d_first, IsVector is_vector, /* is_parallel = */ std::false_type) noexcept {
-    return brick_move(first, last, d_first, is_vector);
-}
-
-template <class InputIterator, class OutputIterator, class IsVector>
-OutputIterator pattern_move(InputIterator first, InputIterator last, OutputIterator d_first, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_move(first, last, d_first, is_vector);
-}
-
-} // namespace __icp_algorithm
+} // namespace internal
+} // namespace pstl
 
 #endif /* __PSTL_algorithm_impl_H */

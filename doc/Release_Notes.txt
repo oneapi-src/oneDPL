@@ -8,8 +8,8 @@ System Requirements
 Parallel STL is available as a part of Intel(R) Parallel Studio XE 2018
     and Intel(R) System Studio 2018.
 
-    Parallel STL distributions are validated and officially supported for
-the hardware, software, operating systems and compilers listed here.
+    Parallel STL distributions are validated and officially supported
+for the hardware, software, operating systems and compilers listed here.
 
 Hardware - Recommended
 
@@ -71,6 +71,9 @@ Software - Supported Operating Systems
 Software - Supported Compilers
 
     Intel(R) C++ Compiler 16, 17 and 18 version
+        Note: Using Intel C++ Compiler 18.0 might result
+        in better performance for many of Parallel STL algorithms,
+        comparing to previous compiler versions.
     Microsoft* Visual C++ 14.0 (Microsoft* Visual Studio* 2015,
         Windows* OS only)
     Microsoft* Visual C++ 14.1 (Microsoft* Visual Studio* 2017,
@@ -95,8 +98,8 @@ Known Issues or limitations
 
 ------------------------------------------------------------------------
 
-Intel, the Intel logo, Intel Core, Intel Atom, Xeon, Intel Xeon Phi, and
-Pentium are trademarks of Intel Corporation in the U.S. and/or other
-countries.
+Intel, the Intel logo, Intel Core, Intel Atom, Xeon, Intel Xeon Phi,
+and Pentium are trademarks of Intel Corporation in the U.S. and/or
+other countries.
 
 * Other names and brands may be claimed as the property of others.

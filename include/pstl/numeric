@@ -23,141 +23,128 @@
 
 #include <functional>
 
-#include "_internal/pstl_config.h"
-#include "_internal/common.h"
-#include "_internal/numeric_impl.h"
-#if __PSTL_USE_TBB
-#include "_internal/parallel_impl_tbb.h"
-#else
-    __PSTL_PRAGMA_MESSAGE("Backend was not specified");
-#endif
+#include "internal/pstl_config.h"
+#include "internal/common.h"
+#include "internal/numeric_impl.h"
 
 namespace std {
 
 // [reduce]
 
 template<class ExecutionPolicy, class InputIterator, class T, class BinaryOperation>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,T>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,T>
 reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last, T init, BinaryOperation binary_op) {
-    return transform_reduce(exec, first, last, init, binary_op, __icp_algorithm::no_op());
+    return transform_reduce(exec, first, last, init, binary_op, pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class T>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,T>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,T>
 reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last, T init) {
-    return transform_reduce(exec, first, last, init, std::plus<T>(), __icp_algorithm::no_op());
+    return transform_reduce(exec, first, last, init, std::plus<T>(), pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,typename iterator_traits<InputIterator>::value_type>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,typename iterator_traits<InputIterator>::value_type>
 reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last) {
     typedef typename decay<typename iterator_traits<InputIterator>::value_type>::type T;
-    return transform_reduce(exec, first, last, T{}, std::plus<T>(), __icp_algorithm::no_op());
+    return transform_reduce(exec, first, last, T{}, std::plus<T>(), pstl::internal::no_op());
 }
 
 // [transform.reduce]
 
 template <class ExecutionPolicy, class InputIterator1, class InputIterator2, class T>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, T>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy, T>
 transform_reduce(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init) {
     typedef typename iterator_traits<InputIterator1>::value_type input_type;
-    return __icp_algorithm::pattern_transform_reduce(first1, last1, first2, init, std::plus<input_type>(), std::multiplies<input_type>(),
-        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
-        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
+    using namespace pstl::internal;
+    return pattern_transform_reduce(first1, last1, first2, init, std::plus<input_type>(), std::multiplies<input_type>(),
+        is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
+        is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
 }
 
 template <class ExecutionPolicy, class InputIterator1, class InputIterator2, class T, class BinaryOperation1, class BinaryOperation2>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, T>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy, T>
 transform_reduce(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, BinaryOperation1 binary_op1, BinaryOperation2 binary_op2) {
-    return __icp_algorithm::pattern_transform_reduce(first1, last1, first2, init, binary_op1, binary_op2,
-        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
-        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
+    using namespace pstl::internal;
+    return pattern_transform_reduce(first1, last1, first2, init, binary_op1, binary_op2,
+        is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
+        is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
 }
 
 template<class ExecutionPolicy, class InputIterator, class T, class BinaryOperation, class UnaryOperation>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,T>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,T>
 transform_reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last, T init, BinaryOperation binary_op, UnaryOperation unary_op) {
-    return __icp_algorithm::pattern_transform_reduce(first, last, init, binary_op, unary_op,
-        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec),
-        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec));
+    using namespace pstl::internal;
+    return pattern_transform_reduce(first, last, init, binary_op, unary_op,
+        is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec),
+        is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec));
 }
 
 // [exclusive.scan]
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 exclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, T init) {
-    return transform_exclusive_scan(exec, first, last, result, init, std::plus<T>(), __icp_algorithm::no_op());
+    return transform_exclusive_scan(exec, first, last, result, init, std::plus<T>(), pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T, class BinaryOperation>
 OutputIterator exclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, T init, BinaryOperation binary_op) {
-    return transform_exclusive_scan(exec, first, last, result, init, binary_op, __icp_algorithm::no_op());
+    return transform_exclusive_scan(exec, first, last, result, init, binary_op, pstl::internal::no_op());
 }
 
 // [inclusive.scan]
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 inclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result) {
     typedef typename iterator_traits<InputIterator>::value_type input_type;
-
-    if( first!=last ) {
-        auto tmp = *first;
-        *result = tmp;
-        return transform_inclusive_scan(exec, ++first, last, ++result, std::plus<input_type>(), __icp_algorithm::no_op(), tmp);
-    } else {
-        return result;
-    }
+    return transform_inclusive_scan(exec, first, last, result, std::plus<input_type>(), pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class BinaryOperation>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 inclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op) {
-    if( first!=last ) {
-        auto tmp = *first;
-        *result = tmp;
-        return transform_inclusive_scan(exec, ++first, last, ++result, binary_op, __icp_algorithm::no_op(), tmp);
-    } else {
-        return result;
-    }
+    return transform_inclusive_scan(exec, first, last, result, binary_op, pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T, class BinaryOperation>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 inclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op, T init) {
-    return transform_inclusive_scan(exec, first, last, result, binary_op, __icp_algorithm::no_op(), init);
+    return transform_inclusive_scan(exec, first, last, result, binary_op, pstl::internal::no_op(), init);
 }
 
 // [transform.exclusive.scan]
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T, class BinaryOperation, class UnaryOperation>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 transform_exclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, T init, BinaryOperation binary_op, UnaryOperation unary_op) {
-    return __icp_algorithm::pattern_transform_scan(
+    using namespace pstl::internal;
+    return pattern_transform_scan(
         first, last, result, unary_op, init, binary_op,
         /*inclusive=*/std::false_type(),
-        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
-        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
+        is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
+        is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
 }
 
 // [transform.inclusive.scan]
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class BinaryOperation, class UnaryOperation, class T>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 transform_inclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op, UnaryOperation unary_op, T init) {
-    return __icp_algorithm::pattern_transform_scan(
+    using namespace pstl::internal;
+    return pattern_transform_scan(
         first, last, result, unary_op, init, binary_op,
         /*inclusive=*/std::true_type(),
-        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
-        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
+        is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
+        is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class UnaryOperation, class BinaryOperation>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 transform_inclusive_scan(ExecutionPolicy&& exec,  InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op, UnaryOperation unary_op) {
     if( first!=last ) {
-        auto tmp = *first;
+        auto tmp = unary_op(*first);
         *result = tmp;
         return transform_inclusive_scan(exec, ++first, last, ++result, binary_op, unary_op, tmp);
     } else {
@@ -168,15 +155,16 @@ transform_inclusive_scan(ExecutionPolicy&& exec,  InputIterator first, InputIter
 // [adjacent.difference]
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class BinaryOperation>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
 adjacent_difference(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op) {
-    return __icp_algorithm::pattern_adjacent_difference(first, last, d_first, op,
-        __icp_algorithm::is_vectorization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec),
-        __icp_algorithm::is_parallelization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec));
+    using namespace pstl::internal;
+    return pattern_adjacent_difference(first, last, d_first, op,
+        is_vectorization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec),
+        is_parallelization_preferred<ExecutionPolicy, InputIterator, OutputIterator>(exec));
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator>
-__icp_algorithm::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
+pstl::internal::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
 adjacent_difference(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator d_first) {
     typedef typename iterator_traits<InputIterator>::value_type value_type;
     return adjacent_difference(exec, first, last, d_first, std::minus<value_type>());

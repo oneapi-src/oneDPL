@@ -22,7 +22,7 @@
 #define __PSTL_execution_policy_H
 
 #include <type_traits>
-#include "_internal/pstl_config.h"
+#include "internal/pstl_config.h"
 
 namespace pstl {
 namespace execution {

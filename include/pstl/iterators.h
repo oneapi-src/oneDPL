@@ -204,7 +204,4 @@ zip_iterator<T...> make_zip_iterator(T... args) { return zip_iterator<T...>(args
 
 } //namespace pstl
 
-namespace __icp_algorithm {
-}
-
 #endif /* __PSTL_iterators_H */

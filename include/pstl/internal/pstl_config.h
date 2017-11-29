@@ -21,6 +21,10 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
+#define PSTL_VERSION 102
+#define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
+#define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
+
 #if _WIN32 && __PSTL_SHARED_LINKAGE
 #if __PSTL_EXPORTS
 #define __PSTL_API __declspec(dllexport)
@@ -63,6 +67,10 @@
 #define __PSTL_STRING(x) __PSTL_STRING_AUX(x)
 #define __PSTL_STRING_CONCAT(x, y) x#y
 
+// note that when ICC or Clang is in use, __PSTL_GCC_VERSION might not fully match
+// the actual GCC version on the system.
+#define __PSTL_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+
 // Enable SIMD for compilers that support OpenMP 4.0
 #if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (__PSTL_GCC_VERSION >= 40900)
 #define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(omp simd)
@@ -75,13 +83,11 @@
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM)
 #endif //Enable SIMD
 
-// note that when ICC or Clang is in use, __PSTL_GCC_VERSION might not fully match
-// the actual GCC version on the system.
-#define __PSTL_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define __PSTL_CPP17_EXECUTION_POLICIES_PRESENT 0
 
+#define __PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
+#define __PSTL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
 #define __PSTL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
 #define __PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
@@ -97,14 +103,23 @@
 
 #if __PSTL_MONOTONIC_PRESENT
 #define __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(PRM) __PSTL_PRAGMA(omp ordered simd monotonic(PRM))
+#define __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(PRM1, PRM2) __PSTL_PRAGMA(omp ordered simd monotonic(PRM1, PRM2))
 #else
 #define __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(PRM)
+#define __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(PRM1, PRM2)
 #endif
 
 #if (__INTEL_COMPILER >= 1600)
 #define __PSTL_PRAGMA_VECTOR_UNALIGNED __PSTL_PRAGMA(vector unaligned)
 #else
 #define __PSTL_PRAGMA_VECTOR_UNALIGNED
+#endif
+
+// Check the user-defined macro to use non-temporal stores
+#if defined(PSTL_USE_NONTEMPORAL_STORES) && (__INTEL_COMPILER >= 1600)
+#define __PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED __PSTL_PRAGMA(vector nontemporal)
+#else
+#define __PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED
 #endif
 
 #if _MSC_VER || __INTEL_COMPILER //the preprocessors don't type a message location

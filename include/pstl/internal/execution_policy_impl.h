@@ -26,7 +26,8 @@
 
 #include "../execution"
 
-namespace __icp_algorithm {
+namespace pstl {
+namespace internal {
 using namespace pstl::execution;
 
 /* predicate */
@@ -37,6 +38,12 @@ template<typename T>
 template<typename T>
     inline T lazy_and( T a, std::true_type ) { return a; }
 
+template<typename T>
+    std::true_type lazy_or( T, std::true_type ) { return std::true_type{}; };
+
+template<typename T>
+    inline T lazy_or( T a, std::false_type ) { return a; }
+    
 /* iterator */
 template<typename iterator_type, typename... other_iterator_types>
 struct is_random_access_iterator {
@@ -96,13 +103,13 @@ template<typename ExecutionPolicy> using collector_t =
     typename policy_traits<typename std::decay<ExecutionPolicy>::type>::collector_type;
 
 template<typename ExecutionPolicy> using allow_vector =
-    typename __icp_algorithm::policy_traits<typename std::decay<ExecutionPolicy>::type>::allow_vector;
+    typename internal::policy_traits<typename std::decay<ExecutionPolicy>::type>::allow_vector;
 
 template<typename ExecutionPolicy> using allow_unsequenced =
-    typename __icp_algorithm::policy_traits<typename std::decay<ExecutionPolicy>::type>::allow_unsequenced;
+    typename internal::policy_traits<typename std::decay<ExecutionPolicy>::type>::allow_unsequenced;
 
 template<typename ExecutionPolicy> using allow_parallel =
-    typename __icp_algorithm::policy_traits<typename std::decay<ExecutionPolicy>::type>::allow_parallel;
+    typename internal::policy_traits<typename std::decay<ExecutionPolicy>::type>::allow_parallel;
 
 
 template<typename ExecutionPolicy, typename... iterator_types>
@@ -132,7 +139,7 @@ struct prefer_parallel_tag {
         allow_parallel<policy>::value && is_random_access_iterator<iterator_types...>::value;
     typedef std::integral_constant<bool, value> type;
 };
-
-} // namespace __icp_algorithm
+} // namespace internal
+} // namespace pstl
 
 #endif /* __PSTL_execution_policy_impl_H */

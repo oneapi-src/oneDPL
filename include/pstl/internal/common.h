@@ -21,59 +21,11 @@
 #ifndef __PSTL_common_H
 #define __PSTL_common_H
 
-// Header contains implementation of common utilities.
+#include <new>
+#include <iterator>
 
-#if __PSTL_USE_TBB
-#include <tbb/tbb_thread.h>
-#endif
-
-namespace __icp_algorithm {
-
-static int __PSTL_get_workers_num() {
-#if __PSTL_USE_TBB
-    return tbb::tbb_thread::hardware_concurrency();
-#else
-    __PSTL_PRAGMA_MESSAGE("Backend was not specified");
-    return 1;
-#endif
-}
-
-// FIXME - make grain_size use compiler information, or make parallel_for/parallel_transform_reduce use introspection for
-// better estimate.
-
-//! Helper for parallel_for and parallel_reduce
-template<typename DifferenceType>
-DifferenceType __PSTL_grain_size( DifferenceType m ) {
-    const size_t oversub = 8;
-    int n = __PSTL_get_workers_num();
-    m /= oversub*n;
-    const int min_grain = 1;
-    const int max_grain = 1<<16;
-    if( m<min_grain )
-        m = min_grain;
-    else if( m>max_grain )
-        m = max_grain;
-    return m;
-}
-
-//! Raw memory buffer with automatic freeing and no exceptions.
-/** Some of our algorithms need to start with raw memory buffer,
-not an initialize array, because initialization/destruction
-would make the span be at least O(N). */
-class raw_buffer {
-    void* ptr;
-    raw_buffer(const raw_buffer&) = delete;
-    void operator=(const raw_buffer&) = delete;
-public:
-    //! Try to obtain buffer of given size.
-    raw_buffer(size_t bytes): ptr(operator new(bytes, std::nothrow)) {}
-    //! True if buffer was successfully obtained, zero otherwise.
-    operator bool() const { return ptr != NULL; }
-    //! Return pointer to buffer, or  NULL if buffer could not be obtained.
-    void* get() const { return ptr; }
-    //! Destroy buffer
-    ~raw_buffer() { operator delete(ptr); }
-};
+namespace pstl {
+namespace internal {
 
 template<typename F>
 typename std::result_of<F()>::type except_handler(F f) {
@@ -86,6 +38,37 @@ typename std::result_of<F()>::type except_handler(F f) {
     catch(...) {
         std::terminate(); // Good bye according to 25.2.4.2 [algorithms.parallel.exceptions]
     }
+}
+
+template<typename F>
+void invoke_if(std::true_type, F f) {
+    f();
+}
+
+template<typename F>
+void invoke_if(std::false_type, F f) {}
+
+template<typename F>
+void invoke_if_not(std::false_type, F f) {
+    f();
+}
+
+template<typename F>
+void invoke_if_not(std::true_type, F f) {}
+
+template<typename F1, typename F2>
+typename std::result_of<F1()>::type invoke_if_else(std::true_type, F1 f1, F2 f2) {
+    return f1();
+}
+
+template<typename F1, typename F2>
+typename std::result_of<F2()>::type invoke_if_else(std::false_type, F1 f1, F2 f2) {
+    return f2();
+}
+
+template<typename Iterator>
+typename std::iterator_traits<Iterator>::pointer reduce_to_ptr(Iterator it) {
+    return std::addressof(*it);
 }
 
 //! Unary operator that returns reference to its argument.
@@ -102,7 +85,7 @@ public:
     explicit not_pred( Pred pred_ ) : pred(pred_) {}
 
     template<typename ... Args>
-    bool operator()( Args&& ... args ) const { return !pred(std::forward<Args>(args)...); }
+    bool operator()( Args&& ... args ) { return !pred(std::forward<Args>(args)...); }
 };
 
 template<typename Pred>
@@ -112,7 +95,7 @@ public:
     explicit reorder_pred( Pred pred_ ) : pred(pred_) {}
 
     template<typename T>
-    bool operator()(T&& a, T&& b) const { return pred(std::forward<T>(b), std::forward<T>(a)); }
+    bool operator()(T&& a, T&& b) { return pred(std::forward<T>(b), std::forward<T>(a)); }
 };
 
 //! "==" comparison.
@@ -148,6 +131,16 @@ public:
     bool operator()( Arg&& arg ) const { return !(std::forward<Arg>(arg)==value); }
 };
 
-} /* namespace __icp_algorithm */
+template <typename ForwardIterator, typename Compare>
+ForwardIterator cmp_iterators_by_values(ForwardIterator a, ForwardIterator b, Compare comp) {
+    if(a < b) { // we should return closer iterator
+        return comp(*b, *a) ? b : a;
+    } else {
+        return comp(*a, *b) ? a : b;
+    }
+}
+
+} // namespace internal
+} // namespace pstl
 
 #endif /* __PSTL_common_H */

@@ -22,17 +22,20 @@ PROG=dot_product.exe
 ARGS=
 
 CXXFLAGS += -D__PSTL_USE_TBB -std=c++11
-# The C++ compiler
-ifneq (,$(shell which icc 2>/dev/null))
-CXX=icc 
 
+# Set by default icc as C++ compiler if it's present
+ifneq (,$(shell which icc 2>/dev/null))
+CXX = icc
+endif # which icc
+
+ifeq ($(CXX),icc)
+CXXFLAGS += -qopenmp-simd
 ifneq (, $(filter $(target), mic))
 CXXFLAGS += -mmic
-else 
+else
 CXXFLAGS += -xHOST
-endif
-CXXFLAGS += -qopenmp-simd
-endif # which icc
+endif # target is mic or host?
+endif # icc?
 
 ifeq ($(shell uname), Linux)
 LIBS+= -lrt
