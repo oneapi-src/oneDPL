@@ -1,0 +1,96 @@
+/*
+    Copyright (c) 2017 Intel Corporation
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+
+
+
+*/
+
+#include "test/pstl_test_config.h"
+
+#include "pstl/execution"
+#include "pstl/algorithm"
+#include "test/utils.h"
+
+using namespace TestUtils;
+
+struct test_one_policy {
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
+    void body(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred) {
+        using namespace std;
+        // For find_end
+        auto expected = find_end(b, e, bsub, esub, pred);
+        auto actual = find_end(exec, b, e, bsub, esub);
+        EXPECT_TRUE(actual == expected, "wrong return result from find_end");
+
+        actual = find_end(exec, b, e, bsub, esub, pred);
+        EXPECT_TRUE(actual == expected, "wrong return result from find_end with a predicate");
+
+        // For search
+        expected = search(b, e, bsub, esub, pred);
+        actual = search(exec, b, e, bsub, esub);
+        EXPECT_TRUE(actual == expected, "wrong return result from search");
+
+        actual = search(exec, b, e, bsub, esub, pred);
+        EXPECT_TRUE(actual == expected, "wrong return result from search with a predicate");
+    }
+
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
+    typename std::enable_if<is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
+        operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred) {
+        if (e - b <= 1000) // we run with random_access iterators only for small sequences because of long execution time
+            body(exec, b, e, bsub, esub, pred);
+    }
+
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
+    typename std::enable_if<!is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
+        operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred) {
+        body(exec, b, e, bsub, esub, pred);
+    }
+};
+
+template <typename T>
+void test(std::size_t bits) {
+
+    for (std::size_t n1 = 0; n1 <= 1000; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1)) {
+        std::size_t sub_n[] = { 0, 1, 3, n1, (n1 * 10) / 8 };
+        for(auto n2 : sub_n) {
+            Sequence<T> sub(n2, [n1, bits](std::size_t k) {return T(2 * HashBits(n1, bits - 1)); });
+
+            std::size_t res[] = { 0, 1, n1 / 2, n1 };
+            for(auto r : res) {
+                Sequence<T> in(n1, [n1, bits](std::size_t k) {return T(2 * HashBits(n1, bits - 1) ^ 1); });
+
+                std::size_t i = r, isub = 0;
+                for(; i < in.size() && isub < sub.size(); ++i, ++isub)
+                    in[i] = sub[isub];
+                invoke_on_all_policies(test_one_policy(), in.begin(), in.end(), sub.begin(), sub.end(), std::equal_to<T>());
+                invoke_on_all_policies(test_one_policy(), in.cbegin(), in.cend(), sub.cbegin(), sub.cend(), std::equal_to<T>());
+            }
+        }
+    }
+}
+
+int32_t main( ) {
+    test<int32_t>(8*sizeof(int32_t));
+    test<uint16_t>(8*sizeof(uint16_t));
+    test<float64_t>(53);
+#if !__PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
+    test<bool>(1);
+#endif
+
+    std::cout << done() << std::endl;
+    return 0;
+}

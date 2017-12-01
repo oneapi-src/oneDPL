@@ -1,0 +1,98 @@
+# Copyright (c) 2017 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+#
+#
+
+#------------------------------------------------------------------------------
+# Define rules for making the Parallel STL library.
+#------------------------------------------------------------------------------
+
+proj_root ?= $(CURDIR)/..
+
+include $(proj_root)/build/Makefile.common
+
+.PHONY: clean
+
+VPATH = $(proj_root)/src
+
+ifneq (, $(filter $(linkage), shared))
+    CPLUS_FLAGS += -D__PSTL_EXPORTS
+endif
+
+ifeq ($(os_name),windows)
+    ifneq (, $(filter $(linkage), shared))
+        LD = link
+        PSTL_LINKAGE = $(KEY)DLL
+        LIB_EXT = .dll
+    else
+        LD = LIB
+        LIB_EXT = .lib
+    endif
+else
+    LIB_PREFIX = lib
+    ifneq (, $(filter $(linkage), shared))
+        LD = $(compiler)  # ld does not look into LIBRARY_PATH by default for some reason
+        PSTL_LINKAGE = $(KEY)shared
+        CPLUS_FLAGS += $(KEY)fPIC
+        LIB_EXT = .so
+        LD_OUT_KEY = $(KEY)o 
+        TBB_LD_FLAGS = $(LINK_KEY)$(TBB_LIB_NAME)
+        LDFLAGS += $(DYN_LDFLAGS)
+    else
+        LD = ar
+        LIB_EXT = .a
+        LDFLAGS += rs
+        LD_OUT_KEY := 
+    endif
+endif
+
+ifeq ($(backend), tbb)
+    ifeq ($(offload), mic)
+        TBB_LD_FLAGS = $(KEY)tbb
+    endif
+    ifneq (, $(filter $(linkage), shared))
+        LDFLAGS += $(TBB_LD_FLAGS)
+    endif
+endif
+
+lib_src = $(wildcard $(proj_root)/src/*.cpp)
+lib_obj = $(notdir $(lib_src:.cpp=$(OBJ_SFX)))
+
+all: pstl
+
+pstl: $(PSTL_LIB_NAME)
+$(PSTL_LIB_NAME): $(lib_obj)
+	$(LD) $(PSTL_LINKAGE) $(LDFLAGS) $(LD_OUT_KEY)$(LIB_PREFIX)$@$(LIB_EXT) $^
+
+%$(OBJ_SFX): %.cpp $(proj_root)/build/Makefile.pstl
+	$(CPLUS) $(CPLUS_FLAGS) -c $< $(FKEY)o$@
+
+%.s: %.cpp $(proj_root)/build/Makefile
+	$(CPLUS) $(CPLUS_FLAGS) -S $< $(FKEY)o$@
+
+%.E: %.cpp
+	$(CPLUS) $(CPLUS_FLAGS) -E $< >$@
+
+clean:
+	$(DEL_CMD) *$(OBJ_SFX) *.lib *.dll *.so *.exp *$(PSTL_LIB_NAME)*
+
+info:
+	@echo OS = $(os_name)
+	@echo proj_root = "$(proj_root)"
+	@echo $(CURDIR)
+	@echo VPATH=$(VPATH)
+
+-include *.d
