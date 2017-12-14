@@ -19,7 +19,7 @@
 */
 
 /*
-    This file contains the Parallel STL-based implementation of quickhull algortihm.
+    This file contains the Parallel STL-based implementation of quickhull algorithm.
     Quickhull algorithm description:
     1. Initial phase
       1) Find two points that guaranteed to belong to the convex hull. Min and max points in X can be used for it.
