@@ -84,7 +84,7 @@
 #endif //Enable SIMD
 
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
-#define __PSTL_CPP17_EXECUTION_POLICIES_PRESENT 0
+#define __PSTL_CPP17_EXECUTION_POLICIES_PRESENT (_MSC_VER >= 1912)
 
 #define __PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
 #define __PSTL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
