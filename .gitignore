@@ -3,7 +3,6 @@
 build/*_debug/
 build/*_release/
 build/*
-VERSION
 # Compiled source #
 ###################
 *.com
