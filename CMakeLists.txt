@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 
 SET(BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
 SET(LINKAGE "none" CACHE STRING "Linkage specifying shared, static or header only implementation. Overrides BUILD_SHARED_LIBS. Defaults to header only")
