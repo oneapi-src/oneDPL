@@ -4,7 +4,6 @@ SET(BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
 SET(LINKAGE "none" CACHE STRING "Linkage specifying shared, static or header only implementation. Overrides BUILD_SHARED_LIBS. Defaults to header only")
 SET(BUILD_TESTS FALSE CACHE BOOL "Build tests")
 SET(BUILD_EXAMPLES FALSE CACHE BOOL "Build examples")
-SET(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # EXTRACT VERSION FROM GIT TAGS
 FIND_PACKAGE(Git)
