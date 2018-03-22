@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ int32_t main() {
         [](std::size_t a)->int32_t {return int32_t(rand() % 1000); });
     test_by_type<int64_t>(0,
         [](const int64_t& a, const int64_t& b) -> int64_t { return a | b; },
-        XOR(), 
+        XOR(),
         [](const int64_t& x) -> int64_t { return x * 2; },
         [](std::size_t a)->int64_t {return int64_t(rand() % 1000); });
     test_by_type<float32_t>(1.0f,
@@ -117,8 +117,8 @@ int32_t main() {
         [](const float32_t& a, const float32_t& b) -> float32_t { return a + b; },
         [](const float32_t& x) -> float32_t { return x + 2; },
         [](std::size_t a)->float32_t {return rand() % 1000; });
-    test_by_type<MyClass>(MyClass(), 
-        std::plus<MyClass>(), 
+    test_by_type<MyClass>(MyClass(),
+        std::plus<MyClass>(),
         std::multiplies<MyClass>(),
         std::negate<MyClass>(),
         [](std::size_t a)->MyClass {return MyClass(rand() % 1000); });

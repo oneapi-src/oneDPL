@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,6 @@ XHOST_FLAG = -fno-vectorize
 CPLUS_FLAGS += $(FQKEY)std=$(stdver)
 # XHOST_FLAG = $(KEY)mavx2 -fno-vectorize
 # XHOST_FLAG = $(KEY)mavx512f -fno-vectorize
-# DYN_LDFLAGS += $(LINK_KEY)c++ 
+# DYN_LDFLAGS += $(LINK_KEY)c++
 # CPLUS_FLAGS += -stdlib=libc++
 # CPLUS_FLAGS += -fopenmp-simd //it will be supported in he future version

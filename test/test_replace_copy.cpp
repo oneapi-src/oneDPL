@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ void test(T trash, const T& old_value, const T& new_value, Predicate pred, Conve
 int32_t main( ) {
 
     test<float64_t>( -666.0,
-                 8.5, 
+                 8.5,
                  0.33,
                  [](const float64_t& x) {return x*x <= 1024; },
                  [](size_t j){return ((j+1)%7&2)!=0? 8.5 : float64_t(j%32+j);});

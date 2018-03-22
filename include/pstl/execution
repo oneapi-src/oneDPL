@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ inline namespace v1 {
 // 2.4, Sequential execution policy
 class sequenced_policy {
 public:
-    // For internal use only 
+    // For internal use only
     static constexpr std::false_type __allow_unsequenced() {return std::false_type{};}
     static constexpr std::false_type __allow_vector() {return std::false_type{};}
     static constexpr std::false_type __allow_parallel() {return std::false_type{};}
@@ -41,7 +41,7 @@ public:
 // 2.5, Parallel execution policy
 class parallel_policy {
 public:
-    // For internal use only 
+    // For internal use only
     static constexpr std::false_type __allow_unsequenced() {return std::false_type{};}
     static constexpr std::false_type __allow_vector() {return std::false_type{};}
     static constexpr std::true_type __allow_parallel() {return std::true_type{};}
@@ -50,7 +50,7 @@ public:
 // 2.6, Parallel+Vector execution policy
 class parallel_unsequenced_policy {
 public:
-    // For internal use only 
+    // For internal use only
     static constexpr std::true_type __allow_unsequenced() {return std::true_type{};}
     static constexpr std::true_type __allow_vector() {return std::true_type{};}
     static constexpr std::true_type __allow_parallel() {return std::true_type{};}
@@ -59,7 +59,7 @@ public:
 
 class unsequenced_policy {
 public:
-    // For internal use only 
+    // For internal use only
     static constexpr std::true_type __allow_unsequenced() {return std::true_type{};}
     static constexpr std::true_type __allow_vector() {return std::true_type{};}
     static constexpr std::false_type __allow_parallel() {return std::false_type{};}
@@ -93,7 +93,7 @@ template<class T> constexpr bool is_execution_policy_v = is_execution_policy<T>:
 } //namespace pstl
 
 #if __PSTL_CPP17_EXECUTION_POLICIES_PRESENT
-__PSTL_PRAGMA_MESSAGE("The <Parallel STL> execution policies are defined in the namespace pstl::execution")
+__PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are defined in the namespace pstl::execution")
 #else
 namespace std {
     // Type trait
@@ -126,7 +126,7 @@ namespace std {
         using pstl::execution::unsequenced_policy;
     }
 }
-__PSTL_PRAGMA_MESSAGE("The <Parallel STL> execution policies are injected into the standard namespace std::execution")
+__PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are injected into the standard namespace std::execution")
 #endif
 
 #endif /* __PSTL_execution_policy_H */

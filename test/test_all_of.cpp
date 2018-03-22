@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ template<typename T>
 struct Parity {
     bool parity;
 public:
-    Parity( bool parity_ ) : parity(parity_) {}   
+    Parity( bool parity_ ) : parity(parity_) {}
     bool operator()(T value) const { return (size_t(value) ^ parity) % 2 == 0; }
 };
 
@@ -56,10 +56,10 @@ template <typename T>
 void test( size_t bits ) {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
 
-        // Sequence of odd values 
+        // Sequence of odd values
         Sequence<T> in(n, [n, bits](size_t k) {return T(2 * HashBits(n, bits - 1) ^ 1); });
 
-        // Even value, or false when T is bool.  
+        // Even value, or false when T is bool.
         T spike(2 * HashBits(n, bits - 1));
         Sequence<T> inCopy(in);
 

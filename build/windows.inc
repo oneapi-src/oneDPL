@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,11 +42,11 @@ endif
 # implicit linkage capability of TBB library
 
 ifeq ($(cfg),debug)
-    LINK_KEY += $(KEY)debug 
-    USE_SHARED_CPPRUNTIME_KEY += $(KEY)MDd $(KEY)EHsc 
+    LINK_KEY += $(KEY)debug
+    USE_SHARED_CPPRUNTIME_KEY += $(KEY)MDd $(KEY)EHsc
     BACKEND_MACRO += -DTBB_USE_DEBUG=1
 else
-    USE_SHARED_CPPRUNTIME_KEY += $(KEY)MD $(KEY)EHsc 
+    USE_SHARED_CPPRUNTIME_KEY += $(KEY)MD $(KEY)EHsc
 endif
 
 ifneq (, $(filter $(compiler), cl icl))

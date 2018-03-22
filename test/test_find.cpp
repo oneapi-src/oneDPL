@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ struct test_find {
     void operator()( Policy&& exec, Iterator first, Iterator last, Value value ) {
         auto i = std::find(first, last, value);
         auto j = find( exec, first, last, value );
-        EXPECT_TRUE( i == j, 
+        EXPECT_TRUE( i == j,
                      "wrong return value from find" );
     }
 };
@@ -72,7 +72,7 @@ int32_t main( ) {
     // Test with value that is equal to two different bit patterns (-0.0 and 0.0)
     test<float32_t>( -0.0,
                  [](int32_t j){return j&1 ? 0.0 : -0.0;},                    // hit
-                 [](int32_t j){return j==0 ? ~j : j;});                      // miss               
+                 [](int32_t j){return j==0 ? ~j : j;});                      // miss
 
 
     std::cout << "done" << std::endl;

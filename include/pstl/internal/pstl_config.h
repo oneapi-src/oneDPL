@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,39 +21,25 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 102
+#define PSTL_VERSION 103
 #define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
-
-#if _WIN32 && __PSTL_SHARED_LINKAGE
-#if __PSTL_EXPORTS
-#define __PSTL_API __declspec(dllexport)
-#else
-#define __PSTL_API __declspec(dllimport)
-#endif
-#else
-#define __PSTL_API
-#endif
-
-#ifndef __PSTL_HEADER_ONLY
-#define __PSTL_HEADER_ONLY 1
-#endif
 
 // Check the user-defined macro for parallel policies
 #if defined(PSTL_USE_PARALLEL_POLICIES)
 #undef __PSTL_USE_PAR_POLICIES
 #define __PSTL_USE_PAR_POLICIES PSTL_USE_PARALLEL_POLICIES
 // Check the internal macro for parallel policies
-#elif !defined(__PSTL_USE_PAR_POLICIES) 
+#elif !defined(__PSTL_USE_PAR_POLICIES)
 #define __PSTL_USE_PAR_POLICIES 1
 #endif
 
 #if __PSTL_USE_PAR_POLICIES
-#if !defined(__PSTL_USE_TBB)
-#define __PSTL_USE_TBB 1
+#if !defined(__PSTL_PAR_BACKEND_TBB)
+#define __PSTL_PAR_BACKEND_TBB 1
 #endif
 #else
-#undef __PSTL_USE_TBB
+#undef __PSTL_PAR_BACKEND_TBB
 #endif
 
 // Portability "#pragma" definition
@@ -128,6 +114,11 @@
 #define __PSTL_PRAGMA_LOCATION
 #endif
 
+
+#define __PSTL_PRAGMA_MESSAGE_IMPL(x) __PSTL_PRAGMA(message(__PSTL_STRING_CONCAT(__PSTL_PRAGMA_LOCATION, x)))
+#define __PSTL_PRAGMA_MESSAGE_POLICIES(x) __PSTL_PRAGMA_MESSAGE_IMPL(x)
+
+//Too many warnings in output, switched off
 #define __PSTL_PRAGMA_MESSAGE(x)
 
 #if defined(__GLIBCXX__)

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ void test_iterator_by_type(IntType n) {
     test_counting_iterator()(pstl::execution::par_unseq, in, beg, end, value);
 
     Sequence<IntType> in2(end-beg, [](size_t)->IntType { return IntType(0); }); //fill with zeros
-    
+
     // Zip Iterator doesn't work correctly with unseq and par_unseq policies with compilers older than icc 18
     #if (__INTEL_COMPILER && __INTEL_COMPILER<1800)
         test_zip_iterator()(pstl::execution::seq, in, in2);

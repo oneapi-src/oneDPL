@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ template<typename T, typename Convert>
 void test(T trash, const T& value, Convert convert, bool check_weakness = true) {
     // Try sequences of various lengths.
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n) ) {
-        // count is number of output elements, plus a handful 
+        // count is number of output elements, plus a handful
         // more for sake of detecting buffer overruns.
         size_t count = GuardSize;
         Sequence<T> in(n, [&](size_t k) -> T {
@@ -75,7 +75,7 @@ void test(T trash, const T& value, Convert convert, bool check_weakness = true) 
 int32_t main( ) {
 
     test<float64_t>( -666.0,
-                 8.5, 
+                 8.5,
                  [](size_t j){return ((j+1)%7&2)!=0? 8.5 : float64_t(j%32+j);});
 
     test<int32_t>( -666,

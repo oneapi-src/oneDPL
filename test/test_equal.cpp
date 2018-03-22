@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -80,8 +80,8 @@ struct test_one_policy {
 template <typename T>
 void test( size_t bits ) {
     for ( size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n) ) {
-        
-        // Sequence of odd values 
+
+        // Sequence of odd values
         Sequence<T> in(n, [bits](size_t k) {return T(2*HashBits(k,bits-1)^1);});
         Sequence<T> inCopy(in);
 

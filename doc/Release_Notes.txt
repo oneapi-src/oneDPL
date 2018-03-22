@@ -57,16 +57,16 @@ Software - Supported Operating Systems
     Systems with Linux* operating systems
         CentOS 7.1
         Debian* 8, 9
-        Fedora* 24, 25
+        Fedora* 24, 25, 26
         Red Hat* Enterprise Linux* 7
         SuSE* Linux* Enterprise Server 12
         Ubuntu* 14.04 LTS, 16.04 LTS, 17.04
         Yocto 2.2, 2.3
     Systems with OS X* and macOS* operating systems
         OS X* 10.10, 10.11
-        macOS* 10.12
+        macOS* 10.12, 10.13
     Systems with Android* operating systems
-        Android* 5.x, 6.x, 7.x
+        Android* 5.x, 6.x, 7.x, 8.x
 
 Software - Supported Compilers
 
@@ -83,8 +83,8 @@ Software - Supported Compilers
         version provided with that operating system is supported
             GNU Compilers (gcc) 4.8 - 7.1
     Clang* 3.3 - 3.8
-    Xcode* 6.3 - 8.3
-    Android* NDK r13 - r15b
+    Xcode* 6.3 - 9.1
+    Android* NDK r13 - r16
 
 Known Issues or limitations
 

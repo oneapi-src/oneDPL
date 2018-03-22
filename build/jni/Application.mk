@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,20 +44,23 @@ export target?=android
 
 ifeq (ia32,$(arch))
     APP_ABI:=x86
+    export TRIPLE:=i686-linux-android
 else ifeq (intel64,$(arch))
     APP_ABI:=x86_64
+    export TRIPLE:=x86_64-linux-android
 else ifeq (arm,$(arch))
     APP_ABI:=armeabi-v7a
+    export TRIPLE:=arm-linux-androideabi
 else ifeq (arm64,$(arch))
     APP_ABI:=arm64-v8a
+    export TRIPLE:=aarch64-linux-android
 else
     APP_ABI:=$(arch)
 endif
 
-APP_PLATFORM:=android-21
-ifneq ("","$(api_version)")
-    APP_PLATFORM:=$(api_version)
-endif
+api_version?=21
+export API_LEVEL:=$(api_version)
+APP_PLATFORM:=android-$(api_version)
 
 ifeq (clang,$(compiler))
     NDK_TOOLCHAIN_VERSION:=clang

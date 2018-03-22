@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -48,10 +48,10 @@ template <typename T>
 void test( size_t bits ) {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
 
-        // Sequence of odd values 
+        // Sequence of odd values
         Sequence<T> in(n, [n, bits](size_t k) {return T(2 * HashBits(n, bits - 1) ^ 1); });
 
-        // Even value, or false when T is bool.  
+        // Even value, or false when T is bool.
         T spike(2 * HashBits(n, bits - 1));
         Sequence<T> inCopy(in);
 
@@ -64,7 +64,7 @@ void test( size_t bits ) {
             invoke_on_all_policies(test_any_of(),  in.begin(),  in.end(), is_equal_to<T>(spike), true);
             invoke_on_all_policies(test_any_of(), in.cbegin(), in.cend(), is_equal_to<T>(spike), true);
 
-            // Sprinkle in a few more hits    
+            // Sprinkle in a few more hits
             in[n / 2] = spike;
             in[n / 3] = spike;
             invoke_on_all_policies(test_any_of(),  in.begin(),  in.end(), is_equal_to<T>(spike), true);

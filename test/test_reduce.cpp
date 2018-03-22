@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -82,13 +82,13 @@ void test_short_forms() {
         invoke_on_all_policies(test_two_short_forms(), in.cbegin(), in.cend(), init, expected);
     }
 }
- 
+
 int32_t main( ) {
-    // Test for popular types 
+    // Test for popular types
     test_long_form(42, std::plus<int32_t>(), [](int32_t x) {return x;});
     test_long_form(42.0, std::plus<float64_t>(), [](float64_t x) {return x;});
 
-    // Test for strict types 
+    // Test for strict types
     test_long_form<Number>(Number(42,OddTag()), Add(OddTag()), [](int32_t x) {return Number(x,OddTag());});
 
     // Short forms are just facade for long forms, so just test with a single type.

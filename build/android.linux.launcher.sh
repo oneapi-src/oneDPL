@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@
 #
 # Libs and executable necessary for testing should be present in the current directory before running.
 # ANDROID_SERIAL must be set to the connected Android target device name for file transfer and test runs.
-# ANDROID_TEST_DIRECTORY may be set to the directory used for testing on the Android target device; otherwise, 
+# ANDROID_TEST_DIRECTORY may be set to the directory used for testing on the Android target device; otherwise,
 #                        the default directory used is "/data/local/tmp/$(basename $PWD)".
 # Note: Do not remove the redirections to '/dev/null' in the script, otherwise the nightly test system will fail.
 
@@ -56,7 +56,7 @@ do case $flag in #
     l )  # Additional library
          ldpreload="$OPTARG " ;; #
     u )  # Stack limit
-         ;; # 
+         ;; #
     q )  # Quiet mode, removes 'done' but prepends any other output by test name
          OUTPUT='2>&1 | sed -e "s/done//;/^[[:space:]]*$/d;s!^!$exename: !"' ;; #
     v )  # Verbose mode

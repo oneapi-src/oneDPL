@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -666,7 +666,7 @@ struct NonConstAdapter {
     NonConstAdapter(const F& f): my_f(f) {}
 
     template<typename... Types>
-    auto operator()(Types... args) -> decltype(std::declval<F>().operator()(args...)) {return my_f(args...);}
+    auto operator()(Types&&... args) -> decltype(std::declval<F>().operator()(std::forward<Types>(args)...)) {return my_f(std::forward<Types>(args)...);}
 };
 
 template<typename F>

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ bool IsCheckValueCorrectness(InputIterator first1, OutputIterator first2, Size n
 
 struct test_uninitialized_copy_move {
     template <typename Policy, typename InputIterator, typename OutputIterator>
-    void operator()(Policy&& exec, InputIterator first, InputIterator last, 
+    void operator()(Policy&& exec, InputIterator first, InputIterator last,
         OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::false_type) {
         typedef typename std::iterator_traits<InputIterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])

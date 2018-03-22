@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@
 #define __PSTL_memory_H
 
 #include "internal/pstl_config.h"
-#include "internal/common.h"
+#include "internal/utils.h"
 #include "internal/algorithm_impl.h"
-#include "internal/simd_impl.h"
 
 namespace std {
 
@@ -214,7 +213,7 @@ uninitialized_value_construct(ExecutionPolicy&& exec, ForwardIterator first, For
     invoke_if_else(std::is_trivial<value_type>(),
         [&]() { pattern_walk_brick(first, last, [is_vector](ForwardIterator begin, ForwardIterator end)
             { brick_fill(begin, end, value_type(), is_vector);}, is_parallel); },
-        [&]() { pattern_it_walk1(first, last, [](ForwardIterator it) 
+        [&]() { pattern_it_walk1(first, last, [](ForwardIterator it)
             { ::new (reduce_to_ptr(it)) value_type(); }, is_vector, is_parallel); }
         );
 }

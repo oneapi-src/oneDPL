@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,12 +18,9 @@
 
 vecreport ?= 0 #may be set to [0..7], see https://software.intel.com/en-us/node/522949 for details
 
-ifeq ($(target),mic)
-    XHOST_FLAG = $(KEY)no-vec
-else
-    XHOST_FLAG = $(KEY)xHOST -no-vec
-    CPLUS_FLAGS += $(QKEY)opt-assume-safe-padding
-endif
+XHOST_FLAG = $(KEY)xHOST -no-vec
+CPLUS_FLAGS += $(QKEY)opt-assume-safe-padding
+
 # XHOST_FLAG = $(KEY)xCORE-AVX2 -no-vec
 # XHOST_FLAG = $(KEY)xSSE4.1 -no-vec
 # XHOST_FLAG = $(KEY)xMIC-AVX512 -no-vec

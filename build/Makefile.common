@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,10 +27,6 @@ ifeq (, $(filter $(MAKECMDGOALS), clean clean_all))
         $(info Threading backend was not specified; using TBB)
         backend=tbb
     endif
-    ifeq (, $(filter $(linkage), shared static none))
-        $(warning using linkage=none (header-only implementation))
-        linkage=none
-    endif
 endif
 
 ifndef os_name
@@ -57,20 +53,12 @@ endif # !os_name
 cfg ?= release
 stdver ?= c++11
 
-override INCLUDES += -I$(proj_root)/include -I$(proj_root)/test 
+override INCLUDES += -I$(proj_root)/include -I$(proj_root)/test
 
 TEST_MACRO += -D__PSTL_TEST_SUCCESSFUL_KEYWORD=1
 
 ifeq ($(backend), tbb)
-    BACKEND_MACRO += -D__PSTL_USE_TBB
-endif
-
-ifneq (, $(filter $(linkage), shared))
-    LINKAGE_MACRO += -D__PSTL_SHARED_LINKAGE
-endif
-
-ifeq (, $(filter $(linkage), none))
-    LINKAGE_MACRO += -D__PSTL_HEADER_ONLY=0
+    BACKEND_MACRO += -D__PSTL_PAR_BACKEND_TBB
 endif
 
 target ?= $(os_name)
@@ -104,7 +92,7 @@ endif
 
 
 OPTIMIZATION_ENABLED_FLAGS += $(XHOST_FLAG)
-OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG) 
+OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG)
 
 
 ifeq ($(cfg), debug)
@@ -120,7 +108,6 @@ DYN_LDFLAGS += $(PSTL_ARCH)
 CPLUS_FLAGS += $(TEST_MACRO)
 CPLUS_FLAGS += $(INCLUDES)
 CPLUS_FLAGS += $(BACKEND_MACRO)
-CPLUS_FLAGS += $(LINKAGE_MACRO)
 CPLUS_FLAGS += $(CXXFLAGS)
 CPLUS_FLAGS += $(OPTIMIZATION_KEYS)
 

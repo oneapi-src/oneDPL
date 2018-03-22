@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -79,11 +79,11 @@ private:
     //data structures 'file' and 'info' are using to store an image as BMP file
     //for more details see https://en.wikipedia.org/wiki/BMP_file_format
     using BITMAPFILEHEADER = struct {
-        std::uint16_t sizeRest; // field is not from specification, 
+        std::uint16_t sizeRest; // field is not from specification,
                             // was added for alignemt. store size of rest of the fields
         std::uint16_t type;
         std::uint32_t size;
-        std::uint32_t reserved; 
+        std::uint32_t reserved;
         std::uint32_t offBits;
     };
     BITMAPFILEHEADER file;

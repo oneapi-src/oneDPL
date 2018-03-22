@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,11 +47,8 @@ all: $(test_bin)
 test_%.offload.exe: test_%.offload$(OBJ_SFX) exception_list.offload$(OBJ_SFX)
 	$(CPLUS) $(CPLUS_FLAGS) $^ $(FKEY)o$@ $(LDFLAGS)
 
-%.offload$(OBJ_SFX): %.cpp $(PSTL_MAKEFILE)
-	$(CPLUS) $(CPLUS_FLAGS) -D__PSTL_MIC_OFFLOAD -offload-attribute-target=mic -c $< $(FKEY)o$@
-
 $(PSTL_LIB_NAME):
-	$(MAKE) -f $(PSTL_MAKEFILE) backend=$(backend) linkage=$(linkage) cfg=$(cfg)
+	$(MAKE) -f $(PSTL_MAKEFILE) backend=$(backend) cfg=$(cfg)
 
 test_%.exe: test_%$(OBJ_SFX) $(PSTL_LIB_NAME)
 	$(info LIBRARY_PATH=$(LIBRARY_PATH))

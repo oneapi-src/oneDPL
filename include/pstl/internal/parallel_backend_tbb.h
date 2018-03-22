@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,12 +18,10 @@
 
 */
 
-#ifndef __PSTL_parallel_impl_tbb_H
-#define __PSTL_parallel_impl_tbb_H
+#ifndef __PSTL_parallel_backend_tbb_H
+#define __PSTL_parallel_backend_tbb_H
 
-#include <atomic>
-// This header defines the minimum set of parallel routines required to support Parallel STL,
-// implemented on top of Intel(R) Threading Building Blocks (Intel(R) TBB) library
+#include "parallel_backend_utils.h"
 
 // Bring in minimal required subset of Intel TBB
 #include <tbb/blocked_range.h>
@@ -44,19 +42,20 @@ namespace par_backend {
 /** Some of our algorithms need to start with raw memory buffer,
 not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
-class raw_buffer {
-    void* ptr;
-    raw_buffer(const raw_buffer&) = delete;
-    void operator=(const raw_buffer&) = delete;
+template<typename T>
+class buffer {
+    T* ptr;
+    buffer(const buffer&) = delete;
+    void operator=(const buffer&) = delete;
 public:
-    //! Try to obtain buffer of given size.
-    raw_buffer(size_t bytes): ptr(operator new(bytes, std::nothrow)) {}
+    //! Try to obtain buffer of given size to store objects of T type
+    buffer(size_t n): ptr(static_cast<T*>(operator new(n*sizeof(T), std::nothrow))) {}
     //! True if buffer was successfully obtained, zero otherwise.
     operator bool() const { return ptr != NULL; }
     //! Return pointer to buffer, or  NULL if buffer could not be obtained.
-    void* get() const { return ptr; }
+    T* get() const { return ptr; }
     //! Destroy buffer
-    ~raw_buffer() { operator delete(ptr); }
+    ~buffer() { operator delete(ptr); }
 };
 
 // Wrapper for tbb::task
@@ -92,9 +91,9 @@ void parallel_for(Index first, Index last, F f) {
 //! Evaluation of brick f[i,j) for each subrange [i,j) of [first,last)
 // wrapper over tbb::parallel_reduce
 template<class Value, class Index, typename RealBody, typename Reduction>
-Value parallel_reduce(Index first, Index last, const Value& identity, const RealBody& real_body, const Reduction& reduction, std::size_t grainsize = 1) {
-    return tbb::this_task_arena::isolate([first, last, grainsize, &identity, &real_body, &reduction]()->Value {
-        return tbb::parallel_reduce(tbb::blocked_range<Index>(first, last, grainsize), identity,
+Value parallel_reduce(Index first, Index last, const Value& identity, const RealBody& real_body, const Reduction& reduction) {
+    return tbb::this_task_arena::isolate([first, last, &identity, &real_body, &reduction]()->Value {
+        return tbb::parallel_reduce(tbb::blocked_range<Index>(first, last), identity,
             [real_body](const tbb::blocked_range<Index>& r, const Value& value)-> Value {
             return real_body(r.begin(), r.end(), value);
         },
@@ -322,9 +321,9 @@ void parallel_strict_scan( Index n, T initial, R reduce, C combine, S scan, A ap
             const Index slack = 4;
             Index tilesize = (n-1)/(slack*p) + 1;
             Index m = (n-1)/tilesize;
-            raw_buffer buf((m+1)*sizeof(T));
+            buffer<T> buf(m+1);
             if( buf ) {
-                T* r = static_cast<T*>(buf.get());
+                T* r = buf.get();
                 upsweep(Index(0), Index(m+1), tilesize, r, n-m*tilesize, reduce, combine);
                 // When apex is a no-op and combine has no side effects, a good optimizer
                 // should be able to eliminate all code between here and apex.
@@ -350,51 +349,6 @@ void parallel_strict_scan( Index n, T initial, R reduce, C combine, S scan, A ap
 }
 
 //------------------------------------------------------------------------
-// parallel_or
-//------------------------------------------------------------------------
-
-//! Return true if brick f[i,j) returns true for some subrange [i,j) of [first,last)
-template<class Index, class Brick>
-bool parallel_or( Index first, Index last, Brick f ) {
-    std::atomic<bool> found(false);
-    parallel_for(first, last, [f, &found](Index i, Index j) {
-        if (!found.load(std::memory_order_relaxed) && f(i, j)) {
-            found.store(true, std::memory_order_relaxed);
-            tbb::task::self().group()->cancel_group_execution();
-        }}
-    );
-    return found;
-}
-
-//------------------------------------------------------------------------
-// parallel_first
-//------------------------------------------------------------------------
-
-/** Return minimum value returned by brick f[i,j) for subranges [i,j) of [first,last)
-    Each f[i,j) must return a value in [i,j). */
-template<class Index, class Brick>
-Index parallel_first( Index first, Index last, Brick f ) {
-    typedef typename std::iterator_traits<Index>::difference_type difference_type;
-    const difference_type n = last-first;
-    std::atomic<difference_type> minimum( last-first );
-    parallel_for(first, last, [f, first, &minimum](Index i, Index j) {
-        // See "Reducing Contention Through Priority Updates", PPoPP '13, for discussion of 
-        // why using a shared variable scales fairly well in this situation.
-        if (i - first < minimum) {
-            Index res = f(i, j);
-            // If not 'last' returned then we found what we want so put this to minimum
-            if (res != j) {
-                const difference_type k = res - first;
-                for (difference_type old = minimum; k < old; old = minimum) {
-                    minimum.compare_exchange_weak(old, k);
-                }
-            }
-        }
-    });
-    return first + minimum;
-}
-
-//------------------------------------------------------------------------
 // parallel_stable_sort
 //------------------------------------------------------------------------
 
@@ -404,57 +358,7 @@ Index parallel_first( Index first, Index last, Brick f ) {
 // These are used by parallel implementations but do not depend on them.
 //------------------------------------------------------------------------
 
-//! Destroy sequence [xs,xe)
-struct serial_destroy {
-    template<typename RandomAccessIterator>
-    void operator()(RandomAccessIterator zs, RandomAccessIterator ze) {
-        typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
-        while(zs!=ze) {
-            --ze;
-            (*ze).~T();
-        }
-    }
-};
-
-//! Merge sequences [xs,xe) and [ys,ye) to output sequence [zs,(xe-xs)+(ye-ys)), using std::move
-template<class RandomAccessIterator1, class RandomAccessIterator2, class RandomAccessIterator3, class Compare>
-void serial_move_merge(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 ys, RandomAccessIterator2 ye, RandomAccessIterator3 zs, Compare comp) {
-    if(xs!=xe) {
-        if(ys!=ye) {
-            for(;;)
-                if(comp(*ys, *xs)) {
-                    *zs = std::move(*ys);
-                    ++zs;
-                    if(++ys==ye) break;
-                }
-                else {
-                    *zs = std::move(*xs);
-                    ++zs;
-                    if(++xs==xe) goto movey;
-                }
-        }
-        ys = xs;
-        ye = xe;
-    }
-movey:
-    std::move(ys, ye, zs);
-}
-
-template<typename RandomAccessIterator1, typename RandomAccessIterator2>
-void merge_sort_init_temp_buf(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 zs, bool inplace) {
-    const RandomAccessIterator2 ze = zs + (xe-xs);
-    typedef typename std::iterator_traits<RandomAccessIterator2>::value_type T;
-    if(inplace)
-        // Initialize the temporary buffer
-        for(; zs!=ze; ++zs)
-            new(&*zs) T;
-    else
-        // Initialize the temporary buffer and move keys to it.
-        for(; zs!=ze; ++xs, ++zs)
-            new(&*zs) T(std::move(*xs));
-}
-
-template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename Cleanup>
+template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename Cleanup, typename LeafMerge>
 class merge_task: public tbb::task {
     /*override*/tbb::task* execute();
     RandomAccessIterator1 xs, xe;
@@ -462,21 +366,22 @@ class merge_task: public tbb::task {
     RandomAccessIterator3 zs;
     Compare comp;
     Cleanup cleanup;
+    LeafMerge leaf_merge;
 public:
     merge_task( RandomAccessIterator1 xs_, RandomAccessIterator1 xe_,
                 RandomAccessIterator2 ys_, RandomAccessIterator2 ye_,
                 RandomAccessIterator3 zs_,
-                Compare comp_, Cleanup cleanup_) :
-        xs(xs_), xe(xe_), ys(ys_), ye(ye_), zs(zs_), comp(comp_), cleanup(cleanup_)
+                Compare comp_, Cleanup cleanup_, LeafMerge leaf_merge_) :
+        xs(xs_), xe(xe_), ys(ys_), ye(ye_), zs(zs_), comp(comp_), cleanup(cleanup_), leaf_merge(leaf_merge_)
     {}
 };
 
-template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename Cleanup>
-tbb::task* merge_task<RandomAccessIterator1, RandomAccessIterator2, RandomAccessIterator3, Compare, Cleanup>::execute() {
-    const size_t MERGE_CUT_OFF = 2000;
+const size_t MERGE_CUT_OFF = 2000;
+template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename Cleanup, typename LeafMerge>
+tbb::task* merge_task<RandomAccessIterator1, RandomAccessIterator2, RandomAccessIterator3, Compare, Cleanup, LeafMerge>::execute() {
     const auto n = (xe-xs) + (ye-ys);
     if(n <= MERGE_CUT_OFF) {
-        serial_move_merge(xs, xe, ys, ye, zs, comp);
+        leaf_merge(xs, xe, ys, ye, zs, comp);
 
         //we clean the buffer one time on last step of the sort
         cleanup(xs, xe);
@@ -496,7 +401,7 @@ tbb::task* merge_task<RandomAccessIterator1, RandomAccessIterator2, RandomAccess
         }
         const RandomAccessIterator3 zm = zs + ((xm-xs) + (ym-ys));
         tbb::task* right = new(allocate_additional_child_of(*parent()))
-            merge_task(xm, xe, ym, ye, zm, comp, cleanup);
+            merge_task(xm, xe, ym, ye, zm, comp, cleanup, leaf_merge);
         spawn(*right);
         recycle_as_continuation();
         xe = xm;
@@ -540,11 +445,11 @@ tbb::task* stable_sort_task<RandomAccessIterator1, RandomAccessIterator2, Compar
             const RandomAccessIterator2 ze = zs + (xe - xs);
             task* m;
             if (inplace == 2)
-                m = new (allocate_continuation()) merge_task<RandomAccessIterator2,RandomAccessIterator2,RandomAccessIterator1,Compare, serial_destroy>(zs, zm, zm, ze, xs, comp, serial_destroy());
+                m = new (allocate_continuation()) merge_task<RandomAccessIterator2,RandomAccessIterator2,RandomAccessIterator1,Compare, serial_destroy, serial_move_merge>(zs, zm, zm, ze, xs, comp, serial_destroy(), serial_move_merge());
             else if (inplace)
-                m = new (allocate_continuation()) merge_task<RandomAccessIterator2,RandomAccessIterator2,RandomAccessIterator1,Compare, binary_no_op>(zs, zm, zm, ze, xs, comp, binary_no_op());
+                m = new (allocate_continuation()) merge_task<RandomAccessIterator2,RandomAccessIterator2,RandomAccessIterator1,Compare, binary_no_op, serial_move_merge>(zs, zm, zm, ze, xs, comp, binary_no_op(), serial_move_merge());
             else
-                m = new (allocate_continuation()) merge_task<RandomAccessIterator1,RandomAccessIterator1,RandomAccessIterator2,Compare, binary_no_op>(xs, xm, xm, xe, zs, comp, binary_no_op());
+                m = new (allocate_continuation()) merge_task<RandomAccessIterator1,RandomAccessIterator1,RandomAccessIterator2,Compare, binary_no_op, serial_move_merge>(xs, xm, xm, xe, zs, comp, binary_no_op(), serial_move_merge());
             m->set_ref_count(2);
             task* right = new(m->allocate_child()) stable_sort_task(xm,xe,zm,!inplace, comp, leaf_sort);
             spawn(*right);
@@ -558,9 +463,10 @@ tbb::task* stable_sort_task<RandomAccessIterator1, RandomAccessIterator2, Compar
 template<typename RandomAccessIterator, typename Compare, typename LeafSort>
 void parallel_stable_sort( RandomAccessIterator xs, RandomAccessIterator xe, Compare comp, LeafSort leaf_sort ) {
     tbb::this_task_arena::isolate([=](){
+        //sorting based on task tree and parallel merge
         typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
         if( xe-xs > STABLE_SORT_CUT_OFF ) {
-            raw_buffer buf( sizeof(T)*(xe-xs) );
+            buffer<T> buf(xe-xs);
             if( buf ) {
                 using tbb::task;
                 typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
@@ -573,7 +479,26 @@ void parallel_stable_sort( RandomAccessIterator xs, RandomAccessIterator xe, Com
     });
 }
 
+//------------------------------------------------------------------------
+// parallel_merge
+//------------------------------------------------------------------------
+
+template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename LeafMerge>
+void parallel_merge(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 ys, RandomAccessIterator2 ye, RandomAccessIterator3 zs, Compare comp, LeafMerge leaf_merge) {
+    tbb::this_task_arena::isolate([=]() {
+        typedef typename std::iterator_traits<RandomAccessIterator3>::value_type T;
+        if ((xe - xs) + (ye - ys) <= MERGE_CUT_OFF) {
+            // Fall back on serial merge
+            leaf_merge(xs, xe, ys, ye, zs, comp);
+        }
+        else {
+            using tbb::task;
+            task::spawn_root_and_wait(*new(task::allocate_root()) merge_task<RandomAccessIterator1, RandomAccessIterator2, RandomAccessIterator3, Compare, binary_no_op, LeafMerge>(xs, xe, ys, ye, zs, comp, binary_no_op(), leaf_merge));
+        }
+    });
+}
+
 } // namespace par_backend
 } // namespace pstl
 
-#endif /* __PSTL_parallel_impl_tbb_H */
+#endif /* __PSTL_parallel_backend_tbb_H */

@@ -1,6 +1,15 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2018 Update 2
+PSTL_VERSION == 103
+
+Features / APIs:
+
+- More algorithms support parallel and/or vector execution policies:
+    find_end, merge, search, search_n
+
+------------------------------------------------------------------------
 Parallel STL 20171127 release
 PSTL_VERSION == 102
 

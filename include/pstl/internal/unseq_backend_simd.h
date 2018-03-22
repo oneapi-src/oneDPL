@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@
 #include <type_traits>
 
 #include "pstl_config.h"
-#include "common.h"
+#include "utils.h"
 
 // This header defines the minimum set of vector routines required
 // to support parallel STL.
 namespace pstl {
-namespace internal {
+namespace unseq_backend {
 
 template<class Iterator, class DifferenceType, class Function>
 Iterator simd_walk_1(Iterator first, DifferenceType n, Function f) noexcept {
@@ -367,34 +367,6 @@ __PSTL_PRAGMA_SIMD_REDUCTION(|:found)
 #endif
 }
 
-template<class Index1, class Index2, class BinaryPredicate>
-Index1 simd_search(Index1 first, Index1 last, Index2 s_first, Index2 s_last, BinaryPredicate p, bool b_first) noexcept {
-    const auto  n2 = s_last - s_first;
-    if(n2 < 1)
-        return b_first ? first : last;
-
-    auto  n1 = last - first;
-    if(n1 < n2)
-        return last;
-
-    if (!b_first)
-        first = last - n2;
-    
-    while( n1 >= n2) {
-        if (simd_first(s_first, n2, first, not_pred<BinaryPredicate>(p)).first == s_last) {//subsequence was found
-            return first;
-        }
-        if (b_first) {
-            ++first;
-        }
-        else if (n1 != n2) {
-            --first;
-        }
-        --n1;
-    }
-    return last;
-}
-
 template<typename InputIterator1, typename DifferenceType, typename InputIterator2, typename T, typename BinaryOperation>
 T simd_transform_reduce(InputIterator1 first1, DifferenceType n, InputIterator2 first2, T init, BinaryOperation binary_op) noexcept {
 __PSTL_PRAGMA_SIMD_REDUCTION(+:init)
@@ -408,7 +380,7 @@ T simd_transform_reduce(InputIterator first, DifferenceType n, T init, UnaryOper
 __PSTL_PRAGMA_SIMD_REDUCTION(+:init)
     for(DifferenceType i = 0; i < n; ++i)
         init += unary_op(first[i]);
-    return init; 
+    return init;
 };
 
 template<class Iterator, class DifferenceType, class Function>
@@ -447,7 +419,7 @@ __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(cnt_true:1, cnt_false : 1)
     }
     return std::make_pair(out_true + cnt_true, out_false + cnt_false);
 }
-} // namespace internal
+} // namespace unseq_backend
 } // namespace pstl
 
 #endif /* __PSTL_vector_impl_H */

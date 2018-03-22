@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@
 #include <functional>
 
 #include "internal/pstl_config.h"
-#include "internal/common.h"
-#include "internal/simd_impl.h"
+#include "internal/utils.h"
 #include "internal/algorithm_impl.h"
 #include "internal/numeric_impl.h"  /* count and count_if use pattern_transform_reduce */
 
@@ -85,7 +84,7 @@ template<class ExecutionPolicy, class InputIterator, class Predicate>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy, InputIterator>
 find_if(ExecutionPolicy&& exec, InputIterator first, InputIterator last, Predicate pred) {
     using namespace pstl::internal;
-    return pattern_find_if( first, last, pred, 
+    return pattern_find_if( first, last, pred,
         is_vectorization_preferred<ExecutionPolicy,InputIterator>(exec),
         is_parallelization_preferred<ExecutionPolicy,InputIterator>(exec));
 }
@@ -269,7 +268,7 @@ transform( ExecutionPolicy&& exec, InputIterator first, InputIterator last, Outp
     typedef typename iterator_traits<InputIterator>::value_type input_type;
     typedef typename iterator_traits<OutputIterator>::value_type output_type;
     using namespace pstl::internal;
-    return pattern_walk2(first, last, result, 
+    return pattern_walk2(first, last, result,
         [op](input_type x, output_type& y ) mutable { y = op(x);},
         is_vectorization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec),
         is_parallelization_preferred<ExecutionPolicy,InputIterator,OutputIterator>(exec));
@@ -760,7 +759,7 @@ includes(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, In
     return includes(exec, first1, last1, first2, last2, std::less<value_type>());
 }
 
-// [set.union] 
+// [set.union]
 
 template<class ExecutionPolicy, class InputIterator1, class InputIterator2, class OutputIterator, class Compare>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy, OutputIterator>

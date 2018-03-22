@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 using namespace TestUtils;
 
 // We provide the no execution policy versions of the exclusive_scan and inclusive_scan due checking correctness result of the versions with execution policies.
-//TODO: to add a macro for availability of ver implementations 
+//TODO: to add a macro for availability of ver implementations
 template<class InputIterator, class OutputIterator, class T>
 OutputIterator exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, T init) {
     for(; first!=last; ++first, ++result) {

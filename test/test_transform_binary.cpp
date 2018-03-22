@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ void check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2
         } else {
             EXPECT_EQ(expected, actual, "wrong value in output sequence");
         }
-        // reset 
+        // reset
         *out_first = k%7!=4 ? 7*k-5 : 0;
     }
 }
@@ -69,7 +69,7 @@ void test() {
         Sequence<In2> in2(n, [](size_t k) {
             return k%7!=2 ? 5*k-5 : 0;
         });
- 
+
         Sequence<Out> out( n, [](size_t k){return -1;}  );
 
         //const operator()
@@ -86,7 +86,7 @@ void test() {
         invoke_on_all_policies(test_one_policy(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(), out.begin(), [](const In1 x, In2& y) {return Out(Out(1.5) + x - y); });
     }
 }
- 
+
 int32_t main( ) {
     test<int32_t, int32_t, int32_t>();
     test<int32_t, float32_t, float32_t>();

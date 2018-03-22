@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Intel Corporation
+# Copyright (c) 2017-2018 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,13 +20,26 @@ PSTL_ARCH=
 PIE_FLAGS = -pie -fPIE -fPIC
 SDL_FLAGS = -fstack-protector -Wformat -Wformat-security
 CPLUS_FLAGS += $(TARGET_CFLAGS) $(PIE_FLAGS) $(SDL_FLAGS)
+
 # Paths to the NDK prebuilt tools and libraries
-CPLUS_FLAGS += --sysroot=$(SYSROOT)
+ifneq (,$(findstring $(ndk_version),r16 r16b))
+    ifeq (clang,$(compiler))
+        # Since Android* NDK r16 another sysroot and isystem paths have to be specified
+        CPLUS_FLAGS += --sysroot=$(NDK_ROOT)/sysroot -isystem $(NDK_ROOT)/sysroot/usr/include/$(TRIPLE)
+        # Android* version flag required since r16
+        CPLUS_FLAGS += -D__ANDROID_API__=$(API_LEVEL)
+    else
+        CPLUS_FLAGS += --sysroot=$(SYSROOT)
+    endif
+else
+    CPLUS_FLAGS += --sysroot=$(SYSROOT)
+endif
+
 LDFLAGS += --sysroot=$(SYSROOT) $(TARGET_CFLAGS)
 PSTL_LIB_LINK +=  -lc++abi -L$(CPLUS_LIB_PATH) -lc++_shared
 
 ifeq (arm,$(arch))
-    PSTL_LIB_LINK += -lunwind 
+    PSTL_LIB_LINK += -lunwind
 endif
 
 # TARGET_CXX cames from NDK

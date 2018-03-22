@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ using namespace TestUtils;
 template <typename T>
 struct Generator_count {
     const T def_val = T(-1);
-    T operator()() { 
+    T operator()() {
         return def_val;
     }
     T default_value() const { return def_val; }

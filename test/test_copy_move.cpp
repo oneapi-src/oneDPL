@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ const size_t GuardSize = 5;
 
 struct run_copy {
 
-#if __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration 
+#if __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template<typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename T>
     void operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
         OutputIterator2 expected_first, Size size, Size n, T trash) {}
@@ -71,7 +71,7 @@ struct run_copy {
 template <typename T>
 struct run_move {
 
-#if __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration 
+#if __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration
     template<typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
         OutputIterator2 expected_first, Size size, Size n, T trash) {}
@@ -101,7 +101,7 @@ struct run_move {
 template <typename T>
 struct run_move<Wrapper<T>> {
 
-#if __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration 
+#if __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration
     template<typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
         OutputIterator2 expected_first, Size size, Size n, Wrapper<T> trash) {}

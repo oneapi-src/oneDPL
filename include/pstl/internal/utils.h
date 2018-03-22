@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_common_H
-#define __PSTL_common_H
+#ifndef __PSTL_utils_H
+#define __PSTL_utils_H
 
 #include <new>
 #include <iterator>
@@ -143,4 +143,4 @@ ForwardIterator cmp_iterators_by_values(ForwardIterator a, ForwardIterator b, Co
 } // namespace internal
 } // namespace pstl
 
-#endif /* __PSTL_common_H */
+#endif /* __PSTL_utils_H */

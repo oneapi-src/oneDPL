@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -24,14 +24,12 @@
 #include <iterator>
 #include <type_traits>
 #include <numeric>
-#include "simd_impl.h"
 
-#include "execution_policy_impl.h"
+#include "execution_impl.h"
+#include "unseq_backend_simd.h"
 
-#if __PSTL_USE_TBB
-    #include "parallel_impl_tbb.h"
-#else
-    __PSTL_PRAGMA_MESSAGE("Backend was not specified");
+#if __PSTL_USE_PAR_POLICIES
+    #include "parallel_backend.h"
 #endif
 
 namespace pstl {
@@ -62,12 +60,12 @@ struct brick_transform_reduce_imp<T, std::plus<T>, /*IsArithmeticIsVector*/ std:
 
     template<class InputIterator1, class InputIterator2, class BinaryOperation2>
     T operator()(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, std::plus<T>, BinaryOperation2 binary_op2) noexcept {
-        return simd_transform_reduce(first1, last1-first1, first2, init, binary_op2);
+        return unseq_backend::simd_transform_reduce(first1, last1-first1, first2, init, binary_op2);
     }
 
     template< class InputIterator, class UnaryOperation>
     T operator()(InputIterator first, InputIterator last, T init, std::plus<T>, UnaryOperation unary_op) noexcept {
-        return simd_transform_reduce(first, last-first, init, unary_op);
+        return unseq_backend::simd_transform_reduce(first, last-first, init, unary_op);
     }
 };
 

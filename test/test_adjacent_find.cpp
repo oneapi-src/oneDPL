@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ void test_adjacent_find_by_type() {
         invoke_on_all_policies(test_adjacent_find(), in.cbegin(), in.cend(), std::equal_to<T>());
     }
 
-    //special cases: 
+    //special cases:
     Sequence <T> a1 = {5, 5, 5, 6, 7, 8, 9};
     invoke_on_all_policies(test_adjacent_find(), a1.begin(), a1.end(), std::equal_to<T>());
     invoke_on_all_policies(test_adjacent_find(), a1.begin() + 1, a1.end(), std::equal_to<T>());
