@@ -1,9 +1,3 @@
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__PSTL_USE_TBB")
-
-IF(${CMAKE_CXX_COMPILER} MATCHES "icc.*$")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__PSTL_USE_TBB -qopenmp-simd")
-ENDIF(${CMAKE_CXX_COMPILER} MATCHES "icc.*$")
-
-ADD_SUBDIRECTORY(gamma_correction)
-ADD_SUBDIRECTORY(convex_hull)
-ADD_SUBDIRECTORY(dot_product)
+add_subdirectory(gamma_correction)
+add_subdirectory(convex_hull)
+add_subdirectory(dot_product)

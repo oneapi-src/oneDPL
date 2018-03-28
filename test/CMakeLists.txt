@@ -1,6 +1,6 @@
-SET(TESTS "")
-LIST(
-    APPEND TESTS
+
+
+set(TESTS
         "test_is_sorted"
         "test_copy_move"
         "test_transform_scan"
@@ -37,8 +37,12 @@ LIST(
         "test_any_of"
         "test_adjacent_find")
 
-FOREACH(TEST ${TESTS})
-    ADD_EXECUTABLE(${TEST} ${TEST}.cpp)
-    TARGET_INCLUDE_DIRECTORIES(${TEST} PUBLIC ${CMAKE_SOURCE_DIR})
-    TARGET_LINK_LIBRARIES(${TEST} ${PROJECT_NAME})
-ENDFOREACH(TEST)
+add_library(TestsCommon INTERFACE)
+target_include_directories(TestsCommon INTERFACE "${ParallelSTL_SOURCE_DIR}")
+
+foreach(TEST ${TESTS})
+    add_executable(${TEST} ${TEST}.cpp)
+    target_link_libraries(${TEST} PUBLIC TestsCommon ParallelSTL)
+    add_test(NAME ${TEST} COMMAND ${TEST})
+endforeach()
+

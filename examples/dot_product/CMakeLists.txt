@@ -1,7 +1,2 @@
-ADD_EXECUTABLE(dot_product dot_product.cpp)
-
-IF(UNIX AND NOT APPLE)
-    TARGET_LINK_LIBRARIES(dot_product rt ${PROJECT_NAME})
-ELSE(UNIX AND NOT APPLE)
-    TARGET_LINK_LIBRARIES(dot_product ${PROJECT_NAME})
-ENDIF(UNIX AND NOT APPLE)
+add_executable(dot_product dot_product.cpp)
+target_link_libraries(dot_product PUBLIC pstl::ParallelSTL)
