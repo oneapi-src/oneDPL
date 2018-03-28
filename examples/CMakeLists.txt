@@ -1,0 +1,3 @@
+add_subdirectory(gamma_correction)
+add_subdirectory(convex_hull)
+add_subdirectory(dot_product)
