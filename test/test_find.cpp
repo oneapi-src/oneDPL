@@ -19,6 +19,7 @@
 */
 
 // Tests for find
+#include "test/pstl_test_config.h"
 
 #include "pstl/execution"
 #include "pstl/algorithm"
@@ -27,6 +28,13 @@
 using namespace TestUtils;
 
 struct test_find {
+#if __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration
+    template <typename Iterator, typename Value>
+    void operator()(pstl::execution::unsequenced_policy, Iterator first, Iterator last, Value value) { }
+    template <typename Iterator, typename Value>
+    void operator()(pstl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Value value) { }
+#endif
+
     template <typename Policy, typename Iterator, typename Value>
     void operator()( Policy&& exec, Iterator first, Iterator last, Value value ) {
         auto i = std::find(first, last, value);

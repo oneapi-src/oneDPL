@@ -27,6 +27,13 @@
 using namespace TestUtils;
 
 struct test_one_policy {
+#if __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration
+    template <typename Iterator, typename Size, typename T, typename Predicate>
+    void operator()(pstl::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred) { }
+    template <typename Iterator, typename Size, typename T, typename Predicate>
+    void operator()(pstl::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred) { }
+#endif
+
     template <typename ExecutionPolicy, typename Iterator, typename Size, typename T, typename Predicate>
     void operator()(ExecutionPolicy&& exec, Iterator b, Iterator e, Size count, const T& value, Predicate pred) {
         using namespace std;
@@ -40,7 +47,7 @@ struct test_one_policy {
 };
 
 template <typename T>
-void test(const std::size_t bits) {
+void test() {
 
     const std::size_t max_n1 = 100000;
     const T value = T(1);
@@ -49,10 +56,11 @@ void test(const std::size_t bits) {
         std::size_t res[] = { 0, 1, n1 / 2, n1 };
         for(auto n2 : sub_n) {
             // Some of standard libraries return "first" in this case. We return "last" according to the standard
-            if (n2 == 0)
+            if (n2 == 0) {
                 continue;
+            }
             for(auto r : res) {
-                Sequence<T> in(n1, [n1, bits](std::size_t k) {return T(0); });
+                Sequence<T> in(n1, [n1](std::size_t k) {return T(0); });
                 std::size_t i = r, isub = 0;
                 for(; i < n1 & isub < n2; ++i, ++isub)
                     in[i] = value;
@@ -65,11 +73,11 @@ void test(const std::size_t bits) {
 }
 
 int32_t main( ) {
-    test<int32_t>(8*sizeof(int32_t));
-    test<uint16_t>(8*sizeof(uint16_t));
-    test<float64_t>(53);
+    test<int32_t>();
+    test<uint16_t>();
+    test<float64_t>();
 #if !__PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
-    test<bool>(1);
+    test<bool>();
 #endif
 
     std::cout << done() << std::endl;

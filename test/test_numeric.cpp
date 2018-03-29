@@ -67,16 +67,16 @@ struct test_reduce {
     void operator()(Policy&& exec, Iterator begin, Iterator end, UnaryOperation unary_op) {
         typedef typename Iterator::value_type T;
         auto zero = T();
-        std::reduce(exec, begin, end);
-        std::reduce(exec, begin, end, zero);
-        std::reduce(exec, begin, end, zero, std::plus<T>());
+        T result = std::reduce(exec, begin, end);
+        result  += std::reduce(exec, begin, end, zero);
+        result  += std::reduce(exec, begin, end, zero, std::plus<T>());
         auto f = [](const T & a, const T &b) {return a + b; };
-        std::reduce(exec, begin, end, zero, f);
-        std::reduce(exec, begin, begin, zero, non_const(std::plus<T>()));
+        result  += std::reduce(exec, begin, end, zero, f);
+        result  += std::reduce(exec, begin, begin, zero, non_const(std::plus<T>()));
 
-        std::transform_reduce(exec, begin, end, zero, std::plus<T>(), unary_op);
-        std::transform_reduce(exec, begin, end, zero, f, unary_op);
-        std::transform_reduce(exec, begin, begin, zero, non_const(f), non_const(unary_op));
+        result  += std::transform_reduce(exec, begin, end, zero, std::plus<T>(), unary_op);
+        result  += std::transform_reduce(exec, begin, end, zero, f, unary_op);
+        result  += std::transform_reduce(exec, begin, begin, zero, non_const(f), non_const(unary_op));
     }
 };
 
@@ -98,11 +98,11 @@ struct test_inner_product {
     void operator()(Policy&& exec, InputIterator inBegin, InputIterator inEnd, OutputIterator outBegin,
         T init, BinaryOperation1 op1, BinaryOperation2 op2) {
 
-        std::transform_reduce(exec, inBegin, inEnd, outBegin, init);
-        std::transform_reduce(exec, inBegin, inEnd, outBegin, init, op1, op2);
+        T result = std::transform_reduce(exec, inBegin, inEnd, outBegin, init);
+        result  += std::transform_reduce(exec, inBegin, inEnd, outBegin, init, op1, op2);
 
         //usage of "non_const" adapter below - we pass empty container due to just compilation checks
-        std::transform_reduce(exec, inBegin, inEnd, outBegin, init, non_const(op1), non_const(op2));
+        result  += std::transform_reduce(exec, inBegin, inEnd, outBegin, init, non_const(op1), non_const(op2));
     }
 };
 
@@ -117,17 +117,16 @@ void test_algo_by_type() {
         Sequence<T> out(n, [](size_t v)->T { return T(v); }); //fill 0..n
         invoke_on_all_policies( test_adjacent_difference(), in.begin(), in.end(), out.begin());
 
-        typedef std::ptrdiff_t U;
-        invoke_on_all_policies( test_transform_scan(), in.begin(), in.end(), out.begin(), std::plus<U>(), UnaryOp<T, U>(), U());
-        invoke_on_all_policies( test_transform_scan(), in.begin(), in.end(), out.begin(), [](const U & a, const U &b) {return a + b; }, [](const T& x) { return U(x); }, U());
+        invoke_on_all_policies( test_transform_scan(), in.begin(), in.end(), out.begin(), std::plus<T>(), UnaryOp<T, T>(), T());
+        invoke_on_all_policies( test_transform_scan(), in.begin(), in.end(), out.begin(), [](const T & a, const T &b) {return a + b; }, [](const T& x) { return T(x); }, T());
 
-        invoke_on_all_policies( test_scan(), in.begin(), in.end(), out.begin(), std::plus<U>(), U());
-        invoke_on_all_policies( test_scan(), in.begin(), in.end(), out.begin(), [](const U & a, const U &b) {return a + b; }, U());
+        invoke_on_all_policies( test_scan(), in.begin(), in.end(), out.begin(), std::plus<T>(), T());
+        invoke_on_all_policies( test_scan(), in.begin(), in.end(), out.begin(), [](const T & a, const T &b) {return a + b; }, T());
 
-        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), std::plus<int32_t>(), std::plus<int32_t>());
-        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), [](const U & a, const U &b) {return a + b; }, std::multiplies<int32_t>());
-        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), std::plus<int32_t>(), [](const U & a, const U &b) {return a + b; });
-        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), [](const U & a, const U &b) {return a + b; }, [](const U & a, const U &b) {return a + b; });
+        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), std::plus<T>(), std::plus<T>());
+        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), [](const T & a, const T &b) {return a + b; }, std::multiplies<int32_t>());
+        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), std::plus<T>(), [](const T & a, const T &b) {return a + b; });
+        invoke_on_all_policies( test_inner_product(), in.begin(), in.end(), out.begin(), T(), [](const T & a, const T &b) {return a + b; }, [](const T & a, const T &b) {return a + b; });
     }
 }
 

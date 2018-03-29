@@ -26,11 +26,10 @@
 
 using namespace TestUtils;
 
-const size_t GuardSize = 5;
 struct run_remove_copy {
     template<typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename T>
     void operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
-        OutputIterator2 expected_first, Size n, const T& value, T trash) {
+        OutputIterator2 expected_first, OutputIterator2 expected_last, Size n, const T& value, T trash) {
         // Cleaning
         std::fill_n(expected_first, n, trash);
         std::fill_n(out_first, n, trash);
@@ -62,13 +61,13 @@ void test(T trash, const T& value, Convert convert, bool check_weakness = true) 
 
         Sequence<T> out(count, [=](size_t){return trash;});
         Sequence<T> expected(count, [=](size_t){return trash;});
-        auto expected_result = remove_copy( in.cfbegin(), in.cfend(), expected.begin(), value );
         if (check_weakness) {
+            auto expected_result = remove_copy(in.cfbegin(), in.cfend(), expected.begin(), value);
             size_t m = expected_result - expected.begin();
             EXPECT_TRUE(n / 4 <= m && m <= 3 * (n + 1) / 4, "weak test for remove_copy");
         }
-        invoke_on_all_policies(run_remove_copy(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), count, value, trash);
-        invoke_on_all_policies(run_remove_copy(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), count, value, trash);
+        invoke_on_all_policies(run_remove_copy(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), count, value, trash);
+        invoke_on_all_policies(run_remove_copy(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), count, value, trash);
     }
 }
 

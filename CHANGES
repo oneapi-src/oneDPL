@@ -1,6 +1,19 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL 20180329 release
+PSTL_VERSION == 104
+
+Features / APIs:
+
+- More algorithms support parallel and vector execution policies:
+    find_first_of, is_heap, is_heap_until, replace, replace_if.
+- More algorithms support vector execution policies:
+    remove, remove_if.
+- More algorithms support parallel execution policies:
+    partial_sort.
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2018 Update 2
 PSTL_VERSION == 103
 

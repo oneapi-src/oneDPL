@@ -440,28 +440,30 @@ bool pattern_equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 f
 //------------------------------------------------------------------------
 // find_if
 //------------------------------------------------------------------------
-template<class InputIterator, class Predicate>
-InputIterator brick_find_if(InputIterator first, InputIterator last, Predicate pred, /*is_vector=*/std::false_type) noexcept {
+template<class ForwardIterator, class Predicate>
+ForwardIterator brick_find_if(ForwardIterator first, ForwardIterator last, Predicate pred, /*is_vector=*/std::false_type) noexcept {
     return std::find_if(first, last, pred);
 }
 
-template<class InputIterator, class Predicate>
-InputIterator brick_find_if(InputIterator first, InputIterator last, Predicate pred, /*is_vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_first(first, last-first, pred);
+template<class ForwardIterator, class Predicate>
+ForwardIterator brick_find_if(ForwardIterator first, ForwardIterator last, Predicate pred, /*is_vector=*/std::true_type) noexcept {
+    typedef typename std::iterator_traits<ForwardIterator>::difference_type size_type;
+    return unseq_backend::simd_first(first, size_type(0), last - first,
+        [&pred](ForwardIterator it, size_type i) {return pred(it[i]); });
 }
 
-template<class InputIterator, class Predicate, class IsVector>
-InputIterator pattern_find_if( InputIterator first, InputIterator last, Predicate pred, IsVector is_vector, /*is_parallel=*/std::false_type ) noexcept {
+template<class ForwardIterator, class Predicate, class IsVector>
+ForwardIterator pattern_find_if(ForwardIterator first, ForwardIterator last, Predicate pred, IsVector is_vector, /*is_parallel=*/std::false_type ) noexcept {
     return brick_find_if(first,last,pred,is_vector);
 }
 
-template<class InputIterator, class Predicate, class IsVector>
-InputIterator pattern_find_if(InputIterator first, InputIterator last, Predicate pred, IsVector is_vector, /*is_parallel=*/std::true_type) {
+template<class ForwardIterator, class Predicate, class IsVector>
+ForwardIterator pattern_find_if(ForwardIterator first, ForwardIterator last, Predicate pred, IsVector is_vector, /*is_parallel=*/std::true_type) {
     return except_handler([=]() {
-        return internal::parallel_find(first, last, [pred, is_vector](InputIterator i, InputIterator j) {
+        return internal::parallel_find(first, last, [pred, is_vector](ForwardIterator i, ForwardIterator j) {
             return brick_find_if(i, j, pred, is_vector);
         },
-            std::less<typename std::iterator_traits<InputIterator>::difference_type>(), /*is_first=*/true);
+        std::less<typename std::iterator_traits<ForwardIterator>::difference_type>(), /*is_first=*/true);
     });
 }
 
@@ -476,33 +478,39 @@ template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate, 
 ForwardIterator1 find_subrange(ForwardIterator1 first, ForwardIterator1 last,
     ForwardIterator1 global_last, ForwardIterator2 s_first, ForwardIterator2 s_last,
     BinaryPredicate pred, bool b_first, IsVector is_vector) noexcept {
-    typedef typename std::iterator_traits<ForwardIterator1>::value_type value_type;
+    typedef typename std::iterator_traits<ForwardIterator2>::value_type value_type;
     auto  n2 = s_last - s_first;
-    if (n2 < 1)
+    if (n2 < 1) {
         return b_first ? first : last;
+    }
 
     auto  n1 = global_last - first;
-    if (n1 < n2)
+    if (n1 < n2) {
         return last;
+    }
 
     auto cur = last;
     while (first != last && (global_last - first >= n2)) {
         // find position of *s_first in [first, last) (it can be start of subsequence)
         first = brick_find_if(first, last,
-            [&s_first, &pred](const value_type& val) {return pred(val, *s_first); }, is_vector);
+            equal_value_by_pred<value_type, BinaryPredicate>(*s_first, pred), is_vector);
 
         // if position that was found previously is the start of subsequence
         // then we can exit the loop (b_first == true) or keep the position
         // (b_first == false)
         if (first != last && (global_last - first >= n2) &&
             brick_equal(s_first + 1, s_last, first + 1, pred, is_vector)) {
-            if (b_first)
+            if (b_first) {
                 return first;
-            else
+            }
+            else {
                 cur = first;
+            }
         }
-        else if (first == last)
+        else if (first == last) {
             break;
+        }
+        else {}
 
         // in case of b_first == false we try to find new start position
         // for the next subsequence
@@ -515,11 +523,12 @@ template<class ForwardIterator, class Size, class T, class BinaryPredicate, clas
 ForwardIterator find_subrange(ForwardIterator first, ForwardIterator last,
     ForwardIterator global_last, Size count, const T& value,
     BinaryPredicate pred, IsVector is_vector) noexcept {
-    if (global_last - first < count || count < 1)
+    if (global_last - first < count || count < 1) {
         return last; // According to the standard last shall be returned when count < 1
+    }
 
     auto n = global_last - first;
-    auto unary_pred = [&value, &pred](const T& val)->bool {return pred(val, value); };
+    auto unary_pred = equal_value_by_pred<T, BinaryPredicate>(value, pred);
     while (first != last && (global_last - first >= count)) {
         first = brick_find_if(first, last, unary_pred, is_vector);
 
@@ -528,10 +537,12 @@ ForwardIterator find_subrange(ForwardIterator first, ForwardIterator last,
             !brick_any_of(first + 1, first + count, not_pred<decltype(unary_pred)>(unary_pred), is_vector)) {
                 return first;
         }
-        else if (first == last)
+        else if (first == last) {
             break;
-        else
+        }
+        else {
             ++first;
+        }
     }
     return last;
 }
@@ -570,26 +581,29 @@ ForwardIterator1 pattern_find_end(ForwardIterator1 first, ForwardIterator1 last,
 //------------------------------------------------------------------------
 // find_first_of
 //------------------------------------------------------------------------
-template<class InputIterator, class ForwardIterator, class BinaryPredicate>
-InputIterator brick_find_first_of(InputIterator first, InputIterator last, ForwardIterator s_first, ForwardIterator s_last, BinaryPredicate pred, /*is_vector=*/std::false_type) noexcept {
+template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
+ForwardIterator1 brick_find_first_of(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred, /*is_vector=*/std::false_type) noexcept {
     return std::find_first_of(first, last, s_first, s_last, pred);
 }
 
-template<class InputIterator, class ForwardIterator, class BinaryPredicate>
-InputIterator brick_find_first_of(InputIterator first, InputIterator last, ForwardIterator s_first, ForwardIterator s_last, BinaryPredicate pred, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::find_first_of(first, last, s_first, s_last, pred);
+template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
+ForwardIterator1 brick_find_first_of(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred, /*is_vector=*/std::true_type) noexcept {
+    return unseq_backend::simd_find_first_of(first, last, s_first, s_last, pred);
 }
 
-template<class InputIterator, class ForwardIterator, class BinaryPredicate, class IsVector>
-InputIterator pattern_find_first_of(InputIterator first, InputIterator last, ForwardIterator s_first, ForwardIterator s_last, BinaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
+template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate, class IsVector>
+ForwardIterator1 pattern_find_first_of(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
     return brick_find_first_of(first, last, s_first, s_last, pred, is_vector);
 }
 
-template<class InputIterator, class ForwardIterator, class BinaryPredicate, class IsVector>
-InputIterator pattern_find_first_of(InputIterator first, InputIterator last, ForwardIterator s_first, ForwardIterator s_last, BinaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_find_first_of(first, last, s_first, s_last, pred, is_vector);
+template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate, class IsVector>
+ForwardIterator1 pattern_find_first_of(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
+    return except_handler([=]() {
+        return internal::parallel_find(first, last, [s_first, s_last, pred, is_vector](ForwardIterator1 i, ForwardIterator1 j) {
+            return brick_find_first_of(i, j, s_first, s_last, pred, is_vector);
+        },
+        std::less<typename std::iterator_traits<ForwardIterator1>::difference_type>(), /*is_first=*/true);
+    });
 }
 
 //------------------------------------------------------------------------
@@ -972,32 +986,6 @@ ForwardIterator2 pattern_swap_ranges(ForwardIterator1 first1, ForwardIterator1 l
 }
 
 //------------------------------------------------------------------------
-// replace
-//------------------------------------------------------------------------
-
-template<class ForwardIterator, class UnaryPredicate, class T>
-void brick_replace_if(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, const T& new_value, /*is_vector=*/std::false_type) noexcept {
-    std::replace_if(first, last, pred, new_value);
-}
-
-template<class ForwardIterator, class UnaryPredicate, class T>
-void brick_replace_if(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, const T& new_value, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    brick_replace_if(first, last, pred, new_value, std::false_type());
-}
-
-template<class ForwardIterator, class UnaryPredicate, class T, class IsVector>
-void pattern_replace_if(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, const T& new_value, IsVector is_vector, /*parallel=*/std::false_type) noexcept {
-    brick_replace_if(first, last, pred, new_value, is_vector);
-}
-
-template<class ForwardIterator, class UnaryPredicate, class T, class IsVector>
-void pattern_replace_if(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, const T& new_value, IsVector is_vector, /*parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    brick_replace_if(first, last, pred, new_value, is_vector);
-}
-
-//------------------------------------------------------------------------
 // reverse
 //------------------------------------------------------------------------
 
@@ -1293,26 +1281,14 @@ void pattern_stable_sort(RandomAccessIterator first, RandomAccessIterator last, 
 // partial_sort
 //------------------------------------------------------------------------
 
-template<class RandomAccessIterator, class Compare>
-void brick_partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp, /*is_vector=*/std::false_type) noexcept {
-    std::partial_sort(first, middle, last, comp);
-}
-
-template<class RandomAccessIterator, class Compare>
-void brick_partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    std::partial_sort(first, middle, last, comp);
-}
-
 template<class RandomAccessIterator, class Compare, class IsVector>
-void pattern_partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
-    brick_partial_sort(first, middle, last, comp, is_vector);
+void pattern_partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp, IsVector, /*is_parallel=*/std::false_type) noexcept {
+    std::partial_sort(first, middle, last, comp);
 }
 
 template <class RandomAccessIterator, class Compare, class IsVector>
-void pattern_partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    brick_partial_sort(first, middle, last, comp, is_vector);
+void pattern_partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp, IsVector, /*is_parallel=*/std::true_type) noexcept {
+    par_backend::parallel_partial_sort(first, middle, last, comp);
 }
 
 //------------------------------------------------------------------------
@@ -1344,31 +1320,31 @@ RandomAccessIterator pattern_partial_sort_copy(InputIterator first, InputIterato
 //------------------------------------------------------------------------
 // count
 //------------------------------------------------------------------------
-template<class InputIterator, class Predicate>
-typename std::iterator_traits<InputIterator>::difference_type
-brick_count(InputIterator first, InputIterator last, Predicate pred, /* is_vector = */ std::true_type) noexcept {
+template<class ForwardIterator, class Predicate>
+typename std::iterator_traits<ForwardIterator>::difference_type
+brick_count(ForwardIterator first, ForwardIterator last, Predicate pred, /* is_vector = */ std::true_type) noexcept {
     return unseq_backend::simd_count(first, last-first, pred);
 }
 
-template<class InputIterator, class Predicate>
-typename std::iterator_traits<InputIterator>::difference_type
-brick_count(InputIterator first, InputIterator last, Predicate pred, /* is_vector = */ std::false_type) noexcept {
+template<class ForwardIterator, class Predicate>
+typename std::iterator_traits<ForwardIterator>::difference_type
+brick_count(ForwardIterator first, ForwardIterator last, Predicate pred, /* is_vector = */ std::false_type) noexcept {
     return std::count_if(first, last, pred);
 }
 
-template<class InputIterator, class Predicate, class IsVector>
-typename std::iterator_traits<InputIterator>::difference_type
-pattern_count(InputIterator first, InputIterator last, Predicate pred, /* is_parallel */ std::false_type, IsVector vec) noexcept {
+template<class ForwardIterator, class Predicate, class IsVector>
+typename std::iterator_traits<ForwardIterator>::difference_type
+pattern_count(ForwardIterator first, ForwardIterator last, Predicate pred, /* is_parallel */ std::false_type, IsVector vec) noexcept {
     return brick_count(first, last, pred, vec);
 }
 
-template<class InputIterator, class Predicate, class IsVector>
-typename std::iterator_traits<InputIterator>::difference_type
-pattern_count(InputIterator first, InputIterator last, Predicate pred, /* is_parallel */ std::true_type, IsVector vec) {
-    typedef typename std::iterator_traits<InputIterator>::difference_type size_type;
+template<class ForwardIterator, class Predicate, class IsVector>
+typename std::iterator_traits<ForwardIterator>::difference_type
+pattern_count(ForwardIterator first, ForwardIterator last, Predicate pred, /* is_parallel */ std::true_type, IsVector vec) {
+    typedef typename std::iterator_traits<ForwardIterator>::difference_type size_type;
     return except_handler([=]() {
         return par_backend::parallel_reduce(first, last, size_type(0),
-            [pred, vec](InputIterator begin, InputIterator end, size_type value)->size_type {
+            [pred, vec](ForwardIterator begin, ForwardIterator end, size_type value)->size_type {
             return value + brick_count(begin, end, pred, vec);
             },
             std::plus<size_type>()
@@ -1561,8 +1537,7 @@ ForwardIterator brick_remove_if(ForwardIterator first, ForwardIterator last, Una
 
 template<class ForwardIterator, class UnaryPredicate>
 ForwardIterator brick_remove_if(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, /* is_vector = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::remove_if(first, last, pred);
+    return unseq_backend::simd_remove_if(first, last - first, pred);
 }
 
 template<class ForwardIterator, class UnaryPredicate, class IsVector>
@@ -1764,26 +1739,60 @@ OutputIterator pattern_set_symmetric_difference(InputIterator1 first1, InputIter
 //------------------------------------------------------------------------
 
 template<class RandomAccessIterator, class Compare>
-RandomAccessIterator brick_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp, /* is_vector = */ std::false_type) noexcept {
+RandomAccessIterator brick_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp,
+    /* is_vector = */ std::false_type) noexcept {
     return std::is_heap_until(first, last, comp);
 }
-
 
 template<class RandomAccessIterator, class Compare>
-RandomAccessIterator brick_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp, /* is_vector = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::is_heap_until(first, last, comp);
+RandomAccessIterator brick_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp,
+    /* is_vector = */ std::true_type) noexcept {
+    if (last - first < 2)
+        return last;
+    typedef typename std::iterator_traits<RandomAccessIterator>::difference_type size_type;
+    return unseq_backend::simd_first(first, size_type(0), last - first,
+        [&comp](RandomAccessIterator it, size_type i) {return comp(it[(i - 1) / 2], it[i]); });
 }
 
 template<class RandomAccessIterator, class Compare, class IsVector>
-RandomAccessIterator pattern_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp, IsVector vec, /* is_parallel = */ std::false_type) noexcept {
+RandomAccessIterator pattern_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp,
+    IsVector vec, /* is_parallel = */ std::false_type) noexcept {
     return brick_is_heap_until(first, last, comp, vec);
 }
 
+template<class RandomAccessIterator, class DifferenceType, class Compare>
+RandomAccessIterator is_heap_until_local(RandomAccessIterator first, DifferenceType begin, DifferenceType end, Compare comp,
+    /* is_vector = */ std::false_type) noexcept {
+    DifferenceType i = begin;
+    for (; i < end; ++i) {
+        if (comp(first[(i - 1) / 2], first[i])) {
+            break;
+        }
+    }
+    return first + i;
+}
+
+template<class RandomAccessIterator, class DifferenceType, class Compare>
+RandomAccessIterator is_heap_until_local(RandomAccessIterator first, DifferenceType begin, DifferenceType end, Compare comp,
+    /* is_vector = */ std::true_type) noexcept {
+    return unseq_backend::simd_first(first, begin, end,
+        [&comp](RandomAccessIterator it, DifferenceType i) {return comp(it[(i - 1) / 2], it[i]); });
+}
+
 template<class RandomAccessIterator, class Compare, class IsVector>
-RandomAccessIterator pattern_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp, IsVector vec, /* is_parallel = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_is_heap_until(first, last, comp, vec);
+RandomAccessIterator pattern_is_heap_until(RandomAccessIterator first, RandomAccessIterator last, Compare comp,
+    IsVector vec, /* is_parallel = */ std::true_type) noexcept {
+    if (last - first < 2)
+        return last;
+
+    return except_handler([=]() {
+        return internal::parallel_find(first, last, [first, last, comp, vec](RandomAccessIterator i, RandomAccessIterator j) {
+            return is_heap_until_local(first, i - first, j - first, comp, vec);
+        },
+        std::less<typename std::iterator_traits<RandomAccessIterator>::difference_type>(), /*is_first=*/true);
+
+    });
+
 }
 
 //------------------------------------------------------------------------
@@ -1902,7 +1911,7 @@ std::pair<InputIterator1, InputIterator2> pattern_mismatch(InputIterator1 first1
         auto result = internal::parallel_find(first1, first1 + n, [first1, first2, pred, is_vector](InputIterator1 i, InputIterator1 j) {
             return brick_mismatch(i, j, first2 + (i - first1), first2 + (j - first1), pred, is_vector).first;
         },
-            std::less<typename std::iterator_traits<InputIterator1>::difference_type>(), /*is_first=*/true);
+        std::less<typename std::iterator_traits<InputIterator1>::difference_type>(), /*is_first=*/true);
         return std::make_pair(result, first2 + (result - first1));
     });
 }

@@ -138,7 +138,7 @@ struct test_sort_with_compare {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Compare>
     typename std::enable_if<is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value, void>::type
         operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first, OutputIterator2 expected_last,
-        InputIterator first, Size n, Compare compare) {
+            InputIterator first, InputIterator last, Size n, Compare compare) {
         using namespace std;
         copy_n(first, n, expected_first);
         copy_n(first, n, tmp_first);
@@ -162,7 +162,7 @@ struct test_sort_with_compare {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Compare>
     typename std::enable_if<!is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value, void>::type
         operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first, OutputIterator2 expected_last,
-        InputIterator first, Size n, Compare compare) {    }
+            InputIterator first, InputIterator last, Size n, Compare compare) { }
 };
 
 template<typename T, typename Compare, typename Convert>
@@ -174,7 +174,7 @@ void test_sort( Compare compare, Convert convert ) {
         Sequence<T> in( n+2, [=](size_t k) {return convert(k,rand()%(2*n+1));} );
         Sequence<T> expected(in);
         Sequence<T> tmp(in);
-        invoke_on_all_policies( test_sort_with_compare(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.size(), compare );
+        invoke_on_all_policies( test_sort_with_compare(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(), in.size(), compare );
     }
 }
 

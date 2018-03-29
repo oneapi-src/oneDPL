@@ -40,7 +40,7 @@ struct test_transform_scan {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp, typename T, typename BinaryOp>
     typename std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
         operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
-        OutputIterator expected_first, Size n, UnaryOp unary_op, T init, BinaryOp binary_op, T trash ) {
+            OutputIterator expected_first, OutputIterator expected_last, Size n, UnaryOp unary_op, T init, BinaryOp binary_op, T trash ) {
         using namespace std;
 
         auto orr1 = inclusive ?
@@ -64,7 +64,7 @@ struct test_transform_scan {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp, typename T, typename BinaryOp>
     typename std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
         operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
-            OutputIterator expected_first, Size n, UnaryOp unary_op, T init, BinaryOp binary_op, T trash) {
+            OutputIterator expected_first, OutputIterator expected_last, Size n, UnaryOp unary_op, T init, BinaryOp binary_op, T trash) {
     }
 };
 
@@ -96,8 +96,8 @@ void test( UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash ) {
                       pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::false_type()/*exclusive*/);
         check_and_reset( expected.begin(), out.begin(), out.size(), trash );
 
-        invoke_on_all_policies(test_transform_scan(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), in.size(), unary_op, init, binary_op, trash);
-        invoke_on_all_policies(test_transform_scan(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), in.size(), unary_op, init, binary_op, trash);
+        invoke_on_all_policies(test_transform_scan(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
+        invoke_on_all_policies(test_transform_scan(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
     }
 }
 

@@ -69,18 +69,57 @@ struct serial_move_merge {
 };
 
 template<typename RandomAccessIterator1, typename RandomAccessIterator2>
-void merge_sort_init_temp_buf(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 zs, bool inplace) {
+void init_buf(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 zs, bool bMove) {
     const RandomAccessIterator2 ze = zs + (xe - xs);
     typedef typename std::iterator_traits<RandomAccessIterator2>::value_type T;
-    if (inplace)
-        // Initialize the temporary buffer
-        for (; zs != ze; ++zs)
-            new(&*zs) T;
-    else
+    if (bMove) {
         // Initialize the temporary buffer and move keys to it.
         for (; zs != ze; ++xs, ++zs)
             new(&*zs) T(std::move(*xs));
+    }
+    else {
+        // Initialize the temporary buffer
+        for (; zs != ze; ++zs)
+            new(&*zs) T;
+    }
 }
+
+template<typename Buf>
+class stack {
+    typedef typename std::iterator_traits<decltype(Buf(0).get())>::value_type T;
+    typedef typename std::iterator_traits<T*>::difference_type difference_type;
+
+    Buf my_buf;
+    T* my_ptr;
+    difference_type my_maxsize;
+
+    stack(const stack&) = delete;
+    void operator=(const stack&) = delete;
+public:
+    stack(difference_type max_size): my_buf(max_size), my_maxsize(max_size) { my_ptr = my_buf.get(); }
+    ~stack() {
+        assert(size() <= my_maxsize);
+        while(!empty())
+            pop();
+    }
+
+    const Buf& buffer() const { return my_buf; }
+    size_t size() const {
+        assert(my_ptr - my_buf.get() <= my_maxsize);
+        assert(my_ptr - my_buf.get() >= 0);
+        return my_ptr - my_buf.get();
+    }
+    bool empty() const { assert(my_ptr >= my_buf.get()); return my_ptr == my_buf.get();}
+    void push(const T& v) {
+        assert(size() < my_maxsize);
+        new (my_ptr) T(v); ++my_ptr;
+    }
+    const T& top() const { return *(my_ptr-1); }
+    void pop() {
+        assert(my_ptr > my_buf.get());
+        --my_ptr; (*my_ptr).~T();
+    }
+};
 
 } // namespace par_backend
 } // namespace pstl

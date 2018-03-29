@@ -21,7 +21,7 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 103
+#define PSTL_VERSION 104
 #define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 
@@ -56,6 +56,11 @@
 // note that when ICC or Clang is in use, __PSTL_GCC_VERSION might not fully match
 // the actual GCC version on the system.
 #define __PSTL_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+
+#if __clang__
+    // according to clang documentation, version can be vendor specific
+    #define __PSTL_CLANG_VERSION (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
+#endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
 #if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (__PSTL_GCC_VERSION >= 40900)

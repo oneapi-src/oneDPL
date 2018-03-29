@@ -136,7 +136,7 @@ void test_by_type(std::size_t n){
 // should provide minimal requirements only
 struct OnlyLessCompare {
     int32_t val;
-    OnlyLessCompare() {}
+    OnlyLessCompare() : val(0) {}
     OnlyLessCompare(int32_t val_) : val(val_) {}
     bool operator<(const OnlyLessCompare& other) const {
         return val < other.val;

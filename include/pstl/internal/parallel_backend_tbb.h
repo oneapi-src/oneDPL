@@ -21,6 +21,8 @@
 #ifndef __PSTL_parallel_backend_tbb_H
 #define __PSTL_parallel_backend_tbb_H
 
+#include <cassert>
+
 #include "parallel_backend_utils.h"
 
 // Bring in minimal required subset of Intel TBB
@@ -125,8 +127,7 @@ struct par_trans_red_body {
         brick_reduce(r_),
         u(u_),
         combine(c_),
-        has_sum(true)
-    {
+        has_sum(true) {
         new(sum_storage) T(init);
     }
     par_trans_red_body( par_trans_red_body& left, tbb::split ) :
@@ -137,9 +138,8 @@ struct par_trans_red_body {
     {}
     ~par_trans_red_body() {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if( has_sum ) {
+        if( has_sum )
             sum().~T();
-        }
     }
     void join(par_trans_red_body& rhs) {
         sum() = combine(sum(), rhs.sum());
@@ -187,8 +187,7 @@ public:
         u(u_),
         combine(combine_),
         scan(scan_),
-        has_sum(true)
-    {
+        has_sum(true) {
         new(sum_storage) T(init);
     }
 
@@ -197,14 +196,12 @@ public:
         u(b.u),
         combine(b.combine),
         scan(b.scan),
-        has_sum(false)
-    {}
+        has_sum(false) {}
 
     ~trans_scan_body() {
         // 17.6.5.12 tells us to not worry about catching exceptions from destructors.
-        if( has_sum ) {
+        if( has_sum )
             sum().~T();
-        }
     }
 
     T& sum() const {
@@ -246,16 +243,15 @@ public:
 
 template<class Index, class U, class T, class C, class R, class S>
 T parallel_transform_scan(Index n, U u, T init, C combine, R brick_reduce, S scan) {
-    if(n) {
-        trans_scan_body<Index, U, T, C, R, S> body(u, init, combine, brick_reduce, scan);
-        auto range = tbb::blocked_range<Index>(0, n);
-        tbb::this_task_arena::isolate([range, &body]() {
-            tbb::parallel_scan(range, body);
-        });
-        return body.sum();
-    }
-    else
+    if (n <= 0)
         return init;
+
+    trans_scan_body<Index, U, T, C, R, S> body(u, init, combine, brick_reduce, scan);
+    auto range = tbb::blocked_range<Index>(0, n);
+    tbb::this_task_arena::isolate([range, &body]() {
+        tbb::parallel_scan(range, body);
+    });
+    return body.sum();
 }
 
 template<typename Index>
@@ -272,31 +268,31 @@ Index split(Index m) {
 
 template<typename Index, typename T, typename R, typename C>
 void upsweep(Index i, Index m, Index tilesize, T* r, Index lastsize, R reduce, C combine) {
-        if( m==1 )
-            r[0] = reduce(i*tilesize, lastsize);
-        else {
-            Index k = split(m);
-            tbb::parallel_invoke(
-               [=]{upsweep( i, k, tilesize, r, tilesize, reduce, combine );},
-               [=]{upsweep( i+k, m-k, tilesize, r+k, lastsize, reduce, combine );}
-            );
-            if( m==2*k )
-                r[m-1] = combine(r[k-1], r[m-1]);
-        }
+    if (m == 1)
+        r[0] = reduce(i*tilesize, lastsize);
+    else {
+        Index k = split(m);
+        tbb::parallel_invoke(
+            [=] {upsweep(i, k, tilesize, r, tilesize, reduce, combine); },
+            [=] {upsweep(i + k, m - k, tilesize, r + k, lastsize, reduce, combine); }
+        );
+        if (m == 2 * k)
+            r[m - 1] = combine(r[k - 1], r[m - 1]);
+    }
 }
 
 template<typename Index, typename T, typename C, typename S>
 void downsweep(Index i, Index m, Index tilesize, T* r, Index lastsize, T initial, C combine, S scan) {
-        if( m==1 ) {
-            scan(i*tilesize, lastsize, initial );
-        } else {
-            Index k = split(m);
-            tbb::parallel_invoke(
-                [=]{downsweep(i, k, tilesize, r, tilesize, initial, combine, scan);},
-                // Assumes that combine never throws.
-                [=]{downsweep(i+k, m-k, tilesize, r+k, lastsize, combine(initial, r[k-1]), combine, scan);}
-            );
-        }
+    if (m == 1)
+        scan(i*tilesize, lastsize, initial);
+    else {
+        const Index k = split(m);
+        tbb::parallel_invoke(
+            [=] {downsweep(i, k, tilesize, r, tilesize, initial, combine, scan); },
+            // Assumes that combine never throws.
+            [=] {downsweep(i + k, m - k, tilesize, r + k, lastsize, combine(initial, r[k - 1]), combine, scan); }
+        );
+    }
 }
 
 // Adapted from Intel(R) Cilk(TM) version from cilkpub.
@@ -314,36 +310,36 @@ void downsweep(Index i, Index m, Index tilesize, T* r, Index lastsize, T initial
 // For example, it's useful for allocating a buffer used by scan but whose size is the sum of all reduction values.
 // T must have a trivial constructor and destructor.
 template<typename Index, typename T, typename R, typename C, typename S, typename A>
-void parallel_strict_scan( Index n, T initial, R reduce, C combine, S scan, A apex ) {
-    tbb::this_task_arena::isolate([=](){
-        if( n>1 ) {
+void parallel_strict_scan(Index n, T initial, R reduce, C combine, S scan, A apex) {
+    tbb::this_task_arena::isolate([=]() {
+        if (n > 1) {
             Index p = tbb::this_task_arena::max_concurrency();
             const Index slack = 4;
-            Index tilesize = (n-1)/(slack*p) + 1;
-            Index m = (n-1)/tilesize;
-            buffer<T> buf(m+1);
-            if( buf ) {
+            Index tilesize = (n - 1) / (slack*p) + 1;
+            Index m = (n - 1) / tilesize;
+            buffer<T> buf(m + 1);
+            if (buf) {
                 T* r = buf.get();
-                upsweep(Index(0), Index(m+1), tilesize, r, n-m*tilesize, reduce, combine);
+                upsweep(Index(0), Index(m + 1), tilesize, r, n - m*tilesize, reduce, combine);
                 // When apex is a no-op and combine has no side effects, a good optimizer
                 // should be able to eliminate all code between here and apex.
                 // Alternatively, provide a default value for apex that can be
                 // recognized by metaprogramming that conditionlly executes the following.
-                size_t k = m+1;
-                T t = r[k-1];
-                while( (k&=k-1) )
-                    t = combine(r[k-1],t);
-                apex(combine(initial,t));
-                downsweep(Index(0), Index(m+1), tilesize, r, n-m*tilesize, initial, combine, scan);
+                size_t k = m + 1;
+                T t = r[k - 1];
+                while ((k &= k - 1))
+                    t = combine(r[k - 1], t);
+                apex(combine(initial, t));
+                downsweep(Index(0), Index(m + 1), tilesize, r, n - m*tilesize, initial, combine, scan);
                 return;
             }
         }
         // Fewer than 2 elements in sequence, or out of memory.  Handle has single block.
         T sum = initial;
-        if(n)
+        if (n)
             sum = combine(sum, reduce(Index(0), n));
         apex(sum);
-        if(n)
+        if (n)
             scan(Index(0), n, initial);
     });
 }
@@ -437,7 +433,7 @@ tbb::task* stable_sort_task<RandomAccessIterator1, RandomAccessIterator2, Compar
         if( xe - xs <= STABLE_SORT_CUT_OFF ) {
             leaf_sort(xs, xe, comp);
             if( inplace!=2 )
-                merge_sort_init_temp_buf(xs, xe, zs, inplace!=0);
+                init_buf(xs, xe, zs, inplace==0);
             return NULL;
         } else {
             const RandomAccessIterator1 xm = xs + (xe - xs) / 2;
@@ -461,21 +457,21 @@ tbb::task* stable_sort_task<RandomAccessIterator1, RandomAccessIterator2, Compar
 }
 
 template<typename RandomAccessIterator, typename Compare, typename LeafSort>
-void parallel_stable_sort( RandomAccessIterator xs, RandomAccessIterator xe, Compare comp, LeafSort leaf_sort ) {
-    tbb::this_task_arena::isolate([=](){
+void parallel_stable_sort(RandomAccessIterator xs, RandomAccessIterator xe, Compare comp, LeafSort leaf_sort) {
+    tbb::this_task_arena::isolate([=]() {
         //sorting based on task tree and parallel merge
         typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
-        if( xe-xs > STABLE_SORT_CUT_OFF ) {
-            buffer<T> buf(xe-xs);
-            if( buf ) {
+        if (xe - xs > STABLE_SORT_CUT_OFF) {
+            buffer<T> buf(xe - xs);
+            if (buf) {
                 using tbb::task;
                 typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
-                task::spawn_root_and_wait(*new( task::allocate_root() ) stable_sort_task<RandomAccessIterator,T*,Compare,LeafSort>( xs, xe, (T*)buf.get(), 2, comp, leaf_sort ));
+                task::spawn_root_and_wait(*new(task::allocate_root()) stable_sort_task<RandomAccessIterator, T*, Compare, LeafSort>(xs, xe, (T*)buf.get(), 2, comp, leaf_sort));
                 return;
             }
         }
         // Not enough memory available or sort too small - fall back on serial sort
-        leaf_sort( xs, xe, comp );
+        leaf_sort(xs, xe, comp);
     });
 }
 
@@ -485,17 +481,178 @@ void parallel_stable_sort( RandomAccessIterator xs, RandomAccessIterator xe, Com
 
 template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename LeafMerge>
 void parallel_merge(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 ys, RandomAccessIterator2 ye, RandomAccessIterator3 zs, Compare comp, LeafMerge leaf_merge) {
-    tbb::this_task_arena::isolate([=]() {
-        typedef typename std::iterator_traits<RandomAccessIterator3>::value_type T;
-        if ((xe - xs) + (ye - ys) <= MERGE_CUT_OFF) {
-            // Fall back on serial merge
-            leaf_merge(xs, xe, ys, ye, zs, comp);
-        }
-        else {
+    if ((xe - xs) + (ye - ys) <= MERGE_CUT_OFF) {
+        // Fall back on serial merge
+        leaf_merge(xs, xe, ys, ye, zs, comp);
+    }
+    else {
+        tbb::this_task_arena::isolate([=]() {
             using tbb::task;
             task::spawn_root_and_wait(*new(task::allocate_root()) merge_task<RandomAccessIterator1, RandomAccessIterator2, RandomAccessIterator3, Compare, binary_no_op, LeafMerge>(xs, xe, ys, ye, zs, comp, binary_no_op(), leaf_merge));
+        });
+    }
+}
+
+template<typename DifferenceType, typename IteratorType>
+struct partial_sort_range {
+    DifferenceType beg, end;
+    bool buf_flag;
+    IteratorType buf_0;
+    typename std::iterator_traits<IteratorType>::value_type* buf_1;
+    DifferenceType mid;
+};
+
+template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3>
+struct partial_ranges {
+    RandomAccessIterator1 xs, xe;
+    RandomAccessIterator2 ys, ye;
+    RandomAccessIterator3 zs;
+    RandomAccessIterator1 xm;
+    RandomAccessIterator2 ym;
+};
+
+template<typename DifferenceType>
+struct range_move_t {
+    DifferenceType xs, xe;
+    DifferenceType zs;
+};
+
+//partial sorting based on parallel reduce and parallel merge
+template<typename RandomAccessIterator, typename Compare>
+void parallel_partial_sort(RandomAccessIterator xs, RandomAccessIterator xm, RandomAccessIterator xe, Compare comp) {
+
+    //assumption that parallelization overhead affects till number of sorting elements up to 1000
+    const size_t sort_cut_off = 1000;
+
+    const auto n = xe - xs;
+
+    //partial sorting cut off
+    if (n <= sort_cut_off*2) {
+        std::partial_sort(xs, xm, xe, comp);
+        return;
+    }
+
+    //trying to request additional memory
+    typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
+    buffer<T> buf(n);
+    if (!buf) {
+        std::partial_sort(xs, xm, xe, comp);
+        return;
+    }
+
+    //prepare subranges to call partial_sort in parallel mode
+    typedef typename std::iterator_traits<RandomAccessIterator>::difference_type DifferenceType;
+    typedef partial_sort_range<DifferenceType, RandomAccessIterator> range_t;
+    typedef range_move_t<DifferenceType> rmove_t;
+
+    const auto n1 = xm - xs;
+    const auto n2 = xe - xm;
+
+    assert(n1 + n2 == n);
+
+    const auto m = std::max(n1, n2);
+    const auto n_range = m / sort_cut_off;
+
+    assert(n_range >= 1);
+
+    const double fpart = 1. / n_range;
+    const double fpart1 = fpart * n1;
+    const double fpart2 = fpart * n2;
+
+    RandomAccessIterator a = xs; //a - source container
+    T* b = buf.get(); //b - buffer for merging partial sorted arrays
+
+    //calculation indices for doing subranges for parallel partial sorting
+    stack <buffer<range_t>> ranges(n_range);
+    stack <buffer<rmove_t>> ranges_move(n_range * 2);
+
+    DifferenceType x1 = 0, y1 = n1, z = 0, z1 = 0, z2 = 0, zm = 0;
+    for (DifferenceType i = 1; i <= n_range; ++i) {
+
+        //create subrange indices for dividing original arrays into a couple of range sets
+        const DifferenceType x2 = i < n_range ? fpart1 * i : n1;
+        const DifferenceType y2 = i < n_range ? n1 + fpart2 * i : n1 + n2;
+        z1 = z;
+        ranges_move.push(rmove_t{x1, x2, z });
+        z += x2-x1;
+        zm = z;
+        ranges_move.push(rmove_t{y1, y2, z });
+        z += y2-y1;
+        z2 = z;
+        x1 = x2, y1 = y2;
+
+        //create subrange indices for partial sort
+        ranges.push(range_t{ z1, z2, true, a, b, zm});
+    }
+
+    assert(z2 == n1 + n2);
+
+    //init buffer -moving from two array into one
+    pstl::par_backend::parallel_for(ranges_move.buffer().get(), ranges_move.buffer().get() + ranges_move.size(),
+        [&a, &b](rmove_t* i, rmove_t* j) {
+            for (; i < j; ++i) {
+                const auto& r = *i;
+                init_buf(a + r.xs, a + r.xe, b + r.zs, true);
+            }
         }
-    });
+    );
+
+    auto res_range = tbb::parallel_deterministic_reduce(tbb::blocked_range<range_t*>(ranges.buffer().get(), ranges.buffer().get() + ranges.size(), 1), range_t{ 0, 0, false , a, b, 0},
+        [a, b, &comp](tbb::blocked_range<range_t*>& r, const range_t&)-> range_t {
+            assert(r.end() - r.begin() == 1);
+
+            auto& sr = *r.begin();
+            std::partial_sort(b + sr.beg, b + sr.mid, b + sr.end, comp);
+            return sr;
+        },
+        [&comp](range_t l, range_t r) -> range_t {
+
+            assert(l.end - l.beg > 0);
+            assert(r.end - r.beg > 0);
+            assert(l.end == r.beg);
+
+            //move the subrange to the paired buffer and revert the buffer flag
+            if (l.buf_flag != r.buf_flag) {
+                if (l.buf_flag) {
+                    std::move(l.buf_1 + l.beg, l.buf_1 + l.end, l.buf_0 + l.beg);
+                    l.buf_flag = false;
+                }
+                else {
+                    assert(r.buf_flag);
+
+                    std::move(r.buf_1 + r.beg, r.buf_1 + r.end, r.buf_0 + r.beg);
+                    r.buf_flag = false;
+                }
+            }
+
+            assert(l.buf_flag == r.buf_flag);
+
+            //merge two partial sorted ranges
+            const auto n1 = l.mid - l.beg;
+            const auto n2 = r.mid - r.beg;
+            const auto res = range_t{ l.beg, r.end, !l.buf_flag, l.buf_0, l.buf_1, l.beg + n1 + n2}; //get new range and switch memory buffer
+            if (l.buf_flag) {
+                pstl::par_backend::parallel_merge(l.buf_1 + l.beg, l.buf_1 + l.mid, r.buf_1 + r.beg, r.buf_1 + r.mid, res.buf_0 + res.beg, comp, serial_move_merge());
+                auto res_it = std::move(l.buf_1 + l.mid, l.buf_1 + l.end, res.buf_0 + res.beg + n1 + n2); //moving left unsorted subrange
+                std::move(r.buf_1 + r.mid, r.buf_1 + r.end, res_it); //moving right unsorted subrange
+            }
+            else {
+                pstl::par_backend::parallel_merge(l.buf_0 + l.beg, l.buf_0 + l.mid, r.buf_0 + r.beg, r.buf_0 + r.mid, res.buf_1 + res.beg, comp, serial_move_merge());
+                auto res_it = std::move(l.buf_0 + l.mid, l.buf_0 + l.end, res.buf_1 + res.beg + n1 + n2);//moving left unsorted subrange
+                std::move(r.buf_0 + r.mid, r.buf_0 + r.end, res_it); //moving right unsorted subrange
+            }
+
+            return res;
+        },
+        tbb::simple_partitioner()
+    );
+
+    //move the result into source container
+    if (res_range.buf_flag) {
+        std::move(b, b + n, a);
+    }
+
+    serial_destroy()(b, b + n); //cleanup
 }
 
 } // namespace par_backend

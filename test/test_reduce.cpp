@@ -18,6 +18,8 @@
 
 */
 
+#include "test/pstl_test_config.h"
+
 #include "pstl/execution"
 #include "pstl/numeric"
 #include "test/utils.h"
@@ -56,14 +58,22 @@ void test_long_form(T init, BinaryOp binary_op, F f) {
 }
 
 struct test_two_short_forms {
+
+#if __PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN //dummy specialization by policy type, in case of broken configuration
+    template <typename Iterator>
+    void operator()(pstl::execution::parallel_policy, Iterator first, Iterator last, Sum init, Sum expected) { }
+    template <typename Iterator>
+    void operator()(pstl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Sum init, Sum expected) { }
+#endif
+
     template <typename Policy, typename Iterator>
     void operator()(Policy&& exec, Iterator first, Iterator last, Sum init, Sum expected) {
         using namespace std;
 
-        auto r0 = init + reduce(exec, first, last);
+        Sum r0 = init + reduce(exec, first, last);
         EXPECT_EQ(expected, r0, "bad result from reduce(exec, first, last)");
 
-        auto r1 = reduce(exec, first, last, init);
+        Sum r1 = reduce(exec, first, last, init);
         EXPECT_EQ(expected, r1, "bad result from reduce(exec, first, last, init)");
     }
 };

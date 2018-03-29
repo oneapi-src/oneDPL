@@ -27,12 +27,10 @@
 
 using namespace TestUtils;
 
-const size_t GuardSize = 5;
-
 struct run_copy_if {
     template<typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Predicate, typename T>
     void operator()(Policy&& exec, InputIterator first, InputIterator last,  OutputIterator out_first, OutputIterator out_last,
-        OutputIterator2 expected_first, Size n, Predicate pred, T trash) {
+        OutputIterator2 expected_first, OutputIterator2 expected_last, Size n, Predicate pred, T trash) {
         // Cleaning
         std::fill_n(expected_first, n, trash);
         std::fill_n(out_first, n, trash);
@@ -75,13 +73,13 @@ void test(T trash, Predicate pred, Convert convert, bool check_weakness = true) 
 
         Sequence<T> out(count, [=](size_t){return trash;});
         Sequence<T> expected(count, [=](size_t){return trash;});
-        auto expected_result = copy_if( in.cfbegin(), in.cfend(), expected.begin(), pred );
         if (check_weakness) {
+            auto expected_result = copy_if(in.cfbegin(), in.cfend(), expected.begin(), pred);
             size_t m = expected_result - expected.begin();
             EXPECT_TRUE(n / 4 <= m && m <= 3 * (n + 1) / 4, "weak test for copy_if");
         }
-        invoke_on_all_policies(run_copy_if(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), count, pred, trash);
-        invoke_on_all_policies(run_copy_if(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), count, pred, trash);
+        invoke_on_all_policies(run_copy_if(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), count, pred, trash);
+        invoke_on_all_policies(run_copy_if(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), count, pred, trash);
     }
 }
 
@@ -94,7 +92,7 @@ int32_t main( ) {
                [](const int32_t& x) {return x!=42;},
                [](size_t j){return ((j+1)%5&2)!=0? int32_t(j+1) : 42;});
 
-#if !__PSTL_TEST_ICC_17_IA32_RELEASE_MAC_BROKEN
+#if !__PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     test<Number>( Number(42,OddTag()),
                   IsMultiple(3,OddTag()),
                   [](int32_t j){return Number(j,OddTag());});

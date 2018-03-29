@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_execution_policy_H
-#define __PSTL_execution_policy_H
+#ifndef __PSTL_execution_policy
+#define __PSTL_execution_policy
 
 #include <type_traits>
 #include "internal/pstl_config.h"
@@ -129,4 +129,4 @@ namespace std {
 __PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are injected into the standard namespace std::execution")
 #endif
 
-#endif /* __PSTL_execution_policy_H */
+#endif /* __PSTL_execution_policy */

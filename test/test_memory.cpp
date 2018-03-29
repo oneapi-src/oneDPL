@@ -31,14 +31,14 @@ using namespace TestUtils;
 
 struct test_memory {
 
-#if __PSTL_TEST_PAR_TBB_RT_ICC_16_VC14_RELEASE_64_BROKEN //dummy specialization by policy type, in case of broken configuration
+#if __PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator>
     void operator()(pstl::execution::parallel_policy, InputIterator inBegin, InputIterator inEnd, OutputIterator outBegin, OutputIterator outEnd) {}
     template <typename InputIterator, typename OutputIterator>
     void operator()(pstl::execution::parallel_unsequenced_policy, InputIterator inBegin, InputIterator inEnd, OutputIterator outBegin, OutputIterator outEnd) {}
 #endif
 
-#if __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration
+#if __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN//dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator>
     void operator()(pstl::execution::unsequenced_policy, InputIterator inBegin, InputIterator inEnd, OutputIterator outBegin, OutputIterator outEnd) {}
     template <typename InputIterator, typename OutputIterator>

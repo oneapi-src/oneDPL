@@ -53,46 +53,34 @@ void check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2
 struct test_one_policy {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename BinaryOp>
     void operator()( Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
-        OutputIterator out_first, BinaryOp op) {
+        OutputIterator out_first, OutputIterator out_last, BinaryOp op) {
         auto orrr = std::transform( exec, first1, last1, first2, out_first, op );
-//        EXPECT_TRUE( orrr==out.end(), "transform returned wrong iterator" );
         check_and_reset(first1, last1, first2, out_first);
     }
 };
 
-template <typename In1, typename In2, typename Out>
-void test() {
+template <typename In1, typename In2, typename Out, typename Predicate>
+void test(Predicate pred) {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
-        Sequence<In1> in1(n, [](size_t k) {
-            return k%5!=1 ? 3*k-7 : 0;
-        });
-        Sequence<In2> in2(n, [](size_t k) {
-            return k%7!=2 ? 5*k-5 : 0;
-        });
+        Sequence<In1> in1(n, [](size_t k) { return k%5!=1 ? 3*k-7 : 0; });
+        Sequence<In2> in2(n, [](size_t k) { return k%7!=2 ? 5*k-5 : 0; });
 
-        Sequence<Out> out( n, [](size_t k){return -1;}  );
+        Sequence<Out> out(n, [](size_t k) { return -1; });
 
-        //const operator()
-        auto flip_const = TheOperation<In1,In2,Out>(Out(1.5));
-        invoke_on_all_policies(test_one_policy(), in1.begin(), in1.end(), in2.begin(), in2.end(), out.begin(), flip_const);
-        invoke_on_all_policies(test_one_policy(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(), out.begin(), flip_const);
-
-        //non-const operator()
-        invoke_on_all_policies(test_one_policy(), in1.begin(), in1.end(), in2.begin(), in2.end(), out.begin(), non_const(flip_const));
-        invoke_on_all_policies(test_one_policy(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(), out.begin(), non_const(flip_const));
-
-        //lambda
-        invoke_on_all_policies(test_one_policy(), in1.begin(), in1.end(), in2.begin(), in2.end(), out.begin(), [](const In1 x, In2& y) {return Out(Out(1.5) + x - y); });
-        invoke_on_all_policies(test_one_policy(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(), out.begin(), [](const In1 x, In2& y) {return Out(Out(1.5) + x - y); });
+        invoke_on_all_policies(test_one_policy(), in1.begin(), in1.end(), in2.begin(), in2.end(), out.begin(), out.end(), pred);
+        invoke_on_all_policies(test_one_policy(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(), out.begin(), out.end(), pred);
     }
 }
 
 int32_t main( ) {
-    test<int32_t, int32_t, int32_t>();
-    test<int32_t, float32_t, float32_t>();
-    test<float32_t, float32_t, float32_t>();
-    test<int64_t, float64_t, float32_t>();
-    test<int8_t, float64_t, int8_t>();
+    //const operator()
+    test<int32_t, int32_t, int32_t>(TheOperation<int32_t, int32_t, int32_t>(1));
+    test<float32_t, float32_t, float32_t>(TheOperation<float32_t, float32_t, float32_t>(1.5));
+    //non-const operator()
+    test<int32_t, float32_t, float32_t>(non_const(TheOperation<int32_t, float32_t, float32_t>(1.5)));
+    test<int64_t, float64_t, float32_t>(non_const(TheOperation<int64_t, float64_t, float32_t>(1.5)));
+    //lambda
+    test<int8_t, float64_t, int8_t>([](const int8_t& x, const float64_t& y) {return int8_t(int8_t(1.5) + x - y); });
     std::cout << "done" << std::endl;
     return 0;
 }

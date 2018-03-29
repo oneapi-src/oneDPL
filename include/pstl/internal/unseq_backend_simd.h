@@ -62,6 +62,7 @@ template<class Index, class DifferenceType, class Pred>
 bool simd_or(Index first, DifferenceType n, Pred pred) noexcept {
 #if __PSTL_EARLYEXIT_PRESENT
     DifferenceType i;
+__PSTL_PRAGMA_VECTOR_UNALIGNED
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for(i = 0; i < n; ++i)
         if(pred(first[i]))
@@ -92,49 +93,52 @@ __PSTL_PRAGMA_SIMD_REDUCTION(&:flag)
 #endif
 }
 
-template<class Index, class DifferenceType, class Pred>
-Index simd_first(Index first, DifferenceType n, Pred pred) noexcept {
+template<class Index, class DifferenceType, class Compare>
+Index simd_first(Index first, DifferenceType begin, DifferenceType end, Compare comp) noexcept {
 #if __PSTL_EARLYEXIT_PRESENT
-    DifferenceType i = 0;
+    DifferenceType i = begin;
+__PSTL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
 __PSTL_PRAGMA_SIMD_EARLYEXIT
-    for(;i < n; ++i)
-        if(pred(*(first+i)))
+    for (; i < end; ++i) {
+        if (comp(first, i)) {
             break;
-
+        }
+    }
     return first + i;
 #else
-    const Index last = first + n;
     // Experiments show good block sizes like this
     const DifferenceType block_size = 8;
-    alignas(64) DifferenceType lane[block_size] = {0};
-    while ( last - first >= block_size ) {
+    alignas(64) DifferenceType lane[block_size] = { 0 };
+    while (end - begin >= block_size) {
         DifferenceType found = 0;
 __PSTL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
-__PSTL_PRAGMA_SIMD_REDUCTION(|:found)
-        for ( DifferenceType i = 0; i < block_size; ++i ) {
-            // To improve SIMD vectorization
-            const DifferenceType t = (pred(*(first + i)));
-            lane[i] = t;
+__PSTL_PRAGMA_SIMD_REDUCTION(| :found)
+        for (DifferenceType i = begin; i < begin + block_size; ++i) {
+            const DifferenceType t = comp(first, i);
+            lane[i - begin] = t;
             found |= t;
         }
-        if ( found ) {
+        if (found) {
             DifferenceType i;
             // This will vectorize
-            for ( i = 0; i < block_size; ++i ) {
-                if ( lane[i] ) break;
+            for (i = 0; i < block_size; ++i) {
+                if (lane[i]) {
+                    break;
+                }
             }
-            return first + i;
+            return first + begin + i;
         }
-        first += block_size;
+        begin += block_size;
     }
+
     //Keep remainder scalar
-    while ( last != first ) {
-        if ( pred(*(first)) ) {
-            return first;
+    while (begin != end) {
+        if (comp(first, begin)) {
+            return first + begin;
         }
-        ++first;
+        ++begin;
     }
-    return last;
+    return first + end;
 #endif //__PSTL_EARLYEXIT_PRESENT
 }
 
@@ -142,6 +146,7 @@ template<class Index1, class DifferenceType, class Index2, class Pred>
 std::pair<Index1, Index2> simd_first(Index1 first1, DifferenceType n, Index2 first2, Pred pred) noexcept {
 #if __PSTL_EARLYEXIT_PRESENT
     DifferenceType i = 0;
+__PSTL_PRAGMA_VECTOR_UNALIGNED
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for(;i < n; ++i)
         if(pred(first1[i], first2[i]))
@@ -321,6 +326,7 @@ Index simd_adjacent_find(Index first, Index last, BinaryPredicate pred, bool or_
 #if __PSTL_EARLYEXIT_PRESENT
     //Some compiler versions fail to compile the following loop when iterators are used. Indices are used instead
     const difference_type n = last-first-1;
+__PSTL_PRAGMA_VECTOR_UNALIGNED
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for(; i < n; ++i)
         if(pred(first[i], first[i+1]))
@@ -418,6 +424,67 @@ __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(cnt_true:1, cnt_false : 1)
         }
     }
     return std::make_pair(out_true + cnt_true, out_false + cnt_false);
+}
+
+template<class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
+ForwardIterator1 simd_find_first_of(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last, BinaryPredicate pred) noexcept {
+    typedef typename std::iterator_traits<ForwardIterator1>::difference_type difference_type;
+
+    const difference_type n1 = last - first;
+    const difference_type n2 = s_last - s_first;
+    if (n1 == 0 || n2 == 0) {
+        return last; // according to the standard
+    }
+
+    // Common case
+    // If first sequence larger than second then we'll run simd_first with parameters of first sequence.
+    // Otherwise, vice versa.
+    if (n1 < n2)
+    {
+        for (; first != last; ++first) {
+            if (simd_or(s_first, n2,
+                internal::equal_value_by_pred<decltype(*first), BinaryPredicate>(*first, pred))) {
+                return first;
+            }
+        }
+    }
+    else {
+        for (; s_first != s_last; ++s_first) {
+            const auto result = simd_first(first, difference_type(0), n1,
+                [s_first, &pred](ForwardIterator1 it, difference_type i) {return pred(it[i], *s_first); });
+            if (result != last) {
+                return result;
+            }
+        }
+    }
+    return last;
+}
+
+template<class ForwardIterator, class DifferenceType, class UnaryPredicate>
+ForwardIterator simd_remove_if(ForwardIterator first, DifferenceType n, UnaryPredicate pred) noexcept {
+    // find first element we need to remove
+    auto current = simd_first(first, DifferenceType(0), n, [&pred](ForwardIterator it, DifferenceType i) {return pred(it[i]); });
+    n -= current - first;
+
+    // if we have in sequence only one element that pred(current[1]) != false we can exit the function
+    if (n < 2) {
+        return current;
+    }
+
+#if __PSTL_MONOTONIC_PRESENT
+    DifferenceType cnt = 0;
+    __PSTL_PRAGMA_SIMD
+    for (DifferenceType i = 1; i < n; ++i) {
+        __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(cnt:1)
+        if (!pred(current[i])) {
+            current[cnt] = std::move(current[i]);
+            ++cnt;
+        }
+    }
+    return current + cnt;
+#else
+    return std::remove_if(current, current + n, pred);
+#endif
 }
 } // namespace unseq_backend
 } // namespace pstl

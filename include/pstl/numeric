@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_numeric_H
-#define __PSTL_numeric_H
+#ifndef __PSTL_numeric
+#define __PSTL_numeric
 
 #include <functional>
 
@@ -34,20 +34,20 @@ namespace std {
 template<class ExecutionPolicy, class InputIterator, class T, class BinaryOperation>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy,T>
 reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last, T init, BinaryOperation binary_op) {
-    return transform_reduce(exec, first, last, init, binary_op, pstl::internal::no_op());
+    return transform_reduce(std::forward<ExecutionPolicy>(exec), first, last, init, binary_op, pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class T>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy,T>
 reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last, T init) {
-    return transform_reduce(exec, first, last, init, std::plus<T>(), pstl::internal::no_op());
+    return transform_reduce(std::forward<ExecutionPolicy>(exec), first, last, init, std::plus<T>(), pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy,typename iterator_traits<InputIterator>::value_type>
 reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last) {
-    typedef typename decay<typename iterator_traits<InputIterator>::value_type>::type T;
-    return transform_reduce(exec, first, last, T{}, std::plus<T>(), pstl::internal::no_op());
+    typedef typename iterator_traits<InputIterator>::value_type T;
+    return transform_reduce(std::forward<ExecutionPolicy>(exec), first, last, T{}, std::plus<T>(), pstl::internal::no_op());
 }
 
 // [transform.reduce]
@@ -57,7 +57,7 @@ pstl::internal::enable_if_execution_policy<ExecutionPolicy, T>
 transform_reduce(ExecutionPolicy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init) {
     typedef typename iterator_traits<InputIterator1>::value_type input_type;
     using namespace pstl::internal;
-    return pattern_transform_reduce(first1, last1, first2, init, std::plus<input_type>(), std::multiplies<input_type>(),
+    return pattern_transform_reduce(first1, last1, first2, init, std::plus<T>(), std::multiplies<input_type>(),
         is_vectorization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec),
         is_parallelization_preferred<ExecutionPolicy, InputIterator1, InputIterator2>(exec));
 }
@@ -85,12 +85,12 @@ transform_reduce(ExecutionPolicy&& exec, InputIterator first, InputIterator last
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 exclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, T init) {
-    return transform_exclusive_scan(exec, first, last, result, init, std::plus<T>(), pstl::internal::no_op());
+    return transform_exclusive_scan(std::forward<ExecutionPolicy>(exec), first, last, result, init, std::plus<T>(), pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T, class BinaryOperation>
 OutputIterator exclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, T init, BinaryOperation binary_op) {
-    return transform_exclusive_scan(exec, first, last, result, init, binary_op, pstl::internal::no_op());
+    return transform_exclusive_scan(std::forward<ExecutionPolicy>(exec), first, last, result, init, binary_op, pstl::internal::no_op());
 }
 
 // [inclusive.scan]
@@ -99,19 +99,19 @@ template<class ExecutionPolicy, class InputIterator, class OutputIterator>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 inclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result) {
     typedef typename iterator_traits<InputIterator>::value_type input_type;
-    return transform_inclusive_scan(exec, first, last, result, std::plus<input_type>(), pstl::internal::no_op());
+    return transform_inclusive_scan(std::forward<ExecutionPolicy>(exec), first, last, result, std::plus<input_type>(), pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class BinaryOperation>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 inclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op) {
-    return transform_inclusive_scan(exec, first, last, result, binary_op, pstl::internal::no_op());
+    return transform_inclusive_scan(std::forward<ExecutionPolicy>(exec), first, last, result, binary_op, pstl::internal::no_op());
 }
 
 template<class ExecutionPolicy, class InputIterator, class OutputIterator, class T, class BinaryOperation>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy,OutputIterator>
 inclusive_scan(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op, T init) {
-    return transform_inclusive_scan(exec, first, last, result, binary_op, pstl::internal::no_op(), init);
+    return transform_inclusive_scan(std::forward<ExecutionPolicy>(exec), first, last, result, binary_op, pstl::internal::no_op(), init);
 }
 
 // [transform.exclusive.scan]
@@ -146,7 +146,7 @@ transform_inclusive_scan(ExecutionPolicy&& exec,  InputIterator first, InputIter
     if( first!=last ) {
         auto tmp = unary_op(*first);
         *result = tmp;
-        return transform_inclusive_scan(exec, ++first, last, ++result, binary_op, unary_op, tmp);
+        return transform_inclusive_scan(std::forward<ExecutionPolicy>(exec), ++first, last, ++result, binary_op, unary_op, tmp);
     } else {
         return result;
     }
@@ -167,9 +167,9 @@ template<class ExecutionPolicy, class InputIterator, class OutputIterator>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy, OutputIterator>
 adjacent_difference(ExecutionPolicy&& exec, InputIterator first, InputIterator last, OutputIterator d_first) {
     typedef typename iterator_traits<InputIterator>::value_type value_type;
-    return adjacent_difference(exec, first, last, d_first, std::minus<value_type>());
+    return adjacent_difference(std::forward<ExecutionPolicy>(exec), first, last, d_first, std::minus<value_type>());
 }
 
 }
 
-#endif /* __PSTL_numeric_H */
+#endif /* __PSTL_numeric */

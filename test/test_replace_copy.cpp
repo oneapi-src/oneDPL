@@ -20,6 +20,8 @@
 
 // Tests for replace_copy and replace_copy_if
 
+#include "test/pstl_test_config.h"
+
 #include "pstl/execution"
 #include "pstl/algorithm"
 #include "test/utils.h"
@@ -29,7 +31,7 @@ using namespace TestUtils;
 struct test_replace_copy {
     template<typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Predicate, typename T>
     void operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
-        OutputIterator2 expected_first, Size n, Predicate pred, const T& old_value, const T& new_value, T trash) {
+        OutputIterator2 expected_first, OutputIterator2 expected_last, Size n, Predicate pred, const T& old_value, const T& new_value, T trash) {
         // Cleaning
         std::fill_n(expected_first, n, trash);
         std::fill_n(out_first, n, trash);
@@ -60,8 +62,8 @@ void test(T trash, const T& old_value, const T& new_value, Predicate pred, Conve
         Sequence<T> out(n, [=](size_t) {return trash; });
         Sequence<T> expected(n, [=](size_t) {return trash; });
 
-        invoke_on_all_policies(test_replace_copy(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), out.size(), pred, old_value, new_value, trash);
-        invoke_on_all_policies(test_replace_copy(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), out.size(), pred, old_value, new_value, trash);
+        invoke_on_all_policies(test_replace_copy(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), out.size(), pred, old_value, new_value, trash);
+        invoke_on_all_policies(test_replace_copy(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), out.size(), pred, old_value, new_value, trash);
     }
 }
 
@@ -79,11 +81,13 @@ int32_t main( ) {
                [](const int32_t& x) {return x != 42; },
                [](size_t j){return ((j+1)%5&2)!=0? 42 : -1- int32_t(j);});
 
+#if !__PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     test<Number>( Number(42,OddTag()),
                   Number(2001,OddTag()),
                   Number(2017, OddTag()),
                   IsMultiple(3, OddTag()),
                   [](int32_t j){return ((j+1)%3&2)!=0? Number(2001,OddTag()) : Number(j,OddTag());});
+#endif
     std::cout << "done" << std::endl;
     return 0;
 }

@@ -109,6 +109,27 @@ public:
     bool operator()( X&& x, Y&& y ) const { return std::forward<X>(x)==std::forward<Y>(y); }
 };
 
+//! "<" comparison.
+class pstl_less {
+public:
+    explicit pstl_less() {}
+
+    template<typename X, typename Y>
+    bool operator()(X&& x, Y&& y) const { return std::forward<X>(x) < std::forward<Y>(y); }
+};
+
+//! Like a polymorphic lambda for pred(...,value)
+template<typename T, typename Predicate>
+class equal_value_by_pred {
+    const T& value;
+    Predicate pred;
+public:
+    equal_value_by_pred(const T& value_, Predicate pred_) : value(value_), pred(pred_) {}
+
+    template<typename Arg>
+    bool operator()(Arg&& arg) { return pred(std::forward<Arg>(arg), value); }
+};
+
 //! Like a polymorphic lambda for ==value
 template<typename T>
 class equal_value {

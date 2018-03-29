@@ -31,6 +31,15 @@ using namespace TestUtils;
 
 auto is_even = [](double v) { unsigned int i = (unsigned int)v;  return i % 2 == 0; };
 
+template<typename Policy, typename F>
+static void invoke_if(Policy&& p, F f) {
+    #if __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
+        pstl::internal::invoke_if_not(pstl::internal::allow_unsequenced<Policy>(), f);
+    #else
+        f();
+    #endif
+}
+
 //Testing with random-access iterator only
 struct run_rnd {
     template <typename Policy, typename Iterator>
@@ -41,15 +50,17 @@ struct run_rnd {
 
         //usage of "non_const" adapter - we pass empty container due to just compilation checks
 
-        //is_heap
-        is_heap(exec, b1, e1);
-        is_heap(exec, b1, e1, std::less<T>());
-        is_heap(exec, b1, b1, non_const(std::less<T>()));
+        invoke_if(exec, [&]() {
+            //is_heap
+            is_heap(exec, b1, e1);
+            is_heap(exec, b1, e1, std::less<T>());
+            is_heap(exec, b1, b1, non_const(std::less<T>()));
 
-        //is_heap_until
-        is_heap_until(exec, b1, e1);
-        is_heap_until(exec, b1, e1, std::less<T>());
-        is_heap_until(exec, b1, b1, non_const(std::less<T>()));
+            //is_heap_until
+            is_heap_until(exec, b1, e1);
+            is_heap_until(exec, b1, e1, std::less<T>());
+            is_heap_until(exec, b1, b1, non_const(std::less<T>()));
+        });
 
         //nth_element
         auto middle = b1 + (e1 - b1) / 2;
@@ -125,6 +136,8 @@ struct run_rnd_fw {
 
         Iterator out = b1;
         auto n = distance(b1, e1);
+        Iterator cmiddle = b1;
+        std::advance(cmiddle, n/2);
         //usage of "non_const" adapter - we pass empty container due to just compilation checks
 
         //all_of
@@ -140,20 +153,20 @@ struct run_rnd_fw {
         any_of(exec, b1, e1, is_even);
         any_of(exec, b1, b1, non_const(is_even));
 
-        //copy
-#if __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN
-        pstl::internal::invoke_if_not(pstl::internal::allow_unsequenced<Policy>(), [&]() { copy(exec, b1, e1, out); copy_n(exec, b1, n, out); });
-#else
-        copy(exec, b1, e1, out);
-        copy_n(exec, b1, n, out);
-#endif
+        invoke_if(exec, [&]() {
+            //copy
+            copy(exec, b1, e1, out);
+            copy_n(exec, b1, n, out);
+        });
 
         //copy_if
         copy_if(exec, b1, e1, out, is_even);
         copy_if(exec, b1, b1, out, non_const(is_even));
 
-        //count
-        count(exec, b1, e1, T(0));
+        invoke_if(exec, [&]() {
+            //count
+            count(exec, b1, e1, T(0));
+        });
 
         //count_if
         count_if(exec, b1, e1, is_even);
@@ -172,35 +185,37 @@ struct run_rnd_fw {
         //fill_n
         fill_n(exec, b1, n, T(0));
 
-        //find
-        find(exec, b1, e1, T(0));
+        invoke_if(exec, [&]() {
+            //find
+            find(exec, b1, e1, T(0));
 
-        //find_end
-        find_end(exec, b1, e1, b2, e2);
-        find_end(exec, b1, e1, b2, e2, std::equal_to<T>());
-        find_end(exec, b1, b1, b2, b2, non_const(std::equal_to<T>()));
+            //find_end
+            find_end(exec, b1, e1, b2, e2);
+            find_end(exec, b1, e1, b2, e2, std::equal_to<T>());
+            find_end(exec, b1, b1, b2, b2, non_const(std::equal_to<T>()));
 
-        //find_first_of
-        find_first_of(exec, b1, e1, b2, e2);
-        find_first_of(exec, b1, e1, b2, e2, std::equal_to<T>());
-        find_first_of(exec, b1, b1, b2, b2, non_const(std::equal_to<T>()));
+            //find_first_of
+            find_first_of(exec, b1, e1, b2, e2);
+            find_first_of(exec, b1, e1, b2, e2, std::equal_to<T>());
+            find_first_of(exec, b1, b1, b2, b2, non_const(std::equal_to<T>()));
 
-        //find_if
-        find_if(exec, b1, e1, is_even);
-        find_if(exec, b1, b1, non_const(is_even));
+            //find_if
+            find_if(exec, b1, e1, is_even);
+            find_if(exec, b1, b1, non_const(is_even));
 
-        //find_if_not
-        find_if_not(exec, b1, e1, is_even);
-        find_if_not(exec, b1, b1, non_const(is_even));
+            //find_if_not
+            find_if_not(exec, b1, e1, is_even);
+            find_if_not(exec, b1, b1, non_const(is_even));
 
-        //for_each
-        auto f = [](T& x) { x = x+1; };
-        for_each(exec, b1, e1, f);
-        for_each(exec, b1, b1, non_const(f));
+            //for_each
+            auto f = [](typename iterator_traits<Iterator>::reference x) { x = x+1; };
+            for_each(exec, b1, e1, f);
+            for_each(exec, b1, b1, non_const(f));
 
-        //for_each_n
-        for_each_n(exec, b1, n, f);
-        for_each_n(exec, b1, 0, non_const(f));
+            //for_each_n
+            for_each_n(exec, b1, n, f);
+            for_each_n(exec, b1, 0, non_const(f));
+        });
 
         //generate
         auto gen = [](){return T(0);};
@@ -241,8 +256,6 @@ struct run_rnd_fw {
         max_element(exec, b1, b1, non_const(std::less<T>()));
 
         //merge
-        Iterator cmiddle = b1;
-        std::advance(cmiddle, n/2);
         merge(exec, b1, cmiddle, cmiddle, e1, out);
         merge(exec, b1, cmiddle, cmiddle, e1, out, std::less<T>());
         merge(exec, b1, b1, b1, b1, out, non_const(std::less<T>()));
@@ -264,14 +277,12 @@ struct run_rnd_fw {
         minmax_element(exec, b1, e1, std::less<T>());
         minmax_element(exec, b1, b1, non_const(std::less<T>()));
 
-        //move
-#if __PSTL_TEST_SIMD_LAMBDA_ICC_16_VC14_DEBUG_32_BROKEN || __PSTL_TEST_SIMD_LAMBDA_ICC_17_VC141_DEBUG_32_BROKEN
-        pstl::internal::invoke_if_not(pstl::internal::allow_unsequenced<Policy>(), [&]() { move(exec, b1, e1, out); });
-#else
-        move(exec, b1, e1, out);
-#endif
+        invoke_if(exec, [&]() {
+            //move
+            move(exec, b1, e1, out);
+        });
 
-        //nome_of
+        //none_of
         none_of(exec, b1, e1, is_even);
         none_of(exec, b1, b1, non_const(is_even));
 
@@ -282,34 +293,35 @@ struct run_rnd_fw {
         //partition_copy
         partition_copy(exec, b1, e1, out, out, is_even);
         partition_copy(exec, b1, b1, out, out, non_const(is_even));
+        invoke_if(exec, [&]() {
+            //remove
+            remove(exec, b1, e1, T(0));
 
-        //remove
-        remove(exec, b1, e1, T(0));
+            //remove_copy
+            remove_copy(exec, b1, e1, out, T(0));
 
-        //remove_copy
-        remove_copy(exec, b1, e1, out, T(0));
+            //remove_copy_if
+            remove_copy_if(exec, b1, e1, out, is_even);
+            remove_copy_if(exec, b1, b1, out, non_const(is_even));
 
-        //remove_copy_if
-        remove_copy_if(exec, b1, e1, out, is_even);
-        remove_copy_if(exec, b1, b1, out, non_const(is_even));
+            //remove_if
+            remove_if(exec, b1, e1, is_even);
+            remove_if(exec, b1, b1, non_const(is_even));
 
-        //remove_if
-        remove_if(exec, b1, e1, is_even);
-        remove_if(exec, b1, b1, non_const(is_even));
+            //replace
+            replace(exec, b1, e1, T(1), T(0));
 
-        //replace
-        replace(exec, b1, e1, T(1), T(0));
+            //replace_copy
+            replace_copy(exec, b1, e1, out, T(1), T(0));
 
-        //replace_copy
-        replace_copy(exec, b1, e1, out, T(1), T(0));
+            //replace_copy_if
+            replace_copy_if(exec, b1, e1, out, is_even, T(0));
+            replace_copy_if(exec, b1, b1, out, non_const(is_even), T(0));
 
-        //replace_copy_if
-        replace_copy_if(exec, b1, e1, out, is_even, T(0));
-        replace_copy_if(exec, b1, b1, out, non_const(is_even), T(0));
-
-        //replace_if
-        replace_if(exec, b1, e1, is_even, T(0));
-        replace_if(exec, b1, b1, non_const(is_even), T(0));
+            //replace_if
+            replace_if(exec, b1, e1, is_even, T(0));
+            replace_if(exec, b1, b1, non_const(is_even), T(0));
+        });
 
         //rotate
         rotate(exec, b1, b1, e1);
@@ -317,15 +329,17 @@ struct run_rnd_fw {
         //rotate_copy
         rotate_copy(exec, b1, b1, e1, out);
 
-        //search
-        search(exec, b1, e1, b2, e2);
-        search(exec, b1, e1, b2, e2, std::equal_to<T>());
-        search(exec, b1, b1, b2, b2, non_const(std::equal_to<T>()));
+        invoke_if(exec, [&]() {
+            //search
+            search(exec, b1, e1, b2, e2);
+            search(exec, b1, e1, b2, e2, std::equal_to<T>());
+            search(exec, b1, b1, b2, b2, non_const(std::equal_to<T>()));
 
-        //search_n
-        search_n(exec, b1, e1, 2, T(0));
-        search_n(exec, b1, e1, 2, T(0), std::equal_to<T>());
-        search_n(exec, b1, b1, 0, T(0), non_const(std::equal_to<T>()));
+            //search_n
+            search_n(exec, b1, e1, 2, T(0));
+            search_n(exec, b1, e1, 2, T(0), std::equal_to<T>());
+            search_n(exec, b1, b1, 0, T(0), non_const(std::equal_to<T>()));
+        });
 
         //set_difference
         set_difference(exec, b1, cmiddle, cmiddle, e1, out);
@@ -350,12 +364,14 @@ struct run_rnd_fw {
         //swap_ranges
         swap_ranges(exec, b1, e1, b2);
 
-        //transform
-        transform(exec, b1, e1, out, std::negate<T>());
-        transform(exec, b1, b1, out, non_const(std::negate<T>()));
+        invoke_if(exec, [&]() {
+            //transform
+            transform(exec, b1, e1, out, std::negate<T>());
+            transform(exec, b1, b1, out, non_const(std::negate<T>()));
 
-        transform(exec, b1, e1, b2, out, std::plus<T>());
-        transform(exec, b1, b1, b2, out, non_const(std::plus<T>()));
+            transform(exec, b1, e1, b2, out, std::plus<T>());
+            transform(exec, b1, b1, b2, out, non_const(std::plus<T>()));
+        });
 
         //unique
         unique(exec, b1, e1);
@@ -385,7 +401,10 @@ void test_algo_by_type() {
 int32_t main() {
 
     test_algo_by_type<int32_t>();
+#if !__PSTL_CLANG_TEST_BIG_OBJ_DEBUG_32_BROKEN
     test_algo_by_type<float64_t>();
+    test_algo_by_type<bool>();
+#endif
 
     std::cout<<done()<<std::endl;
     return 0;

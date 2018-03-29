@@ -27,12 +27,10 @@
 
 using namespace TestUtils;
 
-const size_t GuardSize = 5;
-
 struct run_unique_copy {
     template<typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Predicate, typename T>
     void operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
-        OutputIterator2 expected_first, Size n, Predicate pred, T trash) {
+        OutputIterator2 expected_first, OutputIterator2 expected_last, Size n, Predicate pred, T trash) {
         // Cleaning
         std::fill_n(expected_first, n, trash);
         std::fill_n(out_first, n, trash);
@@ -75,12 +73,12 @@ void test(T trash, BinaryPredicate pred, Convert convert, bool check_weakness = 
             count += k == 0 || !pred(in[k], in[k - 1]) ? 1 : 0;
         Sequence<T> out(count, [=](size_t) {return trash; });
         Sequence<T> expected(count, [=](size_t) {return trash; });
-        auto expected_result = unique_copy(in.cfbegin(), in.cfend(), expected.begin(), pred);
         if (check_weakness) {
+            auto expected_result = unique_copy(in.begin(), in.end(), expected.begin(), pred);
             size_t m = expected_result - expected.begin();
             EXPECT_TRUE(n / (n<10000 ? 4 : 6) <= m && m <= (3 * n + 1) / 4, "weak test for unique_copy");
         }
-        invoke_on_all_policies(run_unique_copy(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), count, pred, trash);
+        invoke_on_all_policies(run_unique_copy(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), count, pred, trash);
     }
 }
 

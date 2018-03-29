@@ -86,7 +86,7 @@ void check_and_reset( const Sequence<T>& in, Sequence<T>& out, Sequence<T>& expe
 
 struct test_scan_with_plus {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T>
-    void operator()( Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last, Iterator3 expected_first, Size n, T init, T trash ) {
+    void operator()( Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last, Iterator3 expected_first, Iterator3 expected_last, Size n, T init, T trash ) {
         using namespace std;
 
         auto orr1 = inclusive ?
@@ -110,14 +110,15 @@ void test_with_plus( T init, T trash, Convert convert ) {
         Sequence<T> expected(in);
         Sequence<T> out(n, [&](int32_t) {return trash;});
 
-        invoke_on_all_policies(test_scan_with_plus(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), in.size(), init, trash);
-        invoke_on_all_policies(test_scan_with_plus(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), in.size(), init, trash);
+        invoke_on_all_policies(test_scan_with_plus(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), init, trash);
+        invoke_on_all_policies(test_scan_with_plus(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), init, trash);
     }
 }
 struct test_scan_with_binary_op {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T, typename BinaryOp>
     typename std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
-        operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last, Iterator3 expected_first, Size n, T init, BinaryOp binary_op, T trash) {
+        operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
+            Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash) {
         using namespace std;
 
         auto orr1 = inclusive ?
@@ -133,7 +134,8 @@ struct test_scan_with_binary_op {
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T, typename BinaryOp>
     typename std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
-        operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last, Iterator3 expected_first, Size n, T init, BinaryOp binary_op, T trash) {
+        operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
+            Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash) {
     }
 };
 
@@ -144,8 +146,8 @@ void test_with_binary_op(T init, BinaryOp binary_op, T trash, Convert convert) {
         Sequence<T> expected(in);
         Sequence<T> out(n, [&](int32_t k) {return trash; });
 
-        invoke_on_all_policies(test_scan_with_binary_op(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), in.size(), init, binary_op, trash);
-        invoke_on_all_policies(test_scan_with_binary_op(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), in.size(), init, binary_op, trash);
+        invoke_on_all_policies(test_scan_with_binary_op(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
+        invoke_on_all_policies(test_scan_with_binary_op(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
     }
 }
 
