@@ -354,9 +354,9 @@ partial_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIte
 
 // [partial.sort.copy]
 
-template<class ExecutionPolicy, class _InputIterator, class RandomAccessIterator, class Compare>
+template<class ExecutionPolicy, class ForwardIterator, class RandomAccessIterator, class Compare>
 pstl::internal::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
-partial_sort_copy(ExecutionPolicy&& exec, _InputIterator first, _InputIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last,
+partial_sort_copy(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last,
                   Compare comp);
 
 template<class ExecutionPolicy, class ForwardIterator, class RandomAccessIterator>
