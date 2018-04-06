@@ -96,8 +96,10 @@ struct policy_traits<parallel_unsequenced_policy> {
 };
 #endif
 
+/*
 template<class ExecPolicy, class T> using enable_if_execution_policy = typename std::enable_if<
     is_execution_policy<typename std::decay<ExecPolicy>::type>::value, T>::type;
+*/
 
 template<typename ExecutionPolicy> using collector_t =
     typename policy_traits<typename std::decay<ExecutionPolicy>::type>::collector_type;

@@ -25,6 +25,8 @@
 
 #include <type_traits>
 
+#include "execution_defs.h"
+
 namespace std {
     // Type trait
     using pstl::execution::is_execution_policy;
