@@ -21,111 +21,13 @@
 #ifndef __PSTL_execution_policy
 #define __PSTL_execution_policy
 
-#include <type_traits>
 #include "internal/pstl_config.h"
-
-namespace pstl {
-namespace execution {
-inline namespace v1 {
-
-// 2.4, Sequential execution policy
-class sequenced_policy {
-public:
-    // For internal use only
-    static constexpr std::false_type __allow_unsequenced() {return std::false_type{};}
-    static constexpr std::false_type __allow_vector() {return std::false_type{};}
-    static constexpr std::false_type __allow_parallel() {return std::false_type{};}
-};
-
-#if __PSTL_USE_PAR_POLICIES
-// 2.5, Parallel execution policy
-class parallel_policy {
-public:
-    // For internal use only
-    static constexpr std::false_type __allow_unsequenced() {return std::false_type{};}
-    static constexpr std::false_type __allow_vector() {return std::false_type{};}
-    static constexpr std::true_type __allow_parallel() {return std::true_type{};}
-};
-
-// 2.6, Parallel+Vector execution policy
-class parallel_unsequenced_policy {
-public:
-    // For internal use only
-    static constexpr std::true_type __allow_unsequenced() {return std::true_type{};}
-    static constexpr std::true_type __allow_vector() {return std::true_type{};}
-    static constexpr std::true_type __allow_parallel() {return std::true_type{};}
-};
-#endif
-
-class unsequenced_policy {
-public:
-    // For internal use only
-    static constexpr std::true_type __allow_unsequenced() {return std::true_type{};}
-    static constexpr std::true_type __allow_vector() {return std::true_type{};}
-    static constexpr std::false_type __allow_parallel() {return std::false_type{};}
-};
-
-
-// 2.8, Execution policy objects
-constexpr sequenced_policy seq{};
-#if __PSTL_USE_PAR_POLICIES
-constexpr parallel_policy par{};
-constexpr parallel_unsequenced_policy par_unseq{};
-#endif
-constexpr unsequenced_policy unseq{};
-
-// 2.3, Execution policy type trait
-template<class T> struct is_execution_policy: std::false_type {};
-
-template<> struct is_execution_policy<sequenced_policy     >: std::true_type {};
-#if __PSTL_USE_PAR_POLICIES
-template<> struct is_execution_policy<parallel_policy       >: std::true_type {};
-template<> struct is_execution_policy<parallel_unsequenced_policy>: std::true_type {};
-#endif
-template<> struct is_execution_policy<unsequenced_policy    >: std::true_type {};
-
-#if __PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT
-template<class T> constexpr bool is_execution_policy_v = is_execution_policy<T>::value;
-#endif
-
-} //namespace v1
-} //namespace execution
-} //namespace pstl
+#include "internal/execution_defs.h"
 
 #if __PSTL_CPP17_EXECUTION_POLICIES_PRESENT
 __PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are defined in the namespace pstl::execution")
 #else
-namespace std {
-    // Type trait
-    using pstl::execution::is_execution_policy;
-#if __PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT
-#if __INTEL_COMPILER
-    template<class T> constexpr bool is_execution_policy_v = is_execution_policy<T>::value;
-#else
-    using pstl::execution::is_execution_policy_v;
-#endif
-#endif
-
-    namespace execution {
-        // Standard C++ policy classes
-        using pstl::execution::sequenced_policy;
-#if __PSTL_USE_PAR_POLICIES
-        using pstl::execution::parallel_policy;
-        using pstl::execution::parallel_unsequenced_policy;
-#endif
-        // Standard predefined policy instances
-        using pstl::execution::seq;
-#if __PSTL_USE_PAR_POLICIES
-        using pstl::execution::par;
-        using pstl::execution::par_unseq;
-#endif
-        // Implementation-defined names
-        // Unsequenced policy is not yet standard, but for consistency
-        // we include it into namespace std::execution as well
-        using pstl::execution::unseq;
-        using pstl::execution::unsequenced_policy;
-    }
-}
+#include "internal/glue_execution_defs.h"
 __PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are injected into the standard namespace std::execution")
 #endif
 

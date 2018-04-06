@@ -24,7 +24,7 @@
 #include <iterator>
 #include <type_traits>
 
-#include "../execution"
+#include "execution_defs.h"
 
 namespace pstl {
 namespace internal {
