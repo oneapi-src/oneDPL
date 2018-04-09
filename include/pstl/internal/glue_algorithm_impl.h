@@ -922,8 +922,4 @@ lexicographical_compare(ExecutionPolicy&& exec, ForwardIterator1 first1, Forward
 
 } // namespace std
 
-<<<<<<< HEAD
-=======
-#define __PSTL_glue_algorithm_impl_H_
->>>>>>> Refacor <algorithm> header
 #endif /* __PSTL_glue_algorithm_impl_H_ */
