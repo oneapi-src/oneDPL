@@ -1,5 +1,3 @@
-// glue_algorithm_defs.h -*- C++ -*-
-
 /*
   Copyright (c) 2017-2018 Intel Corporation
 

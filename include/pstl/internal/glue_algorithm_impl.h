@@ -1,5 +1,3 @@
-// glue_algorithm_impl.h -*- C++ -*-
-
 /*
   Copyright (c) 2017-2018 Intel Corporation
 
@@ -21,6 +19,7 @@
 */
 
 #ifndef __PSTL_glue_algorithm_impl_H_
+#define __PSTL_glue_algorithm_impl_H_
 
 #include <functional>
 
@@ -923,5 +922,4 @@ lexicographical_compare(ExecutionPolicy&& exec, ForwardIterator1 first1, Forward
 
 } // namespace std
 
-#define __PSTL_glue_algorithm_impl_H_
 #endif /* __PSTL_glue_algorithm_impl_H_ */

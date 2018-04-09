@@ -26,6 +26,8 @@
 
 // Algorithm implementation
 #include "internal/glue_algorithm_impl.h"
+#include "internal/glue_numeric_impl.h"
+#include "internal/glue_memory_impl.h"
 
 #if __PSTL_CPP17_EXECUTION_POLICIES_PRESENT
 __PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are defined in the namespace pstl::execution")
