@@ -30,494 +30,494 @@ namespace std {
 
 // [alg.any_of]
 
-template<class ExecutionPolicy, class ForwardIterator, class Predicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-any_of(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Predicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class ___Predicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+any_of(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, ___Predicate __pred);
 
 // [alg.all_of]
 
-template<class ExecutionPolicy, class ForwardIterator, class Pred>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-all_of(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Pred pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class ___Predicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+all_of(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, ___Predicate __pred);
 
 // [alg.none_of]
 
-template<class ExecutionPolicy, class ForwardIterator, class Predicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-none_of(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Predicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class ___Predicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+none_of(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, ___Predicate __pred);
 
 // [alg.foreach]
 
-template<class ExecutionPolicy, class ForwardIterator, class Function>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-for_each(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Function f);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Function>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f);
 
-template<class ExecutionPolicy, class ForwardIterator, class Size, class Function>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-for_each_n(ExecutionPolicy&& exec, ForwardIterator first, Size n, Function f);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Function>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+for_each_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, _Function __f);
 
 // [alg.find]
 
-template<class ExecutionPolicy, class ForwardIterator, class Predicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-find_if(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Predicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class ___Predicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+find_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, ___Predicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator, class Predicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-find_if_not(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Predicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class ___Predicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+find_if_not(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, ___Predicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-find(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& value);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
 // [alg.find.end]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
-find_end(ExecutionPolicy &&exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last,
-         BinaryPredicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator1>
+find_end(_ExecutionPolicy &&__exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last,
+         _BinaryPredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
-find_end(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator1>
+find_end(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last);
 
 // [alg.find_first_of]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
-find_first_of(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last,
-              BinaryPredicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator1>
+find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last,
+              _BinaryPredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
-find_first_of(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator1>
+find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last);
 
 // [alg.adjacent_find]
 
-template< class ExecutionPolicy, class ForwardIterator >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-adjacent_find(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template< class _ExecutionPolicy, class _ForwardIterator >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
-template< class ExecutionPolicy, class ForwardIterator, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-adjacent_find(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, BinaryPredicate pred);
+template< class _ExecutionPolicy, class _ForwardIterator, class _BinaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _BinaryPredicate __pred);
 
 // [alg.count]
 
-template<class ExecutionPolicy, class ForwardIterator, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,typename iterator_traits<ForwardIterator>::difference_type>
-count(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& value);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy,typename iterator_traits<_ForwardIterator>::difference_type>
+count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
-template<class ExecutionPolicy, class ForwardIterator, class Predicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,typename iterator_traits<ForwardIterator>::difference_type>
-count_if(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Predicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy,typename iterator_traits<_ForwardIterator>::difference_type>
+count_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred);
 
 // [alg.search]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
-search(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last,
-       BinaryPredicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator1>
+search(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last,
+       _BinaryPredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator1>
-search(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 s_first, ForwardIterator2 s_last);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator1>
+search(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last);
 
-template<class ExecutionPolicy, class ForwardIterator, class Size, class T, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-search_n(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Size count, const T& value, BinaryPredicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp, class _BinaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+search_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Size __count, const _Tp& __value, _BinaryPredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator, class Size, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-search_n(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Size count, const T& value);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+search_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Size __count, const _Tp& __value);
 
 // [alg.copy]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-copy(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+copy(_executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result);
 
-template<class ExecutionPolicy, class ForwardIterator1, class Size, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-copy_n(ExecutionPolicy&& exec, ForwardIterator1 first, Size n, ForwardIterator2 result);
+template<class _executionpolicy, class _forwarditerator1, class _size, class _forwarditerator2>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+copy_n(_executionpolicy&& __exec, _forwarditerator1 __first, _size __n, _forwarditerator2 __result);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class Predicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-copy_if(ExecutionPolicy&& exec,
-        ForwardIterator1 first, ForwardIterator1 last,
-        ForwardIterator2 result, Predicate pred);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _predicate>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+copy_if(_executionpolicy&& __exec,
+        _forwarditerator1 __first, _forwarditerator1 __last,
+        _forwarditerator2 result, _predicate __pred);
 
 // [alg.swap]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator2>
-swap_ranges(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator2>
+swap_ranges(_executionpolicy&& __exec, _forwarditerator1 __first1, _forwarditerator1 __last1, _forwarditerator2 __first2);
 
 // [alg.transform]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class UnaryOperation>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-transform( ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result, UnaryOperation op );
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _unaryoperation>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+transform( _executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result, _unaryoperation __op );
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator, class BinaryOperation>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator>
-transform(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator result,
-          BinaryOperation op);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _forwarditerator, class _binaryoperation>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator>
+transform(_executionpolicy&& __exec, _forwarditerator1 __first1, _forwarditerator1 __last1, _forwarditerator2 __first2, _forwarditerator __result,
+          _binaryoperation __op);
 
 // [alg.replace]
 
-template<class ExecutionPolicy, class ForwardIterator, class UnaryPredicate, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-replace_if(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, UnaryPredicate pred, const T& new_value);
+template<class _executionpolicy, class _forwarditerator, class _unarypredicate, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy, void>
+replace_if(_executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last, _unarypredicate __pred, const _tp& __new_value);
 
-template<class ExecutionPolicy, class ForwardIterator, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-replace(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& old_value, const T& new_value);
+template<class _executionpolicy, class _forwarditerator, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy, void>
+replace(_executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last, const _tp& __old_value, const _tp& __new_value);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class UnaryPredicate, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator2>
-replace_copy_if(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result, UnaryPredicate pred,
-                const T& new_value);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _unarypredicate, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator2>
+replace_copy_if(_executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result, _unarypredicate __pred,
+                const _tp& __new_value);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator2>
-replace_copy(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result, const T& old_value,
-             const T& new_value);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator2>
+replace_copy(_executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result, const _tp& __old_value,
+             const _tp& __new_value);
 
 // [alg.fill]
 
-template <class ExecutionPolicy, class ForwardIterator, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-fill( ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& value );
+template <class _executionpolicy, class _forwarditerator, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy, void>
+fill( _executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last, const _tp& __value );
 
-template< class ExecutionPolicy, class ForwardIterator, class Size, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-fill_n( ExecutionPolicy&& exec, ForwardIterator first, Size count, const T& value );
+template< class _executionpolicy, class _forwarditerator, class _size, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator>
+fill_n( _executionpolicy&& __exec, _forwarditerator __first, _size __count, const _tp& __value );
 
 // [alg.generate]
-template< class ExecutionPolicy, class ForwardIterator, class Generator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-generate( ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Generator g );
+template< class _executionpolicy, class _forwarditerator, class _generator>
+pstl::internal::enable_if_execution_policy<_executionpolicy, void>
+generate( _executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last, _generator __g );
 
-template< class ExecutionPolicy, class ForwardIterator, class Size, class Generator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-generate_n( ExecutionPolicy&& exec, ForwardIterator first, Size count, Generator g );
+template< class _executionpolicy, class _forwarditerator, class _size, class _generator>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator>
+generate_n( _executionpolicy&& __exec, _forwarditerator __first, _size count, _generator __g );
 
 // [alg.remove]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class Predicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-remove_copy_if(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result, Predicate pred);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _predicate>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+remove_copy_if(_executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result, _predicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-remove_copy(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result, const T& value);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+remove_copy(_executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result, const _tp& __value);
 
-template<class ExecutionPolicy, class ForwardIterator, class UnaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-remove_if(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, UnaryPredicate pred);
+template<class _executionpolicy, class _forwarditerator, class _unarypredicate>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator>
+remove_if(_executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last, _unarypredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-remove(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& value);
+template<class _executionpolicy, class _forwarditerator, class _tp>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator>
+remove(_executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last, const _tp& __value);
 
 // [alg.unique]
 
-template<class ExecutionPolicy, class ForwardIterator, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-unique(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, BinaryPredicate pred);
+template<class _executionpolicy, class _forwarditerator, class _binarypredicate>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator>
+unique(_executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last, _binarypredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-unique(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template<class _executionpolicy, class _forwarditerator>
+pstl::internal::enable_if_execution_policy<_executionpolicy, _forwarditerator>
+unique(_executionpolicy&& __exec, _forwarditerator __first, _forwarditerator __last);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-unique_copy(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result, BinaryPredicate pred);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2, class _binarypredicate>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+unique_copy(_executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result, _binarypredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy,ForwardIterator2>
-unique_copy(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 result);
+template<class _executionpolicy, class _forwarditerator1, class _forwarditerator2>
+pstl::internal::enable_if_execution_policy<_executionpolicy,_forwarditerator2>
+unique_copy(_executionpolicy&& __exec, _forwarditerator1 __first, _forwarditerator1 __last, _forwarditerator2 __result);
 
 // [alg.reverse]
 
-template<class ExecutionPolicy, class BidirectionalIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-reverse(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator last);
+template<class _executionpolicy, class _bidirectionaliterator>
+pstl::internal::enable_if_execution_policy<_executionpolicy, void>
+reverse(_executionpolicy&& __exec, _bidirectionaliterator __first, _bidirectionaliterator __last);
 
-template<class ExecutionPolicy, class BidirectionalIterator, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-reverse_copy(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator last, ForwardIterator d_first);
+template<class _ExecutionPolicy, class _BidirectionalIterator, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last, _ForwardIterator __d_first);
 
 // [alg.rotate]
 
-template<class ExecutionPolicy, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-rotate(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator middle, ForwardIterator last);
+template<class _ExecutionPolicy, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+rotate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator2>
-rotate_copy(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 middle, ForwardIterator1 last, ForwardIterator2 result);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
+rotate_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __middle, _ForwardIterator1 __last, _ForwardIterator2 __result);
 
 // [alg.partitions]
 
-template<class ExecutionPolicy, class ForwardIterator, class UnaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-is_partitioned(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, UnaryPredicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+is_partitioned(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator, class UnaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-partition(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, UnaryPredicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+partition(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred);
 
-template<class ExecutionPolicy, class BidirectionalIterator, class UnaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, BidirectionalIterator>
-stable_partition(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator last, UnaryPredicate pred);
+template<class _ExecutionPolicy, class _BidirectionalIterator, class _UnaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
+stable_partition(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last, _UnaryPredicate __pred);
 
-template<class ExecutionPolicy, class ForwardIterator, class ForwardIterator1, class ForwardIterator2, class UnaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator1, ForwardIterator2>>
-partition_copy(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, ForwardIterator1 out_true, ForwardIterator2 out_false,
-               UnaryPredicate pred);
+template<class _ExecutionPolicy, class _ForwardIterator, class _ForwardIterator1, class _ForwardIterator2, class _UnaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator1, _ForwardIterator2>>
+partition_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _ForwardIterator1 __out_true, _ForwardIterator2 __out_false,
+               _UnaryPredicate __pred);
 
 // [alg.sort]
 
-template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp);
+template<class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
 
-template<class ExecutionPolicy, class RandomAccessIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last);
+template<class _ExecutionPolicy, class _RandomAccessIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
 
 // [stable.sort]
 
-template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-stable_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp);
+template<class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
 
-template<class ExecutionPolicy, class RandomAccessIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-stable_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last);
+template<class _ExecutionPolicy, class _RandomAccessIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
 
 // [mismatch]
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator1, ForwardIterator2>>
-mismatch(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-         BinaryPredicate pred);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator1, _ForwardIterator2>>
+mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+         _BinaryPredicate pred);
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator1, ForwardIterator2>>
-mismatch(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, BinaryPredicate pred);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator1, _ForwardIterator2>>
+mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _BinaryPredicate __pred);
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2 >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator1, ForwardIterator2>>
-mismatch(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2 >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator1, _ForwardIterator2>>
+mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2);
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2 >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator1, ForwardIterator2>>
-mismatch(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2 >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator1, _ForwardIterator2>>
+mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2);
 
 // [alg.equal]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-equal(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, BinaryPredicate p);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _BinaryPredicate __p);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-equal(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-equal(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2, BinaryPredicate p);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2, _BinaryPredicate __p);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-equal(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2);
 
 // [alg.move]
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2 >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator2>
-move(ExecutionPolicy&& exec, ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 d_first);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2 >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
+move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
 
 // [partial.sort]
 
-template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-partial_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp);
+template<class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator middle, _RandomAccessIterator __last, _Compare __comp);
 
-template<class ExecutionPolicy, class RandomAccessIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-partial_sort(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last);
+template<class _ExecutionPolicy, class _RandomAccessIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator middle, _RandomAccessIterator __last);
 
 // [partial.sort.copy]
 
-template<class ExecutionPolicy, class ForwardIterator, class RandomAccessIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
-partial_sort_copy(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last,
-                  Compare comp);
+template<class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _RandomAccessIterator d_first, _RandomAccessIterator d_last,
+                  _Compare __comp);
 
-template<class ExecutionPolicy, class ForwardIterator, class RandomAccessIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
-partial_sort_copy(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last);
+template<class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _RandomAccessIterator d_first, _RandomAccessIterator d_last);
 
 // [is.sorted]
-template<class ExecutionPolicy, class ForwardIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-is_sorted_until(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
-template<class ExecutionPolicy, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-is_sorted_until(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template<class _ExecutionPolicy, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
-template<class ExecutionPolicy, class ForwardIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-is_sorted(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
-template<class ExecutionPolicy, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-is_sorted(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template<class _ExecutionPolicy, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 // [alg.nth.element]
 
-template<class ExecutionPolicy, class RandomAccessIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-nth_element(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator nth, RandomAccessIterator last, Compare comp);
+template<class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __nth, _RandomAccessIterator __last, _Compare __comp);
 
-template<class ExecutionPolicy, class RandomAccessIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-nth_element(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator nth, RandomAccessIterator last);
+template<class _ExecutionPolicy, class _RandomAccessIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __nth, _RandomAccessIterator __last);
 
 // [alg.merge]
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-merge(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-      ForwardIterator d_first, Compare comp);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+merge(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+      _ForwardIterator d_first, _Compare __comp);
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-merge(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-      ForwardIterator d_first);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+merge(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+      _ForwardIterator d_first);
 
-template< class ExecutionPolicy, class BidirectionalIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-inplace_merge(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, Compare comp);
+template< class _ExecutionPolicy, class _BidirectionalIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __middle, _BidirectionalIterator __last, _Compare __comp);
 
-template< class ExecutionPolicy, class BidirectionalIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-inplace_merge(ExecutionPolicy&& exec, BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last);
+template< class _ExecutionPolicy, class _BidirectionalIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __middle, _BidirectionalIterator __last);
 
 // [includes]
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-includes(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2, Compare comp);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp);
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-includes(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2);
 
 // [set.union]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_union(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-          ForwardIterator result, Compare comp);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+          _ForwardIterator __result, _Compare __comp);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_union(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2,
-          ForwardIterator2 last2, ForwardIterator result);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
+          _ForwardIterator2 __last2, _ForwardIterator __result);
 
 // [set.intersection]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_intersection(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-                 ForwardIterator result, Compare comp);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_intersection(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                 _ForwardIterator __result, _Compare __comp);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_intersection(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-                 ForwardIterator result);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_intersection(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                 _ForwardIterator __result);
 
 // [set.difference]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_difference(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-               ForwardIterator result, Compare comp);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+               _ForwardIterator __result, _Compare __comp);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_difference(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-               ForwardIterator result);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+               _ForwardIterator __result);
 
 // [set.symmetric.difference]
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator, class Compare>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_symmetric_difference(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-                         ForwardIterator result, Compare comp);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator, class _Compare>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                         _ForwardIterator result, _Compare __comp);
 
-template<class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-set_symmetric_difference(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-                         ForwardIterator result);
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                         _ForwardIterator __result);
 
 // [is.heap]
-template< class ExecutionPolicy, class RandomAccessIterator, class Compare >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
-is_heap_until(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp);
+template< class _ExecutionPolicy, class _RandomAccessIterator, class _Compare >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
 
-template< class ExecutionPolicy, class RandomAccessIterator >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, RandomAccessIterator>
-is_heap_until(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last);
+template< class _ExecutionPolicy, class _RandomAccessIterator >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
 
-template< class ExecutionPolicy, class RandomAccessIterator, class Compare >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-is_heap(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare comp);
+template< class _ExecutionPolicy, class _RandomAccessIterator, class _Compare >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
 
-template< class ExecutionPolicy, class RandomAccessIterator >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-is_heap(ExecutionPolicy&& exec, RandomAccessIterator first, RandomAccessIterator last);
+template< class _ExecutionPolicy, class _RandomAccessIterator >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
 
 // [alg.min.max]
 
-template< class ExecutionPolicy, class ForwardIterator, class Compare >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-min_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp);
+template< class _ExecutionPolicy, class _ForwardIterator, class _Compare >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+min_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
-template< class ExecutionPolicy, class ForwardIterator >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-min_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template< class _ExecutionPolicy, class _ForwardIterator >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+min_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
-template< class ExecutionPolicy, class ForwardIterator, class Compare >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-max_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp);
+template< class _ExecutionPolicy, class _ForwardIterator, class _Compare >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+max_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
-template< class ExecutionPolicy, class ForwardIterator >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-max_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template< class _ExecutionPolicy, class _ForwardIterator >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+max_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
-template< class ExecutionPolicy, class ForwardIterator, class Compare >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator, ForwardIterator>>
-minmax_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, Compare comp);
+template< class _ExecutionPolicy, class _ForwardIterator, class _Compare >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator, _ForwardIterator>>
+minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
-template< class ExecutionPolicy, class ForwardIterator >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, std::pair<ForwardIterator, ForwardIterator>>
-minmax_element(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template< class _ExecutionPolicy, class _ForwardIterator >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator, _ForwardIterator>>
+minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 // [alg.lex.comparison]
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2, class Compare >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-lexicographical_compare(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2,
-                        Compare comp);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                        _Compare __comp);
 
-template< class ExecutionPolicy, class ForwardIterator1, class ForwardIterator2 >
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, bool>
-lexicographical_compare(ExecutionPolicy&& exec, ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+template< class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2 >
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
+lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2);
 
 } // namespace std
 #endif /* __PSTL_glue_algorithm_defs_H_ */
