@@ -24,10 +24,20 @@
 #include "internal/pstl_config.h"
 #include "internal/execution_defs.h"
 
+#define __PSTL_EXECUTION_POLICIES_DEFINED 1
+
 // Algorithm implementation
+#if __PSTL_ALGORITHM_FORWARD_DECLARED
 #include "internal/glue_algorithm_impl.h"
+#endif
+
+#if __PSTL_NUMERIC_FORWARD_DECLARED
 #include "internal/glue_numeric_impl.h"
+#endif
+
+#if __PSTL_NUMERIC_FORWARD_DECLARED
 #include "internal/glue_memory_impl.h"
+#endif
 
 #if __PSTL_CPP17_EXECUTION_POLICIES_PRESENT
 __PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are defined in the namespace pstl::execution")

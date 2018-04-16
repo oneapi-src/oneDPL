@@ -22,6 +22,12 @@
 #define __PSTL_memory_H
 
 #include "internal/pstl_config.h"
-#include "internal/glue_memory_defs.h"
 
+#if __PSTL_EXECUTION_POLICIES_DEFINED
+// If <execution> has already been included, pull in implementations
+#include "internal/glue_memory_impl.h"
+#else
+// Otherwise just pull in forward declarations
+#include "internal/glue_memory_defs.h"
+#endif
 #endif /*__PSTL_memory_H */
