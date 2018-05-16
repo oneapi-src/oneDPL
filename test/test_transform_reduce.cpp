@@ -79,7 +79,7 @@ struct test_transform_reduce {
         T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU) {
 
         auto expectedB = std::inner_product(first1, last1, first2, init, opB1, opB2);
-        auto expectedU = pstl::internal::brick_transform_reduce(first1, last1, init, opB1, opU, std::false_type());
+        auto expectedU = __pstl::internal::brick_transform_reduce(first1, last1, init, opB1, opU, std::false_type());
         T resRA = std::transform_reduce(exec, first1, last1, first2, init, opB1, opB2);
         CheckResults(expectedB, resRA);
         resRA = std::transform_reduce(exec, first1, last1, init, opB1, opU);

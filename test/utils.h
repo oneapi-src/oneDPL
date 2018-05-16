@@ -637,7 +637,7 @@ struct invoke_on_all_iterator_types {
 // Invoke op(policy,rest...) for each possible policy.
 template<typename Op, typename... T>
 void invoke_on_all_policies(Op op, T&&... rest) {
-    using namespace pstl::execution;
+    using namespace __pstl::execution;
 
     // Try static execution policies
     invoke_on_all_iterator_types()(seq, op, std::forward<T>(rest)...);

@@ -24,13 +24,13 @@
 #include <new>
 #include <iterator>
 
-namespace pstl {
+namespace __pstl {
 namespace internal {
 
-template<typename F>
-typename std::result_of<F()>::type except_handler(F f) {
+template<typename _Fp>
+typename std::result_of<_Fp()>::type except_handler(_Fp __f) {
     try {
-        return f();
+        return __f();
     }
     catch(const std::bad_alloc&) {
         throw; // re-throw bad_alloc according to 25.2.4.1 [algorithms.parallel.exceptions]
@@ -40,62 +40,63 @@ typename std::result_of<F()>::type except_handler(F f) {
     }
 }
 
-template<typename F>
-void invoke_if(std::true_type, F f) {
-    f();
+template<typename _Fp>
+void invoke_if(std::true_type, _Fp __f) {
+    __f();
 }
 
-template<typename F>
-void invoke_if(std::false_type, F f) {}
+template<typename _Fp>
+void invoke_if(std::false_type, _Fp __f) {}
 
-template<typename F>
-void invoke_if_not(std::false_type, F f) {
-    f();
+template<typename _Fp>
+void invoke_if_not(std::false_type, _Fp __f) {
+    __f();
 }
 
-template<typename F>
-void invoke_if_not(std::true_type, F f) {}
+template<typename _Fp>
+void invoke_if_not(std::true_type, _Fp __f) {}
 
-template<typename F1, typename F2>
-typename std::result_of<F1()>::type invoke_if_else(std::true_type, F1 f1, F2 f2) {
-    return f1();
+template<typename _F1, typename _F2>
+typename std::result_of<_F1()>::type invoke_if_else(std::true_type, _F1 __f1, _F2 __f2) {
+    return __f1();
 }
 
-template<typename F1, typename F2>
-typename std::result_of<F2()>::type invoke_if_else(std::false_type, F1 f1, F2 f2) {
-    return f2();
+template<typename _F1, typename _F2>
+typename std::result_of<_F2()>::type invoke_if_else(std::false_type, _F1 __f1, _F2 __f2) {
+    return __f2();
 }
 
-template<typename Iterator>
-typename std::iterator_traits<Iterator>::pointer reduce_to_ptr(Iterator it) {
-    return std::addressof(*it);
+template<typename _Iterator>
+typename std::iterator_traits<_Iterator>::pointer reduce_to_ptr(_Iterator __it) {
+    return std::addressof(*__it);
 }
 
 //! Unary operator that returns reference to its argument.
 struct no_op {
-    template<typename T>
-    T& operator()(T& a) const { return a; }
+    template<typename _Tp>
+    _Tp& operator()(_Tp& __a) const { return __a; }
 };
 
 //! Logical negation of a predicate
-template<typename Pred>
+template<typename _Pred>
 class not_pred {
-    Pred pred;
-public:
-    explicit not_pred( Pred pred_ ) : pred(pred_) {}
+    _Pred _M_pred;
 
-    template<typename ... Args>
-    bool operator()( Args&& ... args ) { return !pred(std::forward<Args>(args)...); }
+public:
+    explicit not_pred( _Pred __pred ) : _M_pred(__pred) {}
+
+    template<typename ... _Args>
+    bool operator()( _Args&& ... __args ) { return !_M_pred(std::forward<_Args>(__args)...); }
 };
 
-template<typename Pred>
+template<typename _Pred>
 class reorder_pred {
-    Pred pred;
+    _Pred _M_pred;
 public:
-    explicit reorder_pred( Pred pred_ ) : pred(pred_) {}
+    explicit reorder_pred( _Pred __pred ) : _M_pred(__pred) {}
 
-    template<typename T>
-    bool operator()(T&& a, T&& b) { return pred(std::forward<T>(b), std::forward<T>(a)); }
+    template<typename _Tp>
+    bool operator()(_Tp&& __a, _Tp&& __b) { return _M_pred(std::forward<_Tp>(__b), std::forward<_Tp>(__a)); }
 };
 
 //! "==" comparison.
@@ -105,8 +106,8 @@ class pstl_equal {
 public:
     explicit pstl_equal() {}
 
-    template<typename X, typename Y>
-    bool operator()( X&& x, Y&& y ) const { return std::forward<X>(x)==std::forward<Y>(y); }
+    template<typename _Xp, typename _Yp>
+    bool operator()( _Xp&& __x, _Yp&& __y ) const { return std::forward<_Xp>(__x) == std::forward<_Yp>(__y); }
 };
 
 //! "<" comparison.
@@ -114,54 +115,56 @@ class pstl_less {
 public:
     explicit pstl_less() {}
 
-    template<typename X, typename Y>
-    bool operator()(X&& x, Y&& y) const { return std::forward<X>(x) < std::forward<Y>(y); }
+    template<typename _Xp, typename _Yp>
+    bool operator()(_Xp&& __x, _Yp&& __y) const { return std::forward<_Xp>(__x) < std::forward<_Yp>(__y); }
 };
 
 //! Like a polymorphic lambda for pred(...,value)
-template<typename T, typename Predicate>
+template<typename _Tp, typename _Predicate>
 class equal_value_by_pred {
-    const T& value;
-    Predicate pred;
+    const _Tp& _M_value;
+    _Predicate _M_pred;
 public:
-    equal_value_by_pred(const T& value_, Predicate pred_) : value(value_), pred(pred_) {}
+    equal_value_by_pred(const _Tp& __value, _Predicate __pred)
+      : _M_value(__value)
+      , _M_pred(__pred) {}
 
-    template<typename Arg>
-    bool operator()(Arg&& arg) { return pred(std::forward<Arg>(arg), value); }
+    template<typename _Arg>
+    bool operator()(_Arg&& __arg) { return _M_pred(std::forward<_Arg>(__arg), _M_value); }
 };
 
 //! Like a polymorphic lambda for ==value
-template<typename T>
+template<typename _Tp>
 class equal_value {
-    const T& value;
+    const _Tp& _M_value;
 public:
-    explicit equal_value( const T& value_ ) : value(value_) {}
+    explicit equal_value( const _Tp& __value ) : _M_value(__value) {}
 
-    template<typename Arg>
-    bool operator()( Arg&& arg ) const { return std::forward<Arg>(arg)==value; }
+    template<typename _Arg>
+    bool operator()( _Arg&& __arg ) const { return std::forward<_Arg>(__arg) == _M_value; }
 };
 
 //! Logical negation of ==value
-template<typename T>
+template<typename _Tp>
 class not_equal_value {
-    const T& value;
+    const _Tp& _M_value;
 public:
-    explicit not_equal_value( const T& value_ ) : value(value_) {}
+    explicit not_equal_value( const _Tp& __value ) : _M_value(__value) {}
 
-    template<typename Arg>
-    bool operator()( Arg&& arg ) const { return !(std::forward<Arg>(arg)==value); }
+    template<typename _Arg>
+    bool operator()( _Arg&& __arg ) const { return !(std::forward<_Arg>(__arg) == _M_value); }
 };
 
-template <typename ForwardIterator, typename Compare>
-ForwardIterator cmp_iterators_by_values(ForwardIterator a, ForwardIterator b, Compare comp) {
-    if(a < b) { // we should return closer iterator
-        return comp(*b, *a) ? b : a;
+template <typename _ForwardIterator, typename _Compare>
+_ForwardIterator cmp_iterators_by_values(_ForwardIterator __a, _ForwardIterator __b, _Compare __comp) {
+    if(__a < __b) { // we should return closer iterator
+        return __comp(*__b, *__a) ? __b : __a;
     } else {
-        return comp(*a, *b) ? a : b;
+        return __comp(*__a, *__b) ? __a : __b;
     }
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_utils_H */

@@ -27,11 +27,11 @@
 namespace std {
 
 template<class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result) {
     typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
@@ -46,11 +46,11 @@ uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
 }
 
 template<class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result) {
     typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
@@ -67,11 +67,11 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
 // [uninitialized.move]
 
 template<class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result) {
     typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
@@ -86,11 +86,11 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
 }
 
 template<class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result) {
     typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(__exec);
@@ -107,10 +107,10 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
 // [uninitialized.fill]
 
 template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
@@ -125,10 +125,10 @@ uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
 }
 
 template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, const _Tp& __value) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
@@ -145,10 +145,10 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
 // [specialized.destroy]
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
 destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
@@ -160,10 +160,10 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
@@ -178,10 +178,10 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n) {
 // [uninitialized.construct.default]
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_default_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
@@ -192,10 +192,10 @@ uninitialized_default_construct(_ExecutionPolicy&& __exec, _ForwardIterator __fi
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_default_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
@@ -210,10 +210,10 @@ uninitialized_default_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __
 // [uninitialized.construct.value]
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_value_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
@@ -227,10 +227,10 @@ uninitialized_value_construct(_ExecutionPolicy&& __exec, _ForwardIterator __firs
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
-pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n) {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    using namespace pstl;
+    using namespace __pstl;;
 
     const auto __is_parallel = internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
     const auto __is_vector = internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);

@@ -22,10 +22,12 @@
 #define __PSTL_parallel_impl_H
 
 #include <atomic>
+#include <iterator>
+
 // This header defines the minimum set of parallel routines required to support Parallel STL,
 // implemented on top of Intel(R) Threading Building Blocks (Intel(R) TBB) library
 
-namespace pstl {
+namespace __pstl {
 namespace internal {
 
 //------------------------------------------------------------------------
@@ -33,47 +35,47 @@ namespace internal {
 //-----------------------------------------------------------------------
 /** Return extremum value returned by brick f[i,j) for subranges [i,j) of [first,last)
 Each f[i,j) must return a value in [i,j). */
-template<class Index, class Brick, class Compare>
-Index parallel_find(Index first, Index last, Brick f, Compare comp, bool b_first) {
-    typedef typename std::iterator_traits<Index>::difference_type difference_type;
-    const difference_type n = last - first;
-    difference_type initial_dist = b_first ? n : -1;
-    std::atomic<difference_type> extremum(initial_dist);
+template<class _Index, class _Brick, class _Compare>
+_Index parallel_find(_Index __first, _Index __last, _Brick __f, _Compare __comp, bool __b_first) {
+    typedef typename std::iterator_traits<_Index>::difference_type _difference_type;
+    const _difference_type __n = __last - __first;
+    _difference_type __initial_dist = __b_first ? __n : -1;
+    std::atomic<_difference_type> __extremum(__initial_dist);
     // TODO: find out what is better here: parallel_for or parallel_reduce
-    par_backend::parallel_for(first, last, [comp, f, first, &extremum](Index i, Index j) {
+    par_backend::parallel_for(__first, __last, [__comp, __f, __first, &__extremum](_Index __i, _Index __j) {
         // See "Reducing Contention Through Priority Updates", PPoPP '13, for discussion of
         // why using a shared variable scales fairly well in this situation.
-        if (comp(i - first, extremum)) {
-            Index res = f(i, j);
-            // If not 'last' returned then we found what we want so put this to extremum
-            if (res != j) {
-                const difference_type k = res - first;
-                for (difference_type old = extremum; comp(k, old); old = extremum) {
-                    extremum.compare_exchange_weak(old, k);
+        if (__comp(__i - __first, __extremum)) {
+            _Index __res = __f(__i, __j);
+            // If not '__last' returned then we found what we want so put this to extremum
+            if (__res != __j) {
+                const _difference_type __k = __res - __first;
+                for (_difference_type __old = __extremum; __comp(__k, __old); __old = __extremum) {
+                    __extremum.compare_exchange_weak(__old, __k);
                 }
             }
         }
     });
-    return extremum != initial_dist ? first + extremum : last;
+    return __extremum != __initial_dist ? __first + __extremum : __last;
 }
 
 //------------------------------------------------------------------------
 // parallel_or
 //------------------------------------------------------------------------
 //! Return true if brick f[i,j) returns true for some subrange [i,j) of [first,last)
-template<class Index, class Brick>
-bool parallel_or(Index first, Index last, Brick f) {
-    std::atomic<bool> found(false);
-    par_backend::parallel_for(first, last, [f, &found](Index i, Index j) {
-        if (!found.load(std::memory_order_relaxed) && f(i, j)) {
-            found.store(true, std::memory_order_relaxed);
+template<class _Index, class _Brick>
+bool parallel_or(_Index __first, _Index __last, _Brick __f) {
+    std::atomic<bool> __found(false);
+    par_backend::parallel_for(__first, __last, [__f, &__found](_Index __i, _Index __j) {
+        if (!__found.load(std::memory_order_relaxed) && __f(__i, __j)) {
+            __found.store(true, std::memory_order_relaxed);
             par_backend::cancel_execution();
         }
     });
-    return found;
+    return __found;
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_parallel_impl_H */

@@ -28,15 +28,15 @@
 #if __PSTL_CPP14_INTEGER_SEQUENCE_PRESENT
 
 #include <utility>
-namespace pstl {
+namespace __pstl {
     namespace internal {
         using std::index_sequence;
         using std::make_index_sequence;
     } //internal
-}//namespace pstl
+}//namespace __pstl
 
 #else //std::integer_sequence is not present
-namespace pstl {
+namespace __pstl {
     namespace internal {
 template<std::size_t... S> class index_sequence {};
 template<std::size_t N, std::size_t... S>
@@ -47,10 +47,10 @@ struct make_index_sequence_impl <0, S...> {
 };
 template<std::size_t N> struct make_index_sequence: internal::make_index_sequence_impl<N>::type {};
 } //internal
-}//namespace pstl
+}//namespace __pstl
 #endif
 
-namespace pstl {
+namespace __pstl {
 namespace internal {
 
 template<size_t N>
@@ -79,7 +79,7 @@ struct tuple_util<0> {
 template <typename TupleReturnType>
 struct make_references {
     template <typename TupleType, std::size_t... Is>
-    TupleReturnType operator()(const TupleType& t, pstl::internal::index_sequence<Is...>) {
+    TupleReturnType operator()(const TupleType& t, __pstl::internal::index_sequence<Is...>) {
         return std::tie((*std::get<Is>(t))...);
     }
 };
@@ -147,7 +147,7 @@ public:
     explicit zip_iterator(Types... args): my_it(std::make_tuple(args...)) {}
 
     reference operator*() {
-        return internal::make_references<reference>()(my_it, pstl::internal::make_index_sequence<num_types>());
+        return internal::make_references<reference>()(my_it, __pstl::internal::make_index_sequence<num_types>());
     }
     reference operator[](difference_type i) const { return *(*this + i); }
 
@@ -202,6 +202,6 @@ private:
 template<typename... T>
 zip_iterator<T...> make_zip_iterator(T... args) { return zip_iterator<T...>(args...); }
 
-} //namespace pstl
+} //namespace __pstl
 
 #endif /* __PSTL_iterators_H */
