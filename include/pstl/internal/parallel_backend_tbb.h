@@ -359,54 +359,55 @@ void parallel_strict_scan(_Index __n, _Tp __initial, _Rp __reduce, _Cp __combine
 // These are used by parallel implementations but do not depend on them.
 //------------------------------------------------------------------------
 
-template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename Cleanup, typename LeafMerge>
+template<typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3, typename _Compare, typename _Cleanup, typename _LeafMerge>
 class merge_task: public tbb::task {
     /*override*/tbb::task* execute();
-    RandomAccessIterator1 xs, xe;
-    RandomAccessIterator2 ys, ye;
-    RandomAccessIterator3 zs;
-    Compare comp;
-    Cleanup cleanup;
-    LeafMerge leaf_merge;
+    _RandomAccessIterator1 _M_xs, _M_xe;
+    _RandomAccessIterator2 _M_ys, _M_ye;
+    _RandomAccessIterator3 _M_zs;
+    _Compare _M_comp;
+    _Cleanup _M_cleanup;
+    _LeafMerge _M_leaf_merge;
 public:
-    merge_task( RandomAccessIterator1 xs_, RandomAccessIterator1 xe_,
-                RandomAccessIterator2 ys_, RandomAccessIterator2 ye_,
-                RandomAccessIterator3 zs_,
-                Compare comp_, Cleanup cleanup_, LeafMerge leaf_merge_) :
-        xs(xs_), xe(xe_), ys(ys_), ye(ye_), zs(zs_), comp(comp_), cleanup(cleanup_), leaf_merge(leaf_merge_)
+    merge_task( _RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe,
+                _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye,
+                _RandomAccessIterator3 __zs,
+                _Compare __comp, _Cleanup __cleanup, _LeafMerge __leaf_merge)
+      : _M_xs(__xs), _M_xe(__xe), _M_ys(__ys), _M_ye(__ye), _M_zs(__zs)
+      , _M_comp(__comp), _M_cleanup(__cleanup), _M_leaf_merge(__leaf_merge)
     {}
 };
 
 const size_t __PSTL_MERGE_CUT_OFF = 2000;
-template<typename RandomAccessIterator1, typename RandomAccessIterator2, typename RandomAccessIterator3, typename Compare, typename Cleanup, typename LeafMerge>
-tbb::task* merge_task<RandomAccessIterator1, RandomAccessIterator2, RandomAccessIterator3, Compare, Cleanup, LeafMerge>::execute() {
-    const auto n = (xe-xs) + (ye-ys);
-    if(n <= __PSTL_MERGE_CUT_OFF) {
-        leaf_merge(xs, xe, ys, ye, zs, comp);
+template<typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3, typename __M_Compare, typename _Cleanup, typename _LeafMerge>
+tbb::task* merge_task<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare, _Cleanup, _LeafMerge>::execute() {
+    const auto __n = (_M_xe-_M_xs) + (_M_ye-_M_ys);
+    if(__n <= __PSTL_MERGE_CUT_OFF) {
+        _M_leaf_merge(_M_xs, _M_xe, _M_ys, _M_ye, _M_zs, _M_comp);
 
         //we clean the buffer one time on last step of the sort
-        cleanup(xs, xe);
-        cleanup(ys, ye);
-        return NULL;
+        _M_cleanup(_M_xs, _M_xe);
+        _M_cleanup(_M_ys, _M_ye);
+        return nullptr;
     }
     else {
-        RandomAccessIterator1 xm;
-        RandomAccessIterator2 ym;
-        if(xe-xs < ye-ys) {
-            ym = ys+(ye-ys)/2;
-            xm = std::upper_bound(xs, xe, *ym, comp);
+        _RandomAccessIterator1 __xm;
+        _RandomAccessIterator2 __ym;
+        if(_M_xe-_M_xs < _M_ye-_M_ys) {
+            __ym = _M_ys+(_M_ye-_M_ys)/2;
+            __xm = std::upper_bound(_M_xs, _M_xe, *__ym, _M_comp);
         }
         else {
-            xm = xs+(xe-xs)/2;
-            ym = std::lower_bound(ys, ye, *xm, comp);
+            __xm = _M_xs+(_M_xe-_M_xs)/2;
+            __ym = std::lower_bound(_M_ys, _M_ye, *__xm, _M_comp);
         }
-        const RandomAccessIterator3 zm = zs + ((xm-xs) + (ym-ys));
-        tbb::task* right = new(allocate_additional_child_of(*parent()))
-            merge_task(xm, xe, ym, ye, zm, comp, cleanup, leaf_merge);
-        spawn(*right);
-        recycle_as_continuation();
-        xe = xm;
-        ye = ym;
+        const _RandomAccessIterator3 __zm = _M_zs + ((__xm - _M_xs) + (__ym - _M_ys));
+        tbb::task* __right = new(tbb::task::allocate_additional_child_of(*parent()))
+            merge_task(__xm, _M_xe, __ym, _M_ye, __zm, _M_comp, _M_cleanup, _M_leaf_merge);
+        tbb::task::spawn(*__right);
+        tbb::task::recycle_as_continuation();
+        _M_xe = __xm;
+        _M_ye = __ym;
     }
     return this;
 }
