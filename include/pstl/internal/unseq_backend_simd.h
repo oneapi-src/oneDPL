@@ -248,7 +248,7 @@ template<class _InputIterator, class _DifferenceType, class BinaryPredicate>
 _DifferenceType simd_calc_mask_2(_InputIterator __first, _DifferenceType __n, bool* __restrict __mask, BinaryPredicate __pred) noexcept {
     _DifferenceType __count = 0;
 
-__PSTL_PRAGMA_SIMD_REDUCTION(+:count)
+__PSTL_PRAGMA_SIMD_REDUCTION(+:__count)
     for (_DifferenceType __i = 0; __i < __n; ++__i) {
         __mask[__i] = !__pred(__first[__i], __first[__i - 1]);
         __count += __mask[__i];
@@ -328,7 +328,7 @@ _Index simd_adjacent_find(_Index __first, _Index __last, _BinaryPredicate __pred
 #if __PSTL_EARLYEXIT_PRESENT
     //Some compiler versions fail to compile the following loop when iterators are used. Indices are used instead
     const _difference_type __n = __last - __first-1;
-__PSTL_PRAGMA_VECT__OR_UNALIGNED
+__PSTL_PRAGMA_VECTOR_UNALIGNED
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for(; __i < __n; ++__i)
         if(pred(__first[__i], __first[__i + 1]))
@@ -343,7 +343,7 @@ __PSTL_PRAGMA_SIMD_EARLYEXIT
     while ( __last - __first >= __block_size ) {
         _difference_type __found = 0;
 __PSTL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
-__PSTL_PRAGMA_SIMD_REDUCTION(|:_found)
+__PSTL_PRAGMA_SIMD_REDUCTION(|:__found)
         for ( __i = 0; __i < __block_size-1; ++__i ) {
             //TODO: to improve SIMD vectorization
             const _difference_type __t = __pred(*(__first + __i), *(__first + __i + 1));
