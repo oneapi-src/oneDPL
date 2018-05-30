@@ -68,9 +68,9 @@ for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator _
         internal::is_parallelization_preferred<_ExecutionPolicy,_ForwardIterator>(__exec));
 }
 
-template<class _ExecutionPolicy, class _ForwardIterator, class Size, class _Function>
+template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Function>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
-for_each_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, Size __n, _Function __f) {
+for_each_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, _Function __f) {
     using namespace __pstl;
     return internal::pattern_walk1_n(__first, __n, __f,
                                      internal::is_vectorization_preferred<_ExecutionPolicy,_ForwardIterator>(__exec),
@@ -95,11 +95,11 @@ find_if_not(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterato
     return std::find_if(__exec, __first, __last, __pstl::internal::not_pred<_Predicate>(__pred));
 }
 
-template<class _ExecutionPolicy, class _ForwardIterator, class T>
+template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-     const T& __value) {
-     return std::find_if(__exec, __first, __last, __pstl::internal::equal_value<T>(__value));
+     const _Tp& __value) {
+     return std::find_if(__exec, __first, __last, __pstl::internal::equal_value<_Tp>(__value));
 }
 
 // [alg.find.end]
@@ -198,9 +198,9 @@ search(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 _
     return std::search(std::forward<_ExecutionPolicy>(__exec), __first, __last, __s_first, __s_last, __pstl::internal::pstl_equal());
 }
 
-template<class _ExecutionPolicy, class _ForwardIterator, class Size, class T, class _BinaryPredicate>
+template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp, class _BinaryPredicate>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
-search_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, Size __count, const T& __value, _BinaryPredicate __pred) {
+search_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Size __count, const _Tp& __value, _BinaryPredicate __pred) {
     using namespace __pstl;
     return internal::pattern_search_n(__first, __last, __count, __value, __pred,
                                       internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
@@ -494,13 +494,13 @@ partition(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator 
                                        internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
-template<class _ExecutionPolicy, class BidirectionalIterator, class _UnaryPredicate>
-__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, BidirectionalIterator>
-stable_partition(_ExecutionPolicy&& __exec, BidirectionalIterator __first, BidirectionalIterator __last, _UnaryPredicate __pred) {
+template<class _ExecutionPolicy, class _BidirectionalIterator, class _UnaryPredicate>
+__pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
+stable_partition(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last, _UnaryPredicate __pred) {
     using namespace __pstl;
     return internal::pattern_stable_partition(__first, __last, __pred,
-                                              internal::is_vectorization_preferred<_ExecutionPolicy, BidirectionalIterator>(__exec),
-                                              internal::is_parallelization_preferred<_ExecutionPolicy, BidirectionalIterator>(__exec));
+                                              internal::is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec),
+                                              internal::is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec));
 }
 
 template<class _ExecutionPolicy, class _ForwardIterator, class _ForwardIterator1, class _ForwardIterator2, class _UnaryPredicate>

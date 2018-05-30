@@ -190,19 +190,19 @@ __PSTL_PRAGMA_SIMD_REDUCTION(|:__found)
 }
 
 template<class _Index, class _DifferenceType, class _Pred>
-_DifferenceType simd_count(_Index __index, _DifferenceType __n, _Pred pred) noexcept {
+_DifferenceType simd_count(_Index __index, _DifferenceType __n, _Pred __pred) noexcept {
     _DifferenceType __count = 0;
 __PSTL_PRAGMA_SIMD_REDUCTION(+:__count)
     for (_DifferenceType __i = 0; __i < __n; ++__i)
-        if (pred(*(__index + __i)))
+        if (__pred(*(__index + __i)))
             ++__count;
 
     return __count;
 }
 
-template<class _InputIterator, class _DifferenceType, class _OutputIterator, class __BinaryPredicate>
+template<class _InputIterator, class _DifferenceType, class _OutputIterator, class _BinaryPredicate>
 _OutputIterator simd_unique_copy(_InputIterator __first, _DifferenceType __n, _OutputIterator __result,
-                                 __BinaryPredicate __pred) noexcept {
+                                 _BinaryPredicate __pred) noexcept {
     if (__n == 0)
         return __result;
 
@@ -229,8 +229,8 @@ __PSTL_PRAGMA_SIMD
     return __result + __n;
 }
 
-template<class _InputIterator, class _DifferenceType, class _OutputIterator, class UnaryPredicate>
-_OutputIterator simd_copy_if(_InputIterator __first, _DifferenceType __n, _OutputIterator __result, UnaryPredicate __pred) noexcept {
+template<class _InputIterator, class _DifferenceType, class _OutputIterator, class _UnaryPredicate>
+_OutputIterator simd_copy_if(_InputIterator __first, _DifferenceType __n, _OutputIterator __result, _UnaryPredicate __pred) noexcept {
     _DifferenceType __cnt = 0;
 
 __PSTL_PRAGMA_SIMD
@@ -244,8 +244,8 @@ __PSTL_PRAGMA_SIMD
     return __result + __cnt;
 }
 
-template<class _InputIterator, class _DifferenceType, class BinaryPredicate>
-_DifferenceType simd_calc_mask_2(_InputIterator __first, _DifferenceType __n, bool* __restrict __mask, BinaryPredicate __pred) noexcept {
+template<class _InputIterator, class _DifferenceType, class _BinaryPredicate>
+_DifferenceType simd_calc_mask_2(_InputIterator __first, _DifferenceType __n, bool* __restrict __mask, _BinaryPredicate __pred) noexcept {
     _DifferenceType __count = 0;
 
 __PSTL_PRAGMA_SIMD_REDUCTION(+:__count)
@@ -256,8 +256,8 @@ __PSTL_PRAGMA_SIMD_REDUCTION(+:__count)
     return __count;
 }
 
-template<class _InputIterator, class _DifferenceType, class UnaryPredicate>
-_DifferenceType simd_calc_mask_1(_InputIterator __first, _DifferenceType __n, bool* __restrict __mask, UnaryPredicate __pred) noexcept {
+template<class _InputIterator, class _DifferenceType, class _UnaryPredicate>
+_DifferenceType simd_calc_mask_1(_InputIterator __first, _DifferenceType __n, bool* __restrict __mask, _UnaryPredicate __pred) noexcept {
     _DifferenceType __count = 0;
 
 __PSTL_PRAGMA_SIMD_REDUCTION(+:__count)
@@ -442,7 +442,7 @@ _ForwardIterator1 simd_find_first_of(_ForwardIterator1 __first, _ForwardIterator
     }
 
     // Common case
-    // If __first sequence larger than second then we'll run simd___first with parameters of __first sequence.
+    // If first sequence larger than second then we'll run simd_first with parameters of first sequence.
     // Otherwise, vice versa.
     if (__n1 < __n2)
     {
