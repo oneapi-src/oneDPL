@@ -23,7 +23,6 @@
 #include "pstl/execution"
 #include "pstl/numeric"
 #include "test/utils.h"
-#include "pstl/internal/numeric_impl.h" //for usage a serial algo version
 
 using namespace TestUtils;
 
@@ -48,8 +47,7 @@ void test_long_form(T init, BinaryOp binary_op, F f) {
 
         using namespace std;
 
-        // Try policy-free version
-        T result = pstl::internal::brick_transform_reduce( in.cfbegin(), in.cfend(), init, binary_op, pstl::internal::no_op(), std::false_type() );
+        T result = transform_reduce_serial(in.cfbegin(), in.cfend(), init, binary_op, [](const T& t) { return t; });
         EXPECT_EQ( expected, result, "bad result from reduce(first, last, init, binary_op_op)" );
 
         invoke_on_all_policies(test_long_forms_for_one_policy(), in.begin(), in.end(), init, binary_op, expected);

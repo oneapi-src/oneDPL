@@ -21,7 +21,6 @@
 #include "pstl/execution"
 #include "pstl/algorithm"
 #include "test/utils.h"
-#include "pstl/internal/algorithm_impl.h" //for usage a serial pstl::internal::for_each_n function
 
 using namespace TestUtils;
 
@@ -34,8 +33,8 @@ struct Gen {
 
 template<typename T>
 struct Flip {
-    int val;
-    Flip(int y) : val(y) {}
+    int32_t val;
+    Flip(int32_t y) : val(y) {}
     T operator()( T& x ) const {return x = val-x;}
 };
 

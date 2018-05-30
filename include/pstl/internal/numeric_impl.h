@@ -25,6 +25,7 @@
 #include <type_traits>
 #include <numeric>
 
+#include "pstl_config.h"
 #include "execution_impl.h"
 #include "unseq_backend_simd.h"
 
@@ -145,6 +146,7 @@ template<class InputIterator, class OutputIterator, class UnaryOperation, class 
 std::pair<OutputIterator,T> brick_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, /*Inclusive*/ std::false_type) noexcept {
     for(; first!=last; ++first, ++result ) {
         *result = init;
+__PSTL_PRAGMA_FORCEINLINE
         init = binary_op(init,unary_op(*first));
     }
     return std::make_pair(result,init);
@@ -154,6 +156,7 @@ std::pair<OutputIterator,T> brick_transform_scan(InputIterator first, InputItera
 template<class InputIterator, class OutputIterator, class UnaryOperation, class T, class BinaryOperation>
 std::pair<OutputIterator,T> brick_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, /*Inclusive*/std::true_type) noexcept {
     for(; first!=last; ++first, ++result ) {
+__PSTL_PRAGMA_FORCEINLINE
         init = binary_op(init,unary_op(*first));
         *result = init;
     }
@@ -166,22 +169,51 @@ OutputIterator pattern_transform_scan(InputIterator first, InputIterator last, O
 }
 
 template<class InputIterator, class OutputIterator, class UnaryOperation, class T, class BinaryOperation, class Inclusive, class IsVector>
-OutputIterator pattern_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, Inclusive, IsVector is_vector, /*is_parallel=*/std::true_type ) {
+typename std::enable_if<!std::is_floating_point<T>::value, OutputIterator>::type
+pattern_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, Inclusive, IsVector is_vector, /*is_parallel=*/std::true_type) {
     typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
 
     return except_handler([=]() {
         par_backend::parallel_transform_scan(
-            last-first,
-            [first, unary_op](size_t i) mutable {return unary_op(first[i]); },
+            last - first,
+            [first, unary_op](difference_type i) mutable {return unary_op(first[i]); },
             init,
             binary_op,
             [first, unary_op, binary_op, is_vector](difference_type i, difference_type j, T init) {
-            return brick_transform_reduce(first+i, first+j, init, binary_op, unary_op, is_vector);
+                return brick_transform_reduce(first + i, first + j, init, binary_op, unary_op, is_vector);
+            },
+            [first, unary_op, binary_op, result](difference_type i, difference_type j, T init) {
+                return brick_transform_scan(first + i, first + j, result + i, unary_op, init, binary_op, Inclusive()).second;
+            },
+            result);
+        return result + (last - first);
+    });
+}
+
+template<class InputIterator, class OutputIterator, class UnaryOperation, class T, class BinaryOperation, class Inclusive, class IsVector>
+typename std::enable_if<std::is_floating_point<T>::value, OutputIterator>::type
+pattern_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, Inclusive, IsVector is_vector, /*is_parallel=*/std::true_type) {
+    typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
+    difference_type n = last - first;
+
+    if (n <= 0) {
+        return result;
+    }
+    return except_handler([=, &binary_op]() {
+        par_backend::parallel_strict_scan(n, init,
+            [first, unary_op, binary_op, result](difference_type i, difference_type len) {
+                return brick_transform_scan(first + i, first + (i + len), result + i, unary_op, T{}, binary_op, Inclusive()).second;
+            },
+            binary_op,
+            [result, &binary_op](difference_type i, difference_type len, T initial) {
+                return *(std::transform(result + i, result + i + len, result + i,
+                    [&initial, &binary_op](const T& x) {
+__PSTL_PRAGMA_FORCEINLINE
+                        return binary_op(initial, x);
+            }) - 1);
         },
-        [first, unary_op, binary_op, result](difference_type i, difference_type j, T init) {
-        return brick_transform_scan(first+i, first+j, result+i, unary_op, init, binary_op, Inclusive()).second;
-        });
-        return result+(last-first);
+        [](T res) { });
+        return result + (last - first);
     });
 }
 

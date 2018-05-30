@@ -28,6 +28,7 @@
 #include <vector>
 #include <atomic>
 #include <memory>
+#include <cstdint>
 
 namespace TestUtils {
 
@@ -58,7 +59,7 @@ static void issue_error_message( std::stringstream& outstr ) {
 }
 
 template<bool B>
-void expect( bool condition, const char* file, int line, const char* message ) {
+void expect( bool condition, const char* file, int32_t line, const char* message ) {
     // Templating this function is somewhat silly, but avoids the need to declare it static
     // or have a separate translation unit.
     if( condition!=B ) {
@@ -72,7 +73,7 @@ void expect( bool condition, const char* file, int line, const char* message ) {
 // Do not change signature to const T&.
 // Function must be able to detect const differences between expected and actual.
 template<typename T>
-void expect_equal( T& expected, T& actual, const char* file, int line, const char* message ) {
+void expect_equal( T& expected, T& actual, const char* file, int32_t line, const char* message ) {
     if( !(expected==actual) ) {
         std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - "
@@ -82,7 +83,7 @@ void expect_equal( T& expected, T& actual, const char* file, int line, const cha
 }
 
 template<typename T>
-void expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, int line, const char* message) {
+void expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, int32_t line, const char* message) {
     size_t n = expected.size();
     size_t m = actual.size();
     if (n != m) {
@@ -105,7 +106,7 @@ void expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, 
 }
 
 template<typename Iterator, typename Size>
-void expect_equal(Iterator expected_first, Iterator actual_first, Size n, const char* file, int line, const char* message) {
+void expect_equal(Iterator expected_first, Iterator actual_first, Size n, const char* file, int32_t line, const char* message) {
     size_t error_count = 0;
     for (size_t k = 0; k<n && error_count<10; ++k, ++expected_first, ++actual_first) {
         if (!(*expected_first == *actual_first)) {
@@ -277,7 +278,7 @@ inline size_t HashBits( size_t i, size_t bits ) {
 // Stateful unary op
 template<typename T, typename U>
 class Complement {
-    int val;
+    int32_t val;
 public:
     Complement(T v) : val(v) {}
     U operator()(const T& x) const {return U(val-x);}
@@ -728,6 +729,14 @@ std::atomic<size_t> Wrapper<T>::my_count = { 0 };
 
 template<typename T>
 std::atomic<size_t> Wrapper<T>::move_count = { 0 };
+
+template<typename InputIterator, typename T, typename BinaryOperation, typename UnaryOperation>
+T transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryOperation binary_op, UnaryOperation unary_op) noexcept {
+    for (; first != last; ++first) {
+        init = binary_op(init, unary_op(*first));
+    }
+    return init;
+}
 
 static const char* done() {
 #if __PSTL_TEST_SUCCESSFUL_KEYWORD

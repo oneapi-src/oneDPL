@@ -1,6 +1,24 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2018 Update 3
+PSTL_VERSION == 105
+
+Features / APIs:
+
+- More algorithms support parallel and vector execution policies:
+    is_partitioned, lexicographical_compare, swap_ranges.
+- Added specialization of parallel_transform_scan pattern for better
+    performance with floating point types.
+- Arranged iterator types in public interface according to the standard
+    (by Thomas Rodgers).
+
+Bugs fixed:
+
+- Fixed an error in parallel version of partial_sort algorithm.
+- Fixed an error in equal algorithm connected with values comparison.
+
+------------------------------------------------------------------------
 Parallel STL 20180329 release
 PSTL_VERSION == 104
 

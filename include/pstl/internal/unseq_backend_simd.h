@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_vector_impl_H
-#define __PSTL_vector_impl_H
+#ifndef __PSTL_unseq_backend_simd_H
+#define __PSTL_unseq_backend_simd_H
 
 #include <algorithm> //for std::min
 #include <type_traits>
@@ -489,4 +489,4 @@ ForwardIterator simd_remove_if(ForwardIterator first, DifferenceType n, UnaryPre
 } // namespace unseq_backend
 } // namespace pstl
 
-#endif /* __PSTL_vector_impl_H */
+#endif /* __PSTL_unseq_backend_simd_H */

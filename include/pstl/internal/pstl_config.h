@@ -21,7 +21,7 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 104
+#define PSTL_VERSION 105
 #define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 
@@ -74,6 +74,12 @@
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM)
 #endif //Enable SIMD
 
+#if (__INTEL_COMPILER)
+#define __PSTL_PRAGMA_FORCEINLINE __PSTL_PRAGMA(forceinline)
+#else
+#define __PSTL_PRAGMA_FORCEINLINE
+#endif
+
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define __PSTL_CPP17_EXECUTION_POLICIES_PRESENT (_MSC_VER >= 1912)
 
@@ -114,9 +120,9 @@
 #endif
 
 #if _MSC_VER || __INTEL_COMPILER //the preprocessors don't type a message location
-#define __PSTL_PRAGMA_LOCATION __FILE__ ":" __PSTL_STRING(__LINE__) ": warning: "
+#define __PSTL_PRAGMA_LOCATION __FILE__ ":" __PSTL_STRING(__LINE__) ": [Parallel STL message]: "
 #else
-#define __PSTL_PRAGMA_LOCATION
+#define __PSTL_PRAGMA_LOCATION " [Parallel STL message]: "
 #endif
 
 

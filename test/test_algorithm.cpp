@@ -29,7 +29,7 @@
 
 using namespace TestUtils;
 
-auto is_even = [](double v) { unsigned int i = (unsigned int)v;  return i % 2 == 0; };
+auto is_even = [](float64_t v) { uint32_t i = (uint32_t)v;  return i % 2 == 0; };
 
 template<typename Policy, typename F>
 static void invoke_if(Policy&& p, F f) {
@@ -231,9 +231,11 @@ struct run_rnd_fw {
         includes(exec, b1, e1, b2, e2, std::less<T>());
         includes(exec, b1, b1, b2, b2, non_const(std::less<T>()));
 
-        //is_partitioned
-        is_partitioned(exec, b1, e1, is_even);
-        is_partitioned(exec, b1, b1, non_const(is_even));
+        invoke_if(exec, [&]() {
+            //is_partitioned
+            is_partitioned(exec, b1, e1, is_even);
+            is_partitioned(exec, b1, b1, non_const(is_even));
+        });
 
         //is_sorted
         is_sorted(exec, b1, e1);
@@ -245,10 +247,12 @@ struct run_rnd_fw {
         is_sorted_until(exec, b1, e1, std::less<T>());
         is_sorted_until(exec, b1, b1, non_const(std::less<T>()));
 
-        //lexicographical_compare
-        lexicographical_compare(exec, b1, e1, b2, e2);
-        lexicographical_compare(exec, b1, e1, b2, e2, std::less<T>());
-        lexicographical_compare(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        invoke_if(exec, [&]() {
+            //lexicographical_compare
+            lexicographical_compare(exec, b1, e1, b2, e2);
+            lexicographical_compare(exec, b1, e1, b2, e2, std::less<T>());
+            lexicographical_compare(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        });
 
         //max_element
         max_element(exec, b1, e1);
@@ -361,10 +365,10 @@ struct run_rnd_fw {
         set_union(exec, b1, cmiddle, cmiddle, e1, out, std::less<T>());
         set_union(exec, b1, b1, b1, b1, out, non_const(std::less<T>()));
 
-        //swap_ranges
-        swap_ranges(exec, b1, e1, b2);
-
         invoke_if(exec, [&]() {
+            //swap_ranges
+            swap_ranges(exec, b1, e1, b2);
+
             //transform
             transform(exec, b1, e1, out, std::negate<T>());
             transform(exec, b1, b1, out, non_const(std::negate<T>()));

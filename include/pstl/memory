@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_memory_H
-#define __PSTL_memory_H
+#ifndef __PSTL_memory
+#define __PSTL_memory
 
 #include "internal/pstl_config.h"
 #include "internal/utils.h"
@@ -236,4 +236,4 @@ uninitialized_value_construct_n(ExecutionPolicy&& exec, ForwardIterator first, S
 }
 
 } // namespace std
-#endif /*__PSTL_memory_H */
+#endif /*__PSTL_memory */

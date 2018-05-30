@@ -41,21 +41,34 @@ struct serial_destroy {
 
 //! Merge sequences [xs,xe) and [ys,ye) to output sequence [zs,(xe-xs)+(ye-ys)), using std::move
 struct serial_move_merge {
+    const std::size_t my_nmerge;
+    serial_move_merge(std::size_t nmerge) : my_nmerge(nmerge) {}
     template<class RandomAccessIterator1, class RandomAccessIterator2, class RandomAccessIterator3, class Compare>
     void operator()(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 ys, RandomAccessIterator2 ye, RandomAccessIterator3 zs, Compare comp) {
+        auto n = my_nmerge;
+        assert(n > 0);
         if (xs != xe) {
             if (ys != ye) {
                 for (;;)
                     if (comp(*ys, *xs)) {
                         *zs = std::move(*ys);
-                        ++zs;
+                        ++zs, --n;
                         if (++ys == ye)
                             break;
+                        else if (n == 0) {
+                            zs = std::move(ys, ye, zs);
+                            break;
+                        }
                     }
                     else {
                         *zs = std::move(*xs);
-                        ++zs;
+                        ++zs, --n;
                         if (++xs == xe) {
+                            std::move(ys, ye, zs);
+                            return;
+                        }
+                        else if (n == 0) {
+                            zs = std::move(xs, xe, zs);
                             std::move(ys, ye, zs);
                             return;
                         }

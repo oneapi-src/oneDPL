@@ -82,7 +82,7 @@ void test(T trash, BinaryPredicate pred, Convert convert, bool check_weakness = 
     }
 }
 
-int main( int argc, char* argv[] ) {
+int32_t main( int32_t argc, char* argv[] ) {
     test<Number>( Number(42,OddTag()),
                   std::equal_to<Number>(),
                   [](int32_t j){return Number(3*j/13^(j&8),OddTag());});

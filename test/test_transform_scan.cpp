@@ -21,7 +21,6 @@
 #include "pstl/execution"
 #include "pstl/numeric"
 #include "test/utils.h"
-#include "pstl/internal/numeric_impl.h" //for usage a serial algo version
 
 using namespace TestUtils;
 
@@ -70,6 +69,24 @@ struct test_transform_scan {
 
 const uint32_t encryption_mask = 0x314;
 
+template<typename InputIterator, typename OutputIterator, typename UnaryOperation, typename T, typename BinaryOperation>
+std::pair<OutputIterator, T> transform_inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op) noexcept {
+    for(; first!=last; ++first, ++result) {
+        init = binary_op(init,unary_op(*first));
+        *result = init;
+    }
+    return std::make_pair(result,init);
+}
+
+template<typename InputIterator, typename OutputIterator, typename UnaryOperation, typename T, typename BinaryOperation>
+std::pair<OutputIterator, T> transform_exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op) noexcept {
+    for(; first!=last; ++first, ++result) {
+        *result = init;
+        init = binary_op(init, unary_op(*first));
+    }
+    return std::make_pair(result,init);
+}
+
 template <typename In, typename Out, typename UnaryOp, typename BinaryOp>
 void test( UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash ) {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
@@ -92,8 +109,8 @@ void test( UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash ) {
         Sequence<Out> out(n, [&](size_t) {return trash;});
 
         auto result = inclusive ?
-                      pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::true_type()/*inclusive*/) :
-                      pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::false_type()/*exclusive*/);
+                      transform_inclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op) :
+                      transform_exclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op);
         check_and_reset( expected.begin(), out.begin(), out.size(), trash );
 
         invoke_on_all_policies(test_transform_scan(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);

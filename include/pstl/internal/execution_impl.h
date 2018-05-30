@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_execution_policy_impl_H
-#define __PSTL_execution_policy_impl_H
+#ifndef __PSTL_execution_impl_H
+#define __PSTL_execution_impl_H
 
 #include <iterator>
 #include <type_traits>
@@ -142,4 +142,4 @@ struct prefer_parallel_tag {
 } // namespace internal
 } // namespace pstl
 
-#endif /* __PSTL_execution_policy_impl_H */
+#endif /* __PSTL_execution_impl_H */

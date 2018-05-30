@@ -71,15 +71,10 @@ bool pattern_any_of( InputIterator first, InputIterator last, Pred pred, IsVecto
 // for_each_n with no policy
 
 template<class InputIterator, class Size, class Function>
-InputIterator for_each_n_serial(InputIterator first, Size n, Function f) {
+InputIterator for_each_n_it_serial(InputIterator first, Size n, Function f) {
     for(; n > 0; ++first, --n)
         f(first);
     return first;
-}
-
-template<class InputIterator, class Size, class Function>
-InputIterator for_each_n(InputIterator first, Size n, Function f) {
-    return for_each_n_serial(first, n, [&f](InputIterator it) { f(*it); });
 }
 
 //------------------------------------------------------------------------
@@ -89,8 +84,7 @@ InputIterator for_each_n(InputIterator first, Size n, Function f) {
 //------------------------------------------------------------------------
 template<class Iterator, class Function>
 void brick_walk1( Iterator first, Iterator last, Function f, /*vector=*/std::false_type ) noexcept {
-    for(; first!=last; ++first )
-        f(*first);
+    std::for_each(first, last, f);
 }
 
 template<class Iterator, class Function>
@@ -163,7 +157,7 @@ void pattern_it_walk1( Iterator first, Iterator last, Function f, IsVector is_ve
 //------------------------------------------------------------------------
 template<class InputIterator, class Size, class Function>
 InputIterator brick_walk1_n(InputIterator first, Size n, Function f, /*IsVectorTag=*/std::false_type ) {
-    return internal::for_each_n( first, n, f ); // calling serial version
+    return for_each_n_it_serial(first, n, [&f](InputIterator it) { f(*it); }); // calling serial version
 }
 
 template<class RandomAccessIterator, class DifferenceType, class Function>
@@ -201,7 +195,7 @@ RandomAccessIterator pattern_walk_brick_n( RandomAccessIterator first, Size n, B
 
 template<class InputIterator, class Size, class Function>
 InputIterator brick_it_walk1_n(InputIterator first, Size n, Function f, /*IsVectorTag=*/std::false_type ) {
-    return for_each_n_serial(first, n, f); // calling serial version
+    return for_each_n_it_serial(first, n, f); // calling serial version
 }
 
 template<class RandomAccessIterator, class DifferenceType, class Function>
@@ -960,32 +954,6 @@ OutputIterator pattern_unique_copy(InputIterator first, InputIterator last, Outp
 }
 
 //------------------------------------------------------------------------
-// swap_ranges
-//------------------------------------------------------------------------
-
-template<class ForwardIterator1, class ForwardIterator2>
-ForwardIterator2 brick_swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, /*is_vector=*/std::false_type) noexcept {
-    return std::swap_ranges(first1, last1, first2);
-}
-
-template<class ForwardIterator1, class ForwardIterator2>
-ForwardIterator2 brick_swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::swap_ranges(first1, last1, first2);
-}
-
-template<class ForwardIterator1, class ForwardIterator2, class IsVector>
-ForwardIterator2 pattern_swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
-    return brick_swap_ranges(first1, last1, first2, is_vector);
-}
-
-template<class ForwardIterator1, class ForwardIterator2, class IsVector>
-ForwardIterator2 pattern_swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_swap_ranges(first1, last1, first2, is_vector);
-}
-
-//------------------------------------------------------------------------
 // reverse
 //------------------------------------------------------------------------
 
@@ -1097,28 +1065,109 @@ OutputIterator pattern_rotate_copy(ForwardIterator first, ForwardIterator middle
 // is_partitioned
 //------------------------------------------------------------------------
 
-template<class InputIterator, class UnaryPredicate>
-bool brick_is_partitioned(InputIterator first, InputIterator last, UnaryPredicate pred, /*is_vector=*/std::false_type) noexcept
-{
+template<class ForwardIterator, class UnaryPredicate>
+bool brick_is_partitioned(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, /*is_vector=*/std::false_type) noexcept {
     return std::is_partitioned(first, last, pred);
 }
 
-template<class InputIterator, class UnaryPredicate>
-bool brick_is_partitioned(InputIterator first, InputIterator last, UnaryPredicate pred, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return brick_is_partitioned(first, last, pred, std::false_type());
+template<class ForwardIterator, class UnaryPredicate>
+bool brick_is_partitioned(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, /*is_vector=*/std::true_type) noexcept {
+    typedef typename std::iterator_traits<ForwardIterator>::difference_type size_type;
+    if (first == last) {
+        return true;
+    }
+    else {
+        ForwardIterator result = unseq_backend::simd_first(first, size_type(0), last - first,
+            [&pred](ForwardIterator it, size_type i) {return !pred(it[i]); });
+        if (result == last) {
+            return true;
+        }
+        else {
+            ++result;
+            return !unseq_backend::simd_or(result, last - result, pred);
+        }
+    }
 }
 
-template<class InputIterator, class UnaryPredicate, class IsVector>
-bool pattern_is_partitioned(InputIterator first, InputIterator last, UnaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
+template<class ForwardIterator, class UnaryPredicate, class IsVector>
+bool pattern_is_partitioned(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
     return brick_is_partitioned(first, last, pred, is_vector);
 }
 
+template<class ForwardIterator, class UnaryPredicate, class IsVector>
+bool pattern_is_partitioned(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
+    if (first == last) {
+        return true;
+    }
+    else {
+        return except_handler([=, &pred]() {
+            typedef typename std::iterator_traits<ForwardIterator>::difference_type size_type;
 
-template<class InputIterator, class UnaryPredicate, class IsVector>
-bool pattern_is_partitioned(InputIterator first, InputIterator last, UnaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_is_partitioned(first, last, pred, is_vector);
+            // State of current range:
+            // broken     - current range is not partitioned by pred
+            // all_true   - all elements in current range satisfy pred
+            // all_false  - all elements in current range don't satisfy pred
+            // true_false - elements satisfy pred are placed before elements that don't satisfy pred
+            enum reduce_type { not_init = -1, broken, all_true, all_false, true_false };
+            reduce_type init = not_init;
+
+            // Array with states that we'll have when state from the left branch is merged with state from the right branch.
+            // State is calculated by formula: new_state = table[left_state * 4 + right_state]
+            reduce_type table[] = {
+                broken, broken,   broken,     broken,
+                broken, all_true, true_false, true_false,
+                broken, broken,   all_false,  broken,
+                broken, broken,   true_false, broken };
+
+            init = par_backend::parallel_reduce(first, last, init,
+                [first, &pred, &table, is_vector](ForwardIterator i, ForwardIterator j, reduce_type value)->reduce_type {
+                    if (value == broken) {
+                        return broken;
+                    }
+                    reduce_type res = not_init;
+                    // if first element satisfy pred
+                    if (pred(*i)) {
+                        // find first element that don't satisfy pred
+                        ForwardIterator x = brick_find_if(i + 1, j, not_pred<UnaryPredicate>(pred), is_vector);
+                        if (x != j) {
+                            // find first element after "x" that satisfy pred
+                            ForwardIterator y = brick_find_if(x + 1, j, pred, is_vector);
+                            // if it was found then range isn't partitioned by pred
+                            if (y != j) {
+                                return broken;
+                            }
+                            else {
+                                res = true_false;
+                            }
+                        }
+                        else {
+                            res = all_true;
+                        }
+                    }
+                    else { // if first element doesn't satisfy pred
+                        // then we should find the first element that satisfy pred.
+                        // If we found it then range isn't partitioned by pred
+                        if (brick_find_if(i + 1, j, pred, is_vector) != j) {
+                            return broken;
+                        }
+                        else {
+                            res = all_false;
+                        }
+                    }
+                    // if we have value from left range then we should calculate the result
+                    return (value == -1) ? res : table[value * 4 + res];
+                },
+
+                [&table](reduce_type val1, reduce_type val2)->reduce_type {
+                    if (val1 == broken || val2 == broken) {
+                        return broken;
+                    }
+                    // calculate the result for new big range
+                    return table[val1 * 4 + val2];
+            });
+            return init != broken;
+        });
+    }
 }
 
 //------------------------------------------------------------------------
@@ -1254,7 +1303,8 @@ void pattern_sort(RandomAccessIterator first, RandomAccessIterator last, Compare
         par_backend::parallel_stable_sort(first, last, comp,
             [](RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
             std::sort(first, last, comp);
-        });
+        },
+        last - first);
     });
 }
 
@@ -1288,7 +1338,17 @@ void pattern_partial_sort(RandomAccessIterator first, RandomAccessIterator middl
 
 template <class RandomAccessIterator, class Compare, class IsVector>
 void pattern_partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Compare comp, IsVector, /*is_parallel=*/std::true_type) noexcept {
-    par_backend::parallel_partial_sort(first, middle, last, comp);
+    const auto n = middle - first;
+    except_handler([=]() {
+        par_backend::parallel_stable_sort(first, last, comp,
+            [n](RandomAccessIterator begin, RandomAccessIterator end, Compare comp) {
+            if(n < end - begin)
+                std::partial_sort(begin, begin + n, end, comp);
+            else
+                std::sort(begin, end, comp);
+        },
+        n);
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1382,7 +1442,6 @@ ForwardIt pattern_adjacent_find(ForwardIt first, ForwardIt last, BinaryPredicate
             // TODO: investigate performance benefits from the use of shared variable for the result,
             // checking (compare_and_swap idiom) its value at first.
             if (or_semantic && value < last) {//found
-                par_backend::cancel_execution();
                 return value;
             }
 
@@ -1920,26 +1979,75 @@ std::pair<InputIterator1, InputIterator2> pattern_mismatch(InputIterator1 first1
 // lexicographical_compare
 //------------------------------------------------------------------------
 
-template<class InputIterator1, class InputIterator2, class Compare>
-bool brick_lexicographical_compare(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp, /* is_vector = */ std::false_type) noexcept {
+template<class ForwardIterator1, class ForwardIterator2, class Compare>
+bool brick_lexicographical_compare(ForwardIterator1 first1, ForwardIterator1 last1,
+    ForwardIterator2 first2, ForwardIterator2 last2, Compare comp, /* is_vector = */ std::false_type) noexcept {
     return std::lexicographical_compare(first1, last1, first2, last2, comp);
 }
 
-template<class InputIterator1, class InputIterator2, class Compare>
-bool brick_lexicographical_compare(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp, /* is_vector = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::lexicographical_compare(first1, last1, first2, last2, comp);
+template<class ForwardIterator1, class ForwardIterator2, class Compare>
+bool brick_lexicographical_compare(ForwardIterator1 first1, ForwardIterator1 last1,
+    ForwardIterator2 first2, ForwardIterator2 last2, Compare comp, /* is_vector = */ std::true_type) noexcept {
+
+    if (first2 == last2) { // if second sequence is empty
+        return false;
+    }
+    else if (first1 == last1) { // if first sequence is empty
+        return true;
+    }
+    else {
+        typedef typename std::iterator_traits<ForwardIterator1>::reference ref_type1;
+        typedef typename std::iterator_traits<ForwardIterator2>::reference ref_type2;
+        --last1;
+        --last2;
+        auto n = std::min(last1 - first1, last2 - first2);
+        std::pair<ForwardIterator1, ForwardIterator2> result = unseq_backend::simd_first(first1, n, first2,
+            [comp](const ref_type1 x, const ref_type2 y)mutable {return comp(x, y) || comp(y, x); });
+
+        if (result.first == last1 && result.second != last2) { // if first sequence shorter than second
+            return !comp(*result.second, *result.first);;
+        }
+        else { // if second sequence shorter than first or both have the same number of elements
+            return comp(*result.first, *result.second);
+        }
+    }
 }
 
-template<class InputIterator1, class InputIterator2, class Compare, class IsVector>
-bool pattern_lexicographical_compare(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp, IsVector is_vector, /* is_parallel = */ std::false_type) noexcept {
+template<class ForwardIterator1, class ForwardIterator2, class Compare, class IsVector>
+bool pattern_lexicographical_compare(ForwardIterator1 first1, ForwardIterator1 last1,
+    ForwardIterator2 first2, ForwardIterator2 last2, Compare comp, IsVector is_vector, /* is_parallel = */ std::false_type) noexcept {
     return brick_lexicographical_compare(first1, last1, first2, last2, comp, is_vector);
 }
 
-template<class InputIterator1, class InputIterator2, class Compare, class IsVector>
-bool pattern_lexicographical_compare(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_lexicographical_compare(first1, last1, first2, last2, comp, is_vector);
+template<class ForwardIterator1, class ForwardIterator2, class Compare, class IsVector>
+bool pattern_lexicographical_compare(ForwardIterator1 first1, ForwardIterator1 last1,
+    ForwardIterator2 first2, ForwardIterator2 last2, Compare comp, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
+
+    if (first2 == last2) { // if second sequence is empty
+        return false;
+    }
+    else if (first1 == last1) { // if first sequence is empty
+        return true;
+    }
+    else {
+        typedef typename std::iterator_traits<ForwardIterator1>::reference ref_type1;
+        typedef typename std::iterator_traits<ForwardIterator2>::reference ref_type2;
+        --last1;
+        --last2;
+        auto n = std::min(last1 - first1, last2 - first2);
+        auto result = internal::parallel_find(first1, first1 + n, [first1, first2, &comp, is_vector](ForwardIterator1 i, ForwardIterator1 j) {
+            return brick_mismatch(i, j, first2 + (i - first1), first2 + (j - first1),
+                [&comp](const ref_type1 x, const ref_type2 y) {return !comp(x, y) && !comp(y, x); }, is_vector).first;
+        },
+        std::less<typename std::iterator_traits<ForwardIterator1>::difference_type>(), /*is_first=*/true);
+
+        if (result == last1 && first2 + (result - first1) != last2) { // if first sequence shorter than second
+            return !comp(*(first2 + (result - first1)), *result);
+        }
+        else { // if second sequence shorter than first or both have the same number of elements
+            return comp(*result, *(first2 + (result - first1)));
+        }
+    }
 }
 
 } // namespace internal
