@@ -137,9 +137,9 @@ template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,_ForwardIterator2>
 copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result);
 
-template<class _ExecutionPolicy, class _ForwardIterator1, class _size, class _ForwardIterator2>
+template<class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,_ForwardIterator2>
-copy_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _size __n, _ForwardIterator2 __result);
+copy_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Size __n, _ForwardIterator2 __result);
 
 template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Predicate>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,_ForwardIterator2>
@@ -166,23 +166,23 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
 
 // [alg.replace]
 
-template<class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate, class _tp>
+template<class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate, class _Tp>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
-replace_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred, const _tp& __new_value);
+replace_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred, const _Tp& __new_value);
 
-template<class _ExecutionPolicy, class _ForwardIterator, class _tp>
+template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
-replace(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _tp& __old_value, const _tp& __new_value);
+replace(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __old_value, const _Tp& __new_value);
 
-template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryPredicate, class _tp>
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryPredicate, class _Tp>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 replace_copy_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result, _UnaryPredicate __pred,
-                const _tp& __new_value);
+                const _Tp& __new_value);
 
-template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _tp>
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
-replace_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result, const _tp& __old_value,
-             const _tp& __new_value);
+replace_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result, const _Tp& __old_value,
+             const _Tp& __new_value);
 
 // [alg.fill]
 
