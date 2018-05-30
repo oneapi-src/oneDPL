@@ -31,10 +31,10 @@ namespace par_backend {
 struct serial_destroy {
     template<typename _RandomAccessIterator>
     void operator()(_RandomAccessIterator __zs, _RandomAccessIterator __ze) {
-        typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
+        typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
         while (__zs != __ze) {
             --__ze;
-            (*__ze).~_Tp();
+            (*__ze).~_ValueType();
         }
     }
 };
@@ -72,32 +72,32 @@ struct serial_move_merge {
 template<typename _RandomAccessIterator1, typename _OutputIterator>
 void init_buf(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _OutputIterator __zs, bool __bMove) {
     const _OutputIterator __ze = __zs + (__xe - __xs);
-    typedef typename std::iterator_traits<_OutputIterator>::value_type _Tp;
+    typedef typename std::iterator_traits<_OutputIterator>::value_type _ValueType;
     if (__bMove) {
         // Initialize the temporary buffer and move keys to it.
         for (; __zs != __ze; ++__xs, ++__zs)
-            new(&*__zs) _Tp(std::move(*__xs));
+            new(&*__zs) _ValueType(std::move(*__xs));
     }
     else {
         // Initialize the temporary buffer
         for (; __zs != __ze; ++__zs)
-            new(&*__zs) _Tp;
+            new(&*__zs) _ValueType;
     }
 }
 
 template<typename _Buf>
 class stack {
-    typedef typename std::iterator_traits<decltype(_Buf(0).get())>::value_type _value_type;
-    typedef typename std::iterator_traits<_value_type*>::difference_type _difference_type;
+    typedef typename std::iterator_traits<decltype(_Buf(0).get())>::value_type _ValueType;
+    typedef typename std::iterator_traits<_ValueType*>::difference_type _DifferenceType;
 
     _Buf _M_buf;
-    _value_type* _M_ptr;
-    _difference_type _M_maxsize;
+    _ValueType* _M_ptr;
+    _DifferenceType _M_maxsize;
 
     stack(const stack&) = delete;
     void operator=(const stack&) = delete;
 public:
-    stack(_difference_type __max_size)
+    stack(_DifferenceType __max_size)
       : _M_buf(__max_size)
       , _M_maxsize(__max_size)
     { _M_ptr = _M_buf.get(); }
@@ -115,14 +115,14 @@ public:
         return _M_ptr - _M_buf.get();
     }
     bool empty() const { assert(_M_ptr >= _M_buf.get()); return _M_ptr == _M_buf.get();}
-    void push(const _value_type& __v) {
+    void push(const _ValueType& __v) {
         assert(size() < _M_maxsize);
-        new (_M_ptr) _value_type(__v); ++_M_ptr;
+        new (_M_ptr) _ValueType(__v); ++_M_ptr;
     }
-    const _value_type& top() const { return *(_M_ptr-1); }
+    const _ValueType& top() const { return *(_M_ptr-1); }
     void pop() {
         assert(_M_ptr > _M_buf.get());
-        --_M_ptr; (*_M_ptr).~_value_type();
+        --_M_ptr; (*_M_ptr).~_ValueType();
     }
 };
 

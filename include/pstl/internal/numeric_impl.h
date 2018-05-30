@@ -191,7 +191,7 @@ template<class _RandomAccessIterator, class _OutputIterator, class _UnaryOperati
 _OutputIterator pattern_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
                                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                                        _IsVector __is_vector, /*is_parallel=*/std::true_type ) {
-    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _difference_type;
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
 
     return internal::except_handler([=]() {
         par_backend::parallel_transform_scan(
@@ -199,10 +199,10 @@ _OutputIterator pattern_transform_scan(_RandomAccessIterator __first, _RandomAcc
             [__first, __unary_op](size_t __i) mutable {return __unary_op(__first[__i]); },
             __init,
             __binary_op,
-            [__first, __unary_op, __binary_op, __is_vector](_difference_type __i, _difference_type __j, _Tp __init) {
+            [__first, __unary_op, __binary_op, __is_vector](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
               return internal::brick_transform_reduce(__first + __i, __first + __j, __init, __binary_op, __unary_op, __is_vector);
         },
-        [__first, __unary_op, __binary_op, __result](_difference_type __i, _difference_type __j, _Tp __init) {
+        [__first, __unary_op, __binary_op, __result](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
           return internal::brick_transform_scan(__first + __i, __first + __j, __result + __i, __unary_op, __init, __binary_op, _Inclusive()).second;
         });
         return __result + (__last - __first);

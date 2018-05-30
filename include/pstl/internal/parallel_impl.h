@@ -37,10 +37,10 @@ namespace internal {
 Each f[i,j) must return a value in [i,j). */
 template<class _Index, class _Brick, class _Compare>
 _Index parallel_find(_Index __first, _Index __last, _Brick __f, _Compare __comp, bool __b_first) {
-    typedef typename std::iterator_traits<_Index>::difference_type _difference_type;
-    const _difference_type __n = __last - __first;
-    _difference_type __initial_dist = __b_first ? __n : -1;
-    std::atomic<_difference_type> __extremum(__initial_dist);
+    typedef typename std::iterator_traits<_Index>::difference_type _DifferenceType;
+    const _DifferenceType __n = __last - __first;
+    _DifferenceType __initial_dist = __b_first ? __n : -1;
+    std::atomic<_DifferenceType> __extremum(__initial_dist);
     // TODO: find out what is better here: parallel_for or parallel_reduce
     par_backend::parallel_for(__first, __last, [__comp, __f, __first, &__extremum](_Index __i, _Index __j) {
         // See "Reducing Contention Through Priority Updates", PPoPP '13, for discussion of
@@ -49,8 +49,8 @@ _Index parallel_find(_Index __first, _Index __last, _Brick __f, _Compare __comp,
             _Index __res = __f(__i, __j);
             // If not '__last' returned then we found what we want so put this to extremum
             if (__res != __j) {
-                const _difference_type __k = __res - __first;
-                for (_difference_type __old = __extremum; __comp(__k, __old); __old = __extremum) {
+                const _DifferenceType __k = __res - __first;
+                for (_DifferenceType __old = __extremum; __comp(__k, __old); __old = __extremum) {
                     __extremum.compare_exchange_weak(__old, __k);
                 }
             }

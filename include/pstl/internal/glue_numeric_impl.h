@@ -75,8 +75,8 @@ reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
 template<class _ExecutionPolicy, class _ForwardIterator>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,typename iterator_traits<_ForwardIterator>::value_type>
 reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last) {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _value_type;
-    return std::transform_reduce(__exec, __first, __last, _value_type{}, std::plus<_value_type>(), __pstl::internal::no_op());
+    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
+    return std::transform_reduce(__exec, __first, __last, _ValueType{}, std::plus<_ValueType>(), __pstl::internal::no_op());
 }
 
 // [transform.exclusive.scan]
@@ -168,8 +168,8 @@ adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Forwa
 template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first) {
-    typedef typename iterator_traits<_ForwardIterator1>::value_type value_type;
-    return std::adjacent_difference(__exec, __first, __last, __d_first, std::minus<value_type>());
+    typedef typename iterator_traits<_ForwardIterator1>::value_type _ValueType;
+    return std::adjacent_difference(__exec, __first, __last, __d_first, std::minus<_ValueType>());
 }
 } // namespace std
 #endif /* __PSTL_glue_numeric_impl_H_ */

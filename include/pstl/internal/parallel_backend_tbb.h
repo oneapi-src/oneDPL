@@ -491,12 +491,12 @@ template<typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void parallel_stable_sort(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp, _LeafSort __leaf_sort) {
     tbb::this_task_arena::isolate([=]() {
         //sorting based on task tree and parallel merge
-        typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _value_type;
+        typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
         if (__xe - __xs > __PSTL_STABLE_SORT_CUT_OFF) {
-          par_backend::buffer<_value_type> __buf(__xe - __xs);
+          par_backend::buffer<_ValueType> __buf(__xe - __xs);
             if (__buf) {
-              typedef stable_sort_task<_RandomAccessIterator, _value_type*, _Compare, _LeafSort> _task_type;
-              tbb::task::spawn_root_and_wait(*new(tbb::task::allocate_root()) _task_type(__xs, __xe, (_value_type*)__buf.get(), 2,
+              typedef stable_sort_task<_RandomAccessIterator, _ValueType*, _Compare, _LeafSort> _TaskType;
+              tbb::task::spawn_root_and_wait(*new(tbb::task::allocate_root()) _TaskType(__xs, __xe, (_ValueType*)__buf.get(), 2,
                                                                                          __comp, __leaf_sort));
                 return;
             }
@@ -520,8 +520,8 @@ void parallel_merge(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _R
     else {
         tbb::this_task_arena::isolate([=]() {
             typedef merge_task<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, _Compare,
-                               par_backend::binary_no_op, _LeafMerge> _task_type;
-            tbb::task::spawn_root_and_wait(*new(tbb::task::allocate_root()) _task_type(__xs, __xe, __ys, __ye, __zs,
+                               par_backend::binary_no_op, _LeafMerge> _TaskType;
+            tbb::task::spawn_root_and_wait(*new(tbb::task::allocate_root()) _TaskType(__xs, __xe, __ys, __ye, __zs,
                                                                                        __comp, par_backend::binary_no_op(),
                                                                                        __leaf_merge));
         });
@@ -568,8 +568,8 @@ void parallel_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __x
     }
 
     //trying to request additional memory
-    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _value_type;
-    buffer<_value_type> __buf(__n);
+    typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+    buffer<_ValueType> __buf(__n);
     if (!__buf) {
         std::partial_sort(__xs, __xm, __xe, __comp);
         return;
@@ -577,8 +577,8 @@ void parallel_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __x
 
     //prepare subranges to call partial_sort in parallel mode
     typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
-    typedef par_backend::partial_sort_range<_DifferenceType, _RandomAccessIterator> _range_t;
-    typedef par_backend::range_move_t<_DifferenceType> _rmove_t;
+    typedef par_backend::partial_sort_range<_DifferenceType, _RandomAccessIterator> _RangeType;
+    typedef par_backend::range_move_t<_DifferenceType> _RMoveType;
 
     const auto __n1 = __xm - __xs;
     const auto __n2 = __xe - __xm;
@@ -595,11 +595,11 @@ void parallel_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __x
     const double __fpart2 = __fpart * __n2;
 
     _RandomAccessIterator __a = __xs; //a - source container
-    _value_type* __b = __buf.get(); //b - buffer for merging partial sorted arrays
+    _ValueType* __b = __buf.get(); //b - buffer for merging partial sorted arrays
 
     //calculation indices for doing subranges for parallel partial sorting
-    par_backend::stack <par_backend::buffer<_range_t>> __ranges(__n_range);
-    par_backend::stack <par_backend::buffer<_rmove_t>> __ranges_move(__n_range * 2);
+    par_backend::stack <par_backend::buffer<_RangeType>> __ranges(__n_range);
+    par_backend::stack <par_backend::buffer<_RMoveType>> __ranges_move(__n_range * 2);
 
     _DifferenceType __x1 = 0, __y1 = __n1, __z = 0, __z1 = 0, __z2 = 0, __zm = 0;
     for (_DifferenceType __i = 1; __i <= __n_range; ++__i) {
@@ -608,23 +608,23 @@ void parallel_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __x
         const _DifferenceType __x2 = __i < __n_range ? __fpart1 * __i : __n1;
         const _DifferenceType __y2 = __i < __n_range ? __n1 + __fpart2 * __i : __n1 + __n2;
         __z1 = __z;
-        __ranges_move.push(_rmove_t{__x1, __x2, __z });
+        __ranges_move.push(_RMoveType{__x1, __x2, __z });
         __z += __x2 - __x1;
         __zm = __z;
-        __ranges_move.push(_rmove_t{__y1, __y2, __z });
+        __ranges_move.push(_RMoveType{__y1, __y2, __z });
         __z += __y2-__y1;
         __z2 = __z;
         __x1 = __x2, __y1 = __y2;
 
         //create subrange indices for partial sort
-        __ranges.push(_range_t{ __z1, __z2, true, __a, __b, __zm});
+        __ranges.push(_RangeType{ __z1, __z2, true, __a, __b, __zm});
     }
 
     assert(__z2 == __n1 + __n2);
 
     //init buffer -moving from two array into one
     par_backend::parallel_for(__ranges_move.buffer().get(), __ranges_move.buffer().get() + __ranges_move.size(),
-        [&__a, &__b](_rmove_t* __i, _rmove_t* __j) {
+        [&__a, &__b](_RMoveType* __i, _RMoveType* __j) {
             for (; __i < __j; ++__i) {
                 const auto& __r = *__i;
                 par_backend::init_buf(__a + __r._M_xs, __a + __r._M_xe, __b + __r._M_zs, true);
@@ -632,17 +632,17 @@ void parallel_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __x
         }
     );
 
-    auto res_range = tbb::parallel_deterministic_reduce(tbb::blocked_range<_range_t*>(__ranges.buffer().get(),
+    auto res_range = tbb::parallel_deterministic_reduce(tbb::blocked_range<_RangeType*>(__ranges.buffer().get(),
                                                                                       __ranges.buffer().get() + __ranges.size(), 1),
-                                                        _range_t{ 0, 0, false , __a, __b, 0},
-        [__a, __b, &__comp](tbb::blocked_range<_range_t*>& __r, const _range_t&)-> _range_t {
+                                                        _RangeType{ 0, 0, false , __a, __b, 0},
+        [__a, __b, &__comp](tbb::blocked_range<_RangeType*>& __r, const _RangeType&)-> _RangeType {
             assert(__r.end() - __r.begin() == 1);
 
             auto& __sr = *__r.begin();
             std::partial_sort(__b + __sr._M_beg, __b + __sr._M_mid, __b + __sr._M_end, __comp);
             return __sr;
         },
-        [&__comp](_range_t __l, _range_t __r) -> _range_t {
+        [&__comp](_RangeType __l, _RangeType __r) -> _RangeType {
 
             assert(__l._M_end - __l._M_beg > 0);
             assert(__r._M_end - __r._M_beg > 0);
@@ -667,7 +667,7 @@ void parallel_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __x
             //merge two partial sorted ranges
             const auto __n1 = __l._M_mid - __l._M_beg;
             const auto __n2 = __r._M_mid - __r._M_beg;
-            const auto __res = _range_t{ __l._M_beg, __r._M_end, !__l._M_buf_flag, __l._M_buf_0, __l._M_buf_1,
+            const auto __res = _RangeType{ __l._M_beg, __r._M_end, !__l._M_buf_flag, __l._M_buf_0, __l._M_buf_1,
                                          __l._M_beg + __n1 + __n2}; //get new range and switch memory buffer
             if (__l._M_buf_flag) {
                 par_backend::parallel_merge(__l._M_buf_1 + __l._M_beg, __l._M_buf_1 + __l._M_mid, __r._M_buf_1 + __r._M_beg,

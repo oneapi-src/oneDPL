@@ -463,9 +463,9 @@ _ForwardIterator brick_find_if(_ForwardIterator __first, _ForwardIterator __last
 
 template<class _RandomAccessIterator, class _Predicate>
 _RandomAccessIterator brick_find_if(_RandomAccessIterator __first, _RandomAccessIterator __last, _Predicate __pred, /*is_vector=*/std::true_type) noexcept {
-    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _size_type;
-    return unseq_backend::simd_first(__first, _size_type(0), __last - __first,
-        [&__pred](_RandomAccessIterator __it, _size_type __i) {return __pred(__it[__i]); });
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _SizeType;
+    return unseq_backend::simd_first(__first, _SizeType(0), __last - __first,
+        [&__pred](_RandomAccessIterator __it, _SizeType __i) {return __pred(__it[__i]); });
 }
 
 template<class _ForwardIterator, class _Predicate, class _IsVector>
@@ -496,7 +496,7 @@ template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _Bina
 _RandomAccessIterator1 find_subrange(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
     _RandomAccessIterator1 __global_last, _RandomAccessIterator2 __s_first, _RandomAccessIterator2 __s_last,
     _BinaryPredicate __pred, bool __b_first, _IsVector __is_vector) noexcept {
-    typedef typename std::iterator_traits<_RandomAccessIterator2>::value_type _value_type;
+    typedef typename std::iterator_traits<_RandomAccessIterator2>::value_type _ValueType;
     auto  __n2 = __s_last - __s_first;
     if (__n2 < 1) {
         return __b_first ? __first : __last;
@@ -511,7 +511,7 @@ _RandomAccessIterator1 find_subrange(_RandomAccessIterator1 __first, _RandomAcce
     while (__first != __last && (__global_last - __first >= __n2)) {
         // find position of *s_first in [first, last) (it can be start of subsequence)
         __first = internal::brick_find_if(__first, __last,
-                                          internal::equal_value_by_pred<_value_type, _BinaryPredicate>(*__s_first, __pred),
+                                          internal::equal_value_by_pred<_ValueType, _BinaryPredicate>(*__s_first, __pred),
                                           __is_vector);
 
         // if position that was found previously is the start of subsequence
@@ -838,29 +838,29 @@ _OutputIterator pattern_copy_if(_ForwardIterator __first, _ForwardIterator __las
 
 template<class _RandomAccessIterator, class _OutputIterator, class _UnaryPredicate, class _IsVector>
 _OutputIterator pattern_copy_if(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result, _UnaryPredicate __pred, _IsVector __is_vector, /*parallel=*/std::true_type) {
-    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _difference_type;
-    const _difference_type __n = __last-__first;
-    if( _difference_type(1) < __n ) {
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
+    const _DifferenceType __n = __last-__first;
+    if( _DifferenceType(1) < __n ) {
         par_backend::buffer<bool> __mask_buf(__n);
         if( __mask_buf ) {
             return internal::except_handler([__n, __first, __last, __result, __is_vector, __pred, &__mask_buf]() {
                 bool* __mask = __mask_buf.get();
-                _difference_type __m;
-                par_backend::parallel_strict_scan( __n, _difference_type(0),
-                    [=](_difference_type __i, _difference_type __len) {                               // Reduce
-                        return internal::brick_calc_mask_1<_difference_type>(__first + __i, __first + (__i + __len),
+                _DifferenceType __m;
+                par_backend::parallel_strict_scan( __n, _DifferenceType(0),
+                    [=](_DifferenceType __i, _DifferenceType __len) {                               // Reduce
+                        return internal::brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
                                                                              __mask + __i,
                                                                              __pred,
                                                                              __is_vector).first;
                     },
-                    std::plus<_difference_type>(),                                               // Combine
-                    [=](_difference_type __i, _difference_type __len, _difference_type __initial) {      // Scan
+                    std::plus<_DifferenceType>(),                                               // Combine
+                    [=](_DifferenceType __i, _DifferenceType __len, _DifferenceType __initial) {      // Scan
                         internal::brick_copy_by_mask(__first + __i, __first + (__i + __len),
                                                      __result + __initial,
                                                      __mask + __i,
                                                      __is_vector);
                     },
-                    [&__m](_difference_type __total) {__m = __total;});
+                    [&__m](_DifferenceType __total) {__m = __total;});
                 return __result + __m;
             });
         }
@@ -935,17 +935,17 @@ _DifferenceType brick_calc_mask_2(_RandomAccessIterator __first, _RandomAccessIt
 
 template<class _RandomAccessIterator, class _OutputIterator, class _BinaryPredicate, class _IsVector>
 _OutputIterator pattern_unique_copy(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result, _BinaryPredicate __pred, _IsVector __is_vector, /*parallel=*/std::true_type) {
-    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _difference_type;
-    const _difference_type __n = __last - __first;
-    if( _difference_type(2) < __n ) {
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
+    const _DifferenceType __n = __last - __first;
+    if( _DifferenceType(2) < __n ) {
         par_backend::buffer<bool> __mask_buf(__n);
-        if( _difference_type(2) < __n && __mask_buf ) {
+        if( _DifferenceType(2) < __n && __mask_buf ) {
           return internal::except_handler([__n, __first, __result, __pred, __is_vector, &__mask_buf]() {
                 bool* __mask = __mask_buf.get();
-                _difference_type __m;
-                par_backend::parallel_strict_scan( __n, _difference_type(0),
-                    [=](_difference_type __i, _difference_type __len) -> _difference_type {          // Reduce
-                        _difference_type __extra = 0;
+                _DifferenceType __m;
+                par_backend::parallel_strict_scan( __n, _DifferenceType(0),
+                    [=](_DifferenceType __i, _DifferenceType __len) -> _DifferenceType {          // Reduce
+                        _DifferenceType __extra = 0;
                         if( __i == 0 ) {
                             // Special boundary case
                             __mask[__i] = true;
@@ -953,20 +953,20 @@ _OutputIterator pattern_unique_copy(_RandomAccessIterator __first, _RandomAccess
                             ++__i;
                             ++__extra;
                         }
-                        return brick_calc_mask_2<_difference_type>(__first + __i, __first + (__i + __len),
+                        return brick_calc_mask_2<_DifferenceType>(__first + __i, __first + (__i + __len),
                                                                    __mask + __i,
                                                                    __pred,
                                                                    __is_vector) + __extra;
                     },
-                    std::plus<_difference_type>(),                                               // Combine
-                    [=](_difference_type __i, _difference_type __len, _difference_type __initial) {      // Scan
+                    std::plus<_DifferenceType>(),                                               // Combine
+                    [=](_DifferenceType __i, _DifferenceType __len, _DifferenceType __initial) {      // Scan
                         // Phase 2 is same as for pattern_copy_if
                         internal::brick_copy_by_mask(__first + __i, __first + (__i + __len),
                                                      __result + __initial,
                                                      __mask + __i,
                                                      __is_vector);
                     },
-                    [&__m](_difference_type __total) {__m = __total;});
+                    [&__m](_DifferenceType __total) {__m = __total;});
                 return __result + __m;
             });
         }
@@ -1218,33 +1218,33 @@ pattern_partition_copy(_ForwardIterator __first, _ForwardIterator __last, _Outpu
 template<class _RandomAccessIterator, class _OutputIterator1, class _OutputIterator2, class _UnaryPredicate, class _IsVector>
 std::pair<_OutputIterator1, _OutputIterator2>
 pattern_partition_copy(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator1 __out_true, _OutputIterator2 __out_false, _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallelization=*/std::true_type) noexcept {
-    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _difference_type;
-    typedef std::pair<_difference_type, _difference_type> _return_type;
-    const _difference_type __n = __last - __first;
-    if (_difference_type(1) < __n) {
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
+    typedef std::pair<_DifferenceType, _DifferenceType> _ReturnType;
+    const _DifferenceType __n = __last - __first;
+    if (_DifferenceType(1) < __n) {
         par_backend::buffer<bool> __mask_buf(__n);
         if (__mask_buf) {
             return internal::except_handler([__n, __first, __last, __out_true, __out_false, __is_vector, __pred, &__mask_buf]() {
                 bool* __mask = __mask_buf.get();
-                _return_type __m;
-                par_backend::parallel_strict_scan(__n, std::make_pair(_difference_type(0), _difference_type(0)),
-                    [=](_difference_type __i, _difference_type __len) {                             // Reduce
-                        return internal::brick_calc_mask_1<_difference_type>(__first + __i, __first + (__i + __len),
+                _ReturnType __m;
+                par_backend::parallel_strict_scan(__n, std::make_pair(_DifferenceType(0), _DifferenceType(0)),
+                    [=](_DifferenceType __i, _DifferenceType __len) {                             // Reduce
+                        return internal::brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
                         __mask + __i,
                         __pred,
                         __is_vector);
                 },
-                    [](const _return_type& __x, const _return_type& __y)-> _return_type {
+                    [](const _ReturnType& __x, const _ReturnType& __y)-> _ReturnType {
                     return std::make_pair(__x.first + __y.first, __x.second + __y.second);
                 },                                                                            // Combine
-                    [=](_difference_type __i, _difference_type __len, _return_type __initial) {        // Scan
+                    [=](_DifferenceType __i, _DifferenceType __len, _ReturnType __initial) {        // Scan
                         internal::brick_partition_by_mask(__first + __i, __first + (__i + __len),
                         __out_true + __initial.first,
                         __out_false + __initial.second,
                         __mask + __i,
                         __is_vector);
                 },
-                [&__m](_return_type __total) {__m = __total; });
+                [&__m](_ReturnType __total) {__m = __total; });
                 return std::make_pair(__out_true + __m.first, __out_false + __m.second);
             });
         }
@@ -1354,13 +1354,13 @@ pattern_count(_ForwardIterator __first, _ForwardIterator __last, _Predicate __pr
 template<class _ForwardIterator, class _Predicate, class _IsVector>
 typename std::iterator_traits<_ForwardIterator>::difference_type
 pattern_count(_ForwardIterator __first, _ForwardIterator __last, _Predicate __pred, /* is_parallel */ std::true_type, _IsVector __is_vector) {
-    typedef typename std::iterator_traits<_ForwardIterator>::difference_type _size_type;
+    typedef typename std::iterator_traits<_ForwardIterator>::difference_type _SizeType;
     return internal::except_handler([=]() {
-        return par_backend::parallel_reduce(__first, __last, _size_type(0),
-            [__pred, __is_vector](_ForwardIterator __begin, _ForwardIterator __end, _size_type __value) -> _size_type {
+        return par_backend::parallel_reduce(__first, __last, _SizeType(0),
+            [__pred, __is_vector](_ForwardIterator __begin, _ForwardIterator __end, _SizeType __value) -> _SizeType {
                 return __value + internal::brick_count(__begin, __end, __pred, __is_vector);
             },
-            std::plus<_size_type>()
+            std::plus<_SizeType>()
         );
     });
 }
@@ -1764,9 +1764,9 @@ _RandomAccessIterator brick_is_heap_until(_RandomAccessIterator __first, _Random
     /* __is_vector = */ std::true_type) noexcept {
     if (__last - __first < 2)
         return __last;
-    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _size_type;
-    return unseq_backend::simd_first(__first, _size_type(0), __last - __first,
-        [&__comp](_RandomAccessIterator __it, _size_type __i) {return __comp(__it[(__i - 1) / 2], __it[__i]); });
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _SizeType;
+    return unseq_backend::simd_first(__first, _SizeType(0), __last - __first,
+        [&__comp](_RandomAccessIterator __it, _SizeType __i) {return __comp(__it[(__i - 1) / 2], __it[__i]); });
 }
 
 template<class _RandomAccessIterator, class _Compare, class _IsVector>
@@ -1874,17 +1874,17 @@ std::pair<_ForwardIterator, _ForwardIterator> pattern_minmax_element(_ForwardIte
         return std::make_pair(__first, __first);
 
     return internal::except_handler([=]() {
-        typedef std::pair<_ForwardIterator, _ForwardIterator> _result_t;
+        typedef std::pair<_ForwardIterator, _ForwardIterator> _Result;
 
         return par_backend::parallel_reduce(
             __first + 1, __last, std::make_pair(__first, __first),
-            [=](_ForwardIterator __begin, _ForwardIterator __end, _result_t __init) -> _result_t {
-                const _result_t __subresult = brick_minmax_element(__begin, __end, __comp, __is_vector);
+            [=](_ForwardIterator __begin, _ForwardIterator __end, _Result __init) -> _Result {
+                const _Result __subresult = brick_minmax_element(__begin, __end, __comp, __is_vector);
                 return std::make_pair(internal::cmp_iterators_by_values(__subresult.first, __init.first, __comp),
                                       internal::cmp_iterators_by_values(__init.second, __subresult.second,
                                                                         internal::not_pred<_Compare>(__comp)));
             },
-            [=](_result_t __p1, _result_t __p2) -> _result_t {
+            [=](_Result __p1, _Result __p2) -> _Result {
                 return std::make_pair(internal::cmp_iterators_by_values(__p1.first, __p2.first, __comp),
                                       internal::cmp_iterators_by_values(__p2.second, __p1.second, internal::not_pred<_Compare>(__comp)));
             }

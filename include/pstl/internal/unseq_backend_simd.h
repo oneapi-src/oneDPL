@@ -322,12 +322,12 @@ _Index simd_adjacent_find(_Index __first, _Index __last, _BinaryPredicate __pred
     if(__last - __first < 2)
         return __last;
 
-    typedef typename std::iterator_traits<_Index>::difference_type _difference_type;
-    _difference_type __i = 0;
+    typedef typename std::iterator_traits<_Index>::difference_type _DifferenceType;
+    _DifferenceType __i = 0;
 
 #if __PSTL_EARLYEXIT_PRESENT
     //Some compiler versions fail to compile the following loop when iterators are used. Indices are used instead
-    const _difference_type __n = __last - __first-1;
+    const _DifferenceType __n = __last - __first-1;
 __PSTL_PRAGMA_VECTOR_UNALIGNED
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for(; __i < __n; ++__i)
@@ -338,15 +338,15 @@ __PSTL_PRAGMA_SIMD_EARLYEXIT
 #else
     // Experiments show good block sizes like this
     //TODO: to consider tuning block_size for various data types
-    const _difference_type __block_size = 8;
-    alignas(64) _difference_type __lane[__block_size] = {0};
+    const _DifferenceType __block_size = 8;
+    alignas(64) _DifferenceType __lane[__block_size] = {0};
     while ( __last - __first >= __block_size ) {
-        _difference_type __found = 0;
+        _DifferenceType __found = 0;
 __PSTL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
 __PSTL_PRAGMA_SIMD_REDUCTION(|:__found)
         for ( __i = 0; __i < __block_size-1; ++__i ) {
             //TODO: to improve SIMD vectorization
-            const _difference_type __t = __pred(*(__first + __i), *(__first + __i + 1));
+            const _DifferenceType __t = __pred(*(__first + __i), *(__first + __i + 1));
             __lane[__i] = __t;
             __found |= __t;
         }
@@ -433,10 +433,10 @@ __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(__cnt_true:1, __cnt_false : 1)
 template<class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
 _ForwardIterator1 simd_find_first_of(_ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first,
                                      _ForwardIterator2 __s_last, _BinaryPredicate __pred) noexcept {
-    typedef typename std::iterator_traits<_ForwardIterator1>::difference_type _difference_type;
+    typedef typename std::iterator_traits<_ForwardIterator1>::difference_type _DifferencType;
 
-    const _difference_type __n1 = __last - __first;
-    const _difference_type __n2 = __s_last - __s_first;
+    const _DifferencType __n1 = __last - __first;
+    const _DifferencType __n2 = __s_last - __s_first;
     if (__n1 == 0 || __n2 == 0) {
         return __last; // according to the standard
     }
@@ -455,8 +455,8 @@ _ForwardIterator1 simd_find_first_of(_ForwardIterator1 __first, _ForwardIterator
     }
     else {
         for (; __s_first != __s_last; ++__s_first) {
-            const auto __result = unseq_backend::simd_first(__first, _difference_type(0), __n1,
-                [__s_first, &__pred](_ForwardIterator1 __it, _difference_type __i) {return __pred(__it[__i], *__s_first); });
+            const auto __result = unseq_backend::simd_first(__first, _DifferencType(0), __n1,
+                [__s_first, &__pred](_ForwardIterator1 __it, _DifferencType __i) {return __pred(__it[__i], *__s_first); });
             if (__result != __last) {
                 return __result;
             }

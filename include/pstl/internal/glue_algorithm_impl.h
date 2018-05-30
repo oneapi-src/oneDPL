@@ -140,9 +140,9 @@ find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIter
 template< class _ExecutionPolicy, class _ForwardIterator >
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last) {
-    typedef typename iterator_traits<_ForwardIterator>::value_type value_type;
+    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
     using namespace __pstl;
-    return internal::pattern_adjacent_find(__first, __last, std::equal_to<value_type>(),
+    return internal::pattern_adjacent_find(__first, __last, std::equal_to<_ValueType>(),
                                            internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
                                            internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec), /*first_semantic*/ false);
 }
@@ -164,9 +164,9 @@ adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardItera
 template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,typename iterator_traits<_ForwardIterator>::difference_type>
 count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value) {
-    typedef typename iterator_traits<_ForwardIterator>::value_type value_type;
+    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
     using namespace __pstl;
-    return internal::pattern_count(__first, __last, [&__value](const value_type& __x) {return __value == __x;},
+    return internal::pattern_count(__first, __last, [&__value](const _ValueType& __x) {return __value == __x;},
                                    internal::is_parallelization_preferred<_ExecutionPolicy,_ForwardIterator>(__exec),
                                    internal::is_vectorization_preferred<_ExecutionPolicy,_ForwardIterator>(__exec));
 }
