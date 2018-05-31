@@ -96,7 +96,7 @@ __PSTL_PRAGMA_SIMD_REDUCTION(&:__flag)
 template<class _Index, class _DifferenceType, class _Compare>
 _Index simd_first(_Index __first, _DifferenceType __begin, _DifferenceType __end, _Compare __comp) noexcept {
 #if __PSTL_EARLYEXIT_PRESENT
-    _DifferenceType i = __begin;
+    _DifferenceType __i = __begin;
 __PSTL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for (; __i < __end; ++__i) {
@@ -145,7 +145,7 @@ __PSTL_PRAGMA_SIMD_REDUCTION(| :__found)
 template<class _Index1, class _DifferenceType, class _Index2, class _Pred>
 std::pair<_Index1, _Index2> simd_first(_Index1 __first1, _DifferenceType __n, _Index2 __first2, _Pred __pred) noexcept {
 #if __PSTL_EARLYEXIT_PRESENT
-    _DifferenceType i = 0;
+    _DifferenceType __i = 0;
 __PSTL_PRAGMA_VECTOR_UNALIGNED
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for(;__i < __n; ++__i)
@@ -331,7 +331,7 @@ _Index simd_adjacent_find(_Index __first, _Index __last, _BinaryPredicate __pred
 __PSTL_PRAGMA_VECTOR_UNALIGNED
 __PSTL_PRAGMA_SIMD_EARLYEXIT
     for(; __i < __n; ++__i)
-        if(pred(__first[__i], __first[__i + 1]))
+        if(__pred(__first[__i], __first[__i + 1]))
             break;
 
     return __i < __n ? __first + __i : __last;
@@ -484,7 +484,7 @@ _RandomAccessIterator simd_remove_if(_RandomAccessIterator __first, _DifferenceT
         __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(__cnt:1)
         if (!__pred(__current[__i])) {
             __current[__cnt] = std::move(__current[__i]);
-            ++cnt;
+            ++__cnt;
         }
     }
     return __current + __cnt;
