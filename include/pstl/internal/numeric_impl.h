@@ -32,70 +32,79 @@
     #include "parallel_backend.h"
 #endif
 
-namespace pstl {
+namespace __pstl {
 namespace internal {
 //------------------------------------------------------------------------
 // transform_reduce (version with two binary functions, according to draft N4659)
 //------------------------------------------------------------------------
 
-template< class T, class BinaryOperation1, class IsArithmeticIsVector>
+template< class _Tp, class _BinaryOperation1, class _IsArithmeticIsVector>
 struct brick_transform_reduce_imp {
 
-    template<class InputIterator1, class InputIterator2, class BinaryOperation2>
-    T operator()(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, BinaryOperation1 binary_op1, BinaryOperation2 binary_op2) noexcept {
-        return std::inner_product(first1, last1, first2, init, binary_op1, binary_op2);
+    template<class _ForwardIterator1, class _ForwardIterator2, class _BinaryOperation2>
+    _Tp operator()(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
+                 _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2) noexcept {
+        return std::inner_product(__first1, __last1, __first2, __init, __binary_op1, __binary_op2);
     }
 
-    template< class InputIterator, class UnaryOperation>
-    T operator()(InputIterator first, InputIterator last, T init, BinaryOperation1 binary_op, UnaryOperation unary_op) noexcept {
-        for (; first != last; ++first) {
-            init = binary_op(init, unary_op(*first));
+    template< class _ForwardIterator, class _UnaryOperation>
+    _Tp operator()(_ForwardIterator __first, _ForwardIterator __last, _Tp __init,
+                 _BinaryOperation1 __binary_op, _UnaryOperation __unary_op) noexcept {
+        for (; __first != __last; ++__first) {
+            __init = __binary_op(__init, __unary_op(*__first));
         }
-        return init;
+        return __init;
     }
 };
 
-template< class T>
-struct brick_transform_reduce_imp<T, std::plus<T>, /*IsArithmeticIsVector*/ std::true_type> {
+template< class _Tp>
+struct brick_transform_reduce_imp<_Tp, std::plus<_Tp>, /*_IsArithmeticIsVector*/ std::true_type> {
 
-    template<class InputIterator1, class InputIterator2, class BinaryOperation2>
-    T operator()(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, std::plus<T>, BinaryOperation2 binary_op2) noexcept {
-        return unseq_backend::simd_transform_reduce(first1, last1-first1, first2, init, binary_op2);
+    template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _BinaryOperation2>
+    _Tp operator()(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
+                   std::plus<_Tp>, _BinaryOperation2 __binary_op2) noexcept {
+        return unseq_backend::simd_transform_reduce(__first1, __last1 - __first1, __first2, __init, __binary_op2);
     }
 
-    template< class InputIterator, class UnaryOperation>
-    T operator()(InputIterator first, InputIterator last, T init, std::plus<T>, UnaryOperation unary_op) noexcept {
-        return unseq_backend::simd_transform_reduce(first, last-first, init, unary_op);
+    template< class _RandomAccessIterator, class _UnaryOperation>
+    _Tp operator()(_RandomAccessIterator __first, _RandomAccessIterator __last, _Tp __init,
+                   std::plus<_Tp>, _UnaryOperation __unary_op) noexcept {
+        return unseq_backend::simd_transform_reduce(__first, __last - __first, __init, __unary_op);
     }
 };
 
-template<class InputIterator1, class InputIterator2, class T, class BinaryOperation1, class BinaryOperation2>
-T brick_transform_reduce(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, BinaryOperation1 binary_op1, BinaryOperation2 binary_op2, /*is_vector=*/std::true_type) noexcept {
-
-    return brick_transform_reduce_imp< T, BinaryOperation1, std::integral_constant<bool, std::is_arithmetic<T>::value> >()(first1, last1, first2, init, binary_op1, binary_op2);
+template<class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation1, class _BinaryOperation2>
+_Tp brick_transform_reduce(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Tp __init,
+                           _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2, /*__is_vector=*/std::true_type) noexcept {
+    return internal::brick_transform_reduce_imp< _Tp, _BinaryOperation1, std::integral_constant<bool, std::is_arithmetic<_Tp>::value>>()(__first1, __last1, __first2, __init, __binary_op1, __binary_op2);
 }
 
-template<class InputIterator1, class InputIterator2, class T, class BinaryOperation1, class BinaryOperation2>
-T brick_transform_reduce(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, BinaryOperation1 binary_op1, BinaryOperation2 binary_op2, /*is_vector=*/std::false_type) noexcept {
-
-    return brick_transform_reduce_imp< T, BinaryOperation1, std::false_type >()(first1, last1, first2, init, binary_op1, binary_op2);
+template<class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation1, class _BinaryOperation2>
+_Tp brick_transform_reduce(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Tp __init,
+                           _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2, /*__is_vector=*/std::false_type) noexcept {
+  return internal::brick_transform_reduce_imp< _Tp, _BinaryOperation1, std::false_type>()(__first1, __last1, __first2, __init, __binary_op1, __binary_op2);
 }
 
-template<class InputIterator1, class InputIterator2, class T, class BinaryOperation1, class BinaryOperation2, class IsVector>
-T pattern_transform_reduce(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, BinaryOperation1 binary_op1, BinaryOperation2 binary_op2, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
-    return brick_transform_reduce(first1, last1, first2, init, binary_op1, binary_op2, is_vector);
+template<class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation1, class _BinaryOperation2, class _IsVector>
+_Tp pattern_transform_reduce(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Tp __init,
+                             _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2, _IsVector __is_vector,
+                             /*is_parallel=*/std::false_type) noexcept {
+    return internal::brick_transform_reduce(__first1, __last1, __first2, __init, __binary_op1, __binary_op2, __is_vector);
 }
 
-template<class InputIterator1, class InputIterator2, class T, class BinaryOperation1, class BinaryOperation2, class IsVector>
-T pattern_transform_reduce(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, BinaryOperation1 binary_op1, BinaryOperation2 binary_op2, IsVector is_vector,  /*is_parallel=*/std::true_type) noexcept {
-    return except_handler([&]() {
-        return par_backend::parallel_transform_reduce(first1, last1,
-            [first1, first2, binary_op2](InputIterator1 i) mutable { return binary_op2(*i, *(first2 + (i - first1))); },
-            init,
-            binary_op1, // Combine
-            [first1, first2, binary_op1, binary_op2, is_vector](InputIterator1 i, InputIterator1 j, T init) -> T {
-            return brick_transform_reduce(i, j, first2 + (i - first1),
-                init, binary_op1, binary_op2, is_vector);
+template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _Tp, class _BinaryOperation1, class _BinaryOperation2,
+         class _IsVector>
+_Tp pattern_transform_reduce(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2, _IsVector __is_vector,  /*is_parallel=*/std::true_type) noexcept {
+    return internal::except_handler([&]() {
+        return par_backend::parallel_transform_reduce(__first1, __last1,
+            [__first1, __first2, __binary_op2](_RandomAccessIterator1 __i) mutable
+                                                      { return __binary_op2(*__i, *(__first2 + (__i - __first1))); },
+            __init,
+            __binary_op1, // Combine
+            [__first1, __first2, __binary_op1,
+             __binary_op2, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j, _Tp __init) -> _Tp {
+                return internal::brick_transform_reduce(__i, __j, __first2 + (__i - __first1),
+                                                        __init, __binary_op1, __binary_op2, __is_vector);
         });
     });
 }
@@ -104,31 +113,36 @@ T pattern_transform_reduce(InputIterator1 first1, InputIterator1 last1, InputIte
 // transform_reduce (version with unary and binary functions)
 //------------------------------------------------------------------------
 
-template< class InputIterator, class T, class UnaryOperation, class BinaryOperation >
-T brick_transform_reduce(InputIterator first, InputIterator last, T init, BinaryOperation binary_op, UnaryOperation unary_op, /*is_vector=*/std::true_type) noexcept {
-    return brick_transform_reduce_imp< T, BinaryOperation, std::integral_constant<bool, std::is_arithmetic<T>::value> >()(first, last, init, binary_op, unary_op);
+template< class _ForwardIterator, class _Tp, class _UnaryOperation, class _BinaryOperation >
+_Tp brick_transform_reduce(_ForwardIterator __first, _ForwardIterator __last, _Tp __init, _BinaryOperation __binary_op,
+                           _UnaryOperation __unary_op, /*is_vector=*/std::true_type) noexcept {
+    return internal::brick_transform_reduce_imp< _Tp, _BinaryOperation,
+                                       std::integral_constant<bool, std::is_arithmetic<_Tp>::value> >()(__first, __last, __init,
+                                                                                                        __binary_op, __unary_op);
 }
 
-template< class InputIterator, class T, class BinaryOperation, class UnaryOperation >
-T brick_transform_reduce(InputIterator first, InputIterator last, T init, BinaryOperation binary_op, UnaryOperation unary_op, /*is_vector=*/std::false_type) noexcept {
-
-    return brick_transform_reduce_imp< T, BinaryOperation, std::false_type >()(first, last, init, binary_op, unary_op);
+template< class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation >
+_Tp brick_transform_reduce(_ForwardIterator __first, _ForwardIterator __last, _Tp __init, _BinaryOperation __binary_op,
+                           _UnaryOperation __unary_op, /*is_vector=*/std::false_type) noexcept {
+    return internal::brick_transform_reduce_imp< _Tp, _BinaryOperation, std::false_type >()(__first, __last, __init, __binary_op, __unary_op);
 }
 
-template<class InputIterator, class T, class BinaryOperation, class UnaryOperation, class IsVector>
-T pattern_transform_reduce(InputIterator first, InputIterator last, T init, BinaryOperation binary_op, UnaryOperation unary_op, IsVector is_vector, /*is_parallel=*/std::false_type ) noexcept {
-    return brick_transform_reduce(first, last, init, binary_op, unary_op, is_vector);
+template<class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation, class _IsVector>
+_Tp pattern_transform_reduce(_ForwardIterator __first, _ForwardIterator __last, _Tp __init, _BinaryOperation __binary_op,
+                             _UnaryOperation __unary_op, _IsVector __is_vector, /*is_parallel=*/std::false_type ) noexcept {
+    return internal::brick_transform_reduce(__first, __last, __init, __binary_op, __unary_op, __is_vector);
 }
 
-template<class InputIterator, class T, class BinaryOperation, class UnaryOperation, class IsVector>
-T pattern_transform_reduce(InputIterator first, InputIterator last, T init, BinaryOperation binary_op, UnaryOperation unary_op, IsVector is_vector, /*is_parallel=*/std::true_type) {
-    return except_handler([&]() {
-        return par_backend::parallel_transform_reduce(first, last,
-            [unary_op](InputIterator i) mutable {return unary_op(*i); },
-            init,
-            binary_op,
-            [unary_op, binary_op, is_vector](InputIterator i, InputIterator j, T init) {
-            return brick_transform_reduce(i, j, init, binary_op, unary_op, is_vector);
+template<class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation, class _IsVector>
+_Tp pattern_transform_reduce(_ForwardIterator __first, _ForwardIterator __last, _Tp __init, _BinaryOperation __binary_op,
+                             _UnaryOperation __unary_op, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
+    return internal::except_handler([&]() {
+        return par_backend::parallel_transform_reduce(__first, __last,
+            [__unary_op](_ForwardIterator __i) mutable {return __unary_op(*__i); },
+            __init,
+            __binary_op,
+            [__unary_op, __binary_op, __is_vector](_ForwardIterator i, _ForwardIterator j, _Tp __init) {
+              return internal::brick_transform_reduce(i, j, __init, __binary_op, __unary_op, __is_vector);
         });
     });
 }
@@ -141,47 +155,57 @@ T pattern_transform_reduce(InputIterator first, InputIterator last, T init, Bina
 //------------------------------------------------------------------------
 
 // Exclusive form
-template<class InputIterator, class OutputIterator, class UnaryOperation, class T, class BinaryOperation>
-std::pair<OutputIterator,T> brick_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, /*Inclusive*/ std::false_type) noexcept {
-    for(; first!=last; ++first, ++result ) {
-        *result = init;
-        init = binary_op(init,unary_op(*first));
+template<class _ForwardIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation>
+std::pair<_OutputIterator,_Tp> brick_transform_scan(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
+                                                    _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
+                                                    /*Inclusive*/ std::false_type) noexcept {
+    for(; __first!=__last; ++__first, ++__result ) {
+        *__result = __init;
+        __init = __binary_op(__init,__unary_op(*__first));
     }
-    return std::make_pair(result,init);
+    return std::make_pair(__result,__init);
 }
 
 // Inclusive form
-template<class InputIterator, class OutputIterator, class UnaryOperation, class T, class BinaryOperation>
-std::pair<OutputIterator,T> brick_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, /*Inclusive*/std::true_type) noexcept {
-    for(; first!=last; ++first, ++result ) {
-        init = binary_op(init,unary_op(*first));
-        *result = init;
+template<class _ForwardIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation>
+std::pair<_OutputIterator,_Tp> brick_transform_scan(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
+                                                    _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
+                                                    /*Inclusive*/std::true_type) noexcept {
+    for(; __first!=__last; ++__first, ++__result ) {
+        __init = __binary_op(__init,__unary_op(*__first));
+        *__result = __init;
     }
-    return std::make_pair(result,init);
+    return std::make_pair(__result,__init);
 }
 
-template<class InputIterator, class OutputIterator, class UnaryOperation, class T, class BinaryOperation, class Inclusive, class IsVector>
-OutputIterator pattern_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, Inclusive, IsVector is_vector, /*is_parallel=*/std::false_type ) noexcept {
-    return brick_transform_scan(first, last, result, unary_op, init, binary_op, Inclusive()).first;
+template<class _ForwardIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
+         class _Inclusive, class _IsVector>
+_OutputIterator pattern_transform_scan(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
+                                       _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
+                                       _IsVector, /*is_parallel=*/std::false_type ) noexcept {
+    return internal::brick_transform_scan(__first, __last, __result, __unary_op, __init, __binary_op, _Inclusive()).first;
 }
 
-template<class InputIterator, class OutputIterator, class UnaryOperation, class T, class BinaryOperation, class Inclusive, class IsVector>
-OutputIterator pattern_transform_scan(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op, Inclusive, IsVector is_vector, /*is_parallel=*/std::true_type ) {
-    typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
+template<class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
+         class _Inclusive, class _IsVector>
+_OutputIterator pattern_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
+                                       _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
+                                       _IsVector __is_vector, /*is_parallel=*/std::true_type ) {
+    typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
 
-    return except_handler([=]() {
+    return internal::except_handler([=]() {
         par_backend::parallel_transform_scan(
-            last-first,
-            [first, unary_op](size_t i) mutable {return unary_op(first[i]); },
-            init,
-            binary_op,
-            [first, unary_op, binary_op, is_vector](difference_type i, difference_type j, T init) {
-            return brick_transform_reduce(first+i, first+j, init, binary_op, unary_op, is_vector);
+            __last-__first,
+            [__first, __unary_op](size_t __i) mutable {return __unary_op(__first[__i]); },
+            __init,
+            __binary_op,
+            [__first, __unary_op, __binary_op, __is_vector](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
+              return internal::brick_transform_reduce(__first + __i, __first + __j, __init, __binary_op, __unary_op, __is_vector);
         },
-        [first, unary_op, binary_op, result](difference_type i, difference_type j, T init) {
-        return brick_transform_scan(first+i, first+j, result+i, unary_op, init, binary_op, Inclusive()).second;
+        [__first, __unary_op, __binary_op, __result](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
+          return internal::brick_transform_scan(__first + __i, __first + __j, __result + __i, __unary_op, __init, __binary_op, _Inclusive()).second;
         });
-        return result+(last-first);
+        return __result + (__last - __first);
     });
 }
 
@@ -190,29 +214,33 @@ OutputIterator pattern_transform_scan(InputIterator first, InputIterator last, O
 // adjacent_difference
 //------------------------------------------------------------------------
 
-template<class InputIterator, class OutputIterator, class BinaryOperation>
-OutputIterator brick_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, /*is_vector*/ std::false_type) noexcept {
-    return std::adjacent_difference(first, last, d_first, op);
+template<class _ForwardIterator, class _OutputIterator, class _BinaryOperation>
+_OutputIterator brick_adjacent_difference(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __d_first,
+                                          _BinaryOperation __op, /*is_vector*/ std::false_type) noexcept {
+    return std::adjacent_difference(__first, __last, __d_first, __op);
 }
 
-template<class InputIterator, class OutputIterator, class BinaryOperation>
-OutputIterator brick_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, /*is_vector*/ std::true_type) noexcept {
+template<class _ForwardIterator, class _OutputIterator, class _BinaryOperation>
+_OutputIterator brick_adjacent_difference(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __d_first,
+                                          _BinaryOperation __op, /*is_vector*/ std::true_type) noexcept {
     __PSTL_PRAGMA_MESSAGE("Vectorial algorithm unimplemented, referenced to serial");
-    return std::adjacent_difference(first, last, d_first, op);
+    return std::adjacent_difference(__first, __last, __d_first, __op);
 }
 
-template<class InputIterator, class OutputIterator, class BinaryOperation, class IsVector>
-OutputIterator pattern_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, IsVector is_vector, /*is_parallel*/ std::false_type) noexcept {
-    return brick_adjacent_difference(first, last, d_first, op, is_vector);
+template<class _ForwardIterator, class _OutputIterator, class _BinaryOperation, class _IsVector>
+_OutputIterator pattern_adjacent_difference(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __d_first,
+                                            _BinaryOperation __op, _IsVector __is_vector, /*is_parallel*/ std::false_type) noexcept {
+    return internal::brick_adjacent_difference(__first, __last, __d_first, __op, __is_vector);
 }
 
-template<class InputIterator, class OutputIterator, class BinaryOperation, class IsVector>
-OutputIterator pattern_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, IsVector is_vector, /*is_parallel*/ std::true_type) noexcept {
+template<class _ForwardIterator, class _OutputIterator, class _BinaryOperation, class _IsVector>
+_OutputIterator pattern_adjacent_difference(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __d_first,
+                                            _BinaryOperation __op, _IsVector __is_vector, /*is_parallel*/ std::true_type) noexcept {
     __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, referenced to serial");
-    return brick_adjacent_difference(first, last, d_first, op, is_vector);
+    return internal::brick_adjacent_difference(__first, __last, __d_first, __op, __is_vector);
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_numeric_impl_H */

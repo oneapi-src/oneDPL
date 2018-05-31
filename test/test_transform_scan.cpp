@@ -44,8 +44,8 @@ struct test_transform_scan {
         using namespace std;
 
         auto orr1 = inclusive ?
-            transform_inclusive_scan(pstl::execution::seq, first, last, expected_first, binary_op, unary_op, init) :
-            transform_exclusive_scan(pstl::execution::seq, first, last, expected_first, init, binary_op, unary_op);
+            transform_inclusive_scan(__pstl::execution::seq, first, last, expected_first, binary_op, unary_op, init) :
+            transform_exclusive_scan(__pstl::execution::seq, first, last, expected_first, init, binary_op, unary_op);
         auto orr2 = inclusive ?
             transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op, init) :
             transform_exclusive_scan(exec, first, last, out_first, init, binary_op, unary_op);
@@ -54,7 +54,7 @@ struct test_transform_scan {
 
         // Checks inclusive scan if init is not provided
         if(inclusive && n > 0) {
-            orr1 = transform_inclusive_scan(pstl::execution::seq, first, last, expected_first, binary_op, unary_op);
+            orr1 = transform_inclusive_scan(__pstl::execution::seq, first, last, expected_first, binary_op, unary_op);
             orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op);
             EXPECT_TRUE(out_last == orr2, "transform...scan returned wrong iterator");
             check_and_reset(expected_first, out_first, n, trash);
@@ -92,8 +92,8 @@ void test( UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash ) {
         Sequence<Out> out(n, [&](size_t) {return trash;});
 
         auto result = inclusive ?
-                      pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::true_type()/*inclusive*/) :
-                      pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::false_type()/*exclusive*/);
+                      __pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::true_type()/*inclusive*/) :
+                      __pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::false_type()/*exclusive*/);
         check_and_reset( expected.begin(), out.begin(), out.size(), trash );
 
         invoke_on_all_policies(test_transform_scan(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
