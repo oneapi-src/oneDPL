@@ -1,0 +1,62 @@
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
+      env:
+         - MATRIX_EVAL="PSTL_COMPILER=gcc && CC=gcc-4.8 && CXX=g++-4.8 && TBB_PACKAGE_SUFFIX=lin && TBB_VARS_ARGS='intel64 linux'"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="PSTL_COMPILER=gcc && CC=gcc-7 && CXX=g++-7 && TBB_PACKAGE_SUFFIX=lin && TBB_VARS_ARGS='intel64 linux'"
+    - os: linux
+      env:
+        - MATRIX_EVAL="PSTL_COMPILER=clang && TBB_PACKAGE_SUFFIX=lin && TBB_VARS_ARGS='intel64 linux'"
+    - os: osx
+      osx_image: xcode9.3
+      env:
+        - MATRIX_EVAL="PSTL_COMPILER=clang && TBB_PACKAGE_SUFFIX=mac"
+    - os: osx
+      osx_image: xcode7.3
+      env:
+        - MATRIX_EVAL="PSTL_COMPILER=clang && TBB_PACKAGE_SUFFIX=mac"
+    - os: osx
+      osx_image: xcode8
+      env:
+        - MATRIX_EVAL="PSTL_COMPILER=gcc && CC=gcc-6 && CXX=g++-6 && TBB_PACKAGE_SUFFIX=mac && 
+                       brew update && brew install gcc6 --enable-cxx"
+
+before_install:
+    - eval "${MATRIX_EVAL}"
+
+install:
+  - if [[ "$PSTL_COMPILER" == "gcc" ]]; then
+      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/$CC 50 &&
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/$CXX 50;
+      elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        ln -sf /usr/local/bin/$CC /usr/local/bin/cc &&
+        ln -sf /usr/local/bin/$CC /usr/local/bin/gcc &&
+        ln -sf /usr/local/bin/$CXX /usr/local/bin/c++ &&
+        ln -sf /usr/local/bin/$CXX /usr/local/bin/g++ &&
+        export PATH=/usr/local/bin:$PATH;
+      fi;
+    fi
+  - wget https://github.com/01org/tbb/releases/download/2018_U4/tbb2018_20180411oss_${TBB_PACKAGE_SUFFIX}.tgz
+  - tar zxf tbb2018_20180411oss_${TBB_PACKAGE_SUFFIX}.tgz
+  - . tbb2018_20180411oss/bin/tbbvars.sh ${TBB_VARS_ARGS} auto_tbbroot
+
+script:
+  - cd build
+  - echo "$PSTL_COMPILER" && "$PSTL_COMPILER" --version && echo "$TBBROOT" && make test compiler="$PSTL_COMPILER"
