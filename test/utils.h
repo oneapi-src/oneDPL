@@ -182,6 +182,14 @@ public:
     }
 };
 
+template<typename Iterator, typename F>
+void fill_data(Iterator first, Iterator last, F f) {
+    typedef typename std::iterator_traits<Iterator>::value_type T;
+    for (std::size_t i = 0; first != last; ++first, ++i) {
+        *first = T(f(i));
+    }
+}
+
 // Sequence<T> is a container of a sequence of T with lots of kinds of iterators.
 // Prefixes on begin/end mean:
 //      c = "const"
@@ -246,10 +254,7 @@ public:
     void print() const;
 
     template <typename Func>
-    void fill( Func f ) {
-        for (size_t i = 0; i < m_storage.size(); i++)
-            m_storage[i] = T(f(i));
-    }
+    void fill( Func f ) { fill_data(m_storage.begin(), m_storage.end(), f); }
 };
 
 template <typename T>

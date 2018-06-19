@@ -32,6 +32,7 @@
 #include <tbb/parallel_scan.h>
 #include <tbb/parallel_invoke.h>
 #include <tbb/task_arena.h>
+#include <tbb/tbb_allocator.h>
 
 #if TBB_INTERFACE_VERSION < 10000
 #error Intel(R) Threading Building Blocks 2018 is required; older versions are not supported.
@@ -44,20 +45,23 @@ namespace par_backend {
 /** Some of our algorithms need to start with raw memory buffer,
 not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
+// tbb::allocator can improve performance in some cases.
 template<typename T>
 class buffer {
+    tbb::tbb_allocator<T> allocator;
     T* ptr;
+    const std::size_t buf_size;
     buffer(const buffer&) = delete;
     void operator=(const buffer&) = delete;
 public:
     //! Try to obtain buffer of given size to store objects of T type
-    buffer(size_t n): ptr(static_cast<T*>(operator new(n*sizeof(T), std::nothrow))) {}
+    buffer(std::size_t n) : allocator(), ptr(allocator.allocate(n)), buf_size(n) {}
     //! True if buffer was successfully obtained, zero otherwise.
     operator bool() const { return ptr != NULL; }
     //! Return pointer to buffer, or  NULL if buffer could not be obtained.
     T* get() const { return ptr; }
     //! Destroy buffer
-    ~buffer() { operator delete(ptr); }
+    ~buffer() { allocator.deallocate(ptr, buf_size); }
 };
 
 // Wrapper for tbb::task
@@ -445,12 +449,17 @@ tbb::task* stable_sort_task<RandomAccessIterator1, RandomAccessIterator2, Compar
         const RandomAccessIterator2 zm = zs + (xm - xs);
         const RandomAccessIterator2 ze = zs + n;
         task* m;
+        auto move_values = [](RandomAccessIterator2 x, RandomAccessIterator1 z) {*z = std::move(*x); };
+        auto move_sequences = [](RandomAccessIterator2 first1, RandomAccessIterator2 last1, RandomAccessIterator1 first2) {return std::move(first1, last1, first2); };
         if (inplace == 2)
-            m = new (allocate_continuation()) merge_task<RandomAccessIterator2, RandomAccessIterator2, RandomAccessIterator1, Compare, serial_destroy, serial_move_merge>(zs, zm, zm, ze, xs, comp, serial_destroy(), serial_move_merge(nmerge));
+            m = new (allocate_continuation()) merge_task<RandomAccessIterator2, RandomAccessIterator2, RandomAccessIterator1, Compare, serial_destroy, serial_move_merge<decltype(move_values), decltype(move_sequences)>>(zs, zm, zm, ze, xs, comp, serial_destroy(), serial_move_merge<decltype(move_values), decltype(move_sequences)>(nmerge, move_values, move_sequences));
         else if (inplace)
-            m = new (allocate_continuation()) merge_task<RandomAccessIterator2, RandomAccessIterator2, RandomAccessIterator1, Compare, binary_no_op, serial_move_merge>(zs, zm, zm, ze, xs, comp, binary_no_op(), serial_move_merge(nmerge));
-        else
-            m = new (allocate_continuation()) merge_task<RandomAccessIterator1, RandomAccessIterator1, RandomAccessIterator2, Compare, binary_no_op, serial_move_merge>(xs, xm, xm, xe, zs, comp, binary_no_op(), serial_move_merge(nmerge));
+            m = new (allocate_continuation()) merge_task<RandomAccessIterator2, RandomAccessIterator2, RandomAccessIterator1, Compare, binary_no_op, serial_move_merge<decltype(move_values), decltype(move_sequences)>>(zs, zm, zm, ze, xs, comp, binary_no_op(), serial_move_merge<decltype(move_values), decltype(move_sequences)>(nmerge, move_values, move_sequences));
+        else {
+            auto move_values = [](RandomAccessIterator1 x, RandomAccessIterator2 z) {*z = std::move(*x); };
+            auto move_sequences = [](RandomAccessIterator1 first1, RandomAccessIterator1 last1, RandomAccessIterator2 first2) {return std::move(first1, last1, first2); };
+            m = new (allocate_continuation()) merge_task<RandomAccessIterator1, RandomAccessIterator1, RandomAccessIterator2, Compare, binary_no_op, serial_move_merge<decltype(move_values), decltype(move_sequences)>>(xs, xm, xm, xe, zs, comp, binary_no_op(), serial_move_merge<decltype(move_values), decltype(move_sequences)>(nmerge, move_values, move_sequences));
+        }
         m->set_ref_count(2);
         task* right = new(m->allocate_child()) stable_sort_task(xm, xe, zm, !inplace, comp, leaf_sort, nmerge);
         spawn(*right);

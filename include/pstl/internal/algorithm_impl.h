@@ -28,7 +28,9 @@
 #include <algorithm>
 
 #include "execution_impl.h"
+#include "memory_impl.h"
 #include "unseq_backend_simd.h"
+#include "bricks_impl.h"
 
 #if __PSTL_USE_PAR_POLICIES
     #include "parallel_backend.h"
@@ -315,30 +317,6 @@ Iterator2 pattern_walk2_brick_n( Iterator1 first1, Size n, Iterator2 first2, Bri
 //
 // it_walk2 evaluates f(it1, it2) for iterators (it1, it2) drawn from [first1,last1) and [first2,...)
 //------------------------------------------------------------------------
-template<class Iterator1, class Iterator2, class Function>
-Iterator2 brick_it_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::false_type ) noexcept {
-    for(; first1!=last1; ++first1, ++first2 )
-        f(first1, first2);
-    return first2;
-}
-
-template<class Iterator1, class Iterator2, class Function>
-Iterator2 brick_it_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_it_walk_2(first1, last1-first1, first2, f);
-}
-
-template<class Iterator1, class Size, class Iterator2, class Function>
-Iterator2 brick_it_walk2_n( Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::false_type ) noexcept {
-    for(; n > 0; --n, ++first1, ++first2 )
-        f(first1, first2);
-    return first2;
-}
-
-template<class Iterator1, class Size, class Iterator2, class Function>
-Iterator2 brick_it_walk2_n(Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_it_walk_2(first1, n, first2, f);
-}
-
 template<class Iterator1, class Iterator2, class Function, class IsVector>
 Iterator2 pattern_it_walk2( Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, IsVector is_vector, /*parallel=*/std::false_type ) noexcept {
     return brick_it_walk2(first1,last1,first2,f,is_vector);
@@ -682,7 +660,7 @@ OutputIterator brick_copy_n(InputIterator first, Size n, OutputIterator result, 
 
 template<class InputIterator, class Size, class OutputIterator>
 OutputIterator brick_copy_n(InputIterator first, Size n, OutputIterator result, /*vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_copy_move(first, n, result,
+    return unseq_backend::simd_assign(first, n, result,
         [](InputIterator first, OutputIterator result) {
             *result = *first;
     });
@@ -698,7 +676,7 @@ OutputIterator brick_copy(InputIterator first, InputIterator last, OutputIterato
 
 template<class InputIterator, class OutputIterator>
 OutputIterator brick_copy(InputIterator first, InputIterator last, OutputIterator result, /*vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_copy_move(first, last - first, result,
+    return unseq_backend::simd_assign(first, last - first, result,
         [](InputIterator first, OutputIterator result) {
             *result = *first;
     });
@@ -714,10 +692,23 @@ OutputIterator brick_move(InputIterator first, InputIterator last, OutputIterato
 
 template<class InputIterator, class OutputIterator>
 OutputIterator brick_move(InputIterator first, InputIterator last, OutputIterator result, /*vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_copy_move(first, last - first, result,
+    return unseq_backend::simd_assign(first, last - first, result,
         [](InputIterator first, OutputIterator result) {
-        *result = std::move(*first);
-    });
+            *result = std::move(*first);
+        });
+}
+
+//------------------------------------------------------------------------
+// swap_ranges
+//------------------------------------------------------------------------
+template<class InputIterator, class OutputIterator>
+OutputIterator brick_swap_ranges(InputIterator first, InputIterator last, OutputIterator result, /*vector=*/std::false_type) noexcept {
+    return std::swap_ranges(first, last, result);
+}
+
+template<class InputIterator, class OutputIterator>
+OutputIterator brick_swap_ranges(InputIterator first, InputIterator last, OutputIterator result, /*vector=*/std::true_type) noexcept {
+    return unseq_backend::simd_assign(first, last - first, result, std::iter_swap<InputIterator, OutputIterator>);
 }
 
 //------------------------------------------------------------------------
@@ -958,14 +949,37 @@ OutputIterator pattern_unique_copy(InputIterator first, InputIterator last, Outp
 //------------------------------------------------------------------------
 
 template<class BidirectionalIterator>
-void brick_reverse(BidirectionalIterator first, BidirectionalIterator last,/*is_vector=*/std::false_type) noexcept {
+void brick_reverse(BidirectionalIterator first, BidirectionalIterator last, /*is_vector=*/std::false_type) noexcept {
     std::reverse(first, last);
 }
 
 template<class BidirectionalIterator>
-void brick_reverse(BidirectionalIterator first, BidirectionalIterator last,/*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    brick_reverse(first, last, std::false_type());
+void brick_reverse(BidirectionalIterator first, BidirectionalIterator last, /*is_vector=*/std::true_type) noexcept {
+    const auto n = (last - first) - 1;
+    unseq_backend::simd_it_walk_1(first, (last - first) / 2, [n, first](BidirectionalIterator in) {
+        using std::swap;
+        std::iter_swap(in, first + (n - (in - first)));
+    });
+}
+
+// this brick is called in parallel version, so we can use iterator arithmetic
+template<class BidirectionalIterator>
+void brick_reverse(BidirectionalIterator first, BidirectionalIterator last, BidirectionalIterator d_first, /*is_vector=*/std::false_type) noexcept {
+    using std::swap;
+    for (; first != last; --last, ++d_first) {
+        std::iter_swap(last - 1, d_first);
+    }
+}
+
+// this brick is called in parallel version, so we can use iterator arithmetic
+template<class BidirectionalIterator>
+void brick_reverse(BidirectionalIterator first, BidirectionalIterator last,
+BidirectionalIterator d_first, /*is_vector=*/std::true_type) noexcept {
+    const auto n = (last - first) - 1;
+    unseq_backend::simd_it_walk_1(first, last - first, [n, first, d_first](BidirectionalIterator in) {
+        using std::swap;
+        std::iter_swap(in, d_first + (n - (in - first)));
+    });
 }
 
 template<class BidirectionalIterator, class IsVector>
@@ -974,35 +988,41 @@ void pattern_reverse(BidirectionalIterator first, BidirectionalIterator last, Is
 }
 
 template<class BidirectionalIterator, class IsVector>
-void pattern_reverse(BidirectionalIterator first, BidirectionalIterator last, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    brick_reverse(first, last, is_vector);
+void pattern_reverse(BidirectionalIterator first, BidirectionalIterator last, IsVector is_vector, /*is_parallel=*/std::true_type) {
+    par_backend::parallel_for(first, first + (last - first) / 2, [is_vector, first, last](BidirectionalIterator inner_first, BidirectionalIterator inner_last) {
+        brick_reverse(inner_first, inner_last, last - (inner_last - first), is_vector);
+    });
 }
 
 //------------------------------------------------------------------------
 // reverse_copy
 //------------------------------------------------------------------------
 
-template<class BidirectionalIterator, class OutputIterator>
-OutputIterator brick_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, OutputIterator d_first, /*is_vector=*/std::false_type) noexcept {
+template<class BidirectionalIterator, class ForwardIterator>
+ForwardIterator brick_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, ForwardIterator d_first, /*is_vector=*/std::false_type) noexcept {
     return std::reverse_copy(first, last, d_first);
 }
 
-template<class BidirectionalIterator, class OutputIterator>
-OutputIterator brick_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, OutputIterator d_first, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return brick_reverse_copy(first, last, d_first, std::false_type());
+template<class BidirectionalIterator, class ForwardIterator>
+ForwardIterator brick_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, ForwardIterator d_first, /*is_vector=*/std::true_type) noexcept {
+    unseq_backend::simd_it_walk_2(first, last - first, d_first, [first, last](BidirectionalIterator in, ForwardIterator out) {
+        *out = *(last - ((in - first) + 1));
+    });
+    return d_first + (last - first);
 }
 
-template<class BidirectionalIterator, class OutputIterator, class IsVector>
-OutputIterator pattern_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, OutputIterator d_first, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
-    return brick_reverse_copy(first, last, d_first, is_vector);
+template<class BidirectionalIterator, class ForwardIterator, class IsVector>
+ForwardIterator pattern_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, ForwardIterator d_first, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
+  return brick_reverse_copy(first, last, d_first, is_vector);
 }
 
-template<class BidirectionalIterator, class OutputIterator, class IsVector>
-OutputIterator pattern_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, OutputIterator d_first, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_reverse_copy(first, last, d_first, is_vector);
+template<class BidirectionalIterator, class ForwardIterator, class IsVector>
+ForwardIterator pattern_reverse_copy(BidirectionalIterator first, BidirectionalIterator last, ForwardIterator d_first, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
+    auto len = last - first;
+    par_backend::parallel_for(first, last, [is_vector, first, len, d_first] (BidirectionalIterator inner_first, BidirectionalIterator inner_last) {
+        brick_reverse_copy(inner_first, inner_last, d_first + (len - (inner_last - first)), is_vector);
+    });
+  return d_first + len;
 }
 
 //------------------------------------------------------------------------
@@ -1046,8 +1066,8 @@ OutputIterator brick_rotate_copy(ForwardIterator first, ForwardIterator middle, 
 
 template<class ForwardIterator, class OutputIterator>
 OutputIterator brick_rotate_copy(ForwardIterator first, ForwardIterator middle, ForwardIterator last, OutputIterator result, /*is_vector=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::rotate_copy(first, middle, last, result);
+    OutputIterator temp = brick_copy(middle, last, result, std::true_type());
+    return brick_copy(first, middle, temp, std::true_type());
 }
 
 template<class ForwardIterator, class OutputIterator, class IsVector>
@@ -1056,9 +1076,23 @@ OutputIterator pattern_rotate_copy(ForwardIterator first, ForwardIterator middle
 }
 
 template<class ForwardIterator, class OutputIterator, class IsVector>
-OutputIterator pattern_rotate_copy(ForwardIterator first, ForwardIterator middle, ForwardIterator last, OutputIterator result, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_rotate_copy(first, middle, last, result, is_vector);
+OutputIterator pattern_rotate_copy(ForwardIterator first, ForwardIterator middle, ForwardIterator last, OutputIterator result, IsVector is_vector, /*is_parallel=*/std::true_type) {
+    par_backend::parallel_for(first, last, [first, last, middle, result, is_vector](ForwardIterator b, ForwardIterator e) {
+        if (b > middle) {
+            brick_copy(b, e, result + (b - middle), is_vector);
+        }
+        else {
+            OutputIterator new_result = result + ((last - middle) + (b - first));
+            if (e < middle) {
+                brick_copy(b, e, new_result, is_vector);
+            }
+            else {
+                brick_copy(b, middle, new_result, is_vector);
+                brick_copy(middle, e, result, is_vector);
+            }
+        }
+    });
+    return result + (last - first);
 }
 
 //------------------------------------------------------------------------
@@ -1192,8 +1226,64 @@ ForwardIterator pattern_partition(ForwardIterator first, ForwardIterator last, U
 
 template<class ForwardIterator, class UnaryPredicate, class IsVector>
 ForwardIterator pattern_partition(ForwardIterator first, ForwardIterator last, UnaryPredicate pred, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_partition(first, last, pred, is_vector);
+
+    // partitioned range: elements before pivot satisfy pred (true part),
+    //                    elements after pivot don't satisfy pred (false part)
+    struct PartitionRange {
+        ForwardIterator begin;
+        ForwardIterator pivot;
+        ForwardIterator end;
+    };
+
+    return except_handler([=]() {
+        PartitionRange init{ last, last, last };
+
+        // lambda for merging two partitioned ranges to one partitioned range
+        auto reductor = [first, is_vector](PartitionRange val1, PartitionRange val2)->PartitionRange {
+            ForwardIterator new_pivot;
+            auto size1 = val1.end - val1.pivot;
+            auto size2 = val2.pivot - val2.begin;
+
+            // if all elements in left range satisfy pred then we can move new pivot to pivot of right range
+            if (val1.end == val1.pivot) {
+                new_pivot = val2.pivot;
+            }
+            // if true part of right range greater than false part of left range
+            // then we should swap the false part of left range and last part of true part of right range
+            else if (size2 > size1) {
+                par_backend::parallel_for(
+                    val1.pivot, val1.pivot + size1,
+                    [val1, val2, size1, is_vector](ForwardIterator i, ForwardIterator j) {
+                        brick_swap_ranges(i, j, (val2.pivot - size1) + (i - val1.pivot), is_vector);
+                    }
+                );
+                new_pivot = val2.pivot - size1;
+            }
+            // else we should swap the first part of false part of left range and true part of right range
+            else {
+                par_backend::parallel_for(
+                    val1.pivot, val1.pivot + size2,
+                    [val1, val2, is_vector](ForwardIterator i, ForwardIterator j) {
+                    brick_swap_ranges(i, j, val2.begin + (i - val1.pivot), is_vector);
+                }
+                );
+                new_pivot = val1.pivot + size2;
+            }
+            return { val2.begin - (val1.end - val1.begin), new_pivot, val2.end };
+        };
+
+        PartitionRange result = par_backend::parallel_reduce(first, last, init,
+            [first, &pred, is_vector, reductor](ForwardIterator i, ForwardIterator j, PartitionRange value)->PartitionRange {
+                //1. serial partition
+                ForwardIterator pivot = brick_partition(i, j, pred, is_vector);
+
+                // 2. merging of two ranges (left and right respectively)
+                return reductor(value, { i, pivot, j });
+            },
+            reductor
+        );
+        return result.pivot;
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1218,8 +1308,48 @@ BidirectionalIterator pattern_stable_partition(BidirectionalIterator first, Bidi
 
 template<class BidirectionalIterator, class UnaryPredicate, class IsVector>
 BidirectionalIterator pattern_stable_partition(BidirectionalIterator first, BidirectionalIterator last, UnaryPredicate pred, IsVector is_vector, /*is_parallelization=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_stable_partition(first, last, pred, is_vector);
+    // partitioned range: elements before pivot satisfy pred (true part),
+    //                    elements after pivot don't satisfy pred (false part)
+    struct PartitionRange {
+        BidirectionalIterator begin;
+        BidirectionalIterator pivot;
+        BidirectionalIterator end;
+    };
+    typedef typename std::iterator_traits<BidirectionalIterator>::value_type T;
+
+    return except_handler([=]() {
+        PartitionRange init{ last, last, last };
+
+        // lambda for merging two partitioned ranges to one partitioned range
+        auto reductor = [first, is_vector, pred](PartitionRange val1, PartitionRange val2)->PartitionRange {
+            BidirectionalIterator new_pivot;
+            auto size1 = val1.end - val1.pivot;
+            auto size2 = val2.pivot - val2.begin;
+
+            // if all elements in left range satisfy pred then we can move new pivot to pivot of right range
+            if (val1.end == val1.pivot) {
+                new_pivot = val2.pivot;
+            }
+            // if true part of right range greater than false part of left range
+            // then we should swap the false part of left range and last part of true part of right range
+            else {
+                brick_rotate(val1.pivot, val2.begin, val2.pivot, is_vector);
+                new_pivot = val2.pivot - size1;
+            }
+            return { val2.begin - (val1.end - val1.begin), new_pivot, val2.end };
+        };
+
+        PartitionRange result = par_backend::parallel_reduce(first, last, init,
+            [first, &pred, is_vector, reductor](BidirectionalIterator i, BidirectionalIterator j, PartitionRange value)->PartitionRange {
+                //1. serial stable_partition
+                BidirectionalIterator pivot = brick_stable_partition(i, j, pred, is_vector);
+
+                // 2. merging of two ranges (left and right respectively)
+                return reductor(value, { i, pivot, j });
+            },
+            reductor);
+        return result.pivot;
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1267,18 +1397,19 @@ pattern_partition_copy(InputIterator first, InputIterator last, OutputIterator1 
                         mask + i,
                         pred,
                         is_vector);
-                },
+                    },
                     [](const return_type& x, const return_type& y)-> return_type {
-                    return std::make_pair(x.first + y.first, x.second + y.second);
-                },                                                                            // Combine
+                        return std::make_pair(x.first + y.first, x.second + y.second);
+                    },                                                                        // Combine
                     [=](difference_type i, difference_type len, return_type initial) {        // Scan
-                    brick_partition_by_mask(first + i, first + (i + len),
-                        out_true + initial.first,
-                        out_false + initial.second,
-                        mask + i,
-                        is_vector);
-                },
-                    [&m](return_type total) {m = total; });
+                        brick_partition_by_mask(first + i, first + (i + len),
+                            out_true + initial.first,
+                            out_false + initial.second,
+                            mask + i,
+                            is_vector);
+                    },
+                    [&m](const return_type& total) {m = total;}
+                );
                 return std::make_pair(out_true + m.first, out_false + m.second);
             });
         }
@@ -1355,26 +1486,71 @@ void pattern_partial_sort(RandomAccessIterator first, RandomAccessIterator middl
 // partial_sort_copy
 //------------------------------------------------------------------------
 
-template<class InputIterator, class RandomAccessIterator, class Compare>
-RandomAccessIterator brick_partial_sort_copy(InputIterator first, InputIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last, Compare comp, /*is_vector*/std::false_type) noexcept {
+template<class ForwardIterator, class RandomAccessIterator, class Compare, class IsVector>
+RandomAccessIterator pattern_partial_sort_copy(ForwardIterator first, ForwardIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last, Compare comp, IsVector, /*is_parallel=*/std::false_type) noexcept {
     return std::partial_sort_copy(first, last, d_first, d_last, comp);
 }
 
-template<class InputIterator, class RandomAccessIterator, class Compare>
-RandomAccessIterator brick_partial_sort_copy(InputIterator first, InputIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last, Compare comp, /*is_vector*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial");
-    return std::partial_sort_copy(first, last, d_first, d_last, comp);
-}
+template<class ForwardIterator, class RandomAccessIterator, class Compare, class IsVector>
+RandomAccessIterator pattern_partial_sort_copy(ForwardIterator first, ForwardIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last, Compare comp, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
+    if (last == first || d_last == d_first) {
+        return d_first;
+    }
+    auto n1 =   last -   first;
+    auto n2 = d_last - d_first;
+    return except_handler([=]() {
+        if (n2 >= n1) {
+            par_backend::parallel_stable_sort(d_first, d_first + n1, comp,
+                [n1, first, d_first, is_vector](RandomAccessIterator i, RandomAccessIterator j, Compare comp) {
+                ForwardIterator i1 = first + (i - d_first);
+                ForwardIterator j1 = first + (j - d_first);
 
-template<class InputIterator, class RandomAccessIterator, class Compare, class IsVector>
-RandomAccessIterator pattern_partial_sort_copy(InputIterator first, InputIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last, Compare comp, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
-    return brick_partial_sort_copy(first, last, d_first, d_last, comp, is_vector);
-}
+                // 1. Copy elements from input to output
+#if !__PSTL_ICC_18_OMP_SIMD_BROKEN
+                brick_copy(i1, j1, i, is_vector);
+#else
+                std::copy(i1, j1, i);
+#endif
+                // 2. Sort elements in output sequence
+                std::sort(i, j, comp);
+            },
+            n1);
+            return d_first + n1;
+        }
+        else {
+            typedef typename std::iterator_traits<ForwardIterator>::value_type T1;
+            typedef typename std::iterator_traits<RandomAccessIterator>::value_type T2;
+            par_backend::buffer<T1> buf(n1);
+            if (buf) {
+                T1* r = buf.get();
 
-template<class InputIterator, class RandomAccessIterator, class Compare, class IsVector>
-RandomAccessIterator pattern_partial_sort_copy(InputIterator first, InputIterator last, RandomAccessIterator d_first, RandomAccessIterator d_last, Compare comp, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    return brick_partial_sort_copy(first, last, d_first, d_last, comp, is_vector);
+                par_backend::parallel_stable_sort(r, r+n1, comp,
+                    [n2, first, r](T1* i, T1* j, Compare comp) {
+                    ForwardIterator it = first + (i - r);
+
+                    // 1. Copy elements from input to raw memory
+                    for (T1* k=i; k != j; ++k, ++it) {
+                        ::new (k) T2(*it);
+                    }
+
+                    // 2. Sort elements in temporary buffer
+                    if (n2 < j - i)
+                        std::partial_sort(i, i + n2, j, comp);
+                    else
+                        std::sort(i, j, comp);
+                },
+                n2);
+
+                // 3. Move elements from temporary buffer to output
+                par_backend::parallel_for(r, r + n2,
+                    [r, d_first, is_vector](T1* i, T1* j) {
+                    brick_move(i, j, d_first + (i - r), is_vector);
+                });
+                return d_first + n2;
+            }
+            return std::partial_sort_copy(first, last, d_first, d_last, comp);
+        }
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1632,14 +1808,17 @@ OutputIterator pattern_merge(InputIterator1 first1, InputIterator1 last1, InputI
 
 template<class InputIterator1, class InputIterator2, class OutputIterator, class Compare, class IsVector>
 OutputIterator pattern_merge(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator d_first, Compare comp, IsVector is_vector, /* is_parallel = */ std::true_type) noexcept {
-    par_backend::parallel_merge(first1, last1, first2, last2, d_first, comp,
-        [is_vector](InputIterator1 f1, InputIterator1 l1, InputIterator2 f2, InputIterator2 l2, OutputIterator f3, Compare comp) {return brick_merge(f1, l1, f2, l2, f3, comp, is_vector); });
+    except_handler([=]() {
+        par_backend::parallel_merge(first1, last1, first2, last2, d_first, comp,
+            [is_vector](InputIterator1 f1, InputIterator1 l1, InputIterator2 f2, InputIterator2 l2, OutputIterator f3, Compare comp) {return brick_merge(f1, l1, f2, l2, f3, comp, is_vector); });
+    });
     return d_first + (last1 - first1) + (last2 - first2);
 }
 
 //------------------------------------------------------------------------
 // inplace_merge
 //------------------------------------------------------------------------
+
 template<class BidirectionalIterator, class Compare>
 void brick_inplace_merge(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, Compare comp, /* is_vector = */ std::false_type) noexcept {
     std::inplace_merge(first, middle, last, comp);
@@ -1648,7 +1827,7 @@ void brick_inplace_merge(BidirectionalIterator first, BidirectionalIterator midd
 template<class BidirectionalIterator, class Compare>
 void brick_inplace_merge(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, Compare comp, /* is_vector = */ std::true_type) noexcept {
     __PSTL_PRAGMA_MESSAGE("Vectorized algorithm unimplemented, redirected to serial")
-        std::inplace_merge(first, middle, last, comp);
+    std::inplace_merge(first, middle, last, comp);
 }
 
 template<class BidirectionalIterator, class Compare, class IsVector>
@@ -1658,8 +1837,39 @@ void pattern_inplace_merge(BidirectionalIterator first, BidirectionalIterator mi
 
 template<class BidirectionalIterator, class Compare, class IsVector>
 void pattern_inplace_merge(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, Compare comp, IsVector is_vector, /*is_parallel=*/std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, redirected to serial");
-    brick_inplace_merge(first, middle, last, comp, is_vector);
+    if (first == last || first == middle || middle == last) {
+        return;
+    }
+    typedef typename std::iterator_traits<BidirectionalIterator>::value_type T;
+    auto n = last - first;
+    par_backend::buffer<T> buf(n);
+    if (buf) {
+        T* r = buf.get();
+        except_handler([=]() {
+            auto move_values = [](BidirectionalIterator x, T* z) {invoke_if_else(std::is_trivial<T>(),
+                [&]() {*z = std::move(*x); },
+                [&]() {::new (internal::reduce_to_ptr(z)) T(std::move(*x)); }
+            ); };
+
+            auto move_sequences = [](BidirectionalIterator first1, BidirectionalIterator last1, T* first2) {
+                return brick_uninitialized_move(first1, last1, first2, IsVector()); };
+
+            par_backend::parallel_merge(first, middle, middle, last, r, comp,
+                [n, comp, move_values, move_sequences](BidirectionalIterator f1, BidirectionalIterator l1, BidirectionalIterator f2, BidirectionalIterator l2, T* f3,
+                    Compare comp) {
+                auto func = par_backend::serial_move_merge<decltype(move_values), decltype(move_sequences)>(n, move_values, move_sequences);
+                func(f1, l1, f2, l2, f3, comp);
+                return f3 + (l1 - f1) + (l2 - f2);
+            });
+            par_backend::parallel_for(r, r + n,
+                [r, first, is_vector](T* i, T* j) {
+                brick_move(i, j, first + (i - r), is_vector);
+            });
+        });
+    }
+    else {
+        std::inplace_merge(first, middle, last, comp);
+    }
 }
 
 //------------------------------------------------------------------------

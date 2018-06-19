@@ -220,7 +220,7 @@ __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(cnt:1)
 }
 
 template<class InputIterator, class DifferenceType, class OutputIterator, class Assigner>
-OutputIterator simd_copy_move(InputIterator first, DifferenceType n, OutputIterator result, Assigner assigner) noexcept {
+OutputIterator simd_assign(InputIterator first, DifferenceType n, OutputIterator result, Assigner assigner) noexcept {
 __PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED
 __PSTL_PRAGMA_SIMD
     for (DifferenceType i = 0; i < n; ++i)
@@ -234,11 +234,11 @@ OutputIterator simd_copy_if(InputIterator first, DifferenceType n, OutputIterato
 
 __PSTL_PRAGMA_SIMD
     for(DifferenceType i = 0; i < n; ++i) {
-        __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(cnt:1)
-            if(pred(first[i])) {
-                result[cnt] = first[i];
-                ++cnt;
-            }
+__PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(cnt:1)
+        if(pred(first[i])) {
+            result[cnt] = first[i];
+            ++cnt;
+        }
     }
     return result + cnt;
 }

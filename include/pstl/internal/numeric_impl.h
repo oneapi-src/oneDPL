@@ -28,6 +28,7 @@
 #include "pstl_config.h"
 #include "execution_impl.h"
 #include "unseq_backend_simd.h"
+#include "bricks_impl.h"
 
 #if __PSTL_USE_PAR_POLICIES
     #include "parallel_backend.h"
@@ -35,6 +36,7 @@
 
 namespace pstl {
 namespace internal {
+
 //------------------------------------------------------------------------
 // transform_reduce (version with two binary functions, according to draft N4659)
 //------------------------------------------------------------------------
@@ -222,26 +224,44 @@ __PSTL_PRAGMA_FORCEINLINE
 // adjacent_difference
 //------------------------------------------------------------------------
 
-template<class InputIterator, class OutputIterator, class BinaryOperation>
-OutputIterator brick_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, /*is_vector*/ std::false_type) noexcept {
+template<class ForwardIterator1, class ForwardIterator2, class BinaryOperation>
+ForwardIterator2 brick_adjacent_difference(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 d_first, BinaryOperation op, /*is_vector=*/std::false_type) noexcept {
     return std::adjacent_difference(first, last, d_first, op);
 }
 
-template<class InputIterator, class OutputIterator, class BinaryOperation>
-OutputIterator brick_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, /*is_vector*/ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Vectorial algorithm unimplemented, referenced to serial");
-    return std::adjacent_difference(first, last, d_first, op);
+template<class ForwardIterator1, class ForwardIterator2, class BinaryOperation>
+ForwardIterator2 brick_adjacent_difference(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 d_first, BinaryOperation op, /*is_vector=*/std::true_type) noexcept {
+    assert(first != last);
+    typedef typename std::iterator_traits<ForwardIterator1>::value_type T;
+    T val(*first);
+    *d_first = val;
+    unseq_backend::simd_it_walk_2(first, (last - first) - 1, d_first + 1,
+        [&op](ForwardIterator1 in, ForwardIterator2 out) {
+            T val(op(*(in + 1), *in));
+            *out = val;
+        });
+    return d_first + (last - first);
 }
 
-template<class InputIterator, class OutputIterator, class BinaryOperation, class IsVector>
-OutputIterator pattern_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, IsVector is_vector, /*is_parallel*/ std::false_type) noexcept {
+template<class ForwardIterator1, class ForwardIterator2, class BinaryOperation, class IsVector>
+ForwardIterator2 pattern_adjacent_difference(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 d_first, BinaryOperation op, IsVector is_vector, /*is_parallel=*/std::false_type) noexcept {
     return brick_adjacent_difference(first, last, d_first, op, is_vector);
 }
 
-template<class InputIterator, class OutputIterator, class BinaryOperation, class IsVector>
-OutputIterator pattern_adjacent_difference(InputIterator first, InputIterator last, OutputIterator d_first, BinaryOperation op, IsVector is_vector, /*is_parallel*/ std::true_type) noexcept {
-    __PSTL_PRAGMA_MESSAGE("Parallel algorithm unimplemented, referenced to serial");
-    return brick_adjacent_difference(first, last, d_first, op, is_vector);
+template<class ForwardIterator1, class ForwardIterator2, class BinaryOperation, class IsVector>
+ForwardIterator2 pattern_adjacent_difference(ForwardIterator1 first, ForwardIterator1 last, ForwardIterator2 d_first, BinaryOperation op, IsVector is_vector, /*is_parallel=*/std::true_type) {
+    assert(first != last);
+    typedef typename std::iterator_traits<ForwardIterator1>::value_type T;
+    T val(*first);
+    *d_first = val;
+    par_backend::parallel_for(first, last - 1, [&op, is_vector, d_first, first](ForwardIterator1 b, ForwardIterator1 e) {
+        ForwardIterator2 d_b = d_first + (b - first);
+        brick_it_walk2(b, e, d_b + 1, [&op](ForwardIterator1 in, ForwardIterator2 out) {
+            T val(op(*(in + 1), *in));
+            *out = val;
+        }, is_vector);
+    });
+    return d_first + (last - first);
 }
 
 } // namespace internal

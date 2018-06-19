@@ -1,6 +1,22 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL 20180619 release
+PSTL_VERSION == 106
+
+Features / APIs:
+
+- More algorithms support parallel and vector execution policies:
+    adjacent_difference, partition, reverse, reverse_copy, rotate_copy,
+    stable_partition.
+- More algorithms support parallel execution policies:
+    inplace_merge, partial_sort_copy.
+- Split algorithm declarations and implementation by files.
+    (by Thomas Rodgers).
+- CMake support - Preview Feature
+    (by Amit Prakash Ambasta and Henry Schreiner)
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2018 Update 3
 PSTL_VERSION == 105
 
@@ -83,7 +99,7 @@ Features / APIs:
 
 - Aligned the implementation with the draft N4659 of the C++ standard.
     In particular, inner_product no longer supports execution policies.
-- reduce and transform_reduce support unseq and par_unseq execution 
+- reduce and transform_reduce support unseq and par_unseq execution
     policies if std::plus<> is used for reduction.
 - Added counting_iterator and zip_iterator to support advanced use cases.
    To use, include pstl/iterators.h header file.

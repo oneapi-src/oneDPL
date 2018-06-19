@@ -21,7 +21,7 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 105
+#define PSTL_VERSION 106
 #define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 
@@ -132,8 +132,8 @@
 //Too many warnings in output, switched off
 #define __PSTL_PRAGMA_MESSAGE(x)
 
-#if defined(__GLIBCXX__)
-#define __PSTL_CPP11_STD_ROTATE_BROKEN (__PSTL_GCC_VERSION < 50100) //GCC 5.1 release
-#endif
+#define __PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
+
+#define __PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
 #endif /* __PSTL_config_H */

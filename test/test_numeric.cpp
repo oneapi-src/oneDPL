@@ -81,6 +81,16 @@ struct test_reduce {
 };
 
 struct test_adjacent_difference {
+#if __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specialization by policy type, in case of broken configuration
+    template <typename InputIterator, typename OutputIterator>
+    typename std::enable_if<is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value, void>::type
+        operator()(pstl::execution::unsequenced_policy, InputIterator inBegin, InputIterator inEnd, OutputIterator outBegin) {}
+
+    template <typename InputIterator, typename OutputIterator>
+    typename std::enable_if<is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value, void>::type
+        operator()(pstl::execution::parallel_unsequenced_policy, InputIterator inBegin, InputIterator inEnd, OutputIterator outBegin) {}
+#endif
+
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void operator()(Policy&& exec, InputIterator inBegin, InputIterator inEnd, OutputIterator outBegin) {
         typedef typename InputIterator::value_type T;

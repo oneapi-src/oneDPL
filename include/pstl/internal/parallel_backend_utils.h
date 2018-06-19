@@ -23,6 +23,7 @@
 
 #include <iterator>
 #include <utility>
+#include "utils.h"
 
 namespace pstl {
 namespace par_backend {
@@ -40,44 +41,53 @@ struct serial_destroy {
 };
 
 //! Merge sequences [xs,xe) and [ys,ye) to output sequence [zs,(xe-xs)+(ye-ys)), using std::move
+template<class MoveValues, class MoveSequences>
 struct serial_move_merge {
     const std::size_t my_nmerge;
-    serial_move_merge(std::size_t nmerge) : my_nmerge(nmerge) {}
+    MoveValues move_values;
+    MoveSequences move_sequences;
+
+    explicit serial_move_merge(std::size_t nmerge, MoveValues move_values_, MoveSequences move_sequences_)
+        : my_nmerge(nmerge), move_values(move_values_), move_sequences(move_sequences_) {}
     template<class RandomAccessIterator1, class RandomAccessIterator2, class RandomAccessIterator3, class Compare>
     void operator()(RandomAccessIterator1 xs, RandomAccessIterator1 xe, RandomAccessIterator2 ys, RandomAccessIterator2 ye, RandomAccessIterator3 zs, Compare comp) {
         auto n = my_nmerge;
         assert(n > 0);
         if (xs != xe) {
             if (ys != ye) {
-                for (;;)
+                for (;;) {
                     if (comp(*ys, *xs)) {
-                        *zs = std::move(*ys);
+                        move_values(ys, zs);
                         ++zs, --n;
-                        if (++ys == ye)
-                            break;
-                        else if (n == 0) {
-                            zs = std::move(ys, ye, zs);
+                        if (++ys == ye) {
                             break;
                         }
+                        else if (n == 0) {
+                            zs = move_sequences(ys, ye, zs);
+                            break;
+                        }
+                        else {}
                     }
                     else {
-                        *zs = std::move(*xs);
+                        move_values(xs, zs);
                         ++zs, --n;
                         if (++xs == xe) {
-                            std::move(ys, ye, zs);
+                            move_sequences(ys, ye, zs);
                             return;
                         }
                         else if (n == 0) {
-                            zs = std::move(xs, xe, zs);
-                            std::move(ys, ye, zs);
+                            zs = move_sequences(xs, xe, zs);
+                            move_sequences(ys, ye, zs);
                             return;
                         }
+                        else {}
                     }
+                }
             }
             ys = xs;
             ye = xe;
         }
-        std::move(ys, ye, zs);
+        move_sequences(ys, ye, zs);
     }
 };
 

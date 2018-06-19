@@ -73,10 +73,12 @@ struct run_rnd {
         partial_sort(exec, b1, middle, e1, std::less<T>());
         partial_sort(exec, b1, b1, b1, non_const(std::less<T>()));
 
-        //partial_sort_copy
-        partial_sort_copy(exec, b1, e1, b2, e2);
-        partial_sort_copy(exec, b1, e1, b2, e2, std::less<T>());
-        partial_sort_copy(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        invoke_if(exec, [&]() {
+            //partial_sort_copy
+            partial_sort_copy(exec, b1, e1, b2, e2);
+            partial_sort_copy(exec, b1, e1, b2, e2, std::less<T>());
+            partial_sort_copy(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        });
 
         //sort
         sort(exec, b1, e1);
@@ -105,21 +107,23 @@ struct run_rnd_bi {
 
         //usage of "non_const" adapter - we pass empty container due to just compilation checks
 
-        //inplace_merge
-        auto middle = next(b1, distance(b1, e1) / 2);
-        inplace_merge(exec, b1, middle, e1);
-        inplace_merge(exec, b1, middle, e1, std::less<T>());
-        inplace_merge(exec, b1, b1, b1, non_const(std::less<T>()));
+        invoke_if(exec, [&]() {
+            //inplace_merge
+            auto middle = next(b1, distance(b1, e1) / 2);
+            inplace_merge(exec, b1, middle, e1);
+            inplace_merge(exec, b1, middle, e1, std::less<T>());
+            inplace_merge(exec, b1, b1, b1, non_const(std::less<T>()));
 
-        //reverse
-        reverse(exec, b2, e2);
+            //reverse
+            reverse(exec, b2, e2);
 
-        //reverse_copy
-        reverse_copy(exec, b1, e1, b2);
+            //reverse_copy
+            reverse_copy(exec, b1, e1, b2);
 
-        //stable_partition
-        stable_partition(exec, b1, e1, is_even);
-        stable_partition(exec, b1, b1, non_const(is_even));
+            //stable_partition
+            stable_partition(exec, b1, e1, is_even);
+            stable_partition(exec, b1, b1, non_const(is_even));
+        });
     }
 
     template <typename Policy, typename Iterator>
@@ -290,9 +294,11 @@ struct run_rnd_fw {
         none_of(exec, b1, e1, is_even);
         none_of(exec, b1, b1, non_const(is_even));
 
-        //partition
-        partition(exec, b1, e1, is_even);
-        partition(exec, b1, b1, non_const(is_even));
+        invoke_if(exec, [&]() {
+            //partition
+            partition(exec, b1, e1, is_even);
+            partition(exec, b1, b1, non_const(is_even));
+        });
 
         //partition_copy
         partition_copy(exec, b1, e1, out, out, is_even);
@@ -330,10 +336,10 @@ struct run_rnd_fw {
         //rotate
         rotate(exec, b1, b1, e1);
 
-        //rotate_copy
-        rotate_copy(exec, b1, b1, e1, out);
-
         invoke_if(exec, [&]() {
+            //rotate_copy
+            rotate_copy(exec, b1, b1, e1, out);
+
             //search
             search(exec, b1, e1, b2, e2);
             search(exec, b1, e1, b2, e2, std::equal_to<T>());
