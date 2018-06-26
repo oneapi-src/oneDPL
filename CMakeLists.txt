@@ -34,6 +34,8 @@ include(CMakePackageConfigHelpers)
 add_library(ParallelSTL INTERFACE)
 add_library(pstl::ParallelSTL ALIAS ParallelSTL)
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
 if (PARALLELSTL_USE_PARALLEL_POLICIES)
     if (PARALLELSTL_BACKEND STREQUAL "tbb")
         find_package(TBB 2018 REQUIRED tbb)
