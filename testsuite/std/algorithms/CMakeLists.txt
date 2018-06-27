@@ -1,0 +1,7 @@
+add_subdirectory(alg.nonmodifying)
+add_subdirectory(alg.modifying.operations)
+add_subdirectory(alg.sorting)
+add_subdirectory(alg.partitions)
+add_subdirectory(alg.merge)
+add_subdirectory(alg.heap.operations)
+add_subdirectory(alg.min.max)

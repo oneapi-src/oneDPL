@@ -69,3 +69,21 @@ configure_file(
 
 export(TARGETS ParallelSTL NAMESPACE pstl:: FILE ParallelSTLTargets.cmake)
 export(PACKAGE ParallelSTL)
+
+set(CMAKE_CXX_STANDARD_REQUIRED 14)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # using Clang
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-vectorize")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # using GCC
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-tree-vectorize -fopenmp-simd")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.8.5")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp-simd")
+  endif()
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  # using Intel C++
+  # TODO provide Intel flags config
+endif()
+
+enable_testing()
+add_subdirectory(testsuite)
