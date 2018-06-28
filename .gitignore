@@ -1,5 +1,3 @@
-# -*- mode: gitignore; -*-
-
 # Ignore the debug and release directories created with Makefile builds #
 #########################################################################
 build/*_debug/
@@ -73,9 +71,6 @@ Thumbs.db
 /rules.ninja
 *~
 .emacs.desktop
-*~
-.\#*
-\#*\#
 
 # Build system generated files #
 ################################
