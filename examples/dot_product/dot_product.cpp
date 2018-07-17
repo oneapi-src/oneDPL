@@ -43,11 +43,11 @@ int main(int argc, char* argv[]) {
     std::vector<double> v1(size), v2(size);
 
     //initialize vectors with random numbers
-    std::generate(pstl::execution::par, v1.begin(), v1.end(), random_number_generator);
-    std::generate(pstl::execution::par, v2.begin(), v2.end(), random_number_generator);
+    std::generate(__pstl::execution::par, v1.begin(), v1.end(), random_number_generator);
+    std::generate(__pstl::execution::par, v2.begin(), v2.end(), random_number_generator);
 
     //the dot product calculation
-    double res = std::transform_reduce(pstl::execution::par_unseq, v1.cbegin(), v1.cend(), v2.cbegin(), .0,
+    double res = std::transform_reduce(__pstl::execution::par_unseq, v1.cbegin(), v1.cend(), v2.cbegin(), .0,
         std::plus<double>(), std::multiplies<double>());
 
     std::cout << "The dot product is: " << res << std::endl;
