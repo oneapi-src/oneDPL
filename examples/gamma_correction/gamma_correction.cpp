@@ -66,9 +66,9 @@ void applyGamma(Rows& image, double g) {
     typedef decltype(image[0][0]) Pixel;
     const int w = image[1] - image[0];
 
-    //execution STL algorithms with execution policies - pstl::execution::par and pstl::execution::unseq
-    std::for_each(pstl::execution::par, image.begin(), image.end(), [g, w](Row& r) {
-        std::transform(pstl::execution::unseq, r, r+w, r, [g](Pixel& p) {
+    //execution STL algorithms with execution policies - __pstl::execution::par and pstl::execution::unseq
+    std::for_each(__pstl::execution::par, image.begin(), image.end(), [g, w](Row& r) {
+        std::transform(__pstl::execution::unseq, r, r+w, r, [g](Pixel& p) {
             double v = 0.3*p.bgra[2] + 0.59*p.bgra[1] + 0.11*p.bgra[0]; //RGB Luminance value
             assert(v > 0);
             double res = pow(v, g);
