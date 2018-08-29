@@ -22,7 +22,7 @@
 
 #include "pstl/execution"
 #include "pstl/algorithm"
-#include "test/utils.h"
+#include "utils.h"
 
 #include <set>
 #include <cassert>

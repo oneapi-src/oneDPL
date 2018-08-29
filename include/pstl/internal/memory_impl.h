@@ -32,20 +32,20 @@ namespace internal {
 // uninitialized_move
 //------------------------------------------------------------------------
 
-template<class InputIterator, class ForwardIterator>
-ForwardIterator brick_uninitialized_move(InputIterator first, InputIterator last, ForwardIterator result, /*vector=*/std::false_type) noexcept {
-    typedef typename std::iterator_traits<ForwardIterator>::value_type value_type2;
-    for (; first != last; ++first, ++result) {
-        ::new (reduce_to_ptr(result)) value_type2(std::move(*first));
+template<class _ForwardIterator, class _OutputIterator>
+_OutputIterator brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result, /*vector=*/std::false_type) noexcept {
+    typedef typename std::iterator_traits<_OutputIterator>::value_type _ValueType2;
+    for (; __first != __last; ++__first, ++__result) {
+        ::new (reduce_to_ptr(__result)) _ValueType2(std::move(*__first));
     }
-    return result;
+    return __result;
 }
 
-template<class InputIterator, class ForwardIterator>
-ForwardIterator brick_uninitialized_move(InputIterator first, InputIterator last, ForwardIterator result, /*vector=*/std::true_type) noexcept {
-    typedef typename std::iterator_traits<ForwardIterator>::value_type value_type2;
-    return unseq_backend::simd_it_walk_2(first, last - first, result,
-        [](InputIterator first1, ForwardIterator first2) {::new (reduce_to_ptr(first2)) value_type2(std::move(*first1));
+template<class _ForwardIterator, class _OutputIterator>
+_OutputIterator brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result, /*vector=*/std::true_type) noexcept {
+    typedef typename std::iterator_traits<_OutputIterator>::value_type __ValueType2;
+    return unseq_backend::simd_it_walk_2(__first, __last - __first, __result,
+        [](_ForwardIterator __first1, _OutputIterator first2) {::new (reduce_to_ptr(first2)) __ValueType2(std::move(*__first1));
     });
 }
 

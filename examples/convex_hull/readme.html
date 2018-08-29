@@ -318,7 +318,7 @@
 		The example generates a set of random 2D points by <code>std::generate</code>. Then performs the quickhull algorithm on it.
 		Left and right most points are found by <code>std::minmax_element</code>.
 		On each step points on the right side of oriented line are copied by <code>std::copy_if</code> and the farthest point is found by <code>std::max_element</code>.
-		Correctness of the convex hull is checked by <code>std::any_of</code> algorithm with counting iterators.
+		Correctness of the convex hull is checked by <code>std::any_of</code> algorithm with counting iterator (Threading Building Blocks (TBB) 2019 is required).
 		The output of the example application is a CSV file with points of the convex hull.
 	</p>
 
@@ -362,10 +362,7 @@
 		<div class="h3-alike">Build instructions</div>
 		<input type="checkbox" checked="checked">
 		<div class="show-hide">
-			<p>To use Parallel STL, set up the environment by calling the <i><code>pstlvars</code></i> script (if you use a command line) or set the <code>%PSTLROOT%</code> 
-                        	environment variable pointing to the <code>&lt;pstl_installdir&gt;</code> folder (in Microsoft* Visual Studio* IDE on Windows* OS)
-				and add the <code>&lt;pstl_installdir&gt;/pstl/include</code> folder to the compiler include paths.
-                        </p>
+			<p>Read <a href="https://software.intel.com/en-us/get-started-with-pstl">Getting Started with Parallel STL</a> for general instructions on setting up and using Parallel STL.</p>
 			<p>Use the <a href="Makefile">Makefile</a> to build the example on the command line.</p>
 			<p>Use the <a href="msvs/convex_hull.sln">msvs/convex_hull.sln</a> project file to build the example in the Microsoft* Visual Studio* IDE (Windows* systems only).</p>
 		</div>

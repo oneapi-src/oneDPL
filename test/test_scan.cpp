@@ -20,7 +20,7 @@
 
 #include "pstl/execution"
 #include "pstl/numeric"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -78,10 +78,25 @@ OutputIterator inclusive_scan_serial(InputIterator first, InputIterator last, Ou
 // flag inclusive, which is set to each alternative by main().
 static bool inclusive;
 
-template<typename T>
-void check_and_reset( const Sequence<T>& in, Sequence<T>& out, Sequence<T>& expected, T trash ) {
-    EXPECT_EQ(expected, out, inclusive ? "result from inclusive_scan" : "result from exclusive_scan");
-    out.fill(trash);
+template<typename Iterator, typename Size, typename T>
+void check_and_reset(Iterator expected_first, Iterator out_first, Size n, T trash) {
+    EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "wrong result from transform_inclusive_scan" : "wrong result from transform_exclusive_scan");
+    std::fill_n(out_first, n, trash);
+}
+template<typename Iterator, typename Size, typename T>
+void check_and_reset(Iterator expected_first, Iterator out_first, Size n, const Matrix2x2<T>& trash) {
+    for (Size k = 0; k < n; ++k) {
+        if (!is_equal(*expected_first, *out_first)) {
+            if (inclusive) {
+                std::cout << "wrong result from transform_inclusive_scan" << std::endl;
+            }
+            else {
+                std::cout << "wrong result from transform_exclusive_scan" << std::endl;
+            }
+            break;
+        }
+    }
+    std::fill_n(out_first, n, trash);
 }
 
 struct test_scan_with_plus {
@@ -96,7 +111,6 @@ struct test_scan_with_plus {
             inclusive_scan(exec, in_first, in_last, out_first) :
             exclusive_scan(exec, in_first, in_last, out_first, init);
         EXPECT_TRUE(out_last == orr, inclusive ? "inclusive_scan returned wrong iterator" : "exclusive_scan returned wrong iterator" );
-        EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "wrong effect from inclusive_scan" : "wrong effect from exclusive_scan");
         fill(out_first, out_last, trash);
     }
 };
@@ -128,8 +142,7 @@ struct test_scan_with_binary_op {
             inclusive_scan(exec, in_first, in_last, out_first, binary_op, init) :
             exclusive_scan(exec, in_first, in_last, out_first, init, binary_op);
         EXPECT_TRUE(out_last == orr, "scan returned wrong iterator");
-        EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "wrong effect from inclusive_scan" : "wrong effect from exclusive_scan");
-        fill(out_first, out_last, trash);
+        check_and_reset(expected_first, out_first, n, trash);
     }
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T, typename BinaryOp>
@@ -139,12 +152,15 @@ struct test_scan_with_binary_op {
     }
 };
 
-template <typename T, typename BinaryOp, typename Convert>
-void test_with_binary_op(T init, BinaryOp binary_op, T trash, Convert convert) {
+template <typename In, typename Out, typename BinaryOp>
+void test_matrix(Out init, BinaryOp binary_op, Out trash) {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
-        Sequence<T> in(n, convert);
-        Sequence<T> expected(in);
-        Sequence<T> out(n, [&](int32_t k) {return trash; });
+        Sequence<In> in(n, [](size_t k) {
+            return In(k, k + 1);
+        });
+
+        Sequence<Out> out(n, [&](size_t) {return trash; });
+        Sequence<Out> expected(n, [&](size_t) {return trash; });
 
         invoke_on_all_policies(test_scan_with_binary_op(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
         invoke_on_all_policies(test_scan_with_binary_op(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
@@ -155,12 +171,11 @@ int32_t main() {
     for(int32_t mode=0; mode<2; ++mode ) {
         inclusive = mode!=0;
 
-        // Test with highly restricted type
-        test_with_binary_op<MonoidElement>(
-            MonoidElement(~0u,0u,OddTag()),
-            AssocOp(OddTag()),
-            MonoidElement(666,666,OddTag()),
-            [](uint32_t k) {return MonoidElement(k,k+1,OddTag());});
+        // Test with highly restricted type and associative but not commutative operation
+        test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(
+            Matrix2x2<int32_t>(),
+            multiply_matrix<int32_t>,
+            Matrix2x2<int32_t>(-666, 666));
 
         // Since the implict "+" forms of the scan delegate to the generic forms,
         // there's little point in using a highly restricted type, so just use double.

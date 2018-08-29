@@ -18,13 +18,13 @@
 
 */
 
-#include "test/pstl_test_config.h"
+#include "pstl_test_config.h"
 #include <string>
 #include <iostream>
 
 #include "pstl/execution"
 #include "pstl/algorithm"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -135,7 +135,9 @@ private:
 int32_t main( ) {
     test<uint16_t, float64_t>(std::less<float64_t>());
     test<float32_t, int32_t>(std::greater<float32_t>());
+#if !__PSTL_ICC_18_TEST_EARLY_EXIT_AVX_RELEASE_BROKEN
     test<float64_t, int32_t>([](const float64_t x, const int32_t y) {return x*x < y*y; });
+#endif
     test<LocalWrapper<int32_t>, LocalWrapper<int32_t>>(
         [](const LocalWrapper<int32_t>& x, const LocalWrapper<int32_t>& y) {return x < y; }
     );

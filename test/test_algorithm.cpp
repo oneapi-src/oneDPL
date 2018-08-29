@@ -50,6 +50,7 @@ struct run_rnd {
 
         //usage of "non_const" adapter - we pass empty container due to just compilation checks
 
+        auto middle = b1 + (e1 - b1) / 2;
         invoke_if(exec, [&]() {
             //is_heap
             is_heap(exec, b1, e1);
@@ -60,13 +61,12 @@ struct run_rnd {
             is_heap_until(exec, b1, e1);
             is_heap_until(exec, b1, e1, std::less<T>());
             is_heap_until(exec, b1, b1, non_const(std::less<T>()));
-        });
 
-        //nth_element
-        auto middle = b1 + (e1 - b1) / 2;
-        nth_element(exec, b1, middle, e1);
-        nth_element(exec, b1, middle, e1, std::less<T>());
-        nth_element(exec, b1, b1, b1, non_const(std::less<T>()));
+            //nth_element
+            nth_element(exec, b1, middle, e1);
+            nth_element(exec, b1, middle, e1, std::less<T>());
+            nth_element(exec, b1, b1, b1, non_const(std::less<T>()));
+        });
 
         //partial_sort
         partial_sort(exec, b1, middle, e1);
@@ -230,11 +230,6 @@ struct run_rnd_fw {
         generate_n(exec, b1, n, gen);
         generate_n(exec, b1, 0, non_const(gen));
 
-        //includes
-        includes(exec, b1, e1, b2, e2);
-        includes(exec, b1, e1, b2, e2, std::less<T>());
-        includes(exec, b1, b1, b2, b2, non_const(std::less<T>()));
-
         invoke_if(exec, [&]() {
             //is_partitioned
             is_partitioned(exec, b1, e1, is_even);
@@ -333,10 +328,10 @@ struct run_rnd_fw {
             replace_if(exec, b1, b1, non_const(is_even), T(0));
         });
 
-        //rotate
-        rotate(exec, b1, b1, e1);
-
         invoke_if(exec, [&]() {
+            //rotate
+            rotate(exec, b1, b1, e1);
+
             //rotate_copy
             rotate_copy(exec, b1, b1, e1, out);
 
@@ -381,12 +376,12 @@ struct run_rnd_fw {
 
             transform(exec, b1, e1, b2, out, std::plus<T>());
             transform(exec, b1, b1, b2, out, non_const(std::plus<T>()));
-        });
 
-        //unique
-        unique(exec, b1, e1);
-        unique(exec, b1, e1, std::equal_to<T>());
-        unique(exec, b1, b1, non_const(std::equal_to<T>()));
+            //unique
+            unique(exec, b1, e1);
+            unique(exec, b1, e1, std::equal_to<T>());
+            unique(exec, b1, b1, non_const(std::equal_to<T>()));
+        });
 
         //unique_copy
         unique_copy(exec, b1, e1, out);

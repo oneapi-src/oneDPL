@@ -27,64 +27,63 @@ namespace std {
 
 // [uninitialized.copy]
 
-template<class ExecutionPolicy, class InputIterator, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-uninitialized_copy(ExecutionPolicy&& exec, InputIterator first, InputIterator last, ForwardIterator result);
+template<class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result);
 
-template<class ExecutionPolicy, class InputIterator, class Size, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-uninitialized_copy_n(ExecutionPolicy&& exec, InputIterator first, Size n, ForwardIterator result);
+template<class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result);
 
 // [uninitialized.move]
 
-template<class ExecutionPolicy, class InputIterator, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-uninitialized_move(ExecutionPolicy&& exec, InputIterator first, InputIterator last, ForwardIterator result);
+template<class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result);
 
-template<class ExecutionPolicy, class InputIterator, class Size, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-uninitialized_move_n(ExecutionPolicy&& exec, InputIterator first, Size n, ForwardIterator result);
+template<class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result);
 
 // [uninitialized.fill]
 
-template<class ExecutionPolicy, class ForwardIterator, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-uninitialized_fill(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last, const T& value);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
-template<class ExecutionPolicy, class ForwardIterator, class Size, class T>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-uninitialized_fill_n(ExecutionPolicy&& exec, ForwardIterator first, Size n, const T& value);
+template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, const _Tp& __value);
 
 // [specialized.destroy]
 
-template <class ExecutionPolicy, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-destroy(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template <class _ExecutionPolicy, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
-template <class ExecutionPolicy, class ForwardIterator, class Size>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-destroy_n(ExecutionPolicy&& exec, ForwardIterator first, Size n);
+template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n);
 
 // [uninitialized.construct.default]
 
-template <class ExecutionPolicy, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-uninitialized_default_construct(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template <class _ExecutionPolicy, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+uninitialized_default_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
-template <class ExecutionPolicy, class ForwardIterator, class Size>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-uninitialized_default_construct_n(ExecutionPolicy&& exec, ForwardIterator first, Size n);
+template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+uninitialized_default_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n);
 
 // [uninitialized.construct.value]
 
-template <class ExecutionPolicy, class ForwardIterator>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, void>
-uninitialized_value_construct(ExecutionPolicy&& exec, ForwardIterator first, ForwardIterator last);
+template <class _ExecutionPolicy, class _ForwardIterator>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
+uninitialized_value_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
-template <class ExecutionPolicy, class ForwardIterator, class Size>
-pstl::internal::enable_if_execution_policy<ExecutionPolicy, ForwardIterator>
-uninitialized_value_construct_n(ExecutionPolicy&& exec, ForwardIterator first, Size n);
+template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
+pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n);
 
 } //  namespace std
-
 #endif /* __PSTL_glue_memory_defs_H */

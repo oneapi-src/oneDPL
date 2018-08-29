@@ -24,7 +24,7 @@
 #include "pstl/execution"
 #include "pstl/algorithm"
 #include "pstl/iterators.h"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 

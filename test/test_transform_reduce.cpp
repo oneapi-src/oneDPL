@@ -22,7 +22,7 @@
 
 #include "pstl/execution"
 #include "pstl/numeric"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -95,8 +95,8 @@ void test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp 
     Sequence<T> in2(maxSize, initObj);
 
     for (std::size_t n = 0; n < maxSize; n = n < 16 ? n + 1 : size_t(3.1415 * n)) {
-        invoke_on_all_policies(test_transform_reduce(), in1.begin(), in1.end(), in2.begin(), in2.end(), init, opB1, opB2, opU);
-        invoke_on_all_policies(test_transform_reduce(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(), init, opB1, opB2, opU);
+        invoke_on_all_policies(test_transform_reduce(), in1.begin(), in1.begin() + n, in2.begin(), in2.begin() + n, init, opB1, opB2, opU);
+        invoke_on_all_policies(test_transform_reduce(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(), in2.cbegin() + n, init, opB1, opB2, opU);
     }
 }
 

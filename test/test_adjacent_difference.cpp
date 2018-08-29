@@ -18,14 +18,14 @@
 
 */
 
-#include "test/pstl_test_config.h"
+#include "pstl_test_config.h"
 
 #include <iterator>
 
 #include "pstl/execution"
 #include "pstl/algorithm"
 #include "pstl/numeric"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 

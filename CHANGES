@@ -1,6 +1,23 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2019
+PSTL_VERSION == 200
+
+Features / APIs:
+
+- More algorithms support parallel and vector execution policies:
+    rotate.
+- More algorithms support parallel execution policies:
+    includes, nth_element, remove, remove_if, unique.
+- More algorithms support vector execution policies:
+    exclusive_scan, inclusive_scan, max_element, minmax_element,
+    min_element, reduce, transform_exclusive_scan, transform_inclusive_scan,
+    transform_reduce.
+- Arranged types and variables naming: single- and double-underscore.
+    (by Thomas Rodgers).
+
+------------------------------------------------------------------------
 Parallel STL 20180619 release
 PSTL_VERSION == 106
 

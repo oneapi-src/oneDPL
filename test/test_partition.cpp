@@ -19,11 +19,11 @@
 */
 
 // Tests for stable_partition and partition
-#include "test/pstl_test_config.h"
+#include "pstl_test_config.h"
 
 #include "pstl/execution"
 #include "pstl/algorithm"
-#include "test/utils.h"
+#include "utils.h"
 
 #include <iterator>
 #include <type_traits>
@@ -58,9 +58,15 @@ typename std::enable_if<!std::is_trivial<typename std::iterator_traits<Iterator>
 is_equal(Iterator first, Iterator last, Iterator d_first) { return true; }
 
 struct test_one_policy {
-#if __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
+#if __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specializations to skip testing in case of broken configuration
     template<typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
     void operator()(pstl::execution::unsequenced_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size n, UnaryOp unary_op, Generator generator) {}
+
+    template<typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
+    void operator()(pstl::execution::parallel_unsequenced_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size n, UnaryOp unary_op, Generator generator) {}
+#elif __PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN //dummy specializations to skip testing in case of broken configuration
+    template<typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
+    void operator()(pstl::execution::parallel_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size n, UnaryOp unary_op, Generator generator) {}
 
     template<typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
     void operator()(pstl::execution::parallel_unsequenced_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size n, UnaryOp unary_op, Generator generator) {}

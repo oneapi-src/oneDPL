@@ -18,16 +18,26 @@
 
 */
 
-// Tests for unique_copy that uses == as equivalence relationship
-#include "test/pstl_test_config.h"
+// Tests for unique_copy
+#include "pstl_test_config.h"
 
 #include "pstl/execution"
 #include "pstl/algorithm"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 
 struct run_unique_copy {
+#if __PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN // dummy specializations to skip testing in case of broken configuration
+    template<typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Predicate, typename T>
+    void operator()(pstl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
+        OutputIterator2 expected_first, OutputIterator2 expected_last, Size n, Predicate pred, T trash) { }
+
+    template<typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Predicate, typename T>
+    void operator()(pstl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
+        OutputIterator2 expected_first, OutputIterator2 expected_last, Size n, Predicate pred, T trash) { }
+#endif
+
     template<typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size, typename Predicate, typename T>
     void operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
         OutputIterator2 expected_first, OutputIterator2 expected_last, Size n, Predicate pred, T trash) {

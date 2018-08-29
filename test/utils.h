@@ -112,7 +112,7 @@ void expect_equal(Iterator expected_first, Iterator actual_first, Size n, const 
         if (!(*expected_first == *actual_first)) {
             std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - "
-                << message << ", at index " << k << " expected " << *expected_first << " got " << *actual_first;
+                << message << ", at index " << k;
             issue_error_message(outstr);
             ++error_count;
         }
@@ -388,6 +388,34 @@ public:
         return MonoidElement(x.a, y.b, OddTag());
     }
 };
+
+// Multiplication of matrix is an associative but not commutative operation
+// Typically used as value type in tests involving "GENERALIZED_NONCOMMUTATIVE_SUM".
+template<typename T>
+struct Matrix2x2 {
+    T a[2][2];
+    Matrix2x2(): a { {1,0}, {0,1} } { }
+    Matrix2x2(T x, T y): a { { 0,x }, { x,y } } { }
+};
+
+template<typename T>
+bool is_equal(const Matrix2x2<T>& left, const Matrix2x2<T>& right) {
+    return
+        left.a[0][0] == right.a[0][0] && left.a[0][1] == right.a[0][1] &&
+        left.a[1][0] == right.a[1][0] && left.a[1][1] == right.a[1][1];
+}
+
+template<typename T>
+Matrix2x2<T> multiply_matrix(const Matrix2x2<T>& left, const Matrix2x2<T>& right) {
+    Matrix2x2<T> result;
+    for (int32_t i = 0; i < 2; ++i) {
+        for (int32_t j = 0; j < 2; ++j) {
+            result.a[i][j] = left.a[i][0] * right.a[0][j] + left.a[i][1] * right.a[1][j];
+        }
+    }
+    return result;
+}
+
 
 // Check that Intel(R) Threading Building Blocks header files are not used when parallel policies are off
 #if !__PSTL_USE_PAR_POLICIES

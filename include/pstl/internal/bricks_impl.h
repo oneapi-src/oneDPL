@@ -24,28 +24,28 @@
 namespace pstl {
 namespace internal {
 
-template<class Iterator1, class Iterator2, class Function>
-Iterator2 brick_it_walk2(Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::false_type) noexcept {
-    for (; first1 != last1; ++first1, ++first2)
-        f(first1, first2);
-    return first2;
+template<class _Iterator1, class _Iterator2, class _Function>
+_Iterator2 brick_it_walk2(_Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2, _Function __f, /*vector=*/std::false_type) noexcept {
+    for (; __first1 != __last1; ++__first1, ++__first2)
+        __f(__first1, __first2);
+    return __first2;
 }
 
-template<class Iterator1, class Iterator2, class Function>
-Iterator2 brick_it_walk2(Iterator1 first1, Iterator1 last1, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_it_walk_2(first1, last1 - first1, first2, f);
+template<class _Iterator1, class _Iterator2, class _Function>
+_Iterator2 brick_it_walk2(_Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2, _Function __f, /*vector=*/std::true_type) noexcept {
+    return unseq_backend::simd_it_walk_2(__first1, __last1 - __first1, __first2, __f);
 }
 
-template<class Iterator1, class Size, class Iterator2, class Function>
-Iterator2 brick_it_walk2_n(Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::false_type) noexcept {
-    for (; n > 0; --n, ++first1, ++first2)
-        f(first1, first2);
-    return first2;
+template<class _Iterator1, class _Size, class _Iterator2, class _Function>
+_Iterator2 brick_it_walk2_n(_Iterator1 __first1, _Size __n, _Iterator2 __first2, _Function __f, /*vector=*/std::false_type) noexcept {
+    for (; __n > 0; --__n, ++__first1, ++__first2)
+        __f(__first1, __first2);
+    return __first2;
 }
 
-template<class Iterator1, class Size, class Iterator2, class Function>
-Iterator2 brick_it_walk2_n(Iterator1 first1, Size n, Iterator2 first2, Function f, /*vector=*/std::true_type) noexcept {
-    return unseq_backend::simd_it_walk_2(first1, n, first2, f);
+template<class _Iterator1, class _Size, class _Iterator2, class _Function>
+_Iterator2 brick_it_walk2_n(_Iterator1 __first1, _Size __n, _Iterator2 __first2, _Function __f, /*vector=*/std::true_type) noexcept {
+    return unseq_backend::simd_it_walk_2(__first1, __n, __first2, __f);
 }
 
 } // namespace internal
