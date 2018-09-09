@@ -66,6 +66,9 @@
 #if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (__PSTL_GCC_VERSION >= 40900)
 #define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(omp simd)
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM) __PSTL_PRAGMA(omp simd reduction(PRM))
+#elif defined(__clang__)
+#define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(clang loop vectorize(enable))
+#define __PSTL_PRAGMA_SIMD_REDUCTION(PRM) __PSTL_PRAGMA_SIMD
 #elif !defined(_MSC_VER) //#pragma simd
 #define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(simd)
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM) __PSTL_PRAGMA(simd reduction(PRM))

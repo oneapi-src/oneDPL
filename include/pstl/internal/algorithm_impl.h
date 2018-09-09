@@ -1374,7 +1374,7 @@ _ForwardIterator brick_adjacent_find(_ForwardIterator __first, _ForwardIterator 
 }
 
 template<class _ForwardIterator, class _BinaryPredicate>
-_ForwardIterator brick_adjacent_find(_ForwardIterator __first, _ForwardIterator __last, _BinaryPredicate __pred, /* IsVector = */ std::false_type, bool __or_semantic) noexcept {
+_ForwardIterator brick_adjacent_find(_ForwardIterator __first, _ForwardIterator __last, _BinaryPredicate __pred, /* IsVector = */ std::false_type, bool /* __or_semantic */) noexcept {
     return std::adjacent_find(__first, __last, __pred);
 }
 

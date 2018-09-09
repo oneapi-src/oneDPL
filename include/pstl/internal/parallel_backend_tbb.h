@@ -381,7 +381,7 @@ public:
 const size_t __PSTL_MERGE_CUT_OFF = 2000;
 template<typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3, typename __M_Compare, typename _Cleanup, typename _LeafMerge>
 tbb::task* merge_task<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare, _Cleanup, _LeafMerge>::execute() {
-    const auto __n = (_M_xe-_M_xs) + (_M_ye-_M_ys);
+    const size_t __n = (_M_xe-_M_xs) + (_M_ye-_M_ys);
     if(__n <= __PSTL_MERGE_CUT_OFF) {
         _M_leaf_merge(_M_xs, _M_xe, _M_ys, _M_ye, _M_zs, _M_comp);
 
@@ -426,9 +426,9 @@ public:
       : _M_xs(__xs)
       , _M_xe(__xe)
       , _M_zs(__zs)
-      , _M_inplace(__inplace)
       , _M_comp(__comp)
       , _M_leaf_sort(__leaf_sort)
+      , _M_inplace(__inplace)
     {}
 };
 
