@@ -24,7 +24,7 @@
 #include "pstl/execution"
 #include "pstl/algorithm"
 #include "pstl/iterators.h"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -104,24 +104,24 @@ void test_iterator_by_type(IntType n) {
     const IntType end = n;
     Sequence<T> in(end-beg, [](size_t)->T { return T(0); }); //fill with zeros
     T value = -1;
-    test_counting_iterator()(__pstl::execution::seq, in, beg, end, value);
-    test_counting_iterator()(__pstl::execution::unseq, in, beg, end, value);
-    test_counting_iterator()(__pstl::execution::par, in, beg, end, value);
-    test_counting_iterator()(__pstl::execution::par_unseq, in, beg, end, value);
+    test_counting_iterator()(pstl::execution::seq, in, beg, end, value);
+    test_counting_iterator()(pstl::execution::unseq, in, beg, end, value);
+    test_counting_iterator()(pstl::execution::par, in, beg, end, value);
+    test_counting_iterator()(pstl::execution::par_unseq, in, beg, end, value);
 
     Sequence<IntType> in2(end-beg, [](size_t)->IntType { return IntType(0); }); //fill with zeros
 
     // Zip Iterator doesn't work correctly with unseq and par_unseq policies with compilers older than icc 18
     #if (__INTEL_COMPILER && __INTEL_COMPILER<1800)
-        test_zip_iterator()(__pstl::execution::seq, in, in2);
+        test_zip_iterator()(pstl::execution::seq, in, in2);
         #if __PSTL_USE_PAR_POLICIES
             test_zip_iterator()(__pstl::execution::par, in, in2);
         #endif
     #else
-    test_zip_iterator()(__pstl::execution::seq, in, in2);
-    test_zip_iterator()(__pstl::execution::unseq, in, in2);
-    test_zip_iterator()(__pstl::execution::par, in, in2);
-    test_zip_iterator()(__pstl::execution::par_unseq, in, in2);
+    test_zip_iterator()(pstl::execution::seq, in, in2);
+    test_zip_iterator()(pstl::execution::unseq, in, in2);
+    test_zip_iterator()(pstl::execution::par, in, in2);
+    test_zip_iterator()(pstl::execution::par_unseq, in, in2);
     #endif
 }
 

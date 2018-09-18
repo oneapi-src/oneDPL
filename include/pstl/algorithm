@@ -31,4 +31,5 @@
 #include "internal/glue_algorithm_defs.h"
 #define __PSTL_ALGORITHM_FORWARD_DECLARED 1
 #endif
+
 #endif /* __PSTL_algorithm */

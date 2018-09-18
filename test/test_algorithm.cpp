@@ -29,7 +29,7 @@
 
 using namespace TestUtils;
 
-auto is_even = [](double v) { unsigned int i = (unsigned int)v;  return i % 2 == 0; };
+auto is_even = [](float64_t v) { uint32_t i = (uint32_t)v;  return i % 2 == 0; };
 
 template<typename Policy, typename F>
 static void invoke_if(Policy&& p, F f) {
@@ -50,6 +50,7 @@ struct run_rnd {
 
         //usage of "non_const" adapter - we pass empty container due to just compilation checks
 
+        auto middle = b1 + (e1 - b1) / 2;
         invoke_if(exec, [&]() {
             //is_heap
             is_heap(exec, b1, e1);
@@ -60,23 +61,24 @@ struct run_rnd {
             is_heap_until(exec, b1, e1);
             is_heap_until(exec, b1, e1, std::less<T>());
             is_heap_until(exec, b1, b1, non_const(std::less<T>()));
-        });
 
-        //nth_element
-        auto middle = b1 + (e1 - b1) / 2;
-        nth_element(exec, b1, middle, e1);
-        nth_element(exec, b1, middle, e1, std::less<T>());
-        nth_element(exec, b1, b1, b1, non_const(std::less<T>()));
+            //nth_element
+            nth_element(exec, b1, middle, e1);
+            nth_element(exec, b1, middle, e1, std::less<T>());
+            nth_element(exec, b1, b1, b1, non_const(std::less<T>()));
+        });
 
         //partial_sort
         partial_sort(exec, b1, middle, e1);
         partial_sort(exec, b1, middle, e1, std::less<T>());
         partial_sort(exec, b1, b1, b1, non_const(std::less<T>()));
 
-        //partial_sort_copy
-        partial_sort_copy(exec, b1, e1, b2, e2);
-        partial_sort_copy(exec, b1, e1, b2, e2, std::less<T>());
-        partial_sort_copy(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        invoke_if(exec, [&]() {
+            //partial_sort_copy
+            partial_sort_copy(exec, b1, e1, b2, e2);
+            partial_sort_copy(exec, b1, e1, b2, e2, std::less<T>());
+            partial_sort_copy(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        });
 
         //sort
         sort(exec, b1, e1);
@@ -105,21 +107,23 @@ struct run_rnd_bi {
 
         //usage of "non_const" adapter - we pass empty container due to just compilation checks
 
-        //inplace_merge
-        auto middle = next(b1, distance(b1, e1) / 2);
-        inplace_merge(exec, b1, middle, e1);
-        inplace_merge(exec, b1, middle, e1, std::less<T>());
-        inplace_merge(exec, b1, b1, b1, non_const(std::less<T>()));
+        invoke_if(exec, [&]() {
+            //inplace_merge
+            auto middle = next(b1, distance(b1, e1) / 2);
+            inplace_merge(exec, b1, middle, e1);
+            inplace_merge(exec, b1, middle, e1, std::less<T>());
+            inplace_merge(exec, b1, b1, b1, non_const(std::less<T>()));
 
-        //reverse
-        reverse(exec, b2, e2);
+            //reverse
+            reverse(exec, b2, e2);
 
-        //reverse_copy
-        reverse_copy(exec, b1, e1, b2);
+            //reverse_copy
+            reverse_copy(exec, b1, e1, b2);
 
-        //stable_partition
-        stable_partition(exec, b1, e1, is_even);
-        stable_partition(exec, b1, b1, non_const(is_even));
+            //stable_partition
+            stable_partition(exec, b1, e1, is_even);
+            stable_partition(exec, b1, b1, non_const(is_even));
+        });
     }
 
     template <typename Policy, typename Iterator>
@@ -226,14 +230,11 @@ struct run_rnd_fw {
         generate_n(exec, b1, n, gen);
         generate_n(exec, b1, 0, non_const(gen));
 
-        //includes
-        includes(exec, b1, e1, b2, e2);
-        includes(exec, b1, e1, b2, e2, std::less<T>());
-        includes(exec, b1, b1, b2, b2, non_const(std::less<T>()));
-
-        //is_partitioned
-        is_partitioned(exec, b1, e1, is_even);
-        is_partitioned(exec, b1, b1, non_const(is_even));
+        invoke_if(exec, [&]() {
+            //is_partitioned
+            is_partitioned(exec, b1, e1, is_even);
+            is_partitioned(exec, b1, b1, non_const(is_even));
+        });
 
         //is_sorted
         is_sorted(exec, b1, e1);
@@ -245,10 +246,12 @@ struct run_rnd_fw {
         is_sorted_until(exec, b1, e1, std::less<T>());
         is_sorted_until(exec, b1, b1, non_const(std::less<T>()));
 
-        //lexicographical_compare
-        lexicographical_compare(exec, b1, e1, b2, e2);
-        lexicographical_compare(exec, b1, e1, b2, e2, std::less<T>());
-        lexicographical_compare(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        invoke_if(exec, [&]() {
+            //lexicographical_compare
+            lexicographical_compare(exec, b1, e1, b2, e2);
+            lexicographical_compare(exec, b1, e1, b2, e2, std::less<T>());
+            lexicographical_compare(exec, b1, b1, b2, b2, non_const(std::less<T>()));
+        });
 
         //max_element
         max_element(exec, b1, e1);
@@ -286,9 +289,11 @@ struct run_rnd_fw {
         none_of(exec, b1, e1, is_even);
         none_of(exec, b1, b1, non_const(is_even));
 
-        //partition
-        partition(exec, b1, e1, is_even);
-        partition(exec, b1, b1, non_const(is_even));
+        invoke_if(exec, [&]() {
+            //partition
+            partition(exec, b1, e1, is_even);
+            partition(exec, b1, b1, non_const(is_even));
+        });
 
         //partition_copy
         partition_copy(exec, b1, e1, out, out, is_even);
@@ -323,13 +328,13 @@ struct run_rnd_fw {
             replace_if(exec, b1, b1, non_const(is_even), T(0));
         });
 
-        //rotate
-        rotate(exec, b1, b1, e1);
-
-        //rotate_copy
-        rotate_copy(exec, b1, b1, e1, out);
-
         invoke_if(exec, [&]() {
+            //rotate
+            rotate(exec, b1, b1, e1);
+
+            //rotate_copy
+            rotate_copy(exec, b1, b1, e1, out);
+
             //search
             search(exec, b1, e1, b2, e2);
             search(exec, b1, e1, b2, e2, std::equal_to<T>());
@@ -361,22 +366,22 @@ struct run_rnd_fw {
         set_union(exec, b1, cmiddle, cmiddle, e1, out, std::less<T>());
         set_union(exec, b1, b1, b1, b1, out, non_const(std::less<T>()));
 
-        //swap_ranges
-        swap_ranges(exec, b1, e1, b2);
-
         invoke_if(exec, [&]() {
+            //swap_ranges
+            swap_ranges(exec, b1, e1, b2);
+
             //transform
             transform(exec, b1, e1, out, std::negate<T>());
             transform(exec, b1, b1, out, non_const(std::negate<T>()));
 
             transform(exec, b1, e1, b2, out, std::plus<T>());
             transform(exec, b1, b1, b2, out, non_const(std::plus<T>()));
-        });
 
-        //unique
-        unique(exec, b1, e1);
-        unique(exec, b1, e1, std::equal_to<T>());
-        unique(exec, b1, b1, non_const(std::equal_to<T>()));
+            //unique
+            unique(exec, b1, e1);
+            unique(exec, b1, e1, std::equal_to<T>());
+            unique(exec, b1, b1, non_const(std::equal_to<T>()));
+        });
 
         //unique_copy
         unique_copy(exec, b1, e1, out);

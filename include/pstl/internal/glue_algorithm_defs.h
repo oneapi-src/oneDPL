@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_glue_algorithm_defs_H_
-#define __PSTL_glue_algorithm_defs_H_
+#ifndef __PSTL_glue_algorithm_defs_H
+#define __PSTL_glue_algorithm_defs_H
 
 #include <functional>
 
@@ -155,14 +155,14 @@ swap_ranges(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardItera
 
 // [alg.transform]
 
-template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _unaryoperation>
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,_ForwardIterator2>
-transform( _ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result, _unaryoperation __op );
+transform( _ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result, _UnaryOperation __op );
 
-template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator, class _binaryoperation>
+template<class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator, class _BinaryOperation>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,_ForwardIterator>
 transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator __result,
-          _binaryoperation __op);
+          _BinaryOperation __op);
 
 // [alg.replace]
 
@@ -520,4 +520,4 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
 lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2);
 
 } // namespace std
-#endif /* __PSTL_glue_algorithm_defs_H_ */
+#endif /* __PSTL_glue_algorithm_defs_H */

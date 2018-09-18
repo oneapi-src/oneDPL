@@ -24,7 +24,7 @@
 
 #include <type_traits>
 
-namespace __pstl {
+namespace pstl {
 namespace execution {
 inline namespace v1 {
 
@@ -90,10 +90,12 @@ template<class T> constexpr bool is_execution_policy_v = is_execution_policy<T>:
 
 } //namespace v1
 } //namespace execution
+} //namespace pstl
 
+namespace __pstl {
 namespace internal {
     template<class ExecPolicy, class T> using enable_if_execution_policy = typename std::enable_if<
-      __pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value, T>::type;
+      pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value, T>::type;
 } // namespace internal
 } //namespace __pstl
 #endif /* __PSTL_execution_policy_defs_H */

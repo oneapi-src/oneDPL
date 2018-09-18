@@ -23,7 +23,7 @@
 
 #include "pstl/execution"
 #include "pstl/algorithm"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 

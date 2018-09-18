@@ -18,12 +18,11 @@
 
 */
 
-#include "test/pstl_test_config.h"
+#include "pstl_test_config.h"
 
 #include "pstl/execution"
 #include "pstl/numeric"
-#include "test/utils.h"
-#include "pstl/internal/numeric_impl.h" //for usage a serial algo version
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -48,8 +47,7 @@ void test_long_form(T init, BinaryOp binary_op, F f) {
 
         using namespace std;
 
-        // Try policy-free version
-        T result = __pstl::internal::brick_transform_reduce( in.cfbegin(), in.cfend(), init, binary_op, __pstl::internal::no_op(), std::false_type() );
+        T result = transform_reduce_serial(in.cfbegin(), in.cfend(), init, binary_op, [](const T& t) { return t; });
         EXPECT_EQ( expected, result, "bad result from reduce(first, last, init, binary_op_op)" );
 
         invoke_on_all_policies(test_long_forms_for_one_policy(), in.begin(), in.end(), init, binary_op, expected);
@@ -61,9 +59,9 @@ struct test_two_short_forms {
 
 #if __PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator>
-    void operator()(__pstl::execution::parallel_policy, Iterator first, Iterator last, Sum init, Sum expected) { }
+    void operator()(pstl::execution::parallel_policy, Iterator first, Iterator last, Sum init, Sum expected) { }
     template <typename Iterator>
-    void operator()(__pstl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Sum init, Sum expected) { }
+    void operator()(pstl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Sum init, Sum expected) { }
 #endif
 
     template <typename Policy, typename Iterator>

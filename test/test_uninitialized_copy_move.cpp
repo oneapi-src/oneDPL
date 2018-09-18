@@ -20,11 +20,11 @@
 
 // Tests for uninitialized_copy, uninitialized_copy_n, uninitialized_move, uninitialized_move_n
 
-#include "test/pstl_test_config.h"
+#include "pstl_test_config.h"
 
 #include "pstl/execution"
 #include "pstl/memory"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 

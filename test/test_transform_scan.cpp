@@ -20,8 +20,7 @@
 
 #include "pstl/execution"
 #include "pstl/numeric"
-#include "test/utils.h"
-#include "pstl/internal/numeric_impl.h" //for usage a serial algo version
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -32,7 +31,22 @@ static bool inclusive;
 
 template<typename Iterator, typename Size, typename T>
 void check_and_reset(Iterator expected_first, Iterator out_first, Size n, T trash) {
-    EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "result from transform_inclusive_scan" : "result from transform_exclusive_scan");
+    EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "wrong result from transform_inclusive_scan" : "wrong result from transform_exclusive_scan");
+    std::fill_n(out_first, n, trash);
+}
+template<typename Iterator, typename Size, typename T>
+void check_and_reset(Iterator expected_first, Iterator out_first, Size n, const Matrix2x2<T>& trash) {
+    for (Size k = 0; k < n; ++k) {
+        if (!is_equal(*expected_first, *out_first)) {
+            if(inclusive){
+                std::cout << "wrong result from transform_inclusive_scan" << std::endl;
+            }
+            else{
+                std::cout << "wrong result from transform_exclusive_scan" << std::endl;
+            }
+            break;
+        }
+    }
     std::fill_n(out_first, n, trash);
 }
 
@@ -44,8 +58,8 @@ struct test_transform_scan {
         using namespace std;
 
         auto orr1 = inclusive ?
-            transform_inclusive_scan(__pstl::execution::seq, first, last, expected_first, binary_op, unary_op, init) :
-            transform_exclusive_scan(__pstl::execution::seq, first, last, expected_first, init, binary_op, unary_op);
+            transform_inclusive_scan(pstl::execution::seq, first, last, expected_first, binary_op, unary_op, init) :
+            transform_exclusive_scan(pstl::execution::seq, first, last, expected_first, init, binary_op, unary_op);
         auto orr2 = inclusive ?
             transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op, init) :
             transform_exclusive_scan(exec, first, last, out_first, init, binary_op, unary_op);
@@ -54,7 +68,7 @@ struct test_transform_scan {
 
         // Checks inclusive scan if init is not provided
         if(inclusive && n > 0) {
-            orr1 = transform_inclusive_scan(__pstl::execution::seq, first, last, expected_first, binary_op, unary_op);
+            orr1 = transform_inclusive_scan(pstl::execution::seq, first, last, expected_first, binary_op, unary_op);
             orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op);
             EXPECT_TRUE(out_last == orr2, "transform...scan returned wrong iterator");
             check_and_reset(expected_first, out_first, n, trash);
@@ -70,8 +84,26 @@ struct test_transform_scan {
 
 const uint32_t encryption_mask = 0x314;
 
+template<typename InputIterator, typename OutputIterator, typename UnaryOperation, typename T, typename BinaryOperation>
+std::pair<OutputIterator, T> transform_inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op) noexcept {
+    for(; first!=last; ++first, ++result) {
+        init = binary_op(init,unary_op(*first));
+        *result = init;
+    }
+    return std::make_pair(result,init);
+}
+
+template<typename InputIterator, typename OutputIterator, typename UnaryOperation, typename T, typename BinaryOperation>
+std::pair<OutputIterator, T> transform_exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op, T init, BinaryOperation binary_op) noexcept {
+    for(; first!=last; ++first, ++result) {
+        *result = init;
+        init = binary_op(init, unary_op(*first));
+    }
+    return std::make_pair(result,init);
+}
+
 template <typename In, typename Out, typename UnaryOp, typename BinaryOp>
-void test( UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash ) {
+void test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash) {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
         Sequence<In> in(n, [](size_t k) {
             return In(k ^ encryption_mask);
@@ -92,8 +124,8 @@ void test( UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash ) {
         Sequence<Out> out(n, [&](size_t) {return trash;});
 
         auto result = inclusive ?
-                      __pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::true_type()/*inclusive*/) :
-                      __pstl::internal::brick_transform_scan(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op, std::false_type()/*exclusive*/);
+                      transform_inclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op) :
+                      transform_exclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op);
         check_and_reset( expected.begin(), out.begin(), out.size(), trash );
 
         invoke_on_all_policies(test_transform_scan(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
@@ -101,21 +133,27 @@ void test( UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash ) {
     }
 }
 
-// Unary op
-class ToMonoidElement {
-    uint32_t decryption_mask;
-public:
-    ToMonoidElement(uint32_t decryption_mask_, OddTag) : decryption_mask(decryption_mask_) {}
-    MonoidElement operator()(uint32_t x ) const {
-        uint32_t y = x ^ decryption_mask;
-        return MonoidElement(y, y+1, OddTag());
+template <typename In, typename Out, typename UnaryOp, typename BinaryOp>
+void test_matrix(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash) {
+    for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
+        Sequence<In> in(n, [](size_t k) {
+            return In(k, k+1);
+        });
+
+        Sequence<Out> out(n, [&](size_t) {return trash; });
+        Sequence<Out> expected(n, [&](size_t) {return trash; });
+
+        invoke_on_all_policies(test_transform_scan(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
+        invoke_on_all_policies(test_transform_scan(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
     }
-};
+}
 
 int32_t main( ) {
     for(int32_t mode=0; mode<2; ++mode ) {
         inclusive = mode!=0;
-        test<uint32_t, MonoidElement>(ToMonoidElement(encryption_mask,OddTag()), MonoidElement(~0u,0u,OddTag()), AssocOp(OddTag()), MonoidElement(666,666,OddTag()));
+        test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>([](const Matrix2x2<int32_t> x) { return x; },
+            Matrix2x2<int32_t>(), multiply_matrix<int32_t>, Matrix2x2<int32_t>(-666,666));
+        test<int32_t, uint32_t>([](int32_t x) {return x++; }, -123, [](int32_t x, int32_t y) {return x + y; }, 666);
     }
     std::cout << "done" << std::endl;
     return 0;

@@ -20,8 +20,7 @@
 
 #include "pstl/execution"
 #include "pstl/algorithm"
-#include "test/utils.h"
-#include "pstl/internal/algorithm_impl.h" //for usage a serial pstl::internal::for_each_n function
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -34,8 +33,8 @@ struct Gen {
 
 template<typename T>
 struct Flip {
-    int val;
-    Flip(int y) : val(y) {}
+    int32_t val;
+    Flip(int32_t y) : val(y) {}
     T operator()( T& x ) const {return x = val-x;}
 };
 
@@ -50,7 +49,7 @@ struct test_one_policy {
         EXPECT_EQ_N(expected_first, first, n, "wrong effect from for_each");
 
         // Try for_each_n
-        std::for_each(expected_first, expected_last, Flip<T>(1));
+        std::for_each_n(pstl::execution::seq, expected_first, n, Flip<T>(1));
         for_each_n( exec, first, n, Flip<T>(1) );
         EXPECT_EQ_N(expected_first, first, n, "wrong effect from for_each_n");
     }

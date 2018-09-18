@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_execution_policy
-#define __PSTL_execution_policy
+#ifndef __PSTL_execution
+#define __PSTL_execution
 
 #include "internal/pstl_config.h"
 #include "internal/execution_defs.h"
@@ -35,7 +35,7 @@
 #include "internal/glue_numeric_impl.h"
 #endif
 
-#if __PSTL_NUMERIC_FORWARD_DECLARED
+#if __PSTL_MEMORY_FORWARD_DECLARED
 #include "internal/glue_memory_impl.h"
 #endif
 

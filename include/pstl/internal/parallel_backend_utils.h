@@ -23,6 +23,7 @@
 
 #include <iterator>
 #include <utility>
+#include "utils.h"
 
 namespace __pstl {
 namespace par_backend {
@@ -39,33 +40,54 @@ struct serial_destroy {
     }
 };
 
-//! Merge sequences [xs,xe) and [ys,ye) to output sequence [zs,(xe-xs)+(ye-ys)), using std::move
+//! Merge sequences [__xs,__xe) and [__ys,__ye) to output sequence [__zs,(__xe-__xs)+(__ye-__ys)), using std::move
+template<class _MoveValues, class _MoveSequences>
 struct serial_move_merge {
-    template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _OutputIterator, class _Compare>
-    void operator()(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye,
-                    _OutputIterator __zs, _Compare __comp) {
+    const std::size_t _M_nmerge;
+    _MoveValues _M_move_values;
+    _MoveSequences _M_move_sequences;
+
+    explicit serial_move_merge(std::size_t __nmerge, _MoveValues __move_values, _MoveSequences __move_sequences)
+        : _M_nmerge(__nmerge), _M_move_values(__move_values), _M_move_sequences(__move_sequences) {}
+    template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _RandomAccessIterator3, class _Compare>
+    void operator()(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp) {
+        auto __n = _M_nmerge;
+        assert(__n > 0);
         if (__xs != __xe) {
             if (__ys != __ye) {
-                for (;;)
+                for (;;) {
                     if (__comp(*__ys, *__xs)) {
-                        *__zs = std::move(*__ys);
-                        ++__zs;
-                        if (++__ys == __ye)
+                        _M_move_values(__ys, __zs);
+                        ++__zs, --__n;
+                        if (++__ys == __ye) {
                             break;
+                        }
+                        else if (__n == 0) {
+                            __zs = _M_move_sequences(__ys, __ye, __zs);
+                            break;
+                        }
+                        else {}
                     }
                     else {
-                        *__zs = std::move(*__xs);
-                        ++__zs;
+                        _M_move_values(__xs, __zs);
+                        ++__zs, --__n;
                         if (++__xs == __xe) {
-                            std::move(__ys, __ye, __zs);
+                            _M_move_sequences(__ys, __ye, __zs);
                             return;
                         }
+                        else if (__n == 0) {
+                            __zs = _M_move_sequences(__xs, __xe, __zs);
+                            _M_move_sequences(__ys, __ye, __zs);
+                            return;
+                        }
+                        else {}
                     }
+                }
             }
             __ys = __xs;
             __ye = __xe;
         }
-        std::move(__ys, __ye, __zs);
+        _M_move_sequences(__ys, __ye, __zs);
     }
 };
 

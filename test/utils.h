@@ -28,6 +28,7 @@
 #include <vector>
 #include <atomic>
 #include <memory>
+#include <cstdint>
 
 namespace TestUtils {
 
@@ -58,7 +59,7 @@ static void issue_error_message( std::stringstream& outstr ) {
 }
 
 template<bool B>
-void expect( bool condition, const char* file, int line, const char* message ) {
+void expect( bool condition, const char* file, int32_t line, const char* message ) {
     // Templating this function is somewhat silly, but avoids the need to declare it static
     // or have a separate translation unit.
     if( condition!=B ) {
@@ -72,7 +73,7 @@ void expect( bool condition, const char* file, int line, const char* message ) {
 // Do not change signature to const T&.
 // Function must be able to detect const differences between expected and actual.
 template<typename T>
-void expect_equal( T& expected, T& actual, const char* file, int line, const char* message ) {
+void expect_equal( T& expected, T& actual, const char* file, int32_t line, const char* message ) {
     if( !(expected==actual) ) {
         std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - "
@@ -82,7 +83,7 @@ void expect_equal( T& expected, T& actual, const char* file, int line, const cha
 }
 
 template<typename T>
-void expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, int line, const char* message) {
+void expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, int32_t line, const char* message) {
     size_t n = expected.size();
     size_t m = actual.size();
     if (n != m) {
@@ -105,13 +106,13 @@ void expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, 
 }
 
 template<typename Iterator, typename Size>
-void expect_equal(Iterator expected_first, Iterator actual_first, Size n, const char* file, int line, const char* message) {
+void expect_equal(Iterator expected_first, Iterator actual_first, Size n, const char* file, int32_t line, const char* message) {
     size_t error_count = 0;
     for (size_t k = 0; k<n && error_count<10; ++k, ++expected_first, ++actual_first) {
         if (!(*expected_first == *actual_first)) {
             std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - "
-                << message << ", at index " << k << " expected " << *expected_first << " got " << *actual_first;
+                << message << ", at index " << k;
             issue_error_message(outstr);
             ++error_count;
         }
@@ -181,6 +182,14 @@ public:
     }
 };
 
+template<typename Iterator, typename F>
+void fill_data(Iterator first, Iterator last, F f) {
+    typedef typename std::iterator_traits<Iterator>::value_type T;
+    for (std::size_t i = 0; first != last; ++first, ++i) {
+        *first = T(f(i));
+    }
+}
+
 // Sequence<T> is a container of a sequence of T with lots of kinds of iterators.
 // Prefixes on begin/end mean:
 //      c = "const"
@@ -245,10 +254,7 @@ public:
     void print() const;
 
     template <typename Func>
-    void fill( Func f ) {
-        for (size_t i = 0; i < m_storage.size(); i++)
-            m_storage[i] = T(f(i));
-    }
+    void fill( Func f ) { fill_data(m_storage.begin(), m_storage.end(), f); }
 };
 
 template <typename T>
@@ -277,7 +283,7 @@ inline size_t HashBits( size_t i, size_t bits ) {
 // Stateful unary op
 template<typename T, typename U>
 class Complement {
-    int val;
+    int32_t val;
 public:
     Complement(T v) : val(v) {}
     U operator()(const T& x) const {return U(val-x);}
@@ -382,6 +388,34 @@ public:
         return MonoidElement(x.a, y.b, OddTag());
     }
 };
+
+// Multiplication of matrix is an associative but not commutative operation
+// Typically used as value type in tests involving "GENERALIZED_NONCOMMUTATIVE_SUM".
+template<typename T>
+struct Matrix2x2 {
+    T a[2][2];
+    Matrix2x2(): a { {1,0}, {0,1} } { }
+    Matrix2x2(T x, T y): a { { 0,x }, { x,y } } { }
+};
+
+template<typename T>
+bool is_equal(const Matrix2x2<T>& left, const Matrix2x2<T>& right) {
+    return
+        left.a[0][0] == right.a[0][0] && left.a[0][1] == right.a[0][1] &&
+        left.a[1][0] == right.a[1][0] && left.a[1][1] == right.a[1][1];
+}
+
+template<typename T>
+Matrix2x2<T> multiply_matrix(const Matrix2x2<T>& left, const Matrix2x2<T>& right) {
+    Matrix2x2<T> result;
+    for (int32_t i = 0; i < 2; ++i) {
+        for (int32_t j = 0; j < 2; ++j) {
+            result.a[i][j] = left.a[i][0] * right.a[0][j] + left.a[i][1] * right.a[1][j];
+        }
+    }
+    return result;
+}
+
 
 // Check that Intel(R) Threading Building Blocks header files are not used when parallel policies are off
 #if !__PSTL_USE_PAR_POLICIES
@@ -637,7 +671,7 @@ struct invoke_on_all_iterator_types {
 // Invoke op(policy,rest...) for each possible policy.
 template<typename Op, typename... T>
 void invoke_on_all_policies(Op op, T&&... rest) {
-    using namespace __pstl::execution;
+    using namespace pstl::execution;
 
     // Try static execution policies
     invoke_on_all_iterator_types()(seq, op, std::forward<T>(rest)...);
@@ -728,6 +762,14 @@ std::atomic<size_t> Wrapper<T>::my_count = { 0 };
 
 template<typename T>
 std::atomic<size_t> Wrapper<T>::move_count = { 0 };
+
+template<typename InputIterator, typename T, typename BinaryOperation, typename UnaryOperation>
+T transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryOperation binary_op, UnaryOperation unary_op) noexcept {
+    for (; first != last; ++first) {
+        init = binary_op(init, unary_op(*first));
+    }
+    return init;
+}
 
 static const char* done() {
 #if __PSTL_TEST_SUCCESSFUL_KEYWORD

@@ -22,8 +22,7 @@
 
 #include "pstl/execution"
 #include "pstl/numeric"
-#include "test/utils.h"
-#include "pstl/internal/numeric_impl.h" //for usage a serial algo version
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -79,7 +78,7 @@ struct test_transform_reduce {
         T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU) {
 
         auto expectedB = std::inner_product(first1, last1, first2, init, opB1, opB2);
-        auto expectedU = __pstl::internal::brick_transform_reduce(first1, last1, init, opB1, opU, std::false_type());
+        auto expectedU = transform_reduce_serial(first1, last1, init, opB1, opU);
         T resRA = std::transform_reduce(exec, first1, last1, first2, init, opB1, opB2);
         CheckResults(expectedB, resRA);
         resRA = std::transform_reduce(exec, first1, last1, init, opB1, opU);
@@ -96,8 +95,8 @@ void test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp 
     Sequence<T> in2(maxSize, initObj);
 
     for (std::size_t n = 0; n < maxSize; n = n < 16 ? n + 1 : size_t(3.1415 * n)) {
-        invoke_on_all_policies(test_transform_reduce(), in1.begin(), in1.end(), in2.begin(), in2.end(), init, opB1, opB2, opU);
-        invoke_on_all_policies(test_transform_reduce(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(), init, opB1, opB2, opU);
+        invoke_on_all_policies(test_transform_reduce(), in1.begin(), in1.begin() + n, in2.begin(), in2.begin() + n, init, opB1, opB2, opU);
+        invoke_on_all_policies(test_transform_reduce(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(), in2.cbegin() + n, init, opB1, opB2, opU);
     }
 }
 
