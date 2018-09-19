@@ -33,10 +33,10 @@ typename std::result_of<_Fp()>::type except_handler(_Fp __f) {
         return __f();
     }
     catch(const std::bad_alloc&) {
-        throw; // re-throw bad_alloc according to 25.2.4.1 [algorithms.parallel.exceptions]
+        throw; // re-throw bad_alloc according to the standard [algorithms.parallel.exceptions]
     }
     catch(...) {
-        std::terminate(); // Good bye according to 25.2.4.2 [algorithms.parallel.exceptions]
+        std::terminate(); // Good bye according to the standard [algorithms.parallel.exceptions]
     }
 }
 

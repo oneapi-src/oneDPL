@@ -1,24 +1,25 @@
 /*
-  Copyright (c) 2017-2018 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-  http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or defsied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
 
 
 
 */
-#ifndef __PSTL_glue_numeric_defs_H_
-#define __PSTL_glue_numeric_defs_H_
+
+#ifndef __PSTL_glue_numeric_defs_H
+#define __PSTL_glue_numeric_defs_H
 
 #include "execution_defs.h"
 
@@ -104,4 +105,4 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2
 adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
 
 } // namespace std
-#endif /* __PSTL_glue_numeric_defs_H_ */
+#endif /* __PSTL_glue_numeric_defs_H */

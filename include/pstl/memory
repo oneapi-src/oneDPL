@@ -18,8 +18,8 @@
 
 */
 
-#ifndef __PSTL_memory_H
-#define __PSTL_memory_H
+#ifndef __PSTL_memory
+#define __PSTL_memory
 
 #include "internal/pstl_config.h"
 
@@ -29,5 +29,7 @@
 #else
 // Otherwise just pull in forward declarations
 #include "internal/glue_memory_defs.h"
+#define __PSTL_MEMORY_FORWARD_DECLARED 1
 #endif
-#endif /*__PSTL_memory_H */
+
+#endif /* __PSTL_memory */

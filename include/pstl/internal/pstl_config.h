@@ -21,7 +21,7 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 104
+#define PSTL_VERSION 200
 #define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 
@@ -40,6 +40,15 @@
 #endif
 #else
 #undef __PSTL_PAR_BACKEND_TBB
+#endif
+
+// Check the user-defined macro for warnings
+#if defined(PSTL_USAGE_WARNINGS)
+#undef __PSTL_USAGE_WARNINGS
+#define __PSTL_USAGE_WARNINGS PSTL_USAGE_WARNINGS
+// Check the internal macro for warnings
+#elif !defined(__PSTL_USAGE_WARNINGS)
+#define __PSTL_USAGE_WARNINGS 0
 #endif
 
 // Portability "#pragma" definition
@@ -65,14 +74,33 @@
 // Enable SIMD for compilers that support OpenMP 4.0
 #if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (__PSTL_GCC_VERSION >= 40900)
 #define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(omp simd)
+#define __PSTL_PRAGMA_DECLARE_SIMD __PSTL_PRAGMA(omp declare simd)
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM) __PSTL_PRAGMA(omp simd reduction(PRM))
 #elif !defined(_MSC_VER) //#pragma simd
 #define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(simd)
+#define __PSTL_PRAGMA_DECLARE_SIMD
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM) __PSTL_PRAGMA(simd reduction(PRM))
 #else //no simd
 #define __PSTL_PRAGMA_SIMD
+#define __PSTL_PRAGMA_DECLARE_SIMD
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM)
 #endif //Enable SIMD
+
+#if (__INTEL_COMPILER)
+#define __PSTL_PRAGMA_FORCEINLINE __PSTL_PRAGMA(forceinline)
+#else
+#define __PSTL_PRAGMA_FORCEINLINE
+#endif
+
+#if (__INTEL_COMPILER >= 1900)
+#define __PSTL_PRAGMA_SIMD_SCAN(PRM) __PSTL_PRAGMA(omp simd reduction(inscan, PRM))
+#define __PSTL_PRAGMA_SIMD_INCLUSIVE_SCAN(PRM) __PSTL_PRAGMA(omp scan inclusive(PRM))
+#define __PSTL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM) __PSTL_PRAGMA(omp scan exclusive(PRM))
+#else
+#define __PSTL_PRAGMA_SIMD_SCAN(PRM)
+#define __PSTL_PRAGMA_SIMD_INCLUSIVE_SCAN(PRM)
+#define __PSTL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM)
+#endif
 
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define __PSTL_CPP17_EXECUTION_POLICIES_PRESENT (_MSC_VER >= 1912)
@@ -84,7 +112,9 @@
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
 
 #define __PSTL_EARLYEXIT_PRESENT  (__INTEL_COMPILER >= 1800)
-#define __PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
+#define __PSTL_MONOTONIC_PRESENT  (__INTEL_COMPILER >= 1800)
+#define __PSTL_UDR_PRESENT        (__INTEL_COMPILER >= 1900)
+#define __PSTL_UDS_PRESENT        (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
 
 #if __PSTL_EARLYEXIT_PRESENT
 #define __PSTL_PRAGMA_SIMD_EARLYEXIT __PSTL_PRAGMA(omp simd early_exit)
@@ -114,20 +144,25 @@
 #endif
 
 #if _MSC_VER || __INTEL_COMPILER //the preprocessors don't type a message location
-#define __PSTL_PRAGMA_LOCATION __FILE__ ":" __PSTL_STRING(__LINE__) ": warning: "
+#define __PSTL_PRAGMA_LOCATION __FILE__ ":" __PSTL_STRING(__LINE__) ": [Parallel STL message]: "
 #else
-#define __PSTL_PRAGMA_LOCATION
+#define __PSTL_PRAGMA_LOCATION " [Parallel STL message]: "
 #endif
-
 
 #define __PSTL_PRAGMA_MESSAGE_IMPL(x) __PSTL_PRAGMA(message(__PSTL_STRING_CONCAT(__PSTL_PRAGMA_LOCATION, x)))
+
+#if __PSTL_USAGE_WARNINGS
+#define __PSTL_PRAGMA_MESSAGE(x) __PSTL_PRAGMA_MESSAGE_IMPL(x)
 #define __PSTL_PRAGMA_MESSAGE_POLICIES(x) __PSTL_PRAGMA_MESSAGE_IMPL(x)
-
-//Too many warnings in output, switched off
+#else
 #define __PSTL_PRAGMA_MESSAGE(x)
-
-#if defined(__GLIBCXX__)
-#define __PSTL_CPP11_STD_ROTATE_BROKEN (__PSTL_GCC_VERSION < 50100) //GCC 5.1 release
+#define __PSTL_PRAGMA_MESSAGE_POLICIES(x)
 #endif
+
+// broken macros
+#define __PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
+#define __PSTL_ICC_19_VC_UDR_RELEASE_DEBUG_BROKEN (_DEBUG && __INTEL_COMPILER == 1900 && _MSC_VER && _MSC_VER <= 1913)
+
+#define __PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
 #endif /* __PSTL_config_H */

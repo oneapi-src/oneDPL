@@ -19,11 +19,11 @@
 */
 
 // Test for remove, remove_if
-#include "test/pstl_test_config.h"
+#include "pstl_test_config.h"
 
 #include "pstl/execution"
 #include "pstl/algorithm"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 
@@ -39,7 +39,7 @@ struct run_remove {
 
     template<typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename T>
     void operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
-        OutputIterator expected_first, OutputIterator expected_last, Size n, const T& value) {
+        OutputIterator expected_first, OutputIterator expected_last, Size, const T& value) {
             // Cleaning
             std::copy(first, last, expected_first);
             std::copy(first, last, out_first);
@@ -47,8 +47,8 @@ struct run_remove {
             // Run remove
             OutputIterator i = remove(expected_first, expected_last, value);
             OutputIterator k = remove(exec, out_first, out_last, value);
-            EXPECT_EQ_N(expected_first, out_first, n, "wrong remove effect");
             EXPECT_TRUE(std::distance(expected_first, i) == std::distance(out_first, k), "wrong return value from remove");
+            EXPECT_EQ_N(expected_first, out_first, std::distance(expected_first, i), "wrong remove effect");
     }
 };
 
@@ -64,7 +64,7 @@ struct run_remove_if {
 
     template<typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename Predicate>
     void operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, OutputIterator out_last,
-        OutputIterator expected_first, OutputIterator expected_last, Size n, Predicate pred) {
+        OutputIterator expected_first, OutputIterator expected_last, Size, Predicate pred) {
             // Cleaning
             std::copy(first, last, expected_first);
             std::copy(first, last, out_first);
@@ -72,8 +72,8 @@ struct run_remove_if {
             // Run remove_if
             OutputIterator i = remove_if(expected_first, expected_last, pred);
             OutputIterator k = remove_if(exec, out_first, out_last, pred);
-            EXPECT_EQ_N(expected_first, out_first, n, "wrong remove_if effect");
             EXPECT_TRUE(std::distance(expected_first, i) == std::distance(out_first, k), "wrong return value from remove_if");
+            EXPECT_EQ_N(expected_first, out_first, std::distance(expected_first, i), "wrong remove_if effect");
     }
 };
 

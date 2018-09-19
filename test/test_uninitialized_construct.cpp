@@ -21,11 +21,11 @@
 // Tests for uninitialized_default_consruct, uninitialized_default_consruct_n,
 //           uninitialized_value_consruct,   uninitialized_value_consruct_n
 
-#include "test/pstl_test_config.h"
+#include "pstl_test_config.h"
 
 #include "pstl/execution"
 #include "pstl/memory"
-#include "test/utils.h"
+#include "utils.h"
 
 using namespace TestUtils;
 
