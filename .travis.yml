@@ -53,9 +53,9 @@ install:
         export PATH=/usr/local/bin:$PATH;
       fi;
     fi
-  - wget https://github.com/01org/tbb/releases/download/2018_U4/tbb2018_20180411oss_${TBB_PACKAGE_SUFFIX}.tgz
-  - tar zxf tbb2018_20180411oss_${TBB_PACKAGE_SUFFIX}.tgz
-  - . tbb2018_20180411oss/bin/tbbvars.sh ${TBB_VARS_ARGS} auto_tbbroot
+  - wget https://github.com/01org/tbb/releases/download/2019/tbb2019_20180718oss_${TBB_PACKAGE_SUFFIX}.tgz
+  - tar zxf tbb2019_20180718oss_${TBB_PACKAGE_SUFFIX}.tgz
+  - . tbb2019_20180718oss/bin/tbbvars.sh ${TBB_VARS_ARGS} auto_tbbroot
 
 script:
   - cd build
