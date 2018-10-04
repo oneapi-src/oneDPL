@@ -28,3 +28,5 @@ CPLUS_FLAGS += $(QKEY)openmp-simd
 CPLUS_FLAGS += $(FQKEY)MMD
 CPLUS_FLAGS += $(FQKEY)std=$(stdver)
 CPLUS_FLAGS += $(QKEY)opt-report:$(vecreport) $(QKEY)opt-report-phase:vec $(QKEY)opt-report-phase:loop
+
+DISABLED_WARNINGS = $(QKEY)diag-disable:2586 #use comma-separated values to specify multiple entries

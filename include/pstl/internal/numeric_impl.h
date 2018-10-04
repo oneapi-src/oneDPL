@@ -59,7 +59,7 @@ _Tp pattern_transform_reduce(_ForwardIterator1 __first1, _ForwardIterator1 __las
 
 template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _Tp, class _BinaryOperation1, class _BinaryOperation2,
          class _IsVector>
-_Tp pattern_transform_reduce(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2, _IsVector __is_vector,  /*is_parallel=*/std::true_type) noexcept {
+_Tp pattern_transform_reduce(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2, _IsVector __is_vector,  /*is_parallel=*/std::true_type) {
     return internal::except_handler([&]() {
         return par_backend::parallel_transform_reduce(__first1, __last1,
             [__first1, __first2, __binary_op2](_RandomAccessIterator1 __i) mutable
@@ -182,7 +182,7 @@ pattern_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
                                        _IsVector __is_vector, /*is_parallel=*/std::true_type ) {
     typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
 
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         par_backend::parallel_transform_scan(
            __last-__first,
             [__first, __unary_op](_DifferenceType __i) mutable {return __unary_op(__first[__i]); },
@@ -207,7 +207,7 @@ pattern_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
     if (__n <= 0) {
         return __result;
     }
-    return except_handler([=, &__binary_op]() {
+    return except_handler([&]() {
         par_backend::parallel_strict_scan(__n, __init,
             [__first, __unary_op, __binary_op, __result, __is_vector](_DifferenceType __i, _DifferenceType __len) {
                 return brick_transform_scan(__first + __i, __first + (__i + __len), __result + __i, __unary_op, _Tp{}, __binary_op, _Inclusive(), __is_vector).second;

@@ -74,7 +74,7 @@ typename std::iterator_traits<_Iterator>::pointer reduce_to_ptr(_Iterator __it) 
 //! Unary operator that returns reference to its argument.
 struct no_op {
     template<typename _Tp>
-    _Tp& operator()(_Tp& __a) const { return __a; }
+    _Tp&& operator()(_Tp&& __a) const { return std::forward<_Tp>(__a); }
 };
 
 //! Logical negation of a predicate
