@@ -396,7 +396,7 @@ simd_transform_reduce(_Size __n, _Tp __init, _BinaryOperation __binary_op, _Unar
     const std::size_t __lane_size = 64;
     const std::size_t block_size = __lane_size / sizeof(_Tp);
     if (__n > 2 * block_size && block_size > 1) {
-        typename std::aligned_storage<sizeof(_Tp), __lane_size>::type __lane_[block_size];
+        alignas(__lane_size) char __lane_[__lane_size];
         _Tp* __lane = reinterpret_cast<_Tp*>(__lane_);
 
         // initializer
@@ -421,6 +421,11 @@ __PSTL_PRAGMA_SIMD
         // combiner
         for (_Size __i = 0; __i < block_size; ++__i) {
             __init = __binary_op(__init, __lane[__i]);
+        }
+        // destroyer
+__PSTL_PRAGMA_SIMD
+        for (_Size __i = 0; __i < block_size; ++__i) {
+            __lane[__i].~_Tp();
         }
     }
     else {

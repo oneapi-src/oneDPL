@@ -1,6 +1,25 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2019 Update 1
+PSTL_VERSION == 202
+
+Features / APIs:
+
+- Fixed compilation error for reduce and transform_reduce algorithms
+    with Microsoft* Visual Studio 2017 15.8.
+
+------------------------------------------------------------------------
+Parallel STL 20181004 release
+PSTL_VERSION == 201
+
+Features / APIs:
+
+- Fixed a number of algorithms to work with mutable function objects.
+- Fixed algorithms to throw std::bad_alloc when additional memory cannot
+    be obtained.
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2019
 PSTL_VERSION == 200
 

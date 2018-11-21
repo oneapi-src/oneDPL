@@ -22,7 +22,7 @@ SDL_FLAGS = -fstack-protector -Wformat -Wformat-security
 CPLUS_FLAGS += $(TARGET_CFLAGS) $(PIE_FLAGS) $(SDL_FLAGS)
 
 # Paths to the NDK prebuilt tools and libraries
-ifneq (,$(findstring $(ndk_version),r16 r16b))
+ifeq (,$(findstring $(ndk_version), $(foreach v, 7 8 9 10 11 12 13 14 15,r$(v) r$(v)b r$(v)c r$(v)d r$(v)e)))
     ifeq (clang,$(compiler))
         # Since Android* NDK r16 another sysroot and isystem paths have to be specified
         CPLUS_FLAGS += --sysroot=$(NDK_ROOT)/sysroot -isystem $(NDK_ROOT)/sysroot/usr/include/$(TRIPLE)

@@ -62,7 +62,7 @@ bool pattern_any_of( _ForwardIterator __first, _ForwardIterator __last, _Pred __
 
 template<class _ForwardIterator, class _Pred, class _IsVector>
 bool pattern_any_of( _ForwardIterator __first, _ForwardIterator __last, _Pred __pred, _IsVector __is_vector, /*parallel=*/std::true_type ) {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         return internal::parallel_or( __first, __last,
             [__pred, __is_vector]( _ForwardIterator __i, _ForwardIterator __j) {
                                      return internal::brick_any_of(__i, __j, __pred, __is_vector);
@@ -106,7 +106,7 @@ void pattern_walk1( _ForwardIterator __first, _ForwardIterator __last, _Function
 template<class _ForwardIterator, class _Function, class _IsVector>
 void pattern_walk1( _ForwardIterator __first, _ForwardIterator __last, _Function __f, _IsVector __is_vector,
                     /*parallel=*/std::true_type ) {
-    internal::except_handler([=]() {
+    internal::except_handler([&]() {
         par_backend::parallel_for( __first, __last, [__f,__is_vector](_ForwardIterator __i, _ForwardIterator __j) {
             internal::brick_walk1( __i, __j, __f, __is_vector );
         });
@@ -120,7 +120,7 @@ void pattern_walk_brick( _ForwardIterator __first, _ForwardIterator __last, _Bri
 
 template<class _ForwardIterator, class _Brick>
 void pattern_walk_brick( _ForwardIterator __first, _ForwardIterator __last, _Brick __brick, /*parallel=*/std::true_type ) {
-    internal::except_handler([=]() {
+    internal::except_handler([&]() {
         par_backend::parallel_for( __first, __last, [__brick](_ForwardIterator __i, _ForwardIterator __j) {
             __brick( __i, __j );
         });
@@ -153,7 +153,7 @@ void pattern_it_walk1( _ForwardIterator __first, _ForwardIterator __last, _Funct
 template<class _ForwardIterator, class _Function, class _IsVector>
 void pattern_it_walk1( _ForwardIterator __first, _ForwardIterator __last, _Function __f, _IsVector __is_vector,
                        /*parallel=*/std::true_type ) {
-    internal::except_handler([=]() {
+    internal::except_handler([&]() {
         par_backend::parallel_for( __first, __last, [__f,__is_vector](_ForwardIterator __i, _ForwardIterator __j) {
             internal::brick_it_walk1( __i, __j, __f, __is_vector );
         });
@@ -194,7 +194,7 @@ _ForwardIterator pattern_walk_brick_n( _ForwardIterator __first, _Size __n, _Bri
 
 template<class _RandomAccessIterator, class _Size, class _Brick>
 _RandomAccessIterator pattern_walk_brick_n( _RandomAccessIterator __first, _Size __n, _Brick __brick, /*is_parallel=*/std::true_type ) {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         par_backend::parallel_for(__first, __first + __n, [__brick](_RandomAccessIterator __i, _RandomAccessIterator __j) {
             __brick(__i, __j - __i);
         });
@@ -272,7 +272,7 @@ _ForwardIterator2 pattern_walk2( _ForwardIterator1 __first1, _ForwardIterator1 _
 template<class _ForwardIterator1, class _ForwardIterator2, class _Function, class _IsVector>
 _ForwardIterator2 pattern_walk2(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f,
                                 _IsVector __is_vector, /*parallel=*/std::true_type ) {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         par_backend::parallel_for(
             __first1, __last1,
             [__f, __first1, __first2, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
@@ -301,7 +301,7 @@ _ForwardIterator2 pattern_walk2_brick( _ForwardIterator1 __first1, _ForwardItera
 
 template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _Brick>
 _RandomAccessIterator2 pattern_walk2_brick(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Brick __brick, /*parallel=*/std::true_type ) {
-    return except_handler([=]() {
+    return except_handler([&]() {
         par_backend::parallel_for(
             __first1, __last1,
             [__first1,__first2, __brick](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
@@ -314,7 +314,7 @@ _RandomAccessIterator2 pattern_walk2_brick(_RandomAccessIterator1 __first1, _Ran
 
 template<class _RandomAccessIterator1, class _Size, class _RandomAccessIterator2, class _Brick>
 _RandomAccessIterator2 pattern_walk2_brick_n(_RandomAccessIterator1 __first1, _Size __n, _RandomAccessIterator2 __first2, _Brick __brick, /*parallel=*/std::true_type ) {
-    return except_handler([=]() {
+    return except_handler([&]() {
         par_backend::parallel_for(
             __first1, __first1 + __n,
             [__first1,__first2, __brick](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
@@ -343,7 +343,7 @@ _ForwardIterator2 pattern_it_walk2( _ForwardIterator1 __first1, _ForwardIterator
 
 template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _Function, class _IsVector>
 _RandomAccessIterator2 pattern_it_walk2(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Function __f, _IsVector __is_vector, /*parallel=*/std::true_type ) {
-    return except_handler([=]() {
+    return except_handler([&]() {
         par_backend::parallel_for(
             __first1, __last1,
             [__f,__first1,__first2,__is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
@@ -389,7 +389,7 @@ _ForwardIterator3 pattern_walk3( _ForwardIterator1 __first1, _ForwardIterator1 _
 
 template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _RandomAccessIterator3, class _Function, class _IsVector>
 _RandomAccessIterator3 pattern_walk3(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _Function __f, _IsVector __is_vector, /*parallel=*/std::true_type ) {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         par_backend::parallel_for(
             __first1, __last1,
             [__f, __first1, __first2, __first3, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
@@ -420,7 +420,7 @@ bool pattern_equal(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Forwa
 
 template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _BinaryPredicate, class _IsVector>
 bool pattern_equal(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _BinaryPredicate __p, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         return !internal::parallel_or(__first1, __last1,
             [__first1, __first2, __p, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j)
                                       {
@@ -453,7 +453,7 @@ _ForwardIterator pattern_find_if(_ForwardIterator __first, _ForwardIterator __la
 template<class _ForwardIterator, class _Predicate, class _IsVector>
 _ForwardIterator pattern_find_if(_ForwardIterator __first, _ForwardIterator __last, _Predicate __pred, _IsVector __is_vector,
                                  /*is_parallel=*/std::true_type) {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         return internal::parallel_find(__first, __last, [__pred, __is_vector](_ForwardIterator __i, _ForwardIterator __j) {
             return internal::brick_find_if(__i, __j, __pred, __is_vector);
         },
@@ -565,7 +565,7 @@ _ForwardIterator1 pattern_find_end(_ForwardIterator1 __first, _ForwardIterator1 
         return __res ? __first : __last;
     }
     else {
-        return except_handler([=]() {
+        return except_handler([&]() {
             return internal::parallel_find(__first, __last, [__first, __last, __s_first, __s_last, __pred, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
                 return internal::find_subrange(__i, __j, __last, __s_first, __s_last, __pred, false, __is_vector);
             },
@@ -594,7 +594,7 @@ _ForwardIterator1 pattern_find_first_of(_ForwardIterator1 __first, _ForwardItera
 
 template<class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate, class _IsVector>
 _ForwardIterator1 pattern_find_first_of(_ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred, _IsVector __is_vector, /*is_parallel=*/std::true_type) noexcept {
-    return except_handler([=]() {
+    return except_handler([&]() {
         return internal::parallel_find(__first, __last, [__s_first, __s_last, __pred, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
             return internal::brick_find_first_of(__i, __j, __s_first, __s_last, __pred, __is_vector);
         },
@@ -627,7 +627,7 @@ _ForwardIterator1 pattern_search(_ForwardIterator1 __first, _ForwardIterator1 __
         return __res ? __first : __last;
     }
     else {
-        return except_handler([=]() {
+        return except_handler([&]() {
             return internal::parallel_find(__first, __last, [__last, __s_first, __s_last, __pred, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
                 return internal::find_subrange(__i, __j, __last, __s_first, __s_last, __pred, true, __is_vector);
             },
@@ -882,7 +882,7 @@ template<class _ForwardIterator, class _Predicate, class _IsVector>
 typename std::iterator_traits<_ForwardIterator>::difference_type
 pattern_count(_ForwardIterator __first, _ForwardIterator __last, _Predicate __pred, /* is_parallel */ std::true_type, _IsVector __is_vector) {
     typedef typename std::iterator_traits<_ForwardIterator>::difference_type _SizeType;
-    return except_handler([=]() {
+    return except_handler([&]() {
         return par_backend::parallel_reduce(__first, __last, _SizeType(0),
             [__pred, __is_vector](_ForwardIterator __begin, _ForwardIterator __end, _SizeType __value)->_SizeType {
             return __value + brick_count(__begin, __end, __pred, __is_vector);
@@ -913,13 +913,13 @@ _ForwardIterator pattern_unique(_ForwardIterator __first, _ForwardIterator __las
 }
 
 template<class _ForwardIterator, class _Predicate, class _IsVector>
-_ForwardIterator remove_elements(_ForwardIterator __first, _ForwardIterator __last, _Predicate __pred, _IsVector __is_vector) noexcept {
+_ForwardIterator remove_elements(_ForwardIterator __first, _ForwardIterator __last, _Predicate __pred, _IsVector __is_vector) {
     typedef typename std::iterator_traits<_ForwardIterator>::difference_type _DifferenceType;
     typedef typename std::iterator_traits<_ForwardIterator>::value_type _Tp;
     _DifferenceType __n = __last - __first;
     par_backend::buffer<bool> __mask_buf(__n);
     // 1. find a first iterator that should be removed
-    return except_handler([=, &__n, &__first, &__mask_buf, &__pred]() {
+    return except_handler([&]() {
         bool* __mask = __mask_buf.get();
         _DifferenceType __min = par_backend::parallel_reduce(_DifferenceType(0), __n, __n,
             [__first, __mask, &__pred, __is_vector](_DifferenceType __i, _DifferenceType __j, _DifferenceType __local_min)->_DifferenceType {
@@ -1146,7 +1146,7 @@ _OutputIterator pattern_reverse_copy(_BidirectionalIterator __first, _Bidirectio
 }
 
 template<class _BidirectionalIterator, class _OutputIterator, class _IsVector>
-_OutputIterator pattern_reverse_copy(_BidirectionalIterator __first, _BidirectionalIterator __last, _OutputIterator __d_first, _IsVector __is_vector, /*is_parallel=*/std::true_type) noexcept {
+_OutputIterator pattern_reverse_copy(_BidirectionalIterator __first, _BidirectionalIterator __last, _OutputIterator __d_first, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
     auto __len = __last - __first;
     par_backend::parallel_for(__first, __last, [__is_vector, __first, __len, __d_first] (_BidirectionalIterator __inner_first, _BidirectionalIterator __inner_last) {
         brick_reverse_copy(__inner_first, __inner_last, __d_first + (__len - (__inner_last - __first)), __is_vector);
@@ -1205,7 +1205,7 @@ _ForwardIterator pattern_rotate(_ForwardIterator __first, _ForwardIterator __mid
 }
 
 template<class _ForwardIterator, class _IsVector>
-_ForwardIterator pattern_rotate(_ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last, _IsVector __is_vector, /*is_parallel=*/std::true_type) noexcept {
+_ForwardIterator pattern_rotate(_ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
     typedef typename std::iterator_traits<_ForwardIterator>::value_type _Tp;
     auto __n = __last - __first;
     auto __m = __middle - __first;
@@ -1270,7 +1270,7 @@ _OutputIterator pattern_rotate_copy(_ForwardIterator __first, _ForwardIterator _
 }
 
 template<class _ForwardIterator, class _OutputIterator, class _IsVector>
-_OutputIterator pattern_rotate_copy(_ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last, _OutputIterator __result, _IsVector __is_vector, /*is_parallel=*/std::true_type) noexcept {
+_OutputIterator pattern_rotate_copy(_ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last, _OutputIterator __result, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
     par_backend::parallel_for(__first, __last, [__first, __last, __middle, __result, __is_vector](_ForwardIterator __b, _ForwardIterator __e) {
         if (__b > __middle) {
             brick_copy(__b, __e, __result + (__b - __middle), __is_vector);
@@ -1323,12 +1323,12 @@ bool pattern_is_partitioned(_ForwardIterator __first, _ForwardIterator __last, _
 }
 
 template<class _ForwardIterator, class _UnaryPredicate, class _IsVector>
-bool pattern_is_partitioned(_ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallel=*/std::true_type) noexcept {
+bool pattern_is_partitioned(_ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
     if (__first == __last) {
         return true;
     }
     else {
-        return except_handler([=, &__pred]() {
+        return except_handler([&]() {
             typedef typename std::iterator_traits<_ForwardIterator>::difference_type _SizeType;
 
             // State of current range:
@@ -1572,7 +1572,7 @@ pattern_partition_copy(_ForwardIterator __first, _ForwardIterator __last, _Outpu
 
 template<class _RandomAccessIterator, class _OutputIterator1, class _OutputIterator2, class _UnaryPredicate, class _IsVector>
 std::pair<_OutputIterator1, _OutputIterator2>
-pattern_partition_copy(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator1 __out_true, _OutputIterator2 __out_false, _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallelization=*/std::true_type) noexcept {
+pattern_partition_copy(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator1 __out_true, _OutputIterator2 __out_false, _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallelization=*/std::true_type) {
     typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
     typedef std::pair<_DifferenceType, _DifferenceType> _ReturnType;
     const _DifferenceType __n = __last - __first;
@@ -1618,7 +1618,7 @@ void pattern_sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _
 
 template<class _RandomAccessIterator, class _Compare, class _IsVector>
 void pattern_sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp, _IsVector /*is_vector*/, /*is_parallel=*/std::true_type, /*is_move_constructible=*/std::true_type ) {
-    except_handler([=]() {
+    except_handler([&]() {
         par_backend::parallel_stable_sort(__first, __last, __comp,
             [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
             std::sort(__first, __last, __comp);
@@ -1638,7 +1638,7 @@ void pattern_stable_sort(_RandomAccessIterator __first, _RandomAccessIterator __
 
 template<class _RandomAccessIterator, class _Compare, class _IsVector>
 void pattern_stable_sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp, _IsVector /*is_vector*/, /*is_parallel=*/std::true_type) {
-    internal::except_handler([=]() {
+    internal::except_handler([&]() {
         par_backend::parallel_stable_sort(__first, __last, __comp,
             [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
             std::stable_sort(__first, __last, __comp);
@@ -1656,9 +1656,9 @@ void pattern_partial_sort(_RandomAccessIterator __first, _RandomAccessIterator _
 }
 
 template <class _RandomAccessIterator, class _Compare, class _IsVector>
-void pattern_partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last, _Compare __comp, _IsVector, /*is_parallel=*/std::true_type) noexcept {
+void pattern_partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last, _Compare __comp, _IsVector, /*is_parallel=*/std::true_type) {
     const auto __n = __middle - __first;
-    except_handler([=]() {
+    except_handler([&]() {
         par_backend::parallel_stable_sort(__first, __last, __comp,
             [__n](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Compare __comp) {
             if(__n < __end - __begin)
@@ -1680,13 +1680,13 @@ _RandomAccessIterator pattern_partial_sort_copy(_ForwardIterator __first, _Forwa
 }
 
 template<class _ForwardIterator, class _RandomAccessIterator, class _Compare, class _IsVector>
-_RandomAccessIterator pattern_partial_sort_copy(_ForwardIterator __first, _ForwardIterator __last, _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp, _IsVector __is_vector, /*is_parallel=*/std::true_type) noexcept {
+_RandomAccessIterator pattern_partial_sort_copy(_ForwardIterator __first, _ForwardIterator __last, _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
     if (__last == __first || __d_last == __d_first) {
         return __d_first;
     }
     auto __n1 =   __last -   __first;
     auto __n2 = __d_last - __d_first;
-    return except_handler([=]() {
+    return except_handler([&]() {
         if (__n2 >= __n1) {
             par_backend::parallel_stable_sort(__d_first, __d_first + __n1, __comp,
                 [__n1, __first, __d_first, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j, _Compare __comp) {
@@ -1761,7 +1761,7 @@ _RandomAccessIterator pattern_adjacent_find(_RandomAccessIterator __first, _Rand
     if (__last - __first < 2)
         return __last;
 
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         return par_backend::parallel_reduce(__first, __last, __last,
             [__last, __pred, __is_vector, __or_semantic](_RandomAccessIterator __begin, _RandomAccessIterator __end,
                                                          _RandomAccessIterator __value) -> _RandomAccessIterator {
@@ -1900,7 +1900,7 @@ void pattern_generate(_ForwardIterator __first, _ForwardIterator __last, _Genera
 
 template<class _ForwardIterator, class _Generator, class _IsVector>
 _ForwardIterator pattern_generate(_ForwardIterator __first, _ForwardIterator __last, _Generator __g, /*is_parallel=*/std::true_type, _IsVector __is_vector) {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         par_backend::parallel_for(__first, __last, [__g, __is_vector](_ForwardIterator __begin, _ForwardIterator __end) {
             internal::brick_generate(__begin, __end, __g, __is_vector); });
         return __last;
@@ -1984,7 +1984,7 @@ _OutputIterator pattern_merge(_ForwardIterator1 __first1, _ForwardIterator1 __la
 }
 
 template<class _RandomAccessIterator1, class _RandomAccessIterator2, class _OutputIterator, class _Compare, class _IsVector>
-_OutputIterator pattern_merge(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2, _OutputIterator __d_first, _Compare __comp, _IsVector __is_vector, /* is_parallel = */ std::true_type) noexcept {
+_OutputIterator pattern_merge(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2, _OutputIterator __d_first, _Compare __comp, _IsVector __is_vector, /* is_parallel = */ std::true_type) {
     par_backend::parallel_merge(__first1, __last1, __first2, __last2, __d_first, __comp,
         [__is_vector](_RandomAccessIterator1 __f1, _RandomAccessIterator1 __l1, _RandomAccessIterator2 __f2, _RandomAccessIterator2 __l2, _OutputIterator __f3, _Compare __comp) {return brick_merge(__f1, __l1, __f2, __l2, __f3, __comp, __is_vector); });
     return __d_first + (__last1 - __first1) + (__last2 - __first2);
@@ -2010,7 +2010,7 @@ void pattern_inplace_merge(_BidirectionalIterator __first, _BidirectionalIterato
 }
 
 template<class _BidirectionalIterator, class _Compare, class _IsVector>
-void pattern_inplace_merge(_BidirectionalIterator __first, _BidirectionalIterator __middle, _BidirectionalIterator __last, _Compare __comp, _IsVector __is_vector, /*is_parallel=*/std::true_type) noexcept {
+void pattern_inplace_merge(_BidirectionalIterator __first, _BidirectionalIterator __middle, _BidirectionalIterator __last, _Compare __comp, _IsVector __is_vector, /*is_parallel=*/std::true_type) {
     if (__first == __last || __first == __middle || __middle == __last) {
         return;
     }
@@ -2018,7 +2018,7 @@ void pattern_inplace_merge(_BidirectionalIterator __first, _BidirectionalIterato
     auto __n = __last - __first;
     par_backend::buffer<_Tp> __buf(__n);
     _Tp* __r = __buf.get();
-    except_handler([=]() {
+    except_handler([&]() {
         auto __move_values = [](_BidirectionalIterator __x, _Tp* __z) {invoke_if_else(std::is_trivial<_Tp>(),
             [&]() {*__z = std::move(*__x); },
             [&]() {::new (internal::reduce_to_ptr(__z)) _Tp(std::move(*__x)); }
@@ -2065,7 +2065,7 @@ bool pattern_includes(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Fo
     if (__last2 - __first2 == 1)
         return !__comp(*__first1, *__first2) && !__comp(*__first2, *__first1);
 
-    return except_handler([=, &__comp]() {
+    return except_handler([&]() {
         return !internal::parallel_or(__first2, __last2,
             [__first1, __last1, __first2, __last2, &__comp](_ForwardIterator2 __i, _ForwardIterator2 __j) {
                 assert(__j > __i);
@@ -2253,7 +2253,7 @@ _RandomAccessIterator pattern_is_heap_until(_RandomAccessIterator __first, _Rand
     if (__last - __first < 2)
         return __last;
 
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         return internal::parallel_find(__first, __last, [__first, __last, __comp, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
             return internal::is_heap_until_local(__first, __i - __first, __j - __first, __comp, __is_vector);
         },
@@ -2286,11 +2286,11 @@ _ForwardIterator pattern_min_element(_ForwardIterator __first, _ForwardIterator 
 }
 
 template <typename _RandomAccessIterator, typename _Compare, typename _IsVector>
-_RandomAccessIterator pattern_min_element(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp, _IsVector __is_vector, /* is_parallel = */ std::true_type) noexcept {
+_RandomAccessIterator pattern_min_element(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp, _IsVector __is_vector, /* is_parallel = */ std::true_type) {
     if(__first == __last)
         return __last;
 
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         return par_backend::parallel_reduce(
             __first + 1, __last, __first,
             [=](_RandomAccessIterator __begin, _RandomAccessIterator __end, _RandomAccessIterator __init) -> _RandomAccessIterator {
@@ -2328,11 +2328,11 @@ std::pair<_ForwardIterator, _ForwardIterator> pattern_minmax_element(_ForwardIte
 }
 
 template <typename _ForwardIterator, typename _Compare, typename _IsVector>
-std::pair<_ForwardIterator, _ForwardIterator> pattern_minmax_element(_ForwardIterator __first, _ForwardIterator __last, _Compare __comp, _IsVector __is_vector, /* is_parallel = */ std::true_type) noexcept {
+std::pair<_ForwardIterator, _ForwardIterator> pattern_minmax_element(_ForwardIterator __first, _ForwardIterator __last, _Compare __comp, _IsVector __is_vector, /* is_parallel = */ std::true_type) {
     if(__first == __last)
         return std::make_pair(__first, __first);
 
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         typedef std::pair<_ForwardIterator, _ForwardIterator> _Result;
 
         return par_backend::parallel_reduce(
@@ -2382,7 +2382,7 @@ std::pair<_ForwardIterator1, _ForwardIterator2> pattern_mismatch(_ForwardIterato
 
 template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _Predicate, class _IsVector>
 std::pair<_RandomAccessIterator1, _RandomAccessIterator2> pattern_mismatch(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2, _Predicate __pred, _IsVector __is_vector, /* is_parallel = */ std::true_type) noexcept {
-    return internal::except_handler([=]() {
+    return internal::except_handler([&]() {
         auto __n = std::min(__last1 - __first1, __last2 - __first2);
         auto __result = internal::parallel_find(__first1, __first1 + __n,
                                               [__first1, __first2, __pred, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {

@@ -21,7 +21,7 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 200
+#define PSTL_VERSION 202
 #define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 

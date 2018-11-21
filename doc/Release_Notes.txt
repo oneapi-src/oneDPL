@@ -81,7 +81,7 @@ Software - Supported Compilers
             GNU Compilers (gcc) 4.8 - 7.1
     Clang* 3.3 - 3.8
     Xcode* 7.0 - 9.1
-    Android* NDK r13 - r16
+    Android* NDK r13 - r17b
 
 Known Issues or limitations
 
