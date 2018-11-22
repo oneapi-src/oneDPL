@@ -30,9 +30,6 @@ Please report issues and suggestions via
 [GitHub issues](https://github.com/intel/parallelstl/issues) or start a topic on the
 [TBB forum](http://software.intel.com/en-us/forums/intel-threading-building-blocks/).
 
-## How to Contribute
-Please, read the instructions on the official [TBB open source site](https://www.threadingbuildingblocks.org/submit-contribution).
-
 ## Engineering team contacts
 * [E-mail us.](mailto:inteltbbdevelopers@intel.com)
 
