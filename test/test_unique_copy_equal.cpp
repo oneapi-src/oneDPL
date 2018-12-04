@@ -92,6 +92,14 @@ void test(T trash, BinaryPredicate pred, Convert convert, bool check_weakness = 
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputInterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter) {
+        unique_copy(exec, input_iter, input_iter, out_iter, non_const(std::equal_to<T>()));
+    }
+};
+
 int32_t main( int32_t argc, char* argv[] ) {
     test<Number>( Number(42,OddTag()),
                   std::equal_to<Number>(),
@@ -105,6 +113,9 @@ int32_t main( int32_t argc, char* argv[] ) {
         [](float32_t x, float32_t y) {return false; },
         [](int32_t j) {return float32_t(j); }, false);
 #endif
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

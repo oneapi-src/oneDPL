@@ -121,11 +121,27 @@ void test(Pred pred) {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+        invoke_if(exec, [&]() {
+            replace_if(exec, iter, iter, non_const(is_even), T(0));
+        });
+    }
+};
+
 int32_t main() {
     test<int32_t, float32_t>  (pstl::internal::equal_value<int32_t>(666));
     test<uint16_t, uint8_t> ([](const uint16_t& elem) { return elem % 3 < 2; });
     test<float64_t, int64_t>([](const float64_t& elem) { return elem * elem - 3.5 * elem > 10; });
     test<copy_int, copy_int> ([](const copy_int& val) { return val.value / 5 > 2; });
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

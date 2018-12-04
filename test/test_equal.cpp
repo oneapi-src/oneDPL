@@ -95,6 +95,14 @@ void test( size_t bits ) {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename FirstIterator, typename SecondInterator>
+    void operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter) {
+        equal(exec, first_iter, first_iter, second_iter, second_iter, non_const(std::equal_to<T>()));
+    }
+};
+
 int32_t main( ) {
 
     test<int32_t>(8*sizeof(int32_t));
@@ -105,6 +113,8 @@ int32_t main( ) {
 #endif
     test<UserType>(256);
 
-    std::cout << "done" << std::endl;
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

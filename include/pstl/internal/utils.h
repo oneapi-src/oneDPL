@@ -66,11 +66,6 @@ typename std::result_of<_F2()>::type invoke_if_else(std::false_type, _F1 __f1, _
     return __f2();
 }
 
-template<typename _Iterator>
-typename std::iterator_traits<_Iterator>::pointer reduce_to_ptr(_Iterator __it) {
-    return std::addressof(*__it);
-}
-
 //! Unary operator that returns reference to its argument.
 struct no_op {
     template<typename _Tp>
@@ -95,8 +90,8 @@ class reorder_pred {
 public:
     explicit reorder_pred( _Pred __pred ) : _M_pred(__pred) {}
 
-    template<typename _Tp>
-    bool operator()(_Tp&& __a, _Tp&& __b) { return _M_pred(std::forward<_Tp>(__b), std::forward<_Tp>(__a)); }
+    template<typename _FTp, typename _STp>
+    bool operator()(_FTp&& __a, _STp&& __b) { return _M_pred(std::forward<_STp>(__b), std::forward<_FTp>(__a)); }
 };
 
 //! "==" comparison.

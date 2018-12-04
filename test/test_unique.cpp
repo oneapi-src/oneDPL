@@ -34,7 +34,7 @@ struct run_unique {
 
     template<typename ForwardIt, typename Generator>
     void operator()(pstl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2, ForwardIt last2, Generator generator) {}
-    
+
     template<typename ForwardIt, typename BinaryPred, typename Generator>
     void operator()(pstl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2, ForwardIt last2, BinaryPred pred, Generator generator) {}
 
@@ -103,6 +103,16 @@ struct LocalWrapper {
     }
 };
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        invoke_if(exec, [&]() {
+            unique(exec, iter, iter, non_const(std::equal_to<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
 #if !__PSTL_ICC_16_17_18_TEST_UNIQUE_MASK_RELEASE_BROKEN
     test<int32_t>([](size_t j) {return j / 3; },
@@ -112,6 +122,8 @@ int32_t main( ) {
 #endif
     test<LocalWrapper<uint32_t>>([](size_t j) {return LocalWrapper<uint32_t>(j); },
         [](const LocalWrapper<uint32_t>& val1, const LocalWrapper<uint32_t>& val2) {return val1.my_val != val2.my_val; });
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

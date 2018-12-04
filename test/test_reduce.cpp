@@ -101,6 +101,6 @@ int32_t main( ) {
 
     // Short forms are just facade for long forms, so just test with a single type.
     test_short_forms();
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

@@ -21,6 +21,7 @@
 #include "pstl/execution"
 #include "pstl/numeric"
 #include "utils.h"
+#include "pstl_test_config.h"
 
 using namespace TestUtils;
 
@@ -32,21 +33,6 @@ static bool inclusive;
 template<typename Iterator, typename Size, typename T>
 void check_and_reset(Iterator expected_first, Iterator out_first, Size n, T trash) {
     EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "wrong result from transform_inclusive_scan" : "wrong result from transform_exclusive_scan");
-    std::fill_n(out_first, n, trash);
-}
-template<typename Iterator, typename Size, typename T>
-void check_and_reset(Iterator expected_first, Iterator out_first, Size n, const Matrix2x2<T>& trash) {
-    for (Size k = 0; k < n; ++k) {
-        if (!is_equal(*expected_first, *out_first)) {
-            if(inclusive){
-                std::cout << "wrong result from transform_inclusive_scan" << std::endl;
-            }
-            else{
-                std::cout << "wrong result from transform_exclusive_scan" << std::endl;
-            }
-            break;
-        }
-    }
     std::fill_n(out_first, n, trash);
 }
 
@@ -151,10 +137,12 @@ void test_matrix(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash) {
 int32_t main( ) {
     for(int32_t mode=0; mode<2; ++mode ) {
         inclusive = mode!=0;
+#if !__PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
         test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>([](const Matrix2x2<int32_t> x) { return x; },
             Matrix2x2<int32_t>(), multiply_matrix<int32_t>, Matrix2x2<int32_t>(-666,666));
+#endif
         test<int32_t, uint32_t>([](int32_t x) {return x++; }, -123, [](int32_t x, int32_t y) {return x + y; }, 666);
     }
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

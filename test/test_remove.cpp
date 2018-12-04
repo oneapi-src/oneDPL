@@ -93,6 +93,20 @@ void test(T trash, const T& value, Predicate pred, Convert convert) {
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+
+        invoke_if(exec, [&](){
+            remove_if(exec, iter, iter, non_const(is_even));
+        });
+    }
+};
+
 int32_t main( ) {
 #if !__PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN
     test<int32_t>(666, 42, [](int32_t val) {return true; },
@@ -109,6 +123,8 @@ int32_t main( ) {
         IsMultiple(3, OddTag()),
         [](int32_t j) {return Number(j, OddTag()); });
 #endif
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
 
     std::cout << done() << std::endl;
     return 0;

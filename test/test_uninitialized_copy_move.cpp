@@ -127,6 +127,6 @@ int32_t main() {
     test_uninitialized_copy_move_by_type<Wrapper<int8_t>>();
 #endif
 
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

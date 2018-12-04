@@ -72,6 +72,18 @@ void test(Predicate pred) {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputInterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter) {
+        invoke_if(exec, [&]() {
+            InputIterator input_iter2 = input_iter;
+            transform(exec, input_iter, input_iter, input_iter2, out_iter,
+                      non_const(std::plus<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
     //const operator()
     test<int32_t, int32_t, int32_t>(TheOperation<int32_t, int32_t, int32_t>(1));
@@ -81,6 +93,9 @@ int32_t main( ) {
     test<int64_t, float64_t, float32_t>(non_const(TheOperation<int64_t, float64_t, float32_t>(1.5)));
     //lambda
     test<int8_t, float64_t, int8_t>([](const int8_t& x, const float64_t& y) {return int8_t(int8_t(1.5) + x - y); });
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

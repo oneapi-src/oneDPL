@@ -1,5 +1,5 @@
 # Parallel STL 
-[![Stable release](https://img.shields.io/badge/version-20181109-green.svg)](https://github.com/intel/parallelstl/releases/tag/20181109)
+[![Stable release](https://img.shields.io/badge/version-20181204-green.svg)](https://github.com/intel/parallelstl/releases/tag/20181204)
 [![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
 
 Parallel STL is an implementation of the C++ standard library algorithms with support for execution policies, 

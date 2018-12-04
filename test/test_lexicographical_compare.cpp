@@ -132,6 +132,17 @@ private:
     T my_val;
 };
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename FirstIterator, typename SecondInterator>
+    void operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter) {
+        invoke_if(exec, [&]() {
+            lexicographical_compare(exec, first_iter, first_iter, second_iter, second_iter,
+                                    non_const(std::less<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
     test<uint16_t, float64_t>(std::less<float64_t>());
     test<float32_t, int32_t>(std::greater<float32_t>());
@@ -142,6 +153,8 @@ int32_t main( ) {
         [](const LocalWrapper<int32_t>& x, const LocalWrapper<int32_t>& y) {return x < y; }
     );
     test_string([](const char x, const char y) {return x < y; });
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

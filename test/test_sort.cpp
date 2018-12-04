@@ -25,7 +25,6 @@
 #include "utils.h"
 
 using namespace TestUtils;
-#define NOMINMAX
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <atomic>
@@ -178,6 +177,15 @@ void test_sort( Compare compare, Convert convert ) {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        sort(exec, iter, iter, non_const(std::less<T>()));
+        stable_sort(exec, iter, iter, non_const(std::less<T>()));
+    }
+};
+
 int32_t main() {
     std::srand(42);
     for(int32_t kind=0; kind<2; ++kind ) {
@@ -188,6 +196,9 @@ int32_t main() {
         test_sort<int32_t>([](int32_t x, int32_t y) {return x>y;},  // Reversed so accidental use of < will be detected.
                        [](size_t, size_t val) {return int32_t(val);});
     }
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

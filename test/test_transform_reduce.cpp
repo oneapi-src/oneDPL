@@ -122,6 +122,6 @@ int32_t main() {
         std::negate<MyClass>(),
         [](std::size_t a)->MyClass {return MyClass(rand() % 1000); });
 
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

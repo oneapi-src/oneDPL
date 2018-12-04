@@ -69,6 +69,17 @@ void test(T needle, Predicate pred, Convert convert) {
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+        count_if(exec, iter, iter, non_const(is_even));
+    }
+};
+
 int32_t main( ) {
     test<int32_t>(42, IsEqual<int32_t>(50,OddTag()), [](int32_t j) {return j;});
 #if !__PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN
@@ -78,6 +89,9 @@ int32_t main( ) {
     test<Number>(Number(42,OddTag()),
                  IsEqual<Number>(Number(50,OddTag()),OddTag()),
                  [](int32_t j){return Number(j,OddTag());});
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

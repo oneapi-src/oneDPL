@@ -75,6 +75,15 @@ void test_is_sorted_by_type() {
     invoke_on_all_policies(test_is_sorted(), in1.cbegin(), in1.cend(), std::is_sorted(in1.begin(), in1.end()));
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        is_sorted(exec, iter, iter, std::less<T>());
+        is_sorted_until(exec, iter, iter, std::less<T>());
+    }
+};
+
 int32_t main( ) {
 
     test_is_sorted_by_type<int32_t>();
@@ -82,6 +91,8 @@ int32_t main( ) {
 
     test_is_sorted_by_type<Wrapper<int32_t>>();
 
-    std::cout << "done" << std::endl;
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

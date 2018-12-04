@@ -33,18 +33,20 @@ struct wrapper {
     T t;
     wrapper() {}
     explicit wrapper(T t_) : t(t_) {}
-    void operator=(const T& t_) {
+    wrapper& operator=(const T& t_) {
         t = t_;
+        return *this;
     }
+    bool operator==(const wrapper& t_) const { return t == t_.t; }
 };
 
-template <typename T>
-bool eq(const wrapper<T>& a, const wrapper<T>& b) {
+template <typename T1, typename T2>
+bool eq(const wrapper<T1>& a, const wrapper<T2>& b) {
     return a.t == b.t;
 }
 
-template <typename T>
-bool eq(const T& a, const T& b) {
+template <typename T1, typename T2>
+bool eq(const T1& a, const T2& b) {
     return a == b;
 }
 
@@ -69,26 +71,18 @@ struct test_one_policy {
     void operator()(ExecutionPolicy&& exec, Iterator1 actual_b, Iterator1 actual_e) {
         using namespace std;
         using T = typename iterator_traits<Iterator1>::value_type;
+        using DifferenceType = typename iterator_traits<Iterator1>::difference_type;
 
         fill(actual_b, actual_e, T(-123));
         Iterator1 actual_return = reverse_copy(exec, data_b, data_e, actual_b);
 
         EXPECT_TRUE(actual_return == actual_e, "wrong result of reverse_copy");
 
-        if (actual_b != actual_e) {
-            T temp = *actual_b;
+        const auto n = std::distance(data_b, data_e);
+        Sequence<T> res(n);
+        std::copy(std::reverse_iterator<Iterator>(data_e), std::reverse_iterator<Iterator>(data_b), res.begin());
 
-            // check effect of reverse_copy
-            while (actual_b != actual_e) {
-                --data_e;
-                temp = *data_e;
-                if (!eq(temp, *actual_b)) {
-                    EXPECT_TRUE(false, "wrong effect of reverse_copy");
-                    break;
-                }
-                ++actual_b;
-            }
-        }
+        EXPECT_EQ_N(res.begin(), actual_b, n, "wrong effect of reverse_copy");
     }
 };
 
@@ -114,7 +108,9 @@ void test() {
 }
 
 int32_t main() {
-    test<int32_t, int8_t>();
+    // clang-3.8 fails to correctly auto vectorize the loop in some cases of different types of container's elements,
+    // for example: int32_t and int8_t. This issue isn't detected for clang-3.9 and newer versions.
+    test<int16_t, int8_t>();
     test<uint16_t, float32_t>();
     test<float64_t, int64_t>();
     test<wrapper<float64_t>, wrapper<float64_t>>();

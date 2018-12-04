@@ -44,8 +44,9 @@ bool compare(const T& a, const T& b) {
 template <typename T>
 struct wrapper {
     explicit wrapper(T t_) : t(t_) {}
-    void operator=(const T& t_) {
+    wrapper& operator=(const T& t_) {
         t = t_;
+        return *this;
     }
     friend bool compare<T>(const wrapper<T>& a, const wrapper<T>& b);
  private:

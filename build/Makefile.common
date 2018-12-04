@@ -22,7 +22,8 @@
 
 .SUFFIXES:
 
-ifeq (, $(filter $(MAKECMDGOALS), clean clean_all))
+goals = $(or $(MAKECMDGOALS),all)
+ifneq (, $(filter-out clean clean_all,$(goals)))
     ifeq (, $(filter $(backend), tbb))
         $(info Threading backend was not specified; using TBB)
         backend=tbb
@@ -64,7 +65,11 @@ endif
 target ?= $(os_name)
 #OS specific keys
 ifeq ($(target),windows)
-    include $(proj_root)/build/windows.inc
+    ifneq (, $(filter $(compiler), gcc g++))
+        include $(proj_root)/build/mingw.inc
+    else
+        include $(proj_root)/build/windows.inc
+    endif
 else
     include $(proj_root)/build/unix.inc
     ifneq (,$(wildcard $(proj_root)/build/$(target).inc))

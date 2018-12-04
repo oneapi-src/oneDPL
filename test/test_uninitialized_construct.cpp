@@ -112,6 +112,6 @@ int32_t main() {
     test_uninit_construct_by_type<int8_t>();
     test_uninit_construct_by_type<float64_t>();
 
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

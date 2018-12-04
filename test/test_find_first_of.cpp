@@ -57,7 +57,6 @@ void test(Predicate pred) {
     for (std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1)) {
         std::size_t sub_n[] = { 0, 1, n1 / 3, n1, (n1 * 10) / 8 };
         for(const auto n2 : sub_n) {
-            bool not_0 = n2 != 0;
             invoke_on_all_policies(test_one_policy(), in1.begin(), in1.begin() + n1, in2.data(), in2.data() + n2, pred);
 
             in2[n2 / 2] = T(1);
@@ -74,10 +73,23 @@ void test(Predicate pred) {
     invoke_on_all_policies(test_one_policy(), in1.begin(), in1.begin() + max_n1 / 10, in1.data(), in1.data() + max_n1 / 10, pred);
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename FirstIterator, typename SecondInterator>
+    void operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter) {
+        invoke_if(exec, [&]() {
+            find_first_of(exec, first_iter, first_iter, second_iter, second_iter,
+                          non_const(std::equal_to<T>()));
+        });
+    }
+};
+
 int32_t main() {
     test<int32_t>(std::equal_to<int32_t>());
     test<uint16_t>(std::not_equal_to<uint16_t>());
     test<float64_t>([](const float64_t x, const float64_t y) {return x*x == y*y; });
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

@@ -31,3 +31,7 @@ ifneq (, $(shell gcc -dumpversion | egrep  "^[5-9]\.[0-9]\.[0-9]"))
 endif
 
 CPLUS_FLAGS += $(FQKEY)std=$(stdver)
+
+ifeq ($(os_name),windows)
+DISABLED_WARNINGS = $(KEY)Wno-attributes #disable MinGW warnings about extended alignment
+endif

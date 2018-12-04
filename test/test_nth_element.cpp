@@ -129,6 +129,16 @@ void test_by_type(Generator1 generator1, Generator2 generator2, Compare comp) {
         max_size, max_size, generator1, generator2, comp);
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        invoke_if(exec, [&]() {
+            nth_element(exec, iter, iter, iter, non_const(std::less<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
     test_by_type<int32_t>([](int32_t i) { return 10 * i; },
         [](int32_t i) { return i + 1; },
@@ -144,6 +154,8 @@ int32_t main( ) {
     test_by_type<DataType<float32_t>>([](int32_t i) {return DataType<float32_t>(2 * i + 1); },
         [](int32_t i) {return DataType<float32_t>(2 * i); },
         [](const DataType<float32_t>& x, const DataType<float32_t>& y) {return x.get_val() < y.get_val(); });
+
+    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

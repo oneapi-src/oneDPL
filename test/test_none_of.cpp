@@ -71,6 +71,17 @@ void test( size_t bits ) {
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+        none_of(exec, iter, iter, non_const(is_even));
+    }
+};
+
 int32_t main( ) {
     test<int32_t>(8*sizeof(int32_t));
     test<uint16_t>(8*sizeof(uint16_t));
@@ -78,6 +89,9 @@ int32_t main( ) {
 #if !__PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>(1);
 #endif
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

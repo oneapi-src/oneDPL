@@ -67,6 +67,22 @@ void test(T trash, const T& old_value, const T& new_value, Predicate pred, Conve
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputInterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+
+        invoke_if(exec, [&](){
+            replace_copy_if(exec, input_iter, input_iter, out_iter, non_const(is_even), T(0));
+        });
+    }
+};
+
+
 int32_t main( ) {
 
     test<float64_t>( -666.0,
@@ -88,6 +104,9 @@ int32_t main( ) {
                   IsMultiple(3, OddTag()),
                   [](int32_t j){return ((j+1)%3&2)!=0? Number(2001,OddTag()) : Number(j,OddTag());});
 #endif
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

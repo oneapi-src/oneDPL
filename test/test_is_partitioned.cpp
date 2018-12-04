@@ -64,15 +64,30 @@ private:
     T my_val;
 };
 
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+        invoke_if(exec, [&]() {
+            is_partitioned(exec, iter, iter, non_const(is_even));
+        });
+    }
+};
+
 int32_t main( ) {
     test<float64_t>([](const float64_t x) {return x < 0; });
     test<int32_t>([](const int32_t x) {return x > 1000; });
     test<uint16_t>([](const uint16_t x) {return x % 5 < 3; });
-#if !__PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN
+#if !__PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN && !__PSTL_ICC_19_TEST_IS_PARTITIONED_RELEASE_BROKEN
     test<LocalWrapper<float64_t>>(
         [](const LocalWrapper<float64_t>& x) {return true; }
     );
 #endif
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
 
     std::cout << done() << std::endl;
     return 0;

@@ -33,6 +33,8 @@ namespace pstl {
     using tbb::counting_iterator;
     using tbb::zip_iterator;
     using tbb::make_zip_iterator;
+    using tbb::transform_iterator;
+    using tbb::make_transform_iterator;
 } //namespace pstl
 
 #endif //TBB_VERSION_MAJOR < 2019

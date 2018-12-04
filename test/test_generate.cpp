@@ -71,11 +71,24 @@ void test_generate_by_type() {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto gen = [](){return T(0);};
+
+        generate(exec, iter, iter, non_const(gen));
+        generate_n(exec, iter, 0, non_const(gen));
+    }
+};
+
 int32_t main( ) {
 
     test_generate_by_type<int32_t>();
     test_generate_by_type<float64_t>();
 
-    std::cout << "done" << std::endl;
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

@@ -1,6 +1,27 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL 20181204 release
+PSTL_VERSION == 203
+
+Features / APIs:
+
+- More algorithms support parallel execution policies:
+    set_union, set_intersection, set_difference, set_symmetric_difference.
+- Improved performance in reverse, reverse_copy algorithm with vector
+    execution policies.
+- Added FindTBB CMake module - Preview Feature.
+
+Bugs fixed:
+
+- Fixed several algorithms which use scan and reduction patterns with
+    a user defined binary operation with vector execution policies.
+
+Examples:
+
+- CMake support for gamma_correction sample was added.
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2019 Update 1
 PSTL_VERSION == 202
 
