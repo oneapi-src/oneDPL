@@ -22,6 +22,8 @@
 #define __PSTL_parallel_backend_tbb_H
 
 #include <cassert>
+#include <algorithm>
+#include <type_traits>
 
 #include "parallel_backend_utils.h"
 
@@ -38,7 +40,7 @@
 #error Intel(R) Threading Building Blocks 2018 is required; older versions are not supported.
 #endif
 
-namespace __pstl {
+namespace pstl {
 namespace par_backend {
 
 //! Raw memory buffer with automatic freeing and no exceptions.
@@ -87,8 +89,8 @@ private:
 
 //! Evaluation of brick f[i,j) for each subrange [i,j) of [first,last)
 // wrapper over tbb::parallel_for
-template<class _Index, class _Fp>
-void parallel_for(_Index __first, _Index __last, _Fp __f) {
+template<class _ExecutionPolicy, class _Index, class _Fp>
+void parallel_for(_ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f) {
     tbb::this_task_arena::isolate([=]() {
         tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last), parallel_for_body<_Index, _Fp>(__f));
     });
@@ -96,8 +98,8 @@ void parallel_for(_Index __first, _Index __last, _Fp __f) {
 
 //! Evaluation of brick f[i,j) for each subrange [i,j) of [first,last)
 // wrapper over tbb::parallel_reduce
-template<class _Value, class _Index, typename _RealBody, typename _Reduction>
-_Value parallel_reduce(_Index __first, _Index __last, const _Value& __identity, const _RealBody& __real_body,
+template<class _ExecutionPolicy, class _Value, class _Index, typename _RealBody, typename _Reduction>
+_Value parallel_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, const _Value& __identity, const _RealBody& __real_body,
                        const _Reduction& __reduction) {
     return tbb::this_task_arena::isolate([__first, __last, &__identity, &__real_body, &__reduction]() -> _Value {
         return tbb::parallel_reduce(tbb::blocked_range<_Index>(__first, __last), __identity,
@@ -167,8 +169,8 @@ struct par_trans_red_body {
     }
 };
 
-template<class _Index, class _Up, class _Tp, class _Cp, class _Rp>
-_Tp parallel_transform_reduce( _Index __first, _Index __last, _Up __u, _Tp __init, _Cp __combine, _Rp __brick_reduce) {
+template<class _ExecutionPolicy, class _Index, class _Up, class _Tp, class _Cp, class _Rp>
+_Tp parallel_transform_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, _Up __u, _Tp __init, _Cp __combine, _Rp __brick_reduce) {
     par_trans_red_body<_Index, _Up, _Tp, _Cp, _Rp> __body(__u, __init, __combine, __brick_reduce);
     // The grain size of 3 is used in order to provide mininum 2 elements for each body
     tbb::this_task_arena::isolate([__first, __last, &__body]() {
@@ -305,9 +307,8 @@ void downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __las
 // apex is called exactly once, after all calls to reduce and before all calls to scan.
 // For example, it's useful for allocating a buffer used by scan but whose size is the sum of all reduction values.
 // T must have a trivial constructor and destructor.
-template<typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
-void parallel_strict_scan(_Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex) {
-    //TODO: Consider adding a requirement for user functors to be constant.
+template<class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
+void parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex) {
     tbb::this_task_arena::isolate([=, &__combine]() {
         if (__n > 1) {
             _Index __p = tbb::this_task_arena::max_concurrency();
@@ -339,8 +340,8 @@ void parallel_strict_scan(_Index __n, _Tp __initial, _Rp __reduce, _Cp __combine
     });
 }
 
-template<class _Index, class _Up, class _Tp, class _Cp, class _Rp, class _Sp>
-_Tp parallel_transform_scan(_Index __n, _Up __u, _Tp __init, _Cp __combine, _Rp __brick_reduce, _Sp __scan) {
+template<class _ExecutionPolicy, class _Index, class _Up, class _Tp, class _Cp, class _Rp, class _Sp>
+_Tp parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _Up __u, _Tp __init, _Cp __combine, _Rp __brick_reduce, _Sp __scan) {
     trans_scan_body<_Index, _Up, _Tp, _Cp, _Rp, _Sp> __body(__u, __init, __combine, __brick_reduce, __scan);
     auto __range = tbb::blocked_range<_Index>(0, __n);
     tbb::this_task_arena::isolate([__range, &__body]() {
@@ -378,11 +379,16 @@ public:
     {}
 };
 
-const size_t __PSTL_MERGE_CUT_OFF = 2000;
+#define __PSTL_MERGE_CUT_OFF 2000
+
 template<typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3, typename __M_Compare, typename _Cleanup, typename _LeafMerge>
 tbb::task* merge_task<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare, _Cleanup, _LeafMerge>::execute() {
-    const size_t __n = (_M_xe-_M_xs) + (_M_ye-_M_ys);
-    if(__n <= __PSTL_MERGE_CUT_OFF) {
+    typedef typename std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    const _SizeType __n = (_M_xe-_M_xs) + (_M_ye-_M_ys);
+    const _SizeType __merge_cut_off = __PSTL_MERGE_CUT_OFF;
+    if(__n <= __merge_cut_off) {
         _M_leaf_merge(_M_xs, _M_xe, _M_ys, _M_ye, _M_zs, _M_comp);
 
         //we clean the buffer one time on last step of the sort
@@ -414,16 +420,23 @@ tbb::task* merge_task<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAcc
 
 template<typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare, typename _LeafSort>
 class stable_sort_task : public tbb::task {
+public:
+    typedef typename std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+
+private:
     /*override*/tbb::task* execute();
     _RandomAccessIterator1 _M_xs, _M_xe;
     _RandomAccessIterator2 _M_zs;
     _Compare _M_comp;
     _LeafSort _M_leaf_sort;
     int32_t _M_inplace;
-    std::size_t _M_nsort;
+    _SizeType _M_nsort;
+
 public:
     stable_sort_task(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _RandomAccessIterator2 __zs,
-                     int32_t __inplace, _Compare __comp, _LeafSort __leaf_sort,  std::size_t __n)
+                     int32_t __inplace, _Compare __comp, _LeafSort __leaf_sort,  _SizeType __n)
       : _M_xs(__xs)
       , _M_xe(__xe)
       , _M_zs(__zs)
@@ -440,13 +453,14 @@ struct binary_no_op {
     void operator()(_T, _T) {}
 };
 
-const size_t __PSTL_STABLE_SORT_CUT_OFF = 500;
+#define __PSTL_STABLE_SORT_CUT_OFF 500
 
 template<typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare, typename _LeafSort>
 tbb::task* stable_sort_task<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _LeafSort>::execute() {
-    const auto __n = _M_xe - _M_xs;
-    const auto __nmerge = _M_nsort > 0 ? _M_nsort : __n;
-    if (__n <= __PSTL_STABLE_SORT_CUT_OFF) {
+    const _SizeType __n = _M_xe - _M_xs;
+    const _SizeType __nmerge = _M_nsort > 0 ? _M_nsort : __n;
+    const _SizeType __sort_cut_off = __PSTL_STABLE_SORT_CUT_OFF;
+    if (__n <= __sort_cut_off) {
         _M_leaf_sort(_M_xs, _M_xe, _M_comp);
         if (_M_inplace != 2)
             init_buf(_M_xs, _M_xe, _M_zs, _M_inplace == 0);
@@ -478,16 +492,18 @@ tbb::task* stable_sort_task<_RandomAccessIterator1, _RandomAccessIterator2, _Com
     return this;
 }
 
-template<typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
-void parallel_stable_sort(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp, _LeafSort __leaf_sort, std::size_t __nsort = 0) {
+template<class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
+void parallel_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp, _LeafSort __leaf_sort, std::size_t __nsort = 0) {
     tbb::this_task_arena::isolate([=, &__nsort]() {
         //sorting based on task tree and parallel merge
         typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-        const auto __n = __xe - __xs;
+        typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
+        const _DifferenceType __n = __xe - __xs;
         if (__nsort == 0)
             __nsort = __n;
 
-        if (__n > __PSTL_STABLE_SORT_CUT_OFF) {
+        const _DifferenceType __sort_cut_off = __PSTL_STABLE_SORT_CUT_OFF;
+        if (__n > __sort_cut_off) {
             assert(__nsort > 0 && __nsort <= __n);
             buffer<_ValueType> __buf(__n);
             using tbb::task;
@@ -503,10 +519,15 @@ void parallel_stable_sort(_RandomAccessIterator __xs, _RandomAccessIterator __xe
 // parallel_merge
 //------------------------------------------------------------------------
 
-template<typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3, typename _Compare,
+template<class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3, typename _Compare,
          typename _LeafMerge>
-void parallel_merge(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge) {
-    if ((__xe - __xs) + (__ye - __ys) <= __PSTL_MERGE_CUT_OFF) {
+void parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge) {
+    typedef typename std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    const _SizeType __n = (__xe - __xs) + (__ye - __ys);
+    const _SizeType __merge_cut_off = __PSTL_MERGE_CUT_OFF;
+    if (__n <= __merge_cut_off) {
         // Fall back on serial merge
         __leaf_merge(__xs, __xe, __ys, __ye, __zs, __comp);
     }
@@ -521,7 +542,16 @@ void parallel_merge(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _R
     }
 }
 
+//------------------------------------------------------------------------
+// parallel_invoke
+//------------------------------------------------------------------------
+template<class _ExecutionPolicy, typename _F1, typename _F2>
+void parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2) {
+    //TODO: a version of tbb::this_task_arena::isolate with variadic arguments pack should be added in the future
+    tbb::this_task_arena::isolate([&](){ tbb::parallel_invoke(std::forward<_F1>(__f1), std::forward<_F2>(__f2));});
+}
+
 } // namespace par_backend
-} // namespace __pstl
+} // namespace pstl
 
 #endif /* __PSTL_parallel_backend_tbb_H */

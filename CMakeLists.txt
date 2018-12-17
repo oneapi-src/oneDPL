@@ -31,12 +31,23 @@ set(PARALLELSTL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
 
 include(CMakePackageConfigHelpers)
 
+if (NOT TBB_DIR)
+    get_filename_component(PSTL_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    string(REPLACE pstl tbb TBB_DIR_NAME ${PSTL_DIR_NAME})
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${TBB_DIR_NAME}/cmake")
+        get_filename_component(TBB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${TBB_DIR_NAME}/cmake" ABSOLUTE)
+    endif()
+endif()
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 add_library(ParallelSTL INTERFACE)
 add_library(pstl::ParallelSTL ALIAS ParallelSTL)
 
 if (PARALLELSTL_USE_PARALLEL_POLICIES)
     if (PARALLELSTL_BACKEND STREQUAL "tbb")
-        find_package(TBB 2018 REQUIRED tbb)
+        find_package(TBB 2018 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
+        message(STATUS "Parallel STL uses TBB ${TBB_VERSION} (interface version: ${TBB_INTERFACE_VERSION})")
         target_link_libraries(ParallelSTL INTERFACE TBB::tbb)
     else()
         if (TARGET ${PARALLELSTL_BACKEND})

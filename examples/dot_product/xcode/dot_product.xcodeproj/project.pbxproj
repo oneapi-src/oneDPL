@@ -10,6 +10,18 @@
 		8491CF1D1F2F810A00DA6075 /* dot_product.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8491CF1C1F2F810A00DA6075 /* dot_product.cpp */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXBuildRule section */
+		C3C58964218C2A2000DAC94C /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.intel.compilers.icc.latest;
+			fileType = sourcecode.cpp;
+			isEditable = 1;
+			outputFiles = (
+			);
+			script = "# Type a script or drag a script file from your workspace to insert its path.\n";
+		};
+/* End PBXBuildRule section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		8491CF0E1F2F521E00DA6075 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -66,6 +78,7 @@
 				8491CF0E1F2F521E00DA6075 /* CopyFiles */,
 			);
 			buildRules = (
+				C3C58964218C2A2000DAC94C /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -80,7 +93,7 @@
 		8491CF081F2F521E00DA6075 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = tbb;
 				TargetAttributes = {
 					8491CF0F1F2F521E00DA6075 = {
@@ -118,24 +131,33 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		8491CF151F2F521E00DA6075 /* Debug */ = {
+		8491CF151F2F521E00DA6075 /* Debug64 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -152,7 +174,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_VERSION = com.intel.compilers.icc.latest;
+				GCC_VERSION = "";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -173,7 +195,7 @@
 					"$(TBBROOT)/lib",
 					/opt/intel/tbb/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -183,27 +205,37 @@
 				);
 				OTHER_LDFLAGS = "-ltbb_debug";
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
-			name = Debug;
+			name = Debug64;
 		};
-		8491CF161F2F521E00DA6075 /* Release */ = {
+		8491CF161F2F521E00DA6075 /* Release64 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -216,7 +248,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 2;
-				GCC_VERSION = com.intel.compilers.icc.latest;
+				GCC_VERSION = "";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -238,7 +270,7 @@
 					"$(TBBROOT)/lib",
 					/opt/intel/tbb/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -247,24 +279,29 @@
 				);
 				OTHER_LDFLAGS = "-ltbb";
 				SDKROOT = macosx;
+				VALID_ARCHS = x86_64;
 			};
-			name = Release;
+			name = Release64;
 		};
-		8491CF181F2F521E00DA6075 /* Debug */ = {
+		8491CF181F2F521E00DA6075 /* Debug64 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
-			name = Debug;
+			name = Debug64;
 		};
-		8491CF191F2F521E00DA6075 /* Release */ = {
+		8491CF191F2F521E00DA6075 /* Release64 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
-			name = Release;
+			name = Release64;
 		};
 /* End XCBuildConfiguration section */
 
@@ -272,20 +309,20 @@
 		8491CF0B1F2F521E00DA6075 /* Build configuration list for PBXProject "dot_product" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				8491CF151F2F521E00DA6075 /* Debug */,
-				8491CF161F2F521E00DA6075 /* Release */,
+				8491CF151F2F521E00DA6075 /* Debug64 */,
+				8491CF161F2F521E00DA6075 /* Release64 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Release64;
 		};
 		8491CF171F2F521E00DA6075 /* Build configuration list for PBXNativeTarget "dot_product" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				8491CF181F2F521E00DA6075 /* Debug */,
-				8491CF191F2F521E00DA6075 /* Release */,
+				8491CF181F2F521E00DA6075 /* Debug64 */,
+				8491CF191F2F521E00DA6075 /* Release64 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Release64;
 		};
 /* End XCConfigurationList section */
 	};

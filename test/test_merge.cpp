@@ -80,6 +80,14 @@ void test_merge_by_type(Generator1 generator1, Generator2 generator2) {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputIterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputIterator out_iter) {
+        merge(exec, input_iter, input_iter, input_iter, input_iter, out_iter,
+                                non_const(std::less<T>()));
+    }
+};
 
 int32_t main( ) {
     test_merge_by_type<int32_t>([](size_t v) { return (v % 2 == 0 ? v : -v) * 3; },
@@ -91,6 +99,8 @@ int32_t main( ) {
     test_merge_by_type<Wrapper<int16_t>>([](size_t v) { return Wrapper<int16_t>(v % 100); },
         [](size_t v) { return Wrapper<int16_t>(v % 10); });
 #endif
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

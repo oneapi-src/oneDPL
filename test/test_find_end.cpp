@@ -81,6 +81,19 @@ void test(const std::size_t bits) {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename FirstIterator, typename SecondInterator>
+    void operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter) {
+        invoke_if(exec, [&]() {
+            find_end(exec, first_iter, first_iter, second_iter, second_iter,
+                     non_const(std::equal_to<T>()));
+            search(exec, first_iter, first_iter, second_iter, second_iter,
+                   non_const(std::equal_to<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
     test<int32_t>(8*sizeof(int32_t));
     test<uint16_t>(8*sizeof(uint16_t));
@@ -88,6 +101,8 @@ int32_t main( ) {
 #if !__PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>(1);
 #endif
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

@@ -64,10 +64,25 @@ void test() {
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        invoke_if(exec, [&]() {
+            auto f = [](typename std::iterator_traits<Iterator>::reference x) { x = x+1; };
+
+            for_each(exec, iter, iter, non_const(f));
+            for_each_n(exec, iter, 0, non_const(f));
+        });
+    }
+};
+
 int32_t main( ) {
     test<int32_t>();
     test<uint16_t>();
     test<float64_t>();
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

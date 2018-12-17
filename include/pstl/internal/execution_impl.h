@@ -26,8 +26,9 @@
 
 #include "execution_defs.h"
 
-namespace __pstl {
+namespace pstl {
 namespace internal {
+
 using namespace pstl::execution;
 
 /* predicate */
@@ -59,7 +60,6 @@ struct is_random_access_iterator<_IteratorType>
                    std::random_access_iterator_tag> {
 };
 
-
 /* policy */
 template<typename Policy>
 struct policy_traits {};
@@ -78,10 +78,9 @@ struct policy_traits<unsequenced_policy> {
     typedef std::true_type  allow_vector;
 };
 
-template <>
-
 
 #if __PSTL_USE_PAR_POLICIES
+template <>
 struct policy_traits<parallel_policy> {
     typedef std::true_type  allow_parallel;
     typedef std::false_type allow_unsequenced;
@@ -95,11 +94,6 @@ struct policy_traits<parallel_unsequenced_policy> {
     typedef std::true_type allow_vector;
 };
 #endif
-
-/*
-template<class ExecPolicy, class T> using enable_if_execution_policy = typename std::enable_if<
-    is_execution_policy<typename std::decay<ExecPolicy>::type>::value, T>::type;
-*/
 
 template<typename _ExecutionPolicy> using collector_t =
     typename policy_traits<typename std::decay<_ExecutionPolicy>::type>::collector_type;
@@ -141,7 +135,8 @@ struct prefer_parallel_tag {
         allow_parallel<policy>::value && is_random_access_iterator<_IteratorTypes...>::value;
     typedef std::integral_constant<bool, value> type;
 };
+
 } // namespace internal
-} // namespace __pstl
+} // namespace pstl
 
 #endif /* __PSTL_execution_impl_H */

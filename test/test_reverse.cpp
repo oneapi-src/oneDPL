@@ -88,7 +88,9 @@ int32_t main() {
     test<int32_t>();
     test<uint16_t>();
     test<float64_t>();
+#if !__PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     test<wrapper<float64_t>>();
+#endif
 
     std::cout << done() << std::endl;
     return 0;

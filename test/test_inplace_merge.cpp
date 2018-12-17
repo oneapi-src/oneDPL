@@ -113,6 +113,16 @@ private:
     T my_val;
 };
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        invoke_if(exec, [&]() {
+            inplace_merge(exec, iter, iter, iter, non_const(std::less<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
     test_by_type<float64_t>([](int32_t i) {return -2 * i; },
         [](int32_t i) {return -(2 * i + 1); },
@@ -125,6 +135,8 @@ int32_t main( ) {
     test_by_type<LocalWrapper<float32_t>>([](int32_t i) {return LocalWrapper<float32_t>(2*i+1); },
         [](int32_t i) {return LocalWrapper<float32_t>(2 * i); },
         std::less<LocalWrapper<float32_t>>());
+
+    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

@@ -30,6 +30,8 @@
 #include <memory>
 #include <cstdint>
 
+#include "pstl_test_config.h"
+
 namespace TestUtils {
 
 typedef double float64_t;
@@ -105,8 +107,8 @@ void expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, 
     }
 }
 
-template<typename Iterator, typename Size>
-void expect_equal(Iterator expected_first, Iterator actual_first, Size n, const char* file, int32_t line, const char* message) {
+template<typename Iterator1, typename Iterator2, typename Size>
+void expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const char* file, int32_t line, const char* message) {
     size_t error_count = 0;
     for (size_t k = 0; k<n && error_count<10; ++k, ++expected_first, ++actual_first) {
         if (!(*expected_first == *actual_first)) {
@@ -396,13 +398,19 @@ struct Matrix2x2 {
     T a[2][2];
     Matrix2x2(): a { {1,0}, {0,1} } { }
     Matrix2x2(T x, T y): a { { 0,x }, { x,y } } { }
+#if !__PSTL_ICL_19_VC14_VC141_TEST_SCAN_RELEASE_BROKEN
+    Matrix2x2(const Matrix2x2& m): a { {m.a[0][0], m.a[0][1]}, {m.a[1][0], m.a[1][1]} } { }
+    Matrix2x2& operator=(const Matrix2x2& m) {
+        a[0][0] = m.a[0][0], a[0][1] = m.a[0][1], a[1][0] = m.a[1][0], a[1][1] = m.a[1][1];
+        return *this;
+    }
+#endif
 };
 
 template<typename T>
-bool is_equal(const Matrix2x2<T>& left, const Matrix2x2<T>& right) {
-    return
-        left.a[0][0] == right.a[0][0] && left.a[0][1] == right.a[0][1] &&
-        left.a[1][0] == right.a[1][0] && left.a[1][1] == right.a[1][1];
+bool operator==(const Matrix2x2<T>& left, const Matrix2x2<T>& right) {
+    return left.a[0][0] == right.a[0][0] && left.a[0][1] == right.a[0][1] &&
+           left.a[1][0] == right.a[1][0] && left.a[1][1] == right.a[1][1];
 }
 
 template<typename T>
@@ -534,6 +542,53 @@ struct invoke_if_<std::false_type, std::false_type> {
     void operator()(bool is_allow, Op op, Rest&&... rest) { op(std::forward<Rest>(rest)...); }
 };
 
+// Base non_const_wrapper struct. It is used to distinguish non_const testcases
+// from a regular one. For non_const testcases only compilation is checked.
+struct non_const_wrapper {};
+
+// Generic wrapper to specify iterator type to execute callable Op on.
+// The condition can be either positive(Op is executed only with IteratorTag)
+// or negative(Op is executed with every type of iterators except IteratorTag)
+template <typename Op, typename IteratorTag, bool IsPositiveCondition = true>
+struct non_const_wrapper_tagged: non_const_wrapper {
+    template <typename Policy, typename Iterator>
+    typename std::enable_if<IsPositiveCondition == is_same_iterator_category<Iterator, IteratorTag>::value, void>::type
+    operator()(Policy&& exec, Iterator iter) {
+        Op()(exec, iter);
+    }
+
+    template <typename Policy, typename InputIterator, typename OutputIterator>
+    typename std::enable_if<IsPositiveCondition == is_same_iterator_category<OutputIterator, IteratorTag>::value, void>::type
+    operator()(Policy&& exec, InputIterator input_iter, OutputIterator out_iter) {
+        Op()(exec, input_iter, out_iter);
+    }
+
+    template <typename Policy, typename Iterator>
+    typename std::enable_if<IsPositiveCondition != is_same_iterator_category<Iterator, IteratorTag>::value, void>::type
+    operator()(Policy&& exec, Iterator iter) {}
+
+    template <typename Policy, typename InputIterator, typename OutputIterator>
+    typename std::enable_if<IsPositiveCondition != is_same_iterator_category<OutputIterator, IteratorTag>::value, void>::type
+    operator()(Policy&& exec, InputIterator input_iter, OutputIterator out_iter) {}
+};
+
+// These run_for_* structures specify with which types of iterators callable object Op
+// should be executed.
+template <typename Op>
+struct run_for_rnd :
+    non_const_wrapper_tagged<Op, std::random_access_iterator_tag> {
+};
+
+template <typename Op>
+struct run_for_rnd_bi :
+    non_const_wrapper_tagged<Op, std::forward_iterator_tag, false> {
+};
+
+template <typename Op>
+struct run_for_rnd_fw :
+    non_const_wrapper_tagged<Op, std::bidirectional_iterator_tag, false> {
+};
+
 // Invoker for different types of iterators.
 template <typename IteratorTag, typename IsReverse>
 struct iterator_invoker {
@@ -544,6 +599,26 @@ struct iterator_invoker {
     template<typename Iterator>
     using invoke_if = invoke_if_<IsReverse, IsConst<Iterator>>;
 
+    // A single iterator version which is used for non_const testcases
+    template <typename Policy, typename Op, typename Iterator>
+    typename std::enable_if<
+        is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
+        std::is_base_of<non_const_wrapper, Op>::value, void>::type
+        operator()(Policy&& exec, Op op, Iterator iter) {
+            op(std::forward<Policy>(exec), make_iterator<Iterator>()(iter));
+    }
+
+    // A version with 2 iterators which is used for non_const testcases
+    template <typename Policy, typename Op, typename InputIterator, typename OutputIterator>
+    typename std::enable_if<
+        is_same_iterator_category<OutputIterator, std::random_access_iterator_tag>::value &&
+        std::is_base_of<non_const_wrapper, Op>::value, void>::type
+        operator()(Policy&& exec, Op op, InputIterator input_iter, OutputIterator out_iter) {
+            op(std::forward<Policy>(exec),
+               make_iterator<InputIterator>()(input_iter),
+               make_iterator<OutputIterator>()(out_iter));
+    }
+
     template <typename Policy, typename Op, typename Iterator, typename Size, typename... Rest>
     typename std::enable_if<is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value, void>::type
         operator()(Policy&& exec, Op op, Iterator begin, Size n, Rest&&... rest) {
@@ -551,7 +626,9 @@ struct iterator_invoker {
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename std::enable_if<is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value, void>::type
+    typename std::enable_if<
+        is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
+        !std::is_base_of<non_const_wrapper, Op>::value, void>::type
         operator()(Policy&& exec, Op op, Iterator inputBegin, Iterator inputEnd, Rest&&... rest) {
         invoke_if<Iterator>()(std::distance(inputBegin, inputEnd) <= sizeLimit, op, exec,
             make_iterator<Iterator>()(inputBegin), make_iterator<Iterator>()(inputEnd), std::forward<Rest>(rest)...);
@@ -594,6 +671,26 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ std::true_type> {
     template<typename Iterator>
     using make_iterator = MakeIterator<Iterator, IteratorTag, std::true_type>;
 
+    // A single iterator version which is used for non_const testcases
+    template <typename Policy, typename Op, typename Iterator>
+    typename std::enable_if<
+        is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
+        std::is_base_of<non_const_wrapper, Op>::value, void>::type
+        operator()(Policy&& exec, Op op, Iterator iter) {
+            op(std::forward<Policy>(exec), make_iterator<Iterator>()(iter));
+    }
+
+    // A version with 2 iterators which is used for non_const testcases
+    template <typename Policy, typename Op, typename InputIterator, typename OutputIterator>
+    typename std::enable_if<
+        is_same_iterator_category<OutputIterator, std::random_access_iterator_tag>::value &&
+        std::is_base_of<non_const_wrapper, Op>::value, void>::type
+        operator()(Policy&& exec, Op op, InputIterator input_iter, OutputIterator out_iter) {
+            op(std::forward<Policy>(exec),
+               make_iterator<InputIterator>()(input_iter),
+               make_iterator<OutputIterator>()(out_iter));
+    }
+
     template <typename Policy, typename Op, typename Iterator, typename Size, typename... Rest>
     typename std::enable_if<is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value, void>::type
         operator()(Policy&& exec, Op op, Iterator begin, Size n, Rest&&... rest) {
@@ -602,7 +699,9 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ std::true_type> {
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename std::enable_if<is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value, void>::type
+    typename std::enable_if<
+            is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
+            !std::is_base_of<non_const_wrapper, Op>::value, void>::type
         operator()(Policy&& exec, Op op, Iterator inputBegin, Iterator inputEnd, Rest&&... rest) {
         if(std::distance(inputBegin, inputEnd) <= sizeLimit)
             op(exec, make_iterator<Iterator>()(inputEnd), make_iterator<Iterator>()(inputBegin), std::forward<Rest>(rest)...);
@@ -778,4 +877,36 @@ static const char* done() {
     return "passed";
 #endif
 }
+
+// test_algo_basic_* functions are used to execute
+// f on a very basic sequence of elements of type T.
+
+// Should be used with unary predicate
+template <typename T, typename F>
+static void test_algo_basic_single(F&& f) {
+    size_t N = 10;
+    Sequence<T> in(N, [](size_t v)->T { return T(v); });
+
+    invoke_on_all_policies(f, in.begin());
+}
+
+// Should be used with binary predicate
+template <typename T, typename F>
+static void test_algo_basic_double(F&& f) {
+    size_t N = 10;
+    Sequence<T> in(N, [](size_t v)->T { return T(v); });
+    Sequence<T> out(N, [](size_t v)->T { return T(v); });
+
+    invoke_on_all_policies(f, in.begin(), out.begin());
+}
+
+template<typename Policy, typename F>
+static void invoke_if(Policy&& p, F f) {
+    #if __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
+        pstl::internal::invoke_if_not(pstl::internal::allow_unsequenced<Policy>(), f);
+    #else
+        f();
+    #endif
+}
+
 } /* namespace TestUtils */

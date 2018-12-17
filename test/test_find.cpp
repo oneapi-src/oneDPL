@@ -83,6 +83,6 @@ int32_t main( ) {
                  [](int32_t j){return j==0 ? ~j : j;});                      // miss
 
 
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

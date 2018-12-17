@@ -85,7 +85,7 @@ int32_t main() {
     // for user-defined types
     test_uninitialized_fill_destroy_by_type<Wrapper<std::string>>();
     test_uninitialized_fill_destroy_by_type<Wrapper<int8_t*>>();
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
 
     return 0;
 }

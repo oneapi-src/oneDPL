@@ -62,12 +62,25 @@ void test() {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputInterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter) {
+        invoke_if(exec, [&]() {
+            transform(exec, input_iter, input_iter, out_iter, non_const(std::negate<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
     test<int32_t, int32_t>();
     test<int32_t, float32_t>();
     test<uint16_t, float32_t>();
     test<float32_t, float64_t>();
     test<float64_t, float64_t>();
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

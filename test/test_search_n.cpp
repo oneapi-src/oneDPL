@@ -72,6 +72,16 @@ void test() {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        invoke_if(exec, [&]() {
+            search_n(exec, iter, iter, 0, T(0), non_const(std::equal_to<T>()));
+        });
+    }
+};
+
 int32_t main( ) {
     test<int32_t>();
     test<uint16_t>();
@@ -79,6 +89,8 @@ int32_t main( ) {
 #if !__PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>();
 #endif
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

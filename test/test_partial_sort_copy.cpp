@@ -133,9 +133,22 @@ void test_partial_sort_copy(Compare compare) {
         in.begin(), in.begin() + n1, n1, n2, trash);
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputInterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter) {
+        invoke_if(exec, [&]() {
+            partial_sort_copy(exec, input_iter, input_iter, out_iter, out_iter,
+                non_const(std::less<T>()));
+        });
+    }
+};
+
 int32_t main() {
     test_partial_sort_copy<Num<float32_t>>([](Num<float32_t> x, Num<float32_t> y) {return x < y; });
     test_partial_sort_copy<int32_t>([](int32_t x, int32_t y) {return x > y; });
+
+    test_algo_basic_double<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

@@ -64,8 +64,8 @@ void divide_and_conquer(Policy exec, Iterator first, Iterator last, pointVec_t &
         find_hull_points(exec, first, last, H1, fp, p2);
     }
     else {
-        find_hull_points(__pstl::execution::unseq, first, last, H, p1, fp);
-        find_hull_points(__pstl::execution::unseq, first, last, H1, fp, p2);
+        find_hull_points(pstl::execution::unseq, first, last, H, p1, fp);
+        find_hull_points(pstl::execution::unseq, first, last, H1, fp, p2);
     }
     H.insert(H.end(), H1.cbegin(), H1.cend());
 }
@@ -109,20 +109,20 @@ void quickhull(const pointVec_t &points, pointVec_t &hull) {
         return;
     }
     //Find left and right most points, they will be in the convex hull
-    auto minmaxx = std::minmax_element(__pstl::execution::par_unseq, points.cbegin(), points.cend());
+    auto minmaxx = std::minmax_element(pstl::execution::par_unseq, points.cbegin(), points.cend());
 
     pointVec_t H;
     point_t p1 = *minmaxx.first;
     point_t p2 = *minmaxx.second;
     //Divide the set of points into two subsets, which will be processed recursively
-    divide_and_conquer(__pstl::execution::par_unseq, points.cbegin(), points.cend(), hull, p1, p2, p1);
+    divide_and_conquer(pstl::execution::par_unseq, points.cbegin(), points.cend(), hull, p1, p2, p1);
 }
 
 // Check if a polygon is convex
 bool is_convex(const pointVec_t & points) {
-    return std::all_of(__pstl::execution::par_unseq,
-        __pstl::counting_iterator<size_t>(size_t(0)),
-        __pstl::counting_iterator<size_t>(points.size()),
+    return std::all_of(pstl::execution::par_unseq,
+        pstl::counting_iterator<size_t>(size_t(0)),
+        pstl::counting_iterator<size_t>(points.size()),
         [&points](size_t i) {
             point_t p0(points[i]);
             point_t p1(points[(i + 1) % points.size()]);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     pointVec_t hull;
 
     //initialize set of points
-    std::generate(__pstl::execution::par, points.begin(), points.end(), util::random_point<double>);
+    std::generate(pstl::execution::par, points.begin(), points.end(), util::random_point<double>);
     std::cout << "Points were initialized. Number of the points " << points.size() << std::endl;
 
     using ms = std::chrono::milliseconds;

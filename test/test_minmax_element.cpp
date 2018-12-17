@@ -28,6 +28,8 @@
 #include <cassert>
 #include <cmath>
 
+using namespace TestUtils;
+
 struct check_minelement {
     template <typename Policy, typename Iterator>
     void operator()(Policy&& exec, Iterator begin, Iterator end) {
@@ -143,6 +145,16 @@ struct OnlyLessCompare {
     }
 };
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        max_element(exec, iter, iter, non_const(std::less<T>()));
+        min_element(exec, iter, iter, non_const(std::less<T>()));
+        minmax_element(exec, iter, iter, non_const(std::less<T>()));
+    }
+};
+
 int32_t main() {
     using TestUtils::float64_t;
     const std::size_t N = 100000;
@@ -151,6 +163,8 @@ int32_t main() {
         test_by_type<float64_t>(n);
         test_by_type<OnlyLessCompare>(n);
     }
+
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     std::cout << TestUtils::done() << std::endl;
     return 0;

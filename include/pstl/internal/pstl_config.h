@@ -21,7 +21,7 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 202
+#define PSTL_VERSION 203
 #define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 
@@ -72,7 +72,7 @@
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
-#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (__PSTL_GCC_VERSION >= 40900)
+#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && __PSTL_GCC_VERSION >= 40900)
 #define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(omp simd)
 #define __PSTL_PRAGMA_DECLARE_SIMD __PSTL_PRAGMA(omp declare simd)
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM) __PSTL_PRAGMA(omp simd reduction(PRM))
@@ -113,7 +113,13 @@
 
 #define __PSTL_EARLYEXIT_PRESENT  (__INTEL_COMPILER >= 1800)
 #define __PSTL_MONOTONIC_PRESENT  (__INTEL_COMPILER >= 1800)
-#define __PSTL_UDR_PRESENT        (__INTEL_COMPILER >= 1900)
+
+#if (__INTEL_COMPILER >= 1900 || !defined(__INTEL_COMPILER) && __PSTL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
+#define __PSTL_UDR_PRESENT 1
+#else
+#define __PSTL_UDR_PRESENT 0
+#endif
+
 #define __PSTL_UDS_PRESENT        (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
 
 #if __PSTL_EARLYEXIT_PRESENT
@@ -129,6 +135,16 @@
 #define __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC(PRM)
 #define __PSTL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(PRM1, PRM2)
 #endif
+
+// Declaration of reduction functor, where
+// NAME - the name of the functor
+// OP - type of the callable object with the reduction operation
+// omp_in - refers to the local partial result
+// omp_out - refers to the final value of the combiner operator
+// omp_priv - refers to the private copy of the initial value
+// omp_orig - refers to the original variable to be reduced
+#define __PSTL_PRAGMA_DECLARE_REDUCTION(NAME, OP) \
+        __PSTL_PRAGMA(omp declare reduction(NAME : OP : omp_out(omp_in)) initializer(omp_priv = omp_orig))
 
 #if (__INTEL_COMPILER >= 1600)
 #define __PSTL_PRAGMA_VECTOR_UNALIGNED __PSTL_PRAGMA(vector unaligned)
@@ -161,7 +177,6 @@
 
 // broken macros
 #define __PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
-#define __PSTL_ICC_19_VC_UDR_RELEASE_DEBUG_BROKEN (_DEBUG && __INTEL_COMPILER == 1900 && _MSC_VER && _MSC_VER <= 1913)
 
 #define __PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 

@@ -21,7 +21,6 @@
 #ifndef __PSTL_unseq_backend_simd_H
 #define __PSTL_unseq_backend_simd_H
 
-#include <algorithm> //for std::min
 #include <type_traits>
 
 #include "pstl_config.h"
@@ -29,8 +28,11 @@
 
 // This header defines the minimum set of vector routines required
 // to support parallel STL.
-namespace __pstl {
+namespace pstl {
 namespace unseq_backend {
+
+// Expect vector width up to 64 (or 512 bit)
+const std::size_t __lane_size = 64;
 
 template<class _Iterator, class _DifferenceType, class _Function>
 _Iterator simd_walk_1(_Iterator __first, _DifferenceType __n, _Function __f) noexcept {
@@ -69,7 +71,7 @@ __PSTL_PRAGMA_SIMD_EARLYEXIT
             break;
     return __i < __n;
 #else
-    _DifferenceType __block_size = std::min<_DifferenceType>(4, __n);
+    _DifferenceType __block_size = 4 < __n ? 4 : __n;
     const _Index __last = __first + __n;
     while ( __last != __first ) {
         int32_t __flag = 1;
@@ -108,7 +110,7 @@ __PSTL_PRAGMA_SIMD_EARLYEXIT
 #else
     // Experiments show good block sizes like this
     const _DifferenceType __block_size = 8;
-    alignas(64) _DifferenceType __lane[__block_size] = { 0 };
+    alignas(__lane_size) _DifferenceType __lane[__block_size] = { 0 };
     while (__end - __begin >= __block_size) {
         _DifferenceType __found = 0;
 __PSTL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
@@ -157,7 +159,7 @@ __PSTL_PRAGMA_SIMD_EARLYEXIT
     const _Index2 __last2 = __first2 + __n;
     // Experiments show good block sizes like this
     const _DifferenceType __block_size = 8;
-    alignas(64) _DifferenceType __lane[__block_size] = {0};
+    alignas(__lane_size) _DifferenceType __lane[__block_size] = {0};
     while ( __last1 - __first1 >= __block_size ) {
         _DifferenceType __found = 0;
         _DifferenceType __i;
@@ -341,7 +343,7 @@ __PSTL_PRAGMA_SIMD_EARLYEXIT
     // Experiments show good block sizes like this
     //TODO: to consider tuning block_size for various data types
     const _DifferenceType __block_size = 8;
-    alignas(64) _DifferenceType __lane[__block_size] = {0};
+    alignas(__lane_size) _DifferenceType __lane[__block_size] = {0};
     while ( __last - __first >= __block_size ) {
         _DifferenceType __found = 0;
 __PSTL_PRAGMA_VECTOR_UNALIGNED // Do not generate peel loop part
@@ -393,23 +395,22 @@ __PSTL_PRAGMA_SIMD_REDUCTION(+:__init)
 template<typename _Size, typename _Tp, typename _BinaryOperation, typename _UnaryOperation>
 typename std::enable_if<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, _Tp>::type
 simd_transform_reduce(_Size __n, _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __f) noexcept {
-    const std::size_t __lane_size = 64;
-    const std::size_t block_size = __lane_size / sizeof(_Tp);
-    if (__n > 2 * block_size && block_size > 1) {
+    const std::size_t __block_size = __lane_size / sizeof(_Tp);
+    if (__n > 2 * __block_size && __block_size > 1) {
         alignas(__lane_size) char __lane_[__lane_size];
         _Tp* __lane = reinterpret_cast<_Tp*>(__lane_);
 
         // initializer
 __PSTL_PRAGMA_SIMD
-        for (_Size __i = 0; __i < block_size; ++__i) {
-            ::new (__lane + __i) _Tp(__binary_op(__f(__i), __f(block_size + __i)));
+        for (_Size __i = 0; __i < __block_size; ++__i) {
+            ::new (__lane + __i) _Tp(__binary_op(__f(__i), __f(__block_size + __i)));
         }
         // main loop
-        _Size __i = 2 * block_size;
-        const _Size last_iteration = block_size * (__n / block_size);
-        for (; __i < last_iteration; __i += block_size) {
+        _Size __i = 2 * __block_size;
+        const _Size last_iteration = __block_size * (__n / __block_size);
+        for (; __i < last_iteration; __i += __block_size) {
 __PSTL_PRAGMA_SIMD
-            for (_Size __j = 0; __j < block_size; ++__j) {
+            for (_Size __j = 0; __j < __block_size; ++__j) {
                 __lane[__j] = __binary_op(__lane[__j], __f(__i + __j));
             }
         }
@@ -419,12 +420,12 @@ __PSTL_PRAGMA_SIMD
             __lane[__j] = __binary_op(__lane[__j], __f(last_iteration + __j));
         }
         // combiner
-        for (_Size __i = 0; __i < block_size; ++__i) {
+        for (_Size __i = 0; __i < __block_size; ++__i) {
             __init = __binary_op(__init, __lane[__i]);
         }
         // destroyer
 __PSTL_PRAGMA_SIMD
-        for (_Size __i = 0; __i < block_size; ++__i) {
+        for (_Size __i = 0; __i < __block_size; ++__i) {
             __lane[__i].~_Tp();
         }
     }
@@ -435,21 +436,6 @@ __PSTL_PRAGMA_SIMD
     }
     return __init;
 }
-
-// As soon as we cannot call __binary_op in "combiner" we create a wrapper over _Tp to encapsulate __binary_op
-template<typename _Tp, typename _BinaryOp>
-struct Combiner {
-    _Tp value;
-    _BinaryOp* __bin_op; // Here is a pointer to function because of default ctor
-    Combiner() : __bin_op(nullptr) {}
-    Combiner(const Combiner<_Tp, _BinaryOp> &x) : __bin_op(x.__bin_op) {
-    }
-    Combiner(const _Tp &value, const _BinaryOp* bop) : value(value), __bin_op(const_cast<_BinaryOp *>(bop)) {
-    }
-    void operator()(const Combiner& __obj) {
-        value = (*__bin_op)(value, __obj.value);
-    }
-};
 
 // Exclusive scan for "+" and arithmetic types
 template<class _InputIterator, class _Size, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation>
@@ -464,21 +450,38 @@ __PSTL_PRAGMA_SIMD_EXCLUSIVE_SCAN(__init)
     return std::make_pair(__result + __n, __init);
 }
 
+// As soon as we cannot call __binary_op in "combiner" we create a wrapper over _Tp to encapsulate __binary_op
+template<typename _Tp, typename _BinaryOp>
+struct _Combiner {
+    _Tp __value;
+    _BinaryOp* __bin_op; // Here is a pointer to function because of default ctor
+
+    _Combiner() : __value{}, __bin_op(nullptr) {}
+    _Combiner(const _Tp& value, const _BinaryOp* bin_op) : __value(value), __bin_op(const_cast<_BinaryOp*>(bin_op)) {}
+    _Combiner(const _Combiner& __obj) : __value{}, __bin_op(__obj.__bin_op) {}
+
+    void operator()(const _Combiner& __obj) {
+        __value = (*__bin_op)(__value, __obj.__value);
+    }
+};
+
 // Exclusive scan for other binary operations and types
 template<class _InputIterator, class _Size, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation>
 typename std::enable_if<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, std::pair<_OutputIterator, _Tp>>::type
 simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, /*Inclusive*/std::false_type) {
-    Combiner<_Tp, _BinaryOperation> __init_ { __init, &__binary_op };
-__PSTL_PRAGMA(omp declare reduction(__bin_op : Combiner<_Tp, _BinaryOperation>: omp_out(omp_in)) initializer(omp_priv = Combiner<_Tp, _BinaryOperation>(omp_orig)))
+    typedef _Combiner<_Tp, _BinaryOperation> _CombinerType;
+    _CombinerType __init_ { __init, &__binary_op };
+
+__PSTL_PRAGMA_DECLARE_REDUCTION(__bin_op, _CombinerType)
 
 __PSTL_PRAGMA_SIMD_SCAN(__bin_op:__init_)
     for (_Size __i = 0; __i < __n; ++__i) {
-        __result[__i] = __init_.value;
+        __result[__i] = __init_.__value;
 __PSTL_PRAGMA_SIMD_EXCLUSIVE_SCAN(__init_)
 __PSTL_PRAGMA_FORCEINLINE
-        __init_.value = __binary_op(__init_.value, __unary_op(__first[__i]));
+        __init_.__value = __binary_op(__init_.__value, __unary_op(__first[__i]));
     }
-    return std::make_pair(__result + __n, __init_.value);
+    return std::make_pair(__result + __n, __init_.__value);
 }
 
 // Inclusive scan for "+" and arithmetic types
@@ -498,18 +501,19 @@ __PSTL_PRAGMA_SIMD_INCLUSIVE_SCAN(__init)
 template<class _InputIterator, class _Size, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation>
 typename std::enable_if<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, std::pair<_OutputIterator, _Tp>>::type
 simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, std::true_type) {
-    Combiner<_Tp, _BinaryOperation> __init_ { __init, &__binary_op };
+    typedef _Combiner<_Tp, _BinaryOperation> _CombinerType;
+    _CombinerType __init_ { __init, &__binary_op };
 
-__PSTL_PRAGMA(omp declare reduction(__bin_op : Combiner<_Tp, _BinaryOperation>: omp_out(omp_in)) initializer(omp_priv = Combiner<_Tp, _BinaryOperation>(omp_orig)))
+__PSTL_PRAGMA_DECLARE_REDUCTION(__bin_op, _CombinerType)
 
 __PSTL_PRAGMA_SIMD_SCAN(__bin_op:__init_)
     for (_Size __i = 0; __i < __n; ++__i) {
 __PSTL_PRAGMA_FORCEINLINE
-        __init_.value = __binary_op(__init_.value, __unary_op(__first[__i]));
+        __init_.__value = __binary_op(__init_.__value, __unary_op(__first[__i]));
 __PSTL_PRAGMA_SIMD_INCLUSIVE_SCAN(__init_)
-        __result[__i] = __init_.value;
+        __result[__i] = __init_.__value;
     }
-    return std::make_pair(__result + __n, __init_.value);
+    return std::make_pair(__result + __n, __init_.__value);
 }
 
 // [restriction] - std::iterator_traits<_ForwardIterator>::value_type should be DefaultConstructible.
@@ -519,41 +523,43 @@ _ForwardIterator simd_min_element(_ForwardIterator __first, _Size __n, _Compare 
     if (__n == 0) {
         return __first;
     }
+
     typedef typename std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     struct _ComplexType {
         _ValueType __min_val;
-        _ForwardIterator __min_it;
+        _Size __min_ind;
         _Compare* __min_comp;
 
+        _ComplexType() : __min_val{}, __min_ind{}, __min_comp(nullptr) {}
+        _ComplexType(const _ValueType& val, const _Compare* comp)
+            : __min_val(val), __min_ind(0), __min_comp(const_cast<_Compare*>(comp)) {}
+        _ComplexType(const _ComplexType& __obj) : __min_val(__obj.__min_val), __min_ind(__obj.__min_ind), __min_comp(__obj.__min_comp) {
+        }
+
         __PSTL_PRAGMA_DECLARE_SIMD
-        bool operator<(_ComplexType& __obj) {
-            if ((*__min_comp)(*__min_it, *__obj.__min_it)) {
-                return true;
-            }
-            else if ((*__min_comp)(*__obj.__min_it, *__min_it)) {
-                return false;
-            }
-            else {
-                return (__obj.__min_it - __min_it >= 0);
+        void operator()(const _ComplexType& __obj) {
+            if (!(*__min_comp)(__min_val, __obj.__min_val) &&
+               ((*__min_comp)(__obj.__min_val, __min_val) || __obj.__min_ind - __min_ind < 0)) {
+                __min_val = __obj.__min_val;
+                __min_ind = __obj.__min_ind;
             }
         }
     };
-    _ComplexType __init { *__first, __first, &__comp };
 
-__PSTL_PRAGMA(omp declare reduction(min_func : _ComplexType: omp_out = ((omp_in < omp_out) ? omp_in : omp_out))initializer(omp_priv = omp_orig))
+    _ComplexType __init { *__first, &__comp };
 
-#if !__PSTL_ICC_19_VC_UDR_RELEASE_DEBUG_BROKEN
-__PSTL_PRAGMA_SIMD_REDUCTION(min_func:__init)
-#endif
+__PSTL_PRAGMA_DECLARE_REDUCTION(__min_func, _ComplexType)
+
+__PSTL_PRAGMA_SIMD_REDUCTION(__min_func:__init)
     for (_Size __i = 1; __i < __n; ++__i) {
         const _ValueType __min_val = __init.__min_val;
         const _ValueType __current = __first[__i];
         if (__comp(__current, __min_val)) {
             __init.__min_val = __current;
-            __init.__min_it = __first + __i;
+            __init.__min_ind = __i;
         }
     }
-    return __init.__min_it;
+    return __first + __init.__min_ind;
 }
 
 // [restriction] - std::iterator_traits<_ForwardIterator>::value_type should be DefaultConstructible.
@@ -564,73 +570,64 @@ std::pair<_ForwardIterator, _ForwardIterator> simd_minmax_element(_ForwardIterat
         return std::make_pair(__first, __first);
     }
     typedef typename std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+
     struct _ComplexType {
         _ValueType __min_val;
         _ValueType __max_val;
-        _ForwardIterator __min_it;
-        _ForwardIterator __max_it;
+        _Size __min_ind;
+        _Size __max_ind;
         _Compare* __minmax_comp;
 
-        void operator()(_ComplexType& __obj) {
+        _ComplexType() : __min_val{}, __max_val{}, __min_ind{}, __max_ind{}, __minmax_comp(nullptr) {}
+        _ComplexType(const _ValueType& min_val, const _ValueType& max_val, const _Compare* comp)
+            : __min_val(min_val), __max_val(max_val), __min_ind(0),
+              __max_ind(0), __minmax_comp(const_cast<_Compare*>(comp)) {}
+        _ComplexType(const _ComplexType& __obj)
+            : __min_val(__obj.__min_val), __max_val(__obj.__max_val),
+              __min_ind(__obj.__min_ind), __max_ind(__obj.__max_ind), __minmax_comp(__obj.__minmax_comp) {}
+
+        void operator()(const _ComplexType& __obj) {
             // min
             if ((*__minmax_comp)(__obj.__min_val, __min_val)) {
                 __min_val = __obj.__min_val;
-                __min_it = __obj.__min_it;
+                __min_ind = __obj.__min_ind;
             }
             else if (!(*__minmax_comp)(__min_val, __obj.__min_val)) {
                 __min_val = __obj.__min_val;
-                __min_it = (__min_it - __obj.__min_it < 0) ? __min_it : __obj.__min_it;
+                __min_ind = (__min_ind - __obj.__min_ind < 0) ? __min_ind : __obj.__min_ind;
             }
 
             // max
             if ((*__minmax_comp)(__max_val, __obj.__max_val)) {
                 __max_val = __obj.__max_val;
-                __max_it = __obj.__max_it;
+                __max_ind = __obj.__max_ind;
             }
             else if (!(*__minmax_comp)(__obj.__max_val, __max_val)) {
                 __max_val = __obj.__max_val;
-                __max_it = (__max_it - __obj.__max_it < 0) ? __obj.__max_it : __max_it;
+                __max_ind = (__max_ind - __obj.__max_ind < 0) ? __obj.__max_ind : __max_ind;
             }
         }
     };
-    _ComplexType __init { *__first, *__first, __first, __first, &__comp };
 
-__PSTL_PRAGMA(omp declare reduction(min_func : _ComplexType: omp_out(omp_in)) initializer(omp_priv = omp_orig))
+    _ComplexType __init { *__first, *__first, &__comp };
 
-#if !__PSTL_ICC_19_VC_UDR_RELEASE_DEBUG_BROKEN
-__PSTL_PRAGMA_SIMD_REDUCTION(min_func:__init)
-#endif
+__PSTL_PRAGMA_DECLARE_REDUCTION(__min_func, _ComplexType);
+
+__PSTL_PRAGMA_SIMD_REDUCTION(__min_func:__init)
     for (_Size __i = 1; __i < __n; ++__i) {
         auto __min_val = __init.__min_val;
         auto __max_val = __init.__max_val;
         auto __current = __first + __i;
         if (__comp(*__current, __min_val)) {
             __init.__min_val = *__current;
-            __init.__min_it = __current;
+            __init.__min_ind = __i;
         }
         else if (!__comp(*__current, __max_val)) {
             __init.__max_val = *__current;
-            __init.__max_it = __current;
+            __init.__max_ind = __i;
         }
     }
-    return std::make_pair(__init.__min_it, __init.__max_it);
-}
-
-template<class _Iterator, class _DifferenceType, class _Function>
-_Iterator simd_it_walk_1(_Iterator __first, _DifferenceType __n, _Function __f) noexcept {
-__PSTL_PRAGMA_SIMD
-    for(_DifferenceType __i = 0; __i < __n; ++__i)
-        __f(__first + __i);
-
-    return __first + __n;
-}
-
-template<class _Iterator1, class _DifferenceType, class _Iterator2, class _Function>
-_Iterator2 simd_it_walk_2(_Iterator1 __first1, _DifferenceType __n, _Iterator2 __first2, _Function __f) noexcept {
-__PSTL_PRAGMA_SIMD
-    for (_DifferenceType __i = 0; __i < __n; ++__i)
-        __f(__first1 + __i, __first2 + __i);
-    return __first2 + __n;
+    return std::make_pair(__first + __init.__min_ind, __first + __init.__max_ind);
 }
 
 template<class _InputIterator, class _DifferenceType, class _OutputIterator1, class _OutputIterator2, class _UnaryPredicate>
@@ -712,6 +709,6 @@ _RandomAccessIterator simd_remove_if(_RandomAccessIterator __first, _DifferenceT
     return __current + __cnt;
 }
 } // namespace unseq_backend
-} // namespace __pstl
+} // namespace pstl
 
 #endif /* __PSTL_unseq_backend_simd_H */

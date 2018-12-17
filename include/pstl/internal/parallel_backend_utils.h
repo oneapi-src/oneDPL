@@ -25,7 +25,7 @@
 #include <utility>
 #include "utils.h"
 
-namespace __pstl {
+namespace pstl {
 namespace par_backend {
 
 //! Destroy sequence [xs,xe)
@@ -149,6 +149,6 @@ public:
 };
 
 } // namespace par_backend
-} // namespace __pstl
+} // namespace pstl
 
 #endif /* __PSTL_parallel_backend_utils_H */

@@ -40,7 +40,7 @@ struct test_partition_copy {
         EXPECT_TRUE(std::distance(true_first, actual_ret.first) ==
             std::count_if(first, last, unary_op), "partition_copy has wrong effect from true sequence");
         EXPECT_TRUE(std::distance(false_first, actual_ret.second) ==
-            std::count_if(first, last, __pstl::internal::not_pred<UnaryOp>(unary_op)), "partition_copy has wrong effect from false sequence");
+            std::count_if(first, last, pstl::internal::not_pred<UnaryOp>(unary_op)), "partition_copy has wrong effect from false sequence");
     }
 
     //dummy specialization by iterator type and policy type, in case of broken configuration
@@ -75,6 +75,18 @@ void test( UnaryPred pred) {
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputInterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+
+        partition_copy(exec, input_iter, input_iter, out_iter, out_iter, non_const(is_even));
+    }
+};
+
 int32_t main() {
     test<int32_t>([](const int32_t value) {return value % 2; });
 
@@ -85,6 +97,8 @@ int32_t main() {
     test<float64_t>([](const float64_t value) {return value > 2 << 6; });
     test<Wrapper<float64_t>>([](const Wrapper<float64_t>& value) -> bool {return value.get_my_field() != nullptr; });
 
-    std::cout << "done" << std::endl;
+    test_algo_basic_double<int32_t>(run_for_rnd_bi<test_non_const>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

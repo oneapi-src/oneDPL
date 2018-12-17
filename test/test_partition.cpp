@@ -111,6 +111,20 @@ void test_by_type(Generator generator, UnaryPred pred) {
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+        invoke_if(exec, [&]() {
+            partition(exec, iter, iter, non_const(is_even));
+            stable_partition(exec, iter, iter, non_const(is_even));
+        });
+    }
+};
+
 int32_t main() {
 #if !__PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN
     test_by_type<int32_t>([](int32_t i) {return i; }, [](int32_t) {return true; });
@@ -121,7 +135,9 @@ int32_t main() {
         [](int64_t x) {return x % 3 == 0; });
     test_by_type<DataType<float32_t>>([](int32_t i) {return DataType<float32_t>(2 * i + 1); },
         [](const DataType<float32_t>& x) {return x.get_val() < 0; });
-    
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

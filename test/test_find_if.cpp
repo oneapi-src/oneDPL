@@ -67,6 +67,21 @@ void test(Predicate pred, Hit hit, Miss miss) {
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+
+        invoke_if(exec, [&]() {
+            find_if(exec, iter, iter, non_const(is_even));
+            find_if_not(exec, iter, iter, non_const(is_even));
+        });
+    }
+};
+
 int32_t main( ) {
 #if !__PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     // Note that the "hit" and "miss" functions here avoid overflow issues.
@@ -80,6 +95,8 @@ int32_t main( ) {
                     [](float32_t j){return j*j;},
                     [](float32_t j){return -1-j*j;});
 
-    std::cout << "done" << std::endl;
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

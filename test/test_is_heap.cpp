@@ -110,10 +110,23 @@ void test_is_heap_by_type(Comp comp) {
     invoke_on_all_policies(test_is_heap(), in.begin(), in.end(), comp);
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        invoke_if(exec, [&]() {
+            is_heap(exec, iter, iter, non_const(std::less<T>()));
+            is_heap_until(exec, iter, iter, non_const(std::less<T>()));
+        });
+    }
+};
+
 int32_t main() {
     test_is_heap_by_type<float32_t>(std::greater<float32_t>());
     test_is_heap_by_type<WithCmpOp>(std::less<WithCmpOp>());
     test_is_heap_by_type<uint64_t>([](uint64_t x, uint64_t y) {return x % 100 < y % 100; });
+
+    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 
     std::cout <<done() << std::endl;
     return 0;

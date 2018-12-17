@@ -107,6 +107,14 @@ void test_partial_sort(Compare compare) {
     }
 }
 
+template <typename T>
+struct test_non_const {
+    template <typename Policy, typename Iterator>
+    void operator()(Policy&& exec, Iterator iter) {
+        partial_sort(exec, iter, iter, iter, non_const(std::less<T>()));
+    }
+};
+
 int32_t main() {
     count_val = 0;
 
@@ -115,6 +123,8 @@ int32_t main() {
     EXPECT_TRUE(count_val == 0, "cleanup error");
 
     test_partial_sort<int32_t>([](int32_t x, int32_t y) {return x > y; });  // Reversed so accidental use of < will be detected.
+
+    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 
     std::cout << done() << std::endl;
     return 0;

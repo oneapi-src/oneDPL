@@ -21,6 +21,7 @@
 #include "pstl/execution"
 #include "pstl/numeric"
 #include "utils.h"
+#include "pstl_test_config.h"
 
 using namespace TestUtils;
 
@@ -80,22 +81,7 @@ static bool inclusive;
 
 template<typename Iterator, typename Size, typename T>
 void check_and_reset(Iterator expected_first, Iterator out_first, Size n, T trash) {
-    EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "wrong result from transform_inclusive_scan" : "wrong result from transform_exclusive_scan");
-    std::fill_n(out_first, n, trash);
-}
-template<typename Iterator, typename Size, typename T>
-void check_and_reset(Iterator expected_first, Iterator out_first, Size n, const Matrix2x2<T>& trash) {
-    for (Size k = 0; k < n; ++k) {
-        if (!is_equal(*expected_first, *out_first)) {
-            if (inclusive) {
-                std::cout << "wrong result from transform_inclusive_scan" << std::endl;
-            }
-            else {
-                std::cout << "wrong result from transform_exclusive_scan" << std::endl;
-            }
-            break;
-        }
-    }
+    EXPECT_EQ_N(expected_first, out_first, n, inclusive ? "wrong result from inclusive_scan" : "wrong result from exclusive_scan");
     std::fill_n(out_first, n, trash);
 }
 
@@ -111,6 +97,8 @@ struct test_scan_with_plus {
             inclusive_scan(exec, in_first, in_last, out_first) :
             exclusive_scan(exec, in_first, in_last, out_first, init);
         EXPECT_TRUE(out_last == orr, inclusive ? "inclusive_scan returned wrong iterator" : "exclusive_scan returned wrong iterator" );
+
+        check_and_reset(expected_first, out_first, n, trash );
         fill(out_first, out_last, trash);
     }
 };
@@ -141,6 +129,7 @@ struct test_scan_with_binary_op {
         auto orr = inclusive ?
             inclusive_scan(exec, in_first, in_last, out_first, binary_op, init) :
             exclusive_scan(exec, in_first, in_last, out_first, init, binary_op);
+
         EXPECT_TRUE(out_last == orr, "scan returned wrong iterator");
         check_and_reset(expected_first, out_first, n, trash);
     }
@@ -170,12 +159,13 @@ void test_matrix(Out init, BinaryOp binary_op, Out trash) {
 int32_t main() {
     for(int32_t mode=0; mode<2; ++mode ) {
         inclusive = mode!=0;
-
+#if !__PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
         // Test with highly restricted type and associative but not commutative operation
         test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(
             Matrix2x2<int32_t>(),
             multiply_matrix<int32_t>,
             Matrix2x2<int32_t>(-666, 666));
+#endif
 
         // Since the implict "+" forms of the scan delegate to the generic forms,
         // there's little point in using a highly restricted type, so just use double.
@@ -184,6 +174,6 @@ int32_t main() {
             -666.0,
             [](uint32_t k) {return float64_t((k%991+1)^(k%997+2));});
     }
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

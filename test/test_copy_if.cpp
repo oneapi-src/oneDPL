@@ -92,6 +92,21 @@ void test(T trash, Predicate pred, Convert convert, bool check_weakness = true) 
     }
 }
 
+struct test_non_const {
+    template <typename Policy, typename InputIterator, typename OutputInterator>
+    void operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter) {
+        auto is_even = [&](float64_t v) {
+            uint32_t i = (uint32_t)v;
+            return i % 2 == 0;
+        };
+        copy_if(exec, input_iter, input_iter, out_iter, non_const(is_even));
+
+        invoke_if(exec, [&](){
+            remove_copy_if(exec, input_iter, input_iter, out_iter, non_const(is_even));
+        });
+    }
+};
+
 int32_t main( ) {
     test<float64_t>( -666.0,
                  [](const float64_t& x) {return x*x<=1024;},
@@ -112,6 +127,9 @@ int32_t main( ) {
                [](const int32_t& x) {return true;},
                [](size_t j){return j;}, false);
 #endif
-    std::cout << "done" << std::endl;
+
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const>());
+
+    std::cout << done() << std::endl;
     return 0;
 }

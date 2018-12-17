@@ -31,13 +31,14 @@ using namespace TestUtils;
 template <typename T>
 struct wrapper {
     T t;
-    int move_count = 0;
-    explicit wrapper(T t_) : t(t_) {}
-    void operator=(const T& t_) {
+    int move_count;
+    explicit wrapper(T t_) : t(t_), move_count(0) {}
+    wrapper& operator=(const T& t_) {
         t = t_;
+        return *this;
     }
 
-    wrapper(const wrapper<T>& a) {
+    wrapper(const wrapper<T>& a): move_count(0) {
         t = a.t;
     }
 
@@ -83,7 +84,6 @@ struct test_one_policy {
         using namespace std;
         using T = typename iterator_traits<Iterator>::value_type;
         Iterator actual_m = std::next(actual_b, shift);
-        Iterator actual_lm = std::next(actual_b, shift);
 
         copy(data_b, data_e, actual_b);
         Iterator actual_return = rotate(exec, actual_b, actual_m, actual_e);

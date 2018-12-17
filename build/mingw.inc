@@ -23,12 +23,12 @@ FKEY = $(KEY)
 FQKEY = $(KEY)
 MACHINE_KEY = $(KEY)m
 OBJ_SFX = .o
-DEL_CMD = rm $(KEY)f
-RUN_CMD = ./
-COMMAND_SEPARATOR = ;
-compiler ?= icc
+DEL_CMD = del /F
+RUN_CMD = 
+COMMAND_SEPARATOR = &
+compiler ?= gcc
 COMPILER_NOLOGO_KEY =
-OPTIMIZATION_DISABLED_FLAGS = $(KEY)O0 $(KEY)g
+OPTIMIZATION_DISABLED_FLAGS = $(KEY)Og $(KEY)g
 OPTIMIZATION_ENABLED_FLAGS +=  $(KEY)O2
 TBB_LIB_NAME = tbb
 CPLUS = $(compiler)
@@ -44,10 +44,9 @@ ifneq ($(PSTL_LIB_NAME), )
     PSTL_LIB_LINK += $(LINK_KEY)$(PSTL_LIB_NAME)$(PSTL_LIB_EXT)
 endif
 
-ifeq ($(backend), tbb)
+ifeq ($(backend),tbb)
     DYN_LDFLAGS += $(LINK_KEY)$(TBB_LIB_NAME)
 endif
-
 
 ifeq ($(arch),intel64)
     PSTL_ARCH = $(MACHINE_KEY)64

@@ -84,6 +84,6 @@ int32_t main( ) {
     test<Number>( Number(42,OddTag()),
                   Number(2001,OddTag()),
                   [](int32_t j){return ((j+1)%3&2)!=0? Number(2001,OddTag()) : Number(j,OddTag());});
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }

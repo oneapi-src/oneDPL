@@ -1,18 +1,17 @@
-
 /*
-  Copyright (c) 2017-2018 Intel Corporation
+    Copyright (c) 2017-2018 Intel Corporation
 
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-  http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
 
 
@@ -88,14 +87,14 @@ template<> struct is_execution_policy<unsequenced_policy    >: std::true_type {}
 template<class T> constexpr bool is_execution_policy_v = is_execution_policy<T>::value;
 #endif
 
-} //namespace v1
-} //namespace execution
-} //namespace pstl
+} // namespace v1
+} // namespace execution
 
-namespace __pstl {
 namespace internal {
     template<class ExecPolicy, class T> using enable_if_execution_policy = typename std::enable_if<
       pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value, T>::type;
 } // namespace internal
-} //namespace __pstl
+
+} // namespace pstl
+
 #endif /* __PSTL_execution_policy_defs_H */

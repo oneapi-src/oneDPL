@@ -160,6 +160,6 @@ int32_t main() {
     test<Number>(Number(42, OddTag()),
         [](int32_t j) {return Number(j, OddTag()); });
 #endif
-    std::cout << "done" << std::endl;
+    std::cout << done() << std::endl;
     return 0;
 }
