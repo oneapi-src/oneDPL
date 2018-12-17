@@ -31,18 +31,25 @@ using namespace TestUtils;
 
 // function of checking correctness for uninitialized.construct.value
 template <typename T, typename Iterator>
-bool IsCheckValueCorrectness(Iterator begin, Iterator end) {
-    for (; begin != end; ++begin){
-        if (*begin != T()) {
+bool
+IsCheckValueCorrectness(Iterator begin, Iterator end)
+{
+    for (; begin != end; ++begin)
+    {
+        if (*begin != T())
+        {
             return false;
         }
     }
     return true;
 }
 
-struct test_uninit_construct {
+struct test_uninit_construct
+{
     template <typename Policy, typename Iterator>
-    void operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::false_type) {
+    void
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::false_type)
+    {
         typedef typename std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
@@ -71,7 +78,9 @@ struct test_uninit_construct {
     }
 
     template <typename Policy, typename Iterator>
-    void operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::true_type) {
+    void
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::true_type)
+    {
         typedef typename std::iterator_traits<Iterator>::value_type T;
 
         std::uninitialized_default_construct(exec, begin, end);
@@ -92,15 +101,20 @@ struct test_uninit_construct {
 };
 
 template <typename T>
-void test_uninit_construct_by_type() {
+void
+test_uninit_construct_by_type()
+{
     std::size_t N = 100000;
-    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
+    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
         std::unique_ptr<T[]> p(new T[n]);
         invoke_on_all_policies(test_uninit_construct(), p.get(), std::next(p.get(), n), n, std::is_trivial<T>());
     }
 }
 
-int32_t main() {
+int32_t
+main()
+{
 
     // for user-defined types
 #if !__PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN

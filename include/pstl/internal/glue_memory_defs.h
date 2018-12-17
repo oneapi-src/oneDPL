@@ -23,35 +23,36 @@
 
 #include "execution_defs.h"
 
-namespace std {
+namespace std
+{
 
 // [uninitialized.copy]
 
-template<class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
+template <class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
 pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result);
 
-template<class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
+template <class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
 pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result);
 
 // [uninitialized.move]
 
-template<class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
+template <class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
 pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result);
 
-template<class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
+template <class _ExecutionPolicy, class _InputIterator, class _Size, class _ForwardIterator>
 pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result);
 
 // [uninitialized.fill]
 
-template<class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
-template<class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
+template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
 pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, const _Tp& __value);
 
