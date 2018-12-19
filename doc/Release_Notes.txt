@@ -91,8 +91,10 @@ Known Issues or limitations
         if random access iterators are provided, while for other iterator
         types the execution will remain serial.
     Semantics of the following algorithms does not allow unsequenced execution:
-        includes, inplace_merge, merge, set_difference, set_intersection,
-        set_symmetric_difference, set_union, stable_partition, unique.
+        includes, inplace_merge, merge, nth_element, partial_sort,
+        partial_sort_copy, set_difference, set_intersection,
+        set_symmetric_difference, set_union, sort, stable_partition,
+        stable_sort, unique.
     The initial value type for exclusive_scan, inclusive_scan,
         transform_exclusive_scan, transform_inclusive_scan shall satisfy
         the DefaultConstructible requirements. A default constructed-instance
