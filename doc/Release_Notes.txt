@@ -90,7 +90,7 @@ Known Issues or limitations
     Parallel and vector execution is only supported for the algorithms
         if random access iterators are provided, while for other iterator
         types the execution will remain serial.
-    Semantics of the following algorithms does not allow unsequenced execution:
+    The following algorithms do not allow efficient SIMD execution:
         includes, inplace_merge, merge, nth_element, partial_sort,
         partial_sort_copy, set_difference, set_intersection,
         set_symmetric_difference, set_union, sort, stable_partition,
