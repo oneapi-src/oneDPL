@@ -23,7 +23,7 @@
 
 #include <type_traits>
 
-namespace pstl
+namespace __pstl
 {
 namespace execution
 {
@@ -164,10 +164,10 @@ namespace internal
 {
 template <class ExecPolicy, class T>
 using enable_if_execution_policy =
-    typename std::enable_if<pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value,
+    typename std::enable_if<__pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value,
                             T>::type;
 } // namespace internal
 
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_execution_policy_defs_H */

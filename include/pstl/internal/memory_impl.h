@@ -25,7 +25,7 @@
 
 #include "unseq_backend_simd.h"
 
-namespace pstl
+namespace __pstl
 {
 namespace internal
 {
@@ -62,6 +62,6 @@ brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _Out
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_memory_impl_H */

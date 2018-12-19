@@ -25,7 +25,7 @@
 #include <utility>
 #include "utils.h"
 
-namespace pstl
+namespace __pstl
 {
 namespace par_backend
 {
@@ -200,6 +200,6 @@ class stack
 };
 
 } // namespace par_backend
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_parallel_backend_utils_H */

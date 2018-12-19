@@ -24,7 +24,7 @@
 #include <new>
 #include <iterator>
 
-namespace pstl
+namespace __pstl
 {
 namespace internal
 {
@@ -228,6 +228,6 @@ cmp_iterators_by_values(_ForwardIterator __a, _ForwardIterator __b, _Compare __c
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_utils_H */

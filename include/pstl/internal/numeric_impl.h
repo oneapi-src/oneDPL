@@ -33,7 +33,7 @@
 #include "parallel_backend.h"
 #endif
 
-namespace pstl
+namespace __pstl
 {
 namespace internal
 {
@@ -364,6 +364,6 @@ pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_numeric_impl_H */

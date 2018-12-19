@@ -40,7 +40,7 @@
 #error Intel(R) Threading Building Blocks 2018 is required; older versions are not supported.
 #endif
 
-namespace pstl
+namespace __pstl
 {
 namespace par_backend
 {
@@ -661,6 +661,6 @@ parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
 }
 
 } // namespace par_backend
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_parallel_backend_tbb_H */

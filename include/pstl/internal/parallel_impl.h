@@ -25,7 +25,7 @@
 // This header defines the minimum set of parallel routines required to support Parallel STL,
 // implemented on top of Intel(R) Threading Building Blocks (Intel(R) TBB) library
 
-namespace pstl
+namespace __pstl
 {
 namespace internal
 {
@@ -87,6 +87,6 @@ parallel_or(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_parallel_impl_H */

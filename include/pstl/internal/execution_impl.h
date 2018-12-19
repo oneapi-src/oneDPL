@@ -26,12 +26,12 @@
 
 #include "execution_defs.h"
 
-namespace pstl
+namespace __pstl
 {
 namespace internal
 {
 
-using namespace pstl::execution;
+using namespace __pstl::execution;
 
 /* predicate */
 
@@ -161,6 +161,6 @@ struct prefer_parallel_tag
 };
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_execution_impl_H */

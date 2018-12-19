@@ -28,7 +28,7 @@
 
 // This header defines the minimum set of vector routines required
 // to support parallel STL.
-namespace pstl
+namespace __pstl
 {
 namespace unseq_backend
 {
@@ -861,6 +861,6 @@ simd_remove_if(_RandomAccessIterator __first, _DifferenceType __n, _UnaryPredica
     return __current + __cnt;
 }
 } // namespace unseq_backend
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_unseq_backend_simd_H */

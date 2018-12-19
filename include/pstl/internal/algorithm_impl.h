@@ -36,7 +36,7 @@
 #endif
 #include "parallel_impl.h"
 
-namespace pstl
+namespace __pstl
 {
 namespace internal
 {
@@ -3562,6 +3562,6 @@ pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __f
 }
 
 } // namespace internal
-} // namespace pstl
+} // namespace __pstl
 
 #endif /* __PSTL_algorithm_impl_H */

@@ -1058,7 +1058,7 @@ template <typename Op, typename... T>
 void
 invoke_on_all_policies(Op op, T&&... rest)
 {
-    using namespace pstl::execution;
+    using namespace __pstl::execution;
 
     // Try static execution policies
     invoke_on_all_iterator_types()(seq, op, std::forward<T>(rest)...);
@@ -1250,7 +1250,7 @@ static void
 invoke_if(Policy&& p, F f)
 {
 #if __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    pstl::internal::invoke_if_not(pstl::internal::allow_unsequenced<Policy>(), f);
+    __pstl::internal::invoke_if_not(__pstl::internal::allow_unsequenced<Policy>(), f);
 #else
     f();
 #endif
