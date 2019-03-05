@@ -1,22 +1,17 @@
-/*
-    Copyright (c) 2017-2018 Intel Corporation
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-
-
-
-*/
+// -*- C++ -*-
+//===-- execution ---------------------------------------------------------===//
+//
+// Copyright (C) 2017-2019 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #ifndef __PSTL_execution
 #define __PSTL_execution
@@ -27,22 +22,33 @@
 #define __PSTL_EXECUTION_POLICIES_DEFINED 1
 
 #if __PSTL_ALGORITHM_FORWARD_DECLARED
-    #include "internal/glue_algorithm_impl.h"
+#include "internal/glue_algorithm_impl.h"
 #endif
 
 #if __PSTL_MEMORY_FORWARD_DECLARED
-    #include "internal/glue_memory_impl.h"
+#include "internal/glue_memory_impl.h"
 #endif
 
 #if __PSTL_NUMERIC_FORWARD_DECLARED
-    #include "internal/glue_numeric_impl.h"
+#include "internal/glue_numeric_impl.h"
 #endif
 
 #if __PSTL_CPP17_EXECUTION_POLICIES_PRESENT
-    __PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are defined in the namespace pstl::execution")
+__PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are defined in the namespace __pstl::execution")
 #else
-    #include "internal/glue_execution_defs.h"
-    __PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are injected into the standard namespace std::execution")
+#include "internal/glue_execution_defs.h"
+__PSTL_PRAGMA_MESSAGE_POLICIES(
+    "The <Parallel STL> execution policies are injected into the standard namespace std::execution")
 #endif
+
+//TODO: __pstl::execution namespace is injected into the pstl::execution namespace when the implementation is not a part of
+// standard C++ library
+namespace pstl
+{
+namespace execution
+{
+using namespace __pstl::execution;
+}
+}
 
 #endif /* __PSTL_execution */

@@ -1,22 +1,17 @@
-/*
-    Copyright (c) 2017-2018 Intel Corporation
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-
-
-
-*/
+// -*- C++ -*-
+//===-- test_uninitialized_copy_move.cpp ----------------------------------===//
+//
+// Copyright (C) 2017-2019 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 // Tests for uninitialized_copy, uninitialized_copy_n, uninitialized_move, uninitialized_move_n
 
@@ -30,19 +25,26 @@ using namespace TestUtils;
 
 // function of checking correctness for uninitialized.construct.value
 template <typename InputIterator, typename OutputIterator, typename Size>
-bool IsCheckValueCorrectness(InputIterator first1, OutputIterator first2, Size n) {
-    for (Size i = 0; i < n; ++i, ++first1, ++first2) {
-        if (*first1 != *first2) {
+bool
+IsCheckValueCorrectness(InputIterator first1, OutputIterator first2, Size n)
+{
+    for (Size i = 0; i < n; ++i, ++first1, ++first2)
+    {
+        if (*first1 != *first2)
+        {
             return false;
         }
     }
     return true;
 }
 
-struct test_uninitialized_copy_move {
+struct test_uninitialized_copy_move
+{
     template <typename Policy, typename InputIterator, typename OutputIterator>
-    void operator()(Policy&& exec, InputIterator first, InputIterator last,
-        OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::false_type) {
+    void
+    operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
+               /*is_trivial<T>=*/std::false_type)
+    {
         typedef typename std::iterator_traits<InputIterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
@@ -76,16 +78,24 @@ struct test_uninitialized_copy_move {
 
 #if __PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || __PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
     template <typename InputIterator, typename OutputIterator>
-    void operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last,
-        OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type) {}
+    void
+    operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+               size_t n, /*is_trivial<T>=*/std::true_type)
+    {
+    }
     template <typename InputIterator, typename OutputIterator>
-    void operator()(pstl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-        OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type) {}
+    void
+    operator()(pstl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+               OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type)
+    {
+    }
 #endif
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
-    void operator()(Policy&& exec, InputIterator first, InputIterator last,
-        OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type) {
+    void
+    operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
+               /*is_trivial<T>=*/std::true_type)
+    {
         typedef typename std::iterator_traits<InputIterator>::value_type T;
 
         std::uninitialized_copy(exec, first, last, out_first);
@@ -107,23 +117,29 @@ struct test_uninitialized_copy_move {
 };
 
 template <typename T>
-void test_uninitialized_copy_move_by_type() {
+void
+test_uninitialized_copy_move_by_type()
+{
     std::size_t N = 100000;
-    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
-        Sequence<T> in(n, [=](size_t k)->T {return T(k); });
+    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
+        Sequence<T> in(n, [=](size_t k) -> T { return T(k); });
         std::unique_ptr<T[]> p(new T[n]);
         invoke_on_all_policies(test_uninitialized_copy_move(), in.begin(), in.end(), p.get(), n, std::is_trivial<T>());
     }
 }
 
-int32_t main() {
+int32_t
+main()
+{
 
     // for trivial types
     test_uninitialized_copy_move_by_type<int16_t>();
     test_uninitialized_copy_move_by_type<float64_t>();
 
     // for user-defined types
-#if !__PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN && !__PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN && !__PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN
+#if !__PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN && !__PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN &&   \
+    !__PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN
     test_uninitialized_copy_move_by_type<Wrapper<int8_t>>();
 #endif
 

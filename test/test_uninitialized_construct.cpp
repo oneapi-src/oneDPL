@@ -1,48 +1,51 @@
-/*
-    Copyright (c) 2017-2018 Intel Corporation
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-
-
-
-*/
+// -*- C++ -*-
+//===-- test_uninitialized_construct.cpp ----------------------------------===//
+//
+// Copyright (C) 2017-2019 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 // Tests for uninitialized_default_consruct, uninitialized_default_consruct_n,
 //           uninitialized_value_consruct,   uninitialized_value_consruct_n
 
 #include "pstl_test_config.h"
 
-#include "pstl/execution"
+// including 'memory' before 'execution' to test the other order of header includes
 #include "pstl/memory"
+#include "pstl/execution"
 #include "utils.h"
 
 using namespace TestUtils;
 
 // function of checking correctness for uninitialized.construct.value
 template <typename T, typename Iterator>
-bool IsCheckValueCorrectness(Iterator begin, Iterator end) {
-    for (; begin != end; ++begin){
-        if (*begin != T()) {
+bool
+IsCheckValueCorrectness(Iterator begin, Iterator end)
+{
+    for (; begin != end; ++begin)
+    {
+        if (*begin != T())
+        {
             return false;
         }
     }
     return true;
 }
 
-struct test_uninit_construct {
+struct test_uninit_construct
+{
     template <typename Policy, typename Iterator>
-    void operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::false_type) {
+    void
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::false_type)
+    {
         typedef typename std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
@@ -71,7 +74,9 @@ struct test_uninit_construct {
     }
 
     template <typename Policy, typename Iterator>
-    void operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::true_type) {
+    void
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::true_type)
+    {
         typedef typename std::iterator_traits<Iterator>::value_type T;
 
         std::uninitialized_default_construct(exec, begin, end);
@@ -92,15 +97,20 @@ struct test_uninit_construct {
 };
 
 template <typename T>
-void test_uninit_construct_by_type() {
+void
+test_uninit_construct_by_type()
+{
     std::size_t N = 100000;
-    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
+    for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
         std::unique_ptr<T[]> p(new T[n]);
         invoke_on_all_policies(test_uninit_construct(), p.get(), std::next(p.get(), n), n, std::is_trivial<T>());
     }
 }
 
-int32_t main() {
+int32_t
+main()
+{
 
     // for user-defined types
 #if !__PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN

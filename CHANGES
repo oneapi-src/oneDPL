@@ -1,6 +1,18 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2019 Update 3
+PSTL_VERSION == 204
+
+Bugs fixed:
+- Fixed compilation error for usage of PSTL_USE_PARALLEL_POLICIES macro.
+- Fixed compilation error for reordering standard included files.
+
+Examples:
+
+- Added CMake support for convex_hull and dot_product samples.
+
+------------------------------------------------------------------------
 Parallel STL 20181204 release
 PSTL_VERSION == 203
 

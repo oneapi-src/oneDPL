@@ -1,6 +1,6 @@
 ##===-- CMakeLists.txt ----------------------------------------------------===##
 #
-# Copyright (C) 2018-2019 Intel Corporation
+# Copyright (C) 2019 Intel Corporation
 #
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #
@@ -13,11 +13,11 @@
 ##===----------------------------------------------------------------------===##
 
 cmake_minimum_required(VERSION 3.1)
-project(gamma_correction VERSION 1.0.0 LANGUAGES CXX)
+project(dot_product VERSION 1.0.0 LANGUAGES CXX)
 set (CMAKE_CXX_STANDARD 11)
 
 # Add an executable target from source files
-add_executable(${PROJECT_NAME} gamma_correction.cpp utils.cpp)
+add_executable(${PROJECT_NAME} dot_product.cpp)
 
 # Instruct CMake to process CMakeLists.txt file located in Parallel STL root directory
 # in order to find "ParallelSTL" project described there

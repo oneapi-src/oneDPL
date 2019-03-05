@@ -4,7 +4,7 @@ This example demonstrates gamma correction - a nonlinear operation used to encod
 
 The example creates a fractal image in memory and performs gamma correction on it. The output of the example application is a BMP image with corrected luminance.
 
-|Original image (Y=1)|After applying gamma correction (Y=1/1.1)|
+|Original image (Y=1)|After applying gamma correction (Y=1.5)|
 |---|---|
 |<img src="images/original.jpg">|<img src="images/gamma.jpg">|
 

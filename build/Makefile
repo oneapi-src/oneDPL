@@ -1,20 +1,16 @@
-# Copyright (c) 2017-2018 Intel Corporation
+##===-- Makefile ----------------------------------------------------------===##
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Copyright (C) 2017-2019 Intel Corporation
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# This file incorporates work covered by the following copyright and permission
+# notice:
 #
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
 #
-#
-#
+##===----------------------------------------------------------------------===##
 
 #------------------------------------------------------------------------------
 # Define rules for making the Parallel STL library.
@@ -51,6 +47,7 @@ $(PSTL_LIB_NAME):
 	$(MAKE) -f $(PSTL_MAKEFILE) backend=$(backend) cfg=$(cfg)
 
 test_%.exe: test_%$(OBJ_SFX) $(PSTL_LIB_NAME)
+	$(info LIBRARY_PATH=$(LIBRARY_PATH))
 	$(LD) $< $(LD_OUT_KEY)$@ $(LDFLAGS) $(DYN_LDFLAGS) $(PSTL_LIB_LINK)
 
 test_%: test_%.exe
@@ -74,11 +71,13 @@ test: $(test_bin)
 %.E: %.cpp
 	$(CPLUS) $(CPLUS_FLAGS) -E $< >$@
 
+algo_target ?= algorithm.json
+
 TEMPLATE_FILES=$(wildcard $(proj_root)/bench/*.*tmpl)
 BENCH_COMMON_FILES=$(wildcard $(proj_root)/bench/*.h) $(wildcard $(proj_root)/bench/*.cpp)
 
-$(BENCH_MAKEFILE): $(proj_root)/bench/algorithm.json $(proj_root)/bench/gen.py  $(TEMPLATE_FILES)
-	$(PYTHON) $(proj_root)/bench/gen.py $(proj_root)/bench/algorithm.json
+$(BENCH_MAKEFILE): $(proj_root)/bench/$(algo_target) $(proj_root)/bench/gen.py  $(TEMPLATE_FILES)
+	$(PYTHON) $(proj_root)/bench/gen.py $(proj_root)/bench/$(algo_target)
 
 bench : $(BENCH_MAKEFILE) $(BENCH_COMMON_FILES) $(PSTL_LIB_NAME)
 	@echo     TEMPLATE_FILES=$(TEMPLATE_FILES)
@@ -103,9 +102,6 @@ info:
 	@echo OS = $(os_name)
 	@echo proj_root = "$(proj_root)"
 	@echo $(CURDIR)
-	@echo VPATH = $(VPATH)
-	@echo LIBRARY_PATH = $(LIBRARY_PATH)
-	@echo backend = $(backend)
-	@echo compiler = $(compiler)
+	@echo VPATH=$(VPATH)
 
 -include *.d

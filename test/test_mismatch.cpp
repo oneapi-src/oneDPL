@@ -1,22 +1,17 @@
-/*
-    Copyright (c) 2017-2018 Intel Corporation
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-
-
-
-*/
+// -*- C++ -*-
+//===-- test_mismatch.cpp -------------------------------------------------===//
+//
+// Copyright (C) 2017-2019 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 // Tests for the rest algorithms; temporary approach to check compiling
 
@@ -29,9 +24,12 @@
 
 using namespace TestUtils;
 
-struct test_mismatch {
+struct test_mismatch
+{
     template <typename Policy, typename Iterator1, typename Iterator2>
-    void operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2) {
+    void
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2)
+    {
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
@@ -43,7 +41,9 @@ struct test_mismatch {
         }
     }
     template <typename Policy, typename Iterator1, typename Iterator2>
-    void operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2) {
+    void
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2)
+    {
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
@@ -57,19 +57,22 @@ struct test_mismatch {
 };
 
 template <typename T>
-void test_mismatch_by_type() {
+void
+test_mismatch_by_type()
+{
     using namespace std;
     for (size_t size = 0; size <= 100000; size = size <= 16 ? size + 1 : size_t(3.1415 * size))
     {
         const T val = T(-1);
-        Sequence<T> in(size, [](size_t v)->T { return T(v % 100); });
+        Sequence<T> in(size, [](size_t v) -> T { return T(v % 100); });
         {
             Sequence<T> in2(in);
             invoke_on_all_policies(test_mismatch(), in.begin(), in.end(), in2.begin(), in2.end());
             invoke_on_all_policies(test_mismatch(), in.begin(), in.end(), in2.begin());
 
             const size_t min_size = 3;
-            if (size > min_size) {
+            if (size > min_size)
+            {
                 const size_t idx_for_1 = size / min_size;
                 in[idx_for_1] = val, in[idx_for_1 + 1] = val, in[idx_for_1 + 2] = val;
                 invoke_on_all_policies(test_mismatch(), in.begin(), in.end(), in2.begin(), in2.end());
@@ -77,14 +80,15 @@ void test_mismatch_by_type() {
             }
 
             const size_t idx_for_2 = 500;
-            if (size >= idx_for_2 - 1) {
+            if (size >= idx_for_2 - 1)
+            {
                 in2[size / idx_for_2] = val;
                 invoke_on_all_policies(test_mismatch(), in.cbegin(), in.cend(), in2.cbegin(), in2.cend());
                 invoke_on_all_policies(test_mismatch(), in.cbegin(), in.cend(), in2.cbegin());
             }
         }
         {
-            Sequence<T> in2(100, [](size_t v)->T { return T(v); });
+            Sequence<T> in2(100, [](size_t v) -> T { return T(v); });
             invoke_on_all_policies(test_mismatch(), in2.begin(), in2.end(), in.begin(), in.end());
             //  We can't call std::mismatch with semantic below when size of second sequence less than size of first sequence
             if (in2.size() <= in.size())
@@ -106,18 +110,22 @@ void test_mismatch_by_type() {
                 invoke_on_all_policies(test_mismatch(), in.cbegin(), in.cend(), in2.cbegin());
         }
     }
-
 }
 
 template <typename T>
-struct test_non_const {
+struct test_non_const
+{
     template <typename Policy, typename FirstIterator, typename SecondInterator>
-    void operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter) {
+    void
+    operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
+    {
         mismatch(exec, first_iter, first_iter, second_iter, second_iter, non_const(std::less<T>()));
     }
 };
 
-int32_t main( ) {
+int32_t
+main()
+{
 
     test_mismatch_by_type<int32_t>();
     test_mismatch_by_type<float64_t>();

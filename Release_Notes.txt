@@ -79,7 +79,7 @@ Software - Supported Compilers
     For each supported Linux* operating system, the standard gcc
         version provided with that operating system is supported
             GNU Compilers (gcc) 4.8 - 7.1
-    Clang* 3.3 - 3.8
+    Clang* 3.8 - 7.0
     Xcode* 7.0 - 9.1
     Android* NDK r13 - r17b
 
@@ -97,6 +97,10 @@ Known Issues or limitations
         transform_exclusive_scan, transform_inclusive_scan shall satisfy
         the DefaultConstructible requirements. A default constructed-instance
         of the initial value type shall be the identity element for binary_op.
+    The initial value type for exclusive_scan, inclusive_scan, reduce,
+        transform_reduce, transform_exclusive_scan, transform_inclusive_scan
+        shall additionally satisfy the MoveAssignable and the CopyConstructible
+        requirements.
     For max_element, min_element, minmax_element, partial_sort,
         partial_sort_copy, sort, stable_sort the dereferenced value type of
         the provided iterators shall be DefaultConstructible.

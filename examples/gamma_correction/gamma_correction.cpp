@@ -1,22 +1,17 @@
-/*
-    Copyright (c) 2017-2018 Intel Corporation
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-
-
-
-*/
+// -*- C++ -*-
+//===-- gamma_correction.cpp ----------------------------------------------===//
+//
+// Copyright (C) 2017-2019 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #include <iostream>
 #include <cmath>
@@ -71,9 +66,7 @@ void applyGamma(Rows& image, double g) {
         std::transform(pstl::execution::unseq, r, r+w, r, [g](Pixel& p) {
             double v = 0.3*p.bgra[2] + 0.59*p.bgra[1] + 0.11*p.bgra[0]; //RGB Luminance value
             assert(v > 0);
-            double res = pow(v, g);
-            if(res > 255)
-                res = 255;
+            auto res = static_cast<std::uint8_t>(255.0 * pow(v / 255.0, g));
             return image::pixel(res, res, res);
         });
     });
@@ -88,7 +81,7 @@ int main(int argc, char* argv[]) {
     img.write("image_1.bmp");
 
     //apply gamma
-    applyGamma(img.rows(), 1.1);
+    applyGamma(img.rows(), 1.5);
 
     //write result to disk
     img.write("image_1_gamma.bmp");

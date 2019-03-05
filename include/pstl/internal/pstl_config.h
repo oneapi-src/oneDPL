@@ -1,28 +1,23 @@
-/*
-    Copyright (c) 2017-2018 Intel Corporation
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-
-
-
-*/
+// -*- C++ -*-
+//===-- pstl_config.h -----------------------------------------------------===//
+//
+// Copyright (C) 2017-2019 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 203
-#define PSTL_VERSION_MAJOR (PSTL_VERSION/100)
+#define PSTL_VERSION 204
+#define PSTL_VERSION_MAJOR (PSTL_VERSION / 100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 
 // Check the user-defined macro for parallel policies
@@ -55,20 +50,20 @@
 #ifdef _MSC_VER
 #define __PSTL_PRAGMA(x) __pragma(x)
 #else
-#define __PSTL_PRAGMA(x) _Pragma (#x)
+#define __PSTL_PRAGMA(x) _Pragma(#x)
 #endif
 
 #define __PSTL_STRING_AUX(x) #x
 #define __PSTL_STRING(x) __PSTL_STRING_AUX(x)
-#define __PSTL_STRING_CONCAT(x, y) x#y
+#define __PSTL_STRING_CONCAT(x, y) x #y
 
 // note that when ICC or Clang is in use, __PSTL_GCC_VERSION might not fully match
 // the actual GCC version on the system.
 #define __PSTL_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #if __clang__
-    // according to clang documentation, version can be vendor specific
-    #define __PSTL_CLANG_VERSION (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
+// according to clang documentation, version can be vendor specific
+#define __PSTL_CLANG_VERSION (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
@@ -105,14 +100,16 @@
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define __PSTL_CPP17_EXECUTION_POLICIES_PRESENT (_MSC_VER >= 1912)
 
-#define __PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
-#define __PSTL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
+#define __PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                     \
+    (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
+#define __PSTL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT                                                                     \
+    (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
 #define __PSTL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
-#define __PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT \
+#define __PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                        \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
 
-#define __PSTL_EARLYEXIT_PRESENT  (__INTEL_COMPILER >= 1800)
-#define __PSTL_MONOTONIC_PRESENT  (__INTEL_COMPILER >= 1800)
+#define __PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
+#define __PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
 
 #if (__INTEL_COMPILER >= 1900 || !defined(__INTEL_COMPILER) && __PSTL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
 #define __PSTL_UDR_PRESENT 1
@@ -120,7 +117,7 @@
 #define __PSTL_UDR_PRESENT 0
 #endif
 
-#define __PSTL_UDS_PRESENT        (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+#define __PSTL_UDS_PRESENT (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
 
 #if __PSTL_EARLYEXIT_PRESENT
 #define __PSTL_PRAGMA_SIMD_EARLYEXIT __PSTL_PRAGMA(omp simd early_exit)
@@ -143,8 +140,8 @@
 // omp_out - refers to the final value of the combiner operator
 // omp_priv - refers to the private copy of the initial value
 // omp_orig - refers to the original variable to be reduced
-#define __PSTL_PRAGMA_DECLARE_REDUCTION(NAME, OP) \
-        __PSTL_PRAGMA(omp declare reduction(NAME : OP : omp_out(omp_in)) initializer(omp_priv = omp_orig))
+#define __PSTL_PRAGMA_DECLARE_REDUCTION(NAME, OP)                                                                      \
+    __PSTL_PRAGMA(omp declare reduction(NAME : OP : omp_out(omp_in)) initializer(omp_priv = omp_orig))
 
 #if (__INTEL_COMPILER >= 1600)
 #define __PSTL_PRAGMA_VECTOR_UNALIGNED __PSTL_PRAGMA(vector unaligned)
