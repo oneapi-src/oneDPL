@@ -61,13 +61,20 @@
 // the actual GCC version on the system.
 #define __PSTL_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
-#if __clang__
+#if __clang__ && !__apple_build_version__
 // according to clang documentation, version can be vendor specific
 #define __PSTL_CLANG_VERSION (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
+#else
+#define __PSTL_CLANG_VERSION 0
+#endif
+#if __apple_build_version__
+#define __PSTL_APPLE_CLANG_VERSION __apple_build_version__
+#else
+#define __PSTL_APPLE_CLANG_VERSION 0
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
-#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && __PSTL_GCC_VERSION >= 40900)
+#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && __PSTL_GCC_VERSION >= 40900) || (__PSTL_APPLE_CLANG_VERSION > 8000038)||(__PSTL_CLANG_VERSION>39000)
 #define __PSTL_PRAGMA_SIMD __PSTL_PRAGMA(omp simd)
 #define __PSTL_PRAGMA_DECLARE_SIMD __PSTL_PRAGMA(omp declare simd)
 #define __PSTL_PRAGMA_SIMD_REDUCTION(PRM) __PSTL_PRAGMA(omp simd reduction(PRM))
