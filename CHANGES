@@ -1,6 +1,14 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL 20190321 release
+PSTL_VERSION == 205
+
+Features / APIs:
+
+- Improved performance in stable_sort and sort algorithms.
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2019 Update 3
 PSTL_VERSION == 204
 

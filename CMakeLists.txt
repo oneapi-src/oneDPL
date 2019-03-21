@@ -17,8 +17,8 @@ cmake_minimum_required(VERSION 3.1)
 set(PARALLELSTL_VERSION_FILE "include/pstl/internal/pstl_config.h")
 file(STRINGS "${PARALLELSTL_VERSION_FILE}" PARALLELSTL_VERSION_SOURCE REGEX "#define PSTL_VERSION .*$")
 string(REGEX MATCH "#define PSTL_VERSION (.*)$" PARALLELSTL_VERSION_SOURCE "${PARALLELSTL_VERSION_SOURCE}")
-math(EXPR VERSION_MAJOR "${PARALLELSTL_VERSION_SOURCE} / 100")
-math(EXPR VERSION_MINOR "${PARALLELSTL_VERSION_SOURCE} % 100")
+math(EXPR VERSION_MAJOR "${CMAKE_MATCH_1} / 100")
+math(EXPR VERSION_MINOR "${CMAKE_MATCH_1} % 100")
 
 project(ParallelSTL VERSION ${VERSION_MAJOR}.${VERSION_MINOR} LANGUAGES CXX)
 
@@ -54,12 +54,12 @@ if (PARALLELSTL_USE_PARALLEL_POLICIES)
         endif()
     endif()
 else()
-    target_add_definitions(ParallelSTL INTERFACE PSTL_USE_PARALLEL_POLICIES=0)
+    target_compile_definitions(ParallelSTL INTERFACE PSTL_USE_PARALLEL_POLICIES=0)
 endif()
 
 target_include_directories(ParallelSTL
     INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
 write_basic_package_version_file(

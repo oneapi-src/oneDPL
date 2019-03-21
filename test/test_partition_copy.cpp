@@ -43,7 +43,22 @@ struct test_partition_copy
                     "partition_copy has wrong effect from false sequence");
     }
 
-    //dummy specialization by iterator type and policy type, in case of broken configuration
+//dummy specialization in case of broken configurations
+#if __PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN
+template <typename InputIterator, typename OutputIterator, typename OutputIterator2,
+              typename UnaryOp>
+    void
+    operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator true_first,
+               OutputIterator true_last, OutputIterator2 false_first, OutputIterator2 false_last, UnaryOp unary_op)
+    {}
+    template <typename InputIterator, typename OutputIterator, typename OutputIterator2,
+              typename UnaryOp>
+    void
+    operator()(pstl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last, OutputIterator true_first,
+               OutputIterator true_last, OutputIterator2 false_first, OutputIterator2 false_last, UnaryOp unary_op)
+    {}
+#endif
+
 #if __PSTL_ICC_1800_TEST_MONOTONIC_RELEASE_64_BROKEN
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename UnaryOp>
     void

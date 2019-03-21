@@ -42,6 +42,24 @@ struct run_copy_if
     {
     }
 #endif
+#if __PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN
+template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
+              typename Predicate, typename T>
+    void
+    operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last,
+               OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
+               OutputIterator2 expected_last, Size n, Predicate pred, T trash)
+    {
+    }
+    template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
+              typename Predicate, typename T>
+    void
+    operator()(pstl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+               OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
+               OutputIterator2 expected_last, Size n, Predicate pred, T trash)
+    {
+    }
+#endif
 
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>

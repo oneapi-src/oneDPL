@@ -51,5 +51,7 @@
 #define __PSTL_ICL_19_VC14_VC141_TEST_SCAN_RELEASE_BROKEN                                                              \
     (__INTEL_COMPILER == 1900 && _MSC_VER >= 1900 && _MSC_VER <= 1910)
 #define __PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN (__INTEL_COMPILER == 1900 && _MSC_VER && !_DEBUG)
+#define __PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN													   \
+	((__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900) && _MSC_VER && !_DEBUG)
 
 #endif /* __PSTL_TEST_config_H */

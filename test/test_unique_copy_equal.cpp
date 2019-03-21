@@ -24,13 +24,14 @@ using namespace TestUtils;
 
 struct run_unique_copy
 {
-#if __PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN // dummy specializations to skip testing in case of broken configuration
+// dummy specializations to skip testing in case of broken configuration
+#if __PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(pstl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
-               Predicate pred, T trash)
+    operator()(pstl::execution::unsequenced_policy, InputIterator first, InputIterator last,
+               OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
+               OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
     }
 

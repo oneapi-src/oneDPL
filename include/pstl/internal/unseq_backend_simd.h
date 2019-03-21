@@ -702,6 +702,7 @@ simd_minmax_element(_ForwardIterator __first, _Size __n, _Compare __comp) noexce
         {
         }
 
+        __PSTL_PRAGMA_DECLARE_SIMD
         void
         operator()(const _ComplexType& __obj)
         {
@@ -733,22 +734,22 @@ simd_minmax_element(_ForwardIterator __first, _Size __n, _Compare __comp) noexce
 
     _ComplexType __init{*__first, *__first, &__comp};
 
-    __PSTL_PRAGMA_DECLARE_REDUCTION(__min_func, _ComplexType);
+    __PSTL_PRAGMA_DECLARE_REDUCTION(__minmax_func, _ComplexType);
 
-    __PSTL_PRAGMA_SIMD_REDUCTION(__min_func : __init)
+    __PSTL_PRAGMA_SIMD_REDUCTION(__minmax_func : __init)
     for (_Size __i = 1; __i < __n; ++__i)
     {
         auto __min_val = __init.__min_val;
         auto __max_val = __init.__max_val;
-        auto __current = __first + __i;
-        if (__comp(*__current, __min_val))
+        auto __current = __first[__i];
+        if (__comp(__current, __min_val))
         {
-            __init.__min_val = *__current;
+            __init.__min_val = __current;
             __init.__min_ind = __i;
         }
-        else if (!__comp(*__current, __max_val))
+        else if (!__comp(__current, __max_val))
         {
-            __init.__max_val = *__current;
+            __init.__max_val = __current;
             __init.__max_ind = __i;
         }
     }

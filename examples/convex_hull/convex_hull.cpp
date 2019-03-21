@@ -104,11 +104,16 @@ void quickhull(const pointVec_t &points, pointVec_t &hull) {
         return;
     }
     //Find left and right most points, they will be in the convex hull
+#if __INTEL_COMPILER == 1900 && PSTL_VERSION >= 200 && PSTL_VERSION <= 204
+    // A workaround for incorrectly working minmax_element
+    point_t p1 = *std::min_element(pstl::execution::par_unseq, points.cbegin(), points.cend());
+    point_t p2 = *std::max_element(pstl::execution::par_unseq, points.cbegin(), points.cend());
+#else
     auto minmaxx = std::minmax_element(pstl::execution::par_unseq, points.cbegin(), points.cend());
-
-    pointVec_t H;
     point_t p1 = *minmaxx.first;
     point_t p2 = *minmaxx.second;
+#endif
+
     //Divide the set of points into two subsets, which will be processed recursively
     divide_and_conquer(pstl::execution::par_unseq, points.cbegin(), points.cend(), hull, p1, p2, p1);
 }

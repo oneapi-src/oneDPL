@@ -183,7 +183,7 @@ adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardItera
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,
-                                           typename iterator_traits<_ForwardIterator>::difference_type>
+                                             typename iterator_traits<_ForwardIterator>::difference_type>
 count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
 {
     typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
@@ -196,7 +196,7 @@ count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __la
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy,
-                                           typename iterator_traits<_ForwardIterator>::difference_type>
+                                             typename iterator_traits<_ForwardIterator>::difference_type>
 count_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred)
 {
     using namespace __pstl;
@@ -741,11 +741,10 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
       _ForwardIterator2 __last2, _BinaryPredicate __p)
 {
-    //TODO: to get rid of "distance"
-    if (std::distance(__first1, __last1) == std::distance(__first2, __last2))
+    if(std::distance(__first1, __last1) == std::distance(__first2, __last2))
         return std::equal(__first1, __last1, __first2, __p);
-    else
-        return false;
+
+    return false;
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
@@ -753,7 +752,7 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
       _ForwardIterator2 __last2)
 {
-    return equal(std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __pstl::internal::pstl_equal());
+    return equal(std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __pstl::internal::pstl_equal());
 }
 
 // [alg.move]

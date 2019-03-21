@@ -14,10 +14,6 @@
 
 override compiler:=clang++
 
-ifneq ($(target),android)
-    PSTL_ARCH += $(KEY)march=native
-endif
-
 # XHOST_FLAG = -fno-vectorize
 CPLUS_FLAGS += $(FQKEY)std=$(stdver)
 # XHOST_FLAG = $(KEY)mavx2 #-fno-vectorize
@@ -29,4 +25,7 @@ CPLUS_FLAGS += $(FQKEY)std=$(stdver)
 # version x.y.z" which does not correspond upstream LLVM version.
 ifneq (,$(shell clang --version | egrep  "clang version [6-9]\.[0-9]\.[0-9]"))
 CPLUS_FLAGS += -fopenmp-simd #supported at least since 6.0 version
+ifneq ($(target),android)
+    PSTL_ARCH += $(KEY)march=native
+endif
 endif

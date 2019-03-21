@@ -37,13 +37,13 @@ target_link_libraries(${PROJECT_NAME}
 #
 # Since OpenMP SIMD flag is compiler-specific, we need to choose it
 # depending on what compiler and Operating System are being used
-string (JOIN "\n" CONFIGS_TO_SIMD_FLAGS_MAP
+set (CONFIGS_TO_SIMD_FLAGS_MAP
     # "CMAKE_CXX_COMPILER_ID-CMAKE_SYSTEM_NAME:<compiler flag for that configuration>"
-    "Intel-Windows:/Qopenmp-simd"
-    "Intel-ANY:-qopenmp-simd"
-    "GNU-Linux:-fopenmp-simd"
-    "AppleClang-Darwin:-openmp-simd"
-    "ANY-ANY:"
+    "Intel-Windows:/Qopenmp-simd
+    Intel-ANY:-qopenmp-simd
+    GNU-Linux:-fopenmp-simd
+    AppleClang-Darwin:-openmp-simd
+    ANY-ANY:"
 )
 
 set (MY_CONFIG_REGEX "(${CMAKE_CXX_COMPILER_ID}|ANY)-(${CMAKE_SYSTEM_NAME}|ANY):([^\n]*)")
