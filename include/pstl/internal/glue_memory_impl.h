@@ -44,9 +44,7 @@ uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
         [&]() {
             return internal::pattern_walk2_brick(
                 std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-                [__is_vector](_InputIterator __begin, _InputIterator __end, _ForwardIterator __res) {
-                    return internal::brick_copy(__begin, __end, __res, __is_vector);
-                },
+                internal::brick_copy<_ExecutionPolicy>{},
                 __is_parallel);
         },
         [&]() {
@@ -78,9 +76,7 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
         [&]() {
             return internal::pattern_walk2_brick_n(
                 std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-                [__is_vector](_InputIterator __begin, _Size __sz, _ForwardIterator __res) {
-                    return internal::brick_copy_n(__begin, __sz, __res, __is_vector);
-                },
+                internal::brick_copy_n<_ExecutionPolicy>{},
                 __is_parallel);
         },
         [&]() {
@@ -114,9 +110,7 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
         [&]() {
             return internal::pattern_walk2_brick(
                 std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-                [__is_vector](_InputIterator __begin, _InputIterator __end, _ForwardIterator __res) {
-                    return internal::brick_copy(__begin, __end, __res, __is_vector);
-                },
+                internal::brick_copy<_ExecutionPolicy>{},
                 __is_parallel);
         },
         [&]() {
@@ -148,9 +142,7 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
         [&]() {
             return internal::pattern_walk2_brick_n(
                 std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-                [__is_vector](_InputIterator __begin, _Size __sz, _ForwardIterator __res) {
-                    return internal::brick_copy_n(__begin, __sz, __res, __is_vector);
-                },
+                internal::brick_copy_n<_ExecutionPolicy>{},
                 __is_parallel);
         },
         [&]() {

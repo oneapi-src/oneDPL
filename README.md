@@ -1,5 +1,5 @@
 # Parallel STL
-[![Stable release](https://img.shields.io/badge/version-20190321-green.svg)](https://github.com/intel/parallelstl/releases/tag/20190321)
+[![Stable release](https://img.shields.io/badge/version-20190429-green.svg)](https://github.com/intel/parallelstl/releases/tag/20190429)
 
 Parallel STL is an implementation of the C++ standard library algorithms with support for execution policies,
 as specified in ISO/IEC 14882:2017 standard, commonly called C++17.
@@ -20,7 +20,7 @@ To use Parallel STL, you must have the following software installed:
 * Threading Building Blocks (TBB) which is available to download in the GitHub [repository](https://github.com/01org/tbb/)
 
 ## Release Information
-Here are the latest [Changes](CHANGES) and [Release Notes](doc/Release_Notes.txt) (contains system requirements and known issues).
+Here are the latest [Changes](CHANGES) and [Release Notes](Release_Notes.txt) (contains system requirements and known issues).
 
 ## License
 Parallel STL is licensed under [Apache License Version 2.0 with LLVM exceptions](LICENSE).

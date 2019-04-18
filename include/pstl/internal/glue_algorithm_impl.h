@@ -256,14 +256,9 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2
 copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result)
 {
     using namespace __pstl;
-    const auto __is_vector =
-        internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(__exec);
 
     return internal::pattern_walk2_brick(
-        std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        [__is_vector](_ForwardIterator1 __begin, _ForwardIterator1 __end, _ForwardIterator2 __res) {
-            return internal::brick_copy(__begin, __end, __res, __is_vector);
-        },
+        std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, internal::brick_copy<_ExecutionPolicy>{},
         internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(__exec));
 }
 
@@ -272,14 +267,9 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2
 copy_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Size __n, _ForwardIterator2 __result)
 {
     using namespace __pstl;
-    const auto __is_vector =
-        internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(__exec);
 
     return internal::pattern_walk2_brick_n(
-        std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-        [__is_vector](_ForwardIterator1 __begin, _Size __sz, _ForwardIterator2 __res) {
-            return internal::brick_copy_n(__begin, __sz, __res, __is_vector);
-        },
+        std::forward<_ExecutionPolicy>(__exec), __first, __n, __result, internal::brick_copy_n<_ExecutionPolicy>{},
         internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(__exec));
 }
 
@@ -528,7 +518,7 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterato
 __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 unique_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result)
 {
-    return std::unique_copy(__exec, __first, __last, __result, __pstl::internal::pstl_equal());
+    return std::unique_copy(std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __pstl::internal::pstl_equal());
 }
 
 // [alg.reverse]
@@ -671,7 +661,7 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, void>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
 {
     typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _InputType;
-    std::stable_sort(__exec, __first, __last, std::less<_InputType>());
+    std::stable_sort(std::forward<_ExecutionPolicy>(__exec), __first, __last, std::less<_InputType>());
 }
 
 // [mismatch]
@@ -693,7 +683,7 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, std::pair<_Forwar
 mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
          _BinaryPredicate __pred)
 {
-    return std::mismatch(__exec, __first1, __last1, __first2, std::next(__first2, std::distance(__first1, __last1)),
+    return std::mismatch(std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, std::next(__first2, std::distance(__first1, __last1)),
                          __pred);
 }
 
@@ -741,10 +731,10 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
       _ForwardIterator2 __last2, _BinaryPredicate __p)
 {
-    if(std::distance(__first1, __last1) == std::distance(__first2, __last2))
-        return std::equal(__first1, __last1, __first2, __p);
-
-    return false;
+    using namespace __pstl;
+    return internal::pattern_equal(std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __p,
+                                   internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1>(__exec),
+                                   internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1>(__exec));
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
@@ -752,7 +742,8 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
       _ForwardIterator2 __last2)
 {
-    return equal(std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __pstl::internal::pstl_equal());
+    return equal(std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2,
+                 __pstl::internal::pstl_equal());
 }
 
 // [alg.move]
@@ -761,14 +752,9 @@ __pstl::internal::enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2
 move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first)
 {
     using namespace __pstl;
-    const auto __is_vector =
-        internal::is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(__exec);
 
     return internal::pattern_walk2_brick(
-        std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
-        [__is_vector](_ForwardIterator1 __begin, _ForwardIterator1 __end, _ForwardIterator2 __res) {
-            return internal::brick_move(__begin, __end, __res, __is_vector);
-        },
+        std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first, internal::brick_move<_ExecutionPolicy>{},
         internal::is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(__exec));
 }
 
@@ -792,7 +778,7 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
              _RandomAccessIterator __last)
 {
     typedef typename iterator_traits<_RandomAccessIterator>::value_type _InputType;
-    std::partial_sort(__exec, __first, __middle, __last, std::less<_InputType>());
+    std::partial_sort(std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last, std::less<_InputType>());
 }
 
 // [partial.sort.copy]
@@ -902,7 +888,7 @@ inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bidire
               _BidirectionalIterator __last)
 {
     typedef typename std::iterator_traits<_BidirectionalIterator>::value_type _InputType;
-    std::inplace_merge(__exec, __first, __middle, __last, std::less<_InputType>());
+    std::inplace_merge(std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last, std::less<_InputType>());
 }
 
 // [includes]

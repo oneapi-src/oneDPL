@@ -29,6 +29,7 @@ if /i "%1"=="intel64"      (set PSTL_TARGET_ARCH=intel64) & shift & goto ParseAr
 if /i "%1"=="vs2013"       (set PSTL_TARGET_VS=vs2013)      & shift & goto ParseArgs
 if /i "%1"=="vs2015"       (set PSTL_TARGET_VS=vs2015)      & shift & goto ParseArgs
 if /i "%1"=="vs2017"       (set PSTL_TARGET_VS=vs2017)      & shift & goto ParseArgs
+if /i "%1"=="vs2019"       (set PSTL_TARGET_VS=vs2019)      & shift & goto ParseArgs
 if /i "%1"=="all"          (set PSTL_TARGET_VS=all)     & shift & goto ParseArgs
 :: for any other incoming arguments values
 goto Syntax
@@ -56,6 +57,7 @@ echo    ^<vs^> should be one of the following
 echo        vs2013      : Set to use with Microsoft Visual Studio 2013 runtime DLLs
 echo        vs2015      : Set to use with Microsoft Visual Studio 2015 runtime DLLs
 echo        vs2017      : Set to use with Microsoft Visual Studio 2017 runtime DLLs
+echo        vs2019      : Set to use with Microsoft Visual Studio 2019 runtime DLLs
 echo        all         : Set PSTL to use TBB statically linked with Microsoft Visual C++ runtime
 echo    if ^<vs^> is not set PSTL will use TBB statically linked with Microsoft Visual C++ runtime.
 exit /B 1

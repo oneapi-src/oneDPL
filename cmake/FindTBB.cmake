@@ -12,6 +12,24 @@
 #
 ##===----------------------------------------------------------------------===##
 
+if (NOT TBB_FIND_COMPONENTS)
+    set(TBB_FIND_COMPONENTS tbb tbbmalloc)
+    foreach (_tbb_component ${TBB_FIND_COMPONENTS})
+        set(TBB_FIND_REQUIRED_${_tbb_component} 1)
+    endforeach()
+endif()
+
+foreach (_tbb_component ${TBB_FIND_COMPONENTS})
+    if (TARGET TBB::${_tbb_component})
+        message(STATUS "Using previously found TBB::${_tbb_component}")
+        list(REMOVE_ITEM TBB_FIND_COMPONENTS ${_tbb_component})
+    endif()
+endforeach()
+
+if (NOT TBB_FIND_COMPONENTS)
+    return()
+endif()
+
 include(FindPackageHandleStandardArgs)
 
 # Firstly search for TBB in config mode (i.e. search for TBBConfig.cmake).
@@ -23,13 +41,6 @@ if (TBB_FOUND)
                                       VERSION_VAR TBB_VERSION
                                       CONFIG_MODE)
     return()
-endif()
-
-if (NOT TBB_FIND_COMPONENTS)
-    set(TBB_FIND_COMPONENTS tbb tbbmalloc)
-    foreach (_tbb_component ${TBB_FIND_COMPONENTS})
-        set(TBB_FIND_REQUIRED_${_tbb_component} 1)
-    endforeach()
 endif()
 
 find_path(_tbb_include_dir tbb/tbb.h)

@@ -1,6 +1,18 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2019 Update 4
+PSTL_VERSION == 206
+
+Features / APIs:
+
+- Improved performance in equal algorithm.
+
+Bugs fixed:
+- Fixed an error with multiple invocations of FindTBB.cmake
+  (https://github.com/intel/parallelstl/issues/26).
+
+------------------------------------------------------------------------
 Parallel STL 20190321 release
 PSTL_VERSION == 205
 

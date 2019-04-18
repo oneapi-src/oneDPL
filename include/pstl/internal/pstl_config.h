@@ -16,7 +16,7 @@
 #ifndef __PSTL_config_H
 #define __PSTL_config_H
 
-#define PSTL_VERSION 205
+#define PSTL_VERSION 206
 #define PSTL_VERSION_MAJOR (PSTL_VERSION / 100)
 #define PSTL_VERSION_MINOR (PSTL_VERSION - PSTL_VERSION_MAJOR * 100)
 
@@ -175,6 +175,5 @@
 // broken macros
 #define __PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
 
-#define __PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
 #endif /* __PSTL_config_H */
