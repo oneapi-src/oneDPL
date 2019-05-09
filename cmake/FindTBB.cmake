@@ -49,16 +49,26 @@ if (_tbb_include_dir)
     string(REGEX REPLACE ".*#define TBB_VERSION_MAJOR ([0-9]+).*" "\\1" _tbb_ver_major "${_tbb_stddef}")
     string(REGEX REPLACE ".*#define TBB_VERSION_MINOR ([0-9]+).*" "\\1" _tbb_ver_minor "${_tbb_stddef}")
     string(REGEX REPLACE ".*#define TBB_INTERFACE_VERSION ([0-9]+).*" "\\1" TBB_INTERFACE_VERSION "${_tbb_stddef}")
+    math(EXPR _tbb_ver_update "${TBB_INTERFACE_VERSION}%1000")
 
-    set(TBB_VERSION "${_tbb_ver_major}.${_tbb_ver_minor}")
+    if(_tbb_ver_update EQUAL "0")
+      set(TBB_VERSION_STR "${_tbb_ver_major}")
+    else()
+      set(TBB_VERSION_STR "${_tbb_ver_major} Update ${_tbb_ver_update}")
+    endif()
+    # Warning: this versioning scheme is not consistent with tbb packages versioning on Intel's channels
+    set(TBB_VERSION "${_tbb_ver_major}.${_tbb_ver_minor}.${TBB_INTERFACE_VERSION}")
+    message(STATUS "Found TBB ${TBB_VERSION_STR} (${TBB_VERSION}) headers: ${_tbb_include_dir}/tbb")
 
     unset(_tbb_stddef)
     unset(_tbb_ver_major)
     unset(_tbb_ver_minor)
+    unset(_tbb_ver_update)
 
     foreach (_tbb_component ${TBB_FIND_COMPONENTS})
         find_library(_tbb_release_lib ${_tbb_component})
         if (_tbb_release_lib)
+            message(STATUS "  TBB::${_tbb_component} lib: ${_tbb_release_lib}")
             set(TBB_${_tbb_component}_FOUND 1)
 
             add_library(TBB::${_tbb_component} SHARED IMPORTED)
