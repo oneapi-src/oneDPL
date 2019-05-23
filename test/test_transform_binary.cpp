@@ -112,8 +112,8 @@ main()
     //non-const operator()
     test<int32_t, float32_t, float32_t>(non_const(TheOperation<int32_t, float32_t, float32_t>(1.5)));
     test<int64_t, float64_t, float32_t>(non_const(TheOperation<int64_t, float64_t, float32_t>(1.5)));
-    //lambda
-    test<int8_t, float64_t, int8_t>([](const int8_t& x, const float64_t& y) { return int8_t(int8_t(1.5) + x - y); });
+    // lambda
+    test<int32_t, float64_t, int32_t>([](const int32_t& x, const float64_t& y) { return int32_t(int32_t(1.5) + x - y); });
 
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 

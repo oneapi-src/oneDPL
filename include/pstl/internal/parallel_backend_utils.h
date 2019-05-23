@@ -23,11 +23,11 @@
 
 namespace __pstl
 {
-namespace par_backend
+namespace __par_backend
 {
 
 //! Destroy sequence [xs,xe)
-struct serial_destroy
+struct __serial_destroy
 {
     template <typename _RandomAccessIterator>
     void
@@ -43,11 +43,11 @@ struct serial_destroy
 };
 
 //! Merge sequences [__xs,__xe) and [__ys,__ye) to output sequence [__zs,(__xe-__xs)+(__ye-__ys)), using std::move
-struct serial_move_merge
+struct __serial_move_merge
 {
     const std::size_t _M_nmerge;
 
-    explicit serial_move_merge(std::size_t __nmerge) : _M_nmerge(__nmerge) {}
+    explicit __serial_move_merge(std::size_t __nmerge) : _M_nmerge(__nmerge) {}
     template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _RandomAccessIterator3, class _Compare,
               class _MoveValueX, class _MoveValueY, class _MoveSequenceX, class _MoveSequenceY>
     void
@@ -141,7 +141,7 @@ struct serial_move_merge
 
 template <typename _RandomAccessIterator1, typename _OutputIterator>
 void
-init_buf(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _OutputIterator __zs, bool __bMove)
+__init_buf(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _OutputIterator __zs, bool __bMove)
 {
     const _OutputIterator __ze = __zs + (__xe - __xs);
     typedef typename std::iterator_traits<_OutputIterator>::value_type _ValueType;
@@ -159,8 +159,9 @@ init_buf(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _OutputIterat
     }
 }
 
+// TODO is this actually used anywhere?
 template <typename _Buf>
-class stack
+class __stack
 {
     typedef typename std::iterator_traits<decltype(std::declval<_Buf>().get())>::value_type _ValueType;
     typedef typename std::iterator_traits<_ValueType*>::difference_type _DifferenceType;
@@ -169,19 +170,19 @@ class stack
     _ValueType* _M_ptr;
     _DifferenceType _M_maxsize;
 
-    stack(const stack&) = delete;
+    __stack(const __stack&) = delete;
     void
-    operator=(const stack&) = delete;
+    operator=(const __stack&) = delete;
 
   public:
     template <typename _ExecutionPolicy>
-    stack(_ExecutionPolicy&& __exec, _DifferenceType __max_size)
+    __stack(_ExecutionPolicy&& __exec, _DifferenceType __max_size)
         : _M_buf(std::forward<_ExecutionPolicy>(__exec), __max_size), _M_maxsize(__max_size)
     {
         _M_ptr = _M_buf.get();
     }
 
-    ~stack()
+    ~__stack()
     {
         assert(size() <= _M_maxsize);
         while (!empty())
@@ -227,7 +228,7 @@ class stack
     }
 };
 
-} // namespace par_backend
+} // namespace __par_backend
 } // namespace __pstl
 
 #endif /* __PSTL_parallel_backend_utils_H */

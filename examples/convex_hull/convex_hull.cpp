@@ -104,7 +104,7 @@ void quickhull(const pointVec_t &points, pointVec_t &hull) {
         return;
     }
     //Find left and right most points, they will be in the convex hull
-#if __INTEL_COMPILER == 1900 && PSTL_VERSION >= 200 && PSTL_VERSION <= 204
+#if (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER <= 1910) && (PSTL_VERSION >= 200 && PSTL_VERSION <= 204)
     // A workaround for incorrectly working minmax_element
     point_t p1 = *std::min_element(pstl::execution::par_unseq, points.cbegin(), points.cend());
     point_t p2 = *std::max_element(pstl::execution::par_unseq, points.cbegin(), points.cend());

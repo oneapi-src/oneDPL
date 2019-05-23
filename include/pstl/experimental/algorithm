@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- algorithm ---------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2019 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -13,18 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_algorithm
-#define __PSTL_algorithm
+#ifndef __PSTL_experimental_algorithm
+#define __PSTL_experimental_algorithm
 
-#include "internal/pstl_config.h"
+#define __cpp_lib_experimental_parallel_for_loop 201711
 
-#if __PSTL_EXECUTION_POLICIES_DEFINED
-// If <execution> has already been included, pull in implementations
-#    include "internal/glue_algorithm_impl.h"
-#else
-// Otherwise just pull in forward declarations
-#    include "internal/glue_algorithm_defs.h"
-#    define __PSTL_ALGORITHM_FORWARD_DECLARED 1
-#endif
+#include "internal/reduction.h"
+#include "internal/induction.h"
+#include "internal/for_loop.h"
 
-#endif /* __PSTL_algorithm */
+#endif /* __PSTL_experimental_algorithm */

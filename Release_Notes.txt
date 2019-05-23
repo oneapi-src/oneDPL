@@ -89,7 +89,11 @@ Known Issues or limitations
         support '#pragma omp simd' or '#pragma simd'.
     Parallel and vector execution is only supported for the algorithms
         if random access iterators are provided, while for other iterator
-        types the execution will remain serial.
+        types the execution will remain serial, excepting for_each and
+        transform which support parallel execution with forward iterators
+        as well. In case of forward iterators an execution of the invoked
+        function should have enough work for the parallel execution to be
+        effective.
     Semantics of the following algorithms does not allow unsequenced execution:
         includes, inplace_merge, merge, set_difference, set_intersection,
         set_symmetric_difference, set_union, stable_partition, unique.
