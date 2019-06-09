@@ -567,7 +567,7 @@ class __merge_task : public tbb::task
     x_less_y()
     {
         const auto __nx = (_M_xe - _M_xs);
-        const auto __ny = (_M_ye - _M_ys);
+        [[maybe_unused]] const auto __ny = (_M_ye - _M_ys);
         assert(__nx > 0 && __ny > 0);
 
         assert(_x_orig == _y_orig);
@@ -588,7 +588,7 @@ class __merge_task : public tbb::task
     move_x_range()
     {
         const auto __nx = (_M_xe - _M_xs);
-        const auto __ny = (_M_ye - _M_ys);
+        [[maybe_unused]] const auto __ny = (_M_ye - _M_ys);
         assert(__nx > 0 && __ny > 0);
 
         if (_x_orig)
@@ -690,8 +690,8 @@ class __merge_task : public tbb::task
             assert(is_partial() || std::is_sorted(_M_z_beg + _M_xs, _M_z_beg + _M_xe, _M_comp));
             assert(is_partial() || std::is_sorted(_M_z_beg + _M_ys, _M_z_beg + _M_ye, _M_comp));
 
-            const auto __nx = (_M_xe - _M_xs);
-            const auto __ny = (_M_ye - _M_ys);
+            [[maybe_unused]] const auto __nx = (_M_xe - _M_xs);
+            [[maybe_unused]] const auto __ny = (_M_ye - _M_ys);
 
             _M_leaf_merge(_M_z_beg + _M_xs, _M_z_beg + _M_xe, _M_z_beg + _M_ys, _M_z_beg + _M_ye, _M_x_beg + _M_zs,
                           _M_comp, __move_value(), __move_value(), __move_range(), __move_range());
@@ -755,7 +755,7 @@ class __merge_task : public tbb::task
             p->set_odd(id_range, !_x_orig);
         }
 
-        const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
+        [[maybe_unused]] const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
 
         // need to merge {x} and {y}
         return merge_ranges();
@@ -908,7 +908,7 @@ __stable_sort_task<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
 
     const _RandomAccessIterator1 __xm = _M_xs + __n / 2;
     const _RandomAccessIterator2 __zm = _M_zs + (__xm - _M_xs);
-    const _RandomAccessIterator2 __ze = _M_zs + __n;
+    [[maybe_unused]] const _RandomAccessIterator2 __ze = _M_zs + __n;
     _MergeTaskType* __m = new (allocate_continuation())
         _MergeTaskType(_M_xs - _M_x_beg, __xm - _M_x_beg, __xm - _M_x_beg, _M_xe - _M_x_beg, _M_zs - _M_z_beg, _M_comp,
                        __serial_destroy(), __serial_move_merge(__nmerge), _M_nsort, _M_x_beg, _M_z_beg,
