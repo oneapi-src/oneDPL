@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- parallel_impl.h ---------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) 2017-2019 Intel Corporation
 //
@@ -13,14 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_parallel_impl_H
-#define __PSTL_parallel_impl_H
+#ifndef _PSTL_PARALLEL_IMPL_H
+#define _PSTL_PARALLEL_IMPL_H
 
 #include <atomic>
 // This header defines the minimum set of parallel routines required to support Parallel STL,
 // implemented on top of Intel(R) Threading Building Blocks (Intel(R) TBB) library
 
-namespace __pstl
+namespace pstl
 {
 namespace __internal
 {
@@ -30,13 +30,16 @@ namespace __internal
 //-----------------------------------------------------------------------
 /** Return extremum value returned by brick f[i,j) for subranges [i,j) of [first,last)
 Each f[i,j) must return a value in [i,j). */
-template <class _ExecutionPolicy, class _Index, class _Brick, class _Compare>
+template <class _ExecutionPolicy, class _Index, class _Brick, class _IsFirst>
 _Index
-__parallel_find(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f, _Compare __comp, bool __b_first)
+__parallel_find(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f, _IsFirst)
 {
     typedef typename std::iterator_traits<_Index>::difference_type _DifferenceType;
     const _DifferenceType __n = __last - __first;
-    _DifferenceType __initial_dist = __b_first ? __n : -1;
+    _DifferenceType __initial_dist = _IsFirst::value ? __n : -1;
+
+    constexpr auto __comp = typename std::conditional<_IsFirst::value, __pstl_less, __pstl_greater>::type{};
+
     std::atomic<_DifferenceType> __extremum(__initial_dist);
     // TODO: find out what is better here: parallel_for or parallel_reduce
     __par_backend::__parallel_for(std::forward<_ExecutionPolicy>(__exec), __first, __last,
@@ -82,6 +85,6 @@ __parallel_or(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick _
 }
 
 } // namespace __internal
-} // namespace __pstl
+} // namespace pstl
 
-#endif /* __PSTL_parallel_impl_H */
+#endif /* _PSTL_PARALLEL_IMPL_H */

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- parallel_backend_utils.h ------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) 2017-2019 Intel Corporation
 //
@@ -13,17 +13,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_parallel_backend_utils_H
-#define __PSTL_parallel_backend_utils_H
+#ifndef _PSTL_PARALLEL_BACKEND_UTILS_H
+#define _PSTL_PARALLEL_BACKEND_UTILS_H
 
 #include <iterator>
 #include <utility>
 #include <cassert>
 #include "utils.h"
 
-namespace __pstl
+namespace pstl
 {
-namespace __par_backend
+
+namespace __utils
 {
 
 //! Destroy sequence [xs,xe)
@@ -55,8 +56,8 @@ struct __serial_move_merge
                _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp, _MoveValueX __move_value_x,
                _MoveValueY __move_value_y, _MoveSequenceX __move_sequence_x, _MoveSequenceY __move_sequence_y)
     {
-        constexpr bool same_move_val = std::is_same<_MoveValueX, _MoveValueY>::value;
-        constexpr bool same_move_seq = std::is_same<_MoveSequenceX, _MoveSequenceY>::value;
+        constexpr bool __same_move_val = std::is_same<_MoveValueX, _MoveValueY>::value;
+        constexpr bool __same_move_seq = std::is_same<_MoveSequenceX, _MoveSequenceY>::value;
 
         auto __n = _M_nmerge;
         assert(__n > 0);
@@ -73,8 +74,8 @@ struct __serial_move_merge
                 {
                     if (__comp(*__ys, *__xs))
                     {
-                        const auto i = __zs - __zs_beg;
-                        if (i < __nx)
+                        const auto __i = __zs - __zs_beg;
+                        if (__i < __nx)
                             __move_value_x(__ys, __zs);
                         else
                             __move_value_y(__ys, __zs);
@@ -85,8 +86,8 @@ struct __serial_move_merge
                         }
                         else if (__n == 0)
                         {
-                            const auto i = __zs - __zs_beg;
-                            if (same_move_seq || i < __nx)
+                            const auto __j = __zs - __zs_beg;
+                            if (__same_move_seq || __j < __nx)
                                 __zs = __move_sequence_x(__ys, __ye, __zs);
                             else
                                 __zs = __move_sequence_y(__ys, __ye, __zs);
@@ -95,16 +96,16 @@ struct __serial_move_merge
                     }
                     else
                     {
-                        const auto i = __zs - __zs_beg;
-                        if (same_move_val || i < __nx)
+                        const auto __i = __zs - __zs_beg;
+                        if (__same_move_val || __i < __nx)
                             __move_value_x(__xs, __zs);
                         else
                             __move_value_y(__xs, __zs);
                         ++__zs, --__n;
                         if (++__xs == __xe)
                         {
-                            const auto i = __zs - __zs_beg;
-                            if (same_move_seq || i < __nx)
+                            const auto __j = __zs - __zs_beg;
+                            if (__same_move_seq || __j < __nx)
                                 __move_sequence_x(__ys, __ye, __zs);
                             else
                                 __move_sequence_y(__ys, __ye, __zs);
@@ -112,8 +113,8 @@ struct __serial_move_merge
                         }
                         else if (__n == 0)
                         {
-                            const auto i = __zs - __zs_beg;
-                            if (same_move_seq || i < __nx)
+                            const auto __j = __zs - __zs_beg;
+                            if (__same_move_seq || __j < __nx)
                             {
                                 __zs = __move_sequence_x(__xs, __xe, __zs);
                                 __move_sequence_x(__ys, __ye, __zs);
@@ -131,104 +132,15 @@ struct __serial_move_merge
             __ys = __xs;
             __ye = __xe;
         }
-        const auto i = __zs - __zs_beg;
-        if (same_move_seq || i < __nx)
+        const auto __i = __zs - __zs_beg;
+        if (__same_move_seq || __i < __nx)
             __move_sequence_x(__ys, __ye, __zs);
         else
             __move_sequence_y(__ys, __ye, __zs);
     }
 };
 
-template <typename _RandomAccessIterator1, typename _OutputIterator>
-void
-__init_buf(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _OutputIterator __zs, bool __bMove)
-{
-    const _OutputIterator __ze = __zs + (__xe - __xs);
-    typedef typename std::iterator_traits<_OutputIterator>::value_type _ValueType;
-    if (__bMove)
-    {
-        // Initialize the temporary buffer and move keys to it.
-        for (; __zs != __ze; ++__xs, ++__zs)
-            new (&*__zs) _ValueType(std::move(*__xs));
-    }
-    else
-    {
-        // Initialize the temporary buffer
-        for (; __zs != __ze; ++__zs)
-            new (&*__zs) _ValueType;
-    }
-}
+} // namespace __utils
+} // namespace pstl
 
-// TODO is this actually used anywhere?
-template <typename _Buf>
-class __stack
-{
-    typedef typename std::iterator_traits<decltype(std::declval<_Buf>().get())>::value_type _ValueType;
-    typedef typename std::iterator_traits<_ValueType*>::difference_type _DifferenceType;
-
-    _Buf _M_buf;
-    _ValueType* _M_ptr;
-    _DifferenceType _M_maxsize;
-
-    __stack(const __stack&) = delete;
-    void
-    operator=(const __stack&) = delete;
-
-  public:
-    template <typename _ExecutionPolicy>
-    __stack(_ExecutionPolicy&& __exec, _DifferenceType __max_size)
-        : _M_buf(std::forward<_ExecutionPolicy>(__exec), __max_size), _M_maxsize(__max_size)
-    {
-        _M_ptr = _M_buf.get();
-    }
-
-    ~__stack()
-    {
-        assert(size() <= _M_maxsize);
-        while (!empty())
-            pop();
-    }
-
-    const _Buf&
-    buffer() const
-    {
-        return _M_buf;
-    }
-    size_t
-    size() const
-    {
-        assert(_M_ptr - _M_buf.get() <= _M_maxsize);
-        assert(_M_ptr - _M_buf.get() >= 0);
-        return _M_ptr - _M_buf.get();
-    }
-    bool
-    empty() const
-    {
-        assert(_M_ptr >= _M_buf.get());
-        return _M_ptr == _M_buf.get();
-    }
-    void
-    push(const _ValueType& __v)
-    {
-        assert(size() < _M_maxsize);
-        new (_M_ptr) _ValueType(__v);
-        ++_M_ptr;
-    }
-    const _ValueType&
-    top() const
-    {
-        return *(_M_ptr - 1);
-    }
-    void
-    pop()
-    {
-        assert(_M_ptr > _M_buf.get());
-        --_M_ptr;
-        (*_M_ptr).~_ValueType();
-    }
-};
-
-} // namespace __par_backend
-} // namespace __pstl
-
-#endif /* __PSTL_parallel_backend_utils_H */
+#endif /* _PSTL_PARALLEL_BACKEND_UTILS_H */

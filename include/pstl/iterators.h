@@ -31,7 +31,7 @@ using tbb::make_transform_iterator;
 using tbb::make_zip_iterator;
 using tbb::transform_iterator;
 using tbb::zip_iterator;
-} //namespace __pstl
+} //namespace pstl
 
 #endif //TBB_VERSION_MAJOR < 2019
 

@@ -50,12 +50,12 @@ endif # !os_name
 cfg ?= release
 stdver ?= c++11
 
-override INCLUDES += -I$(proj_root)/include -I$(proj_root)/test
+override INCLUDES += -I$(proj_root)/include -I$(proj_root)/test -I$(proj_root)/stdlib
 
-TEST_MACRO += -D__PSTL_TEST_SUCCESSFUL_KEYWORD=1
+TEST_MACRO += -D_PSTL_TEST_SUCCESSFUL_KEYWORD=1
 
 ifeq ($(backend), tbb)
-    BACKEND_MACRO += -D__PSTL_PAR_BACKEND_TBB
+    BACKEND_MACRO += -D_PSTL_PAR_BACKEND_TBB
 endif
 
 target ?= $(os_name)
@@ -83,7 +83,7 @@ ifneq (, $(filter $(compiler), clang clang++))
     include $(proj_root)/build/clang.inc
 endif
 
-ifneq (, $(filter $(compiler), icc icpc icx))
+ifneq (, $(filter $(compiler), icc icpc))
     include $(proj_root)/build/icc.inc
 endif
 

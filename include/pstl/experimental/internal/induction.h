@@ -28,14 +28,14 @@ inline namespace parallelism_v2
 {
 
 template <typename _Tp>
-__pstl::__internal::__induction_object<_Tp, void>
+pstl::__internal::__induction_object<_Tp, void>
 induction(_Tp&& __var)
 {
     return {std::forward<_Tp>(__var)};
 }
 
 template <typename _Tp, typename _Sp>
-__pstl::__internal::__induction_object<_Tp, _Sp>
+pstl::__internal::__induction_object<_Tp, _Sp>
 induction(_Tp&& __var, _Sp __stride)
 {
     return {std::forward<_Tp>(__var), __stride};

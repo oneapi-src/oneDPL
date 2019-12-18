@@ -12,11 +12,11 @@
 #
 ##===----------------------------------------------------------------------===##
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.4.3)
 
 set(PARALLELSTL_VERSION_FILE "include/pstl/internal/pstl_config.h")
-file(STRINGS "${PARALLELSTL_VERSION_FILE}" PARALLELSTL_VERSION_SOURCE REGEX "#define PSTL_VERSION .*$")
-string(REGEX REPLACE "#define PSTL_VERSION (.*)$" "\\1" PARALLELSTL_VERSION_SOURCE "${PARALLELSTL_VERSION_SOURCE}")
+file(STRINGS "${PARALLELSTL_VERSION_FILE}" PARALLELSTL_VERSION_SOURCE REGEX "#define __INTEL_PSTL_VERSION .*$")
+string(REGEX REPLACE "#define __INTEL_PSTL_VERSION (.*)$" "\\1" PARALLELSTL_VERSION_SOURCE "${PARALLELSTL_VERSION_SOURCE}")
 math(EXPR VERSION_MAJOR "${PARALLELSTL_VERSION_SOURCE} / 100")
 math(EXPR VERSION_MINOR "${PARALLELSTL_VERSION_SOURCE} % 100")
 
@@ -35,17 +35,20 @@ if (NOT TBB_DIR)
     endif()
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
+###############################################################################
+# Setup the ParallelSTL library target
+###############################################################################
 add_library(ParallelSTL INTERFACE)
 add_library(pstl::ParallelSTL ALIAS ParallelSTL)
 
 if (PARALLELSTL_USE_PARALLEL_POLICIES)
+    message(STATUS "Using Parallel Policies")
     if (PARALLELSTL_BACKEND STREQUAL "tbb")
         find_package(TBB 2018 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
         message(STATUS "Parallel STL uses TBB ${TBB_VERSION} (interface version: ${TBB_INTERFACE_VERSION})")
         target_link_libraries(ParallelSTL INTERFACE TBB::tbb)
-    else()
+      else()
+        message(STATUS "Using Parallel Policies, but not tbb")
         if (TARGET ${PARALLELSTL_BACKEND})
             target_link_libraries(ParallelSTL INTERFACE ${PARALLELSTL_BACKEND})
         else()
@@ -60,17 +63,43 @@ endif()
 target_include_directories(ParallelSTL
     INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/stdlib>
+    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:stdlib>)
 
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion)
+target_compile_features(ParallelSTL
+    INTERFACE
+    cxx_constexpr
+    cxx_inline_namespaces)
 
-configure_file(
-    ParallelSTLConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfig.cmake
-    @ONLY)
+###############################################################################
+# Setup tests
+###############################################################################
+enable_testing()
+add_subdirectory(test)
 
-export(TARGETS ParallelSTL NAMESPACE pstl:: FILE ParallelSTLTargets.cmake)
-export(PACKAGE ParallelSTL)
+###############################################################################
+# Install the target and the associated CMake files
+###############################################################################
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfigVersion.cmake"
+                                 COMPATIBILITY ExactVersion)
+
+configure_file(cmake/ParallelSTLConfig.cmake.in
+               "${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfig.cmake"
+               @ONLY)
+
+install(TARGETS ParallelSTL
+        EXPORT ParallelSTLTargets)
+install(EXPORT ParallelSTLTargets
+        FILE ParallelSTLTargets.cmake
+        NAMESPACE pstl::
+        DESTINATION lib/cmake/ParallelSTL)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfigVersion.cmake"
+        DESTINATION lib/cmake/ParallelSTL)
+install(DIRECTORY include/pstl
+        DESTINATION include)
+
+add_custom_target(install-pstl
+                  COMMAND "${CMAKE_COMMAND}" -P "${PROJECT_BINARY_DIR}/cmake_install.cmake" -DCOMPONENT=ParallelSTL)

@@ -13,13 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_iterator_defs_H
-#define __PSTL_iterator_defs_H
+#ifndef _PSTL_iterator_defs_H
+#define _PSTL_iterator_defs_H
 
 #include <iterator>
 #include <type_traits>
 
-namespace __pstl
+namespace pstl
 {
 namespace __internal
 {
@@ -36,8 +36,8 @@ template <typename... _Ts>
 using __void_type = typename __make_void_type<_Ts...>::__type;
 
 // Internal wrapper around std::iterator_traits as it is required to be
-// SFINAE-friendly(not produce "hard" error when _Ip is not an interator)
-// only starting with C++17. Alghough many standard library implmentations
+// SFINAE-friendly(not produce "hard" error when _Ip is not an iterator)
+// only starting with C++17. Alghough many standard library implementations
 // provide it for older versions, we cannot rely on that.
 template <typename _Ip, typename = void>
 struct __iterator_traits
@@ -86,6 +86,6 @@ struct __is_random_access_iterator<_IteratorType> : __is_random_access_iterator_
 };
 
 } // namespace __internal
-} // namespace __pstl
+} // namespace pstl
 
-#endif /* __PSTL_iterator_defs_H */
+#endif /* _PSTL_iterator_defs_H */

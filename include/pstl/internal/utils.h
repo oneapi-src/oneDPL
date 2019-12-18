@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- utils.h -----------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) 2017-2019 Intel Corporation
 //
@@ -13,13 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_utils_H
-#define __PSTL_utils_H
+#ifndef _PSTL_UTILS_H
+#define _PSTL_UTILS_H
 
 #include <new>
 #include <iterator>
 
-namespace __pstl
+namespace pstl
 {
 namespace __internal
 {
@@ -146,13 +146,23 @@ class __pstl_equal
 class __pstl_less
 {
   public:
-    explicit __pstl_less() {}
-
     template <typename _Xp, typename _Yp>
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
     {
         return std::forward<_Xp>(__x) < std::forward<_Yp>(__y);
+    }
+};
+
+//! "<" comparison.
+class __pstl_greater
+{
+  public:
+    template <typename _Xp, typename _Yp>
+    bool
+    operator()(_Xp&& __x, _Yp&& __y) const
+    {
+        return std::forward<_Xp>(__x) > std::forward<_Yp>(__y);
     }
 };
 
@@ -249,6 +259,6 @@ __cmp_iterators_by_values(_ForwardIterator __a, _ForwardIterator __b, _Compare _
 }
 
 } // namespace __internal
-} // namespace __pstl
+} // namespace pstl
 
-#endif /* __PSTL_utils_H */
+#endif /* _PSTL_UTILS_H */

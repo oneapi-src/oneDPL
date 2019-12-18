@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- execution_impl.h --------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) 2017-2019 Intel Corporation
 //
@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_execution_impl_H
-#define __PSTL_execution_impl_H
+#ifndef _PSTL_EXECUTION_IMPL_H
+#define _PSTL_EXECUTION_IMPL_H
 
 #include <iterator>
 #include <type_traits>
@@ -22,12 +22,12 @@
 #include "execution_defs.h"
 #include "iterator_defs.h"
 
-namespace __pstl
+namespace pstl
 {
 namespace __internal
 {
 
-using namespace __pstl::execution;
+using namespace pstl::execution;
 
 /* predicate */
 
@@ -66,35 +66,35 @@ struct __policy_traits
 template <>
 struct __policy_traits<sequenced_policy>
 {
-    typedef std::false_type allow_parallel;
-    typedef std::false_type allow_unsequenced;
-    typedef std::false_type allow_vector;
+    typedef std::false_type __allow_parallel;
+    typedef std::false_type __allow_unsequenced;
+    typedef std::false_type __allow_vector;
 };
 
 template <>
 struct __policy_traits<unsequenced_policy>
 {
-    typedef std::false_type allow_parallel;
-    typedef std::true_type allow_unsequenced;
-    typedef std::true_type allow_vector;
+    typedef std::false_type __allow_parallel;
+    typedef std::true_type __allow_unsequenced;
+    typedef std::true_type __allow_vector;
 };
 
 
-#if __PSTL_USE_PAR_POLICIES
+#if _PSTL_USE_PAR_POLICIES
 template <>
 struct __policy_traits<parallel_policy>
 {
-    typedef std::true_type allow_parallel;
-    typedef std::false_type allow_unsequenced;
-    typedef std::false_type allow_vector;
+    typedef std::true_type __allow_parallel;
+    typedef std::false_type __allow_unsequenced;
+    typedef std::false_type __allow_vector;
 };
 
 template <>
 struct __policy_traits<parallel_unsequenced_policy>
 {
-    typedef std::true_type allow_parallel;
-    typedef std::true_type allow_unsequenced;
-    typedef std::true_type allow_vector;
+    typedef std::true_type __allow_parallel;
+    typedef std::true_type __allow_unsequenced;
+    typedef std::true_type __allow_vector;
 };
 #endif
 
@@ -151,6 +151,6 @@ struct __prefer_parallel_tag
 };
 
 } // namespace __internal
-} // namespace __pstl
+} // namespace pstl
 
-#endif /* __PSTL_execution_impl_H */
+#endif /* _PSTL_EXECUTION_IMPL_H */

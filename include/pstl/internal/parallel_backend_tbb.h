@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- parallel_backend_tbb.h --------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) 2017-2019 Intel Corporation
 //
@@ -13,14 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_parallel_backend_tbb_H
-#define __PSTL_parallel_backend_tbb_H
+#ifndef _PSTL_PARALLEL_BACKEND_TBB_H
+#define _PSTL_PARALLEL_BACKEND_TBB_H
 
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
 
 #include "parallel_backend_utils.h"
+#include "parallel_backend_fwd.h"
 
 // Bring in minimal required subset of Intel TBB
 #include <tbb/blocked_range.h>
@@ -36,9 +37,9 @@
 #    error Intel(R) Threading Building Blocks 2018 is required; older versions are not supported.
 #endif
 
-namespace __pstl
+namespace pstl
 {
-namespace __par_backend
+namespace __tbb_backend
 {
 
 //! Raw memory buffer with automatic freeing and no exceptions.
@@ -47,7 +48,7 @@ not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
 template <typename _Tp>
-class __buffer
+class __buffer<_Tp>
 {
     tbb::tbb_allocator<_Tp> _M_allocator;
     _Tp* _M_ptr;
@@ -200,8 +201,8 @@ _Tp
 __parallel_transform_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, _Up __u, _Tp __init, _Cp __combine,
                             _Rp __brick_reduce)
 {
-    __par_backend::__par_trans_red_body<_Index, _Up, _Tp, _Cp, _Rp> __body(__u, __init, __combine, __brick_reduce);
-    // The grain size of 3 is used in order to provide mininum 2 elements for each body
+    __tbb_backend::__par_trans_red_body<_Index, _Up, _Tp, _Cp, _Rp> __body(__u, __init, __combine, __brick_reduce);
+    // The grain size of 3 is used in order to provide minimum 2 elements for each body
     tbb::this_task_arena::isolate(
         [__first, __last, &__body]() { tbb::parallel_reduce(tbb::blocked_range<_Index>(__first, __last, 3), __body); });
     return __body.sum();
@@ -315,9 +316,9 @@ __upsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsize
     {
         _Index __k = __split(__m);
         tbb::parallel_invoke(
-            [=] { __par_backend::__upsweep(__i, __k, __tilesize, __r, __tilesize, __reduce, __combine); },
+            [=] { __tbb_backend::__upsweep(__i, __k, __tilesize, __r, __tilesize, __reduce, __combine); },
             [=] {
-                __par_backend::__upsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __reduce, __combine);
+                __tbb_backend::__upsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __reduce, __combine);
             });
         if (__m == 2 * __k)
             __r[__m - 1] = __combine(__r[__k - 1], __r[__m - 1]);
@@ -335,11 +336,11 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
     {
         const _Index __k = __split(__m);
         tbb::parallel_invoke(
-            [=] { __par_backend::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
+            [=] { __tbb_backend::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
             // Assumes that __combine never throws.
             //TODO: Consider adding a requirement for user functors to be constant.
             [=, &__combine] {
-                __par_backend::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
+                __tbb_backend::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
                                            __combine(__initial, __r[__k - 1]), __combine, __scan);
             });
     }
@@ -373,7 +374,7 @@ __parallel_strict_scan(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial, _Rp
             _Index __m = (__n - 1) / __tilesize;
             __buffer<_Tp> __buf(std::forward<_ExecutionPolicy>(__exec), __m + 1);
             _Tp* __r = __buf.get();
-            __par_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
+            __tbb_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
                                      __combine);
 
             // When __apex is a no-op and __combine has no side effects, a good optimizer
@@ -385,7 +386,7 @@ __parallel_strict_scan(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial, _Rp
             while ((__k &= __k - 1))
                 __t = __combine(__r[__k - 1], __t);
             __apex(__combine(__initial, __t));
-            __par_backend::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __initial,
+            __tbb_backend::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __initial,
                                        __combine, __scan);
             return;
         }
@@ -419,7 +420,7 @@ __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _Up __u, _Tp __init, _
 //
 // These are used by parallel implementations but do not depend on them.
 //------------------------------------------------------------------------
-#define __PSTL_MERGE_CUT_OFF 2000
+#define _PSTL_MERGE_CUT_OFF 2000
 
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare, typename _Cleanup,
           typename _LeafMerge>
@@ -443,7 +444,7 @@ class __merge_task : public tbb::task
     _LeafMerge _M_leaf_merge;
     _SizeType _M_nsort; //number of elements to be sorted for partial_sort alforithm
 
-    static const _SizeType __merge_cut_off = __PSTL_MERGE_CUT_OFF;
+    static const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
 
     bool _root;   //means a task is merging root task
     bool _x_orig; //"true" means X(or left ) subrange is in the original container; false - in the buffer
@@ -874,25 +875,25 @@ class __stable_sort_task : public tbb::task
     __stable_sort_task(_RandomAccessIterator1 __xs, _RandomAccessIterator1 __xe, _RandomAccessIterator2 __zs,
                        bool __root, _Compare __comp, _LeafSort __leaf_sort, _SizeType __nsort,
                        _RandomAccessIterator1 __x_beg, _RandomAccessIterator2 __z_beg)
-        : _M_xs(__xs), _M_xe(__xe), _M_x_beg(__x_beg), _M_zs(__zs), _M_z_beg(__z_beg), _M_root(__root), _M_comp(__comp),
-          _M_leaf_sort(__leaf_sort), _M_nsort(__nsort)
+        : _M_xs(__xs), _M_xe(__xe), _M_x_beg(__x_beg), _M_zs(__zs), _M_z_beg(__z_beg), _M_comp(__comp),
+          _M_leaf_sort(__leaf_sort), _M_root(__root), _M_nsort(__nsort)
     {
     }
 };
 
-#define __PSTL_STABLE_SORT_CUT_OFF 500
+#define _PSTL_STABLE_SORT_CUT_OFF 500
 
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare, typename _LeafSort>
 tbb::task*
 __stable_sort_task<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _LeafSort>::execute()
 {
-    typedef __merge_task<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, __serial_destroy,
-                         __serial_move_merge>
+    typedef __merge_task<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, __utils::__serial_destroy,
+                         __utils::__serial_move_merge>
         _MergeTaskType;
 
     const _SizeType __n = _M_xe - _M_xs;
     const _SizeType __nmerge = _M_nsort > 0 ? _M_nsort : __n;
-    const _SizeType __sort_cut_off = __PSTL_STABLE_SORT_CUT_OFF;
+    const _SizeType __sort_cut_off = _PSTL_STABLE_SORT_CUT_OFF;
     if (__n <= __sort_cut_off)
     {
         _M_leaf_sort(_M_xs, _M_xe, _M_comp);
@@ -909,10 +910,10 @@ __stable_sort_task<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
     const _RandomAccessIterator1 __xm = _M_xs + __n / 2;
     const _RandomAccessIterator2 __zm = _M_zs + (__xm - _M_xs);
     const _RandomAccessIterator2 __ze = _M_zs + __n;
-    _MergeTaskType* __m = new (allocate_continuation())
-        _MergeTaskType(_M_xs - _M_x_beg, __xm - _M_x_beg, __xm - _M_x_beg, _M_xe - _M_x_beg, _M_zs - _M_z_beg, _M_comp,
-                       __serial_destroy(), __serial_move_merge(__nmerge), _M_nsort, _M_x_beg, _M_z_beg,
-                       /*x_orig*/ true, /*y_orig*/ true, /*root*/ _M_root);
+    _MergeTaskType* __m = new (allocate_continuation()) _MergeTaskType(
+        _M_xs - _M_x_beg, __xm - _M_x_beg, __xm - _M_x_beg, _M_xe - _M_x_beg, _M_zs - _M_z_beg, _M_comp,
+        __utils::__serial_destroy(), __utils::__serial_move_merge(__nmerge), _M_nsort, _M_x_beg, _M_z_beg,
+        /*x_orig*/ true, /*y_orig*/ true, /*root*/ _M_root);
 
     _M_root = false;
 
@@ -938,9 +939,9 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
         typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
         const _DifferenceType __n = __xe - __xs;
         if (__nsort == __n)
-            __nsort = 0; // 'partial_sort' becames 'sort'
+            __nsort = 0; // 'partial_sort' becomes 'sort'
 
-        const _DifferenceType __sort_cut_off = __PSTL_STABLE_SORT_CUT_OFF;
+        const _DifferenceType __sort_cut_off = _PSTL_STABLE_SORT_CUT_OFF;
         if (__n > __sort_cut_off)
         {
             __buffer<_ValueType> __buf(std::forward<_ExecutionPolicy>(__exec), __n);
@@ -991,7 +992,7 @@ __merge_task_static<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAcces
     typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
     typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
     const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
-    const _SizeType __merge_cut_off = __PSTL_MERGE_CUT_OFF;
+    const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
     {
         _M_leaf_merge(_M_xs, _M_xe, _M_ys, _M_ye, _M_zs, _M_comp);
@@ -1032,7 +1033,7 @@ __parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessI
     typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
     typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
     const _SizeType __n = (__xe - __xs) + (__ye - __ys);
-    const _SizeType __merge_cut_off = __PSTL_MERGE_CUT_OFF;
+    const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
     {
         // Fall back on serial merge
@@ -1071,7 +1072,7 @@ __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterat
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
 }
 
-} // namespace __par_backend
-} // namespace __pstl
+} // namespace __tbb_backend
+} // namespace pstl
 
-#endif /* __PSTL_parallel_backend_tbb_H */
+#endif /* _PSTL_PARALLEL_BACKEND_TBB_H */

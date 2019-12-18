@@ -25,18 +25,15 @@ CPLUS := $(compiler) $(COMPILER_NOLOGO_KEY) $(USE_SHARED_CPPRUNTIME_KEY)
 .SECONDARY:
 .PHONY: clean clean_all clean_pstl bench
 
-VPATH = $(proj_root)/test
-
-CPLUS_FLAGS += -I$(proj_root)
-
 PSTL_MAKEFILE = $(proj_root)/build/Makefile.pstl
 BENCH_MAKEFILE = $(proj_root)/build/Makefile.bench
 
+recursive_wildcard = $(wildcard $(1)$(2)) $(foreach d,$(wildcard $(1)*),$(call recursive_wildcard,$(d)/,$(2)))
 
-test_hdr = $(wildcard $(proj_root)/test/*.h)
-test_src = $(wildcard $(proj_root)/test/test_*.cpp)
+test_hdr = $(wildcard $(proj_root)/test/support/*.h)
+test_src = $(call recursive_wildcard,$(proj_root)/test/,*.cpp)
 test_bin = $(notdir $(test_src:.cpp=.exe))
-
+VPATH += $(sort $(dir $(test_src)))
 
 all: $(test_bin)
 
@@ -46,14 +43,14 @@ test_%.offload.exe: test_%.offload$(OBJ_SFX) exception_list.offload$(OBJ_SFX)
 $(PSTL_LIB_NAME):
 	$(MAKE) -f $(PSTL_MAKEFILE) backend=$(backend) cfg=$(cfg)
 
-test_%.exe: test_%$(OBJ_SFX) $(PSTL_LIB_NAME)
+%.pass.exe: %.pass$(OBJ_SFX) $(PSTL_LIB_NAME)
 	$(info LIBRARY_PATH=$(LIBRARY_PATH))
 	$(LD) $< $(LD_OUT_KEY)$@ $(LDFLAGS) $(DYN_LDFLAGS) $(PSTL_LIB_LINK)
 
-test_%: test_%.exe
-	$(run_cmd) $(RUN_CMD)test_$*.exe
+%.pass: %.pass.exe
+	$(run_cmd) $(RUN_CMD)$*.pass.exe
 
-test_%$(OBJ_SFX): test_%.cpp $(test_hdr) $(proj_root)/build/Makefile
+%.pass$(OBJ_SFX): %.pass.cpp $(test_hdr) $(proj_root)/build/Makefile
 	$(CPLUS) $(CPLUS_FLAGS) -c $< $(FKEY)o$@
 
 # This definition intentionally consists of two blank lines

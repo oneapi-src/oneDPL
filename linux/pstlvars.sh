@@ -53,7 +53,7 @@ if [ -e $PSTLROOT/../tbb/bin/tbbvars.sh ]; then
 fi
 
 if [ -z "${CPATH}" ]; then
-    CPATH="${PSTLROOT}/include"; export CPATH
+    CPATH="${PSTLROOT}/include:${PSTLROOT}/stdlib"; export CPATH
 else
-    CPATH="${PSTLROOT}/include:$CPATH"; export CPATH
+    CPATH="${PSTLROOT}/include:${PSTLROOT}/stdlib:$CPATH"; export CPATH
 fi

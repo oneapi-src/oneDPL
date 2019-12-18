@@ -1,5 +1,5 @@
 # Parallel STL
-[![Stable release](https://img.shields.io/badge/version-20190522-green.svg)](https://github.com/intel/parallelstl/releases/tag/20190522)
+[![Stable release](https://img.shields.io/badge/version-20191218-green.svg)](https://github.com/intel/parallelstl/releases/tag/20191218)
 
 Parallel STL is an implementation of the C++ standard library algorithms with support for execution policies,
 as specified in ISO/IEC 14882:2017 standard, commonly called C++17.

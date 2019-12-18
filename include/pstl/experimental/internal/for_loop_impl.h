@@ -31,7 +31,7 @@
 #    include "../../internal/parallel_backend.h"
 #endif
 
-namespace __pstl
+namespace pstl
 {
 namespace __internal
 {
@@ -65,7 +65,7 @@ struct __difference<_Ip, typename std::enable_if<std::is_integral<_Ip>::value>::
 template <typename _Ip>
 struct __difference<_Ip, typename std::enable_if<!std::is_integral<_Ip>::value>::type>
 {
-    using __type = typename __pstl::__internal::__iterator_traits<_Ip>::difference_type;
+    using __type = typename pstl::__internal::__iterator_traits<_Ip>::difference_type;
 };
 
 // This type is used as a stride value when it's known that stride == 1 at compile time(the case of for_loop and for_loop_n).
@@ -106,14 +106,14 @@ class __reduction_pack
 
     template <typename _Fp, typename _Ip, typename _Position, std::size_t... _Is>
     void
-    __apply_func_impl(_Fp&& __f, _Ip __current, _Position __p, __pstl::__internal::index_sequence<_Is...>)
+    __apply_func_impl(_Fp&& __f, _Ip __current, _Position __p, pstl::__internal::index_sequence<_Is...>)
     {
         std::forward<_Fp>(__f)(__current, std::get<_Is>(__objects_).__get_induction_or_reduction_value(__p)...);
     }
 
     template <std::size_t... _Is>
     void
-    __combine_impl(const __reduction_pack& __other, __pstl::__internal::index_sequence<_Is...>)
+    __combine_impl(const __reduction_pack& __other, pstl::__internal::index_sequence<_Is...>)
     {
         (void)std::initializer_list<int>{
             0, ((void)std::get<_Is>(__objects_).__combine(std::get<_Is>(__other.__objects_)), 0)...};
@@ -121,7 +121,7 @@ class __reduction_pack
 
     template <typename _RangeSize, std::size_t... _Is>
     void
-    __finalize_impl(const _RangeSize __n, __pstl::__internal::index_sequence<_Is...>)
+    __finalize_impl(const _RangeSize __n, pstl::__internal::index_sequence<_Is...>)
     {
         (void)std::initializer_list<int>{0, ((void)std::get<_Is>(__objects_).__finalize(__n), 0)...};
     }
@@ -143,7 +143,7 @@ class __reduction_pack
     void
     __combine(const __reduction_pack& __other)
     {
-        __combine_impl(__other, __pstl::__internal::make_index_sequence<sizeof...(_Ts)>{});
+        __combine_impl(__other, pstl::__internal::make_index_sequence<sizeof...(_Ts)>{});
     }
 
     template <typename _Fp, typename _Ip, typename _Position>
@@ -151,14 +151,14 @@ class __reduction_pack
     __apply_func(_Fp&& __f, _Ip __current, _Position __p)
     {
         __apply_func_impl(std::forward<_Fp>(__f), __current, __p,
-                          __pstl::__internal::make_index_sequence<sizeof...(_Ts)>{});
+                          pstl::__internal::make_index_sequence<sizeof...(_Ts)>{});
     }
 
     template <typename _RangeSize>
     void
     __finalize(const _RangeSize __n)
     {
-        __finalize_impl(__n, __pstl::__internal::make_index_sequence<sizeof...(_Ts)>{});
+        __finalize_impl(__n, pstl::__internal::make_index_sequence<sizeof...(_Ts)>{});
     }
 };
 
@@ -168,7 +168,7 @@ void
 __pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, __single_stride_type,
                      /*vector=*/std::false_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __reduction_pack<_Rest...> __pack(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
     for (_Size __i = 0; __i < __n; ++__i, ++__first)
         __pack.__apply_func(__f, __first, __i);
@@ -181,14 +181,14 @@ void
 __pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, _Sp __stride,
                      /*vector=*/std::false_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __reduction_pack<_Rest...> __pack(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
     // Simple loop from 0 to __n is not suitable here as we need to ensure that __first is always
     // <= than the end iterator, even if it's not dereferenced. Some implementation might place
     // validation checks to enforce this invariant.
     if (__n > 0)
     {
-        for (_Size __i = 0; __i < __n - 1; ++__i, __pstl::__internal::__advance(__first, __stride))
+        for (_Size __i = 0; __i < __n - 1; ++__i, pstl::__internal::__advance(__first, __stride))
         {
             __pack.__apply_func(__f, __first, __i);
         }
@@ -212,7 +212,7 @@ struct __is_random_access_or_integral<_Ip, typename std::enable_if<std::is_integ
 
 template <typename _Ip>
 struct __is_random_access_or_integral<
-    _Ip, typename std::enable_if<__pstl::__internal::__is_random_access_iterator<_Ip>::value>::type> : std::true_type
+    _Ip, typename std::enable_if<pstl::__internal::__is_random_access_iterator<_Ip>::value>::type> : std::true_type
 {
 };
 
@@ -222,14 +222,14 @@ typename std::enable_if<__is_random_access_or_integral<_Ip>::value>::type
 __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    /*vector=*/std::false_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __pstl::__internal::__pattern_for_loop_n(
+    pstl::__internal::__pattern_for_loop_n(
         std::forward<_ExecutionPolicy>(__exec), __first,
-        __pstl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
+        pstl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
         std::false_type{}, std::false_type{}, std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-typename std::enable_if<std::is_same<typename __pstl::__internal::__iterator_traits<_Ip>::iterator_category,
+typename std::enable_if<std::is_same<typename pstl::__internal::__iterator_traits<_Ip>::iterator_category,
                                      std::bidirectional_iterator_tag>::value,
                         _IndexType>::type
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
@@ -266,9 +266,9 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-typename std::enable_if<std::is_same<typename __pstl::__internal::__iterator_traits<_Ip>::iterator_category,
+typename std::enable_if<std::is_same<typename pstl::__internal::__iterator_traits<_Ip>::iterator_category,
                                      std::forward_iterator_tag>::value ||
-                            std::is_same<typename __pstl::__internal::__iterator_traits<_Ip>::iterator_category,
+                            std::is_same<typename pstl::__internal::__iterator_traits<_Ip>::iterator_category,
                                          std::input_iterator_tag>::value,
                         _IndexType>::type
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
@@ -295,7 +295,7 @@ typename std::enable_if<!__is_random_access_or_integral<_Ip>::value>::type
 __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
                    /*vector=*/std::false_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __reduction_pack<_Rest...> __pack(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
     // Make sure that our index type is able to hold all the possible values
     using __index_type = typename __difference<_Ip>::__type;
@@ -313,7 +313,7 @@ typename std::enable_if<!__is_random_access_or_integral<_Ip>::value>::type
 __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    /*vector=*/std::false_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __reduction_pack<_Rest...> __pack(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
     // Make sure that our index type is able to hold all the possible values
     using __index_type = typename __difference<_Ip>::__type;
@@ -328,7 +328,7 @@ __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _
     else
     {
         __ordinal_position =
-            __pstl::__internal::__execute_loop_strided(__first, __last, __f, __stride, __pack,
+            pstl::__internal::__execute_loop_strided(__first, __last, __f, __stride, __pack,
                                                        // Only passed to deduce the type for internal counter
                                                        __index_type{});
     }
@@ -342,9 +342,9 @@ void
 __pattern_for_loop_n(_ExecutionPolicy&& exec, _Ip __first, _Size __n, _Function __f, __single_stride_type,
                      /*vector=*/std::true_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __reduction_pack<_Rest...> __pack(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
-    __pstl::__internal::__brick_walk1(
+    pstl::__internal::__brick_walk1(
         __n, [&__pack, __first, __f](_Size __idx) { __pack.__apply_func(__f, __first + __idx, __idx); },
         std::true_type{});
 
@@ -356,9 +356,9 @@ void
 __pattern_for_loop_n(_ExecutionPolicy&& exec, _Ip __first, _Size __n, _Function __f, _Sp __stride,
                      /*vector=*/std::true_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __reduction_pack<_Rest...> __pack(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
-    __pstl::__internal::__brick_walk1(
+    pstl::__internal::__brick_walk1(
         __n,
         [&__pack, __first, __f, __stride](_Size __idx) { __pack.__apply_func(__f, __first + __idx * __stride, __idx); },
         std::true_type{});
@@ -372,13 +372,13 @@ void
 __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    /*vector=*/std::true_type, /*parallel=*/std::false_type, _Rest&&... __rest) noexcept
 {
-    __pstl::__internal::__pattern_for_loop_n(
+    pstl::__internal::__pattern_for_loop_n(
         std::forward<_ExecutionPolicy>(__exec), __first,
-        __pstl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
+        pstl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
         std::true_type{}, std::false_type{}, std::forward<_Rest>(__rest)...);
 }
 
-#if __PSTL_USE_PAR_POLICIES
+#if _PSTL_USE_PAR_POLICIES
 // Parallel version of for_loop_n
 
 // TODO: Using parallel_reduce when we don't have a reduction object in the pack might be ineffective,
@@ -394,15 +394,15 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
     using __pack_type = __reduction_pack<_Rest...>;
 
     // Create an identity pack object, operations are done on copies of it.
-    const __pack_type __identity(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    const __pack_type __identity{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
-    __pstl::__internal::__except_handler([&]() {
+    pstl::__internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                                                 [__is_vector, __first, __f](_Size __i, _Size __j, __pack_type __value) {
                                                     const auto __subseq_start = __first + __i;
                                                     const auto __length = __j - __i;
 
-                                                    __pstl::__internal::__brick_walk1(
+                                                    pstl::__internal::__brick_walk1(
                                                         __length,
                                                         [&__value, __f, __i, __subseq_start](_Size __idx) {
                                                             __value.__apply_func(__f, __subseq_start + __idx,
@@ -429,16 +429,16 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
     using __pack_type = __reduction_pack<_Rest...>;
 
     // Create an identity pack object, operations are done on copies of it.
-    const __pack_type __identity(__reduction_pack_tag(), std::forward<_Rest>(__rest)...);
+    const __pack_type __identity{__reduction_pack_tag(), std::forward<_Rest>(__rest)...};
 
-    __pstl::__internal::__except_handler([&]() {
+    pstl::__internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
                    std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__is_vector, __first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i * __stride;
                        const auto __length = __j - __i;
 
-                       __pstl::__internal::__brick_walk1(__length,
+                       pstl::__internal::__brick_walk1(__length,
                                                          [&__value, __f, __i, __subseq_start, __stride](_Size __idx) {
                                                              __value.__apply_func(
                                                                  __f, __subseq_start + __idx * __stride, __i + __idx);
@@ -462,9 +462,9 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
                    _IsVector __is_vector,
                    /*parallel=*/std::true_type, _Rest&&... __rest)
 {
-    __pstl::__internal::__pattern_for_loop_n(
+    pstl::__internal::__pattern_for_loop_n(
         std::forward<_ExecutionPolicy>(__exec), __first,
-        __pstl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride, __is_vector,
+        pstl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride, __is_vector,
         std::true_type{}, std::forward<_Rest>(__rest)...);
 }
 #endif // __PSTL_USE_PAR_POLICIES
@@ -498,19 +498,19 @@ struct __use_par_vec_helper<_Ip, typename std::enable_if<!std::is_integral<_Ip>:
     template <typename _ExecutionPolicy>
     static constexpr auto
     __use_vector(_ExecutionPolicy&& __exec) -> decltype(
-        __pstl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>(std::forward<_ExecutionPolicy>(__exec)))
+        pstl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>(std::forward<_ExecutionPolicy>(__exec)))
     {
-        return __pstl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>(
+        return pstl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>(
             std::forward<_ExecutionPolicy>(__exec));
     }
 
     template <typename _ExecutionPolicy>
     static constexpr auto
     __use_parallel(_ExecutionPolicy&& __exec)
-        -> decltype(__pstl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _Ip>(
+        -> decltype(pstl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _Ip>(
             std::forward<_ExecutionPolicy>(__exec)))
     {
-        return __pstl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _Ip>(
+        return pstl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _Ip>(
             std::forward<_ExecutionPolicy>(__exec));
     }
 };
@@ -536,11 +536,11 @@ __use_parallelization(_ExecutionPolicy&& __exec)
 template <typename _ExecutionPolicy, typename _Ip, typename _Fp, typename _Sp, typename... _Rest, std::size_t... _Is>
 void
 __for_loop_impl(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Fp&& __f, _Sp __stride,
-                std::tuple<_Rest...>&& __t, __pstl::__internal::index_sequence<_Is...>)
+                std::tuple<_Rest...>&& __t, pstl::__internal::index_sequence<_Is...>)
 {
-    __pstl::__internal::__pattern_for_loop(std::forward<_ExecutionPolicy>(__exec), __start, __finish, __f, __stride,
-                                           __pstl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
-                                           __pstl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
+    pstl::__internal::__pattern_for_loop(std::forward<_ExecutionPolicy>(__exec), __start, __finish, __f, __stride,
+                                           pstl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
+                                           pstl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
                                            std::get<_Is>(std::move(__t))...);
 }
 
@@ -548,11 +548,11 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Fp,
           std::size_t... _Is>
 void
 __for_loop_n_impl(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Fp&& __f, _Sp __stride,
-                  std::tuple<_Rest...>&& __t, __pstl::__internal::index_sequence<_Is...>)
+                  std::tuple<_Rest...>&& __t, pstl::__internal::index_sequence<_Is...>)
 {
-    __pstl::__internal::__pattern_for_loop_n(std::forward<_ExecutionPolicy>(__exec), __start, __n, __f, __stride,
-                                             __pstl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
-                                             __pstl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
+    pstl::__internal::__pattern_for_loop_n(std::forward<_ExecutionPolicy>(__exec), __start, __n, __f, __stride,
+                                             pstl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
+                                             pstl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
                                              std::get<_Is>(std::move(__t))...);
 }
 
@@ -561,9 +561,9 @@ void
 __for_loop_repack(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Sp __stride, std::tuple<_Rest...>&& __t)
 {
     // Extract a callable object from the parameter pack and put it before the other elements
-    __pstl::__internal::__for_loop_impl(std::forward<_ExecutionPolicy>(__exec), __start, __finish,
+    pstl::__internal::__for_loop_impl(std::forward<_ExecutionPolicy>(__exec), __start, __finish,
                                         std::get<sizeof...(_Rest) - 1>(__t), __stride, std::move(__t),
-                                        __pstl::__internal::make_index_sequence<sizeof...(_Rest) - 1>());
+                                        pstl::__internal::make_index_sequence<sizeof...(_Rest) - 1>());
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Sp, typename... _Rest>
@@ -571,12 +571,12 @@ void
 __for_loop_repack_n(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Sp __stride, std::tuple<_Rest...>&& __t)
 {
     // Extract a callable object from the parameter pack and put it before the other elements
-    __pstl::__internal::__for_loop_n_impl(std::forward<_ExecutionPolicy>(__exec), __start, __n,
+    pstl::__internal::__for_loop_n_impl(std::forward<_ExecutionPolicy>(__exec), __start, __n,
                                           std::get<sizeof...(_Rest) - 1>(__t), __stride, std::move(__t),
-                                          __pstl::__internal::make_index_sequence<sizeof...(_Rest) - 1>());
+                                          pstl::__internal::make_index_sequence<sizeof...(_Rest) - 1>());
 }
 
 } // namespace __internal
-} // namespace __pstl
+} // namespace pstl
 
 #endif /* __PSTL_experimental_for_loop_impl_H */

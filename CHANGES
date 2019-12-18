@@ -1,6 +1,16 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2020
+__INTEL_PSTL_VERSION == 210
+
+Features / APIs:
+
+- Renamed versioning macros to __INTEL_PSTL_VERSION, __INTEL_PSTL_VERSION_MAJOR,
+    __INTEL_PSTL_VERSION_MINOR. The upstream code version can be checked with
+    _PSTL_VERSION and its derivatives.
+
+------------------------------------------------------------------------
 Parallel STL 20190522 release
 PSTL_VERSION == 207
 

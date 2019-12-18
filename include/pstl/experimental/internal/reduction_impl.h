@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <algorithm>
 
-namespace __pstl
+namespace pstl
 {
 namespace __internal
 {
@@ -34,7 +34,7 @@ class __reduction_object
     // when finalize method is called and accumulated value stored in acc is written
     // to value.
     // TODO: we probably don't need to keep this reference for each object, as we need it
-    // only at the end of execution. Need to check whether it can be impelemented efficently.
+    // only at the end of execution. Need to check whether it can be impelemented efficiently.
     // I.e. by intoducing an internal reduction object on which the operation are applied.
     _Tp& __value_;
     // Current accumulated value.
@@ -87,6 +87,6 @@ class __reduction_object
 };
 
 } // namespace __internal
-} // namespace __pstl
+} // namespace pstl
 
 #endif /* __PSTL_experimental_reduction_impl_H */

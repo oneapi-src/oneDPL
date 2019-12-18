@@ -27,7 +27,7 @@ CPLUS_FLAGS += $(FQKEY)std=$(stdver)
 ifeq ($(vecreport),$(filter $(vecreport),1 2 3 4 5 6 7)) 
     CPLUS_FLAGS +=  $(QKEY)opt-report=$(vecreport) $(QKEY)opt-report-phase vec $(QKEY)opt-report-phase:loop
 else
-    #supress warning #15552: loop was not vectorized with "simd" and #15518: Structure assignment was serialized
+    #suppress warning #15552: loop was not vectorized with "simd" and #15518: Structure assignment was serialized
     CPLUS_FLAGS += $(QKEY)diag-disable:15552,15518
 endif
 

@@ -18,7 +18,7 @@
 
 #include <type_traits>
 
-namespace __pstl
+namespace pstl
 {
 namespace __internal
 {
@@ -35,7 +35,7 @@ using __induction_value_type =
                                   !std::is_const<typename std::remove_reference<_Tp>::type>::value,
                               _Tp, typename std::remove_cv<typename std::remove_reference<_Tp>::type>::type>::type;
 
-// Definition of induction_object structure to represend "induction" object.
+// Definition of induction_object structure to represent "induction" object.
 
 template <typename _Tp, typename _Sp>
 class __induction_object
@@ -116,6 +116,6 @@ class __induction_object<_Tp, void>
 };
 
 } // namespace __internal
-} // namespace __pstl
+} // namespace pstl
 
 #endif /* __PSTL_experimental_induction_impl_H */

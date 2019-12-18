@@ -29,3 +29,13 @@ ifneq ($(target),android)
     PSTL_ARCH += $(KEY)march=native
 endif
 endif
+
+# In case of TBB backend and using Clang with libstdc++ the version of the library should be specify explicitly via TBB_USE_GLIBCXX_VERSION
+ifeq ($(backend), tbb)
+export gcc_version:=$(shell gcc -dumpfullversion -dumpversion)
+ifneq (,$(gcc_version))
+    # TODO: do not assume that GCC minor and patchlevel versions are always single-digit.
+    CPLUS_FLAGS += -DTBB_USE_GLIBCXX_VERSION=$(subst .,0,$(gcc_version))
+endif
+endif
+

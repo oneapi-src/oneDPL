@@ -42,8 +42,8 @@ if "%PSTL_TARGET_VS%"=="" set PSTL_TARGET_VS=all
 
 if exist "%PSTLROOT%\..\tbb\bin\tbbvars.bat" @call "%PSTLROOT%\..\tbb\bin\tbbvars.bat" %PSTL_TARGET_ARCH% %PSTL_TARGET_VS%
 
-set INCLUDE=%PSTLROOT%\include;%INCLUDE%
-set CPATH=%PSTLROOT%\include;%CPATH%
+set INCLUDE=%PSTLROOT%\include;%PSTLROOT%\stdlib;%INCLUDE%
+set CPATH=%PSTLROOT%\include;%PSTLROOT%\stdlib;%CPATH%
 
 goto End
 

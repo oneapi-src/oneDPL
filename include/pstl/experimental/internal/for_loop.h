@@ -45,8 +45,8 @@ template <typename _ExecutionPolicy, typename _Ip, typename... _Rest>
 void
 for_loop(_ExecutionPolicy&& __exec, type_identity_t<_Ip> __start, _Ip __finish, _Rest&&... __rest)
 {
-    __pstl::__internal::__for_loop_repack(std::forward<_ExecutionPolicy>(__exec), __start, __finish,
-                                          __pstl::__internal::__single_stride_type{},
+    pstl::__internal::__for_loop_repack(std::forward<_ExecutionPolicy>(__exec), __start, __finish,
+                                          pstl::__internal::__single_stride_type{},
                                           std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
@@ -54,7 +54,7 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Sp, typename... _Re
 void
 for_loop_strided(_ExecutionPolicy&& __exec, type_identity_t<_Ip> __start, _Ip __finish, _Sp __stride, _Rest&&... __rest)
 {
-    __pstl::__internal::__for_loop_repack(std::forward<_ExecutionPolicy>(__exec), __start, __finish, __stride,
+    pstl::__internal::__for_loop_repack(std::forward<_ExecutionPolicy>(__exec), __start, __finish, __stride,
                                           std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
@@ -62,8 +62,8 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename... _
 void
 for_loop_n(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Rest&&... __rest)
 {
-    __pstl::__internal::__for_loop_repack_n(std::forward<_ExecutionPolicy>(__exec), __start, __n,
-                                            __pstl::__internal::__single_stride_type{},
+    pstl::__internal::__for_loop_repack_n(std::forward<_ExecutionPolicy>(__exec), __start, __n,
+                                            pstl::__internal::__single_stride_type{},
                                             std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
@@ -71,7 +71,7 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Sp,
 void
 for_loop_n_strided(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Sp __stride, _Rest&&... __rest)
 {
-    __pstl::__internal::__for_loop_repack_n(std::forward<_ExecutionPolicy>(__exec), __start, __n, __stride,
+    pstl::__internal::__for_loop_repack_n(std::forward<_ExecutionPolicy>(__exec), __start, __n, __stride,
                                             std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
@@ -80,7 +80,7 @@ template <typename _Ip, typename... _Rest>
 void
 for_loop(type_identity_t<_Ip> __start, _Ip __finish, _Rest&&... __rest)
 {
-    std::experimental::parallelism_v2::for_loop(__pstl::execution::v1::seq, __start, __finish,
+    std::experimental::parallelism_v2::for_loop(pstl::execution::v1::seq, __start, __finish,
                                                 std::forward<_Rest>(__rest)...);
 }
 
@@ -88,7 +88,7 @@ template <typename _Ip, typename _Sp, typename... _Rest>
 void
 for_loop_strided(type_identity_t<_Ip> __start, _Ip __finish, _Sp __stride, _Rest&&... __rest)
 {
-    std::experimental::parallelism_v2::for_loop_strided(__pstl::execution::v1::seq, __start, __finish, __stride,
+    std::experimental::parallelism_v2::for_loop_strided(pstl::execution::v1::seq, __start, __finish, __stride,
                                                         std::forward<_Rest>(__rest)...);
 }
 
@@ -96,7 +96,7 @@ template <typename _Ip, typename _Size, typename... _Rest>
 void
 for_loop_n(_Ip __start, _Size __n, _Rest&&... __rest)
 {
-    std::experimental::parallelism_v2::for_loop_n(__pstl::execution::v1::seq, __start, __n,
+    std::experimental::parallelism_v2::for_loop_n(pstl::execution::v1::seq, __start, __n,
                                                   std::forward<_Rest>(__rest)...);
 }
 
@@ -104,7 +104,7 @@ template <typename _Ip, typename _Size, typename _Sp, typename... _Rest>
 void
 for_loop_n_strided(_Ip __start, _Size __n, _Sp __stride, _Rest&&... __rest)
 {
-    std::experimental::parallelism_v2::for_loop_n_strided(__pstl::execution::v1::seq, __start, __n, __stride,
+    std::experimental::parallelism_v2::for_loop_n_strided(pstl::execution::v1::seq, __start, __n, __stride,
                                                           std::forward<_Rest>(__rest)...);
 }
 

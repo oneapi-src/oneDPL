@@ -75,7 +75,7 @@ private:
     //for more details see https://en.wikipedia.org/wiki/BMP_file_format
     using BITMAPFILEHEADER = struct {
         std::uint16_t sizeRest; // field is not from specification,
-                            // was added for alignemt. store size of rest of the fields
+                            // was added for alignment. store size of rest of the fields
         std::uint16_t type;
         std::uint32_t size;
         std::uint32_t reserved;

@@ -59,7 +59,7 @@ if ( -e $PSTLROOT/../tbb/bin/tbbvars.csh ) then
 endif
 
 if (! $?CPATH) then
-    setenv CPATH "${PSTLROOT}/include"
+    setenv CPATH "${PSTLROOT}/include:${PSTLROOT}/stdlib"
 else
-    setenv CPATH "${PSTLROOT}/include:$CPATH"
+    setenv CPATH "${PSTLROOT}/include:${PSTLROOT}/stdlib:$CPATH"
 endif

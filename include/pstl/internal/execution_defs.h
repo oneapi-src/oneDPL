@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- execution_defs.h --------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) 2017-2019 Intel Corporation
 //
@@ -13,12 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __PSTL_execution_policy_defs_H
-#define __PSTL_execution_policy_defs_H
+#ifndef _PSTL_EXECUTION_POLICY_DEFS_H
+#define _PSTL_EXECUTION_POLICY_DEFS_H
 
 #include <type_traits>
 
-namespace __pstl
+namespace pstl
 {
 namespace execution
 {
@@ -47,7 +47,7 @@ class sequenced_policy
     }
 };
 
-#if __PSTL_USE_PAR_POLICIES
+#if _PSTL_USE_PAR_POLICIES
 // 2.5, Parallel execution policy
 class parallel_policy
 {
@@ -116,7 +116,7 @@ class unsequenced_policy
 
 // 2.8, Execution policy objects
 constexpr sequenced_policy seq{};
-#if __PSTL_USE_PAR_POLICIES
+#if _PSTL_USE_PAR_POLICIES
 constexpr parallel_policy par{};
 constexpr parallel_unsequenced_policy par_unseq{};
 #endif
@@ -129,27 +129,27 @@ struct is_execution_policy : std::false_type
 };
 
 template <>
-struct is_execution_policy<__pstl::execution::sequenced_policy> : std::true_type
+struct is_execution_policy<pstl::execution::sequenced_policy> : std::true_type
 {
 };
-#if __PSTL_USE_PAR_POLICIES
+#if _PSTL_USE_PAR_POLICIES
 template <>
-struct is_execution_policy<__pstl::execution::parallel_policy> : std::true_type
+struct is_execution_policy<pstl::execution::parallel_policy> : std::true_type
 {
 };
 template <>
-struct is_execution_policy<__pstl::execution::parallel_unsequenced_policy> : std::true_type
+struct is_execution_policy<pstl::execution::parallel_unsequenced_policy> : std::true_type
 {
 };
 #endif
 template <>
-struct is_execution_policy<__pstl::execution::unsequenced_policy> : std::true_type
+struct is_execution_policy<pstl::execution::unsequenced_policy> : std::true_type
 {
 };
 
-#if __PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT
+#if _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT
 template <class T>
-constexpr bool is_execution_policy_v = __pstl::execution::is_execution_policy<T>::value;
+constexpr bool is_execution_policy_v = pstl::execution::is_execution_policy<T>::value;
 #endif
 
 } // namespace v1
@@ -159,10 +159,10 @@ namespace __internal
 {
 template <class ExecPolicy, class T>
 using __enable_if_execution_policy =
-    typename std::enable_if<__pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value,
+    typename std::enable_if<pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value,
                             T>::type;
 } // namespace __internal
 
-} // namespace __pstl
+} // namespace pstl
 
-#endif /* __PSTL_execution_policy_defs_H */
+#endif /* _PSTL_EXECUTION_POLICY_DEFS_H */
