@@ -1,6 +1,15 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2020 Update 1
+__INTEL_PSTL_VERSION == 211
+
+Features / APIs:
+
+- Added support for GCC9 compiler where libstdc++ contains implemented
+    C++17 standard execution policies.
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2020
 __INTEL_PSTL_VERSION == 210
 

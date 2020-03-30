@@ -187,6 +187,8 @@
 					/opt/intel/tbb/include,
 					"$(PSTLROOT)/include",
 					/opt/intel/pstl/include,
+					"$(PSTLROOT)/stdlib",
+					/opt/intel/pstl/stdlib,
 				);
 				ICC_CXX_LANG_DIALECT = "c++11";
 				LIBRARY_SEARCH_PATHS = (
@@ -253,6 +255,8 @@
 					/opt/intel/tbb/include,
 					"$(PSTLROOT)/include",
 					/opt/intel/pstl/include,
+					"$(PSTLROOT)/stdlib",
+					/opt/intel/pstl/stdlib,
 				);
 				ICC_CXX_LANG_DIALECT = "c++11";
 				LIBRARY_SEARCH_PATHS = (

@@ -192,6 +192,8 @@
 					/opt/intel/pstl/include,
 					"$(TBBROOT)/include",
 					/opt/intel/tbb/include,
+					"$(PSTLROOT)/stdlib",
+					/opt/intel/pstl/stdlib,
 				);
 				ICC_CXX_LANG_DIALECT = "c++11";
 				ICC_TBB = YES;
@@ -258,6 +260,8 @@
 					/opt/intel/pstl/include,
 					"$(TBBROOT)/include",
 					/opt/intel/tbb/include,
+					"$(PSTLROOT)/stdlib",
+					/opt/intel/pstl/stdlib,
 				);
 				ICC_CXX_LANG_DIALECT = "c++11";
 				ICC_TBB = YES;

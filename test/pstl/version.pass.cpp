@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- version.pass.cpp --------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -26,9 +26,9 @@ static_assert(_PSTL_VERSION_MAJOR == 10);
 static_assert(_PSTL_VERSION_MINOR == 00);
 static_assert(_PSTL_VERSION_PATCH == 0);
 
-static_assert(__INTEL_PSTL_VERSION == 210);
+static_assert(__INTEL_PSTL_VERSION == 211);
 static_assert(__INTEL_PSTL_VERSION_MAJOR == 2);
-static_assert(__INTEL_PSTL_VERSION_MINOR == 10);
+static_assert(__INTEL_PSTL_VERSION_MINOR == 11);
 
 int main() {
     std::cout << TestUtils::done() << std::endl;

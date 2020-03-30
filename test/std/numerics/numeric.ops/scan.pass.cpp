@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- scan.pass.cpp -----------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -21,10 +21,6 @@
 #include "support/utils.h"
 
 using namespace TestUtils;
-
-// GCC 9.1 contains an issue with exclusive scan with binary op visibility - it can be executed with
-// policies defined in pstl::execution namespace
-#define _PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY (_PSTL_GCC_VERSION == 90101 && __cplusplus >= 201703L)
 
 // We provide the no execution policy versions of the exclusive_scan and inclusive_scan due checking correctness result of the versions with execution policies.
 //TODO: to add a macro for availability of ver implementations
@@ -150,18 +146,13 @@ struct test_scan_with_binary_op
     {
         using namespace std;
 
-        auto orr1 = inclusive ? inclusive_scan_serial(in_first, in_last, expected_first, binary_op, init)
-#if !_PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY
-                              : exclusive_scan_serial(in_first, in_last, expected_first, init, binary_op);
-#else
-                              : out_last;
-#endif
+        if(inclusive)
+            inclusive_scan_serial(in_first, in_last, expected_first, binary_op, init);
+        else
+            exclusive_scan_serial(in_first, in_last, expected_first, init, binary_op);
+
         auto orr = inclusive ? inclusive_scan(exec, in_first, in_last, out_first, binary_op, init)
-#if !_PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY
                              : exclusive_scan(exec, in_first, in_last, out_first, init, binary_op);
-#else
-                             : out_last;
-#endif
 
         EXPECT_TRUE(out_last == orr, "scan returned wrong iterator");
         check_and_reset(expected_first, out_first, n, trash);

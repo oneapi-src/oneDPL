@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -106,6 +106,7 @@ exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIte
                                     std::plus<_Tp>(), pstl::__internal::__no_op());
 }
 
+#if !_PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
 pstl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
@@ -114,6 +115,45 @@ exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIte
     return transform_exclusive_scan(std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __init,
                                     __binary_op, pstl::__internal::__no_op());
 }
+#else
+template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
+_ForwardIterator2
+exclusive_scan(pstl::execution::sequenced_policy __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
+               _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op)
+{
+    return transform_exclusive_scan(__exec, __first, __last, __result, __init, __binary_op,
+                                    pstl::__internal::__no_op());
+}
+
+template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
+_ForwardIterator2
+exclusive_scan(pstl::execution::unsequenced_policy __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
+               _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op)
+{
+    return transform_exclusive_scan(__exec, __first, __last, __result, __init, __binary_op,
+                                    pstl::__internal::__no_op());
+}
+
+#    if _PSTL_USE_PAR_POLICIES
+template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
+_ForwardIterator2
+exclusive_scan(pstl::execution::parallel_policy __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
+               _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op)
+{
+    return transform_exclusive_scan(__exec, __first, __last, __result, __init, __binary_op,
+                                    pstl::__internal::__no_op());
+}
+
+template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
+_ForwardIterator2
+exclusive_scan(pstl::execution::parallel_unsequenced_policy __exec, _ForwardIterator1 __first,
+               _ForwardIterator1 __last, _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op)
+{
+    return transform_exclusive_scan(__exec, __first, __last, __result, __init, __binary_op,
+                                    pstl::__internal::__no_op());
+}
+#    endif
+#endif
 
 // [inclusive.scan]
 

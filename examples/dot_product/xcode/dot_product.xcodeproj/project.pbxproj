@@ -186,6 +186,8 @@
 					/opt/intel/pstl/include,
 					"$(TBBROOT)/include",
 					/opt/intel/tbb/include,
+					"$(PSTLROOT)/stdlib",
+					/opt/intel/pstl/stdlib,
 				);
 				ICC_CXX_LANG_DIALECT = "c++11";
 				ICC_OTHER_CPLUSPLUSFLAGS = "$(ICC_OTHER_CFLAGS) $(OTHER_CPLUSPLUSFLAGS) -xHOST -qopenmp-simd";
@@ -260,6 +262,8 @@
 					/opt/intel/pstl/include,
 					"$(TBBROOT)/include",
 					/opt/intel/tbb/include,
+					"$(PSTLROOT)/stdlib",
+					/opt/intel/pstl/stdlib,
 				);
 				ICC_CXX_LANG_DIALECT = "c++11";
 				ICC_DEBUG = NO;
