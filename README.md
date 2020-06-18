@@ -21,7 +21,7 @@ oneDPL is licensed under [Apache License Version 2.0 with LLVM exceptions](https
 See [Library Guide](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html) with oneDPL.
 
 ## Support and contribution
-[GitHub issues](https://github.com/oneapi-src/oneDPL/issues).
+Please report issues and suggestions via [GitHub issues](https://github.com/oneapi-src/oneDPL/issues).
 
 ------------------------------------------------------------------------
 Intel and the Intel logo are trademarks of Intel Corporation or its subsidiaries in the U.S. and/or other countries.
