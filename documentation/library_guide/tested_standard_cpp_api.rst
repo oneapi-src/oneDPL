@@ -1,0 +1,323 @@
+Tested Standard C++ APIs
+################################
+Contains the Tested Standard C++ APIs for Intel® oneAPI DPC++ Library.
+The basic functionality for a number of C++ standard APIs has been tested for use in DPC++ kernels. These APIs can be employed in device kernels similarly to how they are employed in code for a typical CPU-based platform. Below is an example code that shows how to use std::swap in SYCL device code:
+
+Example:
+
+.. code:: cpp
+
+  #include <CL/sycl.hpp>
+  #include <utility>
+  #include <iostream>
+  constexpr cl::sycl::access::mode sycl_read_write = cl::sycl::access::mode::read_write;
+  class KernelSwap;
+  void kernel_test() {    
+    cl::sycl::queue deviceQueue;
+    cl::sycl::range<1> numOfItems{2};
+    cl::sycl::cl_int swap_num[2] = {4, 5};
+    std::cout << swap_num[0] << ", " << swap_num[1] << std::endl;
+    {
+    cl::sycl::buffer<cl::sycl::cl_int, 1> swap_buffer
+    (swap_num, numOfItems);
+    deviceQueue.submit([&](cl::sycl::handler &cgh) {
+    auto swap_accessor = swap_buffer.get_access<sycl_read_write>(cgh);
+    cgh.single_task<class KernelSwap>([=]() {
+        int & num1 = swap_accessor[0];
+        int & num2 = swap_accessor[1];
+        std::swap(num1, num2);
+        });
+    });
+    }
+    std::cout << swap_num[0] << ", " << swap_num[1] << std::endl;
+  }
+  int main() {
+      kernel_test();
+      return 0;
+  }
+
+Use the following command to build and run the program (assuming it resides in the kernel_swap.cpp file):
+
+dpcpp –std=c++11 kernel_swap.cpp –o kernel_swap.exe -lOpenCL
+
+./kernel_swap.exe
+
+The printed result is:
+
+4, 5
+
+5, 4
+
+Tested Standard C++ API Reference
+=================================
+
+
+================================= ========== ========== ==========
+C++ Standard API                  libstdc++  libc++     MSVC
+================================= ========== ========== ==========
+std::swap                         Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::lower_bound                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::upper_bound                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::binary_search                Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::equal_range                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::tuple                        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::pair                         Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::reference_wrapper            Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::ref/cref                     Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::divides                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::minus                        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::plus                         Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::negate                       Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::modulus                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::multiplies                   Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::equal_to                     Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::greater                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::greater_equal                Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::less                         Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::less_equal                   Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::not_equal_to                 Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::bit_and                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::bit_not                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::bit_xor                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::bit_or                       Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::logical_and                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::logical_or                   Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::logical_not                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::binary_negate                Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::unary_negate                 Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::not1/2                       Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::unary_function               Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::initializer_list             Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::forward                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::move                         Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::move_if_noexcept             Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::integral_constant            Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_same                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_base_of                   Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_base_of_union             Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_convertible               Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::extent                       Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::rank                         Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::remove_all_extents           Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::remove_extent                Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::add_const                    Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::add_cv                       Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::add_volatile                 Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::remove_const                 Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::remove_cv                    Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::remove_volatile              Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::decay                        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::conditional                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::enable_if                    Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::common_type                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::declval                      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::alignment_of                 Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_arithmetic                Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_fundamental               Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_reference                 Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_object                    Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_scalar                    Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_compound                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_member_pointer            Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_const                     Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_assignable                Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_constructible             Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_copy_assignable           Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_copy_constructible        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_default_constructible     Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_destructible              Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_empty                     Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_literal_type              Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_move_assignable           Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_move_constructible        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_pod                       Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_signed                    Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_standard_layout           Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_trivial                   Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_unsigned                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_volatile                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_trivially_assignable      Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_trivially_constructible   Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::is_trivially_copyable        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::array                        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::ratio                        Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::complex                      Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::assert                       Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::sin                          Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::cos                          Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::tan                          Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::asin                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::acos                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::atan                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::atan2                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::sinh                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::cosh                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::tanh                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::asinh                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::acosh                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::atanh                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::exp                          Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::frexp                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::ldexp                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::log                          Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::log10                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::modf                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::exp2                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::expm1                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::ilogb                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::log1p                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::log2                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::logb                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::pow                          Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::sqrt                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::cbrt                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::hypot                        Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::erf                          Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::erfc                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::tgamma                       Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::lgamma                       Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::fmod                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::remainder                    Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::remquo                       Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::nextafter                    Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::fdim                         Tested                Tested
+--------------------------------- ---------- ---------- ----------
+std::numeric_limits               Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::optional                     Tested                Tested
+================================= ========== ========== ==========
+
+These tests were done for the following versions of the standard C++ library:
+
+================================= =============================================
+libstdc++(GNU)                    Provided with GCC*-7.5.0
+--------------------------------- ---------------------------------------------
+libc++(LLVM)                      Provided with Clang*-11.0
+--------------------------------- ---------------------------------------------
+MSVC Standard C++ Library         Provided with Microsoft Visual Studio* 2017
+================================= =============================================
