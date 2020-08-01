@@ -51,7 +51,7 @@ struct test_transform_exclusive_scan
     {
         using namespace std;
 
-        auto orr1 = transform_exclusive_scan(dpstd::execution::seq, first, last, expected_first, init, binary_op,
+        auto orr1 = transform_exclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, init, binary_op,
                                              unary_op);
         auto orr2 = transform_exclusive_scan(exec, first, last, out_first, init, binary_op, unary_op);
         EXPECT_TRUE(out_last == orr2, "transform_exclusive_scan returned wrong iterator");
@@ -81,7 +81,7 @@ struct test_transform_inclusive_scan_init
     {
         using namespace std;
 
-        auto orr1 = transform_inclusive_scan(dpstd::execution::seq, first, last, expected_first, binary_op, unary_op,
+        auto orr1 = transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op,
                                              init);
         auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op, init);
         EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
@@ -113,7 +113,7 @@ struct test_transform_inclusive_scan
 
         if (n > 0)
         {
-            auto orr1 = transform_inclusive_scan(dpstd::execution::seq, first, last, expected_first, binary_op,
+            auto orr1 = transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op,
                                                  unary_op);
             auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op);
             EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");

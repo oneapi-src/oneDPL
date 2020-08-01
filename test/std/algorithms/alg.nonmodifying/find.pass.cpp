@@ -29,12 +29,12 @@ struct test_find
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator, typename Value>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator first, Iterator last, Value value)
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last, Value value)
     {
     }
     template <typename Iterator, typename Value>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Value value)
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Value value)
     {
     }
 #endif

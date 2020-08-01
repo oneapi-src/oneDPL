@@ -28,14 +28,14 @@ struct test_one_policy
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specialization by policy type, in case of broken configuration
     template <typename BiDirIt1, typename Size, typename Generator1, typename Generator2, typename Compare>
     void
-    operator()(dpstd::execution::unsequenced_policy, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2,
+    operator()(oneapi::dpl::execution::unsequenced_policy, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2,
                Size n, Size m, Generator1 generator1, Generator2 generator2, Compare comp)
     {
     }
 
     template <typename BiDirIt1, typename Size, typename Generator1, typename Generator2, typename Compare>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2,
                BiDirIt1 last2, Size n, Size m, Generator1 generator1, Generator2 generator2, Compare comp)
     {
     }

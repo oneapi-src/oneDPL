@@ -29,12 +29,12 @@ struct test_is_partitioned
 
     template <typename Iterator1, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
     {
     }
     template <typename Iterator1, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
     {
     }
 #endif

@@ -25,7 +25,7 @@
 #include _PSTL_TEST_HEADER(memory)
 #include _PSTL_TEST_HEADER(iterator)
 
-#include "dpstd/pstl/utils.h"
+#include "oneapi/dpl/pstl/utils.h"
 
 using namespace TestUtils;
 
@@ -36,7 +36,7 @@ using namespace TestUtils;
 // just a temporary include and NoOp functor to check
 // algorithms that require init element with zip_iterators
 // (transform_reduce, scan, etc)
-#include "dpstd/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
 struct TupleNoOp
 {
@@ -69,7 +69,7 @@ struct TuplePredicate
     }
 };
 
-using namespace dpstd::execution;
+using namespace oneapi::dpl::execution;
 
 struct test_for_each
 {
@@ -80,8 +80,8 @@ struct test_for_each
         typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto value = T1(6);
         auto f = [](T1& val) { ++val; };
         std::fill(host_first1, host_first1 + n, value);
@@ -105,8 +105,8 @@ struct test_transform_reduce_unary
         typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto value = T1(1);
         std::fill(host_first1, host_first1 + n, value);
 
@@ -128,10 +128,10 @@ struct test_transform_reduce_binary
         typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
-        auto tuple_first2 = dpstd::make_zip_iterator(first2, first2);
-        auto tuple_last2 = dpstd::make_zip_iterator(last2, last2);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+        auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
+        auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
 
         auto value = T1(1);
         std::fill(host_first1, host_first1 + n, value);
@@ -167,8 +167,8 @@ struct test_min_element
             *(host_first1 + n - 1) = IteratorValueType{/*2nd min*/ 0};
         }
 
-        auto tuple_first = dpstd::make_zip_iterator(first, first);
-        auto tuple_last = dpstd::make_zip_iterator(last, last);
+        auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
+        auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
 
         auto tuple_result =
             std::min_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first, tuple_last,
@@ -197,8 +197,8 @@ struct test_count_if
         ValueType fill_value{0};
         std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = fill_value++ % 10; });
 
-        auto tuple_first = dpstd::make_zip_iterator(first, first);
-        auto tuple_last = dpstd::make_zip_iterator(last, last);
+        auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
+        auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
 
         auto comp = [](ValueType const& value) { return value % 10 == 0; };
         ReturnType expected = (n - 1) / 10 + 1;
@@ -226,9 +226,9 @@ struct test_equal
         std::iota(host_first1, host_first1 + n, value);
         std::iota(host_first2, host_first2 + n, value);
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
-        auto tuple_first2 = dpstd::make_zip_iterator(first2, first2);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+        auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
 
         bool is_equal = std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                    TuplePredicate<std::equal_to<T>, 0>{std::equal_to<T>{}});
@@ -258,8 +258,8 @@ struct test_find_if
         auto host_first1 = get_host_pointer(first1);
         std::iota(host_first1, host_first1 + n, T1(0));
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
         auto f_for_last = [n](T1 x) { return x == n - 1; };
         auto f_for_none = [](T1 x) { return x == -1; };
@@ -304,10 +304,10 @@ struct test_transform_inclusive_scan
         auto host_first1 = get_host_pointer(first1);
         std::fill(host_first1, host_first1 + n, T1(1));
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
-        auto tuple_first2 = dpstd::make_zip_iterator(first2, first2);
-        auto tuple_last2 = dpstd::make_zip_iterator(last2, last2);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+        auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
+        auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
         auto value = T1(333);
 
         auto res = std::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
@@ -329,8 +329,8 @@ struct test_unique
         using Iterator1ValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto host_first1 = get_host_pointer(first1);
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
         auto f = [](Iterator1ValueType a, Iterator1ValueType b) { return a == b; };
 
@@ -366,9 +366,9 @@ struct test_unique_copy
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
-        auto tuple_first2 = dpstd::make_zip_iterator(first2, first2);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+        auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
 
         auto f = [](Iterator1ValueType a, Iterator1ValueType b) { return a == b; };
 
@@ -423,11 +423,11 @@ struct test_merge
         });
         std::fill(host_first3, host_first3 + n, T3{-1});
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(first1 + size1, first1 + size1);
-        auto tuple_first2 = dpstd::make_zip_iterator(first2, first2);
-        auto tuple_last2 = dpstd::make_zip_iterator(first2 + size2, first2 + size2);
-        auto tuple_first3 = dpstd::make_zip_iterator(first3, first3);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(first1 + size1, first1 + size1);
+        auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
+        auto tuple_last2 = oneapi::dpl::make_zip_iterator(first2 + size2, first2 + size2);
+        auto tuple_first3 = oneapi::dpl::make_zip_iterator(first3, first3);
 
         auto tuple_last3 = std::merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                       tuple_last2, tuple_first3, TuplePredicate<std::less<T2>, 0>{std::less<T2>{}});
@@ -450,25 +450,30 @@ struct test_merge
 
 struct test_stable_sort
 {
-    template <typename Policy, typename Iterator1, typename Size>
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
-        typedef typename std::iterator_traits<Iterator1>::value_type T1;
+        using T =  typename std::iterator_traits<Iterator1>::value_type;
 
-        auto value = T1(333);
+        auto value = T(333);
         auto host_first1 = get_host_pointer(first1);
+        auto host_first2 = get_host_pointer(first2);
         std::iota(host_first1, host_first1 + n, value);
+        std::copy_n(host_first1, n, host_first2);
 
-        std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), dpstd::make_zip_iterator(first1, first1),
-                         dpstd::make_zip_iterator(last1, last1),
-                         TuplePredicate<std::greater<T1>, 0>{std::greater<T1>{}});
+        std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), oneapi::dpl::make_zip_iterator(first1, first2),
+                         oneapi::dpl::make_zip_iterator(last1, last2),
+                         TuplePredicate<std::greater<T>, 0>{std::greater<T>{}});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
         host_first1 = get_host_pointer(first1);
-        EXPECT_TRUE(std::is_sorted(host_first1, host_first1 + n, std::greater<T1>()),
-                    "wrong effect from stable_sort_2 (tuple)");
+        host_first2 = get_host_pointer(first2);
+        EXPECT_TRUE(std::is_sorted(host_first1, host_first1 + n, std::greater<T>()),
+                    "wrong effect from stable_sort (tuple)");
+        EXPECT_TRUE(std::is_sorted(host_first2, host_first2 + n, std::greater<T>()),
+                    "wrong effect from stable_sort (tuple)");
     }
 };
 
@@ -480,10 +485,10 @@ struct test_lexicographical_compare
     {
         using ValueType = typename std::iterator_traits<Iterator1>::value_type;
 
-        auto tuple_first1 = dpstd::make_zip_iterator(first1, first1);
-        auto tuple_last1 = dpstd::make_zip_iterator(last1, last1);
-        auto tuple_first2 = dpstd::make_zip_iterator(first2, first2);
-        auto tuple_last2 = dpstd::make_zip_iterator(last2, last2);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+        auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
+        auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
 
         auto comp = [](ValueType const& first, ValueType const& second) { return first < second; };
 
@@ -532,12 +537,12 @@ struct test_counting_zip_transform
         *(host_first1 + (n / 3)) = 10;
         *(host_first1 + (n / 3 * 2)) = 100;
 
-        auto idx = dpstd::counting_iterator<ValueType>(0);
-        auto start = dpstd::make_zip_iterator(idx, first1);
+        auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
+        auto start = oneapi::dpl::make_zip_iterator(idx, first1);
 
         auto res =
             std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), start, start + n,
-                         dpstd::make_transform_iterator(
+                         oneapi::dpl::make_transform_iterator(
                              first2,
                              [](ValueType& x1) {
                                 // It's required to use forward_as_tuple instead of make_tuple
@@ -568,7 +573,7 @@ main()
     PRINT_DEBUG("test_count_if");
     test1buffer<int32_t, test_count_if>();
     PRINT_DEBUG("test_stable_sort");
-    test1buffer<int32_t, test_stable_sort>();
+    test2buffers<int32_t, test_stable_sort>();
     PRINT_DEBUG("test_lexicographical_compare");
     test2buffers<int32_t, test_lexicographical_compare>();
     PRINT_DEBUG("test_equal");

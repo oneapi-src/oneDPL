@@ -1,0 +1,82 @@
+// -*- C++ -*-
+//===-- random ------------------------------------------------------------===//
+//
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef __DPSTD_random
+#define __DPSTD_random
+
+#include <CL/sycl.hpp>
+#include <utility>
+#include <cstdint>
+#include <type_traits>
+#include <limits>
+
+#include "internal/random_impl/random_common.h"
+#include "internal/random_impl/linear_congruential_engine.h"
+#include "internal/random_impl/subtract_with_carry_engine.h"
+#include "internal/random_impl/discard_block_engine.h"
+#include "internal/random_impl/uniform_real_distribution.h"
+#include "internal/random_impl/uniform_int_distribution.h"
+#include "internal/random_impl/normal_distribution.h"
+
+namespace oneapi
+{
+namespace std
+{
+// Engines and engine adaptors
+using oneapi::dpl::linear_congruential_engine;
+using oneapi::dpl::subtract_with_carry_engine;
+using oneapi::dpl::discard_block_engine;
+
+// Engines and engine adaptors with predefined parameters
+using minstd_rand0 = linear_congruential_engine<uint_fast32_t, 16807, 0, 2147483647>;
+using minstd_rand = linear_congruential_engine<uint_fast32_t, 48271, 0, 2147483647>;
+using default_engine = minstd_rand;
+using ranlux24_base = subtract_with_carry_engine<uint_fast32_t, 24, 10, 24>;
+using ranlux48_base = subtract_with_carry_engine<uint_fast64_t, 48, 5, 12>;
+using ranlux24 = discard_block_engine<ranlux24_base, 223, 23>;
+using ranlux48 = discard_block_engine<ranlux48_base, 389, 11>;
+
+// Distributions
+using oneapi::dpl::uniform_real_distribution;
+using oneapi::dpl::uniform_int_distribution;
+using oneapi::dpl::normal_distribution;
+
+} // namespace std
+
+namespace dpl
+{
+using namespace oneapi::std;
+// Non-standard engines and engine adaptors with predefined parameters
+template <int _N>
+using minstd_rand0_vec = linear_congruential_engine<sycl::vec<uint_fast32_t, _N>, 16807, 0, 2147483647>;
+template <int _N>
+using minstd_rand_vec = linear_congruential_engine<sycl::vec<uint_fast32_t, _N>, 48271, 0, 2147483647>;
+
+template <int _N>
+using ranlux24_base_vec = subtract_with_carry_engine<sycl::vec<uint_fast32_t, _N>, 24, 10, 24>;
+template <int _N>
+using ranlux48_base_vec = subtract_with_carry_engine<sycl::vec<uint_fast64_t, _N>, 48, 5, 12>;
+
+template <int _N>
+using ranlux24_vec = discard_block_engine<ranlux24_base_vec<_N>, 223, 23>;
+template <int _N>
+using ranlux48_vec = discard_block_engine<ranlux48_base_vec<_N>, 389, 11>;
+
+} // namespace dpl
+} // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
+#endif /* __DPSTD_random */

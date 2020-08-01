@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <dpstd/pstl/pstl_config.h>
+#include <oneapi/dpl/pstl/pstl_config.h>
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)

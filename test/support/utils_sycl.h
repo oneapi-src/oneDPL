@@ -27,8 +27,8 @@
 
 #include "pstl_test_config.h"
 
-#include "dpstd/iterator"
-#include "dpstd/pstl/hetero/dpcpp/parallel_backend_sycl.h"
+#include "oneapi/dpl/iterator"
+#include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 #include "iterator_utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -97,23 +97,23 @@ namespace TestUtils
 
     //function is needed to wrap kernel name into another class
     template <typename _NewKernelName, typename _Policy,
-              dpstd::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
+              oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
     auto
     make_new_policy(_Policy&& __policy)
-        -> decltype(dpstd::execution::make_device_policy<_NewKernelName>(std::forward<_Policy>(__policy)))
+        -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName>(std::forward<_Policy>(__policy)))
     {
-        return dpstd::execution::make_device_policy<_NewKernelName>(std::forward<_Policy>(__policy));
+        return oneapi::dpl::execution::make_device_policy<_NewKernelName>(std::forward<_Policy>(__policy));
     }
 
 #if _PSTL_FPGA_DEVICE
     template <typename _NewKernelName, typename _Policy,
-              dpstd::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
+              oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
     auto
           make_new_policy(_Policy&& __policy)
-              -> decltype(dpstd::execution::make_fpga_policy<_NewKernelName, std::decay<_Policy>::type::unroll_factor>(
+              -> decltype(oneapi::dpl::execution::make_fpga_policy<std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
                   std::forward<_Policy>(__policy)))
     {
-        return dpstd::execution::make_fpga_policy<_NewKernelName, std::decay<_Policy>::type::unroll_factor>(
+        return oneapi::dpl::execution::make_fpga_policy<std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
             std::forward<_Policy>(__policy));
     }
 #endif
@@ -144,9 +144,9 @@ namespace TestUtils
             using kernel_name = unique_kernel_name<typename kernel_type<Op>::type, CallNumber>;
             iterator_invoker<std::random_access_iterator_tag, /*IsReverse*/ std::false_type>()(
 #if _PSTL_FPGA_DEVICE
-                dpstd::execution::make_fpga_policy<kernel_name>(my_queue), op, std::forward<T>(rest)...);
+                oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(my_queue), op, std::forward<T>(rest)...);
 #else
-                dpstd::execution::make_device_policy<kernel_name>(my_queue), op, std::forward<T>(rest)...);
+                oneapi::dpl::execution::make_device_policy<kernel_name>(my_queue), op, std::forward<T>(rest)...);
 #endif
         }
     };
@@ -186,7 +186,7 @@ namespace TestUtils
             cl::sycl::buffer<T, 1> inout1{ cl::sycl::range<1>(max_n + inout1_offset) };
 
             // 2. create an iterator over buffer
-            auto inout1_offset_first = dpstd::begin(inout1) + inout1_offset;
+            auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
 
             // 3. run algorithms
             for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
@@ -230,8 +230,8 @@ namespace TestUtils
             cl::sycl::buffer<T, 1> inout2{ cl::sycl::range<1>(max_n + inout2_offset) };
 
             // 2. create iterators over buffers
-            auto inout1_offset_first = dpstd::begin(inout1) + inout1_offset;
-            auto inout2_offset_first = dpstd::begin(inout2) + inout2_offset;
+            auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
+            auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
 
             // 3. run algorithms
             for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
@@ -281,9 +281,9 @@ namespace TestUtils
             cl::sycl::buffer<T, 1> inout3{ cl::sycl::range<1>(mult*max_n + inout3_offset) };
 
             // 2. create iterators over buffers
-            auto inout1_offset_first = dpstd::begin(inout1) + inout1_offset;
-            auto inout2_offset_first = dpstd::begin(inout2) + inout2_offset;
-            auto inout3_offset_first = dpstd::begin(inout3) + inout3_offset;
+            auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
+            auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
+            auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
 
             // 3. run algorithms
             for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n))) {
@@ -302,7 +302,7 @@ namespace TestUtils
     typename std::iterator_traits<Iter>::pointer
     get_host_pointer(Iter it)
     {
-        auto temp_idx = it - dpstd::begin(it.get_buffer());
+        auto temp_idx = it - oneapi::dpl::begin(it.get_buffer());
         return it.get_buffer().template get_access<mode>().get_pointer() + temp_idx;
     }
 
@@ -324,11 +324,11 @@ namespace TestUtils
     template <typename Iter, cl::sycl::access::mode mode = cl::sycl::access::mode::read_write>
     auto
     get_host_access(Iter it)
-        -> decltype(it.get_buffer().template get_access<mode>(it.get_buffer().get_count() - (it - dpstd::begin(it.get_buffer())),
-                                                              it - dpstd::begin(it.get_buffer())))
+        -> decltype(it.get_buffer().template get_access<mode>(it.get_buffer().get_count() - (it - oneapi::dpl::begin(it.get_buffer())),
+                                                              it - oneapi::dpl::begin(it.get_buffer())))
     {
         auto temp_buf = it.get_buffer();
-        auto temp_idx = it - dpstd::begin(temp_buf);
+        auto temp_idx = it - oneapi::dpl::begin(temp_buf);
         return temp_buf.template get_access<mode>(temp_buf.get_count() - temp_idx, temp_idx);
     }
 

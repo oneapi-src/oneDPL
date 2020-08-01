@@ -29,28 +29,28 @@ struct run_unique
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename ForwardIt, typename Generator>
     void
-    operator()(dpstd::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, Generator generator)
     {
     }
 
     template <typename ForwardIt, typename Generator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, Generator generator)
     {
     }
 
     template <typename ForwardIt, typename BinaryPred, typename Generator>
     void
-    operator()(dpstd::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, BinaryPred pred, Generator generator)
     {
     }
 
     template <typename ForwardIt, typename BinaryPred, typename Generator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, BinaryPred pred, Generator generator)
     {
     }
@@ -82,28 +82,28 @@ struct run_unique_predicate
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename ForwardIt, typename Generator>
     void
-    operator()(dpstd::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, Generator generator)
     {
     }
 
     template <typename ForwardIt, typename Generator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, Generator generator)
     {
     }
 
     template <typename ForwardIt, typename BinaryPred, typename Generator>
     void
-    operator()(dpstd::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, BinaryPred pred, Generator generator)
     {
     }
 
     template <typename ForwardIt, typename BinaryPred, typename Generator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
                ForwardIt last2, BinaryPred pred, Generator generator)
     {
     }

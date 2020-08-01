@@ -30,8 +30,6 @@
 template<typename Policy>
 void test_policy_instance(const Policy& policy)
 {
-    EXPECT_TRUE(std::is_execution_policy<Policy>::value, "A policy is not an execution policy");
-
     auto __max_work_group_size = policy.queue().get_device().template get_info<cl::sycl::info::device::max_work_group_size>();
     EXPECT_TRUE(__max_work_group_size > 0, "policy: wrong work group size");
     auto __max_compute_units = policy.queue().get_device().template get_info<cl::sycl::info::device::max_compute_units>();
@@ -56,19 +54,19 @@ main()
 #if _PSTL_BACKEND_SYCL
     PRINT_DEBUG("Test SYCL Policy(queue(default_selector))");
     test_policy_instance(
-        dpstd::execution::make_sycl_policy<class Kernel_1>(cl::sycl::queue{cl::sycl::default_selector{}}));
+        oneapi::dpl::execution::make_sycl_policy<class Kernel_1>(cl::sycl::queue{cl::sycl::default_selector{}}));
     PRINT_DEBUG("Test Policy(queue(default_selector))");
     test_policy_instance(
-        dpstd::execution::make_device_policy<class Kernel_2>(cl::sycl::queue{cl::sycl::default_selector{}}));
+        oneapi::dpl::execution::make_device_policy<class Kernel_2>(cl::sycl::queue{cl::sycl::default_selector{}}));
     PRINT_DEBUG("Test Policy(default_selector)");
     test_policy_instance(
-        dpstd::execution::make_device_policy<class Kernel_3>(cl::sycl::default_selector{}));
+        oneapi::dpl::execution::make_device_policy<class Kernel_3>(cl::sycl::default_selector{}));
     PRINT_DEBUG("Test Policy(device(default_selector))");
     test_policy_instance(
-        dpstd::execution::make_device_policy<class Kernel_4>(cl::sycl::device{cl::sycl::default_selector{}}));
+        oneapi::dpl::execution::make_device_policy<class Kernel_4>(cl::sycl::device{cl::sycl::default_selector{}}));
     PRINT_DEBUG("Test Policy(ordered_queue(default_selector))");
     test_policy_instance(
-        dpstd::execution::make_device_policy<class Kernel_5>(cl::sycl::queue{cl::sycl::property::queue::in_order()}));
+        oneapi::dpl::execution::make_device_policy<class Kernel_5>(cl::sycl::queue{cl::sycl::property::queue::in_order()}));
 #endif
 
     std::cout << TestUtils::done() << std::endl;

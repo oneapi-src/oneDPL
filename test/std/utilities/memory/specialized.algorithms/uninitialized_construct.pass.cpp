@@ -58,7 +58,7 @@ struct test_uninit_default_construct
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
         std::uninitialized_default_construct(exec, begin, end);
@@ -87,7 +87,7 @@ struct test_uninit_default_construct_n
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
         std::uninitialized_default_construct_n(exec, begin, n);
@@ -115,7 +115,7 @@ struct test_uninit_value_construct
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
         std::uninitialized_value_construct(exec, begin, end);
@@ -144,7 +144,7 @@ struct test_uninit_value_construct_n
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
         std::uninitialized_value_construct_n(exec, begin, n);

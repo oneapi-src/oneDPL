@@ -279,7 +279,7 @@ int
 main()
 {
 
-    test_set<float64_t, float64_t>(dpstd::__internal::__pstl_less());
+    test_set<float64_t, float64_t>(oneapi::dpl::__internal::__pstl_less());
 #if !_PSTL_BACKEND_SYCL
     test_set<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; });
 

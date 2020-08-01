@@ -28,13 +28,13 @@ struct test_search_n
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
     {
     }
 
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
                Predicate pred)
     {
     }
@@ -58,13 +58,13 @@ struct test_search_n_predicate
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
     {
     }
 
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
                Predicate pred)
     {
     }

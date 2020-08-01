@@ -37,7 +37,7 @@ struct run_copy
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, T trash)
     {
@@ -45,7 +45,7 @@ struct run_copy
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, T trash)
     {
@@ -80,7 +80,7 @@ struct run_copy_n
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, T trash)
     {
@@ -88,7 +88,7 @@ struct run_copy_n
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, T trash)
     {
@@ -123,7 +123,7 @@ struct run_move
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, T trash)
     {
@@ -131,7 +131,7 @@ struct run_move
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, T trash)
     {
@@ -166,7 +166,7 @@ struct run_move<Wrapper<T>>
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, Wrapper<T> trash)
     {
@@ -174,7 +174,7 @@ struct run_move<Wrapper<T>>
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, Wrapper<T> trash)
     {

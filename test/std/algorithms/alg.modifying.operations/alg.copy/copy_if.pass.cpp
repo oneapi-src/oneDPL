@@ -34,7 +34,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
                Predicate pred, T trash)
     {
@@ -42,7 +42,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -52,7 +52,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
                Predicate pred, T trash)
     {
@@ -60,7 +60,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -104,7 +104,7 @@ struct run_remove_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
                Predicate pred, T trash)
     {
@@ -112,7 +112,7 @@ struct run_remove_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -122,7 +122,7 @@ struct run_remove_copy_if
 template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -130,7 +130,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {

@@ -40,7 +40,7 @@ struct test_partition_copy
         EXPECT_TRUE(std::distance(true_first, actual_ret.first) == std::count_if(first, last, unary_op),
                     "partition_copy has wrong effect from true sequence");
         EXPECT_TRUE(std::distance(false_first, actual_ret.second) ==
-                        std::count_if(first, last, dpstd::__internal::__not_pred<UnaryOp>(unary_op)),
+                        std::count_if(first, last, oneapi::dpl::__internal::__not_pred<UnaryOp>(unary_op)),
                     "partition_copy has wrong effect from false sequence");
     }
 
@@ -49,7 +49,7 @@ struct test_partition_copy
 template <typename InputIterator, typename OutputIterator, typename OutputIterator2,
           typename UnaryOp>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator true_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator true_first,
                OutputIterator true_last, OutputIterator2 false_first, OutputIterator2 false_last, UnaryOp unary_op)
     {
     }
@@ -57,7 +57,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2,
               typename UnaryOp>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last, OutputIterator true_first,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last, OutputIterator true_first,
                OutputIterator true_last, OutputIterator2 false_first, OutputIterator2 false_last, UnaryOp unary_op)
     {
     }
@@ -66,7 +66,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
 #if _PSTL_ICC_1800_TEST_MONOTONIC_RELEASE_64_BROKEN
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename UnaryOp>
     void
-    operator()(dpstd::execution::unsequenced_policy, std::reverse_iterator<InputIterator> first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, std::reverse_iterator<InputIterator> first,
                std::reverse_iterator<InputIterator> last, std::reverse_iterator<OutputIterator> true_first,
                std::reverse_iterator<OutputIterator> true_last, std::reverse_iterator<OutputIterator2> false_first,
                OutputIterator2 false_last, UnaryOp unary_op)
@@ -75,7 +75,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename UnaryOp>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, std::reverse_iterator<InputIterator> first,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, std::reverse_iterator<InputIterator> first,
                std::reverse_iterator<InputIterator> last, std::reverse_iterator<OutputIterator> true_first,
                std::reverse_iterator<OutputIterator> true_last, std::reverse_iterator<OutputIterator2> false_first,
                OutputIterator2 false_last, UnaryOp unary_op)

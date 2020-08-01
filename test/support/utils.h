@@ -623,7 +623,7 @@ struct invoke_on_all_policies
     void
     operator()(Op op, T&&... rest)
     {
-        using namespace dpstd::execution;
+        using namespace oneapi::dpl::execution;
 
 #if !TEST_ONLY_HETERO_POLICIES
         // Try static execution policies
@@ -829,7 +829,7 @@ static void
 invoke_if(Policy&& p, F f)
 {
 #if _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    dpstd::__internal::__invoke_if_not(dpstd::__internal::__allow_unsequenced<Policy>(), f);
+    oneapi::dpl::__internal::__invoke_if_not(oneapi::dpl::__internal::__allow_unsequenced<Policy>(), f);
 #else
     f();
 #endif

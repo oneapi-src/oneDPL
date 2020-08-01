@@ -26,7 +26,7 @@ add_custom_target(check-pstl
 
 add_library(test_stdlib INTERFACE)
 target_include_directories(test_stdlib INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../stdlib")
-target_link_libraries(test_stdlib INTERFACE dpstd::ParallelSTL)
+target_link_libraries(test_stdlib INTERFACE oneapi::dpl::ParallelSTL)
 
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach(_file IN LISTS UNIT_TESTS)

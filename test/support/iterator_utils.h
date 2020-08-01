@@ -328,7 +328,7 @@ struct iterator_invoker
     using make_iterator = MakeIterator<Iterator, IteratorTag, IsReverse>;
 
     template <typename Iterator>
-    using invoke_if = invoke_if_<IsReverse, typename dpstd::__internal::is_const_iterator<Iterator>::type>;
+    using invoke_if = invoke_if_<IsReverse, typename oneapi::dpl::__internal::is_const_iterator<Iterator>::type>;
 
     // A single iterator version which is used for non_const testcases
     template <typename Policy, typename Op, typename Iterator>

@@ -33,14 +33,14 @@ struct test_find_end
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }
 
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }
@@ -64,14 +64,14 @@ struct test_find_end_predicate
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }
 
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }
@@ -95,14 +95,14 @@ struct test_search
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }
 
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }
@@ -126,14 +126,14 @@ struct test_search_predicate
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }
 
     template <typename Iterator1, typename Iterator2, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
                Predicate pred)
     {
     }

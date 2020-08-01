@@ -26,7 +26,7 @@
 #include _PSTL_TEST_HEADER(memory)
 #include _PSTL_TEST_HEADER(iterator)
 
-#include "dpstd/pstl/utils.h"
+#include "oneapi/dpl/pstl/utils.h"
 
 using namespace TestUtils;
 
@@ -107,7 +107,7 @@ struct SyclTypeWrapper
 template<typename... T>
 struct policy_name_wrapper{};
 
-using namespace dpstd::execution;
+using namespace oneapi::dpl::execution;
 
 struct test_uninitialized_copy
 {
@@ -563,7 +563,7 @@ struct test_replace_if
         std::fill(host_first1, host_first1 + n, value);
 
         std::replace_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
-                        dpstd::__internal::__equal_value<T1>(value), T1(value + 1));
+                        oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
@@ -604,7 +604,7 @@ struct test_replace_copy_if
         std::fill(host_first1, host_first1 + n, value);
 
         std::replace_copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2,
-                             dpstd::__internal::__equal_value<T1>(value), T1(value + 1));
+                             oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif

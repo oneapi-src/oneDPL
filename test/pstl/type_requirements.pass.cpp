@@ -18,12 +18,12 @@
 
 #if _PSTL_BACKEND_SYCL
 
-#include <dpstd/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
+#include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
 
 template <typename... Args>
 void CheckTuple() {
-    static_assert(std::is_trivially_copyable<dpstd::__par_backend_hetero::__internal::tuple<Args...>>::value, "");
-    static_assert(std::is_standard_layout<dpstd::__par_backend_hetero::__internal::tuple<Args...>>::value, "");
+    static_assert(std::is_trivially_copyable<oneapi::dpl::__internal::tuple<Args...>>::value, "");
+    static_assert(std::is_standard_layout<oneapi::dpl::__internal::tuple<Args...>>::value, "");
 };
 
 #endif

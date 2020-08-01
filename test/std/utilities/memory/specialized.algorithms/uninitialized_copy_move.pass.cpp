@@ -58,7 +58,7 @@ struct test_uninitialized_copy
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, out_first, n);
+        std::destroy_n(oneapi::dpl::execution::seq, out_first, n);
         T::SetCount(0);
 
         std::uninitialized_copy(exec, first, last, out_first);
@@ -68,14 +68,14 @@ struct test_uninitialized_copy
 #if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
 
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
@@ -105,7 +105,7 @@ struct test_uninitialized_copy_n
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, out_first, n);
+        std::destroy_n(oneapi::dpl::execution::seq, out_first, n);
         T::SetCount(0);
 
         std::uninitialized_copy_n(exec, first, n, out_first);
@@ -115,14 +115,14 @@ struct test_uninitialized_copy_n
 #if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
 
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
@@ -152,7 +152,7 @@ struct test_uninitialized_move
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, out_first, n);
+        std::destroy_n(oneapi::dpl::execution::seq, out_first, n);
         T::SetCount(0);
 
         std::uninitialized_move(exec, first, last, out_first);
@@ -162,14 +162,14 @@ struct test_uninitialized_move
 #if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
 
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
@@ -199,7 +199,7 @@ struct test_uninitialized_move_n
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        std::destroy_n(dpstd::execution::seq, out_first, n);
+        std::destroy_n(oneapi::dpl::execution::seq, out_first, n);
         T::SetCount(0);
 
         std::uninitialized_move_n(exec, first, n, out_first);
@@ -209,14 +209,14 @@ struct test_uninitialized_move_n
 #if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
 
     template <typename InputIterator, typename OutputIterator>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, size_t n, /*is_trivial<T>=*/std::true_type)
     {
     }
@@ -248,7 +248,7 @@ test_uninitialized_copy_move_by_type()
 #else
         // common pointers are not supported for hetero backend
         // cl::sycl::buffer<T,1> buf(n); // async nature of buffer requires sycn before EXPECT_ macro
-        // auto out_begin = dpstd::begin(buf);
+        // auto out_begin = oneapi::dpl::begin(buf);
         Sequence<T> out(n, [=](size_t k) -> T { return T{}; });
         auto out_begin = out.begin();
         // TODO: "memory objects" should be created in another abstraction level

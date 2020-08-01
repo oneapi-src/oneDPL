@@ -83,13 +83,13 @@ struct test_one_policy
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specializations to skip testing in case of broken configuration
     template <typename Iterator, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
                Iterator actual_e, Size shift)
     {
     }
     template <typename Iterator, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
                Iterator actual_e, Size shift)
     {
     }
@@ -119,7 +119,7 @@ struct test_one_policy
     template <typename ExecutionPolicy, typename Iterator, typename Size>
     typename std::enable_if<
         is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
-        !std::is_same<ExecutionPolicy, dpstd::execution::sequenced_policy>::value &&
+        !std::is_same<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy>::value &&
         std::is_same<typename std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value,
         bool>::type
     check_move(ExecutionPolicy&& exec, Iterator b, Iterator e, Size shift)
@@ -135,7 +135,7 @@ struct test_one_policy
     template <typename ExecutionPolicy, typename Iterator, typename Size>
     typename std::enable_if<
         !(is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
-        !std::is_same<ExecutionPolicy, dpstd::execution::sequenced_policy>::value &&
+        !std::is_same<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy>::value &&
         std::is_same<typename std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value),
         bool>::type
     check_move(ExecutionPolicy&& exec, Iterator b, Iterator e, Size shift)

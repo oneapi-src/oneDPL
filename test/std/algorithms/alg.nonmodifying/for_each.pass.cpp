@@ -74,7 +74,7 @@ struct test_for_each_n
         typedef typename std::iterator_traits<Iterator>::value_type T;
 
         // Try for_each_n
-        std::for_each_n(dpstd::execution::seq, expected_first, n, Flip<T>(1));
+        std::for_each_n(oneapi::dpl::execution::seq, expected_first, n, Flip<T>(1));
         for_each_n(exec, first, n, Flip<T>(1));
         EXPECT_EQ_N(expected_first, first, n, "wrong effect from for_each_n");
     }

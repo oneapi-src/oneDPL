@@ -116,10 +116,10 @@ struct test_counting_iterator {
         "incorrect test_counting_iterator 'begin' and/or 'end' argument values");
 
         //test that counting_iterator is default constructible
-        dpstd::counting_iterator<IntType> b;
+        oneapi::dpl::counting_iterator<IntType> b;
 
-        b = dpstd::counting_iterator<IntType>(begin);
-        auto e = dpstd::counting_iterator<IntType>(end);
+        b = oneapi::dpl::counting_iterator<IntType>(begin);
+        auto e = oneapi::dpl::counting_iterator<IntType>(end);
 
         //checks in using
         std::for_each(b, e, [&in, &value](IntType i) { in[i] = value; });
@@ -163,10 +163,10 @@ struct test_zip_iterator {
     template <typename T1, typename T2>
     void operator()(std::vector<T1>& in1, std::vector<T2>& in2) {
         //test that zip_iterator is default constructible
-        dpstd::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> b;
+        oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> b;
 
-        b = dpstd::make_zip_iterator(in1.begin(), in2.begin());
-        auto e = dpstd::make_zip_iterator(in1.end(), in2.end());
+        b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
+        auto e = oneapi::dpl::make_zip_iterator(in1.end(), in2.end());
 
         EXPECT_TRUE( (b+1) != e, "size of input sequence insufficient for test" );
 
@@ -195,8 +195,8 @@ struct test_zip_iterator {
         // sanity check if sequence is un-sorted.
         auto res = std::is_sorted(b, e, sort_fun());
         EXPECT_TRUE(!res, "input sequence to be sorted is already sorted! Test might lead to false positives.");
-        std::sort(dpstd::make_zip_iterator(in1.begin(), in2.begin()),
-                  dpstd::make_zip_iterator(in1.end(), in2.end()),
+        std::sort(oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin()),
+                  oneapi::dpl::make_zip_iterator(in1.end(), in2.end()),
                   sort_fun());
         res = std::is_sorted(b, e, sort_fun());
         EXPECT_TRUE(res, "wrong result sorting sequence using zip-iterator");
@@ -220,8 +220,8 @@ void test_transform_effect(VecIt1 first1, VecIt1 last1, VecIt2 first2) {
     };
 
     std::copy(
-        dpstd::make_transform_iterator(first1, triple),
-        dpstd::make_transform_iterator(last1,  triple),
+        oneapi::dpl::make_transform_iterator(first1, triple),
+        oneapi::dpl::make_transform_iterator(last1,  triple),
         first2
     );
 
@@ -240,7 +240,7 @@ struct test_transform_iterator {
         test_transform_effect(in1.begin(),  in1.end(),  in2.begin());
         test_transform_effect(in1.cbegin(), in1.cend(), in2.begin());
 
-        auto new_transform_iterator = dpstd::make_transform_iterator(in2.begin(), [](T2& x) { return x + 1; });
+        auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), [](T2& x) { return x + 1; });
         test_random_iterator(new_transform_iterator);
     }
 };
@@ -256,7 +256,7 @@ void test_iterator_by_type(IntType n) {
 
     test_counting_iterator()(in, beg,     end,     /*value*/ T(-1));
     test_counting_iterator()(in, beg+123, end-321, /*value*/ T(42));
-    test_random_iterator(dpstd::counting_iterator<IntType>(beg));
+    test_random_iterator(oneapi::dpl::counting_iterator<IntType>(beg));
 
     test_zip_iterator()(in, in2);
     test_transform_iterator()(in, in2);

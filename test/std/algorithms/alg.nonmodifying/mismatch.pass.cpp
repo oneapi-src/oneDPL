@@ -43,7 +43,7 @@ struct test_mismatch
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
-            const auto expected = mismatch(dpstd::execution::seq, first1, last1, first2, last2, std::equal_to<T>());
+            const auto expected = mismatch(oneapi::dpl::execution::seq, first1, last1, first2, last2, std::equal_to<T>());
             const auto res2 = mismatch(exec, first1, last1, first2, last2);
             EXPECT_TRUE(expected == res2, "wrong return result from mismatch");
         }
@@ -72,7 +72,7 @@ struct test_mismatch_predicate
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
-            const auto expected = mismatch(dpstd::execution::seq, first1, last1, first2, last2, std::equal_to<T>());
+            const auto expected = mismatch(oneapi::dpl::execution::seq, first1, last1, first2, last2, std::equal_to<T>());
             const auto res1 = mismatch(exec, first1, last1, first2, last2, std::equal_to<T>());
             EXPECT_TRUE(expected == res1, "wrong return result from mismatch with predicate");
         }
