@@ -32,21 +32,21 @@ main()
 
     auto lambda1 = [](auto& val) { return val = val * val; };
 
-    using namespace dpstd::experimental::ranges;
+    using namespace oneapi::dpl::experimental::ranges;
 
     {
         cl::sycl::buffer<int> A(data, cl::sycl::range<1>(max_n));
 
         auto view = all_view<int, cl::sycl::access::mode::read_write>(A);
-        dpstd::ranges::for_each(dpstd::execution::default_policy, view, lambda1);
+        for_each(oneapi::dpl::execution::dpcpp_default, view, lambda1);
     }
 
     //check result
     int expected[max_n];
-    std::transform(data, data + max_n, expected, lambda1);
+    ::std::transform(data, data + max_n, expected, lambda1);
 
     EXPECT_EQ_N(expected, data, max_n, "wrong effect from for_each with sycl ranges");
 #endif //_PSTL_USE_RANGES
-    std::cout << TestUtils::done() << std::endl;
+    ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

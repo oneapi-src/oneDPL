@@ -99,8 +99,8 @@ struct test_one_policy
                Compare compare)
     {
         prepare_data(first, last, n1, trash);
-        RandomAccessIterator exp = std::partial_sort_copy(first, last, exp_first, exp_last, compare);
-        RandomAccessIterator res = std::partial_sort_copy(exec, first, last, d_first, d_last, compare);
+        RandomAccessIterator exp = ::std::partial_sort_copy(first, last, exp_first, exp_last, compare);
+        RandomAccessIterator res = ::std::partial_sort_copy(exec, first, last, d_first, d_last, compare);
 
         EXPECT_TRUE((exp - exp_first) == (res - d_first), "wrong result from partial_sort_copy with predicate");
         EXPECT_EQ_N(exp_first, d_first, n2, "wrong effect from partial_sort_copy with predicate");
@@ -111,8 +111,8 @@ struct test_one_policy
     operator()(Policy&& exec, InputIterator first, InputIterator last, Size n1, Size n2, const T& trash)
     {
         prepare_data(first, last, n1, trash);
-        RandomAccessIterator exp = std::partial_sort_copy(first, last, exp_first, exp_last);
-        RandomAccessIterator res = std::partial_sort_copy(exec, first, last, d_first, d_last);
+        RandomAccessIterator exp = ::std::partial_sort_copy(first, last, exp_first, exp_last);
+        RandomAccessIterator res = ::std::partial_sort_copy(exec, first, last, d_first, d_last);
 
         EXPECT_TRUE((exp - exp_first) == (res - d_first), "wrong result from partial_sort_copy without predicate");
         EXPECT_EQ_N(exp_first, d_first, n2, "wrong effect from partial_sort_copy without predicate");
@@ -124,11 +124,11 @@ struct test_one_policy
     prepare_data(InputIterator first, InputIterator last, Size n1, const T& trash)
     {
         // The rand()%(2*n+1) encourages generation of some duplicates.
-        std::srand(42);
-        std::generate(first, last, [n1]() { return T(rand() % (2 * n1 + 1)); });
+        ::std::srand(42);
+        ::std::generate(first, last, [n1]() { return T(rand() % (2 * n1 + 1)); });
 
-        std::fill(exp_first, exp_last, trash);
-        std::fill(d_first, d_last, trash);
+        ::std::fill(exp_first, exp_last, trash);
+        ::std::fill(d_first, d_last, trash);
     }
 };
 
@@ -138,12 +138,12 @@ test_partial_sort_copy(Compare compare)
 {
 
     typedef typename Sequence<T>::iterator iterator_type;
-    const std::size_t n_max = 100000;
+    const ::std::size_t n_max = 100000;
     Sequence<T> in(n_max);
     Sequence<T> out(2 * n_max);
     Sequence<T> exp(2 * n_max);
-    std::size_t n1 = 0;
-    std::size_t n2;
+    ::std::size_t n1 = 0;
+    ::std::size_t n2;
     T trash = T(-666);
     for (; n1 < n_max; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {
@@ -185,7 +185,7 @@ struct test_non_const
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
         invoke_if(exec, [&]() {
-            partial_sort_copy(exec, input_iter, input_iter, out_iter, out_iter, non_const(std::less<T>()));
+            partial_sort_copy(exec, input_iter, input_iter, out_iter, out_iter, non_const(::std::less<T>()));
         });
     }
 };
@@ -206,6 +206,6 @@ main()
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from partial_sort_copy: number of ctor and dtor calls is not equal");
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

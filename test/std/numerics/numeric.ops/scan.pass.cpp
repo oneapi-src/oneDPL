@@ -85,8 +85,8 @@ template <class InputIterator, class OutputIterator>
 OutputIterator
 inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result)
 {
-    typedef typename std::iterator_traits<InputIterator>::value_type input_type;
-    return inclusive_scan_serial(first, last, result, std::plus<input_type>());
+    typedef typename ::std::iterator_traits<InputIterator>::value_type input_type;
+    return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
 }
 
 // Most of the framework required for testing inclusive and exclusive scan is identical,
@@ -108,7 +108,7 @@ struct test_inclusive_scan_with_plus
         auto orr = inclusive_scan(exec, in_first, in_last, out_first);
         EXPECT_TRUE(out_last == orr, "inclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from inclusive_scan");
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
     }
 };
 
@@ -126,7 +126,7 @@ struct test_exclusive_scan_with_plus
         auto orr = exclusive_scan(exec, in_first, in_last, out_first, init);
         EXPECT_TRUE(out_last == orr, "exclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from exclusive_scan");
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
     }
 };
 
@@ -163,7 +163,7 @@ struct test_inclusive_scan_with_binary_op
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
               typename BinaryOp>
-    typename std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
+    typename ::std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
                Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
     {
@@ -174,12 +174,12 @@ struct test_inclusive_scan_with_binary_op
 
         EXPECT_TRUE(out_last == orr, "inclusive_scan with binary operator returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from inclusive_scan with binary operator");
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
     }
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
               typename BinaryOp>
-    typename std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
+    typename ::std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
                Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
     {
@@ -191,7 +191,7 @@ struct test_exclusive_scan_with_binary_op
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
               typename BinaryOp>
-    typename std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
+    typename ::std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
                Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
     {
@@ -203,12 +203,12 @@ struct test_exclusive_scan_with_binary_op
 
         EXPECT_TRUE(out_last == orr, "exclusive_scan with binary operator returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from exclusive_scan with binary operator");
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
     }
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
               typename BinaryOp>
-    typename std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
+    typename ::std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
                Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
     {
@@ -258,6 +258,6 @@ main()
     test_with_plus<float64_t>(0.0, -666.0, [](uint32_t k) { return float64_t((k % 991 + 1) ^ (k % 997 + 2)); });
     test_with_plus<int32_t>(0.0, -666.0, [](uint32_t k) { return int32_t((k % 991 + 1) ^ (k % 997 + 2)); });
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

@@ -128,7 +128,8 @@ class uniform_real_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_floating_point<scalar_type>::value, "Unsupported RealType of uniform_real_distribution");
+    static_assert(::std::is_floating_point<scalar_type>::value,
+        "oneapi::std::uniform_real_distribution. Error: unsupported data type");
 
     // Distribution parameters
     scalar_type a_;

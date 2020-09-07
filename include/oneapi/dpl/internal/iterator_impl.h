@@ -54,24 +54,43 @@ struct extract_accessor<dpstd::__internal::sycl_iterator<Mode, T, Allocator>>
     }
 };
 #endif
-} // namespace internal
 
+// Copyable implementation of ignore to allow creation of temporary buffers using the type.
+struct ignore_assign
+{
+    template <typename T>
+    ignore_assign&
+    operator=(const T&)
+    {
+        return *this;
+    }
+
+    template <typename T>
+    const ignore_assign&
+    operator=(const T&) const
+    {
+        return *this;
+    }
+};
+
+constexpr ignore_assign ignore{};
+} // namespace internal
 
 class discard_iterator
 {
   public:
-    typedef std::ptrdiff_t difference_type;
-    typedef decltype(std::ignore) value_type;
+    typedef ::std::ptrdiff_t difference_type;
+    typedef internal::ignore_assign value_type;
     typedef void* pointer;
     typedef value_type reference;
-    typedef std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = std::true_type;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    using is_passed_directly = ::std::true_type;
 
     discard_iterator() : __my_position_() {}
     explicit discard_iterator(difference_type __init) : __my_position_(__init) {}
 
-    auto operator*() const -> decltype(std::ignore) { return std::ignore; }
-    auto operator[](difference_type) const -> decltype(std::ignore) { return std::ignore; }
+    reference operator*() const { return internal::ignore; }
+    reference operator[](difference_type) const { return internal::ignore; }
 
     constexpr bool
     operator==(const discard_iterator& __it) const
@@ -160,28 +179,26 @@ class permutation_iterator
 {
   private:
     using source_accessor_extractor = internal::extract_accessor<SourceIterator>;
-    using map_accessor_extractor    = internal::extract_accessor<IndexMap>;
+    using map_accessor_extractor = internal::extract_accessor<IndexMap>;
 
     // constructor used by operator+ and operator-
     permutation_iterator(const SourceIterator& input1, const IndexMap& input2,
                          const typename source_accessor_extractor::accessor_type source,
-                         const typename map_accessor_extractor::accessor_type map,
-                         std::size_t index)
+                         const typename map_accessor_extractor::accessor_type map, ::std::size_t index)
         : my_source_it(input1), my_index_map(input2), my_source(source), my_map(map), my_index(index)
     {
     }
 
   public:
-    typedef typename std::iterator_traits<SourceIterator>::difference_type difference_type;
-    typedef typename std::iterator_traits<SourceIterator>::value_type value_type;
-    typedef typename std::iterator_traits<SourceIterator>::pointer pointer;
-    typedef typename std::iterator_traits<SourceIterator>::reference reference;
-    typedef std::random_access_iterator_tag iterator_category;
-    typedef std::true_type is_permutation;
+    typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<SourceIterator>::value_type value_type;
+    typedef typename ::std::iterator_traits<SourceIterator>::pointer pointer;
+    typedef typename ::std::iterator_traits<SourceIterator>::reference reference;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    typedef ::std::true_type is_permutation;
 
-    permutation_iterator(const SourceIterator& input1, const IndexMap& input2, std::size_t index = 0)
-        : my_source_it(input1), my_index_map(input2),
-          my_source(source_accessor_extractor::get(my_source_it)),
+    permutation_iterator(const SourceIterator& input1, const IndexMap& input2, ::std::size_t index = 0)
+        : my_source_it(input1), my_index_map(input2), my_source(source_accessor_extractor::get(my_source_it)),
           my_map(map_accessor_extractor::get(my_index_map)), my_index(index)
     {
     }
@@ -198,8 +215,7 @@ class permutation_iterator
         return my_index_map;
     }
 
-    reference operator*() const { return my_source[difference_type(my_map[my_index])];
-    }
+    reference operator*() const { return my_source[difference_type(my_map[my_index])]; }
 
     reference operator[](difference_type i) const { return *(*this + i); }
 
@@ -296,17 +312,17 @@ class permutation_iterator
         return !(*this < it);
     }
 
-private:
+  private:
     SourceIterator my_source_it;
     IndexMap my_index_map;
     typename source_accessor_extractor::accessor_type my_source;
     typename map_accessor_extractor::accessor_type my_map;
-    std::size_t my_index;
+    ::std::size_t my_index;
 };
 
 template <typename SourceIterator, typename IndexMap>
 permutation_iterator<SourceIterator, IndexMap>
-make_permutation_iterator( SourceIterator source, IndexMap map )
+make_permutation_iterator(SourceIterator source, IndexMap map)
 {
     return permutation_iterator<SourceIterator, IndexMap>(source, map);
 }
@@ -317,7 +333,7 @@ make_permutation_iterator( SourceIterator source, IndexMap map )
 namespace dpstd
 {
 using oneapi::dpl::discard_iterator;
-using oneapi::dpl::permutation_iterator;
 using oneapi::dpl::make_permutation_iterator;
+using oneapi::dpl::permutation_iterator;
 } // end namespace dpstd
 #endif /* __DPSTD_iterator_impl_H */

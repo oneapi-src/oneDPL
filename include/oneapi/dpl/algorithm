@@ -37,4 +37,22 @@
 #    include "oneapi/dpl/internal/reduce_by_segment_impl.h"
 #endif
 
+namespace oneapi
+{
+namespace std
+{
+using ::std::binary_search;
+using ::std::equal_range;
+using ::std::lower_bound;
+using ::std::upper_bound;
+} // namespace std
+
+namespace dpl
+{
+using namespace oneapi::std;
+} // namespace dpl
+
+} // namespace oneapi
+namespace dpl = oneapi::dpl;
+
 #endif /* _TEST_SUPPORT_STDLIB_ALGORITHM */

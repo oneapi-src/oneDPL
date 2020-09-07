@@ -43,7 +43,7 @@ struct test_find
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Value value)
     {
-        auto i = std::find(first, last, value);
+        auto i = ::std::find(first, last, value);
         auto j = find(exec, first, last, value);
         EXPECT_TRUE(i == j, "wrong return value from find");
     }
@@ -70,7 +70,7 @@ test(Value value, Hit hit, Miss miss)
     }
 }
 
-// Type defined for sake of checking that std::find works with asymmetric ==.
+// Type defined for sake of checking that ::std::find works with asymmetric ==.
 class Weird
 {
     Number value;
@@ -97,6 +97,6 @@ main()
     test<float32_t>(-0.0, [](int32_t j) { return j & 1 ? 0.0 : -0.0; }, // hit
                     [](int32_t j) { return j == 0 ? ~j : j; });         // miss
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

@@ -32,15 +32,15 @@ namespace __serial_backend
 template <typename _Tp>
 class __buffer
 {
-    std::allocator<_Tp> __allocator_;
+    ::std::allocator<_Tp> __allocator_;
     _Tp* __ptr_;
-    const std::size_t __buf_size_;
+    const ::std::size_t __buf_size_;
     __buffer(const __buffer&) = delete;
     void
     operator=(const __buffer&) = delete;
 
   public:
-    __buffer(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
+    __buffer(::std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
 
     operator bool() const { return __ptr_ != nullptr; }
     _Tp*
@@ -109,7 +109,7 @@ __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _UnaryOp, _Tp __init, 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
 __parallel_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
-                       _LeafSort __leaf_sort, std::size_t = 0)
+                       _LeafSort __leaf_sort, ::std::size_t = 0)
 {
     __leaf_sort(__first, __last, __comp);
 }
@@ -128,8 +128,8 @@ template <class _ExecutionPolicy, typename _F1, typename _F2>
 void
 __parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
 {
-    std::forward<_F1>(__f1)();
-    std::forward<_F2>(__f2)();
+    ::std::forward<_F1>(__f1)();
+    ::std::forward<_F2>(__f2)();
 }
 
 } // namespace __serial_backend

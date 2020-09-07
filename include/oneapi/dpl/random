@@ -35,9 +35,9 @@ namespace oneapi
 namespace std
 {
 // Engines and engine adaptors
+using oneapi::dpl::discard_block_engine;
 using oneapi::dpl::linear_congruential_engine;
 using oneapi::dpl::subtract_with_carry_engine;
-using oneapi::dpl::discard_block_engine;
 
 // Engines and engine adaptors with predefined parameters
 using minstd_rand0 = linear_congruential_engine<uint_fast32_t, 16807, 0, 2147483647>;
@@ -49,9 +49,9 @@ using ranlux24 = discard_block_engine<ranlux24_base, 223, 23>;
 using ranlux48 = discard_block_engine<ranlux48_base, 389, 11>;
 
 // Distributions
-using oneapi::dpl::uniform_real_distribution;
-using oneapi::dpl::uniform_int_distribution;
 using oneapi::dpl::normal_distribution;
+using oneapi::dpl::uniform_int_distribution;
+using oneapi::dpl::uniform_real_distribution;
 
 } // namespace std
 

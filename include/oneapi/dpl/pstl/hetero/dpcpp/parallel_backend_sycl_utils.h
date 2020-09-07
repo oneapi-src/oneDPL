@@ -32,9 +32,9 @@ namespace std
 {
 template <size_t _Idx, typename... _Tp>
 _DPSTD_DEPRECATED auto
-get(oneapi::dpl::__ranges::zip_view<_Tp...>& __a) -> decltype(oneapi::dpl::__internal::get<_Idx>(__a.tuple()))
+get(oneapi::dpl::__ranges::zip_view<_Tp...>& __a) -> decltype(::std::get<_Idx>(__a.tuple()))
 {
-    return oneapi::dpl::__internal::get<_Idx>(__a.tuple());
+    return ::std::get<_Idx>(__a.tuple());
 }
 } // namespace std
 
@@ -44,12 +44,6 @@ namespace dpl
 {
 namespace __par_backend_hetero
 {
-
-namespace __internal
-{
-using oneapi::dpl::__internal::get;
-using oneapi::dpl::__internal::make_tuple;
-} // namespace __internal
 
 //-----------------------------------------------------------------------
 // sycl::access::mode and sycl::access::target helpers
@@ -65,9 +59,9 @@ static constexpr access_mode discard_write = access_mode::discard_write;
 static constexpr access_mode discard_read_write = access_mode::discard_read_write;
 
 template <typename _T>
-using __decay_t = typename std::decay<_T>::type;
+using __decay_t = typename ::std::decay<_T>::type;
 template <bool __flag, typename _T = void>
-using __enable_if_t = typename std::enable_if<__flag, _T>::type;
+using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
 
 // function to hide zip_iterator creation
 template <typename... T>
@@ -115,33 +109,35 @@ inline void __print_device_debug_info(_Policy, size_t = 0, size_t = 0)
 
 // struct for checking if iterator is heterogeneous or not
 template <typename Iter, typename Void = void> // for non-heterogeneous iterators
-struct is_hetero_iterator : std::false_type
+struct is_hetero_iterator : ::std::false_type
 {
 };
 
 template <typename Iter> // for heterogeneous iterators
-struct is_hetero_iterator<Iter, typename std::enable_if<Iter::is_hetero::value, void>::type> : std::true_type
+struct is_hetero_iterator<Iter, typename ::std::enable_if<Iter::is_hetero::value, void>::type> : ::std::true_type
 {
 };
 // struct for checking if iterator should be passed directly to device or not
 template <typename Iter, typename Void = void> // for iterators that should not be passed directly
-struct is_passed_directly : std::false_type
+struct is_passed_directly : ::std::false_type
 {
 };
 
 template <typename Iter> // for iterators defined as direct pass
-struct is_passed_directly<Iter, typename std::enable_if<Iter::is_passed_directly::value, void>::type> : std::true_type
+struct is_passed_directly<Iter, typename ::std::enable_if<Iter::is_passed_directly::value, void>::type>
+    : ::std::true_type
 {
 };
 
 template <typename Iter> // for pointers to objects on device
-struct is_passed_directly<Iter, typename std::enable_if<std::is_pointer<Iter>::value, void>::type> : std::true_type
+struct is_passed_directly<Iter, typename ::std::enable_if<::std::is_pointer<Iter>::value, void>::type>
+    : ::std::true_type
 {
 };
 
 // functor to extract buffer from iterator or create temporary buffer to run on device
 
-template <typename UnaryFunction, typename Iterator>
+template <typename Iterator, typename UnaryFunction>
 struct transform_buffer_wrapper;
 
 // TODO: shifted_buffer can be removed when sub-buffers over sub-buffers will be supported.
@@ -153,7 +149,7 @@ struct shifted_buffer
     container_t buffer;
     StartIdx startIdx{};
 
-    shifted_buffer(container_t&& buf) : buffer(std::move(buf)) {}
+    shifted_buffer(container_t&& buf) : buffer(::std::move(buf)) {}
 
     shifted_buffer(const container_t& buf, StartIdx sId) : buffer(buf), startIdx(sId) {}
 };
@@ -162,9 +158,9 @@ struct get_buffer
 {
     // for heterogeneous iterator
     template <typename Iter>
-    typename std::enable_if<is_hetero_iterator<Iter>::value,
-                            shifted_buffer<typename std::iterator_traits<Iter>::value_type,
-                                           typename std::iterator_traits<Iter>::difference_type>>::type
+    typename ::std::enable_if<is_hetero_iterator<Iter>::value,
+                              shifted_buffer<typename ::std::iterator_traits<Iter>::value_type,
+                                             typename ::std::iterator_traits<Iter>::difference_type>>::type
     operator()(Iter it, Iter)
     {
         return {it.get_buffer(), it - oneapi::dpl::begin(it.get_buffer())};
@@ -189,10 +185,10 @@ struct get_buffer
     }
 
     // for transform_iterator
-    template <typename UnaryFunction, typename Iterator>
-    transform_buffer_wrapper<UnaryFunction, Iterator>
-    operator()(oneapi::dpl::transform_iterator<UnaryFunction, Iterator> it1,
-               oneapi::dpl::transform_iterator<UnaryFunction, Iterator> it2)
+    template <typename Iterator, typename UnaryFunction>
+    transform_buffer_wrapper<Iterator, UnaryFunction>
+    operator()(oneapi::dpl::transform_iterator<Iterator, UnaryFunction> it1,
+               oneapi::dpl::transform_iterator<Iterator, UnaryFunction> it2)
     {
         return {operator()(it1.base(), it2.base()), it1.functor()};
     }
@@ -200,54 +196,54 @@ struct get_buffer
     // the function is needed to create buffer over iterators depending on const or non-const iterators
     // for non-const iterators
     template <typename Iter>
-    typename std::enable_if<!oneapi::dpl::__internal::is_const_iterator<Iter>::value,
-                            cl::sycl::buffer<typename std::iterator_traits<Iter>::value_type, 1>>::type
+    typename ::std::enable_if<!oneapi::dpl::__internal::is_const_iterator<Iter>::value,
+                              cl::sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
     get_buffer_from_iters(Iter first, Iter last)
     {
-        auto temp_buf = cl::sycl::buffer<typename std::iterator_traits<Iter>::value_type, 1>(first, last);
+        auto temp_buf = cl::sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>(first, last);
         temp_buf.set_final_data(first);
         return temp_buf;
     }
 
     // for const iterators
     template <typename Iter>
-    typename std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value,
-                            cl::sycl::buffer<typename std::iterator_traits<Iter>::value_type, 1>>::type
+    typename ::std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value,
+                              cl::sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
     get_buffer_from_iters(Iter first, Iter last)
     {
-        return sycl::buffer<typename std::iterator_traits<Iter>::value_type, 1>(first, last);
+        return sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>(first, last);
     }
 
     // for host iterator
     template <typename Iter>
-    typename std::enable_if<!is_hetero_iterator<Iter>::value && !is_passed_directly<Iter>::value,
-                            shifted_buffer<typename std::iterator_traits<Iter>::value_type,
-                                           typename std::iterator_traits<Iter>::difference_type>>::type
+    typename ::std::enable_if<!is_hetero_iterator<Iter>::value && !is_passed_directly<Iter>::value,
+                              shifted_buffer<typename ::std::iterator_traits<Iter>::value_type,
+                                             typename ::std::iterator_traits<Iter>::difference_type>>::type
     operator()(Iter first, Iter last)
     {
-        using T = typename std::iterator_traits<Iter>::value_type;
+        using T = typename ::std::iterator_traits<Iter>::value_type;
 
         if (first == last)
         {
             //If the sequence is empty we return a dummy buffer
-            return {sycl::buffer<T, 1>(sycl::range<1>(1)), typename std::iterator_traits<Iter>::difference_type{}};
+            return {sycl::buffer<T, 1>(sycl::range<1>(1)), typename ::std::iterator_traits<Iter>::difference_type{}};
         }
         else
         {
-            return {get_buffer_from_iters(first, last), typename std::iterator_traits<Iter>::difference_type{}};
+            return {get_buffer_from_iters(first, last), typename ::std::iterator_traits<Iter>::difference_type{}};
         }
     }
 
     // for raw pointers and direct pass objects
     template <typename Iter>
-    typename std::enable_if<is_passed_directly<Iter>::value, Iter>::type
+    typename ::std::enable_if<is_passed_directly<Iter>::value, Iter>::type
     operator()(Iter first, Iter)
     {
         return first;
     }
 
     template <typename Iter>
-    typename std::enable_if<is_passed_directly<Iter>::value, const Iter>::type
+    typename ::std::enable_if<is_passed_directly<Iter>::value, const Iter>::type
     operator()(const Iter first, const Iter) const
     {
         return first;
@@ -255,9 +251,10 @@ struct get_buffer
 };
 
 template <typename Iterator>
-using iterator_buffer_type = decltype(std::declval<get_buffer>()(std::declval<Iterator>(), std::declval<Iterator>()));
+using iterator_buffer_type =
+    decltype(::std::declval<get_buffer>()(::std::declval<Iterator>(), ::std::declval<Iterator>()));
 
-template <typename UnaryFunction, typename Iterator>
+template <typename Iterator, typename UnaryFunction>
 struct transform_buffer_wrapper
 {
     iterator_buffer_type<Iterator> iterator_buffer;
@@ -273,7 +270,7 @@ struct get_access_mode
 
 template <typename Iter> // for any const iterators
 struct get_access_mode<Iter,
-                       typename std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value, void>::type>
+                       typename ::std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value, void>::type>
 {
 
     static constexpr auto mode = cl::sycl::access::mode::read;
@@ -281,7 +278,7 @@ struct get_access_mode<Iter,
 
 template <typename Iter> // for heterogeneous and non-const iterators
 struct get_access_mode<
-    Iter, typename std::enable_if<
+    Iter, typename ::std::enable_if<
               is_hetero_iterator<Iter>::value && !oneapi::dpl::__internal::is_const_iterator<Iter>::value, void>::type>
 {
 
@@ -290,7 +287,7 @@ struct get_access_mode<
 template <typename... Iters> // for zip_iterators
 struct get_access_mode<oneapi::dpl::zip_iterator<Iters...>>
 {
-    static constexpr auto mode = std::make_tuple(get_access_mode<Iters>::mode...);
+    static constexpr auto mode = ::std::make_tuple(get_access_mode<Iters>::mode...);
 };
 
 // TODO: for counting_iterator
@@ -309,7 +306,7 @@ struct ApplyFunc
 // functor to get accessor from buffer
 // (or to get tuple of accessors from tuple of buffers)
 //------------------------------------------------------------------------
-template <typename UnaryFunction, typename Iterator>
+template <typename Iterator, typename UnaryFunction>
 struct transform_accessor_wrapper;
 
 template <typename BaseIter>
@@ -325,7 +322,7 @@ struct get_access
     sycl::accessor<T, 1, get_access_mode<LocalIter>::mode, sycl::access::target::global_buffer>
     operator()(shifted_buffer<T, StartIdx> buf)
     {
-        //std::cout << (unsigned int) get_access_mode<BaseIter>::mode << std::endl;
+        //::std::cout << (unsigned int) get_access_mode<BaseIter>::mode << ::std::endl;
         return buf.buffer.template get_access<get_access_mode<BaseIter>::mode>(cgh, buf.buffer.get_range(),
                                                                                buf.startIdx);
     }
@@ -338,23 +335,23 @@ struct get_access
     }
 
     // for transform_iterator
-    template <typename UnaryFunction, typename Iterator>
-    transform_accessor_wrapper<UnaryFunction, Iterator>
-    operator()(const transform_buffer_wrapper<UnaryFunction, Iterator>& buf)
+    template <typename Iterator, typename UnaryFunction>
+    transform_accessor_wrapper<Iterator, UnaryFunction>
+    operator()(const transform_buffer_wrapper<Iterator, UnaryFunction>& buf)
     {
         return {get_access<Iterator>(cgh)(buf.iterator_buffer), buf.functor};
     }
 
     // for raw pointers and direct pass objects
     template <typename Iter>
-    typename std::enable_if<is_passed_directly<Iter>::value, Iter>::type
+    typename ::std::enable_if<is_passed_directly<Iter>::value, Iter>::type
     operator()(Iter first)
     {
         return first;
     }
 
     template <typename Iter>
-    typename std::enable_if<is_passed_directly<Iter>::value, const Iter>::type
+    typename ::std::enable_if<is_passed_directly<Iter>::value, const Iter>::type
     operator()(const Iter first) const
     {
         return first;
@@ -382,16 +379,16 @@ struct get_access<oneapi::dpl::zip_iterator<BaseIters...>>
 
 template <typename Iterator>
 using iterator_accessor_type =
-    decltype(std::declval<get_access<Iterator>>()(std::declval<iterator_buffer_type<Iterator>>()));
+    decltype(::std::declval<get_access<Iterator>>()(::std::declval<iterator_buffer_type<Iterator>>()));
 
-template <typename UnaryFunction, typename Iterator>
+template <typename Iterator, typename UnaryFunction>
 struct transform_accessor_wrapper
 {
     iterator_accessor_type<Iterator> iterator_accessor;
     UnaryFunction functor;
 
     template <typename ID>
-    typename std::iterator_traits<oneapi::dpl::transform_iterator<UnaryFunction, Iterator>>::reference
+    typename ::std::iterator_traits<oneapi::dpl::transform_iterator<Iterator, UnaryFunction>>::reference
     operator[](ID id) const
     {
         return functor(iterator_accessor[id]);
@@ -409,7 +406,7 @@ struct __is_comp_ascending
     static constexpr bool value = false;
 };
 template <typename _T>
-struct __is_comp_ascending<std::less<_T>>
+struct __is_comp_ascending<::std::less<_T>>
 {
     static constexpr bool value = true;
 };
@@ -426,7 +423,7 @@ struct __is_comp_descending
     static constexpr bool value = false;
 };
 template <typename _T>
-struct __is_comp_descending<std::greater<_T>>
+struct __is_comp_descending<::std::greater<_T>>
 {
     static constexpr bool value = true;
 };
@@ -449,9 +446,9 @@ struct __local_buffer<cl::sycl::buffer<_T, __dim, _AllocT>>
     using type = cl::sycl::buffer<_T, __dim, _AllocT>;
 };
 
-//if we take std::tuple as a type for buffer we should convert to internal::tuple
+//if we take ::std::tuple as a type for buffer we should convert to internal::tuple
 template <int __dim, typename _AllocT, typename... _T>
-struct __local_buffer<cl::sycl::buffer<std::tuple<_T...>, __dim, _AllocT>>
+struct __local_buffer<cl::sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
 {
     using type = cl::sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
@@ -471,7 +468,7 @@ struct __buffer<_ExecutionPolicy, _T, cl::sycl::buffer<_BValueT, __dim, _AllocT>
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy /*__exec*/, std::size_t __n_elements) : __container{cl::sycl::range<1>(__n_elements)} {}
+    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{cl::sycl::range<1>(__n_elements)} {}
 
     auto
     get() -> decltype(oneapi::dpl::begin(__container)) const
@@ -498,7 +495,7 @@ struct __buffer<_ExecutionPolicy, _T, __internal::shifted_buffer<_T, _StartIdx>>
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy /*__exec*/, std::size_t __n_elements)
+    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements)
         : __container{__buf_t{cl::sycl::range<1>(__n_elements)}}
     {
     }
@@ -528,7 +525,7 @@ struct __sycl_usm_alloc
     _ExecutionPolicy __exec;
 
     _T*
-    operator()(std::size_t __elements) const
+    operator()(::std::size_t __elements) const
     {
         const auto& __queue = __exec.queue();
         return (_T*)cl::sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t);
@@ -541,13 +538,13 @@ struct __buffer<_ExecutionPolicy, _T, _BValueT*>
 {
   private:
     using __exec_policy_t = __decay_t<_ExecutionPolicy>;
-    using __container_t = std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
+    using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
     using __alloc_t = cl::sycl::usm::alloc;
 
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy __exec, std::size_t __n_elements)
+    __buffer(_ExecutionPolicy __exec, ::std::size_t __n_elements)
         : __container(__sycl_usm_alloc<__exec_policy_t, _T, __alloc_t::shared>{__exec}(__n_elements),
                       __sycl_usm_free<__exec_policy_t, _T>{__exec})
     {
@@ -591,7 +588,7 @@ struct __repacked_tuple
 };
 
 template <typename... Args>
-struct __repacked_tuple<std::tuple<Args...>>
+struct __repacked_tuple<::std::tuple<Args...>>
 {
     using type = oneapi::dpl::__internal::tuple<Args...>;
 };

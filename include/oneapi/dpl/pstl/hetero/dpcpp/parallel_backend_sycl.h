@@ -33,7 +33,7 @@
 #include "sycl_iterator.h"
 #include "utils_ranges_sycl.h"
 
-#if _USE_SUB_GROUPS
+#if _USE_RADIX_SORT
 #    include "parallel_backend_sycl_radix_sort.h"
 #endif
 
@@ -186,10 +186,10 @@ template <template <typename> class _NewKernelName, typename _Policy,
 auto
 make_wrapped_policy(_Policy&& __policy)
     -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        std::forward<_Policy>(__policy)))
+        ::std::forward<_Policy>(__policy)))
 {
     return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        std::forward<_Policy>(__policy));
+        ::std::forward<_Policy>(__policy));
 }
 
 #if _PSTL_FPGA_DEVICE
@@ -199,11 +199,11 @@ auto
 make_wrapped_policy(_Policy&& __policy)
     -> decltype(oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
                                                          _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        std::forward<_Policy>(__policy)))
+        ::std::forward<_Policy>(__policy)))
 {
     return oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
                                                     _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        std::forward<_Policy>(__policy));
+        ::std::forward<_Policy>(__policy));
 }
 #endif
 
@@ -277,10 +277,10 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... 
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    auto __n = __get_first_range(__rngs...).size();
+    auto __n = __get_first_range(::std::forward<_Ranges>(__rngs)...).size();
     assert(__n > 0);
 
-    using _Policy = typename std::decay<_ExecutionPolicy>::type;
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
     using __kernel_name_t = __parallel_for_kernel<_Fp, __kernel_name, _Ranges...>;
@@ -290,7 +290,9 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
     __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
-        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+        //get an access to data under SYCL buffer:
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
         __cgh.parallel_for<__kernel_name_t>(sycl::range</*dim=*/1>(__count),
                                             [=](sycl::item</*dim=*/1> __item_id) mutable {
                                                 auto __idx = __item_id.get_linear_id();
@@ -320,34 +322,37 @@ __parallel_for(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
 // parallel_transform_reduce
 //------------------------------------------------------------------------
 
-template <typename _Tp, typename _ExecutionPolicy, typename _Iterator, typename _Up, typename _Cp, typename _Rp,
-          typename... _PolicyParams>
+template <typename _Tp, typename _ExecutionPolicy, typename _Up, typename _Cp, typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Tp>
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Up __u, _Cp __combine,
-                            _Rp __brick_reduce)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
-    using _Policy = typename std::decay<_ExecutionPolicy>::type;
+    auto __n = __get_first_range(__rngs...).size();
+    assert(__n > 0);
+
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_reduce_kernel_1<_Iterator, _Up, _Cp, _Rp, __kernel_name>;
-    using __kernel_2_name_t = __parallel_reduce_kernel_2<_Iterator, _Up, _Cp, _Rp, __kernel_name>;
+    using __kernel_1_name_t = __parallel_reduce_kernel_1<_Up, _Cp, _Rp, __kernel_name, _Ranges...>;
+    using __kernel_2_name_t = __parallel_reduce_kernel_2<_Up, _Cp, _Rp, __kernel_name, _Ranges...>;
 #else
     using __kernel_1_name_t = __parallel_reduce_kernel_1<__kernel_name>;
     using __kernel_2_name_t = __parallel_reduce_kernel_2<__kernel_name>;
 #endif
 
-    auto __target_buffer = __internal::get_buffer()(__first, __last); // hides sycl::buffer
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    // change __wgroup_size according to local memory limit
+    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
+        ::std::forward<_ExecutionPolicy>(__exec), __wgroup_size);
 #if _PSTL_COMPILE_KERNEL
-    auto __kernel = __kernel_1_name_t::__compile_kernel(std::forward<_ExecutionPolicy>(__exec));
-    __wgroup_size =
-        std::min(__wgroup_size,
-                 oneapi::dpl::__internal::__kernel_work_group_size(std::forward<_ExecutionPolicy>(__exec), __kernel));
+    auto __kernel = __kernel_1_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
+                                                  ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-    auto __mcu = oneapi::dpl::__internal::__max_compute_units(std::forward<_ExecutionPolicy>(__exec));
-    auto __n = __last - __first;
+
+    auto __mcu = oneapi::dpl::__internal::__max_compute_units(::std::forward<_ExecutionPolicy>(__exec));
+
     auto __n_groups = (__n - 1) / __wgroup_size + 1;
-    __n_groups = std::min(decltype(__n_groups)(__mcu), __n_groups);
+    __n_groups = ::std::min(decltype(__n_groups)(__mcu), __n_groups);
     // TODO: try to change __n_groups with another formula for more perfect load balancing
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
@@ -355,37 +360,38 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Iterator __first, _Itera
     // 0. Create temporary global buffer to store temporary value
     auto __temp = sycl::buffer<_Tp, 1>(sycl::range<1>(__n_groups));
     // 1. Reduce over each work_group
-    auto __local_reduce_event =
-        __exec.queue().submit([&__target_buffer, &__temp, &__brick_reduce, &__u, __n, __n_groups,
+    auto __local_reduce_event = __exec.queue().submit([&__rngs..., &__temp, &__brick_reduce, &__u, __n, __n_groups,
 #if _PSTL_COMPILE_KERNEL
-                               &__kernel,
+                                                       &__kernel,
 #endif
-                               __wgroup_size](sycl::handler& __cgh) {
-            auto __acc = __internal::get_access<_Iterator>(__cgh)(__target_buffer);
-            auto __temp_acc = __temp.template get_access<discard_write>(__cgh);
-            // Create temporary local buffer
-            // TODO: add check for local_memory size
-            sycl::accessor<_Tp, 1, read_write, sycl::access::target::local> __temp_local(sycl::range<1>(__wgroup_size),
-                                                                                         __cgh);
-            __cgh.parallel_for<__kernel_1_name_t>(
+                                                       __wgroup_size](sycl::handler& __cgh) {
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+
+        auto __temp_acc = __temp.template get_access<discard_write>(__cgh);
+        // Create temporary local buffer
+        // TODO: add check for local_memory size
+        sycl::accessor<_Tp, 1, read_write, sycl::access::target::local> __temp_local(sycl::range<1>(__wgroup_size),
+                                                                                     __cgh);
+        __cgh.parallel_for<__kernel_1_name_t>(
 #if _PSTL_COMPILE_KERNEL
-                __kernel,
+            __kernel,
 #endif
-                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                          sycl::range</*dim=*/1>(__wgroup_size)),
-                [=](sycl::nd_item</*dim=*/1> __item_id) mutable {
-                    auto __global_idx = __item_id.get_global_id(0);
-                    // 1. Initialization (transform part). Fill local memory
-                    __u(__item_id, __global_idx, __acc, __n, __temp_local);
-                    // 2. Reduce within work group
-                    auto __res = __brick_reduce(__item_id, __global_idx, __n, __temp_local);
-                    if (__item_id.get_local_id(0) == 0)
-                    {
-                        // TODO: replace get_group() with atomic
-                        __temp_acc[__item_id.get_group(0)] = __res;
-                    }
-                });
-        });
+
+            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+                                      sycl::range</*dim=*/1>(__wgroup_size)),
+            [=](sycl::nd_item</*dim=*/1> __item_id) mutable {
+                auto __global_idx = __item_id.get_global_id(0);
+                // 1. Initialization (transform part). Fill local memory
+                __u(__item_id, __global_idx, __n, __temp_local, __rngs...);
+                // 2. Reduce within work group
+                auto __res = __brick_reduce(__item_id, __global_idx, __n, __temp_local);
+                if (__item_id.get_local_id(0) == 0)
+                {
+                    // TODO: replace get_group() with atomic
+                    __temp_acc[__item_id.get_group(0)] = __res;
+                }
+            });
+    });
     // TODO: think about replacing the section 2 with the code below. So section 2 is not needed
     // do{
     // __n = __n_groups;
@@ -425,24 +431,23 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Iterator __first, _Itera
 //------------------------------------------------------------------------
 // parallel_transform_scan
 //------------------------------------------------------------------------
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _BinaryOperation,
-          typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
-                                                             std::pair<_Iterator2, typename _InitType::__value_type>>
-__parallel_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
-                          _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
-                          _GroupScan __group_scan, _GlobalScan __global_scan)
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
+          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<
+    _ExecutionPolicy, ::std::pair<oneapi::dpl::__internal::__difference_t<_Range2>, typename _InitType::__value_type>>
+__parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
+                          _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
-    using _Policy = typename std::decay<_ExecutionPolicy>::type;
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _KernelName = typename _Policy::kernel_name;
     using _Type = typename _InitType::__value_type;
 
 #if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_scan_kernel_1<_Iterator1, _Iterator2, _BinaryOperation, _Type, _LocalScan,
+    using __kernel_1_name_t = __parallel_scan_kernel_1<_Range1, _Range2, _BinaryOperation, _Type, _LocalScan,
                                                        _GroupScan, _GlobalScan, _KernelName>;
-    using __kernel_2_name_t = __parallel_scan_kernel_2<_Iterator1, _Iterator2, _BinaryOperation, _Type, _LocalScan,
+    using __kernel_2_name_t = __parallel_scan_kernel_2<_Range1, _Range2, _BinaryOperation, _Type, _LocalScan,
                                                        _GroupScan, _GlobalScan, _KernelName>;
-    using __kernel_3_name_t = __parallel_scan_kernel_3<_Iterator1, _Iterator2, _BinaryOperation, _Type, _LocalScan,
+    using __kernel_3_name_t = __parallel_scan_kernel_3<_Range1, _Range2, _BinaryOperation, _Type, _LocalScan,
                                                        _GroupScan, _GlobalScan, _KernelName>;
 #else
     using __kernel_1_name_t = __parallel_scan_kernel_1<_KernelName>;
@@ -450,29 +455,29 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterat
     using __kernel_3_name_t = __parallel_scan_kernel_3<_KernelName>;
 #endif
 
-    auto __n = __last - __first;
-    auto __result_buffer = __internal::get_buffer()(__result, __result + __n);
-    auto __target_buffer = __internal::get_buffer()(__first, __last);
+    auto __n = __rng1.size();
+    assert(__n > 0);
+
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    // change __wgroup_size according to local memory limit
+    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Type>(
+        ::std::forward<_ExecutionPolicy>(__exec), __wgroup_size);
 
 #if _PSTL_COMPILE_KERNEL
-    auto __kernel_1 = __kernel_1_name_t::__compile_kernel(std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel_2 = __kernel_2_name_t::__compile_kernel(std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel_1 = __kernel_1_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel_2 = __kernel_2_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __wgroup_size_kernel_1 =
-        oneapi::dpl::__internal::__kernel_work_group_size(std::forward<_ExecutionPolicy>(__exec), __kernel_1);
+        oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
     auto __wgroup_size_kernel_2 =
-        oneapi::dpl::__internal::__kernel_work_group_size(std::forward<_ExecutionPolicy>(__exec), __kernel_2);
-    __wgroup_size = std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
+        oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_2);
+    __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
 #endif
 
-    // TODO: try to change __n_groups with another formula for more perfect load balancing
-    auto __n_groups = (__n - 1) / __wgroup_size + 1;
-    __n_groups = std::min(decltype(__n_groups)(__mcu), __n_groups);
-    auto __iters_per_witem = (__n - 1) / (__n_groups * __wgroup_size) + 1;
+    // Practically this is the better value that was found
+    auto __iters_per_witem = decltype(__wgroup_size)(16);
     auto __size_per_wg = __iters_per_witem * __wgroup_size;
-    // Actual number of workgroups may be less than __n_groups
-    __n_groups = (__n - 1) / __size_per_wg + 1;
+    auto __n_groups = (__n - 1) / __size_per_wg + 1;
     // Storage for the results of scan for each workgroup
     sycl::buffer<_Type> __wg_sums(__n_groups);
 
@@ -480,18 +485,17 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterat
 
     // 1. Local scan on each workgroup
     auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
-        auto __in_acc = __internal::get_access<_Iterator1>(__cgh)(__target_buffer);
-        auto __out_acc = __internal::get_access<_Iterator2>(__cgh)(__result_buffer);
+        oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<sycl::access::mode::discard_write>(__cgh);
         sycl::accessor<_Type, 1, sycl::access::mode::discard_read_write, sycl::access::target::local> __local_acc(
-            __wgroup_size + 1, __cgh);
+            __wgroup_size, __cgh);
 
         __cgh.parallel_for<__kernel_1_name_t>(
 #if _PSTL_COMPILE_KERNEL
             __kernel_1,
 #endif
             sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) mutable {
-                __local_scan(__item, __n, __local_acc, __in_acc, __out_acc, __wg_sums_acc, __size_per_wg, __wgroup_size,
+                __local_scan(__item, __n, __local_acc, __rng1, __rng2, __wg_sums_acc, __size_per_wg, __wgroup_size,
                              __iters_per_witem, __init);
             });
     });
@@ -504,7 +508,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterat
             __cgh.depends_on(__submit_event);
             auto __wg_sums_acc = __wg_sums.template get_access<sycl::access::mode::read_write>(__cgh);
             sycl::accessor<_Type, 1, sycl::access::mode::discard_read_write, sycl::access::target::local> __local_acc(
-                __wgroup_size + 1, __cgh);
+                __wgroup_size, __cgh);
 
             __cgh.parallel_for<__kernel_2_name_t>(
 #if _PSTL_COMPILE_KERNEL
@@ -521,17 +525,16 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterat
     // 3. Final scan for whole range
     __exec.queue().submit([&](sycl::handler& __cgh) {
         __cgh.depends_on(__submit_event);
-        auto __in_acc = __internal::get_access<_Iterator1>(__cgh)(__target_buffer);
-        auto __out_acc = __internal::get_access<decltype(make_iter_mode<read_write>(__result))>(__cgh)(__result_buffer);
+        oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<sycl::access::mode::read>(__cgh);
         __cgh.parallel_for<__kernel_3_name_t>(
             sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) mutable {
-                __global_scan(__item, __out_acc, __in_acc, __wg_sums_acc, __n, __size_per_wg);
+                __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg);
             });
     });
 
     auto __last_scaned_value = __wg_sums.template get_access<sycl::access::mode::read>()[__n_groups - 1];
-    return std::make_pair(__result + __n, __last_scaned_value);
+    return ::std::make_pair(__n, __last_scaned_value);
 }
 
 //------------------------------------------------------------------------
@@ -539,38 +542,43 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterat
 //------------------------------------------------------------------------
 
 // Tag for __parallel_find_or to find the first element that satisfies predicate
-template <typename _IteratorType>
+template <typename _RangeType>
 struct __parallel_find_forward_tag
 {
 // FPGA devices don't support 64-bit atomics
 #if _PSTL_FPGA_DEVICE
     using _AtomicType = uint32_t;
 #else
-    using _AtomicType = typename std::iterator_traits<_IteratorType>::difference_type;
+    using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
     using _Compare = oneapi::dpl::__internal::__pstl_less;
 
     // The template parameter is intended to unify __init_value in tags.
+    template <typename _DiffType>
     constexpr static _AtomicType
-    __init_value(_IteratorType __first, _IteratorType __last)
+    __init_value(_DiffType __val)
     {
-        return __last - __first;
+        return __val;
     }
 };
 
 // Tag for __parallel_find_or to find the last element that satisfies predicate
-template <typename _IteratorType>
+template <typename _RangeType>
 struct __parallel_find_backward_tag
 {
 // FPGA devices don't support 64-bit atomics
 #if _PSTL_FPGA_DEVICE
     using _AtomicType = int32_t;
 #else
-    using _AtomicType = typename std::iterator_traits<_IteratorType>::difference_type;
+    using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
 #endif
     using _Compare = oneapi::dpl::__internal::__pstl_greater;
 
-    constexpr static _AtomicType __init_value(_IteratorType, _IteratorType) { return _AtomicType{-1}; }
+    template <typename _DiffType>
+    constexpr static _AtomicType __init_value(_DiffType)
+    {
+        return _AtomicType{-1};
+    }
 };
 
 // Tag for __parallel_find_or for or-semantic
@@ -591,9 +599,8 @@ struct __parallel_or_tag
     using _Compare = __atomic_compare;
 
     // The template parameter is intended to unify __init_value in tags.
-    template <typename _IteratorType>
-    constexpr static _AtomicType
-    __init_value(_IteratorType __first, _IteratorType __last)
+    template <typename _DiffType>
+    constexpr static _AtomicType __init_value(_DiffType)
     {
         return 0;
     }
@@ -608,15 +615,18 @@ struct __early_exit_find_or
 {
     _Pred __pred;
 
-    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _Acc, typename _Size, typename _Acc2,
-              typename _Size2, typename _LocalAtomic, typename _Compare, typename _BrickTag>
+    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare,
+              typename _BrickTag, typename... _Ranges>
     void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Acc& __acc,
-               const _Size __n, _Acc2& __s_acc, const _Size2 __s_n, _Compare __comp, _LocalAtomic& __found_local,
-               _BrickTag __brick_tag)
+    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
+               _LocalAtomic& __found_local, _BrickTag __brick_tag, _Ranges&&... __rngs)
     {
         using __par_backend_hetero::__parallel_or_tag;
-        using _OrTagType = std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
+        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
+
+        auto __n = oneapi::dpl::__ranges::__get_first_range(__rngs...).size();
+
+        using _Size = decltype(__n);
 
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
@@ -634,14 +644,15 @@ struct __early_exit_find_or
         {
 
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
-            using _ShiftedIdxType = typename std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
-                                                              decltype(__found_local.load())>::type;
+            using _ShiftedIdxType =
+                typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
+                                            decltype(__found_local.load())>::type;
 
             _ShiftedIdxType __shifted_idx = __init_index + __i * __shift;
             // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for erly exit)
             // should be investigated later, with other HW
 
-            if (__shifted_idx < __n && __pred(__shifted_idx, __acc, __n, __s_acc, __s_n))
+            if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
                 oneapi::dpl::__internal::__invoke_if_else(
                     _OrTagType{}, [&__found_local]() { __found_local.store(1); },
@@ -663,51 +674,46 @@ struct __early_exit_find_or
 //------------------------------------------------------------------------
 
 // Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _BrickTag>
+template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
     _ExecutionPolicy,
-    typename std::conditional<std::is_same<_BrickTag, __parallel_or_tag>::value, bool, _Iterator1>::type>
-__parallel_find_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
-                   _Iterator2 __s_last, _Brick __f, _BrickTag __brick_tag)
+    typename ::std::conditional<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
+                                oneapi::dpl::__internal::__difference_t<
+                                    typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>::type>
+__parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
-    using _Policy = typename std::decay<_ExecutionPolicy>::type;
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
+    using _AtomicType = typename _BrickTag::_AtomicType;
+
 #if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_find_or_kernel_1<_Iterator1, _Iterator2, _Brick, __kernel_name>;
+    using __kernel_1_name_t = __parallel_find_or_kernel_1<_Ranges..., _Brick, __kernel_name>;
 #else
     using __kernel_1_name_t = __parallel_find_or_kernel_1<__kernel_name>;
 #endif
 
-    auto __or_tag_check = std::is_same<_BrickTag, __parallel_or_tag>{};
-    // if sequence is empty number of groups couldn't be counted correctly and buffer couldn't be created from range
-    if (__first == __last)
-        return oneapi::dpl::__internal::__invoke_if_else(__or_tag_check, []() { return false; },
-                                                         [&__first]() { return __first; });
-    auto __target_buffer = __internal::get_buffer()(__first, __last); // hides sycl::buffer
-    auto __n = __last - __first;
+    auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
+    auto __rng_n = oneapi::dpl::__ranges::__get_first_range(::std::forward<_Ranges>(__rngs)...).size();
+    assert(__rng_n > 0);
 
-    auto __s_target_buffer = __internal::get_buffer()(__s_first, __s_last);
-    auto __s_n = __s_last - __s_first;
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(std::forward<_ExecutionPolicy>(__exec));
+    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
 #if _PSTL_COMPILE_KERNEL
-    auto __kernel = __kernel_1_name_t::__compile_kernel(std::forward<_ExecutionPolicy>(__exec));
-    __wgroup_size =
-        std::min(__wgroup_size,
-                 oneapi::dpl::__internal::__kernel_work_group_size(std::forward<_ExecutionPolicy>(__exec), __kernel));
+    auto __kernel = __kernel_1_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
+                                                  ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
 
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
-    auto __n_groups = (__n - 1) / __wgroup_size + 1;
+    auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
     // TODO: try to change __n_groups with another formula for more perfect load balancing
-    __n_groups = std::min(__n_groups, decltype(__n_groups)(__mcu));
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__mcu));
 
-    auto __n_iter = (__n - 1) / (__n_groups * __wgroup_size) + 1;
+    auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
 
-    using _AtomicType = typename _BrickTag::_AtomicType;
-    _AtomicType __init_value = _BrickTag::__init_value(__first, __last);
+    _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;
 
     auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
@@ -718,8 +724,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __l
 
         // main parallel_for
         __exec.queue().submit([&](sycl::handler& __cgh) {
-            auto __acc = __internal::get_access<_Iterator1>(__cgh)(__target_buffer);
-            auto __s_acc = __internal::get_access<_Iterator2>(__cgh)(__s_target_buffer);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
             auto __temp_acc = __temp.template get_access<read_write>(__cgh);
 
             // create local accessor to connect atomic with
@@ -748,8 +753,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __l
 
                     // 2. find any element that satisfies pred and Set local atomic value to global atomic
                     constexpr auto __comp = typename _BrickTag::_Compare{};
-                    __pred(__item_id, __n_iter, __wgroup_size, __acc, __n, __s_acc, __s_n, __comp, __found_local,
-                           __brick_tag);
+                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
                     __item_id.barrier(sycl::access::fence_space::local_space);
 
                     // Set local atomic value to global atomic
@@ -769,10 +773,9 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __l
         });
     }
 
-    return oneapi::dpl::__internal::__invoke_if_else(__or_tag_check, [&__result]() { return __result; },
-                                                     [&__result, &__first, &__last, &__init_value]() {
-                                                         return __result != __init_value ? __first + __result : __last;
-                                                     });
+    return oneapi::dpl::__internal::__invoke_if_else(
+        __or_tag_check, [&__result]() { return __result; },
+        [&__result, &__rng_n, &__init_value]() { return __result != __init_value ? __result : __rng_n; });
 }
 
 //------------------------------------------------------------------------
@@ -789,9 +792,14 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, b
 __parallel_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
               _Iterator2 __s_last, _Brick __f)
 {
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf = __keep(__first, __last);
+    auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
+    auto __s_buf = __s_keep(__s_first, __s_last);
+
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(std::forward<_ExecutionPolicy>(__exec)), __first,
-        __last, __s_first, __s_last, __f, __parallel_or_tag{});
+        __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
+        __parallel_or_tag{}, __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -801,8 +809,12 @@ template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, bool>
 __parallel_or(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f)
 {
-    return oneapi::dpl::__par_backend_hetero::__parallel_or(std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                            /* dummy */ __first, __first, __f);
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+        __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __f,
+        __parallel_or_tag{}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------
@@ -817,13 +829,20 @@ class __find_policy_wrapper
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick, typename _IsFirst>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Iterator1>
 __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
-                _Iterator2 __s_last, _Brick __f, _IsFirst __is_first)
+                _Iterator2 __s_last, _Brick __f, _IsFirst)
 {
-    using _TagType = typename std::conditional<_IsFirst::value, __parallel_find_forward_tag<_Iterator1>,
-                                               __parallel_find_backward_tag<_Iterator1>>::type;
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(std::forward<_ExecutionPolicy>(__exec)),
-        __first, __last, __s_first, __s_last, __f, _TagType{});
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf = __keep(__first, __last);
+    auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
+    auto __s_buf = __s_keep(__s_first, __s_last);
+
+    using _TagType =
+        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
+    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+                         __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
+                             ::std::forward<_ExecutionPolicy>(__exec)),
+                         __f, _TagType{}, __buf.all_view(), __s_buf.all_view());
 }
 
 // Special overload for single sequence cases.
@@ -831,10 +850,18 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last
 // backend code.
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Iterator>
-__parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst __is_first)
+__parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst)
 {
-    return oneapi::dpl::__par_backend_hetero::__parallel_find(std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                              /*dummy*/ __first, __first, __f, __is_first);
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    using _TagType =
+        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
+    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+                         __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
+                             ::std::forward<_ExecutionPolicy>(__exec)),
+                         __f, _TagType{}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------
@@ -850,7 +877,7 @@ struct __full_merge_kernel
     void
     operator()(const _Idx __global_idx, const _Acc1& __in_acc1, const _Size1 __start_1, const _Size1 __end_1,
                const _Acc2& __in_acc2, const _Size2 __start_2, const _Size2 __end_2, const _Acc3& __out_acc,
-               const _Size3 __out_shift, _Compare __comp, const std::size_t __chunk) const
+               const _Size3 __out_shift, _Compare __comp, const ::std::size_t __chunk) const
     {
         // Borders of the sequences to merge within this call
         const _Size1 __local_start_1 = sycl::min(static_cast<_Size1>(__global_idx + __start_1), __end_1);
@@ -1044,7 +1071,7 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _
 __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2,
                  _Iterator2 __last2, _Iterator3 __d_first, _Compare __comp)
 {
-    using _Policy = typename std::decay<_ExecutionPolicy>::type;
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
     using __kernel_1_name_t = __parallel_merge_kernel<_Iterator1, _Iterator2, _Iterator3, _Compare, __kernel_name>;
@@ -1062,9 +1089,9 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __la
     auto __out_buffer = __internal::get_buffer()(__d_first, __d_first + __n + __n_2);
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
-    const std::size_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 8;
-    const auto __max_n = std::max(__n, static_cast<decltype(__n)>(__n_2));
-    const std::size_t __steps = ((__max_n - 1) / __chunk) + 1;
+    const ::std::size_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 8;
+    const auto __max_n = ::std::max(__n, static_cast<decltype(__n)>(__n_2));
+    const ::std::size_t __steps = ((__max_n - 1) / __chunk) + 1;
 
     __exec.queue().submit([&](sycl::handler& __cgh) {
         auto __in_acc1 = __internal::get_access<_Iterator1>(__cgh)(__in_buffer1);
@@ -1098,7 +1125,7 @@ struct __leaf_sort_kernel
                 auto&& __second_item = __acc[j];
                 if (__comp(__second_item, __first_item))
                 {
-                    using std::swap;
+                    using ::std::swap;
                     swap(__first_item, __second_item);
                 }
             }
@@ -1113,7 +1140,7 @@ template <typename _ExecutionPolicy, typename _Iterator, typename _Merge, typena
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Merge __merge, _Compare __comp)
 {
-    using _Policy = typename std::decay<_ExecutionPolicy>::type;
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
     using __kernel_1_name_t = __parallel_sort_kernel_1<_Iterator, _Merge, _Compare, __kernel_name>;
@@ -1125,8 +1152,8 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     using __kernel_3_name_t = __parallel_sort_kernel_3<__kernel_name>;
 #endif
 
-    using _Tp = typename std::iterator_traits<_Iterator>::value_type;
-    using _Size = typename std::iterator_traits<_Iterator>::difference_type;
+    using _Tp = typename ::std::iterator_traits<_Iterator>::value_type;
+    using _Size = typename ::std::iterator_traits<_Iterator>::difference_type;
     _Size __n = __last - __first;
     if (__n <= 1)
     {
@@ -1165,7 +1192,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
 
     _Size __sorted = __leaf;
     // Chunk size cannot be bigger than size of a sorted sequence
-    _Size __chunk = std::min(__leaf, __optimal_chunk);
+    _Size __chunk = ::std::min(__leaf, __optimal_chunk);
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_Policy, _Tp> __temp_buf(__exec, __n);
     auto __temp = __temp_buf.get_buffer();
@@ -1240,7 +1267,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
         __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
             auto __acc =
-                __internal::get_access<decltype(make_iter_mode<write>(std::declval<_Iterator>()))>(__cgh)(__buffer);
+                __internal::get_access<decltype(make_iter_mode<write>(::std::declval<_Iterator>()))>(__cgh)(__buffer);
             auto __temp_acc = __temp.template get_access<read>(__cgh);
             // We cannot use __cgh.copy here because of zip_iterator usage
             __cgh.parallel_for<__kernel_3_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
@@ -1255,7 +1282,7 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, v
 __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Merge __merge,
                              _Compare __comp)
 {
-    using _Policy = typename std::decay<_ExecutionPolicy>::type;
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
     using __kernel_1_name_t = __parallel_sort_kernel_1<_Iterator, _Merge, _Compare, __kernel_name>;
@@ -1265,8 +1292,8 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iter
     using __kernel_2_name_t = __parallel_sort_kernel_2<__kernel_name>;
 #endif
 
-    using _Tp = typename std::iterator_traits<_Iterator>::value_type;
-    using _Size = typename std::iterator_traits<_Iterator>::difference_type;
+    using _Tp = typename ::std::iterator_traits<_Iterator>::value_type;
+    using _Size = typename ::std::iterator_traits<_Iterator>::difference_type;
     _Size __n = __last - __first;
     if (__n <= 1)
     {
@@ -1334,15 +1361,15 @@ template <typename _T, typename _Compare>
 struct __is_radix_sort_usable_for_type
 {
     static constexpr bool value =
-#if _USE_SUB_GROUPS
-        std::is_arithmetic<_T>::value && (__internal::__is_comp_ascending<__decay_t<_Compare>>::value ||
-                                          __internal::__is_comp_descending<__decay_t<_Compare>>::value);
+#if _USE_RADIX_SORT
+        ::std::is_arithmetic<_T>::value && (__internal::__is_comp_ascending<__decay_t<_Compare>>::value ||
+                                            __internal::__is_comp_descending<__decay_t<_Compare>>::value);
 #else
         false;
 #endif
 };
 
-#if _USE_SUB_GROUPS
+#if _USE_RADIX_SORT
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   __is_radix_sort_usable_for_type<__value_t<_Iterator>, _Compare>::value,
@@ -1359,7 +1386,7 @@ __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_E
               void>
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
 {
-    __parallel_sort_impl(std::forward<_ExecutionPolicy>(__exec), __first, __last,
+    __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                          // Pass special tag to choose 'full' merge subroutine at compile-time
                          __full_merge_kernel(), __comp);
 }
@@ -1377,7 +1404,7 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                         _Compare __comp)
 {
     const auto __mid_idx = __mid - __first;
-    __parallel_partial_sort_impl(std::forward<_ExecutionPolicy>(__exec), __first, __last,
+    __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                  __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 

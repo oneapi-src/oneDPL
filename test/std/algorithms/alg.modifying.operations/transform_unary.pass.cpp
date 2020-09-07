@@ -27,8 +27,8 @@ template <typename InputIterator, typename OutputIterator>
 void
 check_and_reset(InputIterator first, InputIterator last, OutputIterator out_first)
 {
-    typedef typename std::iterator_traits<OutputIterator>::value_type Out;
-    typename std::iterator_traits<OutputIterator>::difference_type k = 0;
+    typedef typename ::std::iterator_traits<OutputIterator>::value_type Out;
+    typename ::std::iterator_traits<OutputIterator>::difference_type k = 0;
     for (; first != last; ++first, ++out_first, ++k)
     {
         // check
@@ -48,7 +48,7 @@ struct test_one_policy
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, UnaryOp op)
     {
-        auto orr = std::transform(exec, first, last, out_first, op);
+        auto orr = ::std::transform(exec, first, last, out_first, op);
         EXPECT_TRUE(out_last == orr, "transform returned wrong iterator");
         check_and_reset(first, last, out_first);
     }
@@ -78,7 +78,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
-        invoke_if(exec, [&]() { transform(exec, input_iter, input_iter, out_iter, non_const(std::negate<T>())); });
+        invoke_if(exec, [&]() { transform(exec, input_iter, input_iter, out_iter, non_const(::std::negate<T>())); });
     }
 };
 
@@ -94,6 +94,6 @@ main()
     //test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
     test_algo_basic_double<int64_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

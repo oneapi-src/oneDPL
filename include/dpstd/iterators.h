@@ -16,7 +16,8 @@
 #ifndef _PSTL_iterators_H
 #define _PSTL_iterators_H
 
-#pragma message("WARNING: 'oneapi/dpl/iterators.h' will be removed after Beta. Please use 'oneapi/dpl/iterator' instead.")
+#pragma message(                                                                                                       \
+    "WARNING: 'oneapi/dpl/iterators.h' will be removed after Beta. Please use 'oneapi/dpl/iterator' instead.")
 
 #if _PSTL_BACKEND_SYCL
 #    include "oneapi/dpl/pstl/hetero/dpcpp/sycl_iterator.h"

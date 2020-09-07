@@ -18,7 +18,9 @@
 
 #include "ranges/nanorange.hpp"
 
-namespace dpstd
+namespace oneapi
+{
+namespace dpl
 {
 namespace experimental
 {
@@ -51,6 +53,7 @@ using nano::views::transform;
 
 } // namespace ranges
 } // namespace experimental
-} // namespace dpstd
+} // namespace dpl
+} // namespace oneapi
 
 #endif /* _PSTL_RANGES_DEFS_H */

@@ -41,7 +41,8 @@
 #endif
 
 #if _PSTL_CPP17_EXECUTION_POLICIES_PRESENT
-_PSTL_PRAGMA_MESSAGE_POLICIES("The <Parallel STL> execution policies are defined in the namespace oneapi::dpl::execution")
+_PSTL_PRAGMA_MESSAGE_POLICIES(
+    "The <Parallel STL> execution policies are defined in the namespace oneapi::dpl::execution")
 #    include "oneapi/dpl/pstl/algorithm_impl.h"
 #    include "oneapi/dpl/pstl/numeric_impl.h"
 #    include "oneapi/dpl/pstl/parallel_backend.h"
@@ -71,7 +72,11 @@ namespace execution
 {
 using namespace oneapi::dpl::execution;
 using namespace oneapi::dpl::execution::__dpstd;
+using oneapi::dpl::execution::v1::is_execution_policy;
 } // end namespace execution
 } // end namespace dpstd
 #endif
+
+namespace dpl = oneapi::dpl;
+
 #endif /* _TEST_SUPPORT_STDLIB_EXECUTION */

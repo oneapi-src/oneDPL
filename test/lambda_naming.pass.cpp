@@ -43,17 +43,17 @@ int main() {
 #else
             cl::sycl::property::noinit{});
 #endif
-    std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
-    std::sort(policy, buf_begin, buf_end);
-    std::inplace_merge(policy, buf_begin, buf_begin + n / 2, buf_end);
-    std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
-    auto red_val = std::reduce(policy, buf_begin, buf_end, 1);
+    ::std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
+    ::std::sort(policy, buf_begin, buf_end);
+    ::std::inplace_merge(policy, buf_begin, buf_begin + n / 2, buf_end);
+    ::std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
+    auto red_val = ::std::reduce(policy, buf_begin, buf_end, 1);
 
     auto buf_out_begin = oneapi::dpl::begin(out_buf);
-    std::inclusive_scan(policy, buf_begin, buf_end, buf_out_begin);
-    bool is_equal = std::equal(policy, buf_begin, buf_end, buf_out_begin);
-    auto does_1_exist = std::find(policy, buf_begin, buf_end, 1);
+    ::std::inclusive_scan(policy, buf_begin, buf_end, buf_out_begin);
+    bool is_equal = ::std::equal(policy, buf_begin, buf_end, buf_out_begin);
+    auto does_1_exist = ::std::find(policy, buf_begin, buf_end, 1);
 #endif
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

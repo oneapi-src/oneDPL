@@ -37,14 +37,14 @@ void test_policy_instance(const Policy& policy)
 
     const int n = 10;
     const int value = -1;
-    static std::vector<int> a(n);
+    static ::std::vector<int> a(n);
 
-    std::fill(a.begin(), a.end(), 0);
-    std::fill(policy, a.begin(), a.end(), value);
+    ::std::fill(a.begin(), a.end(), 0);
+    ::std::fill(policy, a.begin(), a.end(), value);
 #if _PSTL_SYCL_TEST_USM
     policy.queue().wait_and_throw();
 #endif
-    EXPECT_TRUE(std::all_of(a.begin(), a.end(), [&value](int i) { return i == value; }), "wrong result of std::fill with policy");
+    EXPECT_TRUE(::std::all_of(a.begin(), a.end(), [&value](int i) { return i == value; }), "wrong result of ::std::fill with policy");
 }
 #endif
 
@@ -69,7 +69,7 @@ main()
         oneapi::dpl::execution::make_device_policy<class Kernel_5>(cl::sycl::queue{cl::sycl::property::queue::in_order()}));
 #endif
 
-    std::cout << TestUtils::done() << std::endl;
+    ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }
 

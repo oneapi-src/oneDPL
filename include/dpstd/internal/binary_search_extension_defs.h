@@ -16,7 +16,6 @@
  *  limitations under the License.
  */
 
-
 #ifndef DPCPP_BINARY_SEARCH_EXTENSION_DEFS_H_
 #define DPCPP_BINARY_SEARCH_EXTENSION_DEFS_H_
 
@@ -27,36 +26,38 @@ namespace oneapi
 namespace dpl
 {
 
-    template<typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
-    oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
-    lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end,
-		InputIterator2 value_start, InputIterator2 value_end, OutputIterator result);
-  
-    template<typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename StrictWeakOrdering>
-    oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
-    lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end,
-		InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp);
-  
-    template<typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
-    oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
-    upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end,
-		InputIterator2 value_start, InputIterator2 value_end, OutputIterator result);
-  
-    template<typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename StrictWeakOrdering>
-    oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
-    upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end,
-		InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp);
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
+lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+            InputIterator2 value_end, OutputIterator result);
 
-    template<typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
-    oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
-    binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end,
-                InputIterator2 value_start, InputIterator2 value_end, OutputIterator result);
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+          typename StrictWeakOrdering>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
+lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+            InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp);
 
-    template<typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename StrictWeakOrdering>
-    oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
-    binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end,
-                InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp);
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
+upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+            InputIterator2 value_end, OutputIterator result);
 
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+          typename StrictWeakOrdering>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
+upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+            InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp);
+
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
+binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+              InputIterator2 value_end, OutputIterator result);
+
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+          typename StrictWeakOrdering>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
+binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+              InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp);
 
 } // end namespace dpl
 } // end namespace oneapi

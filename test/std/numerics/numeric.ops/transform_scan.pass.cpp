@@ -36,7 +36,7 @@ void
 check_and_reset(Iterator expected_first, Iterator out_first, Size n, T trash)
 {
     EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_..._scan");
-    std::fill_n(out_first, n, trash);
+    ::std::fill_n(out_first, n, trash);
 }
 
 template <typename Type>
@@ -44,7 +44,7 @@ struct test_transform_exclusive_scan
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    typename std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
+    typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
@@ -56,12 +56,12 @@ struct test_transform_exclusive_scan
         auto orr2 = transform_exclusive_scan(exec, first, last, out_first, init, binary_op, unary_op);
         EXPECT_TRUE(out_last == orr2, "transform_exclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_exclusive_scan");
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    typename std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
+    typename ::std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
@@ -74,7 +74,7 @@ struct test_transform_inclusive_scan_init
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    typename std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
+    typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
@@ -86,12 +86,12 @@ struct test_transform_inclusive_scan_init
         auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op, init);
         EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    typename std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
+    typename ::std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
@@ -104,7 +104,7 @@ struct test_transform_inclusive_scan
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    typename std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
+    typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
@@ -118,13 +118,13 @@ struct test_transform_inclusive_scan
             auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op);
             EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
             EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
-            std::fill_n(out_first, n, trash);
+            ::std::fill_n(out_first, n, trash);
         }
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    typename std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
+    typename ::std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
@@ -136,7 +136,7 @@ const uint32_t encryption_mask = 0x314;
 
 template <typename InputIterator, typename OutputIterator, typename UnaryOperation, typename T,
           typename BinaryOperation>
-std::pair<OutputIterator, T>
+::std::pair<OutputIterator, T>
 transform_inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op,
                                 T init, BinaryOperation binary_op) noexcept
 {
@@ -145,12 +145,12 @@ transform_inclusive_scan_serial(InputIterator first, InputIterator last, OutputI
         init = binary_op(init, unary_op(*first));
         *result = init;
     }
-    return std::make_pair(result, init);
+    return ::std::make_pair(result, init);
 }
 
 template <typename InputIterator, typename OutputIterator, typename UnaryOperation, typename T,
           typename BinaryOperation>
-std::pair<OutputIterator, T>
+::std::pair<OutputIterator, T>
 transform_exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation unary_op,
                                 T init, BinaryOperation binary_op) noexcept
 {
@@ -159,7 +159,7 @@ transform_exclusive_scan_serial(InputIterator first, InputIterator last, OutputI
         *result = init;
         init = binary_op(init, unary_op(*first));
     }
-    return std::make_pair(result, init);
+    return ::std::make_pair(result, init);
 }
 
 template <typename In, typename Out, typename UnaryOp, typename BinaryOp>
@@ -213,7 +213,7 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         invoke_on_all_policies<6>()(test_transform_exclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected1.begin(), expected1.end(), in.size(), unary_op, init,
                                     binary_op, trash);
-        std::copy(in.begin(), in.end(), out.begin());
+        ::std::copy(in.begin(), in.end(), out.begin());
         invoke_on_all_policies<13>()(test_transform_exclusive_scan<In>(), out.begin(), out.end(), out.begin(), out.end(),
                                     expected1.begin(), expected1.end(), in.size(), unary_op, init, binary_op, trash);
 #endif // _PSTL_FPGA_HW
@@ -267,6 +267,6 @@ main()
 #endif
     test<int32_t, uint32_t>([](int32_t x) { return x++; }, -123, [](int32_t x, int32_t y) { return x + y; }, 666);
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

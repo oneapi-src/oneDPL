@@ -40,62 +40,62 @@ namespace __internal
 
 template <typename Iterator>
 using is_const_iterator =
-    typename std::is_const<typename std::remove_pointer<typename std::iterator_traits<Iterator>::pointer>::type>;
+    typename ::std::is_const<typename ::std::remove_pointer<typename ::std::iterator_traits<Iterator>::pointer>::type>;
 
 template <typename _Fp>
-typename std::result_of<_Fp()>::type
-__except_handler(_Fp __f)
+auto
+__except_handler(_Fp __f) -> decltype(__f())
 {
     try
     {
         return __f();
     }
-    catch (const std::bad_alloc&)
+    catch (const ::std::bad_alloc&)
     {
         throw; // re-throw bad_alloc according to the standard [algorithms.parallel.exceptions]
     }
     catch (...)
     {
-        std::terminate(); // Good bye according to the standard [algorithms.parallel.exceptions]
+        ::std::terminate(); // Good bye according to the standard [algorithms.parallel.exceptions]
     }
 }
 
 template <typename _Fp>
 void
-__invoke_if(std::true_type, _Fp __f)
+__invoke_if(::std::true_type, _Fp __f)
 {
     __f();
 }
 
 template <typename _Fp>
 void
-__invoke_if(std::false_type, _Fp __f)
+__invoke_if(::std::false_type, _Fp __f)
 {
 }
 
 template <typename _Fp>
 void
-__invoke_if_not(std::false_type, _Fp __f)
+__invoke_if_not(::std::false_type, _Fp __f)
 {
     __f();
 }
 
 template <typename _Fp>
 void
-__invoke_if_not(std::true_type, _Fp __f)
+__invoke_if_not(::std::true_type, _Fp __f)
 {
 }
 
 template <typename _F1, typename _F2>
-typename std::result_of<_F1()>::type
-__invoke_if_else(std::true_type, _F1 __f1, _F2 __f2)
+auto
+__invoke_if_else(::std::true_type, _F1 __f1, _F2 __f2) -> decltype(__f1())
 {
     return __f1();
 }
 
 template <typename _F1, typename _F2>
-typename std::result_of<_F2()>::type
-__invoke_if_else(std::false_type, _F1 __f1, _F2 __f2)
+auto
+__invoke_if_else(::std::false_type, _F1 __f1, _F2 __f2) -> decltype(__f2())
 {
     return __f2();
 }
@@ -109,7 +109,7 @@ struct __invoke_unary_op
     void
     operator()(_Input&& __x, _Output&& __y) const
     {
-        __y = __op(std::forward<_Input>(__x));
+        __y = __op(::std::forward<_Input>(__x));
     }
 };
 
@@ -120,7 +120,7 @@ struct __no_op
     _Tp&&
     operator()(_Tp&& __a) const
     {
-        return std::forward<_Tp>(__a);
+        return ::std::forward<_Tp>(__a);
     }
 };
 
@@ -137,7 +137,7 @@ class __not_pred
     bool
     operator()(_Args&&... __args)
     {
-        return !_M_pred(std::forward<_Args>(__args)...);
+        return !_M_pred(::std::forward<_Args>(__args)...);
     }
 };
 
@@ -153,13 +153,13 @@ class __reorder_pred
     bool
     operator()(_FTp&& __a, _STp&& __b) const
     {
-        return _M_pred(std::forward<_STp>(__b), std::forward<_FTp>(__a));
+        return _M_pred(::std::forward<_STp>(__b), ::std::forward<_FTp>(__a));
     }
 };
 
 //! "==" comparison.
 /** Not called "equal" to avoid (possibly unfounded) concerns about accidental invocation via
-    argument-dependent name lookup by code expecting to find the usual std::equal. */
+    argument-dependent name lookup by code expecting to find the usual ::std::equal. */
 class __pstl_equal
 {
   public:
@@ -169,7 +169,7 @@ class __pstl_equal
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
     {
-        return std::forward<_Xp>(__x) == std::forward<_Yp>(__y);
+        return ::std::forward<_Xp>(__x) == ::std::forward<_Yp>(__y);
     }
 };
 
@@ -181,7 +181,7 @@ class __pstl_less
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
     {
-        return std::forward<_Xp>(__x) < std::forward<_Yp>(__y);
+        return ::std::forward<_Xp>(__x) < ::std::forward<_Yp>(__y);
     }
 };
 
@@ -193,7 +193,7 @@ class __pstl_greater
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
     {
-        return std::forward<_Xp>(__x) > std::forward<_Yp>(__y);
+        return ::std::forward<_Xp>(__x) > ::std::forward<_Yp>(__y);
     }
 };
 
@@ -203,9 +203,9 @@ class __pstl_plus
   public:
     template <typename _Xp, typename _Yp>
     auto
-    operator()(_Xp&& __x, _Yp&& __y) const -> decltype(std::forward<_Xp>(__x) + std::forward<_Yp>(__y))
+    operator()(_Xp&& __x, _Yp&& __y) const -> decltype(::std::forward<_Xp>(__x) + ::std::forward<_Yp>(__y))
     {
-        return std::forward<_Xp>(__x) + std::forward<_Yp>(__y);
+        return ::std::forward<_Xp>(__x) + ::std::forward<_Yp>(__y);
     }
 };
 
@@ -216,9 +216,11 @@ class __pstl_min
     template <typename _Xp, typename _Yp>
     auto
     operator()(_Xp&& __x, _Yp&& __y) const
-        -> decltype((std::forward<_Xp>(__x) < std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x) : std::forward<_Yp>(__y))
+        -> decltype((::std::forward<_Xp>(__x) < ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
+                                                                          : ::std::forward<_Yp>(__y))
     {
-        return (std::forward<_Xp>(__x) < std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x) : std::forward<_Yp>(__y);
+        return (::std::forward<_Xp>(__x) < ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
+                                                                     : ::std::forward<_Yp>(__y);
     }
 };
 
@@ -229,9 +231,11 @@ class __pstl_max
     template <typename _Xp, typename _Yp>
     auto
     operator()(_Xp&& __x, _Yp&& __y) const
-        -> decltype((std::forward<_Xp>(__x) > std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x) : std::forward<_Yp>(__y))
+        -> decltype((::std::forward<_Xp>(__x) > ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
+                                                                          : ::std::forward<_Yp>(__y))
     {
-        return (std::forward<_Xp>(__x) > std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x) : std::forward<_Yp>(__y);
+        return (::std::forward<_Xp>(__x) > ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
+                                                                     : ::std::forward<_Yp>(__y);
     }
 };
 
@@ -249,7 +253,7 @@ class __equal_value_by_pred
     bool
     operator()(_Arg&& __arg)
     {
-        return _M_pred(std::forward<_Arg>(__arg), _M_value);
+        return _M_pred(::std::forward<_Arg>(__arg), _M_value);
     }
 };
 
@@ -266,7 +270,7 @@ class __equal_value
     bool
     operator()(_Arg&& __arg) const
     {
-        return std::forward<_Arg>(__arg) == _M_value;
+        return ::std::forward<_Arg>(__arg) == _M_value;
     }
 };
 
@@ -283,23 +287,24 @@ class __not_equal_value
     bool
     operator()(_Arg&& __arg) const
     {
-        return !(std::forward<_Arg>(__arg) == _M_value);
+        return !(::std::forward<_Arg>(__arg) == _M_value);
     }
 };
 
-//! Like std::next, but with specialization for dpcpp case
+//! Like ::std::next, but with specialization for dpcpp case
 template <typename _Iter>
 _Iter
-__pstl_next(_Iter __iter, typename std::iterator_traits<_Iter>::difference_type __n = 1)
+__pstl_next(_Iter __iter, typename ::std::iterator_traits<_Iter>::difference_type __n = 1)
 {
-    return std::next(__iter, __n);
+    return ::std::next(__iter, __n);
 }
 
 #if _PSTL_BACKEND_SYCL
 template <cl::sycl::access::mode _Mode, typename... _Params>
 dpstd::__internal::sycl_iterator<_Mode, _Params...>
-__pstl_next(dpstd::__internal::sycl_iterator<_Mode, _Params...> __iter,
-            typename std::iterator_traits<dpstd::__internal::sycl_iterator<_Mode, _Params...>>::difference_type __n = 1)
+__pstl_next(
+    dpstd::__internal::sycl_iterator<_Mode, _Params...> __iter,
+    typename ::std::iterator_traits<dpstd::__internal::sycl_iterator<_Mode, _Params...>>::difference_type __n = 1)
 {
     return __iter + __n;
 }
@@ -361,7 +366,7 @@ __pstl_right_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __
 template <typename _IntType, typename _Acc>
 struct _ReverseCounter
 {
-    typedef typename std::make_signed<_IntType>::type difference_type;
+    typedef typename ::std::make_signed<_IntType>::type difference_type;
 
     _IntType __my_cn;
 
@@ -390,6 +395,11 @@ struct _ReverseCounter
 
 // TODO: Temporary hotfix. Investigate the necessity of _ReverseCounter
 // Investigate potential user types convertible to integral
+// This is the compile-time trick where we define the conversion operator to sycl::id
+// conditionally. If we can call accessor::operator[] with the type that converts to the
+// same integral type as _ReverseCounter (it means that we can call accessor::operator[]
+// with the _ReverseCounter itself) then we don't need conversion operator to sycl::id.
+// Otherwise, we define conversion operator to sycl::id.
 #if _PSTL_BACKEND_SYCL
     struct __integral
     {
@@ -398,16 +408,16 @@ struct _ReverseCounter
 
     template <typename _Tp>
     static auto
-    __check_braces(int) -> decltype(std::declval<_Tp>()[std::declval<__integral>()], std::false_type{});
+    __check_braces(int) -> decltype(::std::declval<_Tp>()[::std::declval<__integral>()], ::std::false_type{});
 
     template <typename _Tp>
     static auto
-    __check_braces(...) -> std::true_type;
+    __check_braces(...) -> ::std::true_type;
 
     class __private_class;
 
-    operator typename std::conditional<decltype(__check_braces<_Acc>(0))::value, cl::sycl::id<1>,
-                                       __private_class>::type()
+    operator typename ::std::conditional<decltype(__check_braces<_Acc>(0))::value, cl::sycl::id<1>,
+                                         __private_class>::type()
     {
         return cl::sycl::id<1>(__my_cn);
     }
@@ -427,37 +437,37 @@ __pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __v
 
 #if _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT
 
-template <std::size_t... _Sp>
-using __index_sequence = std::index_sequence<_Sp...>;
-template <std::size_t _Np>
-using __make_index_sequence = std::make_index_sequence<_Np>;
+template <::std::size_t... _Sp>
+using __index_sequence = ::std::index_sequence<_Sp...>;
+template <::std::size_t _Np>
+using __make_index_sequence = ::std::make_index_sequence<_Np>;
 
 #else
 
-template <std::size_t... _Sp>
+template <::std::size_t... _Sp>
 class __index_sequence
 {
 };
 
-template <std::size_t _Np, std::size_t... _Sp>
+template <::std::size_t _Np, ::std::size_t... _Sp>
 struct __make_index_sequence_impl : __make_index_sequence_impl<_Np - 1, _Np - 1, _Sp...>
 {
 };
 
-template <std::size_t... _Sp>
+template <::std::size_t... _Sp>
 struct __make_index_sequence_impl<0, _Sp...>
 {
     using type = __index_sequence<_Sp...>;
 };
 
-template <std::size_t _Np>
+template <::std::size_t _Np>
 using __make_index_sequence = typename oneapi::dpl::__internal::__make_index_sequence_impl<_Np>::type;
 
 #endif /* _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT */
 
 // Aliases for adjacent_find compile-time dispatching
-using __or_semantic = std::true_type;
-using __first_semantic = std::false_type;
+using __or_semantic = ::std::true_type;
+using __first_semantic = ::std::false_type;
 
 } // namespace __internal
 } // namespace dpl

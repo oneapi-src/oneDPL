@@ -58,14 +58,14 @@ class __buffer
 {
     tbb::tbb_allocator<_Tp> _M_allocator;
     _Tp* _M_ptr;
-    const std::size_t _M_buf_size;
+    const ::std::size_t _M_buf_size;
     __buffer(const __buffer&) = delete;
     void
     operator=(const __buffer&) = delete;
 
   public:
     //! Try to obtain buffer of given size to store objects of _Tp type
-    __buffer(const std::size_t __n) : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n) {}
+    __buffer(const ::std::size_t __n) : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n) {}
     //! True if buffer was successfully obtained, zero otherwise.
     operator bool() const { return _M_ptr != NULL; }
     //! Return pointer to buffer, or  NULL if buffer could not be obtained.
@@ -195,7 +195,7 @@ struct __par_trans_red_body
             new (&_M_sum_storage)
                 _Tp(_M_combine(_M_u(__i), _M_u(__i + 1))); // The condition i+1 < j is provided by the grain size of 3
             _M_has_sum = true;
-            std::advance(__i, 2);
+            ::std::advance(__i, 2);
             if (__i == __j)
                 return;
         }
@@ -441,14 +441,14 @@ class __task : public tbb::task
     __task*
     make_continuation(_Fn&& __f)
     {
-        return new (allocate_continuation()) __func_task<typename std::decay<_Fn>::type>(std::forward<_Fn>(__f));
+        return new (allocate_continuation()) __func_task<typename ::std::decay<_Fn>::type>(::std::forward<_Fn>(__f));
     }
 
     template <typename _Fn>
     __task*
     make_child_of(__task* parent, _Fn&& __f)
     {
-        return new (parent->allocate_child()) __func_task<typename std::decay<_Fn>::type>(std::forward<_Fn>(__f));
+        return new (parent->allocate_child()) __func_task<typename ::std::decay<_Fn>::type>(::std::forward<_Fn>(__f));
     }
 
     template <typename _Fn>
@@ -456,7 +456,7 @@ class __task : public tbb::task
     make_additional_child_of(tbb::task* parent, _Fn&& __f)
     {
         return new (tbb::task::allocate_additional_child_of(*parent))
-            __func_task<typename std::decay<_Fn>::type>(std::forward<_Fn>(__f));
+            __func_task<typename ::std::decay<_Fn>::type>(::std::forward<_Fn>(__f));
     }
 
     inline void
@@ -498,7 +498,7 @@ class __func_task : public __task
 
   public:
     template <typename _Fn>
-    __func_task(_Fn&& __f) : _M_func{std::forward<_Fn>(__f)}
+    __func_task(_Fn&& __f) : _M_func{::std::forward<_Fn>(__f)}
     {
     }
 
@@ -517,7 +517,7 @@ class __root_task
   public:
     template <typename... Args>
     __root_task(Args&&... args)
-        : _M_task{new (tbb::task::allocate_root()) __func_task<_Func>{_Func(std::forward<Args>(args)...)}}
+        : _M_task{new (tbb::task::allocate_root()) __func_task<_Func>{_Func(::std::forward<Args>(args)...)}}
     {
     }
 
@@ -532,7 +532,7 @@ class __task : public tbb::detail::d1::task
     tbb::detail::d1::small_object_allocator _M_allocator{};
     tbb::detail::d1::execution_data* _M_execute_data{};
     __task* _M_parent{};
-    std::atomic<int> _M_refcount{};
+    ::std::atomic<int> _M_refcount{};
     bool _M_recycle{};
 
     template <typename _Fn>
@@ -541,8 +541,8 @@ class __task : public tbb::detail::d1::task
     {
         assert(_M_execute_data != nullptr);
         tbb::detail::d1::small_object_allocator __alloc{};
-        auto __t =
-            __alloc.new_object<__func_task<typename std::decay<_Fn>::type>>(*_M_execute_data, std::forward<_Fn>(__f));
+        auto __t = __alloc.new_object<__func_task<typename ::std::decay<_Fn>::type>>(*_M_execute_data,
+                                                                                     ::std::forward<_Fn>(__f));
         __t->_M_allocator = __alloc;
         return __t;
     }
@@ -557,14 +557,14 @@ class __task : public tbb::detail::d1::task
     void
     set_ref_count(int __n)
     {
-        _M_refcount.store(__n, std::memory_order_release);
+        _M_refcount.store(__n, ::std::memory_order_release);
     }
 
     template <typename _Fn>
     __task*
     make_continuation(_Fn&& __f)
     {
-        auto __t = allocate_func_task(std::forward<_Fn&&>(__f));
+        auto __t = allocate_func_task(::std::forward<_Fn&&>(__f));
         __t->_M_parent = _M_parent;
         _M_parent = nullptr;
         return __t;
@@ -574,7 +574,7 @@ class __task : public tbb::detail::d1::task
     __task*
     make_child_of(__task* __parent, _Fn&& __f)
     {
-        auto __t = allocate_func_task(std::forward<_Fn&&>(__f));
+        auto __t = allocate_func_task(::std::forward<_Fn&&>(__f));
         __t->_M_parent = __parent;
         return __t;
     }
@@ -583,8 +583,8 @@ class __task : public tbb::detail::d1::task
     __task*
     make_additional_child_of(__task* __parent, _Fn&& __f)
     {
-        auto __t = make_child_of(__parent, std::forward<_Fn>(__f));
-        assert(__parent->_M_refcount.load(std::memory_order_relaxed) > 0);
+        auto __t = make_child_of(__parent, ::std::forward<_Fn>(__f));
+        assert(__parent->_M_refcount.load(::std::memory_order_relaxed) > 0);
         ++__parent->_M_refcount;
         return __t;
     }
@@ -659,7 +659,7 @@ class __func_task : public __task
         this->~__func_task();
 
         assert(__parent != nullptr);
-        assert(__parent->_M_refcount.load(std::memory_order_relaxed) > 0);
+        assert(__parent->_M_refcount.load(::std::memory_order_relaxed) > 0);
         if (--__parent->_M_refcount == 0)
         {
             assert(__next == nullptr);
@@ -674,7 +674,7 @@ class __func_task : public __task
 
   public:
     template <typename _Fn>
-    __func_task(_Fn&& __f) : _M_func(std::forward<_Fn>(__f))
+    __func_task(_Fn&& __f) : _M_func(::std::forward<_Fn>(__f))
     {
     }
 
@@ -711,10 +711,10 @@ class __root_task : public __task
     __root_task(Args&&... args) : _M_wait_object{1}
     {
         tbb::detail::d1::small_object_allocator __alloc{};
-        _M_func_task = __alloc.new_object<__func_task<_Func>>(_Func(std::forward<Args>(args)...));
+        _M_func_task = __alloc.new_object<__func_task<_Func>>(_Func(::std::forward<Args>(args)...));
         _M_func_task->_M_allocator = __alloc;
         _M_func_task->_M_parent = this;
-        _M_refcount.store(1, std::memory_order_relaxed);
+        _M_refcount.store(1, ::std::memory_order_relaxed);
     }
 
     friend class __task;
@@ -725,10 +725,10 @@ template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, type
           typename _LeafMerge>
 class __merge_func
 {
-    typedef typename std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
-    typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
-    typedef typename std::iterator_traits<_RandomAccessIterator1>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::value_type _ValueType;
 
     _RandomAccessIterator1 _M_x_beg;
     _RandomAccessIterator2 _M_z_beg;
@@ -753,7 +753,7 @@ class __merge_func
         void
         operator()(Iterator1 __x, Iterator2 __z)
         {
-            *__z = std::move(*__x);
+            *__z = ::std::move(*__x);
         }
     };
 
@@ -763,7 +763,7 @@ class __merge_func
         void
         operator()(Iterator1 __x, Iterator2 __z)
         {
-            ::new (std::addressof(*__z)) _ValueType(std::move(*__x));
+            ::new (::std::addressof(*__z)) _ValueType(::std::move(*__x));
         }
     };
 
@@ -774,13 +774,13 @@ class __merge_func
         operator()(Iterator1 __first1, Iterator1 __last1, Iterator2 __first2)
         {
             if (__last1 - __first1 < __merge_cut_off)
-                return std::move(__first1, __last1, __first2);
+                return ::std::move(__first1, __last1, __first2);
 
             auto __n = __last1 - __first1;
             tbb::parallel_for(tbb::blocked_range<_SizeType>(0, __n, __merge_cut_off),
                               [__first1, __first2](const tbb::blocked_range<_SizeType>& __range) {
-                                  std::move(__first1 + __range.begin(), __first1 + __range.end(),
-                                            __first2 + __range.begin());
+                                  ::std::move(__first1 + __range.begin(), __first1 + __range.end(),
+                                              __first2 + __range.begin());
                               });
             return __first2 + __n;
         }
@@ -872,20 +872,20 @@ class __merge_func
         assert(__nx > 0 && __ny > 0);
         assert(_M_nsort > 0);
 
-        auto __kx = std::min(_M_nsort, __nx);
-        auto __ky = std::min(_M_nsort, __ny);
+        auto __kx = ::std::min(_M_nsort, __nx);
+        auto __ky = ::std::min(_M_nsort, __ny);
 
         assert(_x_orig == _y_orig);
 
         if (_x_orig)
         {
-            assert(std::is_sorted(_M_x_beg + _M_xs, _M_x_beg + _M_xs + __kx, _M_comp));
-            assert(std::is_sorted(_M_x_beg + _M_ys, _M_x_beg + _M_ys + __ky, _M_comp));
+            assert(::std::is_sorted(_M_x_beg + _M_xs, _M_x_beg + _M_xs + __kx, _M_comp));
+            assert(::std::is_sorted(_M_x_beg + _M_ys, _M_x_beg + _M_ys + __ky, _M_comp));
             return !_M_comp(*(_M_x_beg + _M_ys), *(_M_x_beg + _M_xs + __kx - 1));
         }
 
-        assert(std::is_sorted(_M_z_beg + _M_xs, _M_z_beg + _M_xs + __kx, _M_comp));
-        assert(std::is_sorted(_M_z_beg + _M_ys, _M_z_beg + _M_ys + __ky, _M_comp));
+        assert(::std::is_sorted(_M_z_beg + _M_xs, _M_z_beg + _M_xs + __kx, _M_comp));
+        assert(::std::is_sorted(_M_z_beg + _M_ys, _M_z_beg + _M_ys + __ky, _M_comp));
         return !_M_comp(*(_M_z_beg + _M_zs + __nx), *(_M_z_beg + _M_zs + __kx - 1));
     }
     void
@@ -1022,29 +1022,29 @@ class __merge_func
             __ym = _M_ys + __ny / 2;
 
             if (_x_orig)
-                __xm =
-                    std::upper_bound(_M_x_beg + _M_xs, _M_x_beg + _M_xs + __nx, *(_M_x_beg + __ym), _M_comp) - _M_x_beg;
+                __xm = ::std::upper_bound(_M_x_beg + _M_xs, _M_x_beg + _M_xs + __nx, *(_M_x_beg + __ym), _M_comp) -
+                       _M_x_beg;
             else
-                __xm =
-                    std::upper_bound(_M_z_beg + _M_xs, _M_z_beg + _M_xs + __nx, *(_M_z_beg + __ym), _M_comp) - _M_z_beg;
+                __xm = ::std::upper_bound(_M_z_beg + _M_xs, _M_z_beg + _M_xs + __nx, *(_M_z_beg + __ym), _M_comp) -
+                       _M_z_beg;
         }
         else
         {
             __xm = _M_xs + __nx / 2;
 
             if (_y_orig)
-                __ym =
-                    std::lower_bound(_M_x_beg + _M_ys, _M_x_beg + _M_ys + __ny, *(_M_x_beg + __xm), _M_comp) - _M_x_beg;
+                __ym = ::std::lower_bound(_M_x_beg + _M_ys, _M_x_beg + _M_ys + __ny, *(_M_x_beg + __xm), _M_comp) -
+                       _M_x_beg;
             else
-                __ym =
-                    std::lower_bound(_M_z_beg + _M_ys, _M_z_beg + _M_ys + __ny, *(_M_z_beg + __xm), _M_comp) - _M_z_beg;
+                __ym = ::std::lower_bound(_M_z_beg + _M_ys, _M_z_beg + _M_ys + __ny, *(_M_z_beg + __xm), _M_comp) -
+                       _M_z_beg;
         }
 
         auto __zm = _M_zs + ((__xm - _M_xs) + (__ym - _M_ys));
         __merge_func __right_func(__xm, _M_xe, __ym, _M_ye, __zm, _M_comp, _Cleanup(), _M_leaf_merge, _M_nsort,
                                   _M_x_beg, _M_z_beg, _x_orig, _y_orig, _root);
         __right_func._split = true;
-        auto __merge_task = __self->make_additional_child_of(__self->parent(), std::move(__right_func));
+        auto __merge_task = __self->make_additional_child_of(__self->parent(), ::std::move(__right_func));
         __self->spawn(__merge_task);
         __self->recycle_as_continuation();
 
@@ -1103,9 +1103,9 @@ template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, type
 class __stable_sort_func
 {
   public:
-    typedef typename std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
-    typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
 
   private:
     _RandomAccessIterator1 _M_xs, _M_xe, _M_x_beg;
@@ -1141,7 +1141,7 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
     assert(_M_nsort > 0);
 
     const _SizeType __n = _M_xe - _M_xs;
-    const _SizeType __nmerge = std::min(_M_nsort, __n);
+    const _SizeType __nmerge = ::std::min(_M_nsort, __n);
     const _SizeType __sort_cut_off = _PSTL_STABLE_SORT_CUT_OFF;
     if (__n <= __sort_cut_off)
     {
@@ -1157,7 +1157,7 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
                                       _M_zs - _M_z_beg, _M_comp, __utils::__serial_destroy(),
                                       __utils::__serial_move_merge(__nmerge), _M_nsort, _M_x_beg, _M_z_beg,
                                       /*x_orig*/ true, /*y_orig*/ true, /*root*/ _M_root));
-    auto __parent = __self->make_continuation(std::move(__m));
+    auto __parent = __self->make_continuation(::std::move(__m));
     __parent->set_ref_count(2);
     auto __right = __self->make_child_of(
         __parent, __stable_sort_func(__xm, _M_xe, __zm, false, _M_comp, _M_leaf_sort, _M_nsort, _M_x_beg, _M_z_beg));
@@ -1172,12 +1172,12 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
-                       _Compare __comp, _LeafSort __leaf_sort, std::size_t __nsort)
+                       _Compare __comp, _LeafSort __leaf_sort, ::std::size_t __nsort)
 {
     tbb::this_task_arena::isolate([=, &__exec, &__nsort]() {
         //sorting based on task tree and parallel merge
-        typedef typename std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
-        typedef typename std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
+        typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+        typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
         const _DifferenceType __n = __xe - __xs;
 
         const _DifferenceType __sort_cut_off = _PSTL_STABLE_SORT_CUT_OFF;
@@ -1226,9 +1226,9 @@ __task*
 __merge_func_static<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3, __M_Compare, _LeafMerge>::
 operator()(__task* __self)
 {
-    typedef typename std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
-    typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
     const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
     const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
@@ -1242,12 +1242,12 @@ operator()(__task* __self)
     if (_M_xe - _M_xs < _M_ye - _M_ys)
     {
         __ym = _M_ys + (_M_ye - _M_ys) / 2;
-        __xm = std::upper_bound(_M_xs, _M_xe, *__ym, _M_comp);
+        __xm = ::std::upper_bound(_M_xs, _M_xe, *__ym, _M_comp);
     }
     else
     {
         __xm = _M_xs + (_M_xe - _M_xs) / 2;
-        __ym = std::lower_bound(_M_ys, _M_ye, *__xm, _M_comp);
+        __ym = ::std::lower_bound(_M_ys, _M_ye, *__xm, _M_comp);
     }
     const _RandomAccessIterator3 __zm = _M_zs + ((__xm - _M_xs) + (__ym - _M_ys));
     auto __right = __self->make_additional_child_of(
@@ -1267,9 +1267,9 @@ __parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessI
                  _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp,
                  _LeafMerge __leaf_merge)
 {
-    typedef typename std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
-    typedef typename std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
     const _SizeType __n = (__xe - __xs) + (__ye - __ys);
     const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
@@ -1297,7 +1297,8 @@ void
 __parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
 {
     //TODO: a version of tbb::this_task_arena::isolate with variadic arguments pack should be added in the future
-    tbb::this_task_arena::isolate([&]() { tbb::parallel_invoke(std::forward<_F1>(__f1), std::forward<_F2>(__f2)); });
+    tbb::this_task_arena::isolate(
+        [&]() { tbb::parallel_invoke(::std::forward<_F1>(__f1), ::std::forward<_F2>(__f2)); });
 }
 
 //------------------------------------------------------------------------

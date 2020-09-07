@@ -31,11 +31,11 @@ namespace __ranges
 // helpers to check implement "has_base"
 template <typename U>
 auto
-test_pipeline_object(int) -> decltype(std::declval<U>().base(), std::true_type{});
+test_pipeline_object(int) -> decltype(::std::declval<U>().base(), ::std::true_type{});
 
 template <typename U>
 auto
-test_pipeline_object(...) -> std::false_type;
+test_pipeline_object(...) -> ::std::false_type;
 
 // has_base check definition
 template <typename Range>
@@ -51,9 +51,9 @@ struct pipeline_base
 };
 
 template <typename Range>
-struct pipeline_base<Range, typename std::enable_if<is_pipeline_object<Range>::value>::type>
+struct pipeline_base<Range, typename ::std::enable_if<is_pipeline_object<Range>::value>::type>
 {
-    using type = typename pipeline_base<typename std::decay<decltype(std::declval<Range>().base())>::type>::type;
+    using type = typename pipeline_base<typename ::std::decay<decltype(::std::declval<Range>().base())>::type>::type;
 };
 
 //pipeline_base_range
@@ -70,9 +70,9 @@ struct pipeline_base_range
     };
 };
 
-// use std::conditional to understand what class to inherit from
+// use ::std::conditional to understand what class to inherit from
 template <typename Range>
-struct pipeline_base_range<Range, typename std::enable_if<is_pipeline_object<Range>::value, void>::type>
+struct pipeline_base_range<Range, typename ::std::enable_if<is_pipeline_object<Range>::value, void>::type>
 {
     Range rng;
 
@@ -84,20 +84,20 @@ struct pipeline_base_range<Range, typename std::enable_if<is_pipeline_object<Ran
     };
 };
 
-template <typename _TupleType, typename _F, std::size_t... _Ip>
+template <typename _TupleType, typename _F, ::std::size_t... _Ip>
 void
 invoke(const _TupleType& __t, _F __f, oneapi::dpl::__internal::__index_sequence<_Ip...>)
 {
-    __f(oneapi::dpl::__internal::get<_Ip>(__t)...);
+    __f(::std::get<_Ip>(__t)...);
 }
 
 struct __invoke_begin
 {
     template <typename _R>
     _PSTL_CONSTEXPR_FUN auto
-    operator()(_R __r) -> decltype(std::begin(__r))
+    operator()(_R __r) -> decltype(::std::begin(__r))
     {
-        return std::begin(__r);
+        return ::std::begin(__r);
     }
 };
 
@@ -108,30 +108,27 @@ class zip_view
 
     using _tuple_ranges_t = oneapi::dpl::__internal::tuple<_Ranges...>;
 
-    template <typename _TupleType, typename _F, std::size_t... _Ip>
+    template <typename _TupleType, typename _F, ::std::size_t... _Ip>
     static auto
     invoke_it(const _TupleType& __t, _F __f, oneapi::dpl::__internal::__index_sequence<_Ip...>)
-        -> decltype(oneapi::dpl::make_zip_iterator(__f(oneapi::dpl::__internal::get<_Ip>(__t))...))
+        -> decltype(oneapi::dpl::make_zip_iterator(__f(::std::get<_Ip>(__t))...))
     {
-        return oneapi::dpl::make_zip_iterator(__f(oneapi::dpl::__internal::get<_Ip>(__t))...);
+        return oneapi::dpl::make_zip_iterator(__f(::std::get<_Ip>(__t))...);
     }
 
   public:
-    static constexpr std::size_t __num_ranges = sizeof...(_Ranges);
+    static constexpr ::std::size_t __num_ranges = sizeof...(_Ranges);
 
-    explicit zip_view(_Ranges... __args)
-        : __m_ranges(oneapi::dpl::__internal::make_tuple(std::forward<_Ranges>(__args)...))
-    {
-    }
+    explicit zip_view(_Ranges... __args) : __m_ranges(oneapi::dpl::__internal::make_tuple(__args...)) {}
 
     auto
-    size() const -> decltype(oneapi::dpl::__internal::get<0>(std::declval<_tuple_ranges_t>()).size())
+    size() const -> decltype(::std::get<0>(::std::declval<_tuple_ranges_t>()).size())
     {
-        return oneapi::dpl::__internal::get<0>(__m_ranges).size();
+        return ::std::get<0>(__m_ranges).size();
     }
 
     _PSTL_CONSTEXPR_FUN auto
-    begin() const -> decltype(invoke_it(std::declval<_tuple_ranges_t>(), __invoke_begin{},
+    begin() const -> decltype(invoke_it(::std::declval<_tuple_ranges_t>(), __invoke_begin{},
                                         oneapi::dpl::__internal::__make_index_sequence<__num_ranges>()))
     {
         return invoke_it(__m_ranges, __invoke_begin{}, oneapi::dpl::__internal::__make_index_sequence<__num_ranges>());
@@ -162,18 +159,18 @@ class zip_view
 
 template <typename... _Ranges>
 auto
-make_zip_view(_Ranges&&... args) -> decltype(zip_view<_Ranges...>(std::forward<_Ranges>(args)...))
+make_zip_view(_Ranges&&... args) -> decltype(zip_view<_Ranges...>(::std::forward<_Ranges>(args)...))
 {
-    return zip_view<_Ranges...>(std::forward<_Ranges>(args)...);
+    return zip_view<_Ranges...>(::std::forward<_Ranges>(args)...);
 }
 
 // a custom view, over a pair of "passed directly" iterators
 template <typename _Iterator>
 class guard_view
 {
-    using value_type = typename std::iterator_traits<_Iterator>::value_type;
-    using reference = typename std::iterator_traits<_Iterator>::reference;
-    using diff_type = typename std::iterator_traits<_Iterator>::difference_type;
+    using value_type = typename ::std::iterator_traits<_Iterator>::value_type;
+    using reference = typename ::std::iterator_traits<_Iterator>::reference;
+    using diff_type = typename ::std::iterator_traits<_Iterator>::difference_type;
 
   public:
     guard_view(_Iterator __first = _Iterator(), diff_type __n = 0) : m_p(__first), m_count(__n) {}

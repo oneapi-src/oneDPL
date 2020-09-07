@@ -36,14 +36,14 @@ struct __tuple_util
     static void
     __increment(_TupleType& __it, _DifferenceType __forward)
     {
-        std::get<_Np - 1>(__it) = std::get<_Np - 1>(__it) + __forward;
+        ::std::get<_Np - 1>(__it) = ::std::get<_Np - 1>(__it) + __forward;
         __tuple_util<_Np - 1>::__increment(__it, __forward);
     }
     template <typename _TupleType>
     static void
     __pre_increment(_TupleType& __it)
     {
-        ++std::get<_Np - 1>(__it);
+        ++::std::get<_Np - 1>(__it);
         __tuple_util<_Np - 1>::__pre_increment(__it);
     }
 };
@@ -66,11 +66,11 @@ struct __tuple_util<0>
 template <typename _TupleReturnType>
 struct __make_references
 {
-    template <typename _TupleType, std::size_t... _Ip>
+    template <typename _TupleType, ::std::size_t... _Ip>
     _TupleReturnType
     operator()(const _TupleType& __t, oneapi::dpl::__internal::__index_sequence<_Ip...>)
     {
-        return _TupleReturnType(*std::get<_Ip>(__t)...);
+        return _TupleReturnType(*::std::get<_Ip>(__t)...);
     }
 };
 
@@ -79,18 +79,18 @@ struct __make_references
 template <typename... _Types>
 class zip_forward_iterator
 {
-    static const std::size_t __num_types = sizeof...(_Types);
-    typedef typename std::tuple<_Types...> __it_types;
+    static const ::std::size_t __num_types = sizeof...(_Types);
+    typedef typename ::std::tuple<_Types...> __it_types;
 
   public:
-    typedef typename std::make_signed<std::size_t>::type difference_type;
-    typedef std::tuple<typename std::iterator_traits<_Types>::value_type...> value_type;
-    typedef std::tuple<typename std::iterator_traits<_Types>::reference...> reference;
-    typedef std::tuple<typename std::iterator_traits<_Types>::pointer...> pointer;
-    typedef std::forward_iterator_tag iterator_category;
+    typedef typename ::std::make_signed<::std::size_t>::type difference_type;
+    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
+    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
+    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
+    typedef ::std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
-    explicit zip_forward_iterator(_Types... __args) : __my_it_(std::make_tuple(__args...)) {}
+    explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
     zip_forward_iterator(const zip_forward_iterator& __input) : __my_it_(__input.__my_it_) {}
     zip_forward_iterator&
     operator=(const zip_forward_iterator& __input)
@@ -121,7 +121,7 @@ class zip_forward_iterator
     bool
     operator==(const zip_forward_iterator& __it) const
     {
-        return std::get<0>(__my_it_) == std::get<0>(__it.__my_it_);
+        return ::std::get<0>(__my_it_) == ::std::get<0>(__it.__my_it_);
     }
     bool
     operator!=(const zip_forward_iterator& __it) const
@@ -150,16 +150,16 @@ namespace dpl
 template <typename _Ip>
 class counting_iterator
 {
-    static_assert(std::is_integral<_Ip>::value, "Cannot instantiate counting_iterator with a non-integer type");
+    static_assert(::std::is_integral<_Ip>::value, "Cannot instantiate counting_iterator with a non-integer type");
 
   public:
-    typedef typename std::make_signed<_Ip>::type difference_type;
+    typedef typename ::std::make_signed<_Ip>::type difference_type;
     typedef _Ip value_type;
     typedef const _Ip* pointer;
     // There is no storage behind the iterator, so we return a value instead of reference.
     typedef _Ip reference;
-    typedef std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = std::true_type;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    using is_passed_directly = ::std::true_type;
 
     counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
@@ -265,23 +265,19 @@ template <typename... _Types>
 class zip_iterator
 {
     static_assert(sizeof...(_Types) > 0, "Cannot instantiate zip_iterator with empty template parameter pack");
-    static const std::size_t __num_types = sizeof...(_Types);
-    typedef std::tuple<_Types...> __it_types;
+    static const ::std::size_t __num_types = sizeof...(_Types);
+    typedef oneapi::dpl::__internal::tuple<_Types...> __it_types;
 
   public:
-    typedef typename std::make_signed<std::size_t>::type difference_type;
-    typedef std::tuple<typename std::iterator_traits<_Types>::value_type...> value_type;
-#if __INTEL_COMPILER && __INTEL_COMPILER < 1800 && _MSC_VER
-    typedef std::tuple<typename std::iterator_traits<_Types>::reference...> reference;
-#else
-    typedef oneapi::dpl::__internal::__tuplewrapper<typename std::iterator_traits<_Types>::reference...> reference;
-#endif
-    typedef std::tuple<typename std::iterator_traits<_Types>::pointer...> pointer;
-    typedef std::random_access_iterator_tag iterator_category;
-    using is_zip = std::true_type;
+    typedef typename ::std::make_signed<::std::size_t>::type difference_type;
+    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
+    typedef oneapi::dpl::__internal::tuplewrapper<typename ::std::iterator_traits<_Types>::reference...> reference;
+    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    using is_zip = ::std::true_type;
 
     zip_iterator() : __my_it_() {}
-    explicit zip_iterator(_Types... __args) : __my_it_(std::make_tuple(__args...)) {}
+    explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
     zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
     zip_iterator&
     operator=(const zip_iterator& __input)
@@ -300,7 +296,7 @@ class zip_iterator
     difference_type
     operator-(const zip_iterator& __it) const
     {
-        return std::get<0>(__my_it_) - std::get<0>(__it.__my_it_);
+        return ::std::get<0>(__my_it_) - ::std::get<0>(__it.__my_it_);
     }
 
     zip_iterator&
@@ -406,24 +402,24 @@ make_zip_iterator(_Tp... __args)
     return zip_iterator<_Tp...>(__args...);
 }
 
-template <typename _UnaryFunc, typename _Iter>
+template <typename _Iter, typename _UnaryFunc>
 class transform_iterator
 {
+  private:
+    _Iter __my_it_;
+    const _UnaryFunc __my_unary_func_;
+
   public:
-    typedef typename std::iterator_traits<_Iter>::difference_type difference_type;
-#if _PSTL_CPP17_INVOKE_RESULT_PRESENT
-    typedef typename std::invoke_result<_UnaryFunc, typename std::iterator_traits<_Iter>::reference>::type reference;
-#else
-    typedef typename std::result_of<_UnaryFunc(typename std::iterator_traits<_Iter>::reference)>::type reference;
-#endif
-    typedef typename std::remove_reference<reference>::type value_type;
-    typedef typename std::iterator_traits<_Iter>::pointer pointer;
-    typedef typename std::random_access_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
+    typedef decltype(__my_unary_func_(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
+    typedef typename ::std::remove_reference<reference>::type value_type;
+    typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
+    typedef typename ::std::random_access_iterator_tag iterator_category;
 
     transform_iterator(_Iter __it, _UnaryFunc __unary_func) : __my_it_(__it), __my_unary_func_(__unary_func)
     {
-        static_assert((std::is_same<typename std::iterator_traits<_Iter>::iterator_category,
-                                    std::random_access_iterator_tag>::value),
+        static_assert((::std::is_same<typename ::std::iterator_traits<_Iter>::iterator_category,
+                                      ::std::random_access_iterator_tag>::value),
                       "Random access iterator required.");
     }
     transform_iterator(const transform_iterator& __input)
@@ -537,17 +533,13 @@ class transform_iterator
     {
         return __my_unary_func_;
     }
-
-  private:
-    _Iter __my_it_;
-    const _UnaryFunc __my_unary_func_;
 };
 
-template <typename _UnaryFunc, typename _Iter>
-transform_iterator<_UnaryFunc, _Iter>
+template <typename _Iter, typename _UnaryFunc>
+transform_iterator<_Iter, _UnaryFunc>
 make_transform_iterator(_Iter __it, _UnaryFunc __unary_func)
 {
-    return transform_iterator<_UnaryFunc, _Iter>(__it, __unary_func);
+    return transform_iterator<_Iter, _UnaryFunc>(__it, __unary_func);
 }
 
 } // namespace dpl
@@ -564,9 +556,9 @@ struct make_zipiterator_functor
 {
     template <typename... Args>
     auto
-    operator()(Args&&... args) const -> decltype(oneapi::dpl::make_zip_iterator(std::forward<Args>(args)...))
+    operator()(Args&&... args) const -> decltype(oneapi::dpl::make_zip_iterator(::std::forward<Args>(args)...))
     {
-        return oneapi::dpl::make_zip_iterator(std::forward<Args>(args)...);
+        return oneapi::dpl::make_zip_iterator(::std::forward<Args>(args)...);
     }
 };
 

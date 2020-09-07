@@ -62,21 +62,21 @@ class device_policy
     }
 
     // For internal use only
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_unsequenced()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
     // __allow_vector is needed for __is_vectorization_preferred
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_vector()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_parallel()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
 
   private:
@@ -232,13 +232,13 @@ inline namespace v1
 
 // 2.3, Execution policy type trait
 template <typename... PolicyParams>
-struct is_execution_policy<__dpstd::device_policy<PolicyParams...>> : std::true_type
+struct is_execution_policy<__dpstd::device_policy<PolicyParams...>> : ::std::true_type
 {
 };
 
 #if _PSTL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct is_execution_policy<__dpstd::fpga_policy<unroll_factor, PolicyParams...>> : std::true_type
+struct is_execution_policy<__dpstd::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 #endif
@@ -251,38 +251,38 @@ namespace __internal
 
 // Extension: hetero execution policy type trait
 template <typename _T>
-struct __is_hetero_execution_policy : std::false_type
+struct __is_hetero_execution_policy : ::std::false_type
 {
 };
 
 template <typename... PolicyParams>
-struct __is_hetero_execution_policy<execution::device_policy<PolicyParams...>> : std::true_type
+struct __is_hetero_execution_policy<execution::device_policy<PolicyParams...>> : ::std::true_type
 {
 };
 
 template <typename _T>
-struct __is_device_execution_policy : std::false_type
+struct __is_device_execution_policy : ::std::false_type
 {
 };
 
 template <typename... PolicyParams>
-struct __is_device_execution_policy<execution::device_policy<PolicyParams...>> : std::true_type
+struct __is_device_execution_policy<execution::device_policy<PolicyParams...>> : ::std::true_type
 {
 };
 
 template <typename _T>
-struct __is_fpga_execution_policy : std::false_type
+struct __is_fpga_execution_policy : ::std::false_type
 {
 };
 
 #if _PSTL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct __is_hetero_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : std::true_type
+struct __is_hetero_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct __is_fpga_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : std::true_type
+struct __is_fpga_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 
@@ -301,36 +301,45 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T>
-using __enable_if_device_execution_policy = typename std::enable_if<
-    oneapi::dpl::__internal::__is_device_execution_policy<typename std::decay<_ExecPolicy>::type>::value, _T>::type;
+using __enable_if_device_execution_policy = typename ::std::enable_if<
+    oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_hetero_execution_policy = typename std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename std::decay<_ExecPolicy>::type>::value, _T>::type;
+using __enable_if_hetero_execution_policy = typename ::std::enable_if<
+    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_fpga_execution_policy = typename std::enable_if<
-    oneapi::dpl::__internal::__is_fpga_execution_policy<typename std::decay<_ExecPolicy>::type>::value, _T>::type;
+using __enable_if_fpga_execution_policy = typename ::std::enable_if<
+    oneapi::dpl::__internal::__is_fpga_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
 
 //-----------------------------------------------------------------------------
 // Device run-time information helpers
 //-----------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy>
-std::size_t
+::std::size_t
 __max_work_group_size(_ExecutionPolicy&& __policy)
 {
     return __policy.queue().get_device().template get_info<cl::sycl::info::device::max_work_group_size>();
 }
 
+template <typename _ExecutionPolicy, typename _T>
+cl::sycl::cl_ulong
+__max_local_allocation_size(_ExecutionPolicy&& __policy, const cl::sycl::cl_ulong& __local_allocation_size)
+{
+    const auto __local_mem_size =
+        __policy.queue().get_device().template get_info<cl::sycl::info::device::local_mem_size>();
+    return ::std::min(__local_mem_size / sizeof(_T), __local_allocation_size);
+}
+
 #if _USE_SUB_GROUPS
 template <typename _ExecutionPolicy>
-std::size_t
+::std::size_t
 __max_sub_group_size(_ExecutionPolicy&& __policy)
 {
     // TODO: can get_info<sycl::info::device::sub_group_sizes>() return zero-size vector?
     //       Spec does not say anything about that.
-    cl::sycl::vector_class<std::size_t> __supported_sg_sizes =
+    cl::sycl::vector_class<::std::size_t> __supported_sg_sizes =
         __policy.queue().get_device().template get_info<cl::sycl::info::device::sub_group_sizes>();
 
     // TODO: Since it is unknown if sycl::vector_class returned
@@ -341,7 +350,7 @@ __max_sub_group_size(_ExecutionPolicy&& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-cl_uint
+cl::sycl::cl_uint
 __max_compute_units(_ExecutionPolicy&& __policy)
 {
     return __policy.queue().get_device().template get_info<cl::sycl::info::device::max_compute_units>();
@@ -352,20 +361,18 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 //-----------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy>
-std::size_t
+::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const cl::sycl::kernel& __kernel)
 {
     const auto& __device = __policy.queue().get_device();
-
-    const std::size_t __wg_size =
+    auto __max_wg_size =
         __kernel.template get_work_group_info<cl::sycl::info::kernel_work_group::work_group_size>(__device);
-    // The variable below is needed to divide __wgroup_size_kernel on CPU because
-    // work group size getting from kernel is not enough to allow execution on CPU.
-    // It causes CL_OUT_OF_RESOURCES error in runtime on CPU.
-    // Experimentally it was found that minimal divisor is 4.
-    const std::size_t __cpu_divisor = __device.is_cpu() ? 4 : 1;
+    // The variable below is needed to achieve better performance on CPU devices.
+    // Experimentally it was found that the most common divisor is 4 with all patterns.
+    // TODO: choose the divisor according to specific pattern.
+    const ::std::size_t __cpu_divisor = __device.is_cpu() ? 4 : 1;
 
-    return __wg_size / __cpu_divisor;
+    return __max_wg_size / __cpu_divisor;
 }
 
 template <typename _ExecutionPolicy>
@@ -373,8 +380,8 @@ long
 __kernel_sub_group_size(_ExecutionPolicy&& __policy, const cl::sycl::kernel& __kernel)
 {
     auto __device = __policy.queue().get_device();
-    auto __wg_size = __kernel_work_group_size(std::forward<_ExecutionPolicy>(__policy), __kernel);
-    const std::size_t __sg_size =
+    auto __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
+    const ::std::size_t __sg_size =
         __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
             __device, sycl::range<3>{__wg_size, 1, 1});
     return __sg_size;

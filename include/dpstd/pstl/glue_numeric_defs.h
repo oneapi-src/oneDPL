@@ -101,11 +101,10 @@ exclusive_scan(const oneapi::dpl::execution::device_policy<PolicyParams...>& __e
 
 #        if _PSTL_FPGA_DEVICE
 template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation, class KernelName,
-          int factor, class... PolicyParams>
+          int factor>
 _ForwardIterator2
-exclusive_scan(const oneapi::dpl::execution::fpga_device_policy<KernelName, factor, PolicyParams...>& __exec,
-               _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result, _Tp __init,
-               _BinaryOperation __binary_op);
+exclusive_scan(const oneapi::dpl::execution::fpga_policy<factor, KernelName>& __exec, _ForwardIterator1 __first,
+               _ForwardIterator1 __last, _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op);
 #        endif // _PSTL_FPGA_DEVICE
 #    endif     // _PSTL_BACKEND_SYCL
 

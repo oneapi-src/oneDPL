@@ -38,7 +38,7 @@ struct test_any_of
     operator()(ExecutionPolicy&& exec, Iterator begin, Iterator end, Predicate pred, bool expected)
     {
 
-        auto actualr = std::any_of(exec, begin, end, pred);
+        auto actualr = ::std::any_of(exec, begin, end, pred);
         EXPECT_EQ(expected, actualr, "result for any_of");
     }
 };
@@ -102,6 +102,6 @@ main()
 
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

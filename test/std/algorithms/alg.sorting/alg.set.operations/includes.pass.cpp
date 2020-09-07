@@ -49,19 +49,19 @@ template <typename T>
 struct test_one_policy
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
 
-        auto expect_res = std::includes(first1, last1, first2, last2, comp);
-        auto res = std::includes(exec, first1, last1, first2, last2, comp);
+        auto expect_res = ::std::includes(first1, last1, first2, last2, comp);
+        auto res = ::std::includes(exec, first1, last1, first2, last2, comp);
 
         EXPECT_TRUE(expect_res == res, "wrong result for includes");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -73,21 +73,21 @@ void
 test_includes(Compare compare)
 {
 
-    const std::size_t n_max = 1000000;
+    const ::std::size_t n_max = 1000000;
 
     // The rand()%(2*n+1) encourages generation of some duplicates.
-    std::srand(42);
+    ::std::srand(42);
 
-    for (std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (::std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        for (std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
+        for (::std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
         {
             //prepare the input ranges
-            Sequence<T1> in1(n, [](std::size_t k) { return rand() % (2 * k + 1); });
-            Sequence<T2> in2(m, [](std::size_t k) { return rand() % (k + 1); });
+            Sequence<T1> in1(n, [](::std::size_t k) { return rand() % (2 * k + 1); });
+            Sequence<T2> in2(m, [](::std::size_t k) { return rand() % (k + 1); });
 
-            std::sort(in1.begin(), in1.end(), compare);
-            std::sort(in2.begin(), in2.end(), compare);
+            ::std::sort(in1.begin(), in1.end(), compare);
+            ::std::sort(in2.begin(), in2.end(), compare);
 
             invoke_on_all_policies<0>()(test_one_policy<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
                                         compare);
@@ -109,7 +109,7 @@ main()
     test_includes<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; });
 #endif
     
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
 
     return 0;
 }

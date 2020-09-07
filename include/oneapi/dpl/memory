@@ -15,7 +15,7 @@
 
 #ifndef _TEST_SUPPORT_STDLIB_MEMORY
 #define _TEST_SUPPORT_STDLIB_MEMORY
-
+#include <memory>
 #include "oneapi/dpl/pstl/pstl_config.h"
 
 #if !_PSTL_MEMORY_FORWARD_DECLARED
@@ -29,4 +29,15 @@
 #    include "oneapi/dpl/pstl/glue_memory_impl.h"
 #endif
 
+namespace oneapi
+{
+namespace std
+{
+using ::std::addressof;
+}
+namespace dpl
+{
+using namespace oneapi::std;
+}
+} // namespace oneapi
 #endif /* _TEST_SUPPORT_STDLIB_MEMORY */

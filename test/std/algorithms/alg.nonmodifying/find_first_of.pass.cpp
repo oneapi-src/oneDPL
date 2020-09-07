@@ -86,13 +86,13 @@ void
 test(Predicate pred)
 {
 
-    const std::size_t max_n1 = 1000;
-    const std::size_t max_n2 = (max_n1 * 10) / 8;
-    Sequence<T> in1(max_n1, [](std::size_t k) { return T(1); });
-    Sequence<T> in2(max_n2, [](std::size_t k) { return T(0); });
-    for (std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
+    const ::std::size_t max_n1 = 1000;
+    const ::std::size_t max_n2 = (max_n1 * 10) / 8;
+    Sequence<T> in1(max_n1, [](::std::size_t k) { return T(1); });
+    Sequence<T> in2(max_n2, [](::std::size_t k) { return T(0); });
+    for (::std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {
-        std::size_t sub_n[] = {0, 1, n1 / 3, n1, (n1 * 10) / 8};
+        ::std::size_t sub_n[] = {0, 1, n1 / 3, n1, (n1 * 10) / 8};
         for (const auto n2 : sub_n)
         {
             invoke_on_all_policies<0>()(test_find_first_of<T>(), in1.begin(), in1.begin() + n1, in2.begin(),
@@ -138,7 +138,7 @@ struct test_non_const
     operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
     {
         invoke_if(exec, [&]() {
-            find_first_of(exec, first_iter, first_iter, second_iter, second_iter, non_const(std::equal_to<T>()));
+            find_first_of(exec, first_iter, first_iter, second_iter, second_iter, non_const(::std::equal_to<T>()));
         });
     }
 };
@@ -146,12 +146,12 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t>(std::equal_to<int32_t>());
-    test<uint16_t>(std::not_equal_to<uint16_t>());
+    test<int32_t>(::std::equal_to<int32_t>());
+    test<uint16_t>(::std::not_equal_to<uint16_t>());
     test<float64_t>([](const float64_t x, const float64_t y) { return x * x == y * y; });
 
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

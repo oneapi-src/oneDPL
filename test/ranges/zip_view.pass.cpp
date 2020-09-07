@@ -30,16 +30,16 @@ main()
     char data[max_n] = {'b', 'e', 'g', 'f', 'c', 'd', 'a', 'j', 'i', 'h'};
     int key[max_n] = {1, 4, 6, 5, 2, 3, 0, 9, 8, 7};
 
-    using namespace dpstd::experimental::ranges;
+    using namespace oneapi::dpl::experimental::ranges;
 
     auto view = nano::views::all(data);
 
     auto z = zip_view(nano::views::all(data), nano::views::all(key));
-    std::sort(z.begin(), z.end(), [](auto a, auto b) { return std::get<1>(a) < std::get<1>(b); });
+    ::std::sort(z.begin(), z.end(), [](auto a, auto b) { return ::std::get<1>(a) < ::std::get<1>(b); });
 
     //check result
-    EXPECT_TRUE(std::is_sorted(data, data + max_n), "wrong effect with sort by key");
+    EXPECT_TRUE(::std::is_sorted(data, data + max_n), "wrong effect with sort by key");
 #endif //_PSTL_USE_RANGES
-    std::cout << TestUtils::done() << std::endl;
+    ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

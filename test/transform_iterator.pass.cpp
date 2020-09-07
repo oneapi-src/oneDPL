@@ -24,7 +24,7 @@
 
 template <typename Iterator>
 class test_copy {
-    using result_type = typename std::iterator_traits<Iterator>::value_type;
+    using result_type = typename ::std::iterator_traits<Iterator>::value_type;
 
     size_t buffer_size;
     Iterator result_begin;
@@ -35,7 +35,7 @@ public:
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
     void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2) {
-        std::copy(std::forward<ExecutionPolicy>(exec), first1, last1, first2);
+        ::std::copy(::std::forward<ExecutionPolicy>(exec), first1, last1, first2);
         auto host_first = TestUtils::get_host_pointer(result_begin);
 
         auto res_begin = host_first;
@@ -56,7 +56,7 @@ public:
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
     void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2) {
-        using value_type = typename std::iterator_traits<Iterator1>::value_type;
+        using value_type = typename ::std::iterator_traits<Iterator1>::value_type;
         auto predicate = [](value_type val) { return val <= 10; };
 
         Iterator res_begin = result_begin;
@@ -83,7 +83,7 @@ void test_simple_copy(size_t buffer_size) {
     auto tr_sycl_source_end = tr_sycl_source_begin + buffer_size;
 
     int identity = 0;
-    std::fill_n(host_source_begin, buffer_size, identity);
+    ::std::fill_n(host_source_begin, buffer_size, identity);
 
     test_copy<decltype(sycl_result_begin)> test(buffer_size, sycl_result_begin, identity + 1);
     TestUtils::invoke_on_all_hetero_policies<0>()(test, tr_sycl_source_begin, tr_sycl_source_end, sycl_result_begin);
@@ -99,13 +99,13 @@ void test_ignore_copy(size_t buffer_size) {
     auto sycl_source_end = oneapi::dpl::end(source_buf);
     auto sycl_result_begin = oneapi::dpl::begin(result_buf);
 
-    auto transformation = [](int) { return std::ignore; };
+    auto transformation = [](int) { return ::std::ignore; };
 
     auto tr_sycl_result_begin = oneapi::dpl::make_transform_iterator(sycl_result_begin, transformation);
 
     int ignored = -100;
-    std::fill_n(host_source_begin, buffer_size, 1);
-    std::fill_n(host_result_begin, buffer_size, ignored);
+    ::std::fill_n(host_source_begin, buffer_size, 1);
+    ::std::fill_n(host_result_begin, buffer_size, ignored);
 
     test_copy<decltype(sycl_result_begin)> test(buffer_size, sycl_result_begin, ignored);
     TestUtils::invoke_on_all_hetero_policies<1>()(test, sycl_source_begin, sycl_source_end, tr_sycl_result_begin);
@@ -128,7 +128,7 @@ void test_multi_transform_copy(size_t buffer_size) {
     auto tr3_sycl_source_end = tr3_sycl_source_begin + buffer_size;
 
     int identity = 0;
-    std::fill_n(host_source_begin, buffer_size, identity);
+    ::std::fill_n(host_source_begin, buffer_size, identity);
 
     test_copy<decltype(sycl_result_begin)> test(buffer_size, sycl_result_begin, identity + 3);
     TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_sycl_source_begin, tr3_sycl_source_end, sycl_result_begin);
@@ -145,6 +145,6 @@ int32_t main() {
         test_multi_transform_copy(n);
     }
 #endif
-    std::cout << TestUtils::done() << std::endl;
+    ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

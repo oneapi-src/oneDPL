@@ -13,15 +13,52 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __DPSTD_functional
-#define __DPSTD_functional
+#ifndef __ONEDPL_functional
+#define __ONEDPL_functional
 
 #include <functional>
 
-#include <utility>
+#include "oneapi/dpl/utility"
 
 namespace oneapi
 {
+namespace std
+{
+#if __cplusplus < 201703L
+using ::std::binary_function;
+using ::std::unary_function;
+#endif
+using ::std::binary_negate;
+using ::std::bind;
+using ::std::bit_and;
+#if __cplusplus > 201103L
+using ::std::bit_not;
+#endif
+using ::std::bit_or;
+using ::std::bit_xor;
+using ::std::cref;
+using ::std::divides;
+using ::std::equal_to;
+using ::std::greater;
+using ::std::greater_equal;
+using ::std::less;
+using ::std::less_equal;
+using ::std::logical_and;
+using ::std::logical_not;
+using ::std::logical_or;
+using ::std::minus;
+using ::std::modulus;
+using ::std::multiplies;
+using ::std::negate;
+using ::std::not1;
+using ::std::not2;
+using ::std::not_equal_to;
+using ::std::plus;
+using ::std::ref;
+using ::std::reference_wrapper;
+using ::std::unary_negate;
+} // namespace std
+
 namespace dpl
 {
 struct identity
@@ -32,30 +69,30 @@ struct identity
     constexpr _T&&
     operator()(_T&& t) const noexcept
     {
-        return std::forward<_T>(t);
+        return ::std::forward<_T>(t);
     }
 };
 
-template<typename _T>
+template <typename _T>
 struct maximum
 {
     constexpr const _T&
     operator()(const _T& a, const _T& b) const
     {
-        return std::greater<_T>()(a,b) ? a : b;
+        return ::std::greater<_T>()(a, b) ? a : b;
     }
 };
 
-template<typename _T>
+template <typename _T>
 struct minimum
 {
     constexpr const _T&
     operator()(const _T& a, const _T& b) const
     {
-        return std::less<_T>()(a,b) ? a : b;
+        return ::std::less<_T>()(a, b) ? a : b;
     }
 };
-
+using namespace oneapi::std;
 } // end namespace dpl
 } // end namespace oneapi
 
@@ -65,4 +102,7 @@ using oneapi::dpl::identity;
 using oneapi::dpl::maximum;
 using oneapi::dpl::minimum;
 } // end namespace dpstd
+
+namespace dpl = oneapi::dpl;
+
 #endif /* __DPSTD_functional */

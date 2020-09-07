@@ -94,6 +94,10 @@ class linear_congruential_engine
     }
 
   private:
+    // Static asserts
+    static_assert(((_M == 0) || (_A < _M) && ( _C < _M)),
+        "oneapi::std::linear_congruential_engine. Error: unsupported parameters");
+
     // Function for state adjustment
     scalar_type
     mod_scalar(scalar_type __state_input)

@@ -29,11 +29,11 @@ template <typename T>
 struct DataType
 {
     explicit DataType(int32_t k) : my_val(k) {}
-    DataType(DataType&& input) { my_val = std::move(input.my_val); }
+    DataType(DataType&& input) { my_val = ::std::move(input.my_val); }
     DataType&
     operator=(DataType&& input)
     {
-        my_val = std::move(input.my_val);
+        my_val = ::std::move(input.my_val);
         return *this;
     }
     T
@@ -42,8 +42,8 @@ struct DataType
         return my_val;
     }
 
-    friend std::ostream&
-    operator<<(std::ostream& stream, const DataType<T>& input)
+    friend ::std::ostream&
+    operator<<(::std::ostream& stream, const DataType<T>& input)
     {
         return stream << input.my_val;
     }
@@ -53,14 +53,14 @@ struct DataType
 };
 
 template <typename Iterator>
-typename std::enable_if<std::is_trivial<typename std::iterator_traits<Iterator>::value_type>::value, bool>::type
+typename ::std::enable_if<::std::is_trivial<typename ::std::iterator_traits<Iterator>::value_type>::value, bool>::type
 is_equal(Iterator first, Iterator last, Iterator d_first)
 {
-    return std::equal(first, last, d_first);
+    return ::std::equal(first, last, d_first);
 }
 
 template <typename Iterator>
-typename std::enable_if<!std::is_trivial<typename std::iterator_traits<Iterator>::value_type>::value, bool>::type
+typename ::std::enable_if<!::std::is_trivial<typename ::std::iterator_traits<Iterator>::value_type>::value, bool>::type
 is_equal(Iterator first, Iterator last, Iterator d_first)
 {
     return true;
@@ -101,18 +101,18 @@ struct test_partition
 #endif
 
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    typename std::enable_if<!is_same_iterator_category<BiDirIt, std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_same_iterator_category<BiDirIt, ::std::forward_iterator_tag>::value, void>::type
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size n,
                UnaryOp unary_op, Generator generator)
     {
         fill_data(first, last, generator);
-        BiDirIt actual_ret = std::partition(exec, first, last, unary_op);
-        EXPECT_TRUE(std::all_of(first, actual_ret, unary_op) && !std::any_of(actual_ret, last, unary_op),
+        BiDirIt actual_ret = ::std::partition(exec, first, last, unary_op);
+        EXPECT_TRUE(::std::all_of(first, actual_ret, unary_op) && !::std::any_of(actual_ret, last, unary_op),
                     "wrong effect from partition"); 
     }
 
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    typename std::enable_if<is_same_iterator_category<BiDirIt, std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_same_iterator_category<BiDirIt, ::std::forward_iterator_tag>::value, void>::type
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size n,
                UnaryOp unary_op, Generator generator)
     {
@@ -168,6 +168,6 @@ main()
 
     test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const_partition>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

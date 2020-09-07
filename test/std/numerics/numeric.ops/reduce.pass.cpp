@@ -28,7 +28,7 @@ struct test_long_reduce
     void
     operator()(Policy&& exec, Iterator first, Iterator last, T init, BinaryOp binary, T expected)
     {
-        T result_r = std::reduce(exec, first, last, init, binary);
+        T result_r = ::std::reduce(exec, first, last, init, binary);
         EXPECT_EQ(expected, result_r, "bad result from reduce(exec, first, last, init, binary_op)");
     }
 };
@@ -134,8 +134,8 @@ int
 main()
 {
     // Test for popular types
-    test_long_form(42, std::plus<int32_t>(), [](int32_t x) { return x; });
-    test_long_form(42.0, std::plus<float64_t>(), [](float64_t x) { return x; });
+    test_long_form(42, ::std::plus<int32_t>(), [](int32_t x) { return x; });
+    test_long_form(42.0, ::std::plus<float64_t>(), [](float64_t x) { return x; });
 
 #if !_PSTL_BACKEND_SYCL
     // Test for strict types
@@ -146,6 +146,6 @@ main()
 
     // Short forms are just facade for long forms, so just test with a single type.
     test_short_forms();
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

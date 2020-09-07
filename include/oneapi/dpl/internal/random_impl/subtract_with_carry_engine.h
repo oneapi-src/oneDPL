@@ -99,6 +99,12 @@ class subtract_with_carry_engine
     }
 
   private:
+    // Static asserts
+    static_assert((0 < _S) && (_S < _R),
+        "oneapi::std::subtract_with_carry_engine. Error: unsupported parameters");
+
+    static_assert((0 < _W) && (_W <= std::numeric_limits<scalar_type>::digits),
+        "oneapi::std::subtract_with_carry_engine. Error: unsupported parameters");
     // Initialization function
     void
     init(scalar_type __seed)

@@ -111,12 +111,16 @@ class discard_block_engine
     }
 
   private:
+    // Static asserts
+    static_assert((0 < _R) && ( _R <= _P),
+        "oneapi::std::discard_block_engine. Error: unsupported parameters");
+
     // Function for state adjustment
     template <int _N>
     typename ::std::enable_if<(_N == 0), scalar_type>::type
     generate_internal_scalar()
     {
-        if (n_ == static_cast<int>(used_block))
+        if (n_ >= static_cast<int>(used_block))
         {
             engine_.discard(static_cast<unsigned long long>(block_size - used_block));
             n_ = 0;
@@ -129,7 +133,7 @@ class discard_block_engine
     typename ::std::enable_if<(N > 0), scalar_type>::type
     generate_internal_scalar()
     {
-        if (n_ == static_cast<int>(used_block))
+        if (n_ >= static_cast<int>(used_block))
         {
             engine_.discard(static_cast<unsigned long long>(block_size - used_block));
             n_ = 0;

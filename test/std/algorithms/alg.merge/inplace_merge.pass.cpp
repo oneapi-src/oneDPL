@@ -44,28 +44,28 @@ struct test_one_policy
     // inplace_merge works with bidirectional iterators at least
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename std::enable_if<!is_same_iterator_category<BiDirIt1, std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_same_iterator_category<BiDirIt1, ::std::forward_iterator_tag>::value, void>::type
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
 
-        using T = typename std::iterator_traits<BiDirIt1>::value_type;
-        const BiDirIt1 mid1 = std::next(first1, m);
+        using T = typename ::std::iterator_traits<BiDirIt1>::value_type;
+        const BiDirIt1 mid1 = ::std::next(first1, m);
         fill_data(first1, mid1, generator1);
         fill_data(mid1, last1, generator2);
 
-        const BiDirIt1 mid2 = std::next(first2, m);
+        const BiDirIt1 mid2 = ::std::next(first2, m);
         fill_data(first2, mid2, generator1);
         fill_data(mid2, last2, generator2);
 
-        std::inplace_merge(first1, mid1, last1, comp);
-        std::inplace_merge(exec, first2, mid2, last2, comp);
+        ::std::inplace_merge(first1, mid1, last1, comp);
+        ::std::inplace_merge(exec, first2, mid2, last2, comp);
         EXPECT_EQ_N(first1, first2, n, "wrong effect from inplace_merge with predicate");
     }
 
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename std::enable_if<is_same_iterator_category<BiDirIt1, std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_same_iterator_category<BiDirIt1, ::std::forward_iterator_tag>::value, void>::type
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
@@ -102,11 +102,11 @@ template <typename T>
 struct LocalWrapper
 {
     explicit LocalWrapper(int32_t k) : my_val(k) {}
-    LocalWrapper(LocalWrapper&& input) { my_val = std::move(input.my_val); }
+    LocalWrapper(LocalWrapper&& input) { my_val = ::std::move(input.my_val); }
     LocalWrapper&
     operator=(LocalWrapper&& input)
     {
-        my_val = std::move(input.my_val);
+        my_val = ::std::move(input.my_val);
         return *this;
     }
     bool
@@ -119,8 +119,8 @@ struct LocalWrapper
     {
         return x.my_val == y.my_val;
     }
-    friend std::ostream&
-    operator<<(std::ostream& stream, const LocalWrapper<T>& input)
+    friend ::std::ostream&
+    operator<<(::std::ostream& stream, const LocalWrapper<T>& input)
     {
         return stream << input.my_val;
     }
@@ -136,7 +136,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        invoke_if(exec, [&]() { inplace_merge(exec, iter, iter, iter, non_const(std::less<T>())); });
+        invoke_if(exec, [&]() { inplace_merge(exec, iter, iter, iter, non_const(::std::less<T>())); });
     }
 };
 
@@ -146,21 +146,21 @@ main()
     test_by_type<float64_t>([](int32_t i) { return -2 * i; }, [](int32_t i) { return -(2 * i + 1); },
                             [](const float64_t x, const float64_t y) { return x > y; });
 
-    test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, std::less<int32_t>());
+    test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, ::std::less<int32_t>());
 
 #if !_PSTL_BACKEND_SYCL
     test_by_type<LocalWrapper<float32_t>>([](int32_t i) { return LocalWrapper<float32_t>(2 * i + 1); },
                                           [](int32_t i) { return LocalWrapper<float32_t>(2 * i); },
-                                          std::less<LocalWrapper<float32_t>>());
+                                          ::std::less<LocalWrapper<float32_t>>());
     test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
 
     test_by_type<MemoryChecker>(
-        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx * 2)}; },
-        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx * 2 + 1)}; },
+        [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx * 2)}; },
+        [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx * 2 + 1)}; },
         [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() < val2.value(); });
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from inplace_merge: number of ctor and dtor calls is not equal");
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

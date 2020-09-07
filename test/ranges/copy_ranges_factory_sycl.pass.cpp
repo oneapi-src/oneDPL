@@ -33,7 +33,7 @@ main()
 
     auto lambda1 = [](auto i) { return i * i; };
 
-    using namespace dpstd::experimental::ranges;
+    using namespace oneapi::dpl::experimental::ranges;
 
     {
         cl::sycl::buffer<int> B(data2, cl::sycl::range<1>(max_n));
@@ -41,15 +41,15 @@ main()
         auto view = iota_view(0, max_n) | views::transform(lambda1);
 
         auto range_res = all_view<int, cl::sycl::access::mode::write>(B);
-        dpstd::ranges::copy(dpstd::execution::default_policy, view, range_res);
+        copy(oneapi::dpl::execution::dpcpp_default, view, range_res);
     }
 
     //check result
     int expected[max_n];
-    std::transform(data, data + max_n, expected, lambda1);
+    ::std::transform(data, data + max_n, expected, lambda1);
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from copy with factory and sycl ranges");
 #endif //_PSTL_USE_RANGES
-    std::cout << TestUtils::done() << std::endl;
+    ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

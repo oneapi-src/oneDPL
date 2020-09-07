@@ -17,6 +17,7 @@
 #define _PSTL_EXECUTION_POLICY_DEFS_H
 
 #include <type_traits>
+#include <iterator>
 
 namespace oneapi
 {
@@ -32,20 +33,20 @@ class sequenced_policy
 {
   public:
     // For internal use only
-    static constexpr std::false_type
+    static constexpr ::std::false_type
     __allow_unsequenced()
     {
-        return std::false_type{};
+        return ::std::false_type{};
     }
-    static constexpr std::false_type
+    static constexpr ::std::false_type
     __allow_vector()
     {
-        return std::false_type{};
+        return ::std::false_type{};
     }
-    static constexpr std::false_type
+    static constexpr ::std::false_type
     __allow_parallel()
     {
-        return std::false_type{};
+        return ::std::false_type{};
     }
 };
 
@@ -55,20 +56,20 @@ class parallel_policy
 {
   public:
     // For internal use only
-    static constexpr std::false_type
+    static constexpr ::std::false_type
     __allow_unsequenced()
     {
-        return std::false_type{};
+        return ::std::false_type{};
     }
-    static constexpr std::false_type
+    static constexpr ::std::false_type
     __allow_vector()
     {
-        return std::false_type{};
+        return ::std::false_type{};
     }
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_parallel()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
 };
 
@@ -77,20 +78,20 @@ class parallel_unsequenced_policy
 {
   public:
     // For internal use only
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_unsequenced()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_vector()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_parallel()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
 };
 #endif
@@ -99,20 +100,20 @@ class unsequenced_policy
 {
   public:
     // For internal use only
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_unsequenced()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
-    static constexpr std::true_type
+    static constexpr ::std::true_type
     __allow_vector()
     {
-        return std::true_type{};
+        return ::std::true_type{};
     }
-    static constexpr std::false_type
+    static constexpr ::std::false_type
     __allow_parallel()
     {
-        return std::false_type{};
+        return ::std::false_type{};
     }
 };
 
@@ -126,26 +127,26 @@ constexpr unsequenced_policy unseq{};
 
 // 2.3, Execution policy type trait
 template <class T>
-struct is_execution_policy : std::false_type
+struct is_execution_policy : ::std::false_type
 {
 };
 
 template <>
-struct is_execution_policy<oneapi::dpl::execution::sequenced_policy> : std::true_type
+struct is_execution_policy<oneapi::dpl::execution::sequenced_policy> : ::std::true_type
 {
 };
 #if _PSTL_USE_PAR_POLICIES
 template <>
-struct is_execution_policy<oneapi::dpl::execution::parallel_policy> : std::true_type
+struct is_execution_policy<oneapi::dpl::execution::parallel_policy> : ::std::true_type
 {
 };
 template <>
-struct is_execution_policy<oneapi::dpl::execution::parallel_unsequenced_policy> : std::true_type
+struct is_execution_policy<oneapi::dpl::execution::parallel_unsequenced_policy> : ::std::true_type
 {
 };
 #endif
 template <>
-struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : std::true_type
+struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::true_type
 {
 };
 
@@ -162,41 +163,40 @@ namespace __internal
 
 // Extension: host execution policy type trait
 template <class _T>
-struct __is_host_execution_policy : std::false_type
+struct __is_host_execution_policy : ::std::false_type
 {
 };
 
 template <>
-struct __is_host_execution_policy<oneapi::dpl::execution::sequenced_policy> : std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::sequenced_policy> : ::std::true_type
 {
 };
 #if _PSTL_USE_PAR_POLICIES
 template <>
-struct __is_host_execution_policy<oneapi::dpl::execution::parallel_policy> : std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::parallel_policy> : ::std::true_type
 {
 };
 template <>
-struct __is_host_execution_policy<oneapi::dpl::execution::parallel_unsequenced_policy> : std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::parallel_unsequenced_policy> : ::std::true_type
 {
 };
 #endif
 template <>
-struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::true_type
 {
 };
 
 template <class _ExecPolicy, class _T>
-using __enable_if_execution_policy =
-    typename std::enable_if<oneapi::dpl::execution::is_execution_policy<typename std::decay<_ExecPolicy>::type>::value,
-                            _T>::type;
+using __enable_if_execution_policy = typename ::std::enable_if<
+    oneapi::dpl::execution::is_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
 
 template <class _ExecPolicy, class _T>
-using __enable_if_host_execution_policy = typename std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<typename std::decay<_ExecPolicy>::type>::value, _T>::type;
+using __enable_if_host_execution_policy = typename ::std::enable_if<
+    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
 
 template <class _ExecPolicy, const bool __condition, class _T>
-using __enable_if_host_execution_policy_conditional = typename std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<typename std::decay<_ExecPolicy>::type>::value && __condition,
+using __enable_if_host_execution_policy_conditional = typename ::std::enable_if<
+    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value && __condition,
     _T>::type;
 
 template <typename _ExecPolicy, typename _T>
@@ -207,7 +207,14 @@ struct __ref_or_copy_impl
 
 template <typename _ExecPolicy, typename _T>
 using __ref_or_copy =
-    typename oneapi::dpl::__internal::__ref_or_copy_impl<typename std::decay<_ExecPolicy>::type, _T>::type;
+    typename oneapi::dpl::__internal::__ref_or_copy_impl<typename ::std::decay<_ExecPolicy>::type, _T>::type;
+
+template <typename _R>
+using __difference_t = decltype(::std::declval<_R&>().size());
+
+template <typename _R>
+using __value_t = typename ::std::iterator_traits<decltype(::std::declval<_R&>().begin())>::value_type;
+
 } // namespace __internal
 
 } // namespace dpl

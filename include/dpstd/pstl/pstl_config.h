@@ -129,7 +129,6 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #define _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
 #define _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                         \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
-#define _PSTL_CPP17_INVOKE_RESULT_PRESENT (__cplusplus >= 201703L)
 
 #define _PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)

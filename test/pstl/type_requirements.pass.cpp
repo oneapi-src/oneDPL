@@ -22,8 +22,8 @@
 
 template <typename... Args>
 void CheckTuple() {
-    static_assert(std::is_trivially_copyable<oneapi::dpl::__internal::tuple<Args...>>::value, "");
-    static_assert(std::is_standard_layout<oneapi::dpl::__internal::tuple<Args...>>::value, "");
+    static_assert(::std::is_trivially_copyable<oneapi::dpl::__internal::tuple<Args...>>::value, "");
+    static_assert(::std::is_standard_layout<oneapi::dpl::__internal::tuple<Args...>>::value, "");
 };
 
 #endif
@@ -34,6 +34,6 @@ int main() {
     CheckTuple<int>();
     CheckTuple<int, long, float>();
 #endif
-    std::cout << TestUtils::done() << std::endl;
+    ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }
