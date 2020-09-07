@@ -14,7 +14,7 @@ jobs:
         fetch-depth: 1
 
     - name: Get clang-format
-      run: sudo apt-get install -yqq clang-format-10
+      run: sudo apt-get install -yqq clang-format-6
 
     - name: Applying clang-format for changed files
       run: |
@@ -29,9 +29,13 @@ jobs:
     - name: Checking if diff is empty
       run: sh -c '[ ! -s clang-format-diff.diff ]'
 
-    - uses: actions/upload-artifact@v2
+    - name: Print diff
       if: failure()
-      with:
-        name: clang-format-result
-        path: |
-          ./clang-format-diff.diff
+      run: echo clang-format-diff.diff
+
+#    - uses: actions/upload-artifact@v2
+#      if: failure()
+#      with:
+#        name: clang-format-result
+#        path: |
+#          ./clang-format-diff.diff
