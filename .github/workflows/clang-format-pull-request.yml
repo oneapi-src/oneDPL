@@ -7,7 +7,7 @@ on:
       - master
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     steps:
     - uses: actions/checkout@v2
       with:
@@ -31,7 +31,7 @@ jobs:
 
     - name: Print diff
       if: failure()
-      run: echo clang-format-diff.diff
+      run: cat clang-format-diff.diff
 
 #    - uses: actions/upload-artifact@v2
 #      if: failure()
