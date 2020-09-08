@@ -1,0 +1,34 @@
+name: clang-format-pull-request
+
+on:
+  pull_request:
+    branches:
+      - release_oneDPL
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Get clang-format
+      run: sudo apt-get install -yqq clang-format-6.0
+
+    - name: Applying clang-format for changed files
+      run: |
+        URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}/files"
+        FILES=$(curl -s --request GET --get $URL |  jq -r '.[] | .filename')
+        echo $FILES | xargs -n1 -t clang-format --style=file -i
+
+    - name: Creating diff
+      run: |
+        git diff > clang-format-diff.diff
+
+    - name: Checking if diff is empty
+      run: sh -c '[ ! -s clang-format-diff.diff ]'
+
+    - name: Print diff
+      if: failure()
+      run: cat clang-format-diff.diff
