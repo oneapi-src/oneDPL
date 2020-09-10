@@ -27,8 +27,4 @@ jobs:
         git diff > clang-format-diff.diff
 
     - name: Checking if diff is empty
-      run: sh -c '[ ! -s clang-format-diff.diff ]'
-
-    - name: Print diff
-      if: failure()
-      run: cat clang-format-diff.diff
+      run: bash -c "if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi"
