@@ -19,12 +19,11 @@ jobs:
     - name: Applying clang-format for changed files
       run: |
         URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}/files"
-        FILES=$(curl -s --request GET --get $URL |  jq -r '.[] | .filename')
-        echo $FILES | xargs -n1 -t clang-format --style=file -i
+        FILES=$(curl -s --request GET --get $URL |  jq -r '.[] | .filename' | grep ^include)
+        echo $FILES | xargs -n1 -t clang-format-6.0 --style=file -i
 
     - name: Creating diff
-      run: |
-        git diff > clang-format-diff.diff
+      run: git diff > clang-format-diff.diff
 
     - name: Checking if diff is empty
-      run: bash -c "if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi"
+      run: if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi
