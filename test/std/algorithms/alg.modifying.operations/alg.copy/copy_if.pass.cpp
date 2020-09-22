@@ -34,7 +34,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
                Predicate pred, T trash)
     {
@@ -42,7 +42,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -52,7 +52,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
                Predicate pred, T trash)
     {
@@ -60,7 +60,7 @@ struct run_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -75,8 +75,8 @@ struct run_copy_if
                Predicate pred, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, n, trash);
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(expected_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
 
         // Run copy_if
         auto i = copy_if(first, last, expected_first, pred);
@@ -89,8 +89,8 @@ struct run_copy_if
         }
         EXPECT_TRUE(out_last == k, "wrong return value from copy_if");
 #else
-        auto expected_count = std::distance(expected_first, i);
-        auto out_count = std::distance(out_first, k);
+        auto expected_count = ::std::distance(expected_first, i);
+        auto out_count = ::std::distance(out_first, k);
         EXPECT_TRUE(expected_count == out_count, "wrong return value from copy_if");
         EXPECT_EQ_N(expected_first, out_first, expected_count, "wrong copy_if effect");
 #endif
@@ -104,7 +104,7 @@ struct run_remove_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
                Predicate pred, T trash)
     {
@@ -112,7 +112,7 @@ struct run_remove_copy_if
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -122,7 +122,7 @@ struct run_remove_copy_if
 template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -130,7 +130,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -145,8 +145,8 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
                Predicate pred, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, n, trash);
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(expected_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
 
         // Run remove_copy_if
         auto i = remove_copy_if(first, last, expected_first, [=](const T& x) { return !pred(x); });
@@ -159,8 +159,8 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
         }
         EXPECT_TRUE(out_last == k, "wrong return value from remove_copy_if");
 #else
-        auto expected_count = std::distance(expected_first, i);
-        auto out_count = std::distance(out_first, k);
+        auto expected_count = ::std::distance(expected_first, i);
+        auto out_count = ::std::distance(out_first, k);
         EXPECT_TRUE(expected_count == out_count, "wrong return value from remove_copy_if");
         EXPECT_EQ_N(expected_first, out_first, expected_count, "wrong remove_copy_if effect");
 #endif
@@ -267,6 +267,6 @@ main()
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

@@ -39,11 +39,11 @@ struct test_replace_copy
                Predicate pred, const T& old_value, const T& new_value, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, n, trash);
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(expected_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
         // Run replace_copy
-        auto i = std::replace_copy(first, last, expected_first, old_value, new_value);
-        auto k = std::replace_copy(exec, first, last, out_first, old_value, new_value);
+        auto i = ::std::replace_copy(first, last, expected_first, old_value, new_value);
+        auto k = ::std::replace_copy(exec, first, last, out_first, old_value, new_value);
         EXPECT_EQ_N(expected_first, out_first, n, "wrong replace_copy effect");
         EXPECT_TRUE(out_last == k, "wrong return value from replace_copy");
     }
@@ -60,8 +60,8 @@ struct test_replace_copy_if
                Predicate pred, const T& old_value, const T& new_value, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, n, trash);
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(expected_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
         // Run replace_copy_if
         auto i = replace_copy_if(first, last, expected_first, pred, new_value);
         auto k = replace_copy_if(exec, first, last, out_first, pred, new_value);
@@ -131,6 +131,6 @@ main()
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

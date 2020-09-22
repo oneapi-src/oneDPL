@@ -16,7 +16,7 @@
 #ifndef _PSTL_TEST_config_H
 #define _PSTL_TEST_config_H
 
-#define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(dpstd/X)
+#define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>
 #define _PSTL_TEST_HEADER(HEADER_ID) _PSTL_TEST_STRING(HEADER_ID)

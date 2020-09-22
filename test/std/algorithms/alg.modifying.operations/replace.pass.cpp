@@ -83,10 +83,10 @@ struct test_replace
     }
 
     template <typename T, typename Iterator1>
-    typename std::enable_if<std::is_same<T, copy_int>::value, bool>::type_t
+    typename ::std::enable_if<::std::is_same<T, copy_int>::value, bool>::type_t
     check(Iterator1 b, Iterator1 e)
     {
-        return std::all_of(b, e, [](const copy_int& elem) { return elem.copied_times == 0; });
+        return ::std::all_of(b, e, [](const copy_int& elem) { return elem.copied_times == 0; });
     }
 };
 
@@ -115,7 +115,7 @@ test(Pred pred)
 {
     typedef typename Sequence<T2>::iterator iterator_type;
 
-    const std::size_t max_len = 100000;
+    const ::std::size_t max_len = 100000;
 
     const T1 value = T1(0);
     const T1 new_value = T1(666);
@@ -123,7 +123,7 @@ test(Pred pred)
     Sequence<T2> expected(max_len);
     Sequence<T2> actual(max_len);
 
-    Sequence<T2> data(max_len, [&value](std::size_t i) {
+    Sequence<T2> data(max_len, [&value](::std::size_t i) {
         if (i % 3 == 2)
         {
             return T1(i);
@@ -134,7 +134,7 @@ test(Pred pred)
         }
     });
 
-    for (std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::size_t(3.1415 * len))
+    for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
     {
 #ifdef _PSTL_TEST_REPLACE
         invoke_on_all_policies<0>()(test_replace<T1, T2>{},
@@ -171,7 +171,7 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t, float32_t>(dpstd::__internal::__equal_value<int32_t>(666));
+    test<int32_t, float32_t>(oneapi::dpl::__internal::__equal_value<int32_t>(666));
     test<uint16_t, uint8_t>([](const uint16_t& elem) { return elem % 3 < 2; });
     test<float64_t, int64_t>([](const float64_t& elem) { return elem * elem - 3.5 * elem > 10; });
     //test<copy_int, copy_int>([](const copy_int& val) { return val.value / 5 > 2; });
@@ -181,6 +181,6 @@ main()
     test_algo_basic_single<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

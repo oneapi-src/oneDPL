@@ -29,7 +29,7 @@ struct run_unique_copy
 #if _PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, T trash)
     {
@@ -37,7 +37,7 @@ struct run_unique_copy
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, T trash)
     {
@@ -51,8 +51,8 @@ struct run_unique_copy
                Size n, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, n, trash);
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(expected_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
 
         // Run unique_copy
         auto i = unique_copy(first, last, expected_first);
@@ -65,8 +65,8 @@ struct run_unique_copy
         }
         EXPECT_TRUE(out_last == k, "wrong return value from unique_copy");
 #else
-        auto expected_count = std::distance(expected_first, i);
-        auto out_count = std::distance(out_first, k);
+        auto expected_count = ::std::distance(expected_first, i);
+        auto out_count = ::std::distance(out_first, k);
 
         EXPECT_TRUE(expected_count == out_count, "wrong return value from unique_copy");
         EXPECT_EQ_N(expected_first, out_first, expected_count, "wrong unique_copy effect");
@@ -82,7 +82,7 @@ struct run_unique_copy_predicate
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -91,7 +91,7 @@ struct run_unique_copy_predicate
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size n, Predicate pred, T trash)
     {
@@ -106,8 +106,8 @@ struct run_unique_copy_predicate
                Predicate pred, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, n, trash);
-        std::fill_n(out_first, n, trash);
+        ::std::fill_n(expected_first, n, trash);
+        ::std::fill_n(out_first, n, trash);
 
         // Run unique_copy with predicate
         auto i = unique_copy(first, last, expected_first, pred);
@@ -120,8 +120,8 @@ struct run_unique_copy_predicate
         }
         EXPECT_TRUE(out_last == k, "wrong return value from unique_copy with predicate");
 #else
-        auto expected_count = std::distance(expected_first, i);
-        auto out_count = std::distance(out_first, k);
+        auto expected_count = ::std::distance(expected_first, i);
+        auto out_count = ::std::distance(out_first, k);
 
         EXPECT_TRUE(expected_count == out_count, "wrong return value from unique_copy with predicate");
         EXPECT_EQ_N(expected_first, out_first, expected_count, "wrong unique_copy with predicate effect");
@@ -169,7 +169,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
-        unique_copy(exec, input_iter, input_iter, out_iter, non_const(std::equal_to<T>()));
+        unique_copy(exec, input_iter, input_iter, out_iter, non_const(::std::equal_to<T>()));
     }
 };
 
@@ -177,11 +177,11 @@ int
 main()
 {
 #if !_PSTL_BACKEND_SYCL
-    test<Number>(Number(42, OddTag()), std::equal_to<Number>(),
+    test<Number>(Number(42, OddTag()), ::std::equal_to<Number>(),
                  [](int32_t j) { return Number(3 * j / 13 ^ (j & 8), OddTag()); });
 #endif
 
-    test<float64_t>(float32_t(42), std::equal_to<float32_t>(),
+    test<float64_t>(float32_t(42), ::std::equal_to<float32_t>(),
                     [](int32_t j) { return float32_t(5 * j / 23 ^ (j / 7)); });
 #if !_PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN
     test<float32_t>(float32_t(42), [](float32_t x, float32_t y) { return false; },
@@ -190,6 +190,6 @@ main()
 
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

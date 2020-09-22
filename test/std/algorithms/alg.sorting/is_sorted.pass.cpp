@@ -34,7 +34,7 @@ struct test_is_sorted
     operator()(Policy&& exec, Iterator first, Iterator last, bool exam)
     {
         using namespace std;
-        typedef typename std::iterator_traits<Iterator>::value_type T;
+        typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
         //try random-access iterator
         bool res = is_sorted(exec, first, last);
@@ -50,10 +50,10 @@ struct test_is_sorted_predicate
     operator()(Policy&& exec, Iterator first, Iterator last, bool exam)
     {
         using namespace std;
-        typedef typename std::iterator_traits<Iterator>::value_type T;
+        typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
         //try random-access iterator with a predicate
-        bool res = is_sorted(exec, first, last, std::less<T>());
+        bool res = is_sorted(exec, first, last, ::std::less<T>());
         EXPECT_TRUE(exam == res, "is_sorted wrong result for random-access iterator");
     }
 };
@@ -66,7 +66,7 @@ struct test_is_sorted_until
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
-        typedef typename std::iterator_traits<Iterator>::value_type T;
+        typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
         //try random-access iterator
         auto iexam = is_sorted_until(first, last);
@@ -83,11 +83,11 @@ struct test_is_sorted_until_predicate
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
-        typedef typename std::iterator_traits<Iterator>::value_type T;
+        typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
         //try random-access iterator with a predicate
-        auto iexam = is_sorted_until(first, last, std::less<T>());
-        auto ires = is_sorted_until(exec, first, last, std::less<T>());
+        auto iexam = is_sorted_until(first, last, ::std::less<T>());
+        auto ires = is_sorted_until(exec, first, last, ::std::less<T>());
         EXPECT_TRUE(iexam == ires, "is_sorted_until with predicate wrong result for random-access iterator");
     }
 };
@@ -100,12 +100,12 @@ test_is_sorted_by_type()
     Sequence<T> in(99999, [](size_t v) -> T { return T(v); }); //fill 0..n
 
 #ifdef _PSTL_TEST_IS_SORTED
-    invoke_on_all_policies<0>()(test_is_sorted<T>(), in.begin(), in.end(), std::is_sorted(in.begin(), in.end()));
+    invoke_on_all_policies<0>()(test_is_sorted<T>(), in.begin(), in.end(), ::std::is_sorted(in.begin(), in.end()));
     invoke_on_all_policies<1>()(test_is_sorted_predicate<T>(), in.begin(), in.end(),
-                                std::is_sorted(in.begin(), in.end()));
-    invoke_on_all_policies<4>()(test_is_sorted<T>(), in.cbegin(), in.cend(), std::is_sorted(in.begin(), in.end()));
+                                ::std::is_sorted(in.begin(), in.end()));
+    invoke_on_all_policies<4>()(test_is_sorted<T>(), in.cbegin(), in.cend(), ::std::is_sorted(in.begin(), in.end()));
     invoke_on_all_policies<5>()(test_is_sorted_predicate<T>(), in.cbegin(), in.cend(),
-                                std::is_sorted(in.begin(), in.end()));
+                                ::std::is_sorted(in.begin(), in.end()));
 #endif
 
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
@@ -117,12 +117,12 @@ test_is_sorted_by_type()
 
     in[in.size() / 2] = -1;
 #ifdef _PSTL_TEST_IS_SORTED
-    invoke_on_all_policies<8>()(test_is_sorted<T>(), in.begin(), in.end(), std::is_sorted(in.begin(), in.end()));
+    invoke_on_all_policies<8>()(test_is_sorted<T>(), in.begin(), in.end(), ::std::is_sorted(in.begin(), in.end()));
     invoke_on_all_policies<9>()(test_is_sorted_predicate<T>(), in.begin(), in.end(),
-                                std::is_sorted(in.begin(), in.end()));
-    invoke_on_all_policies<12>()(test_is_sorted<T>(), in.cbegin(), in.cend(), std::is_sorted(in.begin(), in.end()));
+                                ::std::is_sorted(in.begin(), in.end()));
+    invoke_on_all_policies<12>()(test_is_sorted<T>(), in.cbegin(), in.cend(), ::std::is_sorted(in.begin(), in.end()));
     invoke_on_all_policies<13>()(test_is_sorted_predicate<T>(), in.cbegin(), in.cend(),
-                                 std::is_sorted(in.begin(), in.end()));
+                                 ::std::is_sorted(in.begin(), in.end()));
 #endif
 
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
@@ -134,12 +134,12 @@ test_is_sorted_by_type()
 
     in[1] = -1;
 #ifdef _PSTL_TEST_IS_SORTED
-    invoke_on_all_policies<16>()(test_is_sorted<T>(), in.begin(), in.end(), std::is_sorted(in.begin(), in.end()));
+    invoke_on_all_policies<16>()(test_is_sorted<T>(), in.begin(), in.end(), ::std::is_sorted(in.begin(), in.end()));
     invoke_on_all_policies<17>()(test_is_sorted_predicate<T>(), in.begin(), in.end(),
-                                 std::is_sorted(in.begin(), in.end()));
-    invoke_on_all_policies<20>()(test_is_sorted<T>(), in.cbegin(), in.cend(), std::is_sorted(in.begin(), in.end()));
+                                 ::std::is_sorted(in.begin(), in.end()));
+    invoke_on_all_policies<20>()(test_is_sorted<T>(), in.cbegin(), in.cend(), ::std::is_sorted(in.begin(), in.end()));
     invoke_on_all_policies<21>()(test_is_sorted_predicate<T>(), in.cbegin(), in.cend(),
-                                 std::is_sorted(in.begin(), in.end()));
+                                 ::std::is_sorted(in.begin(), in.end()));
 #endif
 
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
@@ -152,13 +152,13 @@ test_is_sorted_by_type()
     //an empty container
     Sequence<T> in0(0);
 #ifdef _PSTL_TEST_IS_SORTED
-    invoke_on_all_policies<24>()(test_is_sorted<T>(), in0.begin(), in0.end(), std::is_sorted(in0.begin(), in0.end()));
+    invoke_on_all_policies<24>()(test_is_sorted<T>(), in0.begin(), in0.end(), ::std::is_sorted(in0.begin(), in0.end()));
     invoke_on_all_policies<25>()(test_is_sorted_predicate<T>(), in0.begin(), in0.end(),
-                                 std::is_sorted(in0.begin(), in0.end()));
+                                 ::std::is_sorted(in0.begin(), in0.end()));
     invoke_on_all_policies<28>()(test_is_sorted<T>(), in0.cbegin(), in0.cend(),
-                                 std::is_sorted(in0.begin(), in0.end()));
+                                 ::std::is_sorted(in0.begin(), in0.end()));
     invoke_on_all_policies<29>()(test_is_sorted_predicate<T>(), in0.cbegin(), in0.cend(),
-                                 std::is_sorted(in0.begin(), in0.end()));
+                                 ::std::is_sorted(in0.begin(), in0.end()));
 #endif
 
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
@@ -171,13 +171,13 @@ test_is_sorted_by_type()
     //non-descending order
     Sequence<T> in1(9, [](size_t v) -> T { return T(0); });
 #ifdef _PSTL_TEST_IS_SORTED
-    invoke_on_all_policies<32>()(test_is_sorted<T>(), in1.begin(), in1.end(), std::is_sorted(in1.begin(), in1.end()));
+    invoke_on_all_policies<32>()(test_is_sorted<T>(), in1.begin(), in1.end(), ::std::is_sorted(in1.begin(), in1.end()));
     invoke_on_all_policies<33>()(test_is_sorted_predicate<T>(), in1.begin(), in1.end(),
-                                 std::is_sorted(in1.begin(), in1.end()));
+                                 ::std::is_sorted(in1.begin(), in1.end()));
     invoke_on_all_policies<36>()(test_is_sorted<T>(), in1.cbegin(), in1.cend(),
-                                 std::is_sorted(in1.begin(), in1.end()));
+                                 ::std::is_sorted(in1.begin(), in1.end()));
     invoke_on_all_policies<37>()(test_is_sorted_predicate<T>(), in1.cbegin(), in1.cend(),
-                                 std::is_sorted(in1.begin(), in1.end()));
+                                 ::std::is_sorted(in1.begin(), in1.end()));
 #endif
 
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
@@ -195,7 +195,7 @@ struct test_non_const_is_sorted
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        is_sorted(exec, iter, iter, std::less<T>());
+        is_sorted(exec, iter, iter, ::std::less<T>());
     }
 };
 
@@ -206,7 +206,7 @@ struct test_non_const_is_sorted_until
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        is_sorted_until(exec, iter, iter, std::less<T>());
+        is_sorted_until(exec, iter, iter, ::std::less<T>());
     }
 };
 
@@ -228,6 +228,6 @@ main()
 #endif
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

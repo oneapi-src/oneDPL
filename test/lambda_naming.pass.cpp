@@ -32,21 +32,28 @@ int main() {
     const int n = 1000;
     cl::sycl::buffer<int, 1> buf{ cl::sycl::range<1>(n) };
     cl::sycl::buffer<int, 1> out_buf{ cl::sycl::range<1>(n) };
-    auto buf_begin = dpstd::begin(buf);
+    auto buf_begin = oneapi::dpl::begin(buf);
     auto buf_end = buf_begin + n;
 
-    auto policy = dpstd::execution::default_policy;
-    std::fill(policy, buf_begin, buf_end, 1);
-    std::sort(policy, buf_begin, buf_end);
-    std::inplace_merge(policy, buf_begin, buf_begin + n / 2, buf_end);
-    std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
-    auto red_val = std::reduce(policy, buf_begin, buf_end, 1);
-
-    auto buf_out_begin = dpstd::begin(out_buf);
-    std::inclusive_scan(policy, buf_begin, buf_end, buf_out_begin);
-    bool is_equal = std::equal(policy, buf_begin, buf_end, buf_out_begin);
-    auto does_1_exist = std::find(policy, buf_begin, buf_end, 1);
+    const auto policy = oneapi::dpl::execution::dpcpp_default;
+    auto buf_begin_discard_write =
+        dpstd::begin(buf, cl::sycl::write_only,
+#if __cplusplus >= 201703L
+            cl::sycl::noinit);
+#else
+            cl::sycl::property::noinit{});
 #endif
-    std::cout << done() << std::endl;
+    ::std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
+    ::std::sort(policy, buf_begin, buf_end);
+    ::std::inplace_merge(policy, buf_begin, buf_begin + n / 2, buf_end);
+    ::std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
+    auto red_val = ::std::reduce(policy, buf_begin, buf_end, 1);
+
+    auto buf_out_begin = oneapi::dpl::begin(out_buf);
+    ::std::inclusive_scan(policy, buf_begin, buf_end, buf_out_begin);
+    bool is_equal = ::std::equal(policy, buf_begin, buf_end, buf_out_begin);
+    auto does_1_exist = ::std::find(policy, buf_begin, buf_end, 1);
+#endif
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

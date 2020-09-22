@@ -71,8 +71,8 @@ struct UserType
         tmp.key = !key;
         return tmp;
     }
-    friend std::ostream&
-    operator<<(std::ostream& stream, const UserType a)
+    friend ::std::ostream&
+    operator<<(::std::ostream& stream, const UserType a)
     {
         stream << a.key;
         return stream;
@@ -107,7 +107,7 @@ struct test_one_policy
 
         auto expected = equal(first1, last1, first2);
         auto actual = equal(exec, first1, last1, first2);
-        EXPECT_EQ(expected, actual, "result for equal for random-access iterator, checking against std::equal()");
+        EXPECT_EQ(expected, actual, "result for equal for random-access iterator, checking against ::std::equal()");
 
         // testing bool
         EXPECT_TRUE(is_true_equal == actual, "result for equal for random-access iterator, bool");
@@ -115,7 +115,7 @@ struct test_one_policy
 //add C++14 equal symantics tests
 //add more cases for inCopy size less than in
 #if CPP14_ENABLED
-        auto actualr14 = std::equal(in.cbegin(), in.cend(), inCopy.cbegin(), inCopy.cend());
+        auto actualr14 = ::std::equal(in.cbegin(), in.cend(), inCopy.cbegin(), inCopy.cend());
         EXPECT_EQ(expected, actualr14, "result for equal for random-access iterator");
 #endif
     }
@@ -149,7 +149,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
     {
-        equal(exec, first_iter, first_iter, second_iter, second_iter, non_const(std::equal_to<T>()));
+        equal(exec, first_iter, first_iter, second_iter, second_iter, non_const(::std::equal_to<T>()));
     }
 };
 
@@ -168,6 +168,6 @@ main()
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

@@ -70,7 +70,7 @@ struct test_fill_n
         fill_n(first, n, T(value + 1)); // initialize memory with different value
 
         const Iterator one_past_last = fill_n(exec, first, n, value);
-        const Iterator expected_return = std::next(first, n);
+        const Iterator expected_return = ::std::next(first, n);
 
         EXPECT_TRUE(expected_return == one_past_last, "fill_n should return Iterator to one past the element assigned");
         EXPECT_TRUE(check(first, n, value), "fill_n wrong result");
@@ -83,9 +83,9 @@ struct test_fill_n
 
 template <typename T>
 void
-test_fill_by_type(std::size_t n)
+test_fill_by_type(::std::size_t n)
 {
-    Sequence<T> in(n, [](std::size_t v) -> T { return T(0); }); //fill with zeros
+    Sequence<T> in(n, [](::std::size_t v) -> T { return T(0); }); //fill with zeros
     T value = -1;
 
 #ifdef _PSTL_TEST_FILL
@@ -100,15 +100,15 @@ int
 main()
 {
 
-    const std::size_t N = 100000;
+    const ::std::size_t N = 100000;
 
-    for (std::size_t n = 0; n < N; n = n < 16 ? n + 1 : size_t(3.1415 * n))
+    for (::std::size_t n = 0; n < N; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
         test_fill_by_type<int32_t>(n);
         test_fill_by_type<float64_t>(n);
     }
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
 
     return 0;
 }

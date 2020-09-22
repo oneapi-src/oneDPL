@@ -30,13 +30,13 @@ struct DataType
     explicit DataType(int32_t k) : my_val(k) {}
     DataType(DataType&& input)
     {
-        my_val = std::move(input.my_val);
+        my_val = ::std::move(input.my_val);
         input.my_val = T(0);
     }
     DataType&
     operator=(DataType&& input)
     {
-        my_val = std::move(input.my_val);
+        my_val = ::std::move(input.my_val);
         input.my_val = T(0);
         return *this;
     }
@@ -46,8 +46,8 @@ struct DataType
         return my_val;
     }
 
-    friend std::ostream&
-    operator<<(std::ostream& stream, const DataType<T>& input)
+    friend ::std::ostream&
+    operator<<(::std::ostream& stream, const DataType<T>& input)
     {
         return stream << input.my_val;
     }
@@ -76,15 +76,15 @@ struct test_one_policy
 #if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specialization by policy type, in case of broken configuration
     template <typename Iterator1, typename Size, typename Generator1, typename Generator2, typename Compare>
-    typename std::enable_if<is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 first1, Iterator1 last1, Iterator1 first2,
+    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 first1, Iterator1 last1, Iterator1 first2,
                Iterator1 last2, Size n, Size m, Generator1 generator1, Generator2 generator2, Compare comp)
     {
     }
 
     template <typename Iterator1, typename Size, typename Generator1, typename Generator2, typename Compare>
-    typename std::enable_if<is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 first1, Iterator1 last1, Iterator1 first2,
+    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 first1, Iterator1 last1, Iterator1 first2,
                Iterator1 last2, Size n, Size m, Generator1 generator1, Generator2 generator2, Compare comp)
     {
     }
@@ -93,32 +93,32 @@ struct test_one_policy
     // nth_element works only with random access iterators
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename std::enable_if<is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
 
-        using T = typename std::iterator_traits<Iterator1>::value_type;
-        const Iterator1 mid1 = std::next(first1, m);
-        const Iterator1 mid2 = std::next(first2, m);
+        using T = typename ::std::iterator_traits<Iterator1>::value_type;
+        const Iterator1 mid1 = ::std::next(first1, m);
+        const Iterator1 mid2 = ::std::next(first2, m);
 
         fill_data(first1, mid1, generator1);
         fill_data(mid1, last1, generator2);
         fill_data(first2, mid2, generator1);
         fill_data(mid2, last2, generator2);
-        std::nth_element(first1, mid1, last1, comp);
-        std::nth_element(exec, first2, mid2, last2, comp);
+        ::std::nth_element(first1, mid1, last1, comp);
+        ::std::nth_element(exec, first2, mid2, last2, comp);
         if (m > 0 && m < n)
         {
             EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element with predicate");
         }
-        EXPECT_TRUE(std::find_first_of(first2, mid2, mid2, last2, [comp](T& x, T& y) { return comp(y, x); }) == mid2,
+        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [comp](T& x, T& y) { return comp(y, x); }) == mid2,
                     "wrong effect from nth_element with predicate");
     }
 
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename std::enable_if<!is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
@@ -158,15 +158,15 @@ struct test_non_const
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        invoke_if(exec, [&]() { nth_element(exec, iter, iter, iter, non_const(std::less<T>())); });
+        invoke_if(exec, [&]() { nth_element(exec, iter, iter, iter, non_const(::std::less<T>())); });
     }
 };
 
 int
 main()
 {
-    test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, std::less<int32_t>());
-    test_by_type<int32_t>([](int32_t) { return 0; }, [](int32_t) { return 0; }, std::less<int32_t>());
+    test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, ::std::less<int32_t>());
+    test_by_type<int32_t>([](int32_t) { return 0; }, [](int32_t) { return 0; }, ::std::less<int32_t>());
 
     test_by_type<float64_t>([](int32_t i) { return -2 * i; }, [](int32_t i) { return -(2 * i + 1); },
                             [](const float64_t x, const float64_t y) { return x > y; });
@@ -179,6 +179,6 @@ main()
 
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

@@ -37,7 +37,7 @@ struct run_copy
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, T trash)
     {
@@ -45,7 +45,7 @@ struct run_copy
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, T trash)
     {
@@ -59,8 +59,8 @@ struct run_copy
                Size n, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, size, trash);
-        std::fill_n(out_first, size, trash);
+        ::std::fill_n(expected_first, size, trash);
+        ::std::fill_n(out_first, size, trash);
 
         // Run copy
         copy(first, last, expected_first);
@@ -80,7 +80,7 @@ struct run_copy_n
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, T trash)
     {
@@ -88,7 +88,7 @@ struct run_copy_n
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, T trash)
     {
@@ -102,8 +102,8 @@ struct run_copy_n
                Size n, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, size, trash);
-        std::fill_n(out_first, size, trash);
+        ::std::fill_n(expected_first, size, trash);
+        ::std::fill_n(out_first, size, trash);
 
         // Run copy_n
         copy(first, last, expected_first);
@@ -123,7 +123,7 @@ struct run_move
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, T trash)
     {
@@ -131,7 +131,7 @@ struct run_move
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, T trash)
     {
@@ -145,8 +145,8 @@ struct run_move
                Size n, T trash)
     {
         // Cleaning
-        std::fill_n(expected_first, size, trash);
-        std::fill_n(out_first, size, trash);
+        ::std::fill_n(expected_first, size, trash);
+        ::std::fill_n(out_first, size, trash);
 
         // Run move
         move(first, last, expected_first);
@@ -166,7 +166,7 @@ struct run_move<Wrapper<T>>
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size size,
                Size n, Wrapper<T> trash)
     {
@@ -174,7 +174,7 @@ struct run_move<Wrapper<T>>
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
                OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, Size size, Size n, Wrapper<T> trash)
     {
@@ -188,7 +188,7 @@ struct run_move<Wrapper<T>>
                Size n, Wrapper<T> trash)
     {
         // Cleaning
-        std::fill_n(out_first, size, trash);
+        ::std::fill_n(out_first, size, trash);
         Wrapper<T>::SetMoveCount(0);
 
         // Run move
@@ -254,6 +254,6 @@ main()
 #endif
 
 #endif
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

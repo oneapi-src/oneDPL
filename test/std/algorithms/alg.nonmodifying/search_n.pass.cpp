@@ -28,13 +28,13 @@ struct test_search_n
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
     {
     }
 
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
                Predicate pred)
     {
     }
@@ -58,13 +58,13 @@ struct test_search_n_predicate
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
     {
     }
 
     template <typename Iterator, typename Size, typename T, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
                Predicate pred)
     {
     }
@@ -86,29 +86,29 @@ void
 test()
 {
 
-    const std::size_t max_n1 = 100000;
+    const ::std::size_t max_n1 = 100000;
     const T value = T(1);
-    for (std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
+    for (::std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {
-        std::size_t sub_n[] = {0, 1, 3, n1, (n1 * 10) / 8};
-        std::size_t res[] = {0, 1, n1 / 2, n1};
+        ::std::size_t sub_n[] = {0, 1, 3, n1, (n1 * 10) / 8};
+        ::std::size_t res[] = {0, 1, n1 / 2, n1};
         for (auto n2 : sub_n)
         {
             for (auto r : res)
             {
-                Sequence<T> in(n1, [n1](std::size_t k) { return T(0); });
-                std::size_t i = r, isub = 0;
+                Sequence<T> in(n1, [n1](::std::size_t k) { return T(0); });
+                ::std::size_t i = r, isub = 0;
                 for (; i < n1 & isub < n2; ++i, ++isub)
                     in[i] = value;
 
                 invoke_on_all_policies<0>()(test_search_n<T>(), in.begin(), in.begin() + n1, n2, value,
-                                            std::equal_to<T>());
+                                            ::std::equal_to<T>());
                 invoke_on_all_policies<1>()(test_search_n_predicate<T>(), in.begin(), in.begin() + n1, n2, value,
-                                            std::equal_to<T>());
+                                            ::std::equal_to<T>());
                 invoke_on_all_policies<2>()(test_search_n<T>(), in.cbegin(), in.cbegin() + n1, n2, value,
-                                            std::equal_to<T>());
+                                            ::std::equal_to<T>());
                 invoke_on_all_policies<3>()(test_search_n_predicate<T>(), in.cbegin(), in.cbegin() + n1, n2, value,
-                                            std::equal_to<T>());
+                                            ::std::equal_to<T>());
             }
         }
     }
@@ -121,7 +121,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        invoke_if(exec, [&]() { search_n(exec, iter, iter, 0, T(0), non_const(std::equal_to<T>())); });
+        invoke_if(exec, [&]() { search_n(exec, iter, iter, 0, T(0), non_const(::std::equal_to<T>())); });
     }
 };
 
@@ -137,6 +137,6 @@ main()
 
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }
