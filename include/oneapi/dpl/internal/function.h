@@ -134,6 +134,7 @@ struct scan_by_key_fun
     BinaryOp binary_op;
 };
 
+//adding changes which does not violate clang-format rules (If they absent initially)
 // Used by: reduce_by_key
 template <typename ValueType, typename FlagType, typename BinaryOp>
 struct segmented_scan_fun

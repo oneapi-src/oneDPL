@@ -36,7 +36,9 @@ enum search_algorithm
     binary_search
 };
 
-template <typename Comp, typename T, int func>
+//introducing changes which violates clang-fromat rules
+
+template<typename Comp,typename T, int func>
 struct custom_brick
 {
     Comp comp;

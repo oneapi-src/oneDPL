@@ -7,6 +7,8 @@
 #ifndef NANORANGE_HPP_INCLUDED
 #define NANORANGE_HPP_INCLUDED
 
+//Adding change to 3rdparty file, clang-format check should not be performed
+
 // nanorange/algorithm.hpp
 //
 // Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
