@@ -39,16 +39,16 @@ template <typename InputIterator1, typename InputIterator2, typename OutputItera
 void
 check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, OutputIterator out_first)
 {
-    typedef typename std::iterator_traits<OutputIterator>::value_type Out;
-    typename std::iterator_traits<OutputIterator>::difference_type k = 0;
+    typedef typename ::std::iterator_traits<OutputIterator>::value_type Out;
+    typename ::std::iterator_traits<OutputIterator>::difference_type k = 0;
     for (; first1 != last1; ++first1, ++first2, ++out_first, ++k)
     {
         // check
         Out expected = Out(1.5) + *first1 - *first2;
         Out actual = *out_first;
-        if (std::is_floating_point<Out>::value)
+        if (::std::is_floating_point<Out>::value)
         {
-            EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < 1e7,
+            EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < 1e-7,
                         "wrong value in output sequence");
         }
         else
@@ -56,7 +56,7 @@ check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 firs
             EXPECT_EQ(expected, actual, "wrong value in output sequence");
         }
         // reset
-        *out_first = k % 7 != 4 ? 7 * k - 5 : 0;
+        *out_first = k % 7 != 4 ? 7 * k + 5 : 0;
     }
 }
 
@@ -69,7 +69,7 @@ struct test_one_policy
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                OutputIterator out_first, OutputIterator out_last, BinaryOp op)
     {
-        auto orrr = std::transform(exec, first1, last1, first2, out_first, op);
+        auto orrr = ::std::transform(exec, first1, last1, first2, out_first, op);
         check_and_reset(first1, last1, first2, out_first);
     }
 };
@@ -80,8 +80,8 @@ test(Predicate pred)
 {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<In1> in1(n, [](size_t k) { return k % 5 != 1 ? 3 * k - 7 : 0; });
-        Sequence<In2> in2(n, [](size_t k) { return k % 7 != 2 ? 5 * k - 5 : 0; });
+        Sequence<In1> in1(n, [](size_t k) { return k % 5 != 1 ? In1(3 * k + 7) : 0; });
+        Sequence<In2> in2(n, [](size_t k) { return k % 7 != 2 ? In2(5 * k + 5) : 0; });
 
         Sequence<Out> out(n, [](size_t k) { return -1; });
 
@@ -101,7 +101,7 @@ struct test_non_const
     {
         invoke_if(exec, [&]() {
             InputIterator input_iter2 = input_iter;
-            transform(exec, input_iter, input_iter, input_iter2, out_iter, non_const(std::plus<T>()));
+            transform(exec, input_iter, input_iter, input_iter2, out_iter, non_const(::std::plus<T>()));
         });
     }
 };
@@ -121,6 +121,6 @@ main()
     //test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
     test_algo_basic_double<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

@@ -29,12 +29,12 @@ struct test_is_partitioned
 
     template <typename Iterator1, typename Predicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
     {
     }
     template <typename Iterator1, typename Predicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
     {
     }
 #endif
@@ -43,8 +43,8 @@ struct test_is_partitioned
     void
     operator()(ExecutionPolicy&& exec, Iterator1 begin1, Iterator1 end1, Predicate pred)
     {
-        const bool expected = std::is_partitioned(begin1, end1, pred);
-        const bool actual = std::is_partitioned(exec, begin1, end1, pred);
+        const bool expected = ::std::is_partitioned(begin1, end1, pred);
+        const bool actual = ::std::is_partitioned(exec, begin1, end1, pred);
         EXPECT_TRUE(actual == expected, "wrong return result from is_partitioned");
     }
 };
@@ -54,13 +54,13 @@ void
 test(Predicate pred)
 {
 
-    const std::size_t max_n = 1000000;
-    Sequence<T> in(max_n, [](std::size_t k) { return T(k); });
+    const ::std::size_t max_n = 1000000;
+    Sequence<T> in(max_n, [](::std::size_t k) { return T(k); });
 
-    for (std::size_t n1 = 0; n1 <= max_n; n1 = n1 <= 16 ? n1 + 1 : std::size_t(3.1415 * n1))
+    for (::std::size_t n1 = 0; n1 <= max_n; n1 = n1 <= 16 ? n1 + 1 : ::std::size_t(3.1415 * n1))
     {
         invoke_on_all_policies<0>()(test_is_partitioned<T>(), in.begin(), in.begin() + n1, pred);
-        std::partition(in.begin(), in.begin() + n1, pred);
+        ::std::partition(in.begin(), in.begin() + n1, pred);
         invoke_on_all_policies<1>()(test_is_partitioned<T>(), in.cbegin(), in.cbegin() + n1, pred);
     }
 }
@@ -68,7 +68,7 @@ test(Predicate pred)
 template <typename T>
 struct LocalWrapper
 {
-    explicit LocalWrapper(std::size_t k) : my_val(k) {}
+    explicit LocalWrapper(::std::size_t k) : my_val(k) {}
 
   private:
     T my_val;
@@ -101,6 +101,6 @@ main()
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

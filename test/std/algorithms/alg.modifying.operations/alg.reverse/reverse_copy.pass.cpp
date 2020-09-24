@@ -68,14 +68,14 @@ struct test_one_policy
 #if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specialization by policy type, in case of broken configuration
     template <typename Iterator1>
-    typename std::enable_if<is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
-    operator()(dpstd::execution::unsequenced_policy, Iterator1 actual_b, Iterator1 actual_e)
+    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 actual_b, Iterator1 actual_e)
     {
     }
 
     template <typename Iterator1>
-    typename std::enable_if<is_same_iterator_category<Iterator1, std::random_access_iterator_tag>::value, void>::type
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator1 actual_b, Iterator1 actual_e)
+    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 actual_b, Iterator1 actual_e)
     {
     }
 #endif
@@ -93,9 +93,9 @@ struct test_one_policy
 
         EXPECT_TRUE(actual_return == actual_e, "wrong result of reverse_copy");
 
-        const auto n = std::distance(data_b, data_e);
+        const auto n = ::std::distance(data_b, data_e);
         Sequence<T> res(n);
-        std::copy(std::reverse_iterator<Iterator>(data_e), std::reverse_iterator<Iterator>(data_b), res.begin());
+        ::std::copy(::std::reverse_iterator<Iterator>(data_e), ::std::reverse_iterator<Iterator>(data_b), res.begin());
 
         EXPECT_EQ_N(res.begin(), actual_b, n, "wrong effect of reverse_copy");
     }
@@ -108,20 +108,20 @@ test()
     typedef typename Sequence<T1>::iterator iterator_type;
     typedef typename Sequence<T1>::const_bidirectional_iterator cbi_iterator_type;
 
-    const std::size_t max_len = 100000;
+    const ::std::size_t max_len = 100000;
 
     Sequence<T2> actual(max_len);
 
-    Sequence<T1> data(max_len, [](std::size_t i) { return T1(i); });
+    Sequence<T1> data(max_len, [](::std::size_t i) { return T1(i); });
 
-    for (std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::size_t(3.1415 * len))
+    for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
     {
         invoke_on_all_policies<0>()(test_one_policy<iterator_type, T1, T2>(data.begin(), data.begin() + len),
                                     actual.begin(), actual.begin() + len);
 //For a heterogeneous version is only valid random access iterator
 #if !_PSTL_BACKEND_SYCL
         invoke_on_all_policies<1>()(test_one_policy<cbi_iterator_type, T1, T2>(data.cbibegin(),
-                                    std::next(data.cbibegin(), len)), actual.begin(), actual.begin() + len);
+                                    ::std::next(data.cbibegin(), len)), actual.begin(), actual.begin() + len);
 #endif
     }
 }
@@ -139,6 +139,6 @@ main()
     test<wrapper<float64_t>, wrapper<float64_t>>();
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

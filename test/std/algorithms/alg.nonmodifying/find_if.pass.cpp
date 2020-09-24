@@ -34,14 +34,14 @@ struct test_find_if
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator, typename Predicate, typename NotPredicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred,
                NotPredicate not_pred)
     {
     }
 
     template <typename Iterator, typename Predicate, typename NotPredicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred,
                NotPredicate not_pred)
     {
     }
@@ -51,7 +51,7 @@ struct test_find_if
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate not_pred)
     {
-        auto i = std::find_if(first, last, pred);
+        auto i = ::std::find_if(first, last, pred);
         auto j = find_if(exec, first, last, pred);
         EXPECT_TRUE(i == j, "wrong return value from find_if");
     }
@@ -64,14 +64,14 @@ struct test_find_if_not
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
     template <typename Iterator, typename Predicate, typename NotPredicate>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred,
                NotPredicate not_pred)
     {
     }
 
     template <typename Iterator, typename Predicate, typename NotPredicate>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred,
                NotPredicate not_pred)
     {
     }
@@ -81,7 +81,7 @@ struct test_find_if_not
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate not_pred)
     {
-        auto i = std::find_if(first, last, pred);
+        auto i = ::std::find_if(first, last, pred);
         auto i_not = find_if_not(exec, first, last, not_pred);
         EXPECT_TRUE(i_not == i, "wrong return value from find_if_not");
     }
@@ -169,6 +169,6 @@ main()
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_find_if_not>());
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

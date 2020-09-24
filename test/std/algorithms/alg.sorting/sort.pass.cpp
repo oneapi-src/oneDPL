@@ -32,7 +32,7 @@ using namespace TestUtils;
 static bool Stable;
 
 //! Number of extant keys
-static std::atomic<int32_t> KeyCount;
+static ::std::atomic<int32_t> KeyCount;
 
 //! One more than highest index in array to be sorted.
 static uint32_t LastIndex;
@@ -97,7 +97,7 @@ class ParanoidKey
     ParanoidKey(ParanoidKey&& k) : value(k.value), index(k.index)
     {
         EXPECT_TRUE(k.isConstructed(), "source for move-construction is dead");
-// std::stable_sort() fails in move semantics on paranoid test before VS2015
+// ::std::stable_sort() fails in move semantics on paranoid test before VS2015
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
         k.index = Empty;
 #endif
@@ -110,7 +110,7 @@ class ParanoidKey
         EXPECT_TRUE(isConstructed(), "destination for move-assignment is dead");
         value = k.value;
         index = k.index;
-// std::stable_sort() fails in move semantics on paranoid test before VS2015
+// ::std::stable_sort() fails in move semantics on paranoid test before VS2015
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
         k.index = Empty;
 #endif
@@ -168,7 +168,7 @@ struct test_sort_with_compare
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Compare>
-    typename std::enable_if<is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
                             void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare compare)
@@ -177,9 +177,9 @@ struct test_sort_with_compare
         copy_n(first, n, expected_first);
         copy_n(first, n, tmp_first);
         if (Stable)
-            std::stable_sort(expected_first + 1, expected_last - 1, compare);
+            ::std::stable_sort(expected_first + 1, expected_last - 1, compare);
         else
-            std::sort(expected_first + 1, expected_last - 1, compare);
+            ::std::sort(expected_first + 1, expected_last - 1, compare);
         int32_t count0 = KeyCount;
         if (Stable)
             stable_sort(exec, tmp_first + 1, tmp_last - 1, compare);
@@ -196,7 +196,7 @@ struct test_sort_with_compare
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Compare>
-    typename std::enable_if<!is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
                             void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare compare)
@@ -208,7 +208,7 @@ template<typename T>
 struct test_sort_without_compare
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename std::enable_if<is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value && 
+    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value && 
                             can_use_default_less_operator<T>::value, void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n)
@@ -217,9 +217,9 @@ struct test_sort_without_compare
         copy_n(first, n, expected_first);
         copy_n(first, n, tmp_first);
         if (Stable)
-            std::stable_sort(expected_first + 1, expected_last - 1);
+            ::std::stable_sort(expected_first + 1, expected_last - 1);
         else
-            std::sort(expected_first + 1, expected_last - 1);
+            ::std::sort(expected_first + 1, expected_last - 1);
         int32_t count0 = KeyCount;
         if (Stable)
             stable_sort(exec, tmp_first + 1, tmp_last - 1);
@@ -235,7 +235,7 @@ struct test_sort_without_compare
         EXPECT_EQ(count0, count1, "key cleanup error");
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename std::enable_if<!is_same_iterator_category<InputIterator, std::random_access_iterator_tag>::value || 
+    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value || 
                             !can_use_default_less_operator<T>::value, void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n)
@@ -270,10 +270,10 @@ struct test_non_const
     operator()(Policy&& exec, Iterator iter)
     {
 #ifdef _PSTL_TEST_SORT
-        sort(exec, iter, iter, non_const(std::less<T>()));
+        sort(exec, iter, iter, non_const(::std::less<T>()));
 #endif
 #ifdef _PSTL_TEST_STABLE_SORT
-        stable_sort(exec, iter, iter, non_const(std::less<T>()));
+        stable_sort(exec, iter, iter, non_const(::std::less<T>()));
 #endif
     }
 };
@@ -281,7 +281,7 @@ struct test_non_const
 int
 main()
 {
-    std::srand(42);
+    ::std::srand(42);
     int32_t start = 0;
     int32_t end = 2;
 #ifndef _PSTL_TEST_SORT
@@ -311,6 +311,6 @@ main()
 
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

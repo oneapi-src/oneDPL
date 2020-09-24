@@ -41,7 +41,7 @@ namespace TestUtils
 typedef double float64_t;
 typedef float float32_t;
 
-template <class T, std::size_t N>
+template <class T, ::std::size_t N>
 constexpr size_t
 const_size(const T (&array)[N]) noexcept
 {
@@ -65,11 +65,11 @@ class Sequence;
 // Issue error message from outstr, adding a newline.
 // Real purpose of this routine is to have a place to hang a breakpoint.
 inline void
-issue_error_message(std::stringstream& outstr)
+issue_error_message(::std::stringstream& outstr)
 {
-    outstr << std::endl;
-    std::cerr << outstr.str();
-    std::exit(EXIT_FAILURE);
+    outstr << ::std::endl;
+    ::std::cerr << outstr.str();
+    ::std::exit(EXIT_FAILURE);
 }
 
 inline void
@@ -77,7 +77,7 @@ expect(bool expected, bool condition, const char* file, int32_t line, const char
 {
     if (condition != expected)
     {
-        std::stringstream outstr;
+        ::std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message;
         issue_error_message(outstr);
     }
@@ -91,7 +91,7 @@ expect_equal(T& expected, T& actual, const char* file, int32_t line, const char*
 {
     if (!(expected == actual))
     {
-        std::stringstream outstr;
+        ::std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message << ", expected " << expected << " got "
                << actual;
         issue_error_message(outstr);
@@ -106,7 +106,7 @@ expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, int32
     size_t m = actual.size();
     if (n != m)
     {
-        std::stringstream outstr;
+        ::std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message << ", expected sequence of size " << n
                << " got sequence of size " << m;
         issue_error_message(outstr);
@@ -117,7 +117,7 @@ expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, int32
     {
         if (!(expected[k] == actual[k]))
         {
-            std::stringstream outstr;
+            ::std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k << " expected "
                    << expected[k] << " got " << actual[k];
             issue_error_message(outstr);
@@ -136,7 +136,7 @@ expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const cha
     {
         if (!(*expected_first == *actual_first))
         {
-            std::stringstream outstr;
+            ::std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k;
             issue_error_message(outstr);
             ++error_count;
@@ -148,8 +148,8 @@ template <typename Iterator, typename F>
 void
 fill_data(Iterator first, Iterator last, F f)
 {
-    typedef typename std::iterator_traits<Iterator>::value_type T;
-    for (std::size_t i = 0; first != last; ++first, ++i)
+    typedef typename ::std::iterator_traits<Iterator>::value_type T;
+    for (::std::size_t i = 0; first != last; ++first, ++i)
     {
         *first = T(f(i));
     }
@@ -157,17 +157,17 @@ fill_data(Iterator first, Iterator last, F f)
 
 struct MemoryChecker {
     // static counters and state tags
-    static std::atomic<std::size_t> alive_object_counter; // initialized outside
+    static ::std::atomic<::std::size_t> alive_object_counter; // initialized outside
     // since it can truncate the value on 32-bit platforms
     // we have to explicitly cast it to desired type to avoid any warnings
-    static constexpr std::size_t alive_state = std::size_t(0xAAAAAAAAAAAAAAAA);
-    static constexpr std::size_t dead_state = 0; // only used as a set value to cancel alive_state
+    static constexpr ::std::size_t alive_state = ::std::size_t(0xAAAAAAAAAAAAAAAA);
+    static constexpr ::std::size_t dead_state = 0; // only used as a set value to cancel alive_state
 
-    std::int32_t _value; // object value used for algorithms
-    std::size_t  _state; // state tag used for checks
+    ::std::int32_t _value; // object value used for algorithms
+    ::std::size_t  _state; // state tag used for checks
 
     // ctors, dtors, assign ops
-    explicit MemoryChecker(std::int32_t value = 0) : _value(value) {
+    explicit MemoryChecker(::std::int32_t value = 0) : _value(value) {
         // check for EXPECT_TRUE(state() != alive_state, ...) has not been done since we cannot guarantee that
         // raw memory for object being constructed does not have a bit sequence being equal to alive_state
 
@@ -213,23 +213,23 @@ struct MemoryChecker {
         // check if we do not double destruct the object
         EXPECT_TRUE(state() == alive_state, "wrong effect from ~MemoryChecker(): attemp to destroy non-existing object");
         // set destructed state and decrement counter for living object
-        static_cast<volatile std::size_t&>(_state) = dead_state;
+        static_cast<volatile ::std::size_t&>(_state) = dead_state;
         dec_alive_objects();
     }
 
     // getters
-    std::int32_t value() const { return _value; }
-    std::size_t state() const { return _state; }
-    static std::size_t alive_objects() { return alive_object_counter.load(); }
+    ::std::int32_t value() const { return _value; }
+    ::std::size_t state() const { return _state; }
+    static ::std::size_t alive_objects() { return alive_object_counter.load(); }
 private:
     // setters
     void inc_alive_objects() { alive_object_counter.fetch_add(1); }
     void dec_alive_objects() { alive_object_counter.fetch_sub(1); }
 };
 
-std::atomic<std::size_t> MemoryChecker::alive_object_counter{0};
+::std::atomic<::std::size_t> MemoryChecker::alive_object_counter{0};
 
-std::ostream& operator<<(std::ostream& os, const MemoryChecker& val) { return (os << val.value()); }
+::std::ostream& operator<<(::std::ostream& os, const MemoryChecker& val) { return (os << val.value()); }
 bool operator==(const MemoryChecker& v1, const MemoryChecker& v2) { return v1.value() == v2.value(); }
 bool operator<(const MemoryChecker& v1, const MemoryChecker& v2) { return v1.value() < v2.value(); }
 
@@ -241,16 +241,16 @@ bool operator<(const MemoryChecker& v1, const MemoryChecker& v2) { return v1.val
 template <typename T>
 class Sequence
 {
-    std::vector<T> m_storage;
+    ::std::vector<T> m_storage;
 
   public:
-    typedef typename std::vector<T>::iterator iterator;
-    typedef typename std::vector<T>::const_iterator const_iterator;
-    typedef ForwardIterator<iterator, std::forward_iterator_tag> forward_iterator;
-    typedef ForwardIterator<const_iterator, std::forward_iterator_tag> const_forward_iterator;
+    typedef typename ::std::vector<T>::iterator iterator;
+    typedef typename ::std::vector<T>::const_iterator const_iterator;
+    typedef ForwardIterator<iterator, ::std::forward_iterator_tag> forward_iterator;
+    typedef ForwardIterator<const_iterator, ::std::forward_iterator_tag> const_forward_iterator;
 
-    typedef BidirectionalIterator<iterator, std::bidirectional_iterator_tag> bidirectional_iterator;
-    typedef BidirectionalIterator<const_iterator, std::bidirectional_iterator_tag> const_bidirectional_iterator;
+    typedef BidirectionalIterator<iterator, ::std::bidirectional_iterator_tag> bidirectional_iterator;
+    typedef BidirectionalIterator<const_iterator, ::std::bidirectional_iterator_tag> const_bidirectional_iterator;
 
     typedef T value_type;
     explicit Sequence(size_t size) : m_storage(size) {}
@@ -265,7 +265,7 @@ class Sequence
         for (size_t k = 0; k < size; ++k)
             m_storage.push_back(T(f(k)));
     }
-    Sequence(const std::initializer_list<T>& data) : m_storage(data) {}
+    Sequence(const ::std::initializer_list<T>& data) : m_storage(data) {}
 
     const_iterator
     begin() const
@@ -350,7 +350,7 @@ class Sequence
         return bidirectional_iterator(m_storage.end());
     }
 
-    std::size_t
+    ::std::size_t
     size() const
     {
         return m_storage.size();
@@ -360,7 +360,7 @@ class Sequence
     {
         return m_storage.data();
     }
-    typename std::vector<T>::reference operator[](size_t j) { return m_storage[j]; }
+    typename ::std::vector<T>::reference operator[](size_t j) { return m_storage[j]; }
     const T& operator[](size_t j) const { return m_storage[j]; }
 
     // Fill with given value
@@ -386,9 +386,9 @@ template <typename T>
 void
 Sequence<T>::print() const
 {
-    std::cout << "size = " << size() << ": { ";
-    std::copy(begin(), end(), std::ostream_iterator<T>(std::cout, " "));
-    std::cout << " } " << std::endl;
+    ::std::cout << "size = " << size() << ": { ";
+    ::std::copy(begin(), end(), ::std::ostream_iterator<T>(::std::cout, " "));
+    ::std::cout << " } " << ::std::endl;
 }
 
 // Predicates for algorithms
@@ -457,8 +457,8 @@ class Number
     {
         return x.value == y.value;
     }
-    friend std::ostream&
-    operator<<(std::ostream& o, const Number& d)
+    friend ::std::ostream&
+    operator<<(::std::ostream& o, const Number& d)
     {
         return o << d.value;
     }
@@ -538,8 +538,8 @@ class MonoidElement
     {
         return x.a == y.a && x.b == y.b;
     }
-    friend std::ostream&
-    operator<<(std::ostream& o, const MonoidElement& x)
+    friend ::std::ostream&
+    operator<<(::std::ostream& o, const MonoidElement& x)
     {
         return o << "[" << x.a << ".." << x.b << ")";
     }
@@ -616,26 +616,26 @@ multiply_matrix(const Matrix2x2<T>& left, const Matrix2x2<T>& right)
 #endif
 
 // Invoke op(policy,rest...) for each possible policy.
-template <std::size_t CallNumber = 0>
+template <::std::size_t CallNumber = 0>
 struct invoke_on_all_policies
 {
     template <typename Op, typename... T>
     void
     operator()(Op op, T&&... rest)
     {
-        using namespace dpstd::execution;
+        using namespace oneapi::dpl::execution;
 
 #if !TEST_ONLY_HETERO_POLICIES
         // Try static execution policies
-        invoke_on_all_iterator_types()(seq, op, std::forward<T>(rest)...);
-        invoke_on_all_iterator_types()(unseq, op, std::forward<T>(rest)...);
+        invoke_on_all_iterator_types()(seq, op, ::std::forward<T>(rest)...);
+        invoke_on_all_iterator_types()(unseq, op, ::std::forward<T>(rest)...);
 #if _PSTL_USE_PAR_POLICIES
-        invoke_on_all_iterator_types()(par, op, std::forward<T>(rest)...);
-        invoke_on_all_iterator_types()(par_unseq, op, std::forward<T>(rest)...);
+        invoke_on_all_iterator_types()(par, op, ::std::forward<T>(rest)...);
+        invoke_on_all_iterator_types()(par_unseq, op, ::std::forward<T>(rest)...);
 #endif
 #endif
 #if _PSTL_BACKEND_SYCL
-    	invoke_on_all_hetero_policies<CallNumber>()(op, std::forward<T>(rest)...);
+    	invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
 #endif
 
     }
@@ -649,10 +649,10 @@ struct NonConstAdapter
 
     template <typename... Types>
     auto
-    operator()(Types&&... args) -> decltype(std::declval<F>().
-                                            operator()(std::forward<Types>(args)...))
+    operator()(Types&&... args) -> decltype(::std::declval<F>().
+                                            operator()(::std::forward<Types>(args)...))
     {
-        return my_f(std::forward<Types>(args)...);
+        return my_f(::std::forward<Types>(args)...);
     }
 };
 
@@ -670,12 +670,12 @@ class Wrapper
   public:
     Wrapper()
     {
-        my_field = std::shared_ptr<T>(new T());
+        my_field = ::std::shared_ptr<T>(new T());
         ++my_count;
     }
     Wrapper(const T& input)
     {
-        my_field = std::shared_ptr<T>(new T(input));
+        my_field = ::std::shared_ptr<T>(new T(input));
         ++my_count;
     }
     Wrapper(const Wrapper& input)
@@ -718,8 +718,8 @@ class Wrapper
     {
         return *my_field > *input.my_field;
     }
-    friend std::ostream&
-    operator<<(std::ostream& stream, const Wrapper& input)
+    friend ::std::ostream&
+    operator<<(::std::ostream& stream, const Wrapper& input)
     {
         return stream << *(input.my_field);
     }
@@ -758,16 +758,16 @@ class Wrapper
     }
 
   private:
-    static std::atomic<size_t> my_count;
-    static std::atomic<size_t> move_count;
-    std::shared_ptr<T> my_field;
+    static ::std::atomic<size_t> my_count;
+    static ::std::atomic<size_t> move_count;
+    ::std::shared_ptr<T> my_field;
 };
 
 template <typename T>
-std::atomic<size_t> Wrapper<T>::my_count = {0};
+::std::atomic<size_t> Wrapper<T>::my_count = {0};
 
 template <typename T>
-std::atomic<size_t> Wrapper<T>::move_count = {0};
+::std::atomic<size_t> Wrapper<T>::move_count = {0};
 
 template <typename InputIterator, typename T, typename BinaryOperation, typename UnaryOperation>
 T
@@ -829,16 +829,16 @@ static void
 invoke_if(Policy&& p, F f)
 {
 #if _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    dpstd::__internal::__invoke_if_not(dpstd::__internal::__allow_unsequenced<Policy>(), f);
+    oneapi::dpl::__internal::__invoke_if_not(oneapi::dpl::__internal::__allow_unsequenced<Policy>(), f);
 #else
     f();
 #endif
 }
 
 template<typename T, typename = bool>
-struct can_use_default_less_operator: std::false_type {};
+struct can_use_default_less_operator: ::std::false_type {};
 
 template<typename T>
-struct can_use_default_less_operator<T, decltype(std::declval<T>() < std::declval<T>())>: std::true_type {};
+struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::declval<T>())>: ::std::true_type {};
 
 } /* namespace TestUtils */

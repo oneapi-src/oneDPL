@@ -96,8 +96,8 @@ struct test_long_transform_reduce
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                T init, BinaryOperation1 opB1, BinaryOperation2 opB2)
     {
-        auto expectedB = std::inner_product(first1, last1, first2, init, opB1, opB2);
-        T resRA = std::transform_reduce(exec, first1, last1, first2, init, opB1, opB2);
+        auto expectedB = ::std::inner_product(first1, last1, first2, init, opB1, opB2);
+        T resRA = ::std::transform_reduce(exec, first1, last1, first2, init, opB1, opB2);
         CheckResults(expectedB, resRA);
     }
 };
@@ -112,7 +112,7 @@ struct test_short_transform_reduce
                T init, BinaryOperation opB, UnaryOp opU)
     {
         auto expectedU = transform_reduce_serial(first1, last1, init, opB, opU);
-        T resRA = std::transform_reduce(exec, first1, last1, init, opB, opU);
+        T resRA = ::std::transform_reduce(exec, first1, last1, init, opB, opU);
         CheckResults(expectedU, resRA);
     }
 };
@@ -122,11 +122,11 @@ void
 test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, Initializer initObj)
 {
 
-    std::size_t maxSize = 100000;
+    ::std::size_t maxSize = 100000;
     Sequence<T> in1(maxSize, initObj);
     Sequence<T> in2(maxSize, initObj);
 
-    for (std::size_t n = 0; n < maxSize; n = n < 16 ? n + 1 : size_t(3.1415 * n))
+    for (::std::size_t n = 0; n < maxSize; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
         invoke_on_all_policies<0>()(test_long_transform_reduce<T>(), in1.begin(), in1.begin() + n, in2.begin(),
                                     in2.begin() + n, init, opB1, opB2);
@@ -143,21 +143,21 @@ int
 main()
 {
 #if !_PSTL_FPGA_HW
-    test_by_type<int32_t>(42, std::plus<int32_t>(), std::multiplies<int32_t>(), std::negate<int32_t>(),
-                          [](std::size_t a) -> int32_t { return int32_t(rand() % 1000); });
+    test_by_type<int32_t>(42, ::std::plus<int32_t>(), ::std::multiplies<int32_t>(), ::std::negate<int32_t>(),
+                          [](::std::size_t a) -> int32_t { return int32_t(rand() % 1000); });
     test_by_type<int64_t>(0, [](const int64_t& a, const int64_t& b) -> int64_t { return a | b; }, XOR(),
                           [](const int64_t& x) -> int64_t { return x * 2; },
-                          [](std::size_t a) -> int64_t { return int64_t(rand() % 1000); });
-    test_by_type<float32_t>(1.0f, std::multiplies<float32_t>(),
+                          [](::std::size_t a) -> int64_t { return int64_t(rand() % 1000); });
+    test_by_type<float32_t>(1.0f, ::std::multiplies<float32_t>(),
                             [](const float32_t& a, const float32_t& b) -> float32_t { return a + b; },
                             [](const float32_t& x) -> float32_t { return x + 2; },
-                            [](std::size_t a) -> float32_t { return rand() % 1000; });
+                            [](::std::size_t a) -> float32_t { return rand() % 1000; });
 #endif
-    test_by_type<MyClass>(MyClass(), std::plus<MyClass>(), std::multiplies<MyClass>(),
+    test_by_type<MyClass>(MyClass(), ::std::plus<MyClass>(), ::std::multiplies<MyClass>(),
         [](const MyClass& x) { return MyClass(-x.my_field); },
-        [](std::size_t a) -> MyClass { return MyClass(rand() % 1000); });
+        [](::std::size_t a) -> MyClass { return MyClass(rand() % 1000); });
 
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

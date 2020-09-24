@@ -1,14 +1,18 @@
 Tested Standard C++ APIs
 ################################
 Contains the Tested Standard C++ APIs for Intel® oneAPI DPC++ Library.
-The basic functionality for a number of C++ standard APIs has been tested for use in DPC++ kernels. These APIs can be employed in device kernels similarly to how they are employed in code for a typical CPU-based platform. Below is an example code that shows how to use std::swap in SYCL device code:
+The basic functionality for a number of C++ standard APIs has been tested for use in DPC++ kernels. These APIs can be employed in device kernels similarly to how they are employed in code for a typical CPU-based platform. The Tested Standard C++ APIs are added to namespace "oneapi::std" and "oneapi::dpl", corresponding headers are also added in oneDPL package. In order to use these APIs via namespace "oneapi::std" or "oneapi::dpl", headers in <oneapi/dpl/...> must be included. Currently, Tested Standard C++ APIs can be used in 3 ways:
+1. via namespace "std::" and standard headers(e.g <utility>...)
+2. via namespace "oneapi::std" and oneDPL headers(e.g <oneapi/dpl/utility>...)
+3. via namespace "oneapi::dpl" and oneDPL headers(e.g <oneapi/dpl/utility>...)
+Below is an example code that shows how to use oneapi::std::swap in SYCL device code:
 
 Example:
 
 .. code:: cpp
 
   #include <CL/sycl.hpp>
-  #include <utility>
+  #include <oneapi/dpl/utility>
   #include <iostream>
   constexpr cl::sycl::access::mode sycl_read_write = cl::sycl::access::mode::read_write;
   class KernelSwap;
@@ -25,7 +29,7 @@ Example:
     cgh.single_task<class KernelSwap>([=]() {
         int & num1 = swap_accessor[0];
         int & num2 = swap_accessor[1];
-        std::swap(num1, num2);
+        oneapi::std::swap(num1, num2);
         });
     });
     }
@@ -38,7 +42,7 @@ Example:
 
 Use the following command to build and run the program (assuming it resides in the kernel_swap.cpp file):
 
-dpcpp –std=c++11 kernel_swap.cpp –o kernel_swap.exe -lOpenCL
+dpcpp kernel_swap.cpp –o kernel_swap.exe
 
 ./kernel_swap.exe
 
@@ -306,8 +310,6 @@ std::remquo                       Tested                Tested
 std::nextafter                    Tested                Tested
 --------------------------------- ---------- ---------- ----------
 std::fdim                         Tested                Tested
---------------------------------- ---------- ---------- ----------
-std::numeric_limits               Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
 std::optional                     Tested                Tested
 ================================= ========== ========== ==========

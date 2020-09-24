@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <dpstd/pstl/pstl_config.h>
+#include <oneapi/dpl/pstl/pstl_config.h>
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -31,6 +31,6 @@ static_assert(__INTEL_PSTL_VERSION_MAJOR == 2, "");
 static_assert(__INTEL_PSTL_VERSION_MINOR == 20, "");
 
 int main() {
-    std::cout << TestUtils::done() << std::endl;
+    ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

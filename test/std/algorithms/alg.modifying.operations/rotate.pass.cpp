@@ -83,13 +83,13 @@ struct test_one_policy
     _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specializations to skip testing in case of broken configuration
     template <typename Iterator, typename Size>
     void
-    operator()(dpstd::execution::unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
+    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
                Iterator actual_e, Size shift)
     {
     }
     template <typename Iterator, typename Size>
     void
-    operator()(dpstd::execution::parallel_unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator data_b, Iterator data_e, Iterator actual_b,
                Iterator actual_e, Size shift)
     {
     }
@@ -102,25 +102,25 @@ struct test_one_policy
     {
         using namespace std;
         using T = typename iterator_traits<Iterator>::value_type;
-        Iterator actual_m = std::next(actual_b, shift);
+        Iterator actual_m = ::std::next(actual_b, shift);
 
         copy(data_b, data_e, actual_b);
         Iterator actual_return = rotate(exec, actual_b, actual_m, actual_e);
 
-        EXPECT_TRUE(actual_return == std::next(actual_b, std::distance(actual_m, actual_e)), "wrong result of rotate");
+        EXPECT_TRUE(actual_return == ::std::next(actual_b, ::std::distance(actual_m, actual_e)), "wrong result of rotate");
         auto comparator = compare<T>();
-        bool check = std::equal(actual_return, actual_e, data_b, comparator);
-        check = check && std::equal(actual_b, actual_return, std::next(data_b, shift), comparator);
+        bool check = ::std::equal(actual_return, actual_e, data_b, comparator);
+        check = check && ::std::equal(actual_b, actual_return, ::std::next(data_b, shift), comparator);
 
         EXPECT_TRUE(check, "wrong effect of rotate");
         EXPECT_TRUE(check_move(exec, actual_b, actual_e, shift), "wrong move test of rotate");
     }
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
-    typename std::enable_if<
-        is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
-        !std::is_same<ExecutionPolicy, dpstd::execution::sequenced_policy>::value &&
-        std::is_same<typename std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value,
+    typename ::std::enable_if<
+        is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value &&
+        !::std::is_same<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy>::value &&
+        ::std::is_same<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value,
         bool>::type
     check_move(ExecutionPolicy&& exec, Iterator b, Iterator e, Size shift)
     {
@@ -133,10 +133,10 @@ struct test_one_policy
     }
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
-    typename std::enable_if<
-        !(is_same_iterator_category<Iterator, std::random_access_iterator_tag>::value &&
-        !std::is_same<ExecutionPolicy, dpstd::execution::sequenced_policy>::value &&
-        std::is_same<typename std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value),
+    typename ::std::enable_if<
+        !(is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value &&
+        !::std::is_same<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy>::value &&
+        ::std::is_same<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value),
         bool>::type
     check_move(ExecutionPolicy&& exec, Iterator b, Iterator e, Size shift)
     {
@@ -150,8 +150,8 @@ test()
 {
     const int32_t max_len = 100000;
 
-    Sequence<T> actual(max_len, [](std::size_t i) { return T(i); });
-    Sequence<T> data(max_len, [](std::size_t i) { return T(i); });
+    Sequence<T> actual(max_len, [](::std::size_t i) { return T(i); });
+    Sequence<T> data(max_len, [](::std::size_t i) { return T(i); });
 
     for (int32_t len = 0; len < max_len; len = len <= 16 ? len + 1 : int32_t(3.1415 * len))
     {
@@ -177,6 +177,6 @@ main()
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from rotate: number of ctor and dtor calls is not equal");
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

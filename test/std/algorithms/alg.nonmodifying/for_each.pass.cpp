@@ -30,9 +30,9 @@ template <typename Type>
 struct Gen
 {
     Type
-    operator()(std::size_t k)
+    operator()(::std::size_t k)
     {
-        return Type(k % 5 != 1 ? 3 * k - 7 : 0);
+        return Type(k % 5 != 1 ? 3 * k + 7 : 0);
     };
 };
 
@@ -55,10 +55,10 @@ struct test_for_each
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator expected_first, Iterator expected_last, Size n)
     {
-        typedef typename std::iterator_traits<Iterator>::value_type T;
+        typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
         // Try for_each
-        std::for_each(expected_first, expected_last, Flip<T>(1));
+        ::std::for_each(expected_first, expected_last, Flip<T>(1));
         for_each(exec, first, last, Flip<T>(1));
         EXPECT_EQ_N(expected_first, first, n, "wrong effect from for_each");
     }
@@ -71,10 +71,10 @@ struct test_for_each_n
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator expected_first, Iterator expected_last, Size n)
     {
-        typedef typename std::iterator_traits<Iterator>::value_type T;
+        typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
         // Try for_each_n
-        std::for_each_n(dpstd::execution::seq, expected_first, n, Flip<T>(1));
+        ::std::for_each_n(oneapi::dpl::execution::seq, expected_first, n, Flip<T>(1));
         for_each_n(exec, first, n, Flip<T>(1));
         EXPECT_EQ_N(expected_first, first, n, "wrong effect from for_each_n");
     }
@@ -106,7 +106,7 @@ struct test_non_const_for_each
     operator()(Policy&& exec, Iterator iter)
     {
         invoke_if(exec, [&]() {
-            auto f = [](typename std::iterator_traits<Iterator>::reference x) { x = x + 1; };
+            auto f = [](typename ::std::iterator_traits<Iterator>::reference x) { x = x + 1; };
 
             for_each(exec, iter, iter, non_const(f));
         });
@@ -120,7 +120,7 @@ struct test_non_const_for_each_n
     operator()(Policy&& exec, Iterator iter)
     {
         invoke_if(exec, [&]() {
-            auto f = [](typename std::iterator_traits<Iterator>::reference x) { x = x + 1; };
+            auto f = [](typename ::std::iterator_traits<Iterator>::reference x) { x = x + 1; };
 
             for_each_n(exec, iter, 0, non_const(f));
         });
@@ -142,6 +142,6 @@ main()
     test_algo_basic_single<int64_t>(run_for_rnd_fw<test_non_const_for_each_n>());
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }

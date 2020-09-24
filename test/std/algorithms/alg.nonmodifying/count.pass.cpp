@@ -34,8 +34,8 @@ struct test_count
     void
     operator()(Policy&& exec, Iterator first, Iterator last, T needle)
     {
-        auto expected = std::count(first, last, needle);
-        auto result = std::count(exec, first, last, needle);
+        auto expected = ::std::count(first, last, needle);
+        auto result = ::std::count(exec, first, last, needle);
         EXPECT_EQ(expected, result, "wrong count result");
     }
 };
@@ -47,8 +47,8 @@ struct test_count_if
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
     {
-        auto expected = std::count_if(first, last, pred);
-        auto result = std::count_if(exec, first, last, pred);
+        auto expected = ::std::count_if(first, last, pred);
+        auto result = ::std::count_if(exec, first, last, pred);
         EXPECT_EQ(expected, result, "wrong count_if result");
     }
 };
@@ -119,6 +119,6 @@ main()
 #endif
 #endif
 
-    std::cout << done() << std::endl;
+    ::std::cout << done() << ::std::endl;
     return 0;
 }
