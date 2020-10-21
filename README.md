@@ -20,8 +20,8 @@ oneDPL is licensed under [Apache License Version 2.0 with LLVM exceptions](https
 ## Documentation
 See [Library Guide](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html) with oneDPL.
 
-## Examples
-You can find oneDPL examples in [Examples](https://github.com/intel/BaseKit-code-samples/tree/master/DPC++Compiler/oneDPL).
+## Samples
+You can find oneDPL samples in [Samples](https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL).
 
 ## Support and contribution
 Please report issues and suggestions via [GitHub issues](https://github.com/oneapi-src/oneDPL/issues).
