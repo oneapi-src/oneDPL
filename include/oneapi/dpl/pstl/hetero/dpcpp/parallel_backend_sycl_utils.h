@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_parallel_backend_sycl_utils_H
-#define _PSTL_parallel_backend_sycl_utils_H
+#ifndef _ONEDPL_parallel_backend_sycl_utils_H
+#define _ONEDPL_parallel_backend_sycl_utils_H
 
 //!!! NOTE: This file should be included under the macro _PSTL_BACKEND_SYCL
 #include <CL/sycl.hpp>
@@ -603,4 +603,4 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 } // namespace dpl
 } // namespace oneapi
 
-#endif //_PSTL_parallel_backend_sycl_utils_H
+#endif //_ONEDPL_parallel_backend_sycl_utils_H

@@ -29,4 +29,17 @@
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
 #endif
 
+namespace dpl = oneapi::dpl;
+
+namespace std
+{
+using oneapi::dpl::reduce;
+using oneapi::dpl::transform_reduce;
+using oneapi::dpl::exclusive_scan;
+using oneapi::dpl::inclusive_scan;
+using oneapi::dpl::transform_exclusive_scan;
+using oneapi::dpl::transform_inclusive_scan;
+using oneapi::dpl::adjacent_difference;
+} // namespace std
+
 #endif /* _TEST_SUPPORT_STDLIB_NUMERIC */

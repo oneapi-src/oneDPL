@@ -33,15 +33,15 @@ main()
     int data2[max_n] = {0, 1, 2, -1, 4, 5, 6, 7, 8, 9};
 
     bool res1 = false;
-    bool res2 = false;    
+    bool res2 = false;
     using namespace TestUtils;
     using namespace oneapi::dpl::experimental::ranges;
     {
         cl::sycl::buffer<int> A(data1, cl::sycl::range<1>(max_n));
         cl::sycl::buffer<int> B(data2, cl::sycl::range<1>(max_n));
 
-        auto exec = oneapi::dpl::execution::dpcpp_default;
-        using Policy = decltype(oneapi::dpl::execution::dpcpp_default);
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         res1 = is_sorted(exec, all_view(A));
         res2 = is_sorted(make_new_policy<new_kernel_name<Policy, 0>>(exec), all_view(B));

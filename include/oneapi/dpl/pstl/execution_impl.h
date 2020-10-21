@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_EXECUTION_IMPL_H
-#define _PSTL_EXECUTION_IMPL_H
+#ifndef _ONEDPL_EXECUTION_IMPL_H
+#define _ONEDPL_EXECUTION_IMPL_H
 
 #include <iterator>
 #include <type_traits>
@@ -81,7 +81,6 @@ struct __policy_traits<unsequenced_policy>
     typedef ::std::true_type __allow_vector;
 };
 
-#if _PSTL_USE_PAR_POLICIES
 template <>
 struct __policy_traits<parallel_policy>
 {
@@ -97,7 +96,6 @@ struct __policy_traits<parallel_unsequenced_policy>
     typedef ::std::true_type __allow_unsequenced;
     typedef ::std::true_type __allow_vector;
 };
-#endif
 
 template <typename _ExecutionPolicy>
 using __collector_t =
@@ -155,4 +153,4 @@ struct __prefer_parallel_tag
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_EXECUTION_IMPL_H */
+#endif /* _ONEDPL_EXECUTION_IMPL_H */

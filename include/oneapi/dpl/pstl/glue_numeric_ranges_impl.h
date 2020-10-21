@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_NUMERIC_RANGES_IMPL_H
-#define _PSTL_GLUE_NUMERIC_RANGES_IMPL_H
+#ifndef _ONEDPL_GLUE_NUMERIC_RANGES_IMPL_H
+#define _ONEDPL_GLUE_NUMERIC_RANGES_IMPL_H
 
 #include "execution_defs.h"
 #include "glue_numeric_defs.h"
@@ -190,4 +190,4 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_GLUE_NUMERIC_RANGES_IMPL_H */
+#endif /* _ONEDPL_GLUE_NUMERIC_RANGES_IMPL_H */

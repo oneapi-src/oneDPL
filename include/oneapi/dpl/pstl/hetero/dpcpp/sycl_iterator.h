@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_sycl_iterator_H
-#define _PSTL_sycl_iterator_H
+#ifndef _ONEDPL_sycl_iterator_H
+#define _ONEDPL_sycl_iterator_H
 
 #include <CL/sycl.hpp>
 
@@ -225,4 +225,4 @@ using dpstd::end;
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_sycl_iterator_H */
+#endif /* _ONEDPL_sycl_iterator_H */

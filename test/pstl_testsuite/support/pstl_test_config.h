@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_TEST_config_H
-#define _PSTL_TEST_config_H
+#ifndef _ONEDPL_TEST_config_H
+#define _ONEDPL_TEST_config_H
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
@@ -67,4 +67,4 @@
 
 #define _PSTL_SYCL_TEST_USM 1
 
-#endif /* _PSTL_TEST_config_H */
+#endif /* _ONEDPL_TEST_config_H */

@@ -15,8 +15,8 @@
 
 // Define SYCL specific options
 
-#ifndef _PSTL_SYCL_CONFIG_H
-#define _PSTL_SYCL_CONFIG_H
+#ifndef _ONEDPL_SYCL_CONFIG_H
+#define _ONEDPL_SYCL_CONFIG_H
 
 // This is supposed to be a simple config file which only sets flags, but
 // unfortunately we also need to include CL/sycl.hpp here.
@@ -42,4 +42,4 @@
 #    define _PSTL_COMPILE_KERNEL 1
 #endif
 
-#endif /* _PSTL_SYCL_CONFIG_H */
+#endif /* _ONEDPL_SYCL_CONFIG_H */

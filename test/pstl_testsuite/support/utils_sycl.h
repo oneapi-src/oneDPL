@@ -22,7 +22,7 @@
 #include <iterator>
 #include <CL/sycl.hpp>
 #if _PSTL_FPGA_DEVICE
-#    include <CL/sycl/intel/fpga_extensions.hpp>
+#    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
 
 #include "pstl_test_config.h"
@@ -118,18 +118,21 @@ namespace TestUtils
     }
 #endif
 
-    // create the queue with custom asynchronous exceptions handler
-    static auto my_queue = cl::sycl::queue(
 #if _PSTL_FPGA_DEVICE
+    auto& default_dpcpp_policy = oneapi::dpl::execution::dpcpp_fpga;
+    auto default_selector =
 #if _PSTL_FPGA_EMU
-        cl::sycl::intel::fpga_emulator_selector{},
+        cl::sycl::INTEL::fpga_emulator_selector{};
 #else
-        cl::sycl::intel::fpga_selector{},
-#endif // _PSTL_FPGA_EMU
+        cl::sycl::INTEL::fpga_selector{};
+#endif
 #else
-        cl::sycl::default_selector{},
-#endif // _PSTL_FPGA_DEVICE
-        async_handler);
+    auto& default_dpcpp_policy = oneapi::dpl::execution::dpcpp_default;
+    auto default_selector = cl::sycl::default_selector{};
+#endif
+
+    // create the queue with custom asynchronous exceptions handler
+    static auto my_queue = cl::sycl::queue(default_selector, async_handler);
 
     // Invoke op(policy,rest...) for each possible policy.
     template <::std::size_t CallNumber = 0>

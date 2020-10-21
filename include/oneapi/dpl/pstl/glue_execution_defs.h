@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_EXECUTION_DEFS_H
-#define _PSTL_GLUE_EXECUTION_DEFS_H
+#ifndef _ONEDPL_GLUE_EXECUTION_DEFS_H
+#define _ONEDPL_GLUE_EXECUTION_DEFS_H
 
 #include <type_traits>
 
@@ -36,17 +36,13 @@ using oneapi::dpl::execution::is_execution_policy_v;
 namespace execution
 {
 // Standard C++ policy classes
-using oneapi::dpl::execution::sequenced_policy;
-#if _PSTL_USE_PAR_POLICIES
 using oneapi::dpl::execution::parallel_policy;
 using oneapi::dpl::execution::parallel_unsequenced_policy;
-#endif
+using oneapi::dpl::execution::sequenced_policy;
 // Standard predefined policy instances
-using oneapi::dpl::execution::seq;
-#if _PSTL_USE_PAR_POLICIES
 using oneapi::dpl::execution::par;
 using oneapi::dpl::execution::par_unseq;
-#endif
+using oneapi::dpl::execution::seq;
 // Implementation-defined names
 // Unsequenced policy is not yet standard, but for consistency
 // we include it into namespace std::execution as well
@@ -64,4 +60,4 @@ using oneapi::dpl::execution::unsequenced_policy;
 #include "numeric_impl.h"
 #include "parallel_backend.h"
 
-#endif /* _PSTL_GLUE_EXECUTION_DEFS_H */
+#endif /* _ONEDPL_GLUE_EXECUTION_DEFS_H */

@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_RANGES_DEFS_H
-#define _PSTL_RANGES_DEFS_H
+#ifndef _ONEDPL_RANGES_DEFS_H
+#define _ONEDPL_RANGES_DEFS_H
 
 #include "ranges/nanorange.hpp"
 
@@ -56,4 +56,4 @@ using nano::views::transform;
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_RANGES_DEFS_H */
+#endif /* _ONEDPL_RANGES_DEFS_H */

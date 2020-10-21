@@ -38,7 +38,7 @@ main()
         cl::sycl::buffer<int> A(data, cl::sycl::range<1>(max_n));
 
         auto view = all_view<int, cl::sycl::access::mode::read_write>(A);
-        for_each(oneapi::dpl::execution::dpcpp_default, view, lambda1);
+        for_each(TestUtils::default_dpcpp_policy, view, lambda1);
     }
 
     //check result

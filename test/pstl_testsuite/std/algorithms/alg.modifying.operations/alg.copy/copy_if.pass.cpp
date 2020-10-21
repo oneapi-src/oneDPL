@@ -197,13 +197,13 @@ test(T trash, Predicate pred, Convert convert, bool check_weakness = true)
             size_t m = expected_result - expected.begin();
             EXPECT_TRUE(n / 4 <= m && m <= 3 * (n + 1) / 4, "weak test for copy_if");
         }
-#ifdef _PSTL_TEST_COPY_IF
+#if defined(_PSTL_TEST_COPY_IF)
         invoke_on_all_policies<0>()(run_copy_if<T>(), in.begin(), in.end(), out.begin(), out.end(), expected.begin(),
                                     expected.end(), count, pred, trash);
         invoke_on_all_policies<1>()(run_copy_if<T>(), in.cbegin(), in.cend(), out.begin(), out.end(), expected.begin(),
                                     expected.end(), count, pred, trash);
 #endif
-#if defined(_PSTL_TEST_REMOVE_COPY_IF) && !_PSTL_FPGA_HW
+#if defined(_PSTL_TEST_REMOVE_COPY_IF)
         invoke_on_all_policies<2>()(run_remove_copy_if<T>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected.begin(), expected.end(), count, pred, trash);
         invoke_on_all_policies<3>()(run_remove_copy_if<T>(), in.cbegin(), in.cend(), out.begin(), out.end(),
@@ -246,9 +246,10 @@ main()
     test<float64_t>(-666.0, [](const float64_t& x) { return x * x <= 1024; },
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
 
-#if !_PSTL_FPGA_HW
+#if !_PSTL_FPGA_DEVICE
     test<int16_t>(-666, [](const int16_t& x) { return x != 42; },
                   [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? int16_t(j + 1) : 42; });
+#endif // _PSTL_FPGA_DEVICE
 
 #if !_PSTL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
@@ -261,9 +262,8 @@ main()
 #if defined(_PSTL_TEST_REMOVE_COPY_IF)
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_remove_copy_if>());
 #endif
-#endif // _PSTL_FPGA_HW
 
-#ifdef _PSTL_TEST_COPY_IF
+#if defined(_PSTL_TEST_COPY_IF)
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
 #endif
 

@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_MEMORY_IMPL_H
-#define _PSTL_GLUE_MEMORY_IMPL_H
+#ifndef _ONEDPL_GLUE_MEMORY_IMPL_H
+#define _ONEDPL_GLUE_MEMORY_IMPL_H
 
 #include "execution_defs.h"
 #include "utils.h"
@@ -28,7 +28,9 @@
 
 #include "execution_impl.h"
 
-namespace std
+namespace oneapi
+{
+namespace dpl
 {
 
 // [uninitialized.copy]
@@ -37,10 +39,10 @@ template <class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result)
 {
-    typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    typedef typename iterator_traits<_InputIterator>::reference _ReferenceType1;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::value_type _ValueType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::reference _ReferenceType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType2;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -69,10 +71,10 @@ template <class _ExecutionPolicy, class _InputIterator, class _Size, class _Forw
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result)
 {
-    typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    typedef typename iterator_traits<_InputIterator>::reference _ReferenceType1;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::value_type _ValueType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::reference _ReferenceType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType2;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -103,10 +105,10 @@ template <class _ExecutionPolicy, class _InputIterator, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIterator __last, _ForwardIterator __result)
 {
-    typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    typedef typename iterator_traits<_InputIterator>::reference _ReferenceType1;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::value_type _ValueType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::reference _ReferenceType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType2;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -135,10 +137,10 @@ template <class _ExecutionPolicy, class _InputIterator, class _Size, class _Forw
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, _ForwardIterator __result)
 {
-    typedef typename iterator_traits<_InputIterator>::value_type _ValueType1;
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType2;
-    typedef typename iterator_traits<_InputIterator>::reference _ReferenceType1;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::value_type _ValueType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
+    typedef typename ::std::iterator_traits<_InputIterator>::reference _ReferenceType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType2;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -169,8 +171,8 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -198,8 +200,8 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, const _Tp& __value)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -229,8 +231,8 @@ template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -249,8 +251,8 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -274,8 +276,8 @@ template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_default_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -295,8 +297,8 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_default_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -320,8 +322,8 @@ template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_value_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -349,8 +351,8 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
-    typedef typename iterator_traits<_ForwardIterator>::reference _ReferenceType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     typedef typename ::std::decay<_ExecutionPolicy>::type _DecayedExecutionPolicy;
 
     const auto __is_parallel =
@@ -374,6 +376,7 @@ uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __fi
         });
 }
 
-} // namespace std
+} // namespace dpl
+} // namespace oneapi
 
-#endif /* _PSTL_GLUE_MEMORY_IMPL_H */
+#endif /* _ONEDPL_GLUE_MEMORY_IMPL_H */

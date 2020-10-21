@@ -94,7 +94,7 @@ test_mismatch_by_type()
             invoke_on_all_policies<1>()(test_mismatch<T>(), in.begin(), in.end(), in2.begin());
             invoke_on_all_policies<2>()(test_mismatch_predicate<T>(), in.begin(), in.end(), in2.begin(), in2.end());
             invoke_on_all_policies<3>()(test_mismatch_predicate<T>(), in.begin(), in.end(), in2.begin());
-            
+
             const size_t min_size = 3;
             if (size > min_size)
             {
@@ -175,7 +175,9 @@ main()
 {
 
     test_mismatch_by_type<int32_t>();
+#if !_PSTL_FPGA_DEVICE
     test_mismatch_by_type<float64_t>();
+#endif
 
 #if !_PSTL_BACKEND_SYCL
     test_mismatch_by_type<Wrapper<int32_t>>();

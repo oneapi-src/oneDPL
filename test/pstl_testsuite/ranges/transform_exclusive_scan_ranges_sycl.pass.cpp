@@ -42,7 +42,7 @@ main()
         auto view = ranges::all_view<int, cl::sycl::access::mode::read>(A);
         auto view_res = ranges::all_view<int, cl::sycl::access::mode::write>(B);
 
-        ranges::transform_exclusive_scan(oneapi::dpl::execution::dpcpp_default, view, view_res, 100, ::std::plus<int>(), lambda);
+        ranges::transform_exclusive_scan(TestUtils::default_dpcpp_policy, view, view_res, 100, ::std::plus<int>(), lambda);
     }
 
     //check result

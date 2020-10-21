@@ -42,8 +42,8 @@ main()
 
         auto view  = all_view(A);
 
-        auto exec = oneapi::dpl::execution::dpcpp_default;
-        using Policy = decltype(oneapi::dpl::execution::dpcpp_default);
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         res1 = is_sorted_until(exec, view);
         res2 = is_sorted_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, [](auto a, auto b) { return a < b; });

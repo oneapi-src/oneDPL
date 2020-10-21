@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_UTILS_RANGES_H
-#define _PSTL_UTILS_RANGES_H
+#ifndef _ONEDPL_UTILS_RANGES_H
+#define _ONEDPL_UTILS_RANGES_H
 
 #include <iterator>
 #include <type_traits>
@@ -108,12 +108,14 @@ class zip_view
 
     using _tuple_ranges_t = oneapi::dpl::__internal::tuple<_Ranges...>;
 
-    template <typename _TupleType, typename _F, ::std::size_t... _Ip>
-    static auto
-    invoke_it(const _TupleType& __t, _F __f, oneapi::dpl::__internal::__index_sequence<_Ip...>)
-        -> decltype(oneapi::dpl::make_zip_iterator(__f(::std::get<_Ip>(__t))...))
+    template <::std::size_t... _Ip>
+    auto
+    make_reference(_tuple_ranges_t __t, int32_t __i, oneapi::dpl::__internal::__index_sequence<_Ip...>) const
+        -> decltype(oneapi::dpl::__internal::tuple<decltype(::std::declval<_Ranges&>().operator[](__i))...>(
+            ::std::get<_Ip>(__t).operator[](__i)...))
     {
-        return oneapi::dpl::make_zip_iterator(__f(::std::get<_Ip>(__t))...);
+        return oneapi::dpl::__internal::tuple<decltype(::std::declval<_Ranges&>().operator[](__i))...>(
+            ::std::get<_Ip>(__t).operator[](__i)...);
     }
 
   public:
@@ -127,19 +129,12 @@ class zip_view
         return ::std::get<0>(__m_ranges).size();
     }
 
-    _PSTL_CONSTEXPR_FUN auto
-    begin() const -> decltype(invoke_it(::std::declval<_tuple_ranges_t>(), __invoke_begin{},
-                                        oneapi::dpl::__internal::__make_index_sequence<__num_ranges>()))
+    _PSTL_CONSTEXPR_FUN auto operator[](int32_t __i) const
+        -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i,
+                                   oneapi::dpl::__internal::__make_index_sequence<__num_ranges>()))
     {
-        return invoke_it(__m_ranges, __invoke_begin{}, oneapi::dpl::__internal::__make_index_sequence<__num_ranges>());
+        return make_reference(__m_ranges, __i, oneapi::dpl::__internal::__make_index_sequence<__num_ranges>());
     }
-
-    _PSTL_CONSTEXPR_FUN auto
-    end() const -> decltype(begin() + size())
-    {
-        return begin() + size();
-    }
-    _PSTL_CONSTEXPR_FUN auto operator[](int32_t i) const -> decltype(begin()[i]) { return begin()[i]; }
 
     bool
     empty() const
@@ -149,6 +144,11 @@ class zip_view
 
     _tuple_ranges_t
     tuple()
+    {
+        return __m_ranges;
+    }
+    _tuple_ranges_t
+    tuple() const
     {
         return __m_ranges;
     }
@@ -181,12 +181,14 @@ class guard_view
     {
         return m_p;
     }
+
     _Iterator
     end() const
     {
         return begin() + size();
     }
-    reference operator[](int32_t i) const { return begin()[i]; }
+
+    auto operator[](int32_t i) const -> decltype(begin()[i]) { return begin()[i]; }
 
     diff_type
     size() const
@@ -236,8 +238,124 @@ struct transform_view_simple
     }
 };
 
+template <typename _Map>
+auto
+test_map_view(int) -> decltype(::std::declval<_Map>().begin(), ::std::true_type{});
+
+template <typename _Map>
+auto
+test_map_view(...) -> ::std::false_type;
+
+//pseudo-checking on viewable range concept
+template <typename _Map>
+struct is_map_view : decltype(test_map_view<_Map>(0))
+{
+};
+
+template <typename _Map>
+struct is_map_iterator : oneapi::dpl::__internal::__is_random_access_iterator<_Map>
+{
+};
+
+template <typename _Map>
+using is_map_functor = ::std::integral_constant<bool, !is_map_iterator<_Map>::value && !is_map_view<_Map>::value>;
+
+//It is kind of pseudo-view for permutation_iterator support.
+template <typename _R, typename _M, typename = void>
+struct permutation_view_simple;
+
+//permutation view: specialization for an index map functor
+template <typename _R, typename _M>
+struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_functor<_M>::value, void>::type>
+{
+    _R __r;
+    _M __map_fn;
+
+    permutation_view_simple(_R __rng, _M __m) : __r(__rng), __map_fn(__m) {}
+
+    template <typename Idx>
+    auto operator[](Idx __i) const -> decltype(__r[__map_fn[__i]])
+    {
+        return __r[__map_fn[__i]];
+    }
+
+    auto
+    size() const -> decltype(__r.size())
+    {
+        return __r.size();
+    }
+
+    bool
+    empty() const
+    {
+        return size() == 0;
+    }
+
+    auto
+    base() const -> decltype(__r)
+    {
+        return __r;
+    }
+};
+
+//permutation view: specialization for a map view (a viewable range concept)
+template <typename _R, typename _M>
+struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_view<_M>::value>::type>
+{
+    zip_view<_R, _M> __data;
+
+    permutation_view_simple(_R __r, _M __m) : __data(__r, __m) {}
+
+    template <typename Idx>
+    auto operator[](Idx __i) const -> decltype(::std::get<0>(__data.tuple())[::std::get<1>(__data.tuple())[__i]])
+    {
+        return ::std::get<0>(__data.tuple())[::std::get<1>(__data.tuple())[__i]];
+    }
+
+    auto
+    size() const -> decltype(::std::get<1>(__data.tuple()).size())
+    {
+        return ::std::get<1>(__data.tuple()).size();
+    }
+
+    bool
+    empty() const
+    {
+        return size() == 0;
+    }
+
+    auto
+    base() const -> decltype(__data)
+    {
+        return __data;
+    }
+};
+
+//permutation discard view:
+struct permutation_discard_view
+{
+    using difference_type = ::std::ptrdiff_t;
+    difference_type m_count;
+
+    permutation_discard_view(difference_type __n) : m_count(__n) {}
+
+    oneapi::dpl::internal::ignore_copyable operator[](difference_type) const { return oneapi::dpl::internal::ignore; }
+
+    difference_type
+    size() const
+    {
+        return m_count;
+    }
+
+    bool
+    empty() const
+    {
+        return size() == 0;
+    }
+};
+
 } // namespace __ranges
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_UTILS_RANGES_H */
+#endif /* _ONEDPL_UTILS_RANGES_H */

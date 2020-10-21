@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_parallel_backend_sycl_radix_sort_H
-#define _PSTL_parallel_backend_sycl_radix_sort_H
+#ifndef _ONEDPL_parallel_backend_sycl_radix_sort_H
+#define _ONEDPL_parallel_backend_sycl_radix_sort_H
 
 #include <CL/sycl.hpp>
 #include <climits>
@@ -413,10 +413,9 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, _C
                 }
 
                 // exclusive scan over total radix sums
-                // TODO: change impl (now simd16 is required)
                 ::std::size_t __total_sum_idx = __segments * __radix_states + __self_lidx;
-                __count_gacc[__total_sum_idx] = sycl::intel::exclusive_scan(
-                    __self_item.get_sub_group(), __count_gacc[__total_sum_idx], sycl::intel::plus<_CountT>());
+                __count_gacc[__total_sum_idx] = sycl::ONEAPI::exclusive_scan(
+                    __self_item.get_group(), __count_gacc[__total_sum_idx], sycl::ONEAPI::plus<_CountT>());
             });
     });
 
@@ -505,13 +504,15 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                              ++__radix_state_idx)
                         {
                             ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
-                            ::std::uint32_t __sg_item_offset = sycl::intel::exclusive_scan(
-                                __self_item.get_sub_group(), __is_current_bucket, sycl::intel::plus<::std::uint32_t>());
+                            ::std::uint32_t __sg_item_offset =
+                                sycl::ONEAPI::exclusive_scan(__self_item.get_sub_group(), __is_current_bucket,
+                                                             sycl::ONEAPI::plus<::std::uint32_t>());
 
                             __new_offset_idx |=
                                 __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
-                            ::std::uint32_t __sg_total_offset = sycl::intel::reduce(
-                                __self_item.get_sub_group(), __is_current_bucket, sycl::intel::plus<::std::uint32_t>());
+                            ::std::uint32_t __sg_total_offset =
+                                sycl::ONEAPI::reduce(__self_item.get_sub_group(), __is_current_bucket,
+                                                     sycl::ONEAPI::plus<::std::uint32_t>());
 
                             __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                         }
@@ -555,6 +556,10 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
 #endif
+    // TODO: block size mustn't be less than number of states now. Check how to get rid of that restriction.
+    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+    if (__block_size < __radix_states)
+        __block_size = __radix_states;
 
     // 1. Count Phase
     sycl::event __count_event = __radix_sort_count_submit<__count_kernel_name, _Iterator, __radix_bits, __is_comp_asc>(
@@ -647,4 +652,4 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_parallel_backend_sycl_radix_sort_H */
+#endif /* _ONEDPL_parallel_backend_sycl_radix_sort_H */

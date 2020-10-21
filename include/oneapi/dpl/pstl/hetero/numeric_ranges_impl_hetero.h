@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_numeric_ranges_impl_hetero_H
-#define _PSTL_numeric_ranges_impl_hetero_H
+#ifndef _ONEDPL_numeric_ranges_impl_hetero_H
+#define _ONEDPL_numeric_ranges_impl_hetero_H
 
 #include "../numeric_fwd.h"
 #include "../parallel_backend.h"
@@ -165,4 +165,4 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_numeric_ranges_impl_hetero_H */
+#endif /* _ONEDPL_numeric_ranges_impl_hetero_H */

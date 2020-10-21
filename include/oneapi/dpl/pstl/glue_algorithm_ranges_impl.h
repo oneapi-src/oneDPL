@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_ALGORITHM_RANGES_IMPL_H
-#define _PSTL_GLUE_ALGORITHM_RANGES_IMPL_H
+#ifndef _ONEDPL_GLUE_ALGORITHM_RANGES_IMPL_H
+#define _ONEDPL_GLUE_ALGORITHM_RANGES_IMPL_H
 
 #include "execution_defs.h"
 #include "glue_algorithm_defs.h"
@@ -279,4 +279,4 @@ minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng)
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_GLUE_ALGORITHM_RANGES_IMPL_H */
+#endif /* _ONEDPL_GLUE_ALGORITHM_RANGES_IMPL_H */

@@ -44,8 +44,8 @@ main()
 
         auto view = all_view(A);
 
-        auto exec = oneapi::dpl::execution::dpcpp_default;
-        using Policy = decltype(oneapi::dpl::execution::dpcpp_default);
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         res1 = find(exec, view, val);
         res2 = find_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, [val](auto a) { return a == val;});

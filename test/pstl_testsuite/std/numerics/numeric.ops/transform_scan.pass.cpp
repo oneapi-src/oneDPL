@@ -192,16 +192,16 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         invoke_on_all_policies<1>()(test_transform_inclusive_scan_init<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
-#if !_PSTL_FPGA_HW
         invoke_on_all_policies<2>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected2.begin(), expected2.end(), in.size(), unary_op, init, binary_op, trash);
+#if !_PSTL_FPGA_DEVICE
         invoke_on_all_policies<3>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
         invoke_on_all_policies<4>()(test_transform_inclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
-#endif // _PSTL_FPGA_HW
+#endif
 #endif // _PSTL_TEST_TRANSFORM_INCLUSIVE_SCAN
 #ifdef _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
         auto result_exclusive = transform_exclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init,
@@ -209,14 +209,14 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         check_and_reset(expected1.begin(), out.begin(), out.size(), trash);
         invoke_on_all_policies<5>()(test_transform_exclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected1.begin(), expected1.end(), in.size(), unary_op, init, binary_op, trash);
-#if !_PSTL_FPGA_HW
+#if !_PSTL_FPGA_DEVICE
         invoke_on_all_policies<6>()(test_transform_exclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected1.begin(), expected1.end(), in.size(), unary_op, init,
                                     binary_op, trash);
+#endif
         ::std::copy(in.begin(), in.end(), out.begin());
         invoke_on_all_policies<13>()(test_transform_exclusive_scan<In>(), out.begin(), out.end(), out.begin(), out.end(),
                                     expected1.begin(), expected1.end(), in.size(), unary_op, init, binary_op, trash);
-#endif // _PSTL_FPGA_HW
 #endif // _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
     }
 }

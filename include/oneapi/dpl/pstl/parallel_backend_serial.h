@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_PARALLEL_BACKEND_SERIAL_H
-#define _PSTL_PARALLEL_BACKEND_SERIAL_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_SERIAL_H
+#define _ONEDPL_PARALLEL_BACKEND_SERIAL_H
 
 #include <algorithm>
 #include <cstddef>
@@ -29,7 +29,7 @@ namespace dpl
 namespace __serial_backend
 {
 
-template <typename _Tp>
+template <typename _ExecutionPolicy, typename _Tp>
 class __buffer
 {
     ::std::allocator<_Tp> __allocator_;
@@ -132,8 +132,15 @@ __parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
     ::std::forward<_F2>(__f2)();
 }
 
+template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
+void
+__parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f)
+{
+    __f(__begin, __end);
+}
+
 } // namespace __serial_backend
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_PARALLEL_BACKEND_SERIAL_H */
+#endif /* _ONEDPL_PARALLEL_BACKEND_SERIAL_H */

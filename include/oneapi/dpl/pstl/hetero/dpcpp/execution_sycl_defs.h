@@ -13,14 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_execution_sycl_defs_H
-#define _PSTL_execution_sycl_defs_H
+#ifndef _ONEDPL_execution_sycl_defs_H
+#define _ONEDPL_execution_sycl_defs_H
 
 #include <CL/sycl.hpp>
 #include "../../dpstd_config.h"
 #include "../../execution_defs.h"
 #if _PSTL_FPGA_DEVICE
-#    include <CL/sycl/intel/fpga_extensions.hpp>
+#    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
 
 namespace oneapi
@@ -98,9 +98,9 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy()
         : base(cl::sycl::queue(
 #    if _PSTL_FPGA_EMU
-              cl::sycl::intel::fpga_emulator_selector {}
+              cl::sycl::INTEL::fpga_emulator_selector {}
 #    else
-              cl::sycl::intel::fpga_selector {}
+              cl::sycl::INTEL::fpga_selector {}
 #    endif
               ))
     {
@@ -392,4 +392,4 @@ __kernel_sub_group_size(_ExecutionPolicy&& __policy, const cl::sycl::kernel& __k
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_execution_sycl_defs_H */
+#endif /* _ONEDPL_execution_sycl_defs_H */

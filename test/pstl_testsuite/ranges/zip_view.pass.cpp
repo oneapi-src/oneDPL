@@ -33,12 +33,10 @@ main()
     using namespace oneapi::dpl::experimental::ranges;
 
     auto view = nano::views::all(data);
-
     auto z = zip_view(nano::views::all(data), nano::views::all(key));
-    ::std::sort(z.begin(), z.end(), [](auto a, auto b) { return ::std::get<1>(a) < ::std::get<1>(b); });
 
-    //check result
-    EXPECT_TRUE(::std::is_sorted(data, data + max_n), "wrong effect with sort by key");
+    //check access
+    EXPECT_TRUE(::std::get<0>(z[2]) == 'g', "wrong effect with zip_view");
 #endif //_PSTL_USE_RANGES
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

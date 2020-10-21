@@ -166,23 +166,25 @@ test_by_type(::std::size_t n)
     for (::std::set<::std::size_t>::iterator it = targets.begin(); it != targets.end(); ++it)
     {
         wseq.pattern_fill();
-#if !_PSTL_FPGA_HW
 #ifdef _PSTL_TEST_MIN_ELEMENT
         wseq.set_desired_value(*it, wseq.min_value);
-        invoke_on_all_policies<0>()(check_minelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-        invoke_on_all_policies<1>()(check_minelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-        invoke_on_all_policies<2>()(check_minelement<T>(), wseq.seq.begin(), wseq.seq.end());
-        invoke_on_all_policies<3>()(check_minelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
+        invoke_on_all_policies<0>()(check_minelement<T>(), wseq.seq.begin(), wseq.seq.end());
+        invoke_on_all_policies<1>()(check_minelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
+#if !_PSTL_FPGA_DEVICE
+        invoke_on_all_policies<2>()(check_minelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
+        invoke_on_all_policies<3>()(check_minelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
+#endif
 #endif
 
 #ifdef _PSTL_TEST_MAX_ELEMENT
         wseq.set_desired_value(*it, wseq.max_value);
-        invoke_on_all_policies<4>()(check_maxelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-        invoke_on_all_policies<5>()(check_maxelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-        invoke_on_all_policies<6>()(check_maxelement<T>(), wseq.seq.begin(), wseq.seq.end());
-        invoke_on_all_policies<7>()(check_maxelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
+        invoke_on_all_policies<4>()(check_maxelement<T>(), wseq.seq.begin(), wseq.seq.end());
+        invoke_on_all_policies<5>()(check_maxelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
+#if !_PSTL_FPGA_DEVICE
+        invoke_on_all_policies<6>()(check_maxelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
+        invoke_on_all_policies<7>()(check_maxelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
 #endif
-#endif // _PSTL_FPGA_HW
+#endif
 
 #ifdef _PSTL_TEST_MINMAX_ELEMENT
         if (targets.size() > 1)
@@ -194,21 +196,21 @@ test_by_type(::std::size_t n)
                 wseq.pattern_fill();
                 wseq.set_desired_value(*it, wseq.min_value);  // setting minimum element
                 wseq.set_desired_value(*rit, wseq.max_value); // setting maximum element
-#if !_PSTL_FPGA_HW
-                invoke_on_all_policies<8>()(check_minmaxelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-                invoke_on_all_policies<9>()(check_minmaxelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-                invoke_on_all_policies<10>()(check_minmaxelement<T>(), wseq.seq.begin(), wseq.seq.end());
+                invoke_on_all_policies<8>()(check_minmaxelement<T>(), wseq.seq.begin(), wseq.seq.end());
+                invoke_on_all_policies<9>()(check_minmaxelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
+#if !_PSTL_FPGA_DEVICE
+                invoke_on_all_policies<10>()(check_minmaxelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
+                invoke_on_all_policies<11>()(check_minmaxelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
 #endif
-                invoke_on_all_policies<11>()(check_minmaxelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
             }
         }
         else
         { // we must check this corner case; it can not be tested in loop above
-            invoke_on_all_policies<12>()(check_minmaxelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-#if !_PSTL_FPGA_HW
-            invoke_on_all_policies<13>()(check_minmaxelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
-            invoke_on_all_policies<14>()(check_minmaxelement<T>(), wseq.seq.begin(), wseq.seq.end());
-            invoke_on_all_policies<15>()(check_minmaxelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
+            invoke_on_all_policies<12>()(check_minmaxelement<T>(), wseq.seq.begin(), wseq.seq.end());
+            invoke_on_all_policies<13>()(check_minmaxelement_predicate<T>(), wseq.seq.begin(), wseq.seq.end());
+#if !_PSTL_FPGA_DEVICE
+            invoke_on_all_policies<14>()(check_minmaxelement<T>(), wseq.seq.cbegin(), wseq.seq.cend());
+            invoke_on_all_policies<15>()(check_minmaxelement_predicate<T>(), wseq.seq.cbegin(), wseq.seq.cend());
 #endif
         }
 #endif

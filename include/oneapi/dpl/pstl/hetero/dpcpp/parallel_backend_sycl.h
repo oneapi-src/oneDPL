@@ -14,8 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 //!!! NOTE: This file should be included under the macro _PSTL_BACKEND_SYCL
-#ifndef _PSTL_parallel_backend_sycl_H
-#define _PSTL_parallel_backend_sycl_H
+#ifndef _ONEDPL_parallel_backend_sycl_H
+#define _ONEDPL_parallel_backend_sycl_H
 
 #include <CL/sycl.hpp>
 
@@ -228,11 +228,7 @@ class __parallel_for_kernel : public __kernel_name_base<__parallel_for_kernel<_N
 {
 };
 template <typename... _Name>
-class __parallel_reduce_kernel_1 : public __kernel_name_base<__parallel_reduce_kernel_1<_Name...>>
-{
-};
-template <typename... _Name>
-class __parallel_reduce_kernel_2 : public __kernel_name_base<__parallel_reduce_kernel_2<_Name...>>
+class __parallel_reduce_kernel : public __kernel_name_base<__parallel_reduce_kernel<_Name...>>
 {
 };
 template <typename... _Name>
@@ -332,11 +328,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_reduce_kernel_1<_Up, _Cp, _Rp, __kernel_name, _Ranges...>;
-    using __kernel_2_name_t = __parallel_reduce_kernel_2<_Up, _Cp, _Rp, __kernel_name, _Ranges...>;
+    using __kernel_name_t = __parallel_reduce_kernel<_Up, _Cp, _Rp, __kernel_name, _Ranges...>;
 #else
-    using __kernel_1_name_t = __parallel_reduce_kernel_1<__kernel_name>;
-    using __kernel_2_name_t = __parallel_reduce_kernel_2<__kernel_name>;
+    using __kernel_name_t = __parallel_reduce_kernel<__kernel_name>;
 #endif
 
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -344,88 +338,77 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
         ::std::forward<_ExecutionPolicy>(__exec), __wgroup_size);
 #if _PSTL_COMPILE_KERNEL
-    auto __kernel = __kernel_1_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel = __kernel_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(::std::forward<_ExecutionPolicy>(__exec));
-
     auto __n_groups = (__n - 1) / __wgroup_size + 1;
     __n_groups = ::std::min(decltype(__n_groups)(__mcu), __n_groups);
     // TODO: try to change __n_groups with another formula for more perfect load balancing
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
 
-    // 0. Create temporary global buffer to store temporary value
-    auto __temp = sycl::buffer<_Tp, 1>(sycl::range<1>(__n_groups));
-    // 1. Reduce over each work_group
-    auto __local_reduce_event = __exec.queue().submit([&__rngs..., &__temp, &__brick_reduce, &__u, __n, __n_groups,
-#if _PSTL_COMPILE_KERNEL
-                                                       &__kernel,
-#endif
-                                                       __wgroup_size](sycl::handler& __cgh) {
-        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-
-        auto __temp_acc = __temp.template get_access<discard_write>(__cgh);
-        // Create temporary local buffer
-        // TODO: add check for local_memory size
-        sycl::accessor<_Tp, 1, read_write, sycl::access::target::local> __temp_local(sycl::range<1>(__wgroup_size),
-                                                                                     __cgh);
-        __cgh.parallel_for<__kernel_1_name_t>(
-#if _PSTL_COMPILE_KERNEL
-            __kernel,
-#endif
-
-            sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                      sycl::range</*dim=*/1>(__wgroup_size)),
-            [=](sycl::nd_item</*dim=*/1> __item_id) mutable {
-                auto __global_idx = __item_id.get_global_id(0);
-                // 1. Initialization (transform part). Fill local memory
-                __u(__item_id, __global_idx, __n, __temp_local, __rngs...);
-                // 2. Reduce within work group
-                auto __res = __brick_reduce(__item_id, __global_idx, __n, __temp_local);
-                if (__item_id.get_local_id(0) == 0)
-                {
-                    // TODO: replace get_group() with atomic
-                    __temp_acc[__item_id.get_group(0)] = __res;
-                }
-            });
-    });
-    // TODO: think about replacing the section 2 with the code below. So section 2 is not needed
-    // do{
-    // __n = __n_groups;
-    // __n_groups = (__n_groups - 1) / __wgroup_size + 1;
-    // ...
-    // }
-    // while(__n_groups!=1);
-
-    // 2. global reduction
-    auto __reduce_event = __local_reduce_event;
-    if (__n_groups > 1)
+    // Create temporary global buffers to store temporary values
+    auto __temp_1 = sycl::buffer<_Tp>(sycl::range<1>(__n_groups));
+    auto __temp_2 = sycl::buffer<_Tp>(sycl::range<1>(__n_groups));
+    // __is_first == true. Reduce over each work_group
+    // __is_first == false. Reduce between work groups
+    bool __is_first = true;
+    auto __buf_1_ptr = &__temp_1; // __buf_1_ptr is not accessed on the device when __is_first == true
+    auto __buf_2_ptr = &__temp_1;
+    sycl::event __reduce_event;
+    do
     {
-        auto __k = decltype(__n_groups)(1);
-        do
-        {
-            __reduce_event =
-                __exec.queue().submit([&__reduce_event, &__temp, &__combine, __k, __n_groups](sycl::handler& __cgh) {
-                    __cgh.depends_on(__reduce_event);
-                    auto __temp_acc = __temp.template get_access<read_write>(__cgh);
-                    __cgh.parallel_for<__kernel_2_name_t>(
-                        sycl::range</*dim=*/1>(__n_groups), [=](sycl::item</*dim=*/1> __item_id) mutable {
-                            auto __global_idx = __item_id.get_linear_id();
-                            if (__global_idx % (2 * __k) == 0 && __global_idx + __k < __n_groups)
-                            {
-                                __temp_acc[__global_idx] =
-                                    __combine(__temp_acc[__global_idx], __temp_acc[__global_idx + __k]);
-                            }
-                        });
-                });
-            __k *= 2;
-        } while (__k < __n_groups);
-    }
+        __reduce_event = __exec.queue().submit([&](sycl::handler& __cgh) {
+            __cgh.depends_on(__reduce_event);
 
-    return __temp.template get_access<read>()[0];
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+            auto __temp_1_acc = __buf_1_ptr->template get_access<read_write>(__cgh);
+            auto __temp_2_acc = __buf_2_ptr->template get_access<write>(__cgh);
+            sycl::accessor<_Tp, 1, read_write, sycl::access::target::local> __temp_local(sycl::range<1>(__wgroup_size),
+                                                                                         __cgh);
+            __cgh.parallel_for<__kernel_name_t>(
+#if _PSTL_COMPILE_KERNEL
+                __kernel,
+#endif
+                sycl::nd_range<1>(sycl::range<1>(__n_groups * __wgroup_size), sycl::range<1>(__wgroup_size)),
+                [=](sycl::nd_item<1> __item_id) mutable {
+                    auto __global_idx = __item_id.get_global_id(0);
+                    auto __local_idx = __item_id.get_local_id(0);
+                    // 1. Initialization (transform part). Fill local memory
+                    if (__is_first)
+                    {
+                        __u(__item_id, __global_idx, __n, __temp_local, __rngs...);
+                    }
+                    else
+                    {
+                        if (__global_idx < __n)
+                            __temp_local[__local_idx] = __temp_1_acc[__global_idx];
+                        __item_id.barrier(sycl::access::fence_space::local_space);
+                    }
+                    // 2. Reduce within work group using local memory
+                    auto __res = __brick_reduce(__item_id, __global_idx, __n, __temp_local);
+                    if (__local_idx == 0)
+                    {
+                        __temp_2_acc[__item_id.get_group(0)] = __res;
+                    }
+                });
+        });
+        if (__is_first)
+        {
+            __buf_2_ptr = &__temp_2;
+            __is_first = false;
+        }
+        else
+        {
+            ::std::swap(__buf_1_ptr, __buf_2_ptr);
+        }
+        __n = __n_groups;
+        __n_groups = (__n - 1) / __wgroup_size + 1;
+    } while (__n > 1);
+
+    return __buf_1_ptr->template get_access<read>()[0];
 }
 
 //------------------------------------------------------------------------
@@ -1412,4 +1395,4 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_parallel_backend_sycl_H */
+#endif /* _ONEDPL_parallel_backend_sycl_H */

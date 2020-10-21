@@ -212,7 +212,7 @@ test_set(Compare compare)
             invoke_on_all_policies<0>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
                                         compare);
 #endif
-#if !_PSTL_FPGA_HW
+
 #ifdef _PSTL_TEST_SET_INTERSECTION
             invoke_on_all_policies<1>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
                                         compare);
@@ -225,7 +225,6 @@ test_set(Compare compare)
             invoke_on_all_policies<3>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
                                         in2.cend(), compare);
 #endif
-#endif // _PSTL_FPGA_HW
         }
     }
 }
@@ -278,8 +277,15 @@ struct test_non_const_set_union
 int
 main()
 {
+    using data_t =
+#if !_PSTL_FPGA_DEVICE
+        float64_t;
+#else
+        int32_t;
+#endif
 
-    test_set<float64_t, float64_t>(oneapi::dpl::__internal::__pstl_less());
+    test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less());
+
 #if !_PSTL_BACKEND_SYCL
     test_set<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; });
 
@@ -289,7 +295,6 @@ main()
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from set algorithms: number of ctor and dtor calls is not equal");
 #endif
 
-#if !_PSTL_FPGA_HW
 #ifdef _PSTL_TEST_SET_DIFFERENCE
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_difference<int32_t>>());
 #endif
@@ -302,7 +307,6 @@ main()
 #ifdef _PSTL_TEST_SET_UNION
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_union<int32_t>>());
 #endif
-#endif // _PSTL_FPGA_HW
 
     ::std::cout << done() << ::std::endl;
 

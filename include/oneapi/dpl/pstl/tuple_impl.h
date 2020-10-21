@@ -13,12 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_tuple_impl_H
-#define _PSTL_tuple_impl_H
+#ifndef _ONEDPL_tuple_impl_H
+#define _ONEDPL_tuple_impl_H
 
 #include <iterator>
 #include <tuple>
 #include <cassert>
+#include <type_traits>
 
 #include "utils.h"
 
@@ -64,27 +65,6 @@ template <typename _Tp>
 struct __lvref_or_val<_Tp, false>
 {
     using __type = typename ::std::remove_reference<_Tp>::type;
-};
-
-// Replacement for ::std::forward_as_tuple to avoid having tuple of rvalue references
-template <class... Args>
-auto
-__forward_tuple(Args&&... args) -> decltype(
-    ::std::tuple<typename oneapi::dpl::__internal::__lvref_or_val<Args>::__type...>(::std::forward<Args>(args)...))
-{
-    return ::std::tuple<typename oneapi::dpl::__internal::__lvref_or_val<Args>::__type...>(
-        ::std::forward<Args>(args)...);
-}
-
-struct make_std_tuple_functor
-{
-    template <typename... Args>
-    auto
-    operator()(Args&&... args) const -> decltype(__forward_tuple(::std::forward<Args>(args)...))
-    {
-        // Use forward_as_tuple to correctly propagate references inside the tuple
-        return __forward_tuple(::std::forward<Args>(args)...);
-    }
 };
 
 template <typename T>
@@ -135,11 +115,7 @@ struct tuple_element<0, tuple<T, Rest...>>
     using type = T;
 };
 
-// We need to add the non_ref_type parameter to have 2 "get"s: return reference and non-reference
-// It needs when we cast __internal::tuple<int, int&> to ::std::tuple.
-// If we have a reference as a type we will have the situation where __internal::tuple<int, int&> -> ::std::tuple<int&, int&>
-// that is not true for us. Now the "apply_to_tuple" function will return values instead of references
-template <size_t N, bool non_ref_type = true>
+template <size_t N>
 struct get_impl
 {
     template <typename... T>
@@ -151,39 +127,39 @@ struct get_impl
 
     template <typename... T>
     constexpr auto
-    operator()(const tuple<T...>& t) const -> decltype(get_impl<N - 1>()(t.next)) const
+    operator()(const tuple<T...>& t) const -> decltype(get_impl<N - 1>()(t.next))
     {
         return get_impl<N - 1>()(t.next);
     }
 };
 
-template <bool non_ref_type>
-struct get_impl<0, non_ref_type>
+template <>
+struct get_impl<0>
 {
     template <typename... T>
     using ret_type = typename tuple_element<0, tuple<T...>>::type;
 
     template <typename... T>
-    constexpr typename ::std::conditional<non_ref_type, ret_type<T...>&, ret_type<T...>>::type
+    constexpr ret_type<T...>&
     operator()(tuple<T...>& t) const
     {
-        return t.value;
+        return t.holder.value;
     }
 
     template <typename... T>
-    constexpr typename ::std::conditional<non_ref_type, ret_type<T...> const&, ret_type<T...> const>::type
+    constexpr ret_type<T...> const&
     operator()(const tuple<T...>& t) const
     {
-        return t.value;
+        return t.holder.value;
     }
 };
 
 // __internal::map_tuple
 template <size_t I, typename F, typename... T>
 auto
-apply_to_tuple(F f, T... in) -> decltype(f(get_impl<I, /*non_ref_type=*/false>()(in)...))
+apply_to_tuple(F f, T... in) -> decltype(f(get_impl<I>()(in)...))
 {
-    return f(get_impl<I, /*non_ref_type=*/false>()(in)...);
+    return f(get_impl<I>()(in)...);
 }
 
 struct make_inner_tuple_functor
@@ -237,54 +213,70 @@ map_tuplewrapper(F f, TBig<T...> in, RestTuples... rest)
                           oneapi::dpl::__internal::__make_index_sequence<sizeof...(T)>(), in, rest...);
 }
 
-// Required to repack any tuple to ::std::tuple to return to user
-template <typename F, template <typename...> class TBig, typename... T, typename... RestTuples>
-auto
-map_stdtuple(F f, TBig<T...> in, RestTuples... rest)
-    -> decltype(map_tuple_impl(make_std_tuple_functor{}, f,
-                               oneapi::dpl::__internal::__make_index_sequence<sizeof...(T)>(), in, rest...))
+template <typename _Tp>
+struct __value_holder
 {
-    return map_tuple_impl(make_std_tuple_functor{}, f, oneapi::dpl::__internal::__make_index_sequence<sizeof...(T)>(),
-                          in, rest...);
-}
+    __value_holder() = default;
+    __value_holder(const _Tp& t) : value(t) {}
+    _Tp value;
+};
 
-// Function can replace all above map_* functions,
-// but requires from its user an additional functor
-// that knows how to construct tuple of a certain type
-template <typename MakeTupleF, typename F, template <typename...> class TBig, typename... T, typename... RestTuples>
-auto
-map_any_tuplelike_to(MakeTupleF mtf, F f, TBig<T...> in, RestTuples... rest)
-    -> decltype(map_tuple_impl(mtf, f, oneapi::dpl::__internal::__make_index_sequence<sizeof...(T)>(), in, rest...))
+// Neccessary to make tuple trivially_copy_assignable. This type decided
+// if it's needed to have user-defined operator=.
+template <typename _Tp, bool = oneapi::dpl::__internal::__has_trivial_copy_assignemnt<__value_holder<_Tp>>::value>
+struct __copy_assignable_holder : __value_holder<_Tp>
 {
-    return map_tuple_impl(mtf, f, oneapi::dpl::__internal::__make_index_sequence<sizeof...(T)>(), in, rest...);
-}
+    using __value_holder<_Tp>::__value_holder;
+};
 
-//forward declaration
-template <typename... _Tp>
-struct __tuplewrapper;
+template <typename _Tp>
+struct __copy_assignable_holder<_Tp, false> : __value_holder<_Tp>
+{
+    using __value_holder<_Tp>::__value_holder;
+
+    __copy_assignable_holder&
+    operator=(const __copy_assignable_holder& other)
+    {
+        this->value = other.value;
+        return *this;
+    }
+};
 
 template <typename T1, typename... T>
 struct tuple<T1, T...>
 {
-    T1 value;
+    __copy_assignable_holder<T1> holder;
     tuple<T...> next;
 
     using tuple_type = ::std::tuple<T1, T...>;
 
-    // since compiler does not autogenerate ctors
-    // if user defines its own, we have to define them too
     tuple() = default;
     tuple(const tuple& other) = default;
     template <typename U1, typename... U>
-    tuple(const tuple<U1, U...>& other) : value(other.value), next(other.next)
+    tuple(const tuple<U1, U...>& other) : holder(other.holder.value), next(other.next)
     {
     }
-    tuple(const T1& _value, const T&... _next) : value(_value), next(_next...) {}
+
+    tuple(const T1& _value, const T&... _next) : holder(_value), next(_next...) {}
 
     // required to convert ::std::tuple to inner tuple in user-provided functor
-    tuple(const ::std::tuple<T1, T...>& other) : value(::std::get<0>(other)), next(get_tuple_tail(other)) {}
+    tuple(const ::std::tuple<T1, T...>& other) : holder(::std::get<0>(other)), next(get_tuple_tail(other)) {}
 
-    operator ::std::tuple<T1, T...>() const { return map_stdtuple(oneapi::dpl::__internal::__no_op{}, *this); }
+    // conversion to ::std::tuple with the same template arguments
+    operator ::std::tuple<T1, T...>() const
+    {
+        static constexpr ::std::size_t __tuple_size = sizeof...(T) + 1;
+        return to_std_tuple(*this, oneapi::dpl::__internal::__make_index_sequence<__tuple_size>());
+    }
+
+    // conversion to ::std::tuple with the different template arguments
+    template <typename U1, typename... U>
+    operator ::std::tuple<U1, U...>() const
+    {
+        static constexpr ::std::size_t __tuple_size = sizeof...(T) + 1;
+        return to_std_tuple(static_cast<tuple<U1, U...>>(*this),
+                            oneapi::dpl::__internal::__make_index_sequence<__tuple_size>());
+    }
 
     // non-const subscript operator with tuple argument
     template <typename Size1, typename... SizeRest>
@@ -320,7 +312,7 @@ struct tuple<T1, T...>
     tuple&
     operator=(const __internal::tuple<U1, U...>& other)
     {
-        value = other.value;
+        holder.value = other.holder.value;
         next = other.next;
         return *this;
     }
@@ -331,16 +323,12 @@ struct tuple<T1, T...>
     tuple&
     operator=(const __internal::tuple<T1, T...>& other) = default;
 
-    template <typename... _Up>
-    tuple&
-    operator=(const oneapi::dpl::__internal::__tuplewrapper<_Up...>& __other);
-
     // for cases when we assign ::std::tuple to __internal::tuple
     template <typename U1, typename... U>
     tuple&
     operator=(const ::std::tuple<U1, U...>& other)
     {
-        value = ::std::get<0>(other);
+        holder.value = ::std::get<0>(other);
         next = get_tuple_tail(other);
         return *this;
     }
@@ -348,112 +336,19 @@ struct tuple<T1, T...>
     friend bool
     operator==(const tuple& __lhs, const tuple& __rhs)
     {
-        return __lhs.value == __rhs.value && __lhs.next == __rhs.next;
+        return __lhs.holder.value == __rhs.holder.value && __lhs.next == __rhs.next;
     }
     friend bool
     operator!=(const tuple& __lhs, const tuple& __rhs)
     {
         return !(__lhs == __rhs);
     }
-};
 
-// The only purpose of this specialization is to have explicitly
-// defined operator= which otherwise(with = default) would be implicitly deleted.
-// TODO: check if it's possible to remove duplication without complicated code.
-template <typename _T1, typename... _T>
-struct tuple<_T1&, _T&...>
-{
-    _T1& value;
-    tuple<_T&...> next;
-
-    using tuple_type = ::std::tuple<_T1&, _T&...>;
-
-    // since compiler does not autogenerate ctors
-    // if user defines its own, we have to define them too
-    tuple() = default;
-    tuple(const tuple& other) = default;
-    template <typename U1, typename... U>
-    tuple(const tuple<U1, U...>& other) : value(other.value), next(other.next)
+    template <typename U1, typename... U, ::std::size_t... _Ip>
+    static ::std::tuple<U1, U...>
+    to_std_tuple(const tuple<U1, U...>& __t, oneapi::dpl::__internal::__index_sequence<_Ip...>)
     {
-    }
-    tuple(_T1& _value, _T&... _next) : value(_value), next(_next...) {}
-
-    // required to convert ::std::tuple to inner tuple in user-provided functor
-    tuple(const ::std::tuple<_T1&, _T&...>& other) : value(::std::get<0>(other)), next(get_tuple_tail(other)) {}
-
-    operator ::std::tuple<_T1&, _T&...>() const { return map_stdtuple(oneapi::dpl::__internal::__no_op{}, *this); }
-    // (Necessary for libc++ tuples) Convert to a tuple of values: v = *it;
-    operator ::std::tuple<_T1, _T...>() const { return map_stdtuple(oneapi::dpl::__internal::__no_op{}, *this); }
-
-    // non-const subscript operator with tuple argument
-    template <typename Size1, typename... SizeRest>
-    auto operator[](tuple<Size1, SizeRest...> tuple_size)
-        -> decltype(__internal::get_value_by_idx<Size1, SizeRest...>()(*this, tuple_size))
-    {
-        return __internal::get_value_by_idx<Size1, SizeRest...>()(*this, tuple_size);
-    }
-
-    // const subscript operator with tuple argument
-    template <typename Size1, typename... SizeRest>
-    auto operator[](const tuple<Size1, SizeRest...> tuple_size) const
-        -> decltype(__internal::get_value_by_idx<Size1, SizeRest...>()(*this, tuple_size))
-    {
-        return __internal::get_value_by_idx<Size1, SizeRest...>()(*this, tuple_size);
-    }
-
-    // non-const subscript operator with scalar argument
-    template <typename Idx>
-    auto operator[](Idx idx) -> decltype(map_tuplewrapper(MapValue<Idx>{idx}, *this))
-    {
-        return map_tuplewrapper(MapValue<Idx>{idx}, *this);
-    }
-
-    // const subscript operator with scalar argument
-    template <typename Idx>
-    auto operator[](Idx idx) const -> decltype(map_tuplewrapper(MapValue<Idx>{idx}, *this))
-    {
-        return map_tuplewrapper(MapValue<Idx>{idx}, *this);
-    }
-
-    template <typename U1, typename... U>
-    tuple&
-    operator=(const __internal::tuple<U1, U...>& other)
-    {
-        value = other.value;
-        next = other.next;
-        return *this;
-    }
-
-    // if T1 is deduced with reference, compiler generates deleted operator= and,
-    // since "template operator=" is not considered as operator= overload
-    // the deleted operator= has a preference during lookup
-    tuple&
-    operator=(const __internal::tuple<_T1&, _T&...>& other)
-    {
-        value = other.value;
-        next = other.next;
-        return *this;
-    }
-
-    // for cases when we assign ::std::tuple to __internal::tuple
-    template <typename U1, typename... U>
-    tuple&
-    operator=(const ::std::tuple<U1, U...>& other)
-    {
-        value = ::std::get<0>(other);
-        next = get_tuple_tail(other);
-        return *this;
-    }
-
-    friend bool
-    operator==(const tuple& __lhs, const tuple& __rhs)
-    {
-        return __lhs.value == __rhs.value && __lhs.next == __rhs.next;
-    }
-    friend bool
-    operator!=(const tuple& __lhs, const tuple& __rhs)
-    {
-        return !(__lhs == __rhs);
+        return ::std::tuple<U1, U...>(get_impl<_Ip>()(__t)...);
     }
 };
 
@@ -494,7 +389,7 @@ void
 swap(tuple<_T...>& __x, tuple<_T...>& __y)
 {
     using ::std::swap;
-    swap(__x.value, __y.value);
+    swap(__x.holder.value, __y.holder.value);
     swap(__x.next, __y.next);
 }
 
@@ -503,7 +398,7 @@ void
 swap(tuple<_T...>&& __x, tuple<_T...>&& __y)
 {
     using ::std::swap;
-    swap(__x.value, __y.value);
+    swap(__x.holder.value, __y.holder.value);
     swap(__x.next, __y.next);
 }
 
@@ -649,4 +544,4 @@ get(const oneapi::dpl::__internal::tuple<_Tp...>& __a)
 
 } // namespace std
 
-#endif /* _PSTL_tuple_impl_H */
+#endif /* _ONEDPL_tuple_impl_H */

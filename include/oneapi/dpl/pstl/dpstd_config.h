@@ -19,9 +19,13 @@
 // Check deprecated macros
 #if defined(_PSTL_BACKEND_SYCL)
 #    pragma message(                                                                                                   \
-        "WARNING: _PSTL_BACKEND_SYCL is deprecated. To not have a dependency on device policies, please define ONEDPL_STANDARD_POLICIES_ONLY.")
+        "WARNING: _PSTL_BACKEND_SYCL is deprecated and will be removed by Gold. To not have a dependency on device policies, please set ONEDPL_USE_DPCPP_BACKEND to 0.")
 #elif defined(ONEDPL_STANDARD_POLICIES_ONLY)
+#    pragma message(                                                                                                   \
+        "WARNING: ONEDPL_STANDARD_POLICIES_ONLY is deprecated and will be removed by Gold. To not have a dependency on device policies, please set ONEDPL_USE_DPCPP_BACKEND to 0.")
 #    define _PSTL_BACKEND_SYCL !ONEDPL_STANDARD_POLICIES_ONLY
+#elif defined(ONEDPL_USE_DPCPP_BACKEND)
+#    define _PSTL_BACKEND_SYCL ONEDPL_USE_DPCPP_BACKEND
 #endif
 
 #if defined(_PSTL_FPGA_DEVICE)

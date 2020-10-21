@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_algorithm_ranges_impl_hetero_H
-#define _PSTL_algorithm_ranges_impl_hetero_H
+#ifndef _ONEDPL_algorithm_ranges_impl_hetero_H
+#define _ONEDPL_algorithm_ranges_impl_hetero_H
 
 #include "../algorithm_fwd.h"
 #include "../parallel_backend.h"
@@ -349,4 +349,4 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_algorithm_ranges_impl_hetero_H */
+#endif /* _ONEDPL_algorithm_ranges_impl_hetero_H */

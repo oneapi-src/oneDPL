@@ -130,7 +130,9 @@ main()
     test<int32_t>([](const int32_t value) { return true; });
 #endif
 
+#if !_PSTL_FPGA_DEVICE
     test<float64_t>([](const float64_t value) { return value > 2 << 6; });
+#endif
 
 #if !_PSTL_BACKEND_SYCL
     test<Wrapper<float64_t>>([](const Wrapper<float64_t>& value) -> bool { return value.get_my_field() != nullptr; });

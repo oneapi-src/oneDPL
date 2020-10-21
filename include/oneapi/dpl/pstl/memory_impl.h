@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_MEMORY_IMPL_H
-#define _PSTL_MEMORY_IMPL_H
+#ifndef _ONEDPL_MEMORY_IMPL_H
+#define _ONEDPL_MEMORY_IMPL_H
 
 #include <iterator>
 #include <type_traits>
@@ -214,4 +214,4 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_MEMORY_IMPL_H */
+#endif /* _ONEDPL_MEMORY_IMPL_H */

@@ -40,7 +40,7 @@ main()
         cl::sycl::buffer<int> A(data, cl::sycl::range<1>(count));
 
         auto view_a = all_view(A);
-        res = search_n(oneapi::dpl::execution::dpcpp_default, view_a, n_val, val, [](auto a, auto b) { return a == b; });
+        res = search_n(TestUtils::default_dpcpp_policy, view_a, n_val, val, [](auto a, auto b) { return a == b; });
     }
 
     //check result

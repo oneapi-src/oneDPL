@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_PARALLEL_BACKEND_UTILS_H
-#define _PSTL_PARALLEL_BACKEND_UTILS_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_UTILS_H
+#define _ONEDPL_PARALLEL_BACKEND_UTILS_H
 
 #include <iterator>
 #include <utility>
@@ -264,4 +264,4 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_PARALLEL_BACKEND_UTILS_H */
+#endif /* _ONEDPL_PARALLEL_BACKEND_UTILS_H */

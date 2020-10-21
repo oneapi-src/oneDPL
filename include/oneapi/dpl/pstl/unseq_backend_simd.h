@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_UNSEQ_BACKEND_SIMD_H
-#define _PSTL_UNSEQ_BACKEND_SIMD_H
+#ifndef _ONEDPL_UNSEQ_BACKEND_SIMD_H
+#define _ONEDPL_UNSEQ_BACKEND_SIMD_H
 
 #include <type_traits>
 
@@ -886,4 +886,4 @@ __simd_remove_if(_RandomAccessIterator __first, _DifferenceType __n, _UnaryPredi
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_UNSEQ_BACKEND_SIMD_H */
+#endif /* _ONEDPL_UNSEQ_BACKEND_SIMD_H */

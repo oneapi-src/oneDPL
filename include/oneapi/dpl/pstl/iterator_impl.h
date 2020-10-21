@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_iterator_impl_H
-#define _PSTL_iterator_impl_H
+#ifndef _ONEDPL_iterator_impl_H
+#define _ONEDPL_iterator_impl_H
 
 #include <iterator>
 #include <tuple>
@@ -271,7 +271,7 @@ class zip_iterator
   public:
     typedef typename ::std::make_signed<::std::size_t>::type difference_type;
     typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
-    typedef oneapi::dpl::__internal::tuplewrapper<typename ::std::iterator_traits<_Types>::reference...> reference;
+    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::random_access_iterator_tag iterator_category;
     using is_zip = ::std::true_type;
@@ -291,6 +291,7 @@ class zip_iterator
         return oneapi::dpl::__internal::__make_references<reference>()(
             __my_it_, oneapi::dpl::__internal::__make_index_sequence<__num_types>());
     }
+
     reference operator[](difference_type __i) const { return *(*this + __i); }
 
     difference_type
@@ -542,6 +543,275 @@ make_transform_iterator(_Iter __it, _UnaryFunc __unary_func)
     return transform_iterator<_Iter, _UnaryFunc>(__it, __unary_func);
 }
 
+template <typename SourceIterator, typename IndexMap>
+class permutation_iterator
+{
+  public:
+    typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<SourceIterator>::value_type value_type;
+    typedef typename ::std::iterator_traits<SourceIterator>::pointer pointer;
+    typedef typename ::std::iterator_traits<SourceIterator>::reference reference;
+    typedef SourceIterator base_type;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    typedef ::std::true_type is_permutation;
+
+    permutation_iterator(const SourceIterator& input1, const IndexMap& input2, ::std::size_t index = 0)
+        : my_source_it(input1), my_index_map(input2), my_index(index)
+    {
+    }
+
+    SourceIterator
+    base() const
+    {
+        return my_source_it;
+    }
+
+    IndexMap
+    map() const
+    {
+        return my_index_map;
+    }
+
+    reference operator*() const { return my_source_it[my_index_map[my_index]]; }
+
+    reference operator[](difference_type __i) const { return *(*this + __i); }
+
+    permutation_iterator&
+    operator++()
+    {
+        ++my_index;
+        return *this;
+    }
+
+    permutation_iterator
+    operator++(int)
+    {
+        permutation_iterator it(*this);
+        ++(*this);
+        return it;
+    }
+
+    permutation_iterator&
+    operator--()
+    {
+        --my_index;
+        return *this;
+    }
+
+    permutation_iterator
+    operator--(int)
+    {
+        permutation_iterator it(*this);
+        --(*this);
+        return it;
+    }
+
+    permutation_iterator
+    operator+(difference_type forward) const
+    {
+        return permutation_iterator(my_source_it, my_index_map, my_index + forward);
+    }
+
+    permutation_iterator
+    operator-(difference_type backward)
+    {
+        return permutation_iterator(my_source_it, my_index_map, my_index - backward);
+    }
+
+    permutation_iterator&
+    operator+=(difference_type forward)
+    {
+        my_index += forward;
+        return *this;
+    }
+
+    permutation_iterator&
+    operator-=(difference_type forward)
+    {
+        my_index -= forward;
+        return *this;
+    }
+
+    difference_type
+    operator-(const permutation_iterator& it) const
+    {
+        return my_index - it.my_index;
+    }
+
+    bool
+    operator==(const permutation_iterator& it) const
+    {
+        return *this - it == 0;
+    }
+    bool
+    operator!=(const permutation_iterator& it) const
+    {
+        return !(*this == it);
+    }
+    bool
+    operator<(const permutation_iterator& it) const
+    {
+        return *this - it < 0;
+    }
+    bool
+    operator>(const permutation_iterator& it) const
+    {
+        return it < *this;
+    }
+    bool
+    operator<=(const permutation_iterator& it) const
+    {
+        return !(*this > it);
+    }
+    bool
+    operator>=(const permutation_iterator& it) const
+    {
+        return !(*this < it);
+    }
+
+  private:
+    SourceIterator my_source_it;
+    IndexMap my_index_map;
+    difference_type my_index;
+};
+
+template <typename SourceIterator, typename IndexMap>
+permutation_iterator<SourceIterator, IndexMap>
+make_permutation_iterator(SourceIterator source, IndexMap map)
+{
+    return permutation_iterator<SourceIterator, IndexMap>(source, map);
+}
+
+namespace internal
+{
+// Copyable implementation of ignore to allow creation of temporary buffers using the type.
+struct ignore_copyable
+{
+    template <typename T>
+    ignore_copyable&
+    operator=(T&&)
+    {
+        return *this;
+    }
+
+    template <typename T>
+    const ignore_copyable&
+    operator=(T&&) const
+    {
+        return *this;
+    }
+};
+
+constexpr ignore_copyable ignore{};
+} // namespace internal
+
+class discard_iterator
+{
+  public:
+    typedef ::std::ptrdiff_t difference_type;
+    typedef internal::ignore_copyable value_type;
+    typedef void* pointer;
+    typedef value_type reference;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    using is_passed_directly = ::std::true_type;
+    using is_discard = ::std::true_type;
+
+    discard_iterator() : __my_position_() {}
+    explicit discard_iterator(difference_type __init) : __my_position_(__init) {}
+
+    reference operator*() const { return internal::ignore; }
+    reference operator[](difference_type) const { return internal::ignore; }
+
+    // GCC Bug 66297: constexpr non-static member functions of non-literal types
+#if __GNUC__ && _PSTL_GCC_VERSION < 70200 && !(__INTEL_COMPILER || __clang__)
+#    define _PSTL_CONSTEXPR_FIX
+#else
+#    define _PSTL_CONSTEXPR_FIX constexpr
+#endif
+
+    _PSTL_CONSTEXPR_FIX bool
+    operator==(const discard_iterator& __it) const
+    {
+        return __my_position_ - __it.__my_position_ == 0;
+    }
+    _PSTL_CONSTEXPR_FIX bool
+    operator!=(const discard_iterator& __it) const
+    {
+        return !(*this == __it);
+    }
+#undef _PSTL_CONSTEXPR_FIX
+
+    bool
+    operator<(const discard_iterator& __it) const
+    {
+        return __my_position_ - __it.__my_position_ < 0;
+    }
+    bool
+    operator>(const discard_iterator& __it) const
+    {
+        return __my_position_ - __it.__my_position_ > 0;
+    }
+
+    difference_type
+    operator-(const discard_iterator& __it) const
+    {
+        return __my_position_ - __it.__my_position_;
+    }
+
+    discard_iterator&
+    operator++()
+    {
+        ++__my_position_;
+        return *this;
+    }
+    discard_iterator&
+    operator--()
+    {
+        --__my_position_;
+        return *this;
+    }
+    discard_iterator
+    operator++(int)
+    {
+        discard_iterator __it(__my_position_);
+        ++__my_position_;
+        return __it;
+    }
+    discard_iterator
+    operator--(int)
+    {
+        discard_iterator __it(__my_position_);
+        --__my_position_;
+        return __it;
+    }
+    discard_iterator&
+    operator+=(difference_type __forward)
+    {
+        __my_position_ += __forward;
+        return *this;
+    }
+    discard_iterator&
+    operator-=(difference_type __backward)
+    {
+        __my_position_ -= __backward;
+        return *this;
+    }
+
+    discard_iterator
+    operator+(difference_type __forward) const
+    {
+        return discard_iterator(__my_position_ + __forward);
+    }
+    discard_iterator
+    operator-(difference_type __backward) const
+    {
+        return discard_iterator(__my_position_ - __backward);
+    }
+
+  private:
+    difference_type __my_position_;
+};
+
 } // namespace dpl
 } // namespace oneapi
 
@@ -583,10 +853,12 @@ map_zip(F f, TBig<T...> in, RestTuples... rest)
 namespace dpstd
 {
 using oneapi::dpl::counting_iterator;
+using oneapi::dpl::make_permutation_iterator;
 using oneapi::dpl::make_transform_iterator;
 using oneapi::dpl::make_zip_iterator;
+using oneapi::dpl::permutation_iterator;
 using oneapi::dpl::transform_iterator;
 using oneapi::dpl::zip_iterator;
 } //namespace dpstd
 
-#endif /* _PSTL_iterator_impl_H */
+#endif /* _ONEDPL_iterator_impl_H */

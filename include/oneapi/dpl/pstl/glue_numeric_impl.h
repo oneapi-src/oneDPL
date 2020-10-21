@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_NUMERIC_IMPL_H
-#define _PSTL_GLUE_NUMERIC_IMPL_H
+#ifndef _ONEDPL_GLUE_NUMERIC_IMPL_H
+#define _ONEDPL_GLUE_NUMERIC_IMPL_H
 
 #include <functional>
 
@@ -28,7 +28,9 @@
 #include "numeric_fwd.h"
 #include "execution_impl.h"
 
-namespace std
+namespace oneapi
+{
+namespace dpl
 {
 
 // [reduce]
@@ -52,10 +54,10 @@ reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
 
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      typename iterator_traits<_ForwardIterator>::value_type>
+                                                      typename ::std::iterator_traits<_ForwardIterator>::value_type>
 reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
 {
-    typedef typename iterator_traits<_ForwardIterator>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, _ValueType{},
                             ::std::plus<_ValueType>(), oneapi::dpl::__internal::__no_op());
 }
@@ -67,7 +69,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                  _ForwardIterator2 __first2, _Tp __init)
 {
-    typedef typename iterator_traits<_ForwardIterator1>::value_type _InputType;
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::value_type _InputType;
     return oneapi::dpl::__internal::__pattern_transform_reduce(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, ::std::plus<_InputType>(),
         ::std::multiplies<_InputType>(),
@@ -141,7 +143,6 @@ exclusive_scan(oneapi::dpl::execution::unsequenced_policy __exec, _ForwardIterat
                                     oneapi::dpl::__internal::__no_op());
 }
 
-#    if _PSTL_USE_PAR_POLICIES
 template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
 _ForwardIterator2
 exclusive_scan(oneapi::dpl::execution::parallel_policy __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
@@ -159,7 +160,6 @@ exclusive_scan(oneapi::dpl::execution::parallel_unsequenced_policy __exec, _Forw
     return transform_exclusive_scan(__exec, __first, __last, __result, __init, __binary_op,
                                     oneapi::dpl::__internal::__no_op());
 }
-#    endif // _PSTL_USE_PAR_POLICIES
 
 #    if _PSTL_BACKEND_SYCL
 template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation, class... PolicyParams>
@@ -193,7 +193,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 inclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                _ForwardIterator2 __result)
 {
-    typedef typename iterator_traits<_ForwardIterator1>::value_type _InputType;
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::value_type _InputType;
     return transform_inclusive_scan(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
                                     ::std::plus<_InputType>(), oneapi::dpl::__internal::__no_op());
 }
@@ -291,11 +291,12 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                     _ForwardIterator2 __d_first)
 {
-    typedef typename iterator_traits<_ForwardIterator1>::value_type _ValueType;
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::value_type _ValueType;
     return adjacent_difference(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
                                ::std::minus<_ValueType>());
 }
 
-} // namespace std
+} // namespace dpl
+} // namespace oneapi
 
-#endif /* _PSTL_GLUE_NUMERIC_IMPL_H_ */
+#endif /* _ONEDPL_GLUE_NUMERIC_IMPL_H */

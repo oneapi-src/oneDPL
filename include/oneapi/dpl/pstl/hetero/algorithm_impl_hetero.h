@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_algorithm_impl_hetero_H
-#define _PSTL_algorithm_impl_hetero_H
+#ifndef _ONEDPL_algorithm_impl_hetero_H
+#define _ONEDPL_algorithm_impl_hetero_H
 
 #include "../algorithm_fwd.h"
 
@@ -1937,4 +1937,4 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_algorithm_impl_hetero_H */
+#endif /* _ONEDPL_algorithm_impl_hetero_H */

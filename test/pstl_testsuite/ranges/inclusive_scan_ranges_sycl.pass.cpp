@@ -46,8 +46,8 @@ main()
         auto view_res2 = ranges::all_view<int, cl::sycl::access::mode::write>(B2);
         auto view_res3 = ranges::all_view<int, cl::sycl::access::mode::write>(B3);
 
-        auto exec = oneapi::dpl::execution::dpcpp_default;
-        using Policy = decltype(oneapi::dpl::execution::dpcpp_default);
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         ranges::inclusive_scan(exec, view, view_res1);
         ranges::inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, view_res2, ::std::plus<int>());

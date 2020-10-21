@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_CONFIG_H
-#define _PSTL_CONFIG_H
+#ifndef _ONEDPL_CONFIG_H
+#define _ONEDPL_CONFIG_H
 
 #include "dpstd_config.h"
 
@@ -32,9 +32,9 @@
 #define __INTEL_PSTL_VERSION_MINOR (__INTEL_PSTL_VERSION % 100)
 
 // Check the user-defined macro for parallel policies
-#if defined(PSTL_USE_PARALLEL_POLICIES)
+#if defined(ONEDPL_USE_TBB_BACKEND)
 #    undef _PSTL_USE_PAR_POLICIES
-#    define _PSTL_USE_PAR_POLICIES PSTL_USE_PARALLEL_POLICIES
+#    define _PSTL_USE_PAR_POLICIES ONEDPL_USE_TBB_BACKEND
 // Check the internal macro for parallel policies
 #elif !defined(_PSTL_USE_PAR_POLICIES)
 #    define _PSTL_USE_PAR_POLICIES 1
@@ -42,10 +42,12 @@
 
 #if _PSTL_USE_PAR_POLICIES
 #    if !defined(_PSTL_PAR_BACKEND_TBB)
+#        undef _PSTL_PAR_BACKEND_SERIAL
 #        define _PSTL_PAR_BACKEND_TBB 1
 #    endif
 #else
 #    undef _PSTL_PAR_BACKEND_TBB
+#    define _PSTL_PAR_BACKEND_SERIAL 1
 #endif
 
 #if _PSTL_USE_RANGES
@@ -118,6 +120,17 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #    define _PSTL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM)
 #endif
 
+// Requred to check if libstdc++ is 5.1.0 or greater
+#if defined(__clang__)
+#    if __GLIBCXX__ && __has_include(<experimental/any>)
+#        define _PSTL_LIBSTDCXX_5_OR_GREATER 1
+#    else
+#        define _PSTL_LIBSTDCXX_5_OR_GREATER 0
+#    endif // __GLIBCXX__ && __has_include(<experimental/any>)
+#else
+#    define _PSTL_LIBSTDCXX_5_OR_GREATER (__GLIBCXX__ && _PSTL_GCC_VERSION >= 50100)
+#endif // defined(__clang__)
+
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define _PSTL_CPP17_EXECUTION_POLICIES_PRESENT                                                                         \
     (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) || (_PSTL_GCC_VERSION >= 90101 && __cplusplus >= 201703L)
@@ -129,6 +142,8 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #define _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
 #define _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                         \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
+#define _PSTL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT                                                               \
+    (_LIBCPP_VERSION || _MSC_VER >= 1700 || (_GLIBCXX_RELEASE >= 7 || _PSTL_LIBSTDCXX_5_OR_GREATER))
 
 #define _PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
@@ -226,4 +241,4 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #    include "hetero/dpcpp/pstl_sycl_config.h"
 #endif
 
-#endif /* _PSTL_config_H */
+#endif /* _ONEDPL_config_H */

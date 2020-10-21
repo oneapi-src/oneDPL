@@ -40,4 +40,23 @@ namespace dpl
 using namespace oneapi::std;
 }
 } // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
+namespace std
+{
+using oneapi::dpl::uninitialized_copy;
+using oneapi::dpl::uninitialized_copy_n;
+using oneapi::dpl::uninitialized_move;
+using oneapi::dpl::uninitialized_move_n;
+using oneapi::dpl::uninitialized_fill;
+using oneapi::dpl::uninitialized_fill_n;
+using oneapi::dpl::uninitialized_default_construct;
+using oneapi::dpl::uninitialized_default_construct_n;
+using oneapi::dpl::uninitialized_value_construct;
+using oneapi::dpl::uninitialized_value_construct_n;
+using oneapi::dpl::destroy;
+using oneapi::dpl::destroy_n;
+} // namespace std
+
 #endif /* _TEST_SUPPORT_STDLIB_MEMORY */

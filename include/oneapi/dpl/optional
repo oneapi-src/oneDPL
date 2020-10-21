@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- tuple -------------------------------------------------------------===//
+//===-- optional ----------------------------------------------------------===//
 //
 // Copyright (C) 2020 Intel Corporation
 //
@@ -12,26 +12,19 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
-#ifndef __ONEDPL_tuple
-#define __ONEDPL_tuple
-#include <tuple>
+#ifndef __ONEDPL_optional
+#define __ONEDPL_optional
+#include <optional>
 
 namespace oneapi
 {
 namespace std
 {
-using ::std::forward_as_tuple;
-using ::std::get;
-using ::std::ignore;
-using ::std::make_tuple;
-using ::std::tie;
-using ::std::tuple;
-using ::std::tuple_cat;
-using ::std::tuple_element;
-using ::std::tuple_size;
 #if __cplusplus > 201402L
-using ::std::apply;
-using ::std::make_from_tuple;
+using ::std::make_optional;
+using ::std::nullopt;
+using ::std::nullopt_t;
+using ::std::optional;
 #endif
 } // namespace std
 

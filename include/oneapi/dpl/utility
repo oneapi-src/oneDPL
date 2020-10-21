@@ -31,6 +31,13 @@ using ::std::piecewise_construct;
 using ::std::swap;
 using ::std::tuple_element;
 using ::std::tuple_size;
+#if __cplusplus > 201103L
+using ::std::exchange;
+#endif
+#if __cplusplus > 201402L
+using ::std::in_place;
+using ::std::in_place_t;
+#endif
 } // namespace std
 
 namespace dpl

@@ -27,6 +27,32 @@
 
 #include "oneapi/dpl/pstl/utils.h"
 
+#if !defined(_PSTL_TEST_FOR_EACH) && \
+    !defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY) && \
+    !defined(_PSTL_TEST_TRANSFORM_REDUCE_BINARY) && \
+    !defined(_PSTL_TEST_COUNT_IF) && \
+    !defined(_PSTL_TEST_EQUAL) && \
+    !defined(_PSTL_TEST_INCLUSIVE_SCAN) && \
+    !defined(_PSTL_TEST_UNIQUE) && \
+    !defined(_PSTL_TEST_UNIQUE_COPY) && \
+    !defined(_PSTL_TEST_MERGE) && \
+    !defined(_PSTL_TEST_STABLE_SORT) && \
+    !defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE) && \
+    !defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
+#define _PSTL_TEST_FOR_EACH
+#define _PSTL_TEST_TRANSFORM_REDUCE_UNARY
+#define _PSTL_TEST_TRANSFORM_REDUCE_BINARY
+#define _PSTL_TEST_COUNT_IF
+#define _PSTL_TEST_EQUAL
+#define _PSTL_TEST_INCLUSIVE_SCAN
+#define _PSTL_TEST_UNIQUE
+#define _PSTL_TEST_UNIQUE_COPY
+#define _PSTL_TEST_MERGE
+#define _PSTL_TEST_STABLE_SORT
+#define _PSTL_TEST_LEXICOGRAPHICAL_COMPIARE
+#define _PSTL_TEST_COUNTING_ZIP_TRANSFORM
+#endif
+
 using namespace TestUtils;
 
 //This macro is required for the tests to work correctly in CI with tbb-backend.
@@ -572,30 +598,56 @@ int32_t
 main()
 {
 #if _PSTL_BACKEND_SYCL
+#if defined(_PSTL_TEST_FOR_EACH)
     PRINT_DEBUG("test_for_each");
     test1buffer<int32_t, test_for_each>();
+#endif
+#if defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY)
     PRINT_DEBUG("test_transform_reduce_unary");
     test1buffer<int32_t, test_transform_reduce_unary>();
+#endif
+#if defined(_PSTL_TEST_TRANSFORM_REDUCE_BINARY)
     PRINT_DEBUG("test_transform_reduce_binary");
     test2buffers<int32_t, test_transform_reduce_binary>();
+#endif
+#if defined(_PSTL_TEST_COUNT_IF)
     PRINT_DEBUG("test_count_if");
     test1buffer<int32_t, test_count_if>();
+#endif
+#if defined(_PSTL_TEST_EQUAL)
     PRINT_DEBUG("test_equal");
     test2buffers<int32_t, test_equal>();
+#endif
+#if defined(_PSTL_TEST_INCLUSIVE_SCAN)
     PRINT_DEBUG("test_inclusive_scan");
     test2buffers<int32_t, test_transform_inclusive_scan>();
+#endif
+#if defined(_PSTL_TEST_UNIQUE)
     PRINT_DEBUG("test_unique");
     test1buffer<int32_t, test_unique>();
+#endif
+#if defined(_PSTL_TEST_UNIQUE_COPY)
     PRINT_DEBUG("test_unique_copy");
     test2buffers<int32_t, test_unique_copy>();
+#endif
+#if defined(_PSTL_TEST_MERGE)
     PRINT_DEBUG("test_merge");
     test3buffers<int32_t, test_merge>();
+#endif
+// sorting with zip iterator does not meet limits of RAM usage on FPGA.
+// TODO: try to investigate and reduce RAM consumption
+#if defined(_PSTL_TEST_STABLE_SORT) && !_PSTL_FPGA_DEVICE
     PRINT_DEBUG("test_stable_sort");
     test2buffers<int32_t, test_stable_sort>();
+#endif
+#if defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE)
     PRINT_DEBUG("test_lexicographical_compare");
     test2buffers<int32_t, test_lexicographical_compare>();
+#endif
+#if defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
     PRINT_DEBUG("test_counting_zip_transform");
     test2buffers<int32_t, test_counting_zip_transform>();
+#endif
 #endif
     ::std::cout << done() << ::std::endl;
     return 0;

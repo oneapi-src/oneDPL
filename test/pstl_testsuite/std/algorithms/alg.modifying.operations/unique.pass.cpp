@@ -183,8 +183,10 @@ main()
 #if !_PSTL_ICC_16_17_18_TEST_UNIQUE_MASK_RELEASE_BROKEN
     test<int32_t>([](size_t j) { return j / 3; },
                   [](const int32_t& val1, const int32_t& val2) { return val1 * val1 == val2 * val2; });
+#if !_PSTL_FPGA_DEVICE
     test<float64_t>([](size_t) { return float64_t(1); },
                     [](const float64_t& val1, const float64_t& val2) { return val1 != val2; });
+#endif
 #endif
 
 #if !_PSTL_BACKEND_SYCL

@@ -93,6 +93,17 @@ get_access(T* ptr)
 }
 #endif
 
+// struct for checking if iterator is a discard_iterator or not
+template <typename Iter, typename Void = void> // for non-discard iterators
+struct is_discard_iterator : ::std::false_type
+{
+};
+
+template <typename Iter> // for discard iterators
+struct is_discard_iterator<Iter, typename ::std::enable_if<Iter::is_discard::value, void>::type> : ::std::true_type
+{
+};
+
 // Used by: exclusive_scan_by_key
 // Lambda: [pred, &new_value](Ref1 a, Ref2 s) {return pred(s) ? new_value : a; });
 template <typename T, typename Predicate>

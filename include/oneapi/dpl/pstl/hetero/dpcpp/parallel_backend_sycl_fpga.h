@@ -14,8 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 //!!! NOTE: This file should be included under the macro _PSTL_BACKEND_SYCL
-#ifndef _PSTL_parallel_backend_sycl_fpga_H
-#define _PSTL_parallel_backend_sycl_fpga_H
+#ifndef _ONEDPL_parallel_backend_sycl_fpga_H
+#define _ONEDPL_parallel_backend_sycl_fpga_H
 
 #include <CL/sycl.hpp>
 
@@ -242,4 +242,4 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_parallel_backend_sycl_H */
+#endif /* _ONEDPL_parallel_backend_sycl_H */

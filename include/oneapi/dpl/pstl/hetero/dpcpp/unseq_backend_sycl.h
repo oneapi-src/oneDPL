@@ -14,8 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 //!!! NOTE: This file should be included under the macro _PSTL_BACKEND_SYCL
-#ifndef _PSTL_unseq_backend_sycl_H
-#define _PSTL_unseq_backend_sycl_H
+#ifndef _ONEDPL_unseq_backend_sycl_H
+#define _ONEDPL_unseq_backend_sycl_H
 
 #include <type_traits>
 
@@ -182,52 +182,6 @@ struct transform_init
         }
     }
 };
-
-// write data from local memory to global
-template <typename _Inclusive, typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal,
-          typename _InAcc, typename _OutAcc, typename _Tp, typename _Fp, typename _BinaryOp, typename _UnaryOp>
-void
-write_to_global(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem,
-                const _InAcc& __input, _OutAcc& __result, _Tp __init, _Fp __f, _BinaryOp __bin_op, _UnaryOp __unary_op)
-{
-    auto __local_idx = __item_id.get_local_id(0);
-    auto __group_size = __item_id.get_local_range().size();
-    auto __global_range_size = __item_id.get_global_range().size();
-    auto __n_iter = __n / __global_range_size;
-    auto __start = calc_shift(__item_id, __global_idx, __n_iter, __n);
-    auto __shifted_global_idx = __global_idx + __start;
-
-    _Tp __shift_for_true = __init;
-    if (__local_idx != 0)
-        __shift_for_true = __local_mem[__local_idx - 1];
-    _Tp __shift_for_false = __shifted_global_idx - __shift_for_true;
-
-    // TODO: it needs to be refactored due to a new implementation of scan
-    // inclusive scan branch
-    if (_Inclusive())
-    {
-        for (decltype(__n_iter) __i = 0; __i < __n_iter; ++__i)
-        {
-            auto __unary_op__result = __unary_op(__shifted_global_idx + __i, __input);
-            __shift_for_true = __bin_op(__shift_for_true, __unary_op__result);
-            __shift_for_false = __bin_op(__shift_for_false, 1 - __unary_op__result);
-
-            __f(__shift_for_true, __shift_for_false, __shifted_global_idx + __i, __input, __result);
-        }
-    }
-    // exclusive scan branch
-    else
-    {
-        for (decltype(__n_iter) __i = 0; __i < __n_iter; ++__i)
-        {
-            __f(__shift_for_true, __shift_for_false, __shifted_global_idx + __i, __input, __result);
-
-            auto __unary_op_result = __unary_op(__shifted_global_idx + __i, __input);
-            __shift_for_true = __bin_op(__shift_for_true, __unary_op_result);
-            __shift_for_false = __bin_op(__shift_for_false, 1 - __unary_op_result);
-        }
-    }
-}
 
 // Reduce on local memory
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
@@ -582,8 +536,7 @@ struct __scan
 
         auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
-        for (auto __iter = 0; __iter < __iters_per_wg && __adjusted_global_id - __local_id < __n;
-             ++__iter, __adjusted_global_id += __wgroup_size)
+        for (auto __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
             if (__adjusted_global_id < __n)
             {
@@ -632,10 +585,12 @@ struct __scan
 
             if (__adjusted_global_id + __shift < __n)
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
+
+            if (__adjusted_global_id == __n - 1)
+                __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
         }
 
-        if ((__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n) ||
-            __adjusted_global_id - __wgroup_size == __n - 1)
+        if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
             __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
     }
 };
@@ -668,7 +623,7 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
             __local_mem[__local_id] = 0;
         }
         __item.barrier(sycl::access::fence_space::local_space);
-        return sycl::intel::reduce(__item.get_group(), __local_mem[__local_id], sycl::intel::plus<_Tp>());
+        return sycl::ONEAPI::reduce(__item.get_group(), __local_mem[__local_id], sycl::ONEAPI::plus<_Tp>());
     }
 };
 
@@ -678,7 +633,7 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
               _GlobalAssigner, _DataAccessor, __enable_if_arithmetic_init_type<_InitType>>
 {
     using _Tp = typename _InitType::__value_type;
-    sycl::intel::plus<_Tp> __bin_op;
+    sycl::ONEAPI::plus<_Tp> __bin_op;
     _UnaryOp __unary_op;
     _WgAssigner __wg_assigner;
     _GlobalAssigner __gl_assigner;
@@ -704,8 +659,7 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
 
         auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
-        for (auto __iter = 0; __iter < __iters_per_wg && __adjusted_global_id - __local_id < __n;
-             ++__iter, __adjusted_global_id += __wgroup_size)
+        for (auto __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
             if (__adjusted_global_id < __n)
                 __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc);
@@ -721,7 +675,7 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
                 __use_init(__init, __old_value, __bin_op);
             __item.barrier(sycl::access::fence_space::local_space);
 
-            __local_acc[__local_id] = sycl::intel::inclusive_scan(__item.get_group(), __old_value, __bin_op);
+            __local_acc[__local_id] = sycl::ONEAPI::inclusive_scan(__item.get_group(), __old_value, __bin_op);
             __item.barrier(sycl::access::fence_space::local_space);
 
             __adder = __local_acc[__wgroup_size - 1];
@@ -729,10 +683,12 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
 
             if (__adjusted_global_id + __shift < __n)
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
+
+            if (__adjusted_global_id == __n - 1)
+                __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
         }
 
-        if ((__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n) ||
-            __adjusted_global_id - __wgroup_size == __n - 1)
+        if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
             __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
     }
 };
@@ -865,9 +821,9 @@ class __brick_set_op
     operator()(_ItemId __idx, const _Acc& __inout_acc)
     {
         using ::std::get;
-        auto __a = get<0>(__inout_acc.begin().base()); // first sequence
-        auto __b = get<1>(__inout_acc.begin().base()); // second sequence
-        auto __c = get<2>(__inout_acc.begin().base()); // mask buffer
+        auto __a = get<0>(__inout_acc.tuple()); // first sequence
+        auto __b = get<1>(__inout_acc.tuple()); // second sequence
+        auto __c = get<2>(__inout_acc.tuple()); // mask buffer
 
         auto __a_beg = _Size1(0);
         auto __a_end = __na;
@@ -917,4 +873,4 @@ class __brick_set_op
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_unseq_backend_sycl_H */
+#endif /* _ONEDPL_unseq_backend_sycl_H */

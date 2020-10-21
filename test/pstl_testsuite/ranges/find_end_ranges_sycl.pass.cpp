@@ -44,7 +44,7 @@ main()
 
         auto view_a = all_view(A);
         auto view_b = all_view(B);
-        res = find_end(oneapi::dpl::execution::dpcpp_default, view_a, view_b);
+        res = find_end(TestUtils::default_dpcpp_policy, view_a, view_b);
     }
 
     //check result

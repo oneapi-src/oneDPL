@@ -94,7 +94,7 @@ test(T trash, const T& value, Convert convert, bool check_weakness = true)
 int
 main()
 {
-#if !_PSTL_FPGA_HW
+#if !_PSTL_FPGA_DEVICE
     test<float64_t>(-666.0, 8.5, [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });
 #endif
 

@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_NUMERIC_DEFS_H
-#define _PSTL_GLUE_NUMERIC_DEFS_H
+#ifndef _ONEDPL_GLUE_NUMERIC_DEFS_H
+#define _ONEDPL_GLUE_NUMERIC_DEFS_H
 
 #include <iterator>
 
@@ -23,7 +23,9 @@
 #    include "hetero/dpcpp/execution_sycl_defs.h"
 #endif
 
-namespace std
+namespace oneapi
+{
+namespace dpl
 {
 // [reduce]
 
@@ -38,7 +40,7 @@ reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
 
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      typename iterator_traits<_ForwardIterator>::value_type>
+                                                      typename ::std::iterator_traits<_ForwardIterator>::value_type>
 reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp>
@@ -81,7 +83,6 @@ _ForwardIterator2
 exclusive_scan(oneapi::dpl::execution::unsequenced_policy, _ForwardIterator1 __first, _ForwardIterator1 __last,
                _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op);
 
-#    if _PSTL_USE_PAR_POLICIES
 template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
 _ForwardIterator2
 exclusive_scan(oneapi::dpl::execution::parallel_policy, _ForwardIterator1 __first, _ForwardIterator1 __last,
@@ -91,7 +92,6 @@ template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _Bi
 _ForwardIterator2
 exclusive_scan(oneapi::dpl::execution::parallel_unsequenced_policy, _ForwardIterator1 __first, _ForwardIterator1 __last,
                _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op);
-#    endif // _PSTL_USE_PAR_POLICIES
 
 #    if _PSTL_BACKEND_SYCL
 template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation, class... PolicyParams>
@@ -163,5 +163,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                     _ForwardIterator2 __d_first);
 
-} // namespace std
-#endif /* _PSTL_GLUE_NUMERIC_DEFS_H */
+} // namespace dpl
+} // namespace oneapi
+#endif /* _ONEDPL_GLUE_NUMERIC_DEFS_H */

@@ -42,7 +42,7 @@ main()
         auto view = iota_view(0, max_n) | views::transform(lambda1);
 
         auto range_res = all_view<int, cl::sycl::access::mode::write>(B);
-        transform(oneapi::dpl::execution::dpcpp_default, view, view, range_res, lambda2);
+        transform(TestUtils::default_dpcpp_policy, view, view, range_res, lambda2);
     }
 
     //check result

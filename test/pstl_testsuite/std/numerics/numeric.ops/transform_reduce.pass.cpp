@@ -132,17 +132,18 @@ test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, 
                                     in2.begin() + n, init, opB1, opB2);
         invoke_on_all_policies<1>()(test_short_transform_reduce<T>(), in1.begin(), in1.begin() + n, in2.begin(),
                                     in2.begin() + n, init, opB1, opU);
+#if !_PSTL_FPGA_DEVICE
         invoke_on_all_policies<2>()(test_long_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),
                                     in2.cbegin() + n, init, opB1, opB2);
         invoke_on_all_policies<3>()(test_short_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),
                                     in2.cbegin() + n, init, opB1, opU);
+#endif
     }
 }
 
 int
 main()
 {
-#if !_PSTL_FPGA_HW
     test_by_type<int32_t>(42, ::std::plus<int32_t>(), ::std::multiplies<int32_t>(), ::std::negate<int32_t>(),
                           [](::std::size_t a) -> int32_t { return int32_t(rand() % 1000); });
     test_by_type<int64_t>(0, [](const int64_t& a, const int64_t& b) -> int64_t { return a | b; }, XOR(),
@@ -152,7 +153,6 @@ main()
                             [](const float32_t& a, const float32_t& b) -> float32_t { return a + b; },
                             [](const float32_t& x) -> float32_t { return x + 2; },
                             [](::std::size_t a) -> float32_t { return rand() % 1000; });
-#endif
     test_by_type<MyClass>(MyClass(), ::std::plus<MyClass>(), ::std::multiplies<MyClass>(),
         [](const MyClass& x) { return MyClass(-x.my_field); },
         [](::std::size_t a) -> MyClass { return MyClass(rand() % 1000); });

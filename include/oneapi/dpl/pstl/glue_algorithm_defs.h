@@ -13,15 +13,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_ALGORITHM_DEFS_H
-#define _PSTL_GLUE_ALGORITHM_DEFS_H
+#ifndef _ONEDPL_GLUE_ALGORITHM_DEFS_H
+#define _ONEDPL_GLUE_ALGORITHM_DEFS_H
 
 #include <functional>
 #include <iterator>
 
 #include "execution_defs.h"
 
-namespace std
+namespace oneapi
+{
+namespace dpl
 {
 
 // [alg.any_of]
@@ -103,13 +105,13 @@ adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardItera
 // [alg.count]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      typename iterator_traits<_ForwardIterator>::difference_type>
+oneapi::dpl::__internal::__enable_if_execution_policy<
+    _ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::difference_type>
 count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      typename iterator_traits<_ForwardIterator>::difference_type>
+oneapi::dpl::__internal::__enable_if_execution_policy<
+    _ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::difference_type>
 count_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred);
 
 // [alg.search]
@@ -559,5 +561,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                         _ForwardIterator2 __first2, _ForwardIterator2 __last2);
 
-} // namespace std
-#endif /* _PSTL_GLUE_ALGORITHM_DEFS_H */
+} // namespace dpl
+} // namespace oneapi
+#endif /* _ONEDPL_GLUE_ALGORITHM_DEFS_H */

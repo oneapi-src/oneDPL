@@ -19,9 +19,21 @@
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
 
-#if  !defined(_PSTL_TEST_SORT) && !defined(_PSTL_TEST_STABLE_SORT)
+#if !defined(_PSTL_TEST_SORT) && !defined(_PSTL_TEST_STABLE_SORT)
 #define _PSTL_TEST_SORT
 #define _PSTL_TEST_STABLE_SORT
+#endif
+
+#if !defined(_PSTL_TEST_RADIX_SORT) && !defined(_PSTL_TEST_MERGE_SORT)
+#define _PSTL_TEST_MERGE_SORT
+
+#if _USE_RADIX_SORT
+#define _PSTL_TEST_RADIX_SORT
+#endif
+#endif // !defined(_PSTL_TEST_RADIX_SORT) && !defined(_PSTL_TEST_MERGE_SORT)
+
+#if defined(_PSTL_TEST_RADIX_SORT) && !_USE_RADIX_SORT
+#pragma message("WARNING: Radix sort is not supported. Merge sort with no predicate is going to be tested instead.")
 #endif
 
 using namespace TestUtils;
@@ -208,7 +220,7 @@ template<typename T>
 struct test_sort_without_compare
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value && 
+    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
                             can_use_default_less_operator<T>::value, void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n)
@@ -235,7 +247,7 @@ struct test_sort_without_compare
         EXPECT_EQ(count0, count1, "key cleanup error");
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value || 
+    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
                             !can_use_default_less_operator<T>::value, void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n)
@@ -255,10 +267,14 @@ test_sort(Compare compare, Convert convert)
         Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
         Sequence<T> expected(in);
         Sequence<T> tmp(in);
+#if defined(_PSTL_TEST_RADIX_SORT)
         invoke_on_all_policies<0>()(test_sort_without_compare<T>(), tmp.begin(), tmp.end(), expected.begin(),
                                     expected.end(), in.begin(), in.end(), in.size());
+#endif
+#if defined(_PSTL_TEST_MERGE_SORT)
         invoke_on_all_policies<1>()(test_sort_with_compare<T>(), tmp.begin(), tmp.end(), expected.begin(),
                                     expected.end(), in.begin(), in.end(), in.size(), compare);
+#endif
     }
 }
 
@@ -300,16 +316,18 @@ main()
                                [](size_t k, size_t val) { return ParanoidKey(k, val, OddTag()); });
 #endif
 
+#if !_PSTL_FPGA_DEVICE
         test_sort<float32_t>([](float32_t x, float32_t y) { return x < y; },
                              [](size_t, size_t val) { return float32_t(val); });
-#if !_PSTL_FPGA_HW
+#endif
         test_sort<int32_t>(
             [](int32_t x, int32_t y) { return x > y; }, // Reversed so accidental use of < will be detected.
             [](size_t, size_t val) { return int32_t(val); });
-#endif
     }
 
+#if !_PSTL_FPGA_DEVICE
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
+#endif
 
     ::std::cout << done() << ::std::endl;
     return 0;

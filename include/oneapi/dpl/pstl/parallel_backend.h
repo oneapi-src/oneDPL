@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_PARALLEL_BACKEND_H
-#define _PSTL_PARALLEL_BACKEND_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_H
+#define _ONEDPL_PARALLEL_BACKEND_H
 
 #include "pstl_config.h"
 
@@ -43,4 +43,4 @@ using namespace oneapi::dpl::__serial_backend;
 _PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");
 #endif
 
-#endif /* _PSTL_PARALLEL_BACKEND_H */
+#endif /* _ONEDPL_PARALLEL_BACKEND_H */

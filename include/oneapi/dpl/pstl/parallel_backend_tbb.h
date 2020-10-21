@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_PARALLEL_BACKEND_TBB_H
-#define _PSTL_PARALLEL_BACKEND_TBB_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_TBB_H
+#define _ONEDPL_PARALLEL_BACKEND_TBB_H
 
 #include <cassert>
 #include <algorithm>
@@ -1315,4 +1315,4 @@ __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterat
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_PARALLEL_BACKEND_TBB_H */
+#endif /* _ONEDPL_PARALLEL_BACKEND_TBB_H */

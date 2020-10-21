@@ -74,7 +74,7 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay
 lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return ::std::transform(policy, value_start, value_end, result,
+    return oneapi::dpl::transform(policy, value_start, value_end, result,
                             [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
                                 return ::std::lower_bound(start, end, val, comp) - start;
                             });
@@ -86,7 +86,7 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay
 upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return ::std::transform(policy, value_start, value_end, result,
+    return oneapi::dpl::transform(policy, value_start, value_end, result,
                             [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
                                 return ::std::upper_bound(start, end, val, comp) - start;
                             });
@@ -98,7 +98,7 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay
 binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return ::std::transform(policy, value_start, value_end, result,
+    return oneapi::dpl::transform(policy, value_start, value_end, result,
                             [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
                                 return ::std::binary_search(start, end, val, comp);
                             });

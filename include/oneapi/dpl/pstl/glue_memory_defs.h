@@ -13,12 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_GLUE_MEMORY_DEFS_H
-#define _PSTL_GLUE_MEMORY_DEFS_H
+#ifndef _ONEDPL_GLUE_MEMORY_DEFS_H
+#define _ONEDPL_GLUE_MEMORY_DEFS_H
 
 #include "execution_defs.h"
 
-namespace std
+namespace oneapi
+{
+namespace dpl
 {
 
 // [uninitialized.copy]
@@ -81,5 +83,6 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n);
 
-} //  namespace std
-#endif /* _PSTL_GLUE_MEMORY_DEFS_H */
+} // namespace dpl
+} // namespace oneapi
+#endif /* _ONEDPL_GLUE_MEMORY_DEFS_H */

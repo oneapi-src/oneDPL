@@ -54,19 +54,19 @@ main()
 #if _PSTL_BACKEND_SYCL
     PRINT_DEBUG("Test SYCL Policy(queue(default_selector))");
     test_policy_instance(
-        oneapi::dpl::execution::make_sycl_policy<class Kernel_1>(cl::sycl::queue{cl::sycl::default_selector{}}));
+        oneapi::dpl::execution::make_sycl_policy<class Kernel_1>(cl::sycl::queue{TestUtils::default_selector}));
     PRINT_DEBUG("Test Policy(queue(default_selector))");
     test_policy_instance(
-        oneapi::dpl::execution::make_device_policy<class Kernel_2>(cl::sycl::queue{cl::sycl::default_selector{}}));
+        oneapi::dpl::execution::make_device_policy<class Kernel_2>(cl::sycl::queue{TestUtils::default_selector}));
     PRINT_DEBUG("Test Policy(default_selector)");
     test_policy_instance(
-        oneapi::dpl::execution::make_device_policy<class Kernel_3>(cl::sycl::default_selector{}));
+        oneapi::dpl::execution::make_device_policy<class Kernel_3>(TestUtils::default_selector));
     PRINT_DEBUG("Test Policy(device(default_selector))");
     test_policy_instance(
-        oneapi::dpl::execution::make_device_policy<class Kernel_4>(cl::sycl::device{cl::sycl::default_selector{}}));
+        oneapi::dpl::execution::make_device_policy<class Kernel_4>(cl::sycl::device{TestUtils::default_selector}));
     PRINT_DEBUG("Test Policy(ordered_queue(default_selector))");
-    test_policy_instance(
-        oneapi::dpl::execution::make_device_policy<class Kernel_5>(cl::sycl::queue{cl::sycl::property::queue::in_order()}));
+    test_policy_instance(oneapi::dpl::execution::make_device_policy<class Kernel_5>(
+        cl::sycl::queue{TestUtils::default_selector, cl::sycl::property::queue::in_order()}));
 #endif
 
     ::std::cout << TestUtils::done() << ::std::endl;

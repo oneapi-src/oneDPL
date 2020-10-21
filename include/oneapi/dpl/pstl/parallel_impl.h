@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_PARALLEL_IMPL_H
-#define _PSTL_PARALLEL_IMPL_H
+#ifndef _ONEDPL_PARALLEL_IMPL_H
+#define _ONEDPL_PARALLEL_IMPL_H
 
 #include <atomic>
 // This header defines the minimum set of parallel routines required to support Parallel STL,
@@ -90,4 +90,4 @@ __parallel_or(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick _
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_PARALLEL_IMPL_H */
+#endif /* _ONEDPL_PARALLEL_IMPL_H */

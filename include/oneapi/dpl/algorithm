@@ -55,4 +55,73 @@ using namespace oneapi::std;
 } // namespace oneapi
 namespace dpl = oneapi::dpl;
 
+namespace std
+{
+using oneapi::dpl::any_of;
+using oneapi::dpl::all_of;
+using oneapi::dpl::none_of;
+using oneapi::dpl::for_each;
+using oneapi::dpl::for_each_n;
+using oneapi::dpl::find_if;
+using oneapi::dpl::find_if_not;
+using oneapi::dpl::find;
+using oneapi::dpl::find_end;
+using oneapi::dpl::find_first_of;
+using oneapi::dpl::adjacent_find;
+using oneapi::dpl::count;
+using oneapi::dpl::count_if;
+using oneapi::dpl::search;
+using oneapi::dpl::search_n;
+using oneapi::dpl::copy;
+using oneapi::dpl::copy_n;
+using oneapi::dpl::copy_if;
+using oneapi::dpl::swap_ranges;
+using oneapi::dpl::transform;
+using oneapi::dpl::replace_if;
+using oneapi::dpl::replace;
+using oneapi::dpl::replace_copy_if;
+using oneapi::dpl::replace_copy;
+using oneapi::dpl::fill;
+using oneapi::dpl::fill_n;
+using oneapi::dpl::generate;
+using oneapi::dpl::generate_n;
+using oneapi::dpl::remove_copy_if;
+using oneapi::dpl::remove_copy;
+using oneapi::dpl::remove_if;
+using oneapi::dpl::remove;
+using oneapi::dpl::unique;
+using oneapi::dpl::unique_copy;
+using oneapi::dpl::reverse;
+using oneapi::dpl::reverse_copy;
+using oneapi::dpl::rotate;
+using oneapi::dpl::rotate_copy;
+using oneapi::dpl::is_partitioned;
+using oneapi::dpl::partition;
+using oneapi::dpl::stable_partition;
+using oneapi::dpl::partition_copy;
+using oneapi::dpl::sort;
+using oneapi::dpl::stable_sort;
+using oneapi::dpl::mismatch;
+using oneapi::dpl::equal;
+using oneapi::dpl::move;
+using oneapi::dpl::partial_sort;
+using oneapi::dpl::partial_sort_copy;
+using oneapi::dpl::is_sorted_until;
+using oneapi::dpl::is_sorted;
+using oneapi::dpl::nth_element;
+using oneapi::dpl::merge;
+using oneapi::dpl::inplace_merge;
+using oneapi::dpl::includes;
+using oneapi::dpl::set_union;
+using oneapi::dpl::set_intersection;
+using oneapi::dpl::set_difference;
+using oneapi::dpl::set_symmetric_difference;
+using oneapi::dpl::is_heap_until;
+using oneapi::dpl::is_heap;
+using oneapi::dpl::min_element;
+using oneapi::dpl::max_element;
+using oneapi::dpl::minmax_element;
+using oneapi::dpl::lexicographical_compare;
+} // namespace std
+
 #endif /* _TEST_SUPPORT_STDLIB_ALGORITHM */

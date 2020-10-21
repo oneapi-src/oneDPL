@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_iterator_defs_H
-#define _PSTL_iterator_defs_H
+#ifndef _ONEDPL_iterator_defs_H
+#define _ONEDPL_iterator_defs_H
 
 #include <iterator>
 #include <type_traits>
@@ -91,4 +91,4 @@ struct __is_random_access_iterator<_IteratorType> : __is_random_access_iterator_
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_iterator_defs_H */
+#endif /* _ONEDPL_iterator_defs_H */

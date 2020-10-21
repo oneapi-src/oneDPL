@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_UTILS_H
-#define _PSTL_UTILS_H
+#ifndef _ONEDPL_UTILS_H
+#define _ONEDPL_UTILS_H
 
 #include "pstl_config.h"
 
@@ -465,6 +465,16 @@ using __make_index_sequence = typename oneapi::dpl::__internal::__make_index_seq
 
 #endif /* _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT */
 
+// Required to support GNU libstdc++ below 5.x
+template <typename _Tp>
+using __has_trivial_copy_assignemnt =
+#if _PSTL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT
+    ::std::is_trivially_copy_assignable<
+#else
+    ::std::has_trivial_copy_assign<
+#endif /* _PSTL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT */
+        _Tp>;
+
 // Aliases for adjacent_find compile-time dispatching
 using __or_semantic = ::std::true_type;
 using __first_semantic = ::std::false_type;
@@ -473,4 +483,4 @@ using __first_semantic = ::std::false_type;
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_UTILS_H */
+#endif /* _ONEDPL_UTILS_H */

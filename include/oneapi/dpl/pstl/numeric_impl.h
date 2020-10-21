@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_NUMERIC_IMPL_H
-#define _PSTL_NUMERIC_IMPL_H
+#ifndef _ONEDPL_NUMERIC_IMPL_H
+#define _ONEDPL_NUMERIC_IMPL_H
 
 #include <cassert>
 #include <iterator>
@@ -25,9 +25,7 @@
 #include "unseq_backend_simd.h"
 #include "algorithm_fwd.h"
 
-#if _PSTL_USE_PAR_POLICIES
-#    include "parallel_backend.h"
-#endif
+#include "parallel_backend.h"
 
 namespace oneapi
 {
@@ -72,7 +70,6 @@ __pattern_transform_reduce(_ExecutionPolicy&&, _ForwardIterator1 __first1, _Forw
     return __brick_transform_reduce(__first1, __last1, __first2, __init, __binary_op1, __binary_op2, __is_vector);
 }
 
-#if _PSTL_USE_PAR_POLICIES
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Tp,
           class _BinaryOperation1, class _BinaryOperation2, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Tp>
@@ -95,7 +92,6 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
             });
     });
 }
-#endif
 
 //------------------------------------------------------------------------
 // transform_reduce (version with unary and binary functions)
@@ -134,7 +130,6 @@ __pattern_transform_reduce(_ExecutionPolicy&&, _ForwardIterator __first, _Forwar
     return __internal::__brick_transform_reduce(__first, __last, __init, __binary_op, __unary_op, __is_vector);
 }
 
-#if _PSTL_USE_PAR_POLICIES
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Tp>
@@ -151,7 +146,6 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
             });
     });
 }
-#endif
 
 //------------------------------------------------------------------------
 // transform_exclusive_scan
@@ -241,7 +235,6 @@ __pattern_transform_scan(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardI
         .first;
 }
 
-#if _PSTL_USE_PAR_POLICIES
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation, class _Inclusive, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
@@ -272,9 +265,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
         return __result + (__last - __first);
     });
 }
-#endif
 
-#if _PSTL_USE_PAR_POLICIES
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation, class _Inclusive, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
@@ -311,7 +302,6 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
         return __result + (__last - __first);
     });
 }
-#endif
 
 // transform_scan without initial element
 template <class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator, class _UnaryOperation,
@@ -374,7 +364,6 @@ __pattern_adjacent_difference(_ExecutionPolicy&&, _ForwardIterator __first, _For
     return __internal::__brick_adjacent_difference(__first, __last, __d_first, __op, __is_vector);
 }
 
-#if _PSTL_USE_PAR_POLICIES
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryOperation,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator2>
@@ -398,10 +387,9 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
         });
     return __d_first + (__last - __first);
 }
-#endif
 
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _PSTL_NUMERIC_IMPL_H */
+#endif /* _ONEDPL_NUMERIC_IMPL_H */

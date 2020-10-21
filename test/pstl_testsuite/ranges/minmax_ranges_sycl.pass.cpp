@@ -34,7 +34,7 @@ main()
     const int idx_val = 5;
     const int val = -1;
     data[idx_val] = val;
-    const int idx_max = max_n - 1; 
+    const int idx_max = max_n - 1;
 
     int res1 = -1, res2 = - 1, res3 = -1, res4 = -1, res5 = -1;
     ::std::pair<int, int> res_minmax1(-1, -1);
@@ -46,8 +46,8 @@ main()
 
         auto view = all_view(A);
 
-        auto exec = oneapi::dpl::execution::dpcpp_default;
-        using Policy = decltype(oneapi::dpl::execution::dpcpp_default);
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         //min element
         res1 = min_element(exec, view);
@@ -57,7 +57,7 @@ main()
         //max_element
         res4 = max_element(make_new_policy<new_kernel_name<Policy, 2>>(exec), view);
         res5 = max_element(make_new_policy<new_kernel_name<Policy, 3>>(exec), view, ::std::less<int>());
- 
+
         res_minmax1 = minmax_element(make_new_policy<new_kernel_name<Policy, 4>>(exec), view);
         res_minmax2 = minmax_element(make_new_policy<new_kernel_name<Policy, 5>>(exec), view, ::std::less<int>());
     }
