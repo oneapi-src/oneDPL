@@ -20,7 +20,7 @@ jobs:
       run: |
         URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }}/files"
         FILES=$(curl -s --request GET --get $URL |  jq -r '.[] | .filename' | grep ^include | grep -v nanorange\.hpp\$)
-        echo $FILES | xargs -n1 -t clang-format-6.0 --style=file -i
+        echo $FILES | xargs -n1 -t -r clang-format-6.0 --style=file -i
 
     - name: Creating diff
       run: git diff > clang-format-diff.diff
