@@ -1,0 +1,385 @@
+// -*- C++ -*-
+//===-- subtract_with_carry_std_template_test.cpp -------------------------===//
+//
+// Copyright (C) 2020 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+//
+// Abstract:
+//
+// Test of subtract_with_carry_engine - comparison with std::
+
+#include <iostream>
+#include <vector>
+#include <CL/sycl.hpp>
+#include <random>
+#include <oneapi/dpl/random>
+
+template<class UIntType, size_t w,
+                         size_t s,
+                         size_t r>
+int test(oneapi::dpl::internal::element_type_t<UIntType> seed, int nsamples) {
+
+    sycl::queue queue(sycl::default_selector{});
+
+    // memory allocation
+    std::vector<oneapi::dpl::internal::element_type_t<UIntType>> std_samples(nsamples);
+    std::vector<oneapi::dpl::internal::element_type_t<UIntType>> dpstd_samples(nsamples);
+    constexpr int num_elems = oneapi::dpl::internal::type_traits_t<UIntType>::num_elems == 0 ? 1 : oneapi::dpl::internal::type_traits_t<UIntType>::num_elems;
+
+    // dpstd generation
+    {
+        sycl::buffer<oneapi::dpl::internal::element_type_t<UIntType>, 1> dpstd_buffer(dpstd_samples.data(), nsamples);
+
+        queue.submit([&](sycl::handler &cgh) {
+            auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+            cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems),
+                    [=](sycl::item<1> idx) {
+
+                unsigned long long offset = idx.get_linear_id() * num_elems;
+                oneapi::dpl::subtract_with_carry_engine<UIntType, w, s, r> engine(seed, offset);
+
+                sycl::vec<oneapi::dpl::internal::element_type_t<UIntType>, num_elems> res = engine();
+                res.store(idx.get_linear_id(), dpstd_acc.get_pointer());
+            });
+        });
+        queue.wait();
+    }
+
+    // std generation
+    std::subtract_with_carry_engine<oneapi::dpl::internal::element_type_t<UIntType>, w, s, r> std_engine(seed);
+    for(int i = 0; i < nsamples; ++i)
+        std_samples[i] = std_engine();
+
+    // comparison
+    int err = 0;
+    for(int i = 0; i < nsamples; ++i) {
+        if (std_samples[i] != dpstd_samples[i]) {
+            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
+            err++;
+        }
+    }
+
+    if(err) {
+        std::cout << "\tFailed" << std::endl;
+    }
+    else{
+        std::cout << "\tPassed" << std::endl;
+    }
+
+    return err;
+}
+
+template<class UIntType, size_t w,
+                         size_t s,
+                         size_t r>
+int test_portion(oneapi::dpl::internal::element_type_t<UIntType> seed, int nsamples, unsigned int part) {
+
+    sycl::queue queue(sycl::default_selector{});
+
+    // memory allocation
+    std::vector<oneapi::dpl::internal::element_type_t<UIntType>> std_samples(nsamples);
+    std::vector<oneapi::dpl::internal::element_type_t<UIntType>> dpstd_samples(nsamples);
+
+    // Calculate n_wi
+    constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<UIntType>::num_elems == 0 ? 1 : oneapi::dpl::internal::type_traits_t<UIntType>::num_elems;
+    unsigned int n_elems = (part >= num_elems) ? num_elems : part;
+    // dpstd generation
+    {
+        sycl::buffer<oneapi::dpl::internal::element_type_t<UIntType>, 1> dpstd_buffer(dpstd_samples.data(), nsamples);
+
+        queue.submit([&](sycl::handler &cgh) {
+            auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+            cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems),
+                    [=](sycl::item<1> idx) {
+
+                unsigned long long offset = idx.get_linear_id() * n_elems;
+                oneapi::dpl::subtract_with_carry_engine<UIntType, w, s, r> engine(seed, offset);
+
+                auto res = engine(part);
+                for(int i = 0; i < n_elems; ++i)
+                    dpstd_acc.get_pointer()[offset + i] = res[i];
+            });
+        });
+        queue.wait();
+    }
+
+    // std generation
+    std::subtract_with_carry_engine<oneapi::dpl::internal::element_type_t<UIntType>, w, s, r> std_engine(seed);
+    for(int i = 0; i < nsamples; ++i)
+        std_samples[i] = std_engine();
+
+    // comparison
+    int err = 0;
+    for(int i = 0; i < nsamples; ++i) {
+        if (std_samples[i] != dpstd_samples[i]) {
+            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
+            err++;
+        }
+    }
+
+    if(err) {
+        std::cout << "\tFailed" << std::endl;
+    }
+    else {
+        std::cout << "\tPassed" << std::endl;
+    }
+
+    return err;
+}
+
+template<class Type>
+int tests_set(int nsamples) {
+    constexpr int nseeds = 3;
+    int64_t seed_array [nseeds] = {0, 777, 19780503u};
+
+    int err;
+    // Test for all non-zero parameters
+    for(int i = 0; i < nseeds; ++i) {
+        std::cout << "SWC test<Type, 24u, 10u, 24u>(" << seed_array[i] << ", "<< nsamples << ")";
+        err = test<Type, 24u, 10u, 24u>(seed_array[i], nsamples);
+        if(err) {
+            return 1;
+        }
+    }
+
+    // Test for zero addition parameter
+    for(int i = 0; i < nseeds; ++i) {
+        std::cout << "SWC test<Type, 24u, 5u, 12u>(" << seed_array[i] << ", "<< nsamples << ")";
+        err = test<Type, 24u, 5u, 12u>(seed_array[i], nsamples);
+        if(err) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+template<class Type>
+int tests_set_portion(int nsamples, unsigned int part) {
+    constexpr int nseeds = 2;
+    int64_t seed_array [nseeds] = {0, 19780503u};
+
+    int err;
+    // Test for all non-zero parameters
+    for(int i = 0; i < nseeds; ++i) {
+        std::cout << "SWC test_portion<Type, 24u, 10u, 24u>(" << seed_array[i] << ", "<< nsamples << ", " << part << ")";
+        err = test_portion<Type, 24u, 10u, 24u>(seed_array[i], nsamples, part);
+        if(err) {
+            return 1;
+        }
+    }
+
+    // Test for zero addition parameter
+    for(int i = 0; i < nseeds; ++i) {
+        std::cout << "SWC test_portion<Type, 24u, 5u, 12u>(" << seed_array[i] << ", "<< nsamples << ", " << part << ")";
+        err = test_portion<Type, 24u, 5u, 12u>(seed_array[i], nsamples, part);
+        if(err) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int main() {
+    constexpr int nsamples = 100;
+    int err;
+
+    // testing std::uint32_t
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "std::uint32_t Type" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err = tests_set<std::uint32_t>(nsamples);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing std::uint64_t
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "std::uint32_t Type" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<std::uint64_t>(nsamples);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint32_t, 1>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint32_t, 1>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint32_t, 1>>(nsamples);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 1>>(nsamples, 1);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint64_t, 1>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint64_t, 1>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint64_t, 1>>(nsamples);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 1>>(nsamples, 1);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint32_t, 2>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint32_t, 2>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint32_t, 2>>(nsamples);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 2>>(nsamples, 1);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint64_t, 2>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint64_t, 2>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint64_t, 2>>(nsamples);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 2>>(nsamples, 1);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint32_t, 3>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint32_t, 3>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint32_t, 3>>(99);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 3>>(100, 2);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint64_t, 3>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint64_t, 3>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint64_t, 3>>(99);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 3>>(100, 2);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint32_t, 4>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint32_t, 4>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint32_t, 4>>(100);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 4>>(300, 3);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint64_t, 4>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint64_t, 4>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint64_t, 4>>(100);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 4>>(300, 3);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint32_t, 8>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint32_t, 8>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint32_t, 8>>(400);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 8>>(400, 5);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint64_t, 8>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint64_t, 8>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint64_t, 8>>(400);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 8>>(400, 5);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint32_t, 16>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint32_t, 16>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint32_t, 16>>(400);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(400, 1);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(400, 2);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(3*100, 3);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(400, 4);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(400, 5);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(6*100, 6);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(7*100, 7);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(8*100, 8);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(9*100, 9);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(400, 10);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(110, 11);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(120, 12);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(130, 13);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(140, 14);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(150, 15);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(160, 16);
+    err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(160, 17);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    // testing sycl::vec<std::uint64_t, 16>
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "sycl::vec<std::uint64_t, 16>" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    err += tests_set<sycl::vec<std::uint64_t, 16>>(400);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(400, 1);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(400, 2);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(3*100, 3);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(400, 4);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(400, 5);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(6*100, 6);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(7*100, 7);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(8*100, 8);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(9*100, 9);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(400, 10);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(110, 11);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(120, 12);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(130, 13);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(140, 14);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(150, 15);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(160, 16);
+    err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(160, 17);
+    if(err) {
+        std::cout << "Test FAILED" << std::endl;
+        return 1;
+    }
+
+    std::cout << "Test PASSED" << std::endl;
+    return 0;
+}
