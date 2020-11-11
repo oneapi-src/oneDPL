@@ -31,7 +31,7 @@ BENCH_MAKEFILE = $(proj_root)/build/Makefile.bench
 recursive_wildcard = $(wildcard $(1)$(2)) $(foreach d,$(wildcard $(1)*),$(call recursive_wildcard,$(d)/,$(2)))
 
 test_hdr = $(wildcard $(proj_root)/test/support/*.h)
-test_src = $(call recursive_wildcard,$(proj_root)/test/,*.cpp)
+test_src = $(call recursive_wildcard,$(proj_root)/test/,*.pass.cpp)
 test_bin = $(notdir $(test_src:.cpp=.exe))
 VPATH += $(sort $(dir $(test_src)))
 
