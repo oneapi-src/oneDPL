@@ -1,6 +1,6 @@
 ##===-- Android.mk --------------------------------------------------------===##
 #
-# Copyright (C) 2017-2019 Intel Corporation
+# Copyright (C) 2017-2020 Intel Corporation
 #
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #

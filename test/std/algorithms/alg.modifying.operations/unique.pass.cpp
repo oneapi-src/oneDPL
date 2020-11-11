@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- unique.pass.cpp ---------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -155,6 +155,11 @@ main()
                                  });
 
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+
+    test<MemoryChecker>(
+        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx / 3)}; },
+        [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() == val2.value(); });
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from unique: number of ctor and dtor calls is not equal");
 
     std::cout << done() << std::endl;
     return 0;

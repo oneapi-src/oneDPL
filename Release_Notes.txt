@@ -24,13 +24,13 @@ Hardware - Recommended
     macOS* Systems
         Intel(R) Core(TM) processor family
     Android* Systems
-        Intel(R) Atom(TM) processor family
+        Intel Atom(R) processor family
 
 Hardware - Supported
 
     Intel(R) Pentium(R) 4 processor family
     Intel(R) Xeon Phi(TM) coprocessor
-    Intel(R) Atom(TM) processor family
+    Intel Atom(R) processor family
     Non Intel(R) processors compatible with the above processors
 
 Software - Minimum Requirements

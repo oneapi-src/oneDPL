@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -120,6 +120,14 @@ typename std::enable_if<std::is_floating_point<_Tp>::value, _OutputIterator>::ty
 __pattern_transform_scan(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator,
                          _UnaryOperation, _Tp, _BinaryOperation, _Inclusive, _IsVector, /*is_parallel=*/std::true_type);
 #endif
+
+// transform_scan without initial element
+template <class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator, class _UnaryOperation,
+          class _BinaryOperation, class _Inclusive, class _IsVector, class _IsParallel>
+_OutputIterator
+__pattern_transform_scan(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                         _OutputIterator __result, _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive,
+                         _IsVector __is_vector, _IsParallel __is_parallel);
 
 //------------------------------------------------------------------------
 // adjacent_difference

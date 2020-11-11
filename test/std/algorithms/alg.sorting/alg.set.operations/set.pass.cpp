@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- set.pass.cpp ------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -263,6 +263,10 @@ main()
     test_set<float64_t, float64_t>(pstl::__internal::__pstl_less());
     test_set<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; });
 
+    test_set<MemoryChecker, MemoryChecker>([](const MemoryChecker& val1, const MemoryChecker& val2) -> bool {
+        return val1.value() < val2.value();
+    });
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from set algorithms: number of ctor and dtor calls is not equal");
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_difference<int32_t>>());
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_intersection<int32_t>>());
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_symmetric_difference<int32_t>>());

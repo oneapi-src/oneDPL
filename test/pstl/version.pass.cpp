@@ -26,9 +26,9 @@ static_assert(_PSTL_VERSION_MAJOR == 10);
 static_assert(_PSTL_VERSION_MINOR == 00);
 static_assert(_PSTL_VERSION_PATCH == 0);
 
-static_assert(__INTEL_PSTL_VERSION == 211);
+static_assert(__INTEL_PSTL_VERSION == 212);
 static_assert(__INTEL_PSTL_VERSION_MAJOR == 2);
-static_assert(__INTEL_PSTL_VERSION_MINOR == 11);
+static_assert(__INTEL_PSTL_VERSION_MINOR == 12);
 
 int main() {
     std::cout << TestUtils::done() << std::endl;

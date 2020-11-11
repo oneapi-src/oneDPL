@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -167,9 +167,11 @@ __brick_transform_scan(_ForwardIterator __first, _ForwardIterator __last, _Outpu
 {
     for (; __first != __last; ++__first, ++__result)
     {
+        // Copy the value pointed to by __first to avoid overwriting it when __result == __first
+        _Tp __temp = *__first;
         *__result = __init;
         _PSTL_PRAGMA_FORCEINLINE
-        __init = __binary_op(__init, __unary_op(*__first));
+        __init = __binary_op(__init, __unary_op(__temp));
     }
     return std::make_pair(__result, __init);
 }
@@ -306,6 +308,28 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
     });
 }
 #endif
+
+// transform_scan without initial element
+template <class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator, class _UnaryOperation,
+          class _BinaryOperation, class _Inclusive, class _IsVector, class _IsParallel>
+_OutputIterator
+__pattern_transform_scan(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                         _OutputIterator __result, _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive,
+                         _IsVector __is_vector, _IsParallel __is_parallel)
+{
+    typedef typename std::iterator_traits<_ForwardIterator>::value_type _ValueType;
+    if (__first != __last)
+    {
+        _ValueType __tmp = __unary_op(*__first);
+        *__result = __tmp;
+        return __pattern_transform_scan(std::forward<_ExecutionPolicy>(__exec), ++__first, __last, ++__result,
+                                        __unary_op, __tmp, __binary_op, _Inclusive(), __is_vector, __is_parallel);
+    }
+    else
+    {
+        return __result;
+    }
+}
 
 
 //------------------------------------------------------------------------

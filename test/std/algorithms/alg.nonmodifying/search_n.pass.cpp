@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- search_n.pass.cpp -------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -95,11 +95,6 @@ test()
         std::size_t res[] = {0, 1, n1 / 2, n1};
         for (auto n2 : sub_n)
         {
-            // Some of standard libraries return "first" in this case. We return "last" according to the standard
-            if (n2 == 0)
-            {
-                continue;
-            }
             for (auto r : res)
             {
                 Sequence<T> in(n1, [n1](std::size_t k) { return T(0); });

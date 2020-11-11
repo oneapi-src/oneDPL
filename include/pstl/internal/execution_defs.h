@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -161,6 +161,15 @@ template <class ExecPolicy, class T>
 using __enable_if_execution_policy =
     typename std::enable_if<pstl::execution::is_execution_policy<typename std::decay<ExecPolicy>::type>::value,
                             T>::type;
+
+template <typename _ExecPolicy, typename _T>
+struct __ref_or_copy_impl
+{
+    using type = const _T&;
+};
+
+template <typename _ExecPolicy, typename _T>
+using __ref_or_copy = typename pstl::__internal::__ref_or_copy_impl<typename std::decay<_ExecPolicy>::type, _T>::type;
 } // namespace __internal
 
 } // namespace pstl

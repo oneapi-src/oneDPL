@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -1265,6 +1265,30 @@ template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, c
 _RandomAccessIterator
 __pattern_is_heap_until(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare, _IsVector,
                         /* is_parallel = */ std::true_type);
+#endif
+
+//------------------------------------------------------------------------
+// is_heap
+//------------------------------------------------------------------------
+
+template <class _RandomAccessIterator, class _Compare>
+bool __brick_is_heap(_RandomAccessIterator, _RandomAccessIterator, _Compare,
+                     /* __is_vector = */ std::false_type) noexcept;
+
+template <class _RandomAccessIterator, class _Compare>
+bool __brick_is_heap(_RandomAccessIterator, _RandomAccessIterator, _Compare,
+                     /* __is_vector = */ std::true_type) noexcept;
+
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
+bool
+__pattern_is_heap(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare, _IsVector,
+                  /* is_parallel = */ std::false_type) noexcept;
+
+#if _PSTL_USE_PAR_POLICIES
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
+bool
+__pattern_is_heap(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare, _IsVector,
+                  /* is_parallel = */ std::true_type);
 #endif
 
 //------------------------------------------------------------------------

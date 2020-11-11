@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -18,6 +18,7 @@
 
 #include "execution_defs.h"
 #include "utils.h"
+#include "memory_fwd.h"
 #include "algorithm_fwd.h"
 
 #include "execution_impl.h"

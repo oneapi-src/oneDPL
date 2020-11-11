@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- remove.pass.cpp ---------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -154,6 +154,12 @@ main()
 #endif
 
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+
+    test<MemoryChecker>(MemoryChecker{0}, MemoryChecker{1},
+        [](const MemoryChecker& val){ return val.value() == 1; },
+        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx % 3 == 0)}; }
+    );
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from remove,remove_if: number of ctor and dtor calls is not equal");
 
     std::cout << done() << std::endl;
     return 0;

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- inplace_merge.pass.cpp --------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -153,6 +153,12 @@ main()
                                           std::less<LocalWrapper<float32_t>>());
 
     test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
+
+    test_by_type<MemoryChecker>(
+        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx * 2)}; },
+        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx * 2 + 1)}; },
+        [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() < val2.value(); });
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from inplace_merge: number of ctor and dtor calls is not equal");
 
     std::cout << done() << std::endl;
     return 0;

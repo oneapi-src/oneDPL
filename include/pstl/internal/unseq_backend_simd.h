@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -21,7 +21,7 @@
 #include "utils.h"
 
 // This header defines the minimum set of vector routines required
-// to support parallel STL.
+// to support Parallel STL.
 namespace pstl
 {
 namespace __unseq_backend
@@ -74,14 +74,14 @@ __simd_walk_3(_Iterator1 __first1, _DifferenceType __n, _Iterator2 __first2, _It
 // TODO: check whether __simd_first() can be used here
 template <class _Index, class _DifferenceType, class _Pred>
 bool
-__simd_or(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
+__simd_or_impl(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
 {
 #if _PSTL_EARLYEXIT_PRESENT
     _DifferenceType __i;
     _PSTL_PRAGMA_VECTOR_UNALIGNED
     _PSTL_PRAGMA_SIMD_EARLYEXIT
     for (__i = 0; __i < __n; ++__i)
-        if (__pred(__first[__i]))
+        if (__pred(__first + __i))
             break;
     return __i < __n;
 #else
@@ -92,7 +92,7 @@ __simd_or(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
         int32_t __flag = 1;
         _PSTL_PRAGMA_SIMD_REDUCTION(& : __flag)
         for (_DifferenceType __i = 0; __i < __block_size; ++__i)
-            if (__pred(*(__first + __i)))
+            if (__pred(__first + __i))
                 __flag = 0;
         if (!__flag)
             return true;
@@ -110,6 +110,20 @@ __simd_or(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
     }
     return false;
 #endif
+}
+
+template <class _Index, class _DifferenceType, class _Pred>
+bool
+__simd_or(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
+{
+    return __unseq_backend::__simd_or_impl(__first, __n, [&__pred](_Index __it) { return __pred(*__it); });
+}
+
+template <class _Index, class _DifferenceType, class _Pred>
+bool
+__simd_or_iter(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
+{
+    return __unseq_backend::__simd_or_impl(__first, __n, __pred);
 }
 
 template <class _Index, class _DifferenceType, class _Compare>

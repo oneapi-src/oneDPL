@@ -1,6 +1,22 @@
 ------------------------------------------------------------------------
 The list of most significant changes made over time in Parallel STL.
 
+Parallel STL release within Intel(R) Parallel Studio XE 2020 Update 4
+__INTEL_PSTL_VERSION == 212
+
+Features / APIs:
+
+- Improved performance in is_heap, includes, partial_sort algorithms.
+
+Bugs fixed:
+
+- Fixed search_n to return the first element if the requested
+    value count is zero or negative.
+- Usage of non-trivial types is fixed for the following
+    algorithms: remove_if, unique, rotate, partial_sort_copy,
+    set_intersection, set_union, set_difference, set_symmetric_difference.
+
+------------------------------------------------------------------------
 Parallel STL release within Intel(R) Parallel Studio XE 2020 Update 1
 __INTEL_PSTL_VERSION == 211
 

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- rotate.pass.cpp ---------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -171,6 +171,8 @@ main()
 {
     test<int32_t>();
     test<wrapper<float64_t>>();
+    test<MemoryChecker>();
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from rotate: number of ctor and dtor calls is not equal");
 
     std::cout << done() << std::endl;
     return 0;

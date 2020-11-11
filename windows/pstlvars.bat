@@ -1,7 +1,7 @@
 @echo off
 REM ===-- pstlvars.bat ------------------------------------------------------===##
 REM
-REM Copyright (C) 2017-2019 Intel Corporation
+REM Copyright (C) 2017-2020 Intel Corporation
 REM
 REM SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 REM

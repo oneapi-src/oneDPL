@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- utils.cpp ---------------------------------------------------------===//
 //
-// Copyright (C) 2017-2019 Intel Corporation
+// Copyright (C) 2017-2020 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -89,7 +89,7 @@ void image::write(const char* fname) const {
 
     assert(my_width > 0 && my_height > 0);
 
-    std::ofstream stream(fname);
+    std::ofstream stream(fname, std::ios::binary);
 
     assert(file.sizeRest == sizeof(file)-sizeof(file.sizeRest));
     stream.write((char*)&file.type, file.sizeRest);

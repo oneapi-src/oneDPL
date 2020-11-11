@@ -24,7 +24,7 @@
 #define _PSTL_VERSION_PATCH (_PSTL_VERSION % 10)
 
 // The version of the Parallel STL implementation released by Intel
-#define __INTEL_PSTL_VERSION 211
+#define __INTEL_PSTL_VERSION 212
 #define __INTEL_PSTL_VERSION_MAJOR (__INTEL_PSTL_VERSION / 100)
 #define __INTEL_PSTL_VERSION_MINOR (__INTEL_PSTL_VERSION % 100)
 
@@ -184,9 +184,8 @@
 // broken macros
 #define _PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
 
-// Some  C++ standard libraries (GCC 9.1(2) and Clang 9) contain 'exclusive_scan' declaration (version with binary_op)
+// Some  C++ standard libraries contain 'exclusive_scan' declaration (version with binary_op)
 // w/o "enable_if". So, a call 'exclusive_scan' may be ambiguous in case of a custom policy using.
-#define _PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY                                                                  \
-    ((_PSTL_GCC_VERSION == 90101 || _PSTL_GCC_VERSION == 90201 || __clang_major__ == 9) && __cplusplus >= 201703L)
+#define _PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)
 
 #endif /* _PSTL_CONFIG_H */
