@@ -13,6 +13,7 @@
 ##===----------------------------------------------------------------------===##
 
 cmake_minimum_required(VERSION 3.4.3)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(PARALLELSTL_VERSION_FILE "include/oneapi/dpl/pstl/pstl_config.h")
 file(STRINGS "${PARALLELSTL_VERSION_FILE}" PARALLELSTL_VERSION_SOURCE REGEX "#define __INTEL_PSTL_VERSION .*$")
@@ -29,6 +30,7 @@ option(PARALLELSTL_FPGA_STATIC_REPORT "Enable the static report generation for t
 set(PARALLELSTL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
 
 include(CMakePackageConfigHelpers)
+include(CheckCXXCompilerFlag)
 
 if (NOT TBB_DIR)
     get_filename_component(PSTL_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
