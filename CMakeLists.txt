@@ -15,63 +15,45 @@
 cmake_minimum_required(VERSION 3.4.3)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-set(PARALLELSTL_VERSION_FILE "include/oneapi/dpl/pstl/pstl_config.h")
-file(STRINGS "${PARALLELSTL_VERSION_FILE}" PARALLELSTL_VERSION_SOURCE REGEX "#define __INTEL_PSTL_VERSION .*$")
-string(REGEX REPLACE "#define __INTEL_PSTL_VERSION (.*)$" "\\1" PARALLELSTL_VERSION_SOURCE "${PARALLELSTL_VERSION_SOURCE}")
-math(EXPR VERSION_MAJOR "${PARALLELSTL_VERSION_SOURCE} / 100")
-math(EXPR VERSION_MINOR "${PARALLELSTL_VERSION_SOURCE} % 100")
+project(oneDPL VERSION 2021.1 LANGUAGES CXX)
 
-project(ParallelSTL VERSION ${VERSION_MAJOR}.${VERSION_MINOR} LANGUAGES CXX)
-
-option(PARALLELSTL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
-option(PARALLELSTL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
-option(PARALLELSTL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
-option(PARALLELSTL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
-set(PARALLELSTL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
+option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
+option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
+option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
+option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
+set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
 
-if (NOT TBB_DIR)
-    get_filename_component(PSTL_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    string(REPLACE pstl tbb TBB_DIR_NAME ${PSTL_DIR_NAME})
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${TBB_DIR_NAME}/cmake")
-        get_filename_component(TBB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${TBB_DIR_NAME}/cmake" ABSOLUTE)
-    endif()
-endif()
-
 ###############################################################################
-# Setup the ParallelSTL library target
+# Setup the oneDPL library target
 ###############################################################################
-add_library(ParallelSTL INTERFACE)
-add_library(pstl::ParallelSTL ALIAS ParallelSTL)
+add_library(oneDPL INTERFACE)
+add_library(oneAPI::DPL ALIAS oneDPL)
 
 # Build type by default
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(PARALLELSTL_USE_DEBUG_MODE TRUE)
-endif()
 
 # Parallel STL test macro
-target_compile_definitions(ParallelSTL INTERFACE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
+target_compile_definitions(oneDPL INTERFACE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
 
-if (PARALLELSTL_USE_PARALLEL_POLICIES)
+if (ONEDPL_USE_PARALLEL_POLICIES)
     message(STATUS "Using Parallel Policies")
-    if (PARALLELSTL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
-        string(TOUPPER "PARALLELSTL_BACKEND" PARALLELSTL_BACKEND_NAME)
-        set(USE_${PARALLELSTL_BACKEND_NAME}_BACKEND TRUE)
+    if (ONEDPL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
+        string(TOUPPER "ONEDPL_BACKEND" ONEDPL_BACKEND_NAME)
+        set(USE_${ONEDPL_BACKEND_NAME}_BACKEND TRUE)
 
         # prepare TBB
-        find_package(TBB 2018 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
-        message(STATUS "Parallel STL uses TBB ${TBB_VERSION} (interface version: ${TBB_INTERFACE_VERSION})")
-        target_link_libraries(ParallelSTL INTERFACE TBB::tbb)
-        target_compile_definitions(ParallelSTL INTERFACE    
-            _PSTL_TEST_SUCCESSFUL_KEYWORD=1
-            $<$<BOOL:${PARALLELSTL_USE_DEBUG_MODE}>:TBB_USE_DEBUG=1>
-            $<$<BOOL:${PARALLELSTL_USE_DEBUG_MODE}>:PSTL_USE_DEBUG>
+        find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
+        message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
+        target_link_libraries(oneDPL INTERFACE TBB::tbb)
+        target_compile_definitions(oneDPL INTERFACE
+            $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
+            $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
             $<$<BOOL:${USE_SYCL_ONLY_BACKEND}>:ONEDPL_USE_TBB_BACKEND=0> 
             $<$<BOOL:${USE_TBB_BACKEND}>:ONEDPL_USE_DPCPP_BACKEND=0>
             )
@@ -84,18 +66,20 @@ if (PARALLELSTL_USE_PARALLEL_POLICIES)
 
         # DPC++ specific settings
         if (CMAKE_CXX_COMPILER MATCHES "dpcpp")
-            # Check correctness of PARALLELSTL_DEVICE_TYPE
-            if(NOT PARALLELSTL_DEVICE_TYPE)
-                message(WARNING "Device type hasn't defined: the default compile/link options are used")
-                set(PARALLELSTL_DEVICE_TYPE "GPU")
-                set(USE_GPU TRUE)
-            elseif(PARALLELSTL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_HW|FPGA_EMU?)$")
-                message(STATUS "Compile/link options for ${PARALLELSTL_DEVICE_TYPE} are used")
-                set(USE_${PARALLELSTL_DEVICE_TYPE} TRUE)
+            if (NOT ONEDPL_DEVICE_TYPE)
+                set(ONEDPL_DEVICE_TYPE "GPU")
+            endif()
+
+            if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_HW|FPGA_EMU?)$")
+                message(STATUS "Compiling for device type: ${ONEDPL_DEVICE_TYPE}")
+                set(USE_${ONEDPL_DEVICE_TYPE} TRUE)
+            else()
+                # TODO: print list of supported devices.
+                message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}")
             endif()
 
             # Check correctness of STATIC_REPORT
-            if(PARALLELSTL_FPGA_STATIC_REPORT)
+            if(ONEDPL_FPGA_STATIC_REPORT)
                 set(ENABLE_STATIC_REPORT 1)
                 if(NOT USE_FPGA_HW)
                     message(FATAL_ERROR "Static report can only be generated for FPGA hardware")
@@ -105,20 +89,20 @@ if (PARALLELSTL_USE_PARALLEL_POLICIES)
             endif()
 
             # DPC++ specific compiler options
-            target_compile_options(ParallelSTL INTERFACE
-                $<$<BOOL:${PARALLELSTL_USE_UNNAMED_LAMBDA}>:-fsycl-unnamed-lambda>
+            target_compile_options(oneDPL INTERFACE
+                $<$<BOOL:${ONEDPL_USE_UNNAMED_LAMBDA}>:-fsycl-unnamed-lambda>
                 $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>>:-fintelfpga>
                 )
 
             # DPC++ specific macro
-            target_compile_definitions(ParallelSTL INTERFACE
-                $<$<BOOL:${PARALLELSTL_USE_RANGES_API}>:_ONEDPL_USE_RANGES=1>
+            target_compile_definitions(oneDPL INTERFACE
+                $<$<BOOL:${ONEDPL_USE_RANGES_API}>:_ONEDPL_USE_RANGES=1>
                 $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
                 $<$<BOOL:${USE_FPGA_EMU}>:ONEDPL_FPGA_EMULATOR>
                 )
             
             # DPC++ specific link options
-            target_link_libraries(ParallelSTL INTERFACE
+            target_link_libraries(oneDPL INTERFACE
                 $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>>:-Xshardware>
                 # TODO: make correct option set for FPGA
                 # $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>,$<NOT:${ENABLE_STATIC_REPORT}>>:-fsycl-link>
@@ -126,30 +110,30 @@ if (PARALLELSTL_USE_PARALLEL_POLICIES)
         endif()
 
     else()
-        message(STATUS "Using Parallel Policies, but not tbb/dpc++")
-        if (TARGET ${PARALLELSTL_BACKEND})
-            target_link_libraries(ParallelSTL INTERFACE ${PARALLELSTL_BACKEND})
+        message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
+        if (TARGET ${ONEDPL_BACKEND})
+            target_link_libraries(oneDPL INTERFACE ${ONEDPL_BACKEND})
         else()
-            find_package(${PARALLELSTL_BACKEND} REQUIRED)
-            target_link_libraries(ParallelSTL INTERFACE ${${PARALLELSTL_BACKEND}_IMPORTED_TARGETS})
+            find_package(${ONEDPL_BACKEND} REQUIRED)
+            target_link_libraries(oneDPL INTERFACE ${${ONEDPL_BACKEND}_IMPORTED_TARGETS})
         endif()
     endif()
 
 else()
-    target_compile_definitions(ParallelSTL INTERFACE
+    target_compile_definitions(oneDPL INTERFACE
         PSTL_USE_PARALLEL_POLICIES=0
         ONEDPL_USE_TBB_BACKEND=0
         ONEDPL_USE_DPCPP_BACKEND=0
         )
 endif()
 
-target_include_directories(ParallelSTL
+target_include_directories(oneDPL
     INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     $<INSTALL_INTERFACE:stdlib>)
 
-target_compile_features(ParallelSTL
+target_compile_features(oneDPL
     INTERFACE
     cxx_constexpr
     cxx_inline_namespaces)
@@ -159,29 +143,3 @@ target_compile_features(ParallelSTL
 ###############################################################################
 enable_testing()
 add_subdirectory(test)
-
-###############################################################################
-# Install the target and the associated CMake files
-###############################################################################
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfigVersion.cmake"
-                                 COMPATIBILITY ExactVersion)
-
-configure_file(cmake/ParallelSTLConfig.cmake.in
-               "${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfig.cmake"
-               @ONLY)
-
-install(TARGETS ParallelSTL
-        EXPORT ParallelSTLTargets)
-install(EXPORT ParallelSTLTargets
-        FILE ParallelSTLTargets.cmake
-        NAMESPACE pstl::
-        DESTINATION lib/cmake/ParallelSTL)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfig.cmake"
-              "${CMAKE_CURRENT_BINARY_DIR}/ParallelSTLConfigVersion.cmake"
-        DESTINATION lib/cmake/ParallelSTL)
-install(DIRECTORY include/pstl
-        DESTINATION include)
-
-add_custom_target(install-pstl
-                  COMMAND "${CMAKE_COMMAND}" -P "${PROJECT_BINARY_DIR}/cmake_install.cmake" -DCOMPONENT=ParallelSTL)
