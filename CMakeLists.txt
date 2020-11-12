@@ -60,7 +60,10 @@ target_compile_definitions(ParallelSTL INTERFACE _PSTL_TEST_SUCCESSFUL_KEYWORD=1
 
 if (PARALLELSTL_USE_PARALLEL_POLICIES)
     message(STATUS "Using Parallel Policies")
-    if (PARALLELSTL_BACKEND MATCHES "^(tbb|sycl)$")
+    if (PARALLELSTL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
+        string(TOUPPER "PARALLELSTL_BACKEND" PARALLELSTL_BACKEND_NAME)
+        set(USE_${PARALLELSTL_BACKEND_NAME}_BACKEND TRUE)
+
         # prepare TBB
         find_package(TBB 2018 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
         message(STATUS "Parallel STL uses TBB ${TBB_VERSION} (interface version: ${TBB_INTERFACE_VERSION})")
@@ -69,6 +72,8 @@ if (PARALLELSTL_USE_PARALLEL_POLICIES)
             _PSTL_TEST_SUCCESSFUL_KEYWORD=1
             $<$<BOOL:${PARALLELSTL_USE_DEBUG_MODE}>:TBB_USE_DEBUG=1>
             $<$<BOOL:${PARALLELSTL_USE_DEBUG_MODE}>:PSTL_USE_DEBUG>
+            $<$<BOOL:${USE_SYCL_ONLY_BACKEND}>:ONEDPL_USE_TBB_BACKEND=0> 
+            $<$<BOOL:${USE_TBB_BACKEND}>:ONEDPL_USE_DPCPP_BACKEND=0>
             )
 
         # check compiler in case with DPC++
@@ -77,18 +82,21 @@ if (PARALLELSTL_USE_PARALLEL_POLICIES)
             message(STATUS "Compiler doesn't support SYCL extensions")
         endif()
 
-        # Check correctness of BENCH_DEVICE_TYPE
-        if(NOT PARALLELSTL_DEVICE_TYPE)
-            message(WARNING "Device type hasn't defined: the default compile/link options are used")
-        elseif(PARALLELSTL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_HW|FPGA_EMU?)$")
-            message(STATUS "Compile/link options for ${PARALLELSTL_DEVICE_TYPE} are used")
-            set(USE_${PARALLELSTL_DEVICE_TYPE} TRUE)
-        endif()
-
         # DPC++ specific settings
         if (CMAKE_CXX_COMPILER MATCHES "dpcpp")
+            # Check correctness of PARALLELSTL_DEVICE_TYPE
+            if(NOT PARALLELSTL_DEVICE_TYPE)
+                message(WARNING "Device type hasn't defined: the default compile/link options are used")
+                set(PARALLELSTL_DEVICE_TYPE "GPU")
+                set(USE_GPU TRUE)
+            elseif(PARALLELSTL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_HW|FPGA_EMU?)$")
+                message(STATUS "Compile/link options for ${PARALLELSTL_DEVICE_TYPE} are used")
+                set(USE_${PARALLELSTL_DEVICE_TYPE} TRUE)
+            endif()
+
             # Check correctness of STATIC_REPORT
             if(PARALLELSTL_FPGA_STATIC_REPORT)
+                set(ENABLE_STATIC_REPORT 1)
                 if(NOT USE_FPGA_HW)
                     message(FATAL_ERROR "Static report can only be generated for FPGA hardware")
                 else()
@@ -112,7 +120,8 @@ if (PARALLELSTL_USE_PARALLEL_POLICIES)
             # DPC++ specific link options
             target_link_libraries(ParallelSTL INTERFACE
                 $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>>:-Xshardware>
-                $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>,$<NOT:${PARALLELSTL_FPGA_STATIC_REPORT}>>:-fsycl-link>
+                # TODO: make correct option set for FPGA
+                # $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>,$<NOT:${ENABLE_STATIC_REPORT}>>:-fsycl-link>
                 )
         endif()
 
