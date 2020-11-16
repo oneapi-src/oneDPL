@@ -45,44 +45,43 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
     message(STATUS "Using Parallel Policies")
     if (ONEDPL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
         string(TOUPPER "ONEDPL_BACKEND" ONEDPL_BACKEND_NAME)
-        set(USE_${ONEDPL_BACKEND_NAME}_BACKEND TRUE)
+        set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
-        # prepare TBB
-        find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
+        if (ONEDPL_BACKEND MATCHES "^(tbb|sycl)$")
+            find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
+            message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
+            target_link_libraries(oneDPL INTERFACE TBB::tbb)
+        endif()
 
-        message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
-        target_link_libraries(oneDPL INTERFACE TBB::tbb)
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
             $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
-            $<$<BOOL:${USE_SYCL_ONLY_BACKEND}>:ONEDPL_USE_TBB_BACKEND=0> 
-            $<$<BOOL:${USE_TBB_BACKEND}>:ONEDPL_USE_DPCPP_BACKEND=0>
+            $<$<BOOL:${ONEDPL_USE_BACKEND_SYCL_ONLY}>:ONEDPL_USE_TBB_BACKEND=0> 
+            $<$<BOOL:${ONEDPL_USE_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
             )
 
-        # check compiler in case with DPC++
-        check_cxx_compiler_flag("-fsycl" CXX_COMPILER_OPTION_FSYCL)
-        if(NOT CXX_COMPILER_OPTION_FSYCL)
-            message(STATUS "Compiler doesn't support SYCL extensions")
-        endif()
+        if (ONEDPL_BACKEND MATCHES "^(sycl|sycl_only)$")
+            check_cxx_compiler_flag("-fsycl" _fsycl_option)
+            if (NOT _fsycl_option)
+                message(FATAL_ERROR "Compiler doesn't support SYCL extensions (-fsycl option). "
+                "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
+            endif()
 
-        # DPC++ specific settings
-        if (CMAKE_CXX_COMPILER MATCHES "dpcpp")
             if (NOT ONEDPL_DEVICE_TYPE)
                 set(ONEDPL_DEVICE_TYPE "GPU")
             endif()
 
             if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_HW|FPGA_EMU?)$")
                 message(STATUS "Compiling for device type: ${ONEDPL_DEVICE_TYPE}")
-                set(USE_${ONEDPL_DEVICE_TYPE} TRUE)
+                set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
             else()
                 # TODO: print list of supported devices.
                 message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}")
             endif()
 
             # Check correctness of STATIC_REPORT
-            if(ONEDPL_FPGA_STATIC_REPORT)
-                set(ENABLE_STATIC_REPORT 1)
-                if(NOT USE_FPGA_HW)
+            if (ONEDPL_FPGA_STATIC_REPORT)
+                if (NOT ONEDPL_USE_DEVICE_FPGA_HW)
                     message(FATAL_ERROR "Static report can only be generated for FPGA hardware")
                 else()
                     message(STATUS "Static report will be generated")
@@ -92,21 +91,21 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             # DPC++ specific compiler options
             target_compile_options(oneDPL INTERFACE
                 $<$<BOOL:${ONEDPL_USE_UNNAMED_LAMBDA}>:-fsycl-unnamed-lambda>
-                $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>>:-fintelfpga>
+                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
                 )
 
             # DPC++ specific macro
             target_compile_definitions(oneDPL INTERFACE
                 $<$<BOOL:${ONEDPL_USE_RANGES_API}>:_ONEDPL_USE_RANGES=1>
-                $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
-                $<$<BOOL:${USE_FPGA_EMU}>:ONEDPL_FPGA_EMULATOR>
+                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
+                $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>:ONEDPL_FPGA_EMULATOR>
                 )
             
             # DPC++ specific link options
             target_link_libraries(oneDPL INTERFACE
-                $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>>:-Xshardware>
+                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>>:-Xshardware>
                 # TODO: make correct option set for FPGA
-                # $<$<OR:$<BOOL:${USE_FPGA_HW}>,$<BOOL:${USE_FPGA_EMU}>,$<NOT:${ENABLE_STATIC_REPORT}>>:-fsycl-link>
+                # $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>,$<NOT:$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>>:-fsycl-link>
                 )
         endif()
 
@@ -119,7 +118,6 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             target_link_libraries(oneDPL INTERFACE ${${ONEDPL_BACKEND}_IMPORTED_TARGETS})
         endif()
     endif()
-
 else()
     target_compile_definitions(oneDPL INTERFACE
         PSTL_USE_PARALLEL_POLICIES=0
