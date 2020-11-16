@@ -117,7 +117,7 @@ ifdef extra_def_macros
     EXTRA_DEF_MACROS = $(patsubst %,$(KEY)D%, $(extra_def_macros))
 endif
 
-override INCLUDES += $(KEY)I$(proj_root)/include $(KEY)I$(proj_root)/test $(KEY)I$(proj_root)/stdlib
+override INCLUDES += $(KEY)I$(proj_root)/include $(KEY)I$(proj_root)/test/pstl_testsuite $(KEY)I$(proj_root)/stdlib
 
 TEST_MACRO += $(KEY)D_PSTL_TEST_SUCCESSFUL_KEYWORD=1
 
