@@ -1,0 +1,118 @@
+##===-- Makefile.common ---------------------------------------------------===##
+#
+# Copyright (C) 2017-2020 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
+
+#------------------------------------------------------------------------------
+# Define common parts for Parallel STL
+#------------------------------------------------------------------------------
+
+.SUFFIXES:
+
+goals = $(or $(MAKECMDGOALS),all)
+ifneq (, $(filter-out clean clean_all,$(goals)))
+    ifeq (, $(filter $(backend), tbb))
+        $(info Threading backend was not specified; using TBB)
+        backend=tbb
+    endif
+endif
+
+ifndef os_name
+  # Windows sets environment variable OS; for other systems, ask uname
+  ifeq ($(OS),)
+    OS:=$(shell uname)
+    ifeq ($(OS),)
+      $(error "Cannot detect operating system")
+    endif
+    os_name=$(OS)
+  endif
+
+  ifeq ($(OS), Windows_NT)
+    os_name=windows
+  endif
+  ifeq ($(OS), Linux)
+    os_name=linux
+  endif
+  ifeq ($(OS), Darwin)
+    os_name=macos
+  endif
+endif # !os_name
+
+cfg ?= release
+stdver ?= c++11
+
+override INCLUDES += -I$(proj_root)/include -I$(proj_root)/test -I$(proj_root)/stdlib
+
+TEST_MACRO += -D_PSTL_TEST_SUCCESSFUL_KEYWORD=1
+
+ifeq ($(backend), tbb)
+    BACKEND_MACRO += -D_PSTL_PAR_BACKEND_TBB
+endif
+
+target ?= $(os_name)
+#OS specific keys
+ifeq ($(target),windows)
+    ifneq (, $(filter $(compiler), gcc g++))
+        include $(proj_root)/make/mingw.inc
+    else
+        include $(proj_root)/make/windows.inc
+    endif
+else
+    include $(proj_root)/make/unix.inc
+    ifneq (,$(wildcard $(proj_root)/make/$(target).inc))
+        include $(proj_root)/make/$(target).inc
+        $(info included additional file $(proj_root)/make/$(target).inc)
+    endif
+endif
+
+# compiler specific keys
+ifneq (, $(filter $(compiler), gcc g++))
+    include $(proj_root)/make/gcc.inc
+endif
+
+ifneq (, $(filter $(compiler), clang clang++))
+    include $(proj_root)/make/clang.inc
+endif
+
+ifneq (, $(filter $(compiler), icc icpc))
+    include $(proj_root)/make/icc.inc
+endif
+
+ifneq (, $(filter $(compiler), icl))
+    include $(proj_root)/make/icl.inc
+endif
+
+
+OPTIMIZATION_ENABLED_FLAGS += $(XHOST_FLAG)
+OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG)
+
+
+ifeq ($(cfg), debug)
+    TBB_LIB_NAME = tbb_debug
+    BACKEND_MACRO += -DTBB_USE_DEBUG=1
+    DEBUG_MACRO += -DPSTL_USE_DEBUG
+    OPTIMIZATION_KEYS = $(OPTIMIZATION_DISABLED_FLAGS)
+else
+    OPTIMIZATION_KEYS = $(OPTIMIZATION_ENABLED_FLAGS)
+endif
+
+DYN_LDFLAGS += $(PSTL_ARCH)
+
+CPLUS_FLAGS += $(TEST_MACRO)
+CPLUS_FLAGS += $(INCLUDES)
+CPLUS_FLAGS += $(BACKEND_MACRO)
+CPLUS_FLAGS += $(DEBUG_MACRO)
+CPLUS_FLAGS += $(CXXFLAGS)
+CPLUS_FLAGS += $(OPTIMIZATION_KEYS)
+
+CPLUS_FLAGS += $(DISABLED_WARNINGS)
+CPLUS_FLAGS += $(PSTL_ARCH)

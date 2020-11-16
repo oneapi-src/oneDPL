@@ -1,0 +1,104 @@
+##===-- Makefile ----------------------------------------------------------===##
+#
+# Copyright (C) 2017-2020 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
+
+#------------------------------------------------------------------------------
+# Define rules for making the Parallel STL library.
+#------------------------------------------------------------------------------
+
+
+proj_root ?= $(CURDIR)/..
+
+include $(proj_root)/make/Makefile.common
+CPLUS := $(compiler) $(COMPILER_NOLOGO_KEY) $(USE_SHARED_CPPRUNTIME_KEY)
+
+.SECONDARY:
+.PHONY: clean clean_all clean_pstl bench
+
+PSTL_MAKEFILE = $(proj_root)/make/Makefile.pstl
+BENCH_MAKEFILE = $(proj_root)/make/Makefile.bench
+
+recursive_wildcard = $(wildcard $(1)$(2)) $(foreach d,$(wildcard $(1)*),$(call recursive_wildcard,$(d)/,$(2)))
+
+test_hdr = $(wildcard $(proj_root)/test/support/*.h)
+test_src = $(call recursive_wildcard,$(proj_root)/test/,*.pass.cpp)
+test_bin = $(notdir $(test_src:.cpp=.exe))
+VPATH += $(sort $(dir $(test_src)))
+
+all: $(test_bin)
+
+test_%.offload.exe: test_%.offload$(OBJ_SFX) exception_list.offload$(OBJ_SFX)
+	$(CPLUS) $(CPLUS_FLAGS) $^ $(FKEY)o$@ $(LDFLAGS)
+
+$(PSTL_LIB_NAME):
+	$(MAKE) -f $(PSTL_MAKEFILE) backend=$(backend) cfg=$(cfg)
+
+%.pass.exe: %.pass$(OBJ_SFX) $(PSTL_LIB_NAME)
+	$(info LIBRARY_PATH=$(LIBRARY_PATH))
+	$(LD) $< $(LD_OUT_KEY)$@ $(LDFLAGS) $(DYN_LDFLAGS) $(PSTL_LIB_LINK)
+
+%.pass: %.pass.exe
+	$(run_cmd) $(RUN_CMD)$*.pass.exe
+
+%.pass$(OBJ_SFX): %.pass.cpp $(test_hdr) $(proj_root)/make/Makefile
+	$(CPLUS) $(CPLUS_FLAGS) -c $< $(FKEY)o$@
+
+# This definition intentionally consists of two blank lines
+define eol
+
+
+endef
+
+test: $(test_bin)
+	$(foreach test, $(test_bin), $(run_cmd) $(RUN_CMD)$(test) $(args) $(eol))
+
+%.s: %.cpp $(proj_root)/make/Makefile
+	$(CPLUS) $(CPLUS_FLAGS) -S $< $(FKEY)o$@
+
+%.E: %.cpp
+	$(CPLUS) $(CPLUS_FLAGS) -E $< >$@
+
+algo_target ?= algorithm.json
+
+TEMPLATE_FILES=$(wildcard $(proj_root)/bench/*.*tmpl)
+BENCH_COMMON_FILES=$(wildcard $(proj_root)/bench/*.h) $(wildcard $(proj_root)/bench/*.cpp)
+
+$(BENCH_MAKEFILE): $(proj_root)/bench/$(algo_target) $(proj_root)/bench/gen.py  $(TEMPLATE_FILES)
+	$(PYTHON) $(proj_root)/bench/gen.py $(proj_root)/bench/$(algo_target)
+
+bench : $(BENCH_MAKEFILE) $(BENCH_COMMON_FILES) $(PSTL_LIB_NAME)
+	@echo     TEMPLATE_FILES=$(TEMPLATE_FILES)
+	@echo     proj_root=$(proj_root)
+	ls -la      $(proj_root)/bench/gen.py
+	$(MAKE) -f $(BENCH_MAKEFILE)
+
+clean_bench:
+	$(DEL_CMD) $(BENCH_MAKEFILE)
+	$(DEL_CMD) batch.py
+	$(DEL_CMD) $(proj_root)/make/bench/*.*
+
+clean:
+	$(DEL_CMD) *$(OBJ_SFX) *.exe *.E *.s *.asm *.d *.pdb *.pdb *.suo *.ilk
+
+clean_pstl:
+	$(MAKE) -f $(PSTL_MAKEFILE) clean
+
+clean_all: clean clean_pstl clean_bench
+
+info:
+	@echo OS = $(os_name)
+	@echo proj_root = "$(proj_root)"
+	@echo $(CURDIR)
+	@echo VPATH=$(VPATH)
+
+-include *.d

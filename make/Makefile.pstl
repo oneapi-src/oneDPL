@@ -1,0 +1,52 @@
+##===-- Makefile.pstl -----------------------------------------------------===##
+#
+# Copyright (C) 2017-2020 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
+
+#------------------------------------------------------------------------------
+# Define rules for making the Parallel STL library.
+#------------------------------------------------------------------------------
+
+proj_root ?= $(CURDIR)/..
+
+include $(proj_root)/make/Makefile.common
+
+.PHONY: clean
+
+VPATH = $(proj_root)/src
+
+lib_src = $(wildcard $(proj_root)/src/*.cpp)
+lib_obj = $(notdir $(lib_src:.cpp=$(OBJ_SFX)))
+
+all: pstl
+
+pstl: $(PSTL_LIB_NAME)
+
+%$(OBJ_SFX): %.cpp $(proj_root)/make/Makefile.pstl
+	$(CPLUS) $(CPLUS_FLAGS) -c $< $(FKEY)o$@
+
+%.s: %.cpp $(proj_root)/make/Makefile
+	$(CPLUS) $(CPLUS_FLAGS) -S $< $(FKEY)o$@
+
+%.E: %.cpp
+	$(CPLUS) $(CPLUS_FLAGS) -E $< >$@
+
+clean:
+	$(DEL_CMD) *$(OBJ_SFX) *.lib *.dll *.so *.exp *$(PSTL_LIB_NAME)*
+
+info:
+	@echo OS = $(os_name)
+	@echo proj_root = "$(proj_root)"
+	@echo $(CURDIR)
+	@echo VPATH=$(VPATH)
+
+-include *.d
