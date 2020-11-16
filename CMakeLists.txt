@@ -49,6 +49,7 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
 
         # prepare TBB
         find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
+
         message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
         target_link_libraries(oneDPL INTERFACE TBB::tbb)
         target_compile_definitions(oneDPL INTERFACE

@@ -15,13 +15,13 @@
 # TODO(ldionne): This CMake testing infrastructure should be replaced with a
 #                llvm-lit test suite.
 
-add_custom_target(pstl-build-tests
+add_custom_target(build-all
     COMMENT "Build all the pstl tests.")
 
-add_custom_target(check-pstl
+add_custom_target(run-all
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
-    DEPENDS pstl-build-tests
+    DEPENDS build-all
     COMMENT "Build and run all the unit tests.")
 
 add_library(test_stdlib INTERFACE)
@@ -32,8 +32,6 @@ target_include_directories(test_support INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/p
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach(_file IN LISTS UNIT_TESTS)
     get_filename_component(_test_name ${_file} NAME_WE)
-    file(RELATIVE_PATH _test_rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${_file})
-    message(_test_rel_path)
 
     add_executable(${_test_name} "${_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
@@ -49,5 +47,32 @@ foreach(_file IN LISTS UNIT_TESTS)
     else()
         add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
     endif()
-    add_dependencies(pstl-build-tests ${_test_name})
+
+    add_custom_target(run-${_test_name}
+        COMMAND "${CMAKE_CTEST_COMMAND}" -R ^${_test_name}$$ --output-on-failure --no-label-summary
+        USES_TERMINAL
+        DEPENDS ${_test_name}
+        COMMENT "Build and run test ${_test_name}")
+
+    # Add labels and group targets
+    file(RELATIVE_PATH _test_rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${_file})
+    get_filename_component(_test_rel_path ${_test_rel_path} DIRECTORY)
+    if (_test_rel_path)
+        string(REPLACE "/" ";" _test_labels ${_test_rel_path})
+        set_tests_properties(${_test_name} PROPERTIES LABELS "${_test_labels}")
+    endif()
+
+    foreach (_label ${_test_labels})
+        if (NOT TARGET build-${_label})
+            add_custom_target(build-${_label} COMMENT "Build tests with label ${_label}")
+
+            add_custom_target(run-${_label}
+                COMMAND "${CMAKE_CTEST_COMMAND}" -L ^${_label}$$ --output-on-failure --no-label-summary
+                USES_TERMINAL
+                DEPENDS build-${_label}
+                COMMENT "Build and run tests with label ${_label}")
+         endif()
+        add_dependencies(build-${_label} ${_test_name})
+    endforeach()
+    add_dependencies(build-all ${_test_name})
 endforeach()
