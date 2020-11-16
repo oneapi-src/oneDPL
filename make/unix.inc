@@ -34,7 +34,7 @@ USE_SHARED_CPPRUNTIME_KEY =
 LINK_KEY = $(KEY)l
 
 LD_OUT_KEY = $(KEY)o
-DYN_LDFLAGS += -L. -L$(proj_root)/make
+DYN_LDFLAGS += $(KEY)L. $(KEY)L$(proj_root)/make
 
 ifneq ($(PSTL_LIB_NAME), )
     PSTL_LIB_LINK += $(LINK_KEY)$(PSTL_LIB_NAME)$(PSTL_LIB_EXT)

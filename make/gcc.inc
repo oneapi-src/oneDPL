@@ -23,4 +23,6 @@ ifneq (,$(shell gcc -dumpversion | grep --invert-match "^[0-3]\.\|4\.[0-8]"))
 #   CPLUS_FLAGS += -fdump-rtl-loop2 #use this option to enable optimization report
 endif
 
-CPLUS_FLAGS += $(FQKEY)std=$(stdver)
+ifneq ($(stdver),)
+    CPLUS_FLAGS += $(FQKEY)std=$(stdver)
+endif

@@ -15,7 +15,9 @@
 override compiler:=clang++
 
 # XHOST_FLAG = -fno-vectorize
-CPLUS_FLAGS += $(FQKEY)std=$(stdver)
+ifneq ($(stdver),)
+    CPLUS_FLAGS += $(FQKEY)std=$(stdver)
+endif
 # XHOST_FLAG = $(KEY)mavx2 #-fno-vectorize
 # XHOST_FLAG = $(KEY)mavx512f #-fno-vectorize
 # DYN_LDFLAGS += $(LINK_KEY)c++
@@ -35,7 +37,7 @@ ifeq ($(backend), tbb)
 export gcc_version:=$(shell gcc -dumpfullversion -dumpversion)
 ifneq (,$(gcc_version))
     # TODO: do not assume that GCC minor and patchlevel versions are always single-digit.
-    CPLUS_FLAGS += -DTBB_USE_GLIBCXX_VERSION=$(subst .,0,$(gcc_version))
+    CPLUS_FLAGS += $(KEY)DTBB_USE_GLIBCXX_VERSION=$(subst .,0,$(gcc_version))
 endif
 endif
 

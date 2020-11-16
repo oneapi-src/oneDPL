@@ -20,7 +20,7 @@
 
 goals = $(or $(MAKECMDGOALS),all)
 ifneq (, $(filter-out clean clean_all,$(goals)))
-    ifeq (, $(filter $(backend), tbb))
+    ifeq (, $(filter $(backend), serial tbb sycl_only sycl))
         $(info Threading backend was not specified; using TBB)
         backend=tbb
     endif
@@ -48,14 +48,26 @@ ifndef os_name
 endif # !os_name
 
 cfg ?= release
-stdver ?= c++11
 
-override INCLUDES += -I$(proj_root)/include -I$(proj_root)/test -I$(proj_root)/stdlib
+device_type ?= GPU
+use_unnamed_lambda ?= 0
+ranges_api ?= 0
 
-TEST_MACRO += -D_PSTL_TEST_SUCCESSFUL_KEYWORD=1
+ifeq ($(backend), sycl)
+    ifeq ($(findstring FPGA, $(device_type)),)
+        export SYCL_DEVICE_TYPE=$(device_type)
+    endif
+endif
 
-ifeq ($(backend), tbb)
-    BACKEND_MACRO += -D_PSTL_PAR_BACKEND_TBB
+# refer to "FPGA flow" chapter in "Intel oneAPI Programming Guide" for more info
+static_report ?= 0
+ifneq ($(static_report), 0)
+    ifneq ($(backend), sycl)
+        $(warning "static_report is set, but will not be used due to wrong backend: $(backend), supported backend: sycl")
+    endif
+    ifneq ($(device_type), FPGA)
+        $(warning static_report is set, but will not be used due to wrong device type: $(device_type), supported device type: FPGA")
+    endif
 endif
 
 target ?= $(os_name)
@@ -91,6 +103,23 @@ ifneq (, $(filter $(compiler), icl))
     include $(proj_root)/make/icl.inc
 endif
 
+ifneq (, $(filter $(compiler), dpcpp dpc++))
+    include $(proj_root)/make/dpcpp.inc
+endif
+
+ifneq (, $(filter $(compiler), compute++ computecpp))
+    include $(proj_root)/make/computecpp.inc
+endif
+
+CPLUS := $(compiler) $(COMPILER_NOLOGO_KEY) $(USE_SHARED_CPPRUNTIME_KEY)
+
+ifdef extra_def_macros
+    EXTRA_DEF_MACROS = $(patsubst %,$(KEY)D%, $(extra_def_macros))
+endif
+
+override INCLUDES += $(KEY)I$(proj_root)/include $(KEY)I$(proj_root)/test $(KEY)I$(proj_root)/stdlib
+
+TEST_MACRO += $(KEY)D_PSTL_TEST_SUCCESSFUL_KEYWORD=1
 
 OPTIMIZATION_ENABLED_FLAGS += $(XHOST_FLAG)
 OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG)
@@ -98,15 +127,28 @@ OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG)
 
 ifeq ($(cfg), debug)
     TBB_LIB_NAME = tbb_debug
-    BACKEND_MACRO += -DTBB_USE_DEBUG=1
-    DEBUG_MACRO += -DPSTL_USE_DEBUG
+    BACKEND_MACRO += $(KEY)DTBB_USE_DEBUG=1
+    DEBUG_MACRO += $(KEY)DPSTL_USE_DEBUG
     OPTIMIZATION_KEYS = $(OPTIMIZATION_DISABLED_FLAGS)
 else
     OPTIMIZATION_KEYS = $(OPTIMIZATION_ENABLED_FLAGS)
 endif
 
+ifeq ($(backend), serial)
+    EXTRA_DEF_MACROS += $(KEY)DONEDPL_USE_TBB_BACKEND=0 $(KEY)DONEDPL_USE_DPCPP_BACKEND=0
+endif
+
+ifeq ($(backend), sycl_only)
+    EXTRA_DEF_MACROS += $(KEY)DONEDPL_USE_TBB_BACKEND=0
+endif
+
+ifeq ($(backend), tbb)
+    EXTRA_DEF_MACROS += $(KEY)DONEDPL_USE_DPCPP_BACKEND=0
+endif
+
 DYN_LDFLAGS += $(PSTL_ARCH)
 
+CPLUS_FLAGS += $(EXTRA_DEF_MACROS)
 CPLUS_FLAGS += $(TEST_MACRO)
 CPLUS_FLAGS += $(INCLUDES)
 CPLUS_FLAGS += $(BACKEND_MACRO)

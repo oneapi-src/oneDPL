@@ -22,9 +22,11 @@ XHOST_FLAG = $(QKEY)xHOST #vec-
 CPLUS_FLAGS += $(QKEY)opt-assume-safe-padding
 CPLUS_FLAGS += $(QKEY)openmp-simd
 CPLUS_FLAGS += $(FQKEY)MMD
-CPLUS_FLAGS += $(FQKEY)std=$(stdver)
+ifneq ($(stdver),)
+    CPLUS_FLAGS += $(FQKEY)std=$(stdver)
+endif
 
-ifeq ($(vecreport),$(filter $(vecreport),1 2 3 4 5 6 7)) 
+ifeq ($(vecreport),$(filter $(vecreport),1 2 3 4 5 6 7))
     CPLUS_FLAGS +=  $(QKEY)opt-report=$(vecreport) $(QKEY)opt-report-phase vec $(QKEY)opt-report-phase:loop
 else
     #suppress warning #15552: loop was not vectorized with "simd" and #15518: Structure assignment was serialized
