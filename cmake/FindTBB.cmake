@@ -58,6 +58,9 @@ if (_tbb_include_dir)
             add_library(TBB::${_tbb_component} SHARED IMPORTED)
             set_property(TARGET TBB::${_tbb_component} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${_tbb_include_dir})
 
+            set_target_properties(TBB::${_tbb_component} PROPERTIES
+                                  INTERFACE_COMPILE_DEFINITIONS "__TBB_NO_IMPLICIT_LINKAGE=1")
+
             foreach(_TBB_BUILD_MODE ${_TBB_BUILD_MODES})
                 set(_tbb_component_lib_name ${_tbb_component}${_TBB_${_TBB_BUILD_MODE}_SUFFIX})
                 if (WIN32)
