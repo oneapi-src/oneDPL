@@ -1,6 +1,6 @@
 ##===-- CMakeLists.txt ----------------------------------------------------===##
 #
-# Copyright (C) 2017-2019 Intel Corporation
+# Copyright (C) 2017-2020 Intel Corporation
 #
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #
@@ -12,9 +12,6 @@
 #
 ##===----------------------------------------------------------------------===##
 
-# TODO(ldionne): This CMake testing infrastructure should be replaced with a
-#                llvm-lit test suite.
-
 add_custom_target(build-all
     COMMENT "Build all the pstl tests.")
 
@@ -24,8 +21,6 @@ add_custom_target(run-all
     DEPENDS build-all
     COMMENT "Build and run all the unit tests.")
 
-add_library(test_stdlib INTERFACE)
-target_include_directories(test_stdlib INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../stdlib")
 add_library(test_support INTERFACE)
 target_include_directories(test_support INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/pstl_testsuite")
 
@@ -36,7 +31,7 @@ foreach(_file IN LISTS UNIT_TESTS)
     add_executable(${_test_name} "${_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
-    target_link_libraries(${_test_name} PRIVATE oneDPL test_stdlib test_support)
+    target_link_libraries(${_test_name} PRIVATE oneDPL test_support)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
     if (ONEDPL_DEVICE_TYPE)
         set(SYCL_DEVICE_TYPE ${ONEDPL_DEVICE_TYPE})

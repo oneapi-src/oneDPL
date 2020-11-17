@@ -1,6 +1,6 @@
 ##===-- CMakeLists.txt ----------------------------------------------------===##
 #
-# Copyright (C) 2018-2019 Intel Corporation
+# Copyright (C) 2018-2020 Intel Corporation
 #
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #
@@ -17,11 +17,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 project(oneDPL VERSION 2021.1 LANGUAGES CXX)
 
+set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
+
 option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
 option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
 option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
-set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
@@ -33,7 +34,7 @@ add_library(oneDPL INTERFACE)
 add_library(oneAPI::DPL ALIAS oneDPL)
 
 # Build type by default
-if(NOT CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
@@ -104,8 +105,7 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             # DPC++ specific link options
             target_link_libraries(oneDPL INTERFACE
                 $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>>:-Xshardware>
-                # TODO: make correct option set for FPGA
-                # $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>,$<NOT:$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>>:-fsycl-link>
+                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>,$<NOT:$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>>:-fsycl-link>
                 )
         endif()
 
@@ -129,8 +129,7 @@ endif()
 target_include_directories(oneDPL
     INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    $<INSTALL_INTERFACE:stdlib>)
+    $<INSTALL_INTERFACE:include>)
 
 target_compile_features(oneDPL
     INTERFACE
