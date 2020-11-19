@@ -36,7 +36,6 @@ else()
 endif()
 
 find_path(_tbb_include_dir NAMES oneapi/tbb.h PATHS ${ADDITIONAL_INCLUDE_DIRS})
-
 if (_tbb_include_dir)
     file(READ "${_tbb_include_dir}/oneapi/tbb/version.h" _tbb_version_info LIMIT 2048)
     string(REGEX REPLACE ".*#define TBB_VERSION_MAJOR ([0-9]+).*" "\\1" _tbb_ver_major "${_tbb_version_info}")
@@ -44,7 +43,6 @@ if (_tbb_include_dir)
     string(REGEX REPLACE ".*#define TBB_VERSION_PATCH ([0-9]+).*" "\\1" _tbb_ver_patch "${_tbb_version_info}")
 
     set(TBB_VERSION "${_tbb_ver_major}.${_tbb_ver_minor}.${_tbb_ver_patch}")
-
     unset(_tbb_version_info)
     unset(_tbb_ver_major)
     unset(_tbb_ver_minor)
@@ -63,16 +61,22 @@ if (_tbb_include_dir)
 
             foreach(_TBB_BUILD_MODE ${_TBB_BUILD_MODES})
                 set(_tbb_component_lib_name ${_tbb_component}${_TBB_${_TBB_BUILD_MODE}_SUFFIX})
+                set(_tbb_component_filename ${_tbb_component_lib_name})
+
+                if (WIN32 AND _tbb_component STREQUAL tbb)
+                    set(_tbb_component_filename ${_tbb_component}12${_TBB_${_TBB_BUILD_MODE}_SUFFIX})
+                endif()
+
                 if (WIN32)
-                    find_library(${_tbb_component_lib_name}_lib ${_tbb_component_lib_name} PATHS ${ADDITIONAL_LIB_DIRS})
-                    find_file(${_tbb_component_lib_name}_dll ${_tbb_component_lib_name}.dll PATHS ${ADDITIONAL_LIB_DIRS})
+                    find_library(${_tbb_component_lib_name}_lib ${_tbb_component_filename} PATHS ${ADDITIONAL_LIB_DIRS})
+                    find_file(${_tbb_component_lib_name}_dll ${_tbb_component_filename}.dll PATHS ${ADDITIONAL_LIB_DIRS})
 
                     set_target_properties(TBB::${_tbb_component} PROPERTIES
                                           IMPORTED_LOCATION_${_TBB_BUILD_MODE} "${${_tbb_component_lib_name}_dll}"
                                           IMPORTED_IMPLIB_${_TBB_BUILD_MODE}   "${${_tbb_component_lib_name}_lib}"
                                           )
                 else()
-                    find_library(${_tbb_component_lib_name}_so ${_tbb_component_lib_name} PATHS ${ADDITIONAL_LIB_DIRS})
+                    find_library(${_tbb_component_lib_name}_so ${_tbb_component_filename} PATHS ${ADDITIONAL_LIB_DIRS})
 
                     set_target_properties(TBB::${_tbb_component} PROPERTIES
                                           IMPORTED_LOCATION_${_TBB_BUILD_MODE} "${${_tbb_component_lib_name}_so}"
