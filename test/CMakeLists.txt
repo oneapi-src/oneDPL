@@ -24,11 +24,10 @@ add_custom_target(run-all
 add_library(test_support INTERFACE)
 target_include_directories(test_support INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/pstl_testsuite")
 
-file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
-foreach(_file IN LISTS UNIT_TESTS)
-    get_filename_component(_test_name ${_file} NAME_WE)
+macro(onedpl_add_test test_source_file)
+    get_filename_component(_test_name ${test_source_file} NAME_WE)
 
-    add_executable(${_test_name} "${_file}")
+    add_executable(${_test_name} "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL test_support)
@@ -50,7 +49,7 @@ foreach(_file IN LISTS UNIT_TESTS)
         COMMENT "Build and run test ${_test_name}")
 
     # Add labels and group targets
-    file(RELATIVE_PATH _test_rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${_file})
+    file(RELATIVE_PATH _test_rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${test_source_file})
     get_filename_component(_test_rel_path ${_test_rel_path} DIRECTORY)
     if (_test_rel_path)
         string(REPLACE "/" ";" _test_labels ${_test_rel_path})
@@ -66,8 +65,23 @@ foreach(_file IN LISTS UNIT_TESTS)
                 USES_TERMINAL
                 DEPENDS build-${_label}
                 COMMENT "Build and run tests with label ${_label}")
-         endif()
+        endif()
         add_dependencies(build-${_label} ${_test_name})
     endforeach()
     add_dependencies(build-all ${_test_name})
+endmacro()
+
+#add_subdirectory(pstl_testsuite)
+#add_subdirectory(extenstions_testsuite)
+#if (ONEDPL_BACKEND MATCHES "^(sycl|sycl_only)$")
+
+set(_skip_regex_for_not_sycl "(rng_testsuite|extensions_testsuite)")
+file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
+foreach (_file IN LISTS UNIT_TESTS)
+    if (_file MATCHES "${_skip_regex_for_not_sycl}" AND NOT ONEDPL_BACKEND MATCHES "^(sycl|sycl_only)$")
+        message(STATUS "Skip test ${_file} as it requires SYCL backend")
+        continue()
+    endif()
+
+    onedpl_add_test(${_file})
 endforeach()
