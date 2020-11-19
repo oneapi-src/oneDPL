@@ -23,6 +23,7 @@ option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
 option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
 option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
+option(ONEDPL_USE_OFFLINE_COMPILATION "Enable the offline compilation via OCLOC compiler" OFF)
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
@@ -44,6 +45,7 @@ target_compile_definitions(oneDPL INTERFACE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
 
 if (ONEDPL_USE_PARALLEL_POLICIES)
     message(STATUS "Using Parallel Policies")
+    string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
     if (ONEDPL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
         string(TOUPPER "ONEDPL_BACKEND" ONEDPL_BACKEND_NAME)
         set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
@@ -68,16 +70,10 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
                 "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
             endif()
 
-            # settings for specific compilation type
-            if (NOT ONEDPL_COMPILATION_TYPE)
-                set(ONEDPL_COMPILATION_TYPE "online")
-                message(STATUS "Use online compilation by default")
-            endif()
-
-            if (ONEDPL_COMPILATION_TYPE MATCHES "online")
-                message(STATUS "Use online compilation. No additiona parameters needed")
-            elseif(ONEDPL_COMPILATION_TYPE MATCHES "offline")
-                set(ONEDPL_USE_OFFLINE_COMPILATION TRUE)
+            # settings for the specific compilation type
+            if (NOT ONEDPL_USE_OFFLINE_COMPILATION)
+                message(STATUS "Use online compilation. No additional parameters needed")
+            else()
                 if (NOT ONEDPL_COMPILE_ARCH)
                     set(ONEDPL_COMPILE_ARCH "*")
                     message(STATUS "Offline compilation for all available architectures")
@@ -87,9 +83,7 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
                 endif()
                 set(ONEDPL_OFFLINE_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_COMPILE_ARCH}\"")
                 set(ONEDPL_OFFLINE_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_COMPILE_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
-            else()
-                message(FATAL_ERROR "Incorrect compilation type: ${ONEDPL_COMPILATION_TYPE}.\n"
-                "Use one of the following options: offline or online")
+                set(ONEDPL_OFFLINE_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_COMPILE_ARCH} -internal_options -cl-kernel-debug-enable\"")
             endif()
 
             # check device type
@@ -98,12 +92,13 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
                 message(STATUS "Use GPU as default device")
             endif()
 
-            if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_HW|FPGA_EMU?)$")
-                message(STATUS "Compiling for device type: ${ONEDPL_DEVICE_TYPE}")
+            string(TOUPPER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
+            if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW?)$")
+                message(STATUS "Compilation for ${ONEDPL_DEVICE_TYPE}")
                 set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
             else()
                 message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
-                "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
+                    "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
             endif()
 
             # Check correctness of STATIC_REPORT
@@ -134,7 +129,8 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
                 $<$<AND:$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${OONEDPL_USE_DEVICE_FPGA_EMU}>>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
                 $<$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
                 $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_REL}>
-                $<$<AND:$<NOT:$<CONFIG:Release>>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_DEB}>
+                $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_DEB}>
+                $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_RELDEB}>
                 )
         endif()
 
