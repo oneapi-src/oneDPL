@@ -56,6 +56,20 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             target_link_libraries(oneDPL INTERFACE TBB::tbb)
         endif()
 
+        # It is for Clang and DPC++ compilers (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
+        if (UNIX)
+            if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+                find_program(FIND_GXX_EXE g++)
+                if (FIND_GXX_EXE)
+                    execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
+                    string(REPLACE "\." "0" _onedpl_gxx_version ${_onedpl_gxx_version})
+                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${_onedpl_gxx_version})
+                else()
+                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=70300)
+                endif()
+            endif()
+        endif()
+
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
             $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
