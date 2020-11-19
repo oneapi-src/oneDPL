@@ -25,7 +25,8 @@ add_library(test_support INTERFACE)
 target_include_directories(test_support INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/pstl_testsuite")
 
 macro(onedpl_add_test test_source_file)
-    get_filename_component(_test_name ${test_source_file} NAME_WE)
+    get_filename_component(_test_name ${test_source_file} NAME)
+    string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
     add_executable(${_test_name} "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)

@@ -32,7 +32,6 @@ include(CheckCXXCompilerFlag)
 # Setup the oneDPL library target
 ###############################################################################
 add_library(oneDPL INTERFACE)
-add_library(oneAPI::DPL ALIAS oneDPL)
 
 # Build type by default
 if (NOT CMAKE_BUILD_TYPE)
@@ -40,14 +39,12 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
 
-# Parallel STL test macro
-target_compile_definitions(oneDPL INTERFACE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
-
 if (ONEDPL_USE_PARALLEL_POLICIES)
-    message(STATUS "Using Parallel Policies")
+    message(STATUS "Using Parallel Policies with ${ONEDPL_BACKEND} backend")
     string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
+
     if (ONEDPL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
-        string(TOUPPER "ONEDPL_BACKEND" ONEDPL_BACKEND_NAME)
+        string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
         set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
         if (ONEDPL_BACKEND MATCHES "^(tbb|sycl)$")
