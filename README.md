@@ -17,6 +17,9 @@ Here is the latest [Release Notes](https://software.intel.com/content/www/us/en/
 ## License
 oneDPL is licensed under [Apache License Version 2.0 with LLVM exceptions](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt).
 
+## Contributing
+See [CONTRIBUTING.md](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/CONTRIBUTING.md) for details.
+
 ## Documentation
 See [Library Guide](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html) with oneDPL.
 
