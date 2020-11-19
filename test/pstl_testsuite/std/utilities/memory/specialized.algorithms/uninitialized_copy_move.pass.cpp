@@ -86,8 +86,6 @@ struct test_uninitialized_copy
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::true_type)
     {
-        typedef typename ::std::iterator_traits<InputIterator>::value_type T;
-
         ::std::uninitialized_copy(exec, first, last, out_first);
         EXPECT_TRUE(IsCheckValueCorrectness(first, out_first, n), "wrong uninitialized_copy");
     }
@@ -133,8 +131,6 @@ struct test_uninitialized_copy_n
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::true_type)
     {
-        typedef typename ::std::iterator_traits<InputIterator>::value_type T;
-
         ::std::uninitialized_copy_n(exec, first, n, out_first);
         EXPECT_TRUE(IsCheckValueCorrectness(first, out_first, n), "wrong uninitialized_copy_n");
     }
@@ -180,8 +176,6 @@ struct test_uninitialized_move
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::true_type)
     {
-        typedef typename ::std::iterator_traits<InputIterator>::value_type T;
-
         ::std::uninitialized_move(exec, first, last, out_first);
         EXPECT_TRUE(IsCheckValueCorrectness(first, out_first, n), "wrong uninitialized_move");
     }
@@ -227,8 +221,6 @@ struct test_uninitialized_move_n
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::true_type)
     {
-        typedef typename ::std::iterator_traits<InputIterator>::value_type T;
-
         ::std::uninitialized_move_n(exec, first, n, out_first);
         EXPECT_TRUE(IsCheckValueCorrectness(first, out_first, n), "wrong uninitialized_move_n");
     }
@@ -242,12 +234,12 @@ test_uninitialized_copy_move_by_type()
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> in(n, [=](size_t k) -> T { return T(k); });
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         ::std::unique_ptr<T[]> p(new T[n]);
         auto out_begin = p.get();
 #else
         // common pointers are not supported for hetero backend
-        // cl::sycl::buffer<T,1> buf(n); // async nature of buffer requires sycn before EXPECT_ macro
+        // sycl::buffer<T,1> buf(n); // async nature of buffer requires sycn before EXPECT_ macro
         // auto out_begin = oneapi::dpl::begin(buf);
         Sequence<T> out(n, [=](size_t k) -> T { return T{}; });
         auto out_begin = out.begin();
@@ -277,13 +269,11 @@ int
 main()
 {
 
-#if !_PSTL_DPCPP_TEST_UNINITIALIZED_BROKEN
     // for trivial types
     test_uninitialized_copy_move_by_type<int16_t>();
     test_uninitialized_copy_move_by_type<float64_t>();
-#endif
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     // for user-defined types
 #if !_PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN && !_PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN &&     \
     !_PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN

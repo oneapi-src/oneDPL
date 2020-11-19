@@ -247,7 +247,7 @@ main()
 #if !_PSTL_ICC_16_17_TEST_64_TIMEOUT
     test<float64_t>(-666.0, [](size_t j) { return float64_t(j); });
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     /*TODO: copy support of a class with no default constructor*/
     test<Wrapper<float64_t>>(Wrapper<float64_t>(-666.0), [](int32_t j) { return Wrapper<float64_t>(j); });
     test<Number>(Number(42, OddTag()), [](int32_t j) { return Number(j, OddTag()); });

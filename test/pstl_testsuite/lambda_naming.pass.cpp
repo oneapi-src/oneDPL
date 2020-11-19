@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include <CL/sycl.hpp>
 #endif
 #include "support/pstl_test_config.h"
@@ -28,31 +28,34 @@ using namespace TestUtils;
 
 // This is the simple test for compilation only, to check if lambda naming works correctly
 int main() {
-#if __SYCL_UNNAMED_LAMBDA__ && _PSTL_BACKEND_SYCL
+#if __SYCL_UNNAMED_LAMBDA__ && _ONEDPL_BACKEND_SYCL
     const int n = 1000;
-    cl::sycl::buffer<int, 1> buf{ cl::sycl::range<1>(n) };
-    cl::sycl::buffer<int, 1> out_buf{ cl::sycl::range<1>(n) };
+    sycl::buffer<int, 1> buf{ sycl::range<1>(n) };
+    sycl::buffer<int, 1> out_buf{ sycl::range<1>(n) };
     auto buf_begin = oneapi::dpl::begin(buf);
     auto buf_end = buf_begin + n;
 
     const auto policy = TestUtils::default_dpcpp_policy;
     auto buf_begin_discard_write =
-        dpstd::begin(buf, cl::sycl::write_only,
+        oneapi::dpl::begin(buf, sycl::write_only,
 #if __cplusplus >= 201703L
-            cl::sycl::noinit);
+            sycl::noinit);
 #else
-            cl::sycl::property::noinit{});
+            sycl::property::noinit{});
 #endif
     ::std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
     ::std::sort(policy, buf_begin, buf_end);
     ::std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     ::std::inplace_merge(policy, buf_begin, buf_begin + n / 2, buf_end);
     auto red_val = ::std::reduce(policy, buf_begin, buf_end, 1);
+    EXPECT_TRUE(red_val == 42001, "wrong return value from reduce");
     auto buf_out_begin = oneapi::dpl::begin(out_buf);
     ::std::inclusive_scan(policy, buf_begin, buf_end, buf_out_begin);
     bool is_equal = ::std::equal(policy, buf_begin, buf_end, buf_out_begin);
+    EXPECT_TRUE(!is_equal, "wrong return value from equal");
     auto does_1_exist = ::std::find(policy, buf_begin, buf_end, 1);
+    EXPECT_TRUE(does_1_exist - buf_begin == 1000, "wrong return value from find");
 #endif
 #endif
     ::std::cout << done() << ::std::endl;

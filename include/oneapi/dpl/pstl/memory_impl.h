@@ -116,7 +116,7 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
 {
     template <typename _SourceT, typename _TargetT>
     void
-    operator()(_SourceT&& __source, _TargetT& __target)
+    operator()(_SourceT&& __source, _TargetT& __target) const
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
 
@@ -133,7 +133,7 @@ struct __op_uninitialized_move<_ExecutionPolicy>
 {
     template <typename _SourceT, typename _TargetT>
     void
-    operator()(_SourceT&& __source, _TargetT& __target)
+    operator()(_SourceT&& __source, _TargetT& __target) const
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
 
@@ -148,11 +148,11 @@ struct __op_uninitialized_move<_ExecutionPolicy>
 template <typename _SourceT, typename _ExecutionPolicy>
 struct __op_uninitialized_fill<_SourceT, _ExecutionPolicy>
 {
-    __ref_or_copy<_ExecutionPolicy, _SourceT> __source;
+    __ref_or_copy<_ExecutionPolicy, const _SourceT> __source;
 
     template <typename _TargetT>
     void
-    operator()(_TargetT& __target)
+    operator()(_TargetT& __target) const
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
 
@@ -169,7 +169,7 @@ struct __op_destroy<_ExecutionPolicy>
 {
     template <typename _TargetT>
     void
-    operator()(_TargetT& __target)
+    operator()(_TargetT& __target) const
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
         __target.~_TargetValueType();
@@ -185,7 +185,7 @@ struct __op_uninitialized_default_construct<_ExecutionPolicy>
 {
     template <typename _TargetT>
     void
-    operator()(_TargetT& __target)
+    operator()(_TargetT& __target) const
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
 
@@ -202,7 +202,7 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
 {
     template <typename _TargetT>
     void
-    operator()(_TargetT& __target)
+    operator()(_TargetT& __target) const
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
 

@@ -20,27 +20,27 @@
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
 int32_t
 main()
 {
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
     constexpr int max_n = 10;
     int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     int data1[max_n];
 
     auto lambda = [](auto i) { return i * i; };
     {
-        cl::sycl::buffer<int> A(data, cl::sycl::range<1>(max_n));
-        cl::sycl::buffer<int> B(data1, cl::sycl::range<1>(max_n));
+        sycl::buffer<int> A(data, sycl::range<1>(max_n));
+        sycl::buffer<int> B(data1, sycl::range<1>(max_n));
 
         using namespace oneapi::dpl::experimental;
 
-        auto view = ranges::all_view<int, cl::sycl::access::mode::read>(A);
-        auto view_res = ranges::all_view<int, cl::sycl::access::mode::write>(B);
+        auto view = ranges::all_view<int, sycl::access::mode::read>(A);
+        auto view_res = ranges::all_view<int, sycl::access::mode::write>(B);
 
         ranges::transform_exclusive_scan(TestUtils::default_dpcpp_policy, view, view_res, 100, ::std::plus<int>(), lambda);
     }
@@ -51,7 +51,7 @@ main()
 
     EXPECT_EQ_N(expected, data1, max_n, "wrong effect from transform_exclusive_scan with init, sycl ranges");
 
-#endif //_PSTL_USE_RANGES
+#endif //_ONEDPL_USE_RANGES
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

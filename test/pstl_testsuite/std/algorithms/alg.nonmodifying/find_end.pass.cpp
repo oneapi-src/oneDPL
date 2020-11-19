@@ -175,20 +175,24 @@ test(const ::std::size_t bits)
                                             sub.begin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<1>()(test_find_end_predicate<T>(), in.begin(), in.begin() + n1, sub.begin(),
                                             sub.begin() + n2, ::std::equal_to<T>());
+#if !_ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<2>()(test_find_end<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
                                             sub.cbegin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<3>()(test_find_end_predicate<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
                                             sub.cbegin() + n2, ::std::equal_to<T>());
+#endif
 #endif
 #ifdef _PSTL_TEST_SEARCH
                 invoke_on_all_policies<4>()(test_search<T>(), in.begin(), in.begin() + n1, sub.begin(),
                                             sub.begin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<5>()(test_search_predicate<T>(), in.begin(), in.begin() + n1, sub.begin(),
                                             sub.begin() + n2, ::std::equal_to<T>());
+#if !_ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<6>()(test_search<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
                                             sub.cbegin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<7>()(test_search_predicate<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
                                             sub.cbegin() + n2, ::std::equal_to<T>());
+#endif
 #endif
             }
         }
@@ -227,7 +231,7 @@ main()
     test<int32_t>(8 * sizeof(int32_t));
     test<uint16_t>(8 * sizeof(uint16_t));
     test<float64_t>(53);
-#if !_PSTL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
+#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>(1);
 
 #ifdef _PSTL_TEST_FIND_END

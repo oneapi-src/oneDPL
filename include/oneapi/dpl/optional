@@ -18,7 +18,7 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 #if __cplusplus > 201402L
 using ::std::make_optional;
@@ -26,11 +26,6 @@ using ::std::nullopt;
 using ::std::nullopt_t;
 using ::std::optional;
 #endif
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 } // namespace dpl
 } // namespace oneapi
 #endif

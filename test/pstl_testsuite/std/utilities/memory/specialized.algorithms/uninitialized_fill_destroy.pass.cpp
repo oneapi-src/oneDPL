@@ -171,7 +171,7 @@ test_uninitialized_fill_destroy_by_type()
     ::std::size_t N = 100000;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         ::std::unique_ptr<T[]> p(new T[n]);
         auto p_begin = p.get();
 #else
@@ -187,7 +187,7 @@ test_uninitialized_fill_destroy_by_type()
         invoke_on_all_policies<>()(test_uninitialized_fill_n<T>(), p_begin, p_end, T(), n,
                                    ::std::is_trivial<T>());
 #endif
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
 #ifdef _PSTL_TEST_UNITIALIZED_DESTROY
         invoke_on_all_policies<>()(test_destroy<T>(), p_begin, p_end, T(), n,
                                    ::std::is_trivial<T>());
@@ -203,13 +203,11 @@ test_uninitialized_fill_destroy_by_type()
 int
 main()
 {
-#if !_PSTL_DPCPP_TEST_UNINITIALIZED_BROKEN
     // for trivial types
     test_uninitialized_fill_destroy_by_type<int32_t>();
     test_uninitialized_fill_destroy_by_type<float64_t>();
-#endif
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     // for user-defined types
     test_uninitialized_fill_destroy_by_type<Wrapper<::std::string>>();
     test_uninitialized_fill_destroy_by_type<Wrapper<int8_t*>>();

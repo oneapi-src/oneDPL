@@ -65,7 +65,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     return result + n;
 }
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
@@ -162,8 +162,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIter>
 inclusive_scan_by_key(Policy&& policy, InputIter1 first1, InputIter1 last1, InputIter2 first2, OutputIter result,
                       BinaryPredicate binary_pred)
 {
-    using T = typename ::std::iterator_traits<InputIter2>::value_type;
-
     return inclusive_scan_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result, binary_pred);
 }
 
@@ -171,16 +169,9 @@ template <typename Policy, typename InputIter1, typename InputIter2, typename Ou
 oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIter>
 inclusive_scan_by_key(Policy&& policy, InputIter1 first1, InputIter1 last1, InputIter2 first2, OutputIter result)
 {
-    using T = typename ::std::iterator_traits<InputIter1>::value_type;
-
     return inclusive_scan_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result);
 }
 } // end namespace dpl
 } // end namespace oneapi
 
-namespace dpstd
-{
-using oneapi::dpl::inclusive_scan_by_key;
-using oneapi::dpl::inclusive_scan_by_segment;
-} // end namespace dpstd
 #endif

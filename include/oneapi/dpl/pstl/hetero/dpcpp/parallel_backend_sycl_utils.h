@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_parallel_backend_sycl_utils_H
 #define _ONEDPL_parallel_backend_sycl_utils_H
 
-//!!! NOTE: This file should be included under the macro _PSTL_BACKEND_SYCL
+//!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #include <CL/sycl.hpp>
 #include <type_traits>
 #include "../../iterator_impl.h"
@@ -26,17 +26,6 @@
 
 #define _PRINT_INFO_IN_DEBUG_MODE(...)                                                                                 \
     oneapi::dpl::__par_backend_hetero::__internal::__print_device_debug_info(__VA_ARGS__)
-
-//TODO: The dpcpp extensions depend on the internal interface, so the code below is to keep the backward compatibility
-namespace std
-{
-template <size_t _Idx, typename... _Tp>
-_DPSTD_DEPRECATED auto
-get(oneapi::dpl::__ranges::zip_view<_Tp...>& __a) -> decltype(::std::get<_Idx>(__a.tuple()))
-{
-    return ::std::get<_Idx>(__a.tuple());
-}
-} // namespace std
 
 namespace oneapi
 {
@@ -50,13 +39,8 @@ namespace __par_backend_hetero
 //-----------------------------------------------------------------------
 
 // aliases for faster access to modes
-using access_target = cl::sycl::access::target;
-using access_mode = cl::sycl::access::mode;
-static constexpr access_mode read = access_mode::read;
-static constexpr access_mode write = access_mode::write;
-static constexpr access_mode read_write = access_mode::read_write;
-static constexpr access_mode discard_write = access_mode::discard_write;
-static constexpr access_mode discard_read_write = access_mode::discard_read_write;
+using access_target = sycl::access::target;
+using access_mode = sycl::access_mode;
 
 template <typename _T>
 using __decay_t = typename ::std::decay<_T>::type;
@@ -78,7 +62,7 @@ struct explicit_wait_if
     void
     operator()(_ExecutionPolicy&&){};
 
-    void operator()(cl::sycl::event){};
+    void operator()(sycl::event){};
 };
 
 template <>
@@ -92,7 +76,7 @@ struct explicit_wait_if<true>
     };
 
     void
-    operator()(cl::sycl::event __event)
+    operator()(sycl::event __event)
     {
         __event.wait_and_throw();
     }
@@ -100,12 +84,25 @@ struct explicit_wait_if<true>
 
 namespace __internal
 {
-namespace sycl = cl::sycl;
-
+#if _ONEDPL_DEBUG_SYCL
+template <typename _Policy>
+inline void
+// Passing policy by value should be enough for debugging
+__print_device_debug_info(_Policy __policy, size_t __wg_size = 0, size_t __mcu = 0)
+{
+    ::std::cout << "Device info" << ::std::endl;
+    ::std::cout << " > device name:         " << oneapi::dpl::__internal::__device_info(__policy) << ::std::endl;
+    ::std::cout << " > max compute units:   "
+                << (__mcu ? __mcu : oneapi::dpl::__internal::__max_compute_units(__policy)) << ::std::endl;
+    ::std::cout << " > max work-group size: "
+                << (__wg_size ? __wg_size : oneapi::dpl::__internal::__max_work_group_size(__policy)) << ::std::endl;
+}
+#else
 template <typename _Policy>
 inline void __print_device_debug_info(_Policy, size_t = 0, size_t = 0)
 {
 }
+#endif
 
 // struct for checking if iterator is heterogeneous or not
 template <typename Iter, typename Void = void> // for non-heterogeneous iterators
@@ -144,7 +141,7 @@ struct transform_buffer_wrapper;
 template <typename T, typename StartIdx>
 struct shifted_buffer
 {
-    using container_t = cl::sycl::buffer<T, 1>;
+    using container_t = sycl::buffer<T, 1>;
     using value_type = T;
     container_t buffer;
     StartIdx startIdx{};
@@ -197,10 +194,10 @@ struct get_buffer
     // for non-const iterators
     template <typename Iter>
     typename ::std::enable_if<!oneapi::dpl::__internal::is_const_iterator<Iter>::value,
-                              cl::sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
+                              sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
     get_buffer_from_iters(Iter first, Iter last)
     {
-        auto temp_buf = cl::sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>(first, last);
+        auto temp_buf = sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>(first, last);
         temp_buf.set_final_data(first);
         return temp_buf;
     }
@@ -208,7 +205,7 @@ struct get_buffer
     // for const iterators
     template <typename Iter>
     typename ::std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value,
-                              cl::sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
+                              sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
     get_buffer_from_iters(Iter first, Iter last)
     {
         return sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>(first, last);
@@ -265,7 +262,7 @@ struct transform_buffer_wrapper
 template <typename Iter, typename Void = void>
 struct get_access_mode
 {
-    static constexpr auto mode = cl::sycl::access::mode::read_write;
+    static constexpr auto mode = access_mode::read_write;
 };
 
 template <typename Iter> // for any const iterators
@@ -273,7 +270,7 @@ struct get_access_mode<Iter,
                        typename ::std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value, void>::type>
 {
 
-    static constexpr auto mode = cl::sycl::access::mode::read;
+    static constexpr auto mode = access_mode::read;
 };
 
 template <typename Iter> // for heterogeneous and non-const iterators
@@ -441,34 +438,34 @@ template <typename _Unknown>
 struct __local_buffer;
 
 template <int __dim, typename _AllocT, typename _T>
-struct __local_buffer<cl::sycl::buffer<_T, __dim, _AllocT>>
+struct __local_buffer<sycl::buffer<_T, __dim, _AllocT>>
 {
-    using type = cl::sycl::buffer<_T, __dim, _AllocT>;
+    using type = sycl::buffer<_T, __dim, _AllocT>;
 };
 
 //if we take ::std::tuple as a type for buffer we should convert to internal::tuple
 template <int __dim, typename _AllocT, typename... _T>
-struct __local_buffer<cl::sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
+struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
 {
-    using type = cl::sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
+    using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
 // __buffer defaulted to sycl::buffer<_T, 1, ...>
-template <typename _ExecutionPolicy, typename _T, typename _Container = cl::sycl::buffer<_T, 1>>
+template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
 struct __buffer;
 
 // impl for sycl::buffer<...>
 template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-struct __buffer<_ExecutionPolicy, _T, cl::sycl::buffer<_BValueT, __dim, _AllocT>>
+struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
 {
   private:
     using __exec_policy_t = __decay_t<_ExecutionPolicy>;
-    using __container_t = typename __local_buffer<cl::sycl::buffer<_T, __dim, _AllocT>>::type;
+    using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
 
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{cl::sycl::range<1>(__n_elements)} {}
+    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)} {}
 
     auto
     get() -> decltype(oneapi::dpl::begin(__container)) const
@@ -496,7 +493,7 @@ struct __buffer<_ExecutionPolicy, _T, __internal::shifted_buffer<_T, _StartIdx>>
 
   public:
     __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements)
-        : __container{__buf_t{cl::sycl::range<1>(__n_elements)}}
+        : __container{__buf_t{sycl::range<1>(__n_elements)}}
     {
     }
 
@@ -515,11 +512,11 @@ struct __sycl_usm_free
     void
     operator()(_T* __memory) const
     {
-        cl::sycl::free(__memory, __exec.queue().get_context());
+        sycl::free(__memory, __exec.queue().get_context());
     }
 };
 
-template <typename _ExecutionPolicy, typename _T, cl::sycl::usm::alloc __alloc_t>
+template <typename _ExecutionPolicy, typename _T, sycl::usm::alloc __alloc_t>
 struct __sycl_usm_alloc
 {
     _ExecutionPolicy __exec;
@@ -528,7 +525,7 @@ struct __sycl_usm_alloc
     operator()(::std::size_t __elements) const
     {
         const auto& __queue = __exec.queue();
-        return (_T*)cl::sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t);
+        return (_T*)sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t);
     }
 };
 
@@ -539,7 +536,7 @@ struct __buffer<_ExecutionPolicy, _T, _BValueT*>
   private:
     using __exec_policy_t = __decay_t<_ExecutionPolicy>;
     using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
-    using __alloc_t = cl::sycl::usm::alloc;
+    using __alloc_t = sycl::usm::alloc;
 
     __container_t __container;
 

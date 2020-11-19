@@ -56,7 +56,7 @@
 using namespace TestUtils;
 
 //This macro is required for the tests to work correctly in CI with tbb-backend.
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #include "support/utils_sycl.h"
 
 // just a temporary include and NoOp functor to check
@@ -136,8 +136,7 @@ struct test_transform_reduce_unary
         auto value = T1(1);
         ::std::fill(host_first1, host_first1 + n, value);
 
-        auto tuple_result =
-            ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
+        ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                                   ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -156,14 +155,10 @@ struct test_transform_reduce_binary
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
-        auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
-        auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
-
         auto value = T1(1);
         ::std::fill(host_first1, host_first1 + n, value);
 
-        auto tuple_result =
-            ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
+        ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
                                   tuple_last1, tuple_first1, ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -358,8 +353,6 @@ struct test_unique
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
-        auto f = [](Iterator1ValueType a, Iterator1ValueType b) { return a == b; };
-
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
         int64_t expected_size = (n - 1) / 4 + 1;
@@ -395,8 +388,6 @@ struct test_unique_copy
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
-
-        auto f = [](Iterator1ValueType a, Iterator1ValueType b) { return a == b; };
 
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
@@ -545,7 +536,7 @@ struct test_lexicographical_compare
 
 struct Assigner{
     template<typename T>
-    bool operator()(T x){
+    bool operator()(T x) const {
         using ::std::get;
         return get<1>(x) != 0;
     }
@@ -597,7 +588,7 @@ struct test_counting_zip_transform
 int32_t
 main()
 {
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #if defined(_PSTL_TEST_FOR_EACH)
     PRINT_DEBUG("test_for_each");
     test1buffer<int32_t, test_for_each>();
@@ -636,7 +627,7 @@ main()
 #endif
 // sorting with zip iterator does not meet limits of RAM usage on FPGA.
 // TODO: try to investigate and reduce RAM consumption
-#if defined(_PSTL_TEST_STABLE_SORT) && !_PSTL_FPGA_DEVICE
+#if defined(_PSTL_TEST_STABLE_SORT) && !_ONEDPL_FPGA_DEVICE
     PRINT_DEBUG("test_stable_sort");
     test2buffers<int32_t, test_stable_sort>();
 #endif

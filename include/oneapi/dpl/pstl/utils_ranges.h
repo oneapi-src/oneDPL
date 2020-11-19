@@ -63,7 +63,7 @@ struct pipeline_base_range
     Range rng;
 
     pipeline_base_range(Range r) : rng(r) {}
-    _PSTL_CONSTEXPR_FUN Range
+    _ONEDPL_CONSTEXPR_FUN Range
     base_range()
     {
         return rng;
@@ -77,7 +77,7 @@ struct pipeline_base_range<Range, typename ::std::enable_if<is_pipeline_object<R
     Range rng;
 
     pipeline_base_range(Range r) : rng(r) {}
-    _PSTL_CONSTEXPR_FUN auto
+    _ONEDPL_CONSTEXPR_FUN auto
     base_range() -> decltype(pipeline_base_range<decltype(rng.base())>(rng.base()).base_range())
     {
         return pipeline_base_range<decltype(rng.base())>(rng.base()).base_range();
@@ -94,7 +94,7 @@ invoke(const _TupleType& __t, _F __f, oneapi::dpl::__internal::__index_sequence<
 struct __invoke_begin
 {
     template <typename _R>
-    _PSTL_CONSTEXPR_FUN auto
+    _ONEDPL_CONSTEXPR_FUN auto
     operator()(_R __r) -> decltype(::std::begin(__r))
     {
         return ::std::begin(__r);
@@ -129,7 +129,7 @@ class zip_view
         return ::std::get<0>(__m_ranges).size();
     }
 
-    _PSTL_CONSTEXPR_FUN auto operator[](int32_t __i) const
+    _ONEDPL_CONSTEXPR_FUN auto operator[](int32_t __i) const
         -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i,
                                    oneapi::dpl::__internal::__make_index_sequence<__num_ranges>()))
     {

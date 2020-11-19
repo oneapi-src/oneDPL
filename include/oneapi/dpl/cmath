@@ -18,7 +18,7 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 using ::std::acos;
 using ::std::acosh;
@@ -59,11 +59,6 @@ using ::std::sqrt;
 using ::std::tan;
 using ::std::tanh;
 using ::std::tgamma;
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 } // namespace dpl
 } // namespace oneapi
 #endif

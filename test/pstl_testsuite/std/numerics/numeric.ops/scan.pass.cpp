@@ -156,6 +156,21 @@ test_with_plus(T init, T trash, Convert convert)
                                     expected.begin(), expected.end(), in.size(), init, trash);
 #endif
     }
+
+#if _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE
+    unsigned long n = 100000000;
+    Sequence<T> in(n, convert);
+    Sequence<T> expected(in);
+    Sequence<T> out(n, [&](int32_t) { return trash; });
+#ifdef _PSTL_TEST_INCLUSIVE_SCAN
+    invoke_on_all_hetero_policies<4>()(test_inclusive_scan_with_plus<T>(), in.begin(), in.end(), out.begin(), out.end(),
+                                expected.begin(), expected.end(), in.size(), init, trash);
+#endif
+#ifdef _PSTL_TEST_EXCLUSIVE_SCAN
+    invoke_on_all_hetero_policies<5>()(test_exclusive_scan_with_plus<T>(), in.begin(), in.end(), out.begin(),
+                                out.end(), expected.begin(), expected.end(), in.size(), init, trash);
+#endif
+#endif // _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE
 }
 
 template <typename Type>
@@ -246,7 +261,7 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     // Test with highly restricted type and associative but not commutative operation
     test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
                                                             Matrix2x2<int32_t>(-666, 666));

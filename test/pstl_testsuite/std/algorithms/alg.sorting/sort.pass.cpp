@@ -51,8 +51,10 @@ static uint32_t LastIndex;
 
 //! Keeping Equal() static and a friend of ParanoidKey class (C++, paragraphs 3.5/7.1.1)
 class ParanoidKey;
+#if !_ONEDPL_BACKEND_SYCL
 static bool
 Equal(const ParanoidKey& x, const ParanoidKey& y);
+#endif
 
 //! A key to be sorted, with lots of checking.
 class ParanoidKey
@@ -105,7 +107,7 @@ class ParanoidKey
         index = k.index;
         return *this;
     }
-    ParanoidKey(int32_t index, int32_t value, OddTag) : index(index), value(value) {}
+    ParanoidKey(int32_t index, int32_t value, OddTag) : value(value), index(index) {}
     ParanoidKey(ParanoidKey&& k) : value(k.value), index(k.index)
     {
         EXPECT_TRUE(k.isConstructed(), "source for move-construction is dead");
@@ -157,11 +159,13 @@ class KeyCompare
 };
 
 // Equal is equality comparison used for checking result of sort against expected result.
+#if !_ONEDPL_BACKEND_SYCL
 static bool
 Equal(const ParanoidKey& x, const ParanoidKey& y)
 {
     return (x.value == y.value && !Stable) || (x.index == y.index);
 }
+#endif
 
 static bool
 Equal(float32_t x, float32_t y)
@@ -310,13 +314,13 @@ main()
     {
         Stable = kind != 0;
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         // ParanoidKey has atomic increment in ctors. It's not allowed in kernel
         test_sort<ParanoidKey>(KeyCompare(OddTag()),
                                [](size_t k, size_t val) { return ParanoidKey(k, val, OddTag()); });
 #endif
 
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
         test_sort<float32_t>([](float32_t x, float32_t y) { return x < y; },
                              [](size_t, size_t val) { return float32_t(val); });
 #endif
@@ -325,7 +329,7 @@ main()
             [](size_t, size_t val) { return int32_t(val); });
     }
 
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 #endif
 

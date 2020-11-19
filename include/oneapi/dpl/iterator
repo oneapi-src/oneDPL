@@ -13,11 +13,24 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_iterator
-#define _PSTL_iterator
+#ifndef _ONEDPL_ITERATOR
+#define _ONEDPL_ITERATOR
+
+// Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
+#if __cplusplus >= 201703L
+#    if __has_include(<tbb/version.h>)
+#        ifndef PSTL_USE_PARALLEL_POLICIES
+#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#        endif
+#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        endif
+#    endif // __has_include(<tbb/version.h>)
+#endif     // __cplusplus >= 201703L
 
 #include <iterator>
-#if _PSTL_BACKEND_SYCL
+#include "oneapi/dpl/pstl/onedpl_config.h"
+#if _ONEDPL_BACKEND_SYCL
 #    include "oneapi/dpl/pstl/hetero/dpcpp/sycl_iterator.h"
 #endif
 
@@ -27,7 +40,7 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 using ::std::advance;
 using ::std::begin;
@@ -58,13 +71,8 @@ using ::std::output_iterator_tag;
 using ::std::prev;
 using ::std::random_access_iterator_tag;
 using ::std::reverse_iterator;
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
-}
+} // namespace dpl
 } // namespace oneapi
 namespace dpl = oneapi::dpl;
 
-#endif /* _PSTL_iterator */
+#endif /* _ONEDPL_ITERATOR */

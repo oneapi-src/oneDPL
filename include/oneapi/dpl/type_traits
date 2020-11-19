@@ -18,7 +18,7 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 using ::std::add_const;
 using ::std::add_cv;
@@ -209,11 +209,6 @@ using ::std::negation;
 using ::std::rank_v;
 using ::std::void_t;
 #endif
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 } // namespace dpl
 } // namespace oneapi
 #endif

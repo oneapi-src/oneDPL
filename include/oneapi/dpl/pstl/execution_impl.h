@@ -29,8 +29,6 @@ namespace dpl
 namespace __internal
 {
 
-using namespace oneapi::dpl::execution;
-
 /* predicate */
 
 template <typename _Tp>
@@ -66,7 +64,7 @@ struct __policy_traits
 };
 
 template <>
-struct __policy_traits<sequenced_policy>
+struct __policy_traits<oneapi::dpl::execution::sequenced_policy>
 {
     typedef ::std::false_type __allow_parallel;
     typedef ::std::false_type __allow_unsequenced;
@@ -74,7 +72,7 @@ struct __policy_traits<sequenced_policy>
 };
 
 template <>
-struct __policy_traits<unsequenced_policy>
+struct __policy_traits<oneapi::dpl::execution::unsequenced_policy>
 {
     typedef ::std::false_type __allow_parallel;
     typedef ::std::true_type __allow_unsequenced;
@@ -82,7 +80,7 @@ struct __policy_traits<unsequenced_policy>
 };
 
 template <>
-struct __policy_traits<parallel_policy>
+struct __policy_traits<oneapi::dpl::execution::parallel_policy>
 {
     typedef ::std::true_type __allow_parallel;
     typedef ::std::false_type __allow_unsequenced;
@@ -90,7 +88,7 @@ struct __policy_traits<parallel_policy>
 };
 
 template <>
-struct __policy_traits<parallel_unsequenced_policy>
+struct __policy_traits<oneapi::dpl::execution::parallel_unsequenced_policy>
 {
     typedef ::std::true_type __allow_parallel;
     typedef ::std::true_type __allow_unsequenced;

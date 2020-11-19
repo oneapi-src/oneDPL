@@ -91,11 +91,10 @@ test_includes(Compare compare)
 
             invoke_on_all_policies<0>()(test_one_policy<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
                                         compare);
-
             //test w/ non constant predicate
             if (n < 5 && m < 5)
-                invoke_on_all_policies<1>()(test_one_policy<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                            non_const(compare));
+                invoke_on_all_host_policies()(test_one_policy<T1>(), in1.begin(), in1.end(), in2.cbegin(),
+                                              in2.cend(), non_const(compare));
         }
     }
 }
@@ -105,10 +104,10 @@ main()
 {
 
     test_includes<float64_t, float64_t>(oneapi::dpl::__internal::__pstl_less());
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test_includes<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; });
 #endif
-    
+
     ::std::cout << done() << ::std::endl;
 
     return 0;

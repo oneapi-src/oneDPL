@@ -23,7 +23,7 @@
 
 using namespace TestUtils;
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
 static ::std::atomic<int32_t> count_val;
 static ::std::atomic<int32_t> count_comp;
 
@@ -80,18 +80,18 @@ struct test_brick_partial_sort
             auto m2 = exp_first + p;
 
             ::std::partial_sort(exp_first, m2, exp_last, compare);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
             count_comp = 0;
 #endif
             ::std::partial_sort(exec, first, m1, last, compare);
             EXPECT_EQ_N(exp_first, first, p, "wrong effect from partial_sort");
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
             //checking upper bound number of comparisons; O(p*(last-first)log(middle-first)); where p - number of threads;
             if (m1 - first > 1)
             {
                 auto complex = ::std::ceil(n * ::std::log(float32_t(m1 - first)));
-#if defined(_PSTL_PAR_BACKEND_TBB)
+#if defined(_ONEDPL_PAR_BACKEND_TBB)
                 auto p = tbb::this_task_arena::max_concurrency();
 #else
                 auto p = 1;
@@ -104,7 +104,7 @@ struct test_brick_partial_sort
                 }
 #endif
             }
-#endif // !_PSTL_BACKEND_SYCL
+#endif // !_ONEDPL_BACKEND_SYCL
         }
     }
 
@@ -147,7 +147,7 @@ int
 main()
 {
 // Disable the test for SYCL as it relies on global atomic for counting number of comparisons
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     count_val = 0;
 
     test_partial_sort<Num<float32_t>>([](Num<float32_t> x, Num<float32_t> y) { return x < y; });

@@ -20,7 +20,7 @@
 
 #include <tuple>
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 
 template <typename Iterator>
 class test_copy {
@@ -70,9 +70,9 @@ public:
 }; // struct test_copy_if
 
 void test_simple_copy(size_t buffer_size) {
-    cl::sycl::buffer<int> source_buf{ buffer_size };
-    cl::sycl::buffer<int> result_buf{ buffer_size };
-    auto host_source_begin = source_buf.template get_access<cl::sycl::access::mode::write>().get_pointer();
+    sycl::buffer<int> source_buf{ buffer_size };
+    sycl::buffer<int> result_buf{ buffer_size };
+    auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
 
     auto sycl_source_begin = oneapi::dpl::begin(source_buf);
     auto sycl_result_begin = oneapi::dpl::begin(result_buf);
@@ -90,10 +90,10 @@ void test_simple_copy(size_t buffer_size) {
 }
 
 void test_ignore_copy(size_t buffer_size) {
-    cl::sycl::buffer<int> source_buf{ buffer_size };
-    cl::sycl::buffer<int> result_buf{ buffer_size };
-    auto host_source_begin = source_buf.template get_access<cl::sycl::access::mode::write>().get_pointer();
-    auto host_result_begin = result_buf.template get_access<cl::sycl::access::mode::write>().get_pointer();
+    sycl::buffer<int> source_buf{ buffer_size };
+    sycl::buffer<int> result_buf{ buffer_size };
+    auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
+    auto host_result_begin = result_buf.template get_access<sycl::access::mode::write>().get_pointer();
 
     auto sycl_source_begin = oneapi::dpl::begin(source_buf);
     auto sycl_source_end = oneapi::dpl::end(source_buf);
@@ -112,9 +112,9 @@ void test_ignore_copy(size_t buffer_size) {
 }
 
 void test_multi_transform_copy(size_t buffer_size) {
-    cl::sycl::buffer<int> source_buf{ buffer_size };
-    cl::sycl::buffer<int> result_buf{ buffer_size };
-    auto host_source_begin = source_buf.template get_access<cl::sycl::access::mode::write>().get_pointer();
+    sycl::buffer<int> source_buf{ buffer_size };
+    sycl::buffer<int> result_buf{ buffer_size };
+    auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
 
     auto sycl_source_begin = oneapi::dpl::begin(source_buf);
     auto sycl_source_end = sycl_source_begin + buffer_size;
@@ -134,10 +134,10 @@ void test_multi_transform_copy(size_t buffer_size) {
     TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_sycl_source_begin, tr3_sycl_source_end, sycl_result_begin);
 }
 
-#endif // _PSTL_BACKEND_SYCL
+#endif // _ONEDPL_BACKEND_SYCL
 
 int32_t main() {
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
     size_t max_n = 10000;
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
         test_simple_copy(n);

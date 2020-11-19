@@ -371,7 +371,7 @@ void
 __parallel_strict_scan(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
                        _Ap __apex)
 {
-    tbb::this_task_arena::isolate([=, &__exec, &__combine]() {
+    tbb::this_task_arena::isolate([=, &__combine]() {
         if (__n > 1)
         {
             _Index __p = tbb::this_task_arena::max_concurrency();
@@ -426,7 +426,7 @@ __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _Up __u, _Tp __init, _
 //
 // These are used by parallel implementations but do not depend on them.
 //------------------------------------------------------------------------
-#define _PSTL_MERGE_CUT_OFF 2000
+#define _ONEDPL_MERGE_CUT_OFF 2000
 
 template <typename _Func>
 class __func_task;
@@ -740,7 +740,7 @@ class __merge_func
     _LeafMerge _M_leaf_merge;
     _SizeType _M_nsort; //number of elements to be sorted for partial_sort alforithm
 
-    static const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
+    static const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
 
     bool _root;   //means a task is merging root task
     bool _x_orig; //"true" means X(or left ) subrange is in the original container; false - in the buffer
@@ -832,7 +832,7 @@ class __merge_func
     __merge_func(_SizeType __xs, _SizeType __xe, _SizeType __ys, _SizeType __ye, _SizeType __zs, _Compare __comp,
                  _Cleanup, _LeafMerge __leaf_merge, _SizeType __nsort, _RandomAccessIterator1 __x_beg,
                  _RandomAccessIterator2 __z_beg, bool __x_orig, bool __y_orig, bool __root)
-        : _M_xs(__xs), _M_xe(__xe), _M_ys(__ys), _M_ye(__ye), _M_zs(__zs), _M_x_beg(__x_beg), _M_z_beg(__z_beg),
+        : _M_x_beg(__x_beg), _M_z_beg(__z_beg), _M_xs(__xs), _M_xe(__xe), _M_ys(__ys), _M_ye(__ye), _M_zs(__zs),
           _M_comp(__comp), _M_leaf_merge(__leaf_merge), _M_nsort(__nsort), _root(__root), _x_orig(__x_orig),
           _y_orig(__y_orig), _split(false)
     {
@@ -947,9 +947,6 @@ class __merge_func
         else
         {
             assert(_x_orig == _y_orig);
-
-            const auto __nx = (_M_xe - _M_xs);
-            const auto __ny = (_M_ye - _M_ys);
 
             _M_leaf_merge(_M_z_beg + _M_xs, _M_z_beg + _M_xe, _M_z_beg + _M_ys, _M_z_beg + _M_ye, _M_x_beg + _M_zs,
                           _M_comp, __move_value(), __move_value(), __move_range(), __move_range());
@@ -1128,7 +1125,7 @@ class __stable_sort_func
     operator()(__task* __self);
 };
 
-#define _PSTL_STABLE_SORT_CUT_OFF 500
+#define _ONEDPL_STABLE_SORT_CUT_OFF 500
 
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare, typename _LeafSort>
 __task*
@@ -1142,7 +1139,7 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
 
     const _SizeType __n = _M_xe - _M_xs;
     const _SizeType __nmerge = ::std::min(_M_nsort, __n);
-    const _SizeType __sort_cut_off = _PSTL_STABLE_SORT_CUT_OFF;
+    const _SizeType __sort_cut_off = _ONEDPL_STABLE_SORT_CUT_OFF;
     if (__n <= __sort_cut_off)
     {
         _M_leaf_sort(_M_xs, _M_xe, _M_comp);
@@ -1152,7 +1149,6 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
 
     const _RandomAccessIterator1 __xm = _M_xs + __n / 2;
     const _RandomAccessIterator2 __zm = _M_zs + (__xm - _M_xs);
-    const _RandomAccessIterator2 __ze = _M_zs + __n;
     _MergeTaskType __m(_MergeTaskType(_M_xs - _M_x_beg, __xm - _M_x_beg, __xm - _M_x_beg, _M_xe - _M_x_beg,
                                       _M_zs - _M_z_beg, _M_comp, __utils::__serial_destroy(),
                                       __utils::__serial_move_merge(__nmerge), _M_nsort, _M_x_beg, _M_z_beg,
@@ -1174,13 +1170,13 @@ void
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
                        _Compare __comp, _LeafSort __leaf_sort, ::std::size_t __nsort)
 {
-    tbb::this_task_arena::isolate([=, &__exec, &__nsort]() {
+    tbb::this_task_arena::isolate([=, &__nsort]() {
         //sorting based on task tree and parallel merge
         typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
         typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
         const _DifferenceType __n = __xe - __xs;
 
-        const _DifferenceType __sort_cut_off = _PSTL_STABLE_SORT_CUT_OFF;
+        const _DifferenceType __sort_cut_off = _ONEDPL_STABLE_SORT_CUT_OFF;
         if (__n > __sort_cut_off)
         {
             __buffer<_ExecutionPolicy, _ValueType> __buf(__n);
@@ -1230,7 +1226,7 @@ operator()(__task* __self)
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
     typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
     const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
-    const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
+    const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
     {
         _M_leaf_merge(_M_xs, _M_xe, _M_ys, _M_ye, _M_zs, _M_comp);
@@ -1271,7 +1267,7 @@ __parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessI
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
     typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
     const _SizeType __n = (__xe - __xs) + (__ye - __ys);
-    const _SizeType __merge_cut_off = _PSTL_MERGE_CUT_OFF;
+    const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
     {
         // Fall back on serial merge

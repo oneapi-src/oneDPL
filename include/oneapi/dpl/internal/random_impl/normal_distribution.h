@@ -152,7 +152,7 @@ class normal_distribution
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,
-        "oneapi::std::normal_distribution. Error: unsupported data type");
+        "oneapi::dpl::normal_distribution. Error: unsupported data type");
 
     // Real distribution for the conversion
     uniform_real_distribution<uniform_result_type> uniform_real_distribution_;

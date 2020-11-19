@@ -37,7 +37,7 @@ struct run_remove_copy
         // Run copy_if
         auto i = remove_copy(first, last, expected_first, value);
         auto k = remove_copy(exec, first, last, out_first, value);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         EXPECT_EQ_N(expected_first, out_first, n, "wrong remove_copy effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -60,7 +60,7 @@ test(T trash, const T& value, Convert convert, bool check_weakness = true)
     // Try sequences of various lengths.
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         // count is number of output elements, plus a handful
         // more for sake of detecting buffer overruns.
         size_t count = GuardSize;
@@ -69,7 +69,7 @@ test(T trash, const T& value, Convert convert, bool check_weakness = true)
 #endif
         Sequence<T> in(n, [&](size_t k) -> T {
             T x = convert(n ^ k);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
             count += !(x == value) ? 1 : 0;
 #endif
             return x;
@@ -94,13 +94,13 @@ test(T trash, const T& value, Convert convert, bool check_weakness = true)
 int
 main()
 {
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test<float64_t>(-666.0, 8.5, [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });
 #endif
 
     test<int32_t>(-666, 42, [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? 42 : -1 - int32_t(j); });
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<Number>(Number(42, OddTag()), Number(2001, OddTag()),
                  [](int32_t j) { return ((j + 1) % 3 & 2) != 0 ? Number(2001, OddTag()) : Number(j, OddTag()); });
 #endif

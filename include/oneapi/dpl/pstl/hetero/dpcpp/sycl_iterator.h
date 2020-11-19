@@ -19,12 +19,13 @@
 #include <CL/sycl.hpp>
 
 #include <iterator>
-#include "../../dpstd_config.h"
+#include "../../onedpl_config.h"
 
-namespace dpstd
+namespace oneapi
+{
+namespace dpl
 {
 
-namespace sycl = cl::sycl;
 using access_mode = sycl::access::mode;
 
 namespace __internal
@@ -134,36 +135,10 @@ struct _ModeConverter<access_mode::write>
 
 } // namespace __internal
 
-template <access_mode Mode, typename T, typename Allocator, typename Size>
-_ITERATORS_DEPRECATED __internal::sycl_iterator<Mode, T, Allocator>
-    make_sycl_iterator(sycl::buffer<T, /*dim=*/1, Allocator> buf, Size i)
-{
-    return __internal::sycl_iterator<Mode, T, Allocator>{buf, i};
-}
-
-template <typename T, typename Allocator, typename Size>
-_ITERATORS_DEPRECATED __internal::sycl_iterator<access_mode::read_write, T, Allocator>
-    make_sycl_iterator(sycl::buffer<T, /*dim=*/1, Allocator> buf, Size i)
-{
-    return make_sycl_iterator<access_mode::read_write, T, Allocator>(buf, i);
-}
-
-template <access_mode Mode, typename T, typename Allocator>
-_ITERATORS_DEPRECATED __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, Allocator> buf)
-{
-    return __internal::sycl_iterator<Mode, T, Allocator>{buf, 0};
-}
-
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::read_write, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 {
     return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, 0};
-}
-
-template <access_mode Mode, typename T, typename Allocator>
-_ITERATORS_DEPRECATED __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf)
-{
-    return __internal::sycl_iterator<Mode, T, Allocator>{buf, buf.get_count()};
 }
 
 template <typename T, typename Allocator>
@@ -214,14 +189,6 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
 {
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, buf.get_count()};
 }
-} // namespace dpstd
-
-namespace oneapi
-{
-namespace dpl
-{
-using dpstd::begin;
-using dpstd::end;
 } // namespace dpl
 } // namespace oneapi
 

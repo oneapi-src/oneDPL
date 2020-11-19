@@ -36,7 +36,7 @@ struct copy_int
     copy_int&
     operator=(const copy_int& other)
     {
-#if _PSTL_BACKEND_SYCL==0
+#if !_ONEDPL_BACKEND_SYCL
         if (&other == this)
             copied_times++;
         else
@@ -113,8 +113,6 @@ template <typename T1, typename T2, typename Pred>
 void
 test(Pred pred)
 {
-    typedef typename Sequence<T2>::iterator iterator_type;
-
     const ::std::size_t max_len = 100000;
 
     const T1 value = T1(0);

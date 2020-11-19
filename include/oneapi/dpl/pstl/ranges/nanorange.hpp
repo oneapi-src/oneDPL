@@ -3175,6 +3175,46 @@ struct fn
 
 NANO_INLINE_VAR(detail::data_::fn, data)
 
+namespace detail
+{
+namespace cdata_
+{
+
+struct fn
+{
+  private:
+    template <typename T, typename U = ::std::remove_reference_t<T>,
+              ::std::enable_if_t<::std::is_lvalue_reference_v<T>, int> = 0>
+    static constexpr auto
+    impl(T&& t) noexcept(noexcept(ranges::data(static_cast<const U&>(t))))
+        -> decltype(ranges::data(static_cast<const U&>(t)))
+    {
+        return ranges::data(static_cast<const U&>(t));
+    }
+
+    template <typename T, ::std::enable_if_t<!::std::is_lvalue_reference_v<T>, int> = 0>
+    static constexpr auto
+    impl(T&& t) noexcept(noexcept(ranges::data(static_cast<const T&&>(t))))
+        -> decltype(ranges::data(static_cast<const T&&>(t)))
+    {
+        return ranges::data(static_cast<const T&&>(t));
+    }
+
+  public:
+    template <typename T>
+    constexpr auto
+    operator()(T&& t) const noexcept(noexcept(fn::impl(::std::forward<T>(t))))
+        -> decltype(fn::impl(::std::forward<T>(t)))
+    {
+        return fn::impl(::std::forward<T>(t));
+    }
+};
+
+} // namespace cdata_
+} // namespace detail
+
+NANO_INLINE_VAR(detail::cdata_::fn, cdata)
+
 NANO_END_NAMESPACE
 
 #                            endif
@@ -4683,6 +4723,49 @@ NANO_END_NAMESPACE
 
 #    endif
 
+// nanorange/algorithm/clamp.hpp
+//
+// Copyright (c) 2020 Boris Staletic (boris dot staletic at gmail dot com)
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+#    ifndef NANORANGE_ALGORITHM_CLAMP_HPP_INCLUDED
+#        define NANORANGE_ALGORITHM_CLAMP_HPP_INCLUDED
+
+NANO_BEGIN_NAMESPACE
+
+namespace detail
+{
+
+struct clamp_fn
+{
+    template <typename T, typename Proj = identity, typename Comp = nano::less>
+    constexpr ::std::enable_if_t<indirect_strict_weak_order<Comp, projected<const T*, Proj>>, const T&>
+    operator()(const T& value, const T& low, const T& high, Comp comp = {}, Proj proj = Proj{}) const
+    {
+        auto&& projected_value = nano::invoke(proj, value);
+        if (nano::invoke(comp, projected_value, nano::invoke(proj, low)))
+        {
+            return low;
+        }
+        else if (nano::invoke(comp, nano::invoke(proj, high), projected_value))
+        {
+            return high;
+        }
+        else
+        {
+            return value;
+        }
+    }
+};
+} // namespace detail
+
+NANO_INLINE_VAR(detail::clamp_fn, clamp)
+
+NANO_END_NAMESPACE
+
+#    endif
+
 // nanorange/algorithm/copy.hpp
 //
 // Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
@@ -4692,27 +4775,173 @@ NANO_END_NAMESPACE
 #    ifndef NANORANGE_ALGORITHM_COPY_HPP_INCLUDED
 #        define NANORANGE_ALGORITHM_COPY_HPP_INCLUDED
 
+// nanorange/detail/algorithm/result_types.hpp
+//
+// Copyright (c) 2020 Boris Staletic (boris dot staletic at gmail dot com)
+// Copyright (c) 2020 Tristan Brindle (tcbrindle at gmail dot com)
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+#        ifndef NANORANGE_DETAIL_ALGORITHM_RETURN_TYPES
+#            define NANORANGE_DETAIL_ALGORITHM_RETURN_TYPES
+
+#            include <type_traits>
+
 NANO_BEGIN_NAMESPACE
 
+template <typename I, typename F>
+struct in_fun_result
+{
+    NANO_NO_UNIQUE_ADDRESS I in;
+    NANO_NO_UNIQUE_ADDRESS F fun;
+
+    template <typename I2, typename F2,
+              ::std::enable_if_t<convertible_to<const I&, I2> && convertible_to<const F&, F2>, int> = 0>
+    constexpr operator in_fun_result<I2, F2>() const&
+    {
+        return {in, fun};
+    }
+
+    template <typename I2, typename F2, ::std::enable_if_t<convertible_to<I, I2> && convertible_to<F, F2>, int> = 0>
+    constexpr operator in_fun_result<I2, F2>() &&
+    {
+        return {::std::move(in), ::std::move(fun)};
+    }
+};
+
+template <typename I1, typename I2>
+struct in_in_result
+{
+    NANO_NO_UNIQUE_ADDRESS I1 in1;
+    NANO_NO_UNIQUE_ADDRESS I2 in2;
+
+    template <typename II1, typename II2,
+              ::std::enable_if_t<convertible_to<const I1&, II1> && convertible_to<const I2&, II2>, int> = 0>
+    constexpr operator in_in_result<II1, II2>() const&
+    {
+        return {in1, in2};
+    }
+
+    template <typename II1, typename II2,
+              ::std::enable_if_t<convertible_to<I1, II1> && convertible_to<I2, II2>, int> = 0>
+    constexpr operator in_in_result<II1, II2>() &&
+    {
+        return {::std::move(in1), ::std::move(in2)};
+    }
+};
+
 template <typename I, typename O>
-struct copy_result
+struct in_out_result
 {
     NANO_NO_UNIQUE_ADDRESS I in;
     NANO_NO_UNIQUE_ADDRESS O out;
 
     template <typename I2, typename O2,
               ::std::enable_if_t<convertible_to<const I&, I2> && convertible_to<const O&, O2>, int> = 0>
-    constexpr operator copy_result<I2, O2>() const&
+    constexpr operator in_out_result<I2, O2>() const&
     {
         return {in, out};
     }
 
     template <typename I2, typename O2, ::std::enable_if_t<convertible_to<I, I2> && convertible_to<O, O2>, int> = 0>
-    constexpr operator copy_result<I2, O2>() &&
+    constexpr operator in_out_result<I2, O2>() &&
     {
         return {::std::move(in), ::std::move(out)};
     }
 };
+
+template <typename I1, typename I2, typename O>
+struct in_in_out_result
+{
+    NANO_NO_UNIQUE_ADDRESS I1 in1;
+    NANO_NO_UNIQUE_ADDRESS I2 in2;
+    NANO_NO_UNIQUE_ADDRESS O out;
+
+    template <
+        typename II1, typename II2, typename O2,
+        ::std::enable_if_t<
+            convertible_to<const I1&, II1> && convertible_to<const I2&, II2> && convertible_to<const O&, O2>, int> = 0>
+    constexpr operator in_in_out_result<II1, II2, O2>() const&
+    {
+        return {in1, in2, out};
+    }
+
+    template <typename II1, typename II2, typename O2,
+              ::std::enable_if_t<convertible_to<I1, II1> && convertible_to<I2, II2> && convertible_to<O, O2>, int> = 0>
+    constexpr operator in_in_out_result<II1, II2, O2>() &&
+    {
+        return {::std::move(in1), ::std::move(in2), ::std::move(out)};
+    }
+};
+
+template <typename I, typename O1, typename O2>
+struct in_out_out_result
+{
+    NANO_NO_UNIQUE_ADDRESS I in;
+    NANO_NO_UNIQUE_ADDRESS O1 out1;
+    NANO_NO_UNIQUE_ADDRESS O2 out2;
+
+    template <
+        typename II, typename OO1, typename OO2,
+        ::std::enable_if_t<
+            convertible_to<const I&, II> && convertible_to<const O1&, OO1> && convertible_to<const O2&, OO2>, int> = 0>
+    constexpr operator in_out_out_result<II, OO1, OO2>() const&
+    {
+        return {in, out1, out2};
+    }
+
+    template <typename II, typename OO1, typename OO2,
+              ::std::enable_if_t<convertible_to<I, II> && convertible_to<O1, OO1> && convertible_to<O2, OO2>, int> = 0>
+    constexpr operator in_out_out_result<II, OO1, OO2>() &&
+    {
+        return {::std::move(in), ::std::move(out1), ::std::move(out2)};
+    }
+};
+
+template <typename T>
+struct min_max_result
+{
+    NANO_NO_UNIQUE_ADDRESS T min;
+    NANO_NO_UNIQUE_ADDRESS T max;
+
+    template <typename T2, ::std::enable_if_t<convertible_to<const T&, T2>, int> = 0>
+    constexpr operator min_max_result<T2>() const&
+    {
+        return {min, max};
+    }
+
+    template <typename T2, ::std::enable_if_t<convertible_to<T, T2>, int> = 0>
+    constexpr operator min_max_result<T2>() &&
+    {
+        return {::std::move(min), ::std::move(max)};
+    }
+};
+
+template <typename I>
+struct in_found_result
+{
+    NANO_NO_UNIQUE_ADDRESS I in;
+    bool found;
+    template <class I2, ::std::enable_if_t<convertible_to<const I&, I2>, int> = 0>
+    constexpr operator in_found_result<I2>() const&
+    {
+        return {in, found};
+    }
+    template <class I2, ::std::enable_if_t<convertible_to<const I&, I2>, int> = 0>
+    constexpr operator in_found_result<I2>() &&
+    {
+        return {::std::move(in), found};
+    }
+};
+
+NANO_END_NAMESPACE
+
+#        endif
+
+NANO_BEGIN_NAMESPACE
+
+template <typename I, typename O>
+using copy_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -4776,7 +5005,7 @@ struct copy_fn
 NANO_INLINE_VAR(detail::copy_fn, copy)
 
 template <typename I, typename O>
-using copy_n_result = copy_result<I, O>;
+using copy_n_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -4804,7 +5033,7 @@ struct copy_n_fn
 NANO_INLINE_VAR(detail::copy_n_fn, copy_n)
 
 template <typename I, typename O>
-using copy_if_result = copy_result<I, O>;
+using copy_if_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -4856,7 +5085,7 @@ struct copy_if_fn
 NANO_INLINE_VAR(detail::copy_if_fn, copy_if)
 
 template <typename I, typename O>
-using copy_backward_result = copy_result<I, O>;
+using copy_backward_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -4958,7 +5187,7 @@ struct count_if_fn
 
     template <typename Rng, typename Proj = identity, typename Pred>
     constexpr ::std::enable_if_t<input_range<Rng> && indirect_unary_predicate<Pred, projected<iterator_t<Rng>, Proj>>,
-                                 iter_difference_t<iterator_t<Rng>>>
+                                 range_difference_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
         return count_if_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
@@ -4986,7 +5215,7 @@ struct count_fn
     template <typename Rng, typename T, typename Proj = identity>
     constexpr ::std::enable_if_t<input_range<Rng> &&
                                      indirect_relation<ranges::equal_to, projected<iterator_t<Rng>, Proj>, const T*>,
-                                 iter_difference_t<iterator_t<Rng>>>
+                                 range_difference_t<Rng>>
     operator()(Rng&& rng, const T& value, Proj proj = Proj{}) const
     {
         const auto pred = [&value](const auto& t) { return t == value; };
@@ -6511,24 +6740,7 @@ NANO_BEGIN_NAMESPACE
 // [range.alg.foreach]
 
 template <typename I, typename F>
-struct for_each_result
-{
-    NANO_NO_UNIQUE_ADDRESS I in;
-    NANO_NO_UNIQUE_ADDRESS F fun;
-
-    template <typename I2, typename F2,
-              ::std::enable_if_t<convertible_to<const I&, I2> && convertible_to<const F&, F2>, int> = 0>
-    constexpr operator for_each_result<I2, F2>() const&
-    {
-        return {in, fun};
-    }
-
-    template <typename I2, typename F2, ::std::enable_if_t<convertible_to<I, I2> && convertible_to<F, F2>, int> = 0>
-    constexpr operator for_each_result<I2, F2>() &&
-    {
-        return {::std::move(in), ::std::move(fun)};
-    }
-};
+using for_each_result = in_fun_result<I, F>;
 
 namespace detail
 {
@@ -6569,6 +6781,31 @@ struct for_each_fn
 } // namespace detail
 
 NANO_INLINE_VAR(detail::for_each_fn, for_each)
+
+template <typename I, typename F>
+using for_each_n_result = in_fun_result<I, F>;
+
+namespace detail
+{
+
+struct for_each_n_fn
+{
+    template <typename I, typename Proj = identity, typename Fun>
+    constexpr ::std::enable_if_t<input_iterator<I> && indirect_unary_invocable<Fun, projected<I, Proj>>,
+                                 for_each_n_result<I, Fun>>
+    operator()(I first, iter_difference_t<I> n, Fun fun, Proj proj = Proj{}) const
+    {
+        while (n-- > 0)
+        {
+            nano::invoke(fun, nano::invoke(proj, *first));
+            ++first;
+        }
+        return {::std::move(first), ::std::move(fun)};
+    }
+};
+} // namespace detail
+
+NANO_INLINE_VAR(detail::for_each_n_fn, for_each_n)
 
 NANO_END_NAMESPACE
 
@@ -6787,184 +7024,10 @@ NANO_END_NAMESPACE
 #        ifndef NANORANGE_ALGORITHM_MERGE_HPP_INCLUDED
 #            define NANORANGE_ALGORITHM_MERGE_HPP_INCLUDED
 
-// nanorange/algorithm/transform.hpp
-//
-// Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-
-#            ifndef NANORANGE_ALGORITHM_TRANSFORM_HPP_INCLUDED
-#                define NANORANGE_ALGORITHM_TRANSFORM_HPP_INCLUDED
-
-NANO_BEGIN_NAMESPACE
-
-template <typename I, typename O>
-using unary_transform_result = copy_result<I, O>;
-
-template <typename I1, typename I2, typename O>
-struct binary_transform_result
-{
-    NANO_NO_UNIQUE_ADDRESS I1 in1;
-    NANO_NO_UNIQUE_ADDRESS I2 in2;
-    NANO_NO_UNIQUE_ADDRESS O out;
-
-    template <
-        typename II1, typename II2, typename O2,
-        ::std::enable_if_t<
-            convertible_to<const I1&, II1> && convertible_to<const I2&, II2> && convertible_to<const O&, O2>, int> = 0>
-    constexpr operator binary_transform_result<II1, II2, O2>() const&
-    {
-        return {in1, in2, out};
-    }
-
-    template <typename II1, typename II2, typename O2,
-              ::std::enable_if_t<convertible_to<I1, II1> && convertible_to<I2, II2> && convertible_to<O, O2>, int> = 0>
-    constexpr operator binary_transform_result<II1, II2, O2>() &&
-    {
-        return {::std::move(in1), ::std::move(in2), ::std::move(out)};
-    }
-};
-
-namespace detail
-{
-
-struct transform_fn
-{
-  private:
-    template <typename I, typename S, typename O, typename F, typename Proj>
-    static constexpr unary_transform_result<I, O>
-    unary_impl(I first, S last, O result, F& op, Proj& proj)
-    {
-        while (first != last)
-        {
-            *result = nano::invoke(op, nano::invoke(proj, *first));
-            ++first;
-            ++result;
-        }
-
-        return {::std::move(first), ::std::move(result)};
-    }
-
-    template <typename I1, typename S1, typename I2, typename O, typename F, typename Proj1, typename Proj2>
-    static constexpr binary_transform_result<I1, I2, O>
-    binary_impl3(I1 first1, S1 last1, I2 first2, O result, F& op, Proj1& proj1, Proj2& proj2)
-    {
-        while (first1 != last1)
-        {
-            *result = nano::invoke(op, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2));
-            ++first1;
-            ++first2;
-            ++result;
-        }
-
-        return {::std::move(first1), ::std::move(first2), ::std::move(result)};
-    }
-
-    template <typename I1, typename S1, typename I2, typename S2, typename O, typename F, typename Proj1,
-              typename Proj2>
-    static constexpr binary_transform_result<I1, I2, O>
-    binary_impl4(I1 first1, S1 last1, I2 first2, S2 last2, O result, F& op, Proj1& proj1, Proj2& proj2)
-    {
-        while (first1 != last1 && first2 != last2)
-        {
-            *result = nano::invoke(op, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2));
-            ++first1;
-            ++first2;
-            ++result;
-        }
-
-        return {::std::move(first1), ::std::move(first2), ::std::move(result)};
-    }
-
-  public:
-    // Unary op, iterators
-    template <typename I, typename S, typename O, typename F, typename Proj = identity>
-    constexpr ::std::enable_if_t<input_iterator<I> && sentinel_for<S, I> && weakly_incrementable<O> &&
-                                     copy_constructible<F> && writable<O, indirect_result_t<F&, projected<I, Proj>>>,
-                                 unary_transform_result<I, O>>
-    operator()(I first, S last, O result, F op, Proj proj = Proj{}) const
-    {
-        return transform_fn::unary_impl(::std::move(first), ::std::move(last), ::std::move(result), op, proj);
-    }
-
-    // Unary op, range
-    template <typename Rng, typename O, typename F, typename Proj = identity>
-    constexpr ::std::enable_if_t<input_range<Rng> && weakly_incrementable<O> && copy_constructible<F> &&
-                                     writable<O, indirect_result_t<F&, projected<iterator_t<Rng>, Proj>>>,
-                                 unary_transform_result<borrowed_iterator_t<Rng>, O>>
-    operator()(Rng&& rng, O result, F op, Proj proj = Proj{}) const
-    {
-        return transform_fn::unary_impl(nano::begin(rng), nano::end(rng), ::std::move(result), op, proj);
-    }
-
-    // Binary op, four-legged
-    template <typename I1, typename S1, typename I2, typename S2, typename O, typename F, typename Proj1 = identity,
-              typename Proj2 = identity>
-    constexpr ::std::enable_if_t<input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<I2> &&
-                                     sentinel_for<S2, I2> && weakly_incrementable<O> && copy_constructible<F> &&
-                                     writable<O, indirect_result_t<F&, projected<I1, Proj1>, projected<I2, Proj2>>>,
-                                 binary_transform_result<I1, I2, O>>
-    operator()(I1 first1, S1 last1, I2 first2, S2 last2, O result, F op, Proj1 proj1 = Proj1{},
-               Proj2 proj2 = Proj2{}) const
-    {
-        return transform_fn::binary_impl4(::std::move(first1), ::std::move(last1), ::std::move(first2),
-                                          ::std::move(last2), ::std::move(result), op, proj1, proj2);
-    }
-
-    // Binary op, two ranges
-    template <typename Rng1, typename Rng2, typename O, typename F, typename Proj1 = identity,
-              typename Proj2 = identity>
-    constexpr ::std::enable_if_t<
-        input_range<Rng1> && input_range<Rng2> && weakly_incrementable<O> && copy_constructible<F> &&
-            writable<O, indirect_result_t<F&, projected<iterator_t<Rng1>, Proj1>, projected<iterator_t<Rng2>, Proj2>>>,
-        binary_transform_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>, O>>
-    operator()(Rng1&& rng1, Rng2&& rng2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
-    {
-        return transform_fn::binary_impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
-                                          ::std::move(result), op, proj1, proj2);
-    }
-
-    // Binary op, three-legged
-    template <typename I1, typename S1, typename I2, typename O, typename F, typename Proj1 = identity,
-              typename Proj2 = identity>
-    NANO_DEPRECATED constexpr ::std::enable_if_t<
-        input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<::std::decay_t<I2>> && !input_range<I2> &&
-            weakly_incrementable<O> && copy_constructible<F> &&
-            writable<O, indirect_result_t<F&, projected<I1, Proj1>, projected<::std::decay_t<I2>, Proj2>>>,
-        binary_transform_result<I1, ::std::decay_t<I2>, O>>
-    operator()(I1 first1, S1 last1, I2&& first2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
-    {
-        return transform_fn::binary_impl3(::std::move(first1), ::std::move(last1), ::std::forward<I2>(first2),
-                                          ::std::move(result), op, proj1, proj2);
-    }
-
-    // binary op, range-and-a-half
-    template <typename Rng1, typename I2, typename O, typename F, typename Proj1 = identity, typename Proj2 = identity>
-    NANO_DEPRECATED constexpr ::std::enable_if_t<
-        input_range<Rng1> && input_iterator<::std::decay_t<I2>> && !input_range<I2> && weakly_incrementable<O> &&
-            copy_constructible<F> &&
-            writable<O,
-                     indirect_result_t<F&, projected<iterator_t<Rng1>, Proj1>, projected<::std::decay_t<I2>, Proj2>>>,
-        binary_transform_result<borrowed_iterator_t<Rng1>, ::std::decay_t<I2>, O>>
-    operator()(Rng1&& rng1, I2&& first2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
-    {
-        return transform_fn::binary_impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2),
-                                          ::std::move(result), op, proj1, proj2);
-    }
-};
-
-} // namespace detail
-
-NANO_INLINE_VAR(detail::transform_fn, transform)
-
-NANO_END_NAMESPACE
-
-#            endif
-
 NANO_BEGIN_NAMESPACE
 
 template <typename I1, typename I2, typename O>
-using merge_result = binary_transform_result<I1, I2, O>;
+using merge_result = in_in_out_result<I1, I2, O>;
 
 namespace detail
 {
@@ -7105,7 +7168,7 @@ struct min_fn
     template <typename Rng, typename Comp = ranges::less, typename Proj = identity>
     constexpr ::std::enable_if_t<input_range<Rng> && copyable<iter_value_t<iterator_t<Rng>>> &&
                                      indirect_strict_weak_order<Comp, projected<iterator_t<Rng>, Proj>>,
-                                 iter_value_t<iterator_t<Rng>>>
+                                 range_value_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
         return min_fn::impl(::std::forward<Rng>(rng), comp, proj);
@@ -7132,7 +7195,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using move_result = copy_result<I, O>;
+using move_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -7193,8 +7256,8 @@ struct move_fn
 
 NANO_INLINE_VAR(detail::move_fn, move)
 
-template <typename I1, typename I2>
-using move_backward_result = copy_result<I1, I2>;
+template <typename I, typename O>
+using move_backward_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -7270,141 +7333,10 @@ NANO_END_NAMESPACE
 #            ifndef NANORANGE_ALGORITHM_SWAP_RANGES_HPP_INCLUDED
 #                define NANORANGE_ALGORITHM_SWAP_RANGES_HPP_INCLUDED
 
-// nanorange/algorithm/mismatch.hpp
-//
-// Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-
-#                ifndef NANORANGE_ALGORITHM_MISMATCH_HPP_INCLUDED
-#                    define NANORANGE_ALGORITHM_MISMATCH_HPP_INCLUDED
-
-NANO_BEGIN_NAMESPACE
-
-// [range.mismatch]
-
-template <typename I1, typename I2>
-struct mismatch_result
-{
-    NANO_NO_UNIQUE_ADDRESS I1 in1;
-    NANO_NO_UNIQUE_ADDRESS I2 in2;
-
-    template <typename II1, typename II2,
-              ::std::enable_if_t<convertible_to<const I1&, II1> && convertible_to<const I2&, II2>, int> = 0>
-    constexpr operator mismatch_result<II1, II2>() const&
-    {
-        return {in1, in2};
-    }
-
-    template <typename II1, typename II2,
-              ::std::enable_if_t<convertible_to<I1, II1> && convertible_to<I2, II2>, int> = 0>
-    constexpr operator mismatch_result<II1, II2>() &&
-    {
-        return {::std::move(in1), ::std::move(in2)};
-    }
-};
-
-namespace detail
-{
-
-struct mismatch_fn
-{
-  private:
-    friend struct is_permutation_fn;
-
-    template <typename I1, typename S1, typename I2, typename Proj1, typename Proj2, typename Pred>
-    static constexpr mismatch_result<I1, I2>
-    impl3(I1 first1, S1 last1, I2 first2, Pred& pred, Proj1& proj1, Proj2& proj2)
-    {
-        while (first1 != last1 && nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
-        {
-            ++first1;
-            ++first2;
-        }
-
-        return {first1, first2};
-    }
-
-    template <typename I1, typename S1, typename I2, typename S2, typename Proj1, typename Proj2, typename Pred>
-    static constexpr mismatch_result<I1, I2>
-    impl4(I1 first1, S1 last1, I2 first2, S2 last2, Pred& pred, Proj1& proj1, Proj2& proj2)
-    {
-        while (first1 != last1 && first2 != last2 &&
-               nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
-        {
-            ++first1;
-            ++first2;
-        }
-
-        return {first1, first2};
-    }
-
-  public:
-    // three legged
-    template <typename I1, typename S1, typename I2, typename Proj1 = identity, typename Proj2 = identity,
-              typename Pred = ranges::equal_to>
-    NANO_DEPRECATED constexpr ::std::enable_if_t<
-        input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<::std::decay_t<I2>> && !input_range<I1> &&
-            indirect_relation<Pred, projected<I1, Proj1>, projected<::std::decay_t<I2>, Proj2>>,
-        mismatch_result<I1, ::std::decay_t<I2>>>
-    operator()(I1 first1, S1 last1, I2&& first2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
-    {
-        return mismatch_fn::impl3(::std::move(first1), ::std::move(last1), ::std::forward<I2>(first2), pred, proj1,
-                                  proj2);
-    }
-
-    // range and a half
-    template <typename Rng1, typename I2, typename Proj1 = identity, typename Proj2 = identity,
-              typename Pred = ranges::equal_to>
-    NANO_DEPRECATED constexpr ::std::enable_if_t<
-        input_range<Rng1> && input_iterator<::std::decay_t<I2>> && !input_range<I2> &&
-            indirect_relation<Pred, projected<iterator_t<Rng1>, Proj1>, projected<::std::decay_t<I2>, Proj2>>,
-        mismatch_result<borrowed_iterator_t<Rng1>, ::std::decay_t<I2>>>
-    operator()(Rng1&& rng1, I2&& first2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
-    {
-        return mismatch_fn::impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2), pred, proj1, proj2);
-    }
-
-    // four legged
-    template <typename I1, typename S1, typename I2, typename S2, typename Proj1 = identity, typename Proj2 = identity,
-              typename Pred = ranges::equal_to>
-    constexpr ::std::enable_if_t<input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<I2> &&
-                                     sentinel_for<S2, I2> &&
-                                     indirect_relation<Pred, projected<I1, Proj1>, projected<I2, Proj2>>,
-                                 mismatch_result<I1, I2>>
-    operator()(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = Pred{}, Proj1 proj1 = Proj1{},
-               Proj2 proj2 = Proj2{}) const
-    {
-        return mismatch_fn::impl4(::std::move(first1), ::std::move(last1), ::std::move(first2), ::std::move(last2),
-                                  pred, proj1, proj2);
-    }
-
-    // two ranges
-    template <typename Rng1, typename Rng2, typename Proj1 = identity, typename Proj2 = identity,
-              typename Pred = ranges::equal_to>
-    constexpr ::std::enable_if_t<
-        input_range<Rng1> && input_range<Rng2> &&
-            indirect_relation<Pred, projected<iterator_t<Rng1>, Proj1>, projected<iterator_t<Rng2>, Proj2>>,
-        mismatch_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>>>
-    operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
-    {
-        return mismatch_fn::impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred, proj1,
-                                  proj2);
-    }
-};
-
-} // namespace detail
-
-NANO_INLINE_VAR(detail::mismatch_fn, mismatch)
-
-NANO_END_NAMESPACE
-
-#                endif
-
 NANO_BEGIN_NAMESPACE
 
 template <typename I1, typename I2>
-using swap_ranges_result = mismatch_result<I1, I2>;
+using swap_ranges_result = in_in_result<I1, I2>;
 
 namespace detail
 {
@@ -9113,6 +9045,119 @@ NANO_END_NAMESPACE
 #    ifndef NANORANGE_ALGORITHM_IS_PERMUTATION_HPP_INCLUDED
 #        define NANORANGE_ALGORITHM_IS_PERMUTATION_HPP_INCLUDED
 
+// nanorange/algorithm/mismatch.hpp
+//
+// Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+#        ifndef NANORANGE_ALGORITHM_MISMATCH_HPP_INCLUDED
+#            define NANORANGE_ALGORITHM_MISMATCH_HPP_INCLUDED
+
+NANO_BEGIN_NAMESPACE
+
+// [range.mismatch]
+
+template <typename I1, typename I2>
+using mismatch_result = in_in_result<I1, I2>;
+
+namespace detail
+{
+
+struct mismatch_fn
+{
+  private:
+    friend struct is_permutation_fn;
+
+    template <typename I1, typename S1, typename I2, typename Proj1, typename Proj2, typename Pred>
+    static constexpr mismatch_result<I1, I2>
+    impl3(I1 first1, S1 last1, I2 first2, Pred& pred, Proj1& proj1, Proj2& proj2)
+    {
+        while (first1 != last1 && nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+        {
+            ++first1;
+            ++first2;
+        }
+
+        return {first1, first2};
+    }
+
+    template <typename I1, typename S1, typename I2, typename S2, typename Proj1, typename Proj2, typename Pred>
+    static constexpr mismatch_result<I1, I2>
+    impl4(I1 first1, S1 last1, I2 first2, S2 last2, Pred& pred, Proj1& proj1, Proj2& proj2)
+    {
+        while (first1 != last1 && first2 != last2 &&
+               nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+        {
+            ++first1;
+            ++first2;
+        }
+
+        return {first1, first2};
+    }
+
+  public:
+    // three legged
+    template <typename I1, typename S1, typename I2, typename Proj1 = identity, typename Proj2 = identity,
+              typename Pred = ranges::equal_to>
+    NANO_DEPRECATED constexpr ::std::enable_if_t<
+        input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<::std::decay_t<I2>> && !input_range<I1> &&
+            indirect_relation<Pred, projected<I1, Proj1>, projected<::std::decay_t<I2>, Proj2>>,
+        mismatch_result<I1, ::std::decay_t<I2>>>
+    operator()(I1 first1, S1 last1, I2&& first2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
+    {
+        return mismatch_fn::impl3(::std::move(first1), ::std::move(last1), ::std::forward<I2>(first2), pred, proj1,
+                                  proj2);
+    }
+
+    // range and a half
+    template <typename Rng1, typename I2, typename Proj1 = identity, typename Proj2 = identity,
+              typename Pred = ranges::equal_to>
+    NANO_DEPRECATED constexpr ::std::enable_if_t<
+        input_range<Rng1> && input_iterator<::std::decay_t<I2>> && !input_range<I2> &&
+            indirect_relation<Pred, projected<iterator_t<Rng1>, Proj1>, projected<::std::decay_t<I2>, Proj2>>,
+        mismatch_result<borrowed_iterator_t<Rng1>, ::std::decay_t<I2>>>
+    operator()(Rng1&& rng1, I2&& first2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
+    {
+        return mismatch_fn::impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2), pred, proj1, proj2);
+    }
+
+    // four legged
+    template <typename I1, typename S1, typename I2, typename S2, typename Proj1 = identity, typename Proj2 = identity,
+              typename Pred = ranges::equal_to>
+    constexpr ::std::enable_if_t<input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<I2> &&
+                                     sentinel_for<S2, I2> &&
+                                     indirect_relation<Pred, projected<I1, Proj1>, projected<I2, Proj2>>,
+                                 mismatch_result<I1, I2>>
+    operator()(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = Pred{}, Proj1 proj1 = Proj1{},
+               Proj2 proj2 = Proj2{}) const
+    {
+        return mismatch_fn::impl4(::std::move(first1), ::std::move(last1), ::std::move(first2), ::std::move(last2),
+                                  pred, proj1, proj2);
+    }
+
+    // two ranges
+    template <typename Rng1, typename Rng2, typename Proj1 = identity, typename Proj2 = identity,
+              typename Pred = ranges::equal_to>
+    constexpr ::std::enable_if_t<
+        input_range<Rng1> && input_range<Rng2> &&
+            indirect_relation<Pred, projected<iterator_t<Rng1>, Proj1>, projected<iterator_t<Rng2>, Proj2>>,
+        mismatch_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>>>
+    operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
+    {
+        return mismatch_fn::impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred, proj1,
+                                  proj2);
+    }
+};
+
+} // namespace detail
+
+NANO_INLINE_VAR(detail::mismatch_fn, mismatch)
+
+NANO_END_NAMESPACE
+
+#        endif
+
 NANO_BEGIN_NAMESPACE
 
 namespace detail
@@ -9729,7 +9774,7 @@ struct max_fn
     template <typename Rng, typename Comp = ranges::less, typename Proj = identity>
     constexpr ::std::enable_if_t<input_range<Rng> && copyable<iter_value_t<iterator_t<Rng>>> &&
                                      indirect_strict_weak_order<Comp, projected<iterator_t<Rng>, Proj>>,
-                                 iter_value_t<iterator_t<Rng>>>
+                                 range_value_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
         return max_fn::impl(::std::forward<Rng>(rng), comp, proj);
@@ -9892,23 +9937,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename T>
-struct minmax_result
-{
-    NANO_NO_UNIQUE_ADDRESS T min;
-    NANO_NO_UNIQUE_ADDRESS T max;
-
-    template <typename T2, ::std::enable_if_t<convertible_to<const T&, T2>, int> = 0>
-    constexpr operator minmax_result<T2>() const&
-    {
-        return {min, max};
-    }
-
-    template <typename T2, ::std::enable_if_t<convertible_to<T, T2>, int> = 0>
-    constexpr operator minmax_result<T2>() &&
-    {
-        return {::std::move(min), ::std::move(max)};
-    }
-};
+using minmax_result = min_max_result<T>;
 
 namespace detail
 {
@@ -10014,7 +10043,7 @@ struct minmax_fn
     template <typename Rng, typename Comp = ranges::less, typename Proj = identity>
     constexpr ::std::enable_if_t<input_range<Rng> && copyable<iter_value_t<iterator_t<Rng>>> &&
                                      indirect_strict_weak_order<Comp, projected<iterator_t<Rng>, Proj>>,
-                                 minmax_result<iter_value_t<iterator_t<Rng>>>>
+                                 minmax_result<range_value_t<Rng>>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
         return minmax_fn::impl(::std::forward<Rng>(rng), comp, proj);
@@ -10043,6 +10072,9 @@ NANO_END_NAMESPACE
 
 NANO_BEGIN_NAMESPACE
 
+template <typename T>
+using minmax_element_result = min_max_result<T>;
+
 namespace detail
 {
 
@@ -10050,10 +10082,10 @@ struct minmax_element_fn
 {
   private:
     template <typename I, typename S, typename Comp, typename Proj>
-    static constexpr minmax_result<I>
+    static constexpr minmax_element_result<I>
     impl(I first, S last, Comp& comp, Proj& proj)
     {
-        minmax_result<I> result{first, first};
+        minmax_element_result<I> result{first, first};
 
         if (first == last || ++first == last)
         {
@@ -10118,7 +10150,7 @@ struct minmax_element_fn
     template <typename I, typename S, typename Comp = ranges::less, typename Proj = identity>
     constexpr ::std::enable_if_t<forward_iterator<I> && sentinel_for<S, I> &&
                                      indirect_strict_weak_order<Comp, projected<I, Proj>>,
-                                 minmax_result<I>>
+                                 minmax_element_result<I>>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
         return minmax_element_fn::impl(::std::move(first), ::std::move(last), comp, proj);
@@ -10127,7 +10159,7 @@ struct minmax_element_fn
     template <typename Rng, typename Comp = ranges::less, typename Proj = identity>
     constexpr ::std::enable_if_t<forward_range<Rng> &&
                                      indirect_strict_weak_order<Comp, projected<iterator_t<Rng>, Proj>>,
-                                 minmax_result<borrowed_iterator_t<Rng>>>
+                                 minmax_element_result<borrowed_iterator_t<Rng>>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
         return minmax_element_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
@@ -10230,11 +10262,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I>
-struct next_permutation_result
-{
-    bool found;
-    I in;
-};
+using next_permutation_result = in_found_result<I>;
 
 namespace detail
 {
@@ -10248,7 +10276,7 @@ struct next_permutation_fn
     {
         if (first == last)
         {
-            return {false, ::std::move(first)};
+            return {::std::move(first), false};
         }
 
         I last_it = nano::next(first, last);
@@ -10256,7 +10284,7 @@ struct next_permutation_fn
 
         if (first == --i)
         {
-            return {false, ::std::move(last_it)};
+            return {::std::move(last_it), false};
         }
 
         while (true)
@@ -10271,13 +10299,13 @@ struct next_permutation_fn
 
                 nano::iter_swap(i, j);
                 nano::reverse(ip1, last_it);
-                return {true, ::std::move(last_it)};
+                return {::std::move(last_it), true};
             }
 
             if (i == first)
             {
                 nano::reverse(first, last_it);
-                return {false, ::std::move(last_it)};
+                return {::std::move(last_it), false};
             }
         }
     }
@@ -10886,6 +10914,9 @@ NANO_END_NAMESPACE
 
 NANO_BEGIN_NAMESPACE
 
+template <typename I, typename O>
+using partial_sort_copy_result = in_out_result<I, O>;
+
 namespace detail
 {
 
@@ -10893,13 +10924,14 @@ struct partial_sort_copy_fn
 {
   private:
     template <typename I1, typename S1, typename I2, typename S2, typename Comp, typename Proj1, typename Proj2>
-    static constexpr I2
+    static constexpr partial_sort_copy_result<I1, I2>
     impl(I1 first, S1 last, I2 result_first, S2 result_last, Comp& comp, Proj1& proj1, Proj2& proj2)
     {
         I2 r = result_first;
         if (r == result_last)
         {
-            return r;
+            // ::std::move(nano::next()) is needed to avoid GCC ICE.
+            return {::std::move(nano::next(first, last)), ::std::move(result_first)};
         }
 
         while (r != result_last && first != last)
@@ -10925,7 +10957,7 @@ struct partial_sort_copy_fn
 
         nano::sort_heap(result_first, r, comp, proj2);
 
-        return r;
+        return {::std::move(first), ::std::move(r)};
     }
 
   public:
@@ -10934,7 +10966,7 @@ struct partial_sort_copy_fn
     constexpr ::std::enable_if_t<input_iterator<I1> && sentinel_for<S1, I1> && random_access_iterator<I2> &&
                                      sentinel_for<S2, I2> && indirectly_copyable<I1, I2> && sortable<I2, Comp, Proj2> &&
                                      indirect_strict_weak_order<Comp, projected<I1, Proj1>, projected<I2, Proj2>>,
-                                 I2>
+                                 partial_sort_copy_result<I1, I2>>
     operator()(I1 first, S1 last, I2 result_first, S2 result_last, Comp comp = Comp{}, Proj1 proj1 = Proj1{},
                Proj2 proj2 = Proj2{}) const
     {
@@ -10948,7 +10980,7 @@ struct partial_sort_copy_fn
         input_range<Rng1> && random_access_range<Rng2> && indirectly_copyable<iterator_t<Rng1>, iterator_t<Rng2>> &&
             sortable<iterator_t<Rng2>, Comp, Proj2> &&
             indirect_strict_weak_order<Comp, projected<iterator_t<Rng1>, Proj1>, projected<iterator_t<Rng2>, Proj2>>,
-        borrowed_iterator_t<Rng2>>
+        partial_sort_copy_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>>>
     operator()(Rng1&& rng, Rng2&& result_rng, Comp comp = Comp{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
         return partial_sort_copy_fn::impl(nano::begin(rng), nano::end(rng), nano::begin(result_rng),
@@ -10982,35 +11014,35 @@ struct partition_fn
 {
   private:
     template <typename I, typename S, typename Pred, typename Proj>
-    static constexpr I
+    static constexpr subrange<I>
     impl(I first, S last, Pred& pred, Proj& proj)
     {
-        first = nano::find_if_not(::std::move(first), last, pred, proj);
+        I it = nano::find_if_not(first, last, pred, proj);
 
-        if (first == last)
+        if (it == last)
         {
-            return first;
+            return {::std::move(it), ::std::move(nano::next(first, last))};
         }
 
-        auto n = nano::next(first);
+        auto n = nano::next(it);
 
         while (n != last)
         {
             if (nano::invoke(pred, nano::invoke(proj, *n)))
             {
-                nano::iter_swap(n, first);
-                ++first;
+                nano::iter_swap(n, it);
+                ++it;
             }
             ++n;
         }
 
-        return first;
+        return {::std::move(it), ::std::move(n)};
     }
 
   public:
     template <typename I, typename S, typename Pred, typename Proj = identity>
     constexpr ::std::enable_if_t<
-        forward_iterator<I> && sentinel_for<S, I> && indirect_unary_predicate<Pred, projected<I, Proj>>, I>
+        forward_iterator<I> && sentinel_for<S, I> && indirect_unary_predicate<Pred, projected<I, Proj>>, subrange<I>>
     operator()(I first, S last, Pred pred, Proj proj = Proj{}) const
     {
         return partition_fn::impl(::std::move(first), ::std::move(last), pred, proj);
@@ -11018,7 +11050,7 @@ struct partition_fn
 
     template <typename Rng, typename Pred, typename Proj = identity>
     constexpr ::std::enable_if_t<forward_range<Rng> && indirect_unary_predicate<Pred, projected<iterator_t<Rng>, Proj>>,
-                                 borrowed_iterator_t<Rng>>
+                                 borrowed_subrange_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
         return partition_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
@@ -11045,28 +11077,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O1, typename O2>
-struct partition_copy_result
-{
-    NANO_NO_UNIQUE_ADDRESS I in;
-    NANO_NO_UNIQUE_ADDRESS O1 out1;
-    NANO_NO_UNIQUE_ADDRESS O2 out2;
-
-    template <
-        typename II, typename OO1, typename OO2,
-        ::std::enable_if_t<
-            convertible_to<const I&, II> && convertible_to<const O1&, OO1> && convertible_to<const O2&, OO2>, int> = 0>
-    constexpr operator partition_copy_result<II, OO1, OO2>() const&
-    {
-        return {in, out1, out2};
-    }
-
-    template <typename II, typename OO1, typename OO2,
-              ::std::enable_if_t<convertible_to<I, II> && convertible_to<O1, OO1> && convertible_to<O2, OO2>, int> = 0>
-    constexpr operator partition_copy_result<II, OO1, OO2>() &&
-    {
-        return {::std::move(in), ::std::move(out1), ::std::move(out2)};
-    }
-};
+using partition_copy_result = in_out_out_result<I, O1, O2>;
 
 namespace detail
 {
@@ -11155,7 +11166,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I>
-using prev_permutation_result = next_permutation_result<I>;
+using prev_permutation_result = in_found_result<I>;
 
 namespace detail
 {
@@ -11169,7 +11180,7 @@ struct prev_permutation_fn
     {
         if (first == last)
         {
-            return {false, ::std::move(first)};
+            return {::std::move(first), false};
         }
 
         I last_it = nano::next(first, last);
@@ -11177,7 +11188,7 @@ struct prev_permutation_fn
 
         if (first == --i)
         {
-            return {false, ::std::move(last_it)};
+            return {::std::move(last_it), false};
         }
 
         while (true)
@@ -11193,13 +11204,13 @@ struct prev_permutation_fn
 
                 nano::iter_swap(i, j);
                 nano::reverse(ip1, last_it);
-                return {true, ::std::move(last_it)};
+                return {::std::move(last_it), true};
             }
 
             if (i == first)
             {
                 nano::reverse(first, last_it);
-                return {false, ::std::move(last_it)};
+                return {::std::move(last_it), false};
             }
         }
     }
@@ -11354,7 +11365,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using remove_copy_result = copy_result<I, O>;
+using remove_copy_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -11421,7 +11432,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using remove_copy_if_result = copy_result<I, O>;
+using remove_copy_if_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -11616,7 +11627,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using replace_copy_result = copy_result<I, O>;
+using replace_copy_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -11688,7 +11699,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using replace_copy_if_result = copy_result<I, O>;
+using replace_copy_if_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -11820,7 +11831,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using reverse_copy_result = copy_result<I, O>;
+using reverse_copy_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -11889,7 +11900,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using rotate_copy_result = copy_result<I, O>;
+using rotate_copy_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -12034,7 +12045,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using set_difference_result = copy_result<I, O>;
+using set_difference_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -12208,7 +12219,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I1, typename I2, typename O>
-using set_symmetric_difference_result = binary_transform_result<I1, I2, O>;
+using set_symmetric_difference_result = in_in_out_result<I1, I2, O>;
 
 namespace detail
 {
@@ -12309,7 +12320,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I1, typename I2, typename O>
-using set_union_result = binary_transform_result<I1, I2, O>;
+using set_union_result = in_in_out_result<I1, I2, O>;
 
 namespace detail
 {
@@ -12399,14 +12410,18 @@ NANO_END_NAMESPACE
 
 #    endif
 
-// nanorange/algorithm/shuffle.hpp
+// nanorange/algorithm/sample.hpp
 //
-// Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
 
-#    ifndef NANORANGE_ALGORITHM_SHUFFLE_HPP_INCLUDED
-#        define NANORANGE_ALGORITHM_SHUFFLE_HPP_INCLUDED
+#    ifndef NANORANGE_ALGORITHM_SAMPLE_HPP_INCLUDED
+#        define NANORANGE_ALGORITHM_SAMPLE_HPP_INCLUDED
 
 // nanorange/random.hpp
 //
@@ -12461,6 +12476,123 @@ NANO_CONCEPT uniform_random_bit_generator = decltype(detail::uniform_random_bit_
 NANO_END_NAMESPACE
 
 #        endif
+
+#        include <random>
+
+NANO_BEGIN_NAMESPACE
+
+namespace detail
+{
+
+struct sample_fn
+{
+  private:
+    template <typename I, typename S, typename O, typename Gen>
+    static O
+    impl_fwd(I first, S last, O out, iter_difference_t<I> n, Gen& g)
+    {
+        using diff_t = iter_difference_t<I>;
+        using distr_t = ::std::uniform_int_distribution<diff_t>;
+        using param_t = typename distr_t::param_type;
+
+        distr_t D;
+
+        auto unsampled_size = nano::distance(first, last);
+
+        for (n = nano::min(n, unsampled_size); n != 0; ++first)
+        {
+            if (D(g, param_t(0, --unsampled_size)) < n)
+            {
+                *out++ = *first;
+                --n;
+            }
+        }
+
+        return out;
+    }
+    template <typename I, typename S, typename O, typename Gen>
+    static O
+    impl_ra(I first, S last, O out, iter_difference_t<I> n, Gen& g)
+    {
+        using diff_t = iter_difference_t<I>;
+        using distr_t = ::std::uniform_int_distribution<diff_t>;
+        using param_t = typename distr_t::param_type;
+
+        distr_t D;
+        diff_t k = 0;
+
+        for (; first != last && k < n; ++first, (void)++k)
+        {
+            out[k] = *first;
+        }
+
+        diff_t size = k;
+        for (; first != last; ++first, (void)++k)
+        {
+            diff_t r = distr_t(0, k)(g);
+            if (D(g, param_t(0, k)) < size)
+            {
+                out[r] = *first;
+            }
+        }
+
+        return out + nano::min(n, k);
+    }
+
+    template <typename I, typename S, typename O, typename Gen>
+    static O
+    impl(I first, S last, O out, iter_difference_t<I> n, Gen& g)
+    {
+        if constexpr (nano::forward_iterator<I>)
+        {
+            return impl_fwd(::std::move(first), ::std::move(last), ::std::move(out), n, g);
+        }
+        else
+        {
+            return impl_ra(::std::move(first), ::std::move(last), ::std::move(out), n, g);
+        }
+    }
+
+  public:
+    template <typename I, typename S, typename O, typename Gen>
+    ::std::enable_if_t<input_iterator<I> && sentinel_for<S, I> && weakly_incrementable<O> &&
+                           (forward_iterator<I> || random_access_iterator<O>)&&indirectly_copyable<I, O> &&
+                           uniform_random_bit_generator<::std::remove_reference_t<Gen>>,
+                       O>
+    operator()(I first, S last, O out, iter_difference_t<I> n, Gen&& gen) const
+    {
+        return sample_fn::impl(::std::move(first), ::std::move(last), ::std::move(out), ::std::move(n),
+                               ::std::forward<Gen>(gen));
+    }
+
+    template <typename Rng, typename O, typename Gen>
+    ::std::enable_if_t<input_range<Rng> && weakly_incrementable<O> &&
+                           (forward_range<Rng> || random_access_iterator<O>)&&indirectly_copyable<iterator_t<Rng>, O> &&
+                           uniform_random_bit_generator<::std::remove_reference_t<Gen>>,
+                       O>
+    operator()(Rng&& rng, O out, range_difference_t<Rng> n, Gen&& gen) const
+    {
+        return sample_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(out), ::std::move(n),
+                               ::std::forward<Gen>(gen));
+    }
+};
+
+} // namespace detail
+
+NANO_INLINE_VAR(detail::sample_fn, sample)
+
+NANO_END_NAMESPACE
+
+#    endif
+
+// nanorange/algorithm/shuffle.hpp
+//
+// Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+#    ifndef NANORANGE_ALGORITHM_SHUFFLE_HPP_INCLUDED
+#        define NANORANGE_ALGORITHM_SHUFFLE_HPP_INCLUDED
 
 #        include <random>
 
@@ -13282,7 +13414,7 @@ struct stable_partition_fn
 {
   private:
     template <typename I, typename Buf, typename Pred, typename Proj>
-    static I
+    static subrange<I>
     impl_buffered(I first, I last, Buf& buf, Pred& pred, Proj& proj)
     {
         // first is known to be false, so pop it straight into the buffer
@@ -13299,12 +13431,12 @@ struct stable_partition_fn
 
         // Now move all the other elements from the buffer back into the sequence
         nano::move(buf, first);
-        return first;
+        return {::std::move(first), ::std::move(last)};
     }
 
     // Note to self: this is a closed range, last is NOT past-the-end!
     template <typename I, typename Pred, typename Proj>
-    static I
+    static subrange<I>
     impl_unbuffered(I first, I last, iter_difference_t<I> dist, Pred& pred, Proj& proj)
     {
         using dist_t = iter_difference_t<I>;
@@ -13313,7 +13445,7 @@ struct stable_partition_fn
         {
             // We know first is false and last is true, so swap them
             nano::iter_swap(first, last);
-            return last;
+            return {nano::next(first), nano::next(last)};
         }
 
         if (dist == 3)
@@ -13325,13 +13457,13 @@ struct stable_partition_fn
             {
                 nano::iter_swap(first, middle);
                 nano::iter_swap(middle, last);
-                return last;
+                return {nano::next(first, 2), nano::next(last)};
             }
 
             // middle is false
             nano::iter_swap(middle, last);
             nano::iter_swap(first, middle);
-            return middle;
+            return {::std::move(middle), ::std::next(last)};
         }
 
         const dist_t half = dist / 2;
@@ -13346,7 +13478,7 @@ struct stable_partition_fn
             --m1;
         }
 
-        const I first_false = (m1 == first) ? first : impl_unbuffered(first, m1, len_half, pred, proj);
+        const I first_false = (m1 == first) ? first : impl_unbuffered(first, m1, len_half, pred, proj).begin();
 
         m1 = middle;
         len_half = dist - half;
@@ -13355,47 +13487,49 @@ struct stable_partition_fn
         {
             if (++m1 == last)
             {
-                return nano::rotate(first_false, middle, ++last).begin();
+                auto rot = nano::rotate(first_false, middle, ++last);
+                return {::std::move(rot.begin()), nano::next(last)};
             }
         }
 
-        const I last_false = impl_unbuffered(m1, last, len_half, pred, proj);
+        const I last_false = impl_unbuffered(m1, last, len_half, pred, proj).begin();
 
-        return nano::rotate(first_false, middle, last_false).begin();
+        auto rot = nano::rotate(first_false, middle, last_false);
+        return {rot.begin(), nano::next(last)};
     }
 
     template <typename I, typename Pred, typename Proj>
-    static I
+    static subrange<I>
     impl(I first, I last, Pred& pred, Proj& proj)
     {
         // Find the first non-true value
         first = nano::find_if_not(::std::move(first), last, ::std::ref(pred), ::std::ref(proj));
         if (first == last)
         {
-            return first;
+            return {::std::move(first), ::std::move(last)};
         }
 
         // Find the last true value
-        last = nano::find_if(nano::make_reverse_iterator(last), nano::make_reverse_iterator(first), ::std::ref(pred),
+        I it = nano::find_if(nano::make_reverse_iterator(last), nano::make_reverse_iterator(first), ::std::ref(pred),
                              ::std::ref(proj))
                    .base();
-        if (last == first)
+        if (it == first)
         {
-            return first;
+            return {::std::move(first), ::std::move(it)};
         }
 
-        const auto dist = nano::distance(first, last);
+        const auto dist = nano::distance(first, it);
 
         auto buf = detail::temporary_vector<iter_value_t<I>>(dist);
         if (buf.capacity() < static_cast<::std::size_t>(dist))
         {
-            return impl_unbuffered(first, --last, dist, pred, proj);
+            return {impl_unbuffered(first, --it, dist, pred, proj).begin(), last};
         }
-        return impl_buffered(first, last, buf, pred, proj);
+        return {impl_buffered(first, it, buf, pred, proj).begin(), last};
     }
 
     template <typename I, typename S, typename Pred, typename Proj>
-    static ::std::enable_if_t<!same_as<I, S>, I>
+    static ::std::enable_if_t<!same_as<I, S>, subrange<I>>
     impl(I first, S last, Pred& pred, Proj& proj)
     {
         return impl(first, nano::next(first, last), pred, proj);
@@ -13405,7 +13539,7 @@ struct stable_partition_fn
     template <typename I, typename S, typename Pred, typename Proj = identity>
     ::std::enable_if_t<bidirectional_iterator<I> && sentinel_for<S, I> &&
                            indirect_unary_predicate<Pred, projected<I, Proj>> && permutable<I>,
-                       I>
+                       subrange<I>>
     operator()(I first, S last, Pred pred, Proj proj = Proj{}) const
     {
         return stable_partition_fn::impl(::std::move(first), ::std::move(last), pred, proj);
@@ -13414,7 +13548,7 @@ struct stable_partition_fn
     template <typename Rng, typename Pred, typename Proj = identity>
     ::std::enable_if_t<bidirectional_range<Rng> && indirect_unary_predicate<Pred, projected<iterator_t<Rng>, Proj>> &&
                            permutable<iterator_t<Rng>>,
-                       borrowed_iterator_t<Rng>>
+                       borrowed_subrange_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
         return stable_partition_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
@@ -13625,6 +13759,159 @@ NANO_END_NAMESPACE
 
 #    endif
 
+// nanorange/algorithm/transform.hpp
+//
+// Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+#    ifndef NANORANGE_ALGORITHM_TRANSFORM_HPP_INCLUDED
+#        define NANORANGE_ALGORITHM_TRANSFORM_HPP_INCLUDED
+
+NANO_BEGIN_NAMESPACE
+
+template <typename I, typename O>
+using unary_transform_result = in_out_result<I, O>;
+
+template <typename I1, typename I2, typename O>
+using binary_transform_result = in_in_out_result<I1, I2, O>;
+
+namespace detail
+{
+
+struct transform_fn
+{
+  private:
+    template <typename I, typename S, typename O, typename F, typename Proj>
+    static constexpr unary_transform_result<I, O>
+    unary_impl(I first, S last, O result, F& op, Proj& proj)
+    {
+        while (first != last)
+        {
+            *result = nano::invoke(op, nano::invoke(proj, *first));
+            ++first;
+            ++result;
+        }
+
+        return {::std::move(first), ::std::move(result)};
+    }
+
+    template <typename I1, typename S1, typename I2, typename O, typename F, typename Proj1, typename Proj2>
+    static constexpr binary_transform_result<I1, I2, O>
+    binary_impl3(I1 first1, S1 last1, I2 first2, O result, F& op, Proj1& proj1, Proj2& proj2)
+    {
+        while (first1 != last1)
+        {
+            *result = nano::invoke(op, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2));
+            ++first1;
+            ++first2;
+            ++result;
+        }
+
+        return {::std::move(first1), ::std::move(first2), ::std::move(result)};
+    }
+
+    template <typename I1, typename S1, typename I2, typename S2, typename O, typename F, typename Proj1,
+              typename Proj2>
+    static constexpr binary_transform_result<I1, I2, O>
+    binary_impl4(I1 first1, S1 last1, I2 first2, S2 last2, O result, F& op, Proj1& proj1, Proj2& proj2)
+    {
+        while (first1 != last1 && first2 != last2)
+        {
+            *result = nano::invoke(op, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2));
+            ++first1;
+            ++first2;
+            ++result;
+        }
+
+        return {::std::move(first1), ::std::move(first2), ::std::move(result)};
+    }
+
+  public:
+    // Unary op, iterators
+    template <typename I, typename S, typename O, typename F, typename Proj = identity>
+    constexpr ::std::enable_if_t<input_iterator<I> && sentinel_for<S, I> && weakly_incrementable<O> &&
+                                     copy_constructible<F> && writable<O, indirect_result_t<F&, projected<I, Proj>>>,
+                                 unary_transform_result<I, O>>
+    operator()(I first, S last, O result, F op, Proj proj = Proj{}) const
+    {
+        return transform_fn::unary_impl(::std::move(first), ::std::move(last), ::std::move(result), op, proj);
+    }
+
+    // Unary op, range
+    template <typename Rng, typename O, typename F, typename Proj = identity>
+    constexpr ::std::enable_if_t<input_range<Rng> && weakly_incrementable<O> && copy_constructible<F> &&
+                                     writable<O, indirect_result_t<F&, projected<iterator_t<Rng>, Proj>>>,
+                                 unary_transform_result<borrowed_iterator_t<Rng>, O>>
+    operator()(Rng&& rng, O result, F op, Proj proj = Proj{}) const
+    {
+        return transform_fn::unary_impl(nano::begin(rng), nano::end(rng), ::std::move(result), op, proj);
+    }
+
+    // Binary op, four-legged
+    template <typename I1, typename S1, typename I2, typename S2, typename O, typename F, typename Proj1 = identity,
+              typename Proj2 = identity>
+    constexpr ::std::enable_if_t<input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<I2> &&
+                                     sentinel_for<S2, I2> && weakly_incrementable<O> && copy_constructible<F> &&
+                                     writable<O, indirect_result_t<F&, projected<I1, Proj1>, projected<I2, Proj2>>>,
+                                 binary_transform_result<I1, I2, O>>
+    operator()(I1 first1, S1 last1, I2 first2, S2 last2, O result, F op, Proj1 proj1 = Proj1{},
+               Proj2 proj2 = Proj2{}) const
+    {
+        return transform_fn::binary_impl4(::std::move(first1), ::std::move(last1), ::std::move(first2),
+                                          ::std::move(last2), ::std::move(result), op, proj1, proj2);
+    }
+
+    // Binary op, two ranges
+    template <typename Rng1, typename Rng2, typename O, typename F, typename Proj1 = identity,
+              typename Proj2 = identity>
+    constexpr ::std::enable_if_t<
+        input_range<Rng1> && input_range<Rng2> && weakly_incrementable<O> && copy_constructible<F> &&
+            writable<O, indirect_result_t<F&, projected<iterator_t<Rng1>, Proj1>, projected<iterator_t<Rng2>, Proj2>>>,
+        binary_transform_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>, O>>
+    operator()(Rng1&& rng1, Rng2&& rng2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
+    {
+        return transform_fn::binary_impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+                                          ::std::move(result), op, proj1, proj2);
+    }
+
+    // Binary op, three-legged
+    template <typename I1, typename S1, typename I2, typename O, typename F, typename Proj1 = identity,
+              typename Proj2 = identity>
+    NANO_DEPRECATED constexpr ::std::enable_if_t<
+        input_iterator<I1> && sentinel_for<S1, I1> && input_iterator<::std::decay_t<I2>> && !input_range<I2> &&
+            weakly_incrementable<O> && copy_constructible<F> &&
+            writable<O, indirect_result_t<F&, projected<I1, Proj1>, projected<::std::decay_t<I2>, Proj2>>>,
+        binary_transform_result<I1, ::std::decay_t<I2>, O>>
+    operator()(I1 first1, S1 last1, I2&& first2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
+    {
+        return transform_fn::binary_impl3(::std::move(first1), ::std::move(last1), ::std::forward<I2>(first2),
+                                          ::std::move(result), op, proj1, proj2);
+    }
+
+    // binary op, range-and-a-half
+    template <typename Rng1, typename I2, typename O, typename F, typename Proj1 = identity, typename Proj2 = identity>
+    NANO_DEPRECATED constexpr ::std::enable_if_t<
+        input_range<Rng1> && input_iterator<::std::decay_t<I2>> && !input_range<I2> && weakly_incrementable<O> &&
+            copy_constructible<F> &&
+            writable<O,
+                     indirect_result_t<F&, projected<iterator_t<Rng1>, Proj1>, projected<::std::decay_t<I2>, Proj2>>>,
+        binary_transform_result<borrowed_iterator_t<Rng1>, ::std::decay_t<I2>, O>>
+    operator()(Rng1&& rng1, I2&& first2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
+    {
+        return transform_fn::binary_impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2),
+                                          ::std::move(result), op, proj1, proj2);
+    }
+};
+
+} // namespace detail
+
+NANO_INLINE_VAR(detail::transform_fn, transform)
+
+NANO_END_NAMESPACE
+
+#    endif
+
 // nanorange/algorithm/unique.hpp
 //
 // Copyright (c) 2018 Tristan Brindle (tcbrindle at gmail dot com)
@@ -13643,31 +13930,33 @@ struct unique_fn
 {
   private:
     template <typename I, typename S, typename R, typename Proj>
-    static constexpr I
+    static constexpr subrange<I>
     impl(I first, S last, R& comp, Proj& proj)
     {
-        first = adjacent_find_fn::impl(::std::move(first), last, comp, proj);
+        I it = adjacent_find_fn::impl(first, last, comp, proj);
 
-        if (first == last)
+        if (it == last)
         {
-            return first;
+            return {it, ::std::move(it)};
         }
 
-        for (I n = next(first, 2, last); n != last; ++n)
+        I n = nano::next(it, 2, last);
+        for (; n != last; ++n)
         {
-            if (!nano::invoke(comp, nano::invoke(proj, *first), nano::invoke(proj, *n)))
+            if (!nano::invoke(comp, nano::invoke(proj, *it), nano::invoke(proj, *n)))
             {
-                *++first = iter_move(n);
+                *++it = iter_move(n);
             }
         }
 
-        return ++first;
+        return {nano::next(it), ::std::move(n)};
     }
 
   public:
     template <typename I, typename S, typename R = ranges::equal_to, typename Proj = identity>
-    constexpr ::std::enable_if_t<
-        forward_iterator<I> && sentinel_for<S, I> && indirect_relation<R, projected<I, Proj>> && permutable<I>, I>
+    constexpr ::std::enable_if_t<forward_iterator<I> && sentinel_for<S, I> &&
+                                     indirect_relation<R, projected<I, Proj>> && permutable<I>,
+                                 subrange<I>>
     operator()(I first, S last, R comp = {}, Proj proj = Proj{}) const
     {
         return unique_fn::impl(::std::move(first), ::std::move(last), comp, proj);
@@ -13676,7 +13965,7 @@ struct unique_fn
     template <typename Rng, typename R = ranges::equal_to, typename Proj = identity>
     constexpr ::std::enable_if_t<forward_range<Rng> && indirect_relation<R, projected<iterator_t<Rng>, Proj>> &&
                                      permutable<iterator_t<Rng>>,
-                                 borrowed_iterator_t<Rng>>
+                                 borrowed_subrange_t<Rng>>
     operator()(Rng&& rng, R comp = {}, Proj proj = Proj{}) const
     {
         return unique_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
@@ -13703,7 +13992,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using unique_copy_result = copy_result<I, O>;
+using unique_copy_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -13823,7 +14112,7 @@ struct front_insert_iterator
     front_insert_iterator&
     operator=(iter_value_t<Container>&& value)
     {
-        cont_->front_back(::std::move(value));
+        cont_->push_front(::std::move(value));
         return *this;
     }
 
@@ -14371,7 +14660,7 @@ struct iterator_traits<::nano::ranges::ostreambuf_iterator<C, T>>
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using uninitialized_copy_result = copy_result<I, O>;
+using uninitialized_copy_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -14471,7 +14760,7 @@ struct uninitialized_copy_fn
 NANO_INLINE_VAR(detail::uninitialized_copy_fn, uninitialized_copy)
 
 template <typename I, typename O>
-using uninitialized_copy_n_result = uninitialized_copy_result<I, O>;
+using uninitialized_copy_n_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -14684,7 +14973,7 @@ NANO_END_NAMESPACE
 NANO_BEGIN_NAMESPACE
 
 template <typename I, typename O>
-using uninitialized_move_result = uninitialized_copy_result<I, O>;
+using uninitialized_move_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -14784,7 +15073,7 @@ struct uninitialized_move_fn
 NANO_INLINE_VAR(detail::uninitialized_move_fn, uninitialized_move)
 
 template <typename I, typename O>
-using uninitialized_move_n_result = uninitialized_copy_result<I, O>;
+using uninitialized_move_n_result = in_out_result<I, O>;
 
 namespace detail
 {
@@ -16180,6 +16469,7 @@ inline constexpr empty_view<T> empty{};
 NANO_END_NAMESPACE
 
 #    endif
+
 // nanorange/views/filter.hpp
 //
 // Copyright (c) 2019 Tristan Brindle (tcbrindle at gmail dot com)
@@ -16818,6 +17108,8 @@ struct iota_view : view_interface<iota_view<W, Bound>>
     constexpr explicit iota_view(W value) : value_(value) {}
 
     constexpr iota_view(type_identity_t<W> value, type_identity_t<Bound> bound) : value_(value), bound_(bound) {}
+
+    constexpr iota_view(iterator first, sentinel last) : iota_view(*first, last.bound_) {}
 
     constexpr iterator
     begin() const

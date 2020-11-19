@@ -165,7 +165,7 @@ main()
     test_by_type<float64_t>([](int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
     test_by_type<int64_t>([](int32_t i) { return i + 1; }, [](int64_t x) { return x % 3 == 0; });
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test_by_type<DataType<float32_t>>([](int32_t i) { return DataType<float32_t>(2 * i + 1); },
                                       [](const DataType<float32_t>& x) { return x.get_val() < 0; });
 #endif

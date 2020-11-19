@@ -29,7 +29,7 @@ struct wrapper
 {
     T t;
     ::std::size_t number_of_swaps = 0;
-    wrapper() {}
+    wrapper(): t() {}
     explicit wrapper(T t_) : t(t_) {}
     template <typename U>
     void

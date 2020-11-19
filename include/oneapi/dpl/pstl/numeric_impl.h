@@ -165,7 +165,7 @@ __brick_transform_scan(_ForwardIterator __first, _ForwardIterator __last, _Outpu
         // Copy the value pointed to by __first to avoid overwriting it when __result == __first
         _Tp __temp = *__first;
         *__result = __init;
-        _PSTL_PRAGMA_FORCEINLINE
+        _ONEDPL_PRAGMA_FORCEINLINE
         __init = __binary_op(__init, __unary_op(__temp));
     }
     return ::std::make_pair(__result, __init);
@@ -180,7 +180,7 @@ __brick_transform_scan(_ForwardIterator __first, _ForwardIterator __last, _Outpu
 {
     for (; __first != __last; ++__first, ++__result)
     {
-        _PSTL_PRAGMA_FORCEINLINE
+        _ONEDPL_PRAGMA_FORCEINLINE
         __init = __binary_op(__init, __unary_op(*__first));
         *__result = __init;
     }
@@ -202,7 +202,7 @@ __brick_transform_scan(_ForwardIterator __first, _ForwardIterator __last, _Outpu
                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                        /*is_vector=*/::std::true_type) noexcept
 {
-#if (_PSTL_UDS_PRESENT)
+#if (_PSTL_UDS_PRESENT || _ONEDPL_UDS_PRESENT)
     return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
                                         _Inclusive());
 #else
@@ -293,7 +293,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
             [__result, &__binary_op](_DifferenceType __i, _DifferenceType __len, _Tp __initial) {
                 return *(::std::transform(__result + __i, __result + __i + __len, __result + __i,
                                           [&__initial, &__binary_op](const _Tp& __x) {
-                                              _PSTL_PRAGMA_FORCEINLINE
+                                              _ONEDPL_PRAGMA_FORCEINLINE
                                               return __binary_op(__initial, __x);
                                           }) -
                          1);

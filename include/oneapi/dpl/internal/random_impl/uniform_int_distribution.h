@@ -129,7 +129,7 @@ class uniform_int_distribution
 
     // Static asserts
     static_assert(::std::is_integral<scalar_type>::value,
-        "oneapi::std::uniform_int_distribution. Error: unsupported data type");
+        "oneapi::dpl::uniform_int_distribution. Error: unsupported data type");
 
     // Distribution parameters
     scalar_type a_;

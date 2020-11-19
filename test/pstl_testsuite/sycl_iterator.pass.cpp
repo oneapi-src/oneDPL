@@ -31,7 +31,7 @@
 using namespace TestUtils;
 
 //This macro is required for the tests to work correctly in CI with tbb-backend.
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #include "support/utils_sycl.h"
 
 template <class KernelName1, typename KernelName2>
@@ -76,7 +76,7 @@ struct Generator_count
     T def_val;
     Generator_count(const T& val) : def_val(val) {}
     T
-    operator()()
+    operator()() const
     {
         return def_val;
     }
@@ -827,6 +827,11 @@ struct test_min_element
         auto expected_min = ::std::min_element(host_first1, host_first1 + n);
 
         EXPECT_TRUE(result_min - first == expected_min - host_first1, "wrong effect from min_element");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: " << *(host_first1 + (result_min - first)) << "[" << result_min - first << "], "
+                  << "expected: " << *(host_first1 + (expected_min - host_first1)) << "[" << expected_min - host_first1
+                  << "]" << ::std::endl;
+#    endif
     }
 };
 
@@ -851,6 +856,10 @@ struct test_adjacent_find
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #1 no elements)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
 
         // check with the last adjacent element
         ::std::size_t max_dis = n;
@@ -863,6 +872,10 @@ struct test_adjacent_find
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #2 the last element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
 
         // check with an adjacent element
         max_dis = n;
@@ -879,12 +892,20 @@ struct test_adjacent_find
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #3 middle element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
         // check with an adjacent element (no predicate)
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #4 middle element (no predicate))");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
 
         // check with the first adjacent element
         max_dis = n;
@@ -897,6 +918,10 @@ struct test_adjacent_find
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #5 the first element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
     }
 };
 
@@ -928,6 +953,11 @@ struct test_max_element
 #endif
 
         EXPECT_TRUE(result_max - first == expected_max - host_first1, "wrong effect from max_element");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: " << *(host_first1 + (result_max - first)) << "[" << result_max - first << "], "
+                  << "expected: " << *(host_first1 + (expected_max - host_first1)) << "[" << expected_max - host_first1
+                  << "]" << ::std::endl;
+#    endif
     }
 };
 
@@ -952,6 +982,10 @@ struct test_is_sorted_until
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from is_sorted_until (Test #1 sorted sequence)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
 
         // check unsorted: the last element
         ::std::size_t max_dis = n;
@@ -965,6 +999,10 @@ struct test_is_sorted_until
 #endif
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #2 unsorted sequence - the last element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
 
         // check unsorted: the middle element
         max_dis = n;
@@ -982,6 +1020,10 @@ struct test_is_sorted_until
 #endif
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #3 unsorted sequence - the middle element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
         // check unsorted: the middle element (no predicate)
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
@@ -990,6 +1032,10 @@ struct test_is_sorted_until
         EXPECT_TRUE(
             result == expected,
             "wrong effect from is_sorted_until (Test #4 unsorted sequence - the middle element (no predicate))");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
 
         // check unsorted: the first element
         host_first1 = get_host_pointer(first);
@@ -1002,6 +1048,10 @@ struct test_is_sorted_until
 #endif
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #5 unsorted sequence - the first element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: [" << ::std::distance(first, result) << "], "
+                  << "expected: [" << ::std::distance(first, expected) << "]" << ::std::endl;
+#    endif
     }
 };
 
@@ -1072,6 +1122,10 @@ struct test_is_sorted
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result_bool == expected_bool, "wrong effect from is_sorted (Test #1 sorted sequence)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: " << result_bool << ", "
+                  << "expected: " << expected_bool << ::std::endl;
+#    endif
         host_first = get_host_pointer(first);
         // check unsorted: the last element
         ::std::size_t max_dis = n;
@@ -1084,6 +1138,10 @@ struct test_is_sorted
 #endif
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted (Test #2 unsorted sequence - the last element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: " << result_bool << ", "
+                  << "expected: " << expected_bool << ::std::endl;
+#    endif
 
         // check unsorted: the middle element
         max_dis = n;
@@ -1099,6 +1157,10 @@ struct test_is_sorted
 #endif
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted (Test #3 unsorted sequence - the middle element)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: " << result_bool << ", "
+                  << "expected: " << expected_bool << ::std::endl;
+#    endif
         // check unsorted: the middle element (no predicate)
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
@@ -1106,6 +1168,10 @@ struct test_is_sorted
 #endif
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted (Test #4 unsorted sequence - the middle element (no predicate))");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: " << result_bool << ", "
+                  << "expected: " << expected_bool << ::std::endl;
+#    endif
 
         // check unsorted: the first element
         max_dis = n;
@@ -1121,6 +1187,10 @@ struct test_is_sorted
 #endif
         EXPECT_TRUE(result_bool == expected_bool,
                     "wrong effect from is_sorted Test #5 unsorted sequence - the first element");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got: " << result_bool << ", "
+                  << "expected: " << expected_bool << ::std::endl;
+#    endif
     }
 };
 
@@ -1144,6 +1214,9 @@ struct test_count
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from count (Test #1 arbitrary to count)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got " << result << ", expected " << expected << ::std::endl;
+#    endif
 
         // check when none should be counted
         expected = 0;
@@ -1152,6 +1225,9 @@ struct test_count
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from count (Test #2 none to count)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got " << result << ", expected " << expected << ::std::endl;
+#    endif
 
         // check when all should be counted
         host_first1 = get_host_pointer(first);
@@ -1162,6 +1238,9 @@ struct test_count
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from count (Test #3 all to count)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got " << result << ", expected " << expected << ::std::endl;
+#    endif
     }
 };
 
@@ -1186,6 +1265,9 @@ struct test_count_if
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from count_if (Test #1 arbitrary to count)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got " << result << ", expected " << expected << ::std::endl;
+#    endif
 
         // check when none should be counted
         expected = 0;
@@ -1195,6 +1277,9 @@ struct test_count_if
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from count_if (Test #2 none to count)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got " << result << ", expected " << expected << ::std::endl;
+#    endif
 
         // check when all should be counted
         expected = n;
@@ -1204,6 +1289,9 @@ struct test_count_if
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(result == expected, "wrong effect from count_if (Test #3 all to count)");
+#    if _ONEDPL_DEBUG_SYCL
+        ::std::cout << "got " << result << ", expected " << expected << ::std::endl;
+#    endif
     }
 };
 
@@ -1215,7 +1303,6 @@ struct test_is_partitioned
     {
         using ValueType = typename ::std::iterator_traits<Iterator>::value_type;
 
-        auto comp = ::std::less<ValueType>{};
         if (n < 2)
             return;
 
@@ -1412,7 +1499,6 @@ struct test_find_first_of
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
 
         // Reset values after previous execution
         auto host_first1 = get_host_pointer(first1);
@@ -1498,7 +1584,6 @@ struct test_search
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
         ::std::iota(host_first1, host_first1 + n, T1(5));
@@ -1676,7 +1761,6 @@ struct test_mismatch
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
         ::std::iota(host_first1, host_first1 + n, T1(5));
@@ -1765,7 +1849,6 @@ struct test_transform_exclusive_scan
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto value = T1(6);
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
         ::std::fill(host_first1, host_first1 + n, T1(1));
@@ -1799,7 +1882,6 @@ struct test_copy_if
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto value = T1(6);
         auto host_first1 = get_host_pointer(first1);
         ::std::iota(host_first1, host_first1 + n, T1(222));
 
@@ -1930,6 +2012,11 @@ struct test_unique_copy
 
         // check
         bool is_correct = result_size == expected_size;
+#    if _ONEDPL_DEBUG_SYCL
+        if (!is_correct)
+            ::std::cout << "buffer size: got " << result_last - result_first << ", expected " << expected_size
+                      << ::std::endl;
+#    endif
         host_first2 = get_host_pointer(first2);
 
         for (int i = 0; i < ::std::min(result_size, expected_size) && is_correct; ++i)
@@ -1971,12 +2058,20 @@ struct test_unique
 
         // check
         bool is_correct = result_size == expected_size;
+#    if _ONEDPL_DEBUG_SYCL
+        if (!is_correct)
+            ::std::cout << "buffer size: got " << result_last - first << ", expected " << expected_size << ::std::endl;
+#    endif
         host_first1 = get_host_pointer(first);
         for (int i = 0; i < ::std::min(result_size, expected_size) && is_correct; ++i)
         {
             if (*(host_first1 + i) != i + 1)
             {
                 is_correct = false;
+#    if _ONEDPL_DEBUG_SYCL
+                ::std::cout << "got: " << *(host_first1 + i) << "[" << i << "], "
+                          << "expected: " << i + 1 << "[" << i << "]" << ::std::endl;
+#    endif
             }
             EXPECT_TRUE(is_correct, "wrong effect from unique");
         }
@@ -2025,12 +2120,22 @@ struct test_partition_copy
         // check
         bool is_correct = (exp.first - exp_true_first) == (res.first - first2) &&
                           (exp.second - exp_false_first) == (res.second - first3);
+#    if _ONEDPL_DEBUG_SYCL
+        if (!is_correct)
+            ::std::cout << "N =" << n << ::std::endl
+                      << "buffer size: got {" << res.first - first2 << "," << res.second - first3 << "}, expected {"
+                      << exp.first - exp_true_first << "," << exp.second - exp_false_first << "}" << ::std::endl;
+#    endif
 
         for (int i = 0; i < ::std::min(exp.first - exp_true_first, res.first - first2) && is_correct; ++i)
         {
             if (*(exp_true_first + i) != *(host_first2 + i))
             {
                 is_correct = false;
+#    if _ONEDPL_DEBUG_SYCL
+                ::std::cout << "TRUE> got: " << *(host_first2 + i) << "[" << i << "], "
+                          << "expected: " << *(exp_true_first + i) << "[" << i << "]" << ::std::endl;
+#    endif
             }
         }
 
@@ -2039,6 +2144,10 @@ struct test_partition_copy
             if (*(exp_false_first + i) != *(host_first3 + i))
             {
                 is_correct = false;
+#    if _ONEDPL_DEBUG_SYCL
+                ::std::cout << "FALSE> got: " << *(host_first3 + i) << "[" << i << "], "
+                          << "expected: " << *(exp_false_first + i) << "[" << i << "]" << ::std::endl;
+#    endif
             }
         }
 
@@ -2240,6 +2349,15 @@ struct test_merge
 #endif
         auto exp1 = ::std::merge(host_first1, host_first1 + n, host_first2, host_first2 + x, exp.begin());
         auto host_first3 = get_host_pointer(first3);
+#    if _ONEDPL_DEBUG_SYCL
+        for (size_t i = 0; i < res1 - first3; ++i)
+        {
+            if (host_first3[i] != exp[i])
+            {
+                ::std::cout << "Error: i = " << i << ", expected " << exp[i] << ", got " << host_first3[i] << ::std::endl;
+            }
+        }
+#    endif
         EXPECT_TRUE(res1 - first3 == exp1 - exp.begin(), "wrong result from merge_1");
         EXPECT_TRUE(::std::is_sorted(host_first3, host_first3 + (res1 - first3)), "wrong effect from merge_1");
     }
@@ -2261,6 +2379,16 @@ struct test_sort
         exec.queue().wait_and_throw();
 #endif
         host_first1 = get_host_pointer(first1);
+#    if _ONEDPL_DEBUG_SYCL
+        for (int i = 0; i < n; ++i)
+        {
+            if (host_first1[i] != value + i)
+            {
+                ::std::cout << "Error_1. i = " << i << ", expected = " << value + i << ", got = " << host_first1[i]
+                          << ::std::endl;
+            }
+        }
+#    endif
         EXPECT_TRUE(::std::is_sorted(host_first1, host_first1 + n), "wrong effect from sort_1");
 
         ::std::sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, ::std::greater<T1>());
@@ -2268,6 +2396,16 @@ struct test_sort
         exec.queue().wait_and_throw();
 #endif
         host_first1 = get_host_pointer(first1);
+#    if _ONEDPL_DEBUG_SYCL
+        for (int i = 0; i < n; ++i)
+        {
+            if (host_first1[i] != value + n - 1 - i)
+            {
+                ::std::cout << "Error_2. i = " << i << ", expected = " << value + n - 1 - i
+                          << ", got = " << host_first1[i] << ::std::endl;
+            }
+        }
+#    endif
         EXPECT_TRUE(::std::is_sorted(host_first1, host_first1 + n, ::std::greater<T1>()), "wrong effect from sort_2");
     }
 };
@@ -2288,6 +2426,16 @@ struct test_stable_sort
         exec.queue().wait_and_throw();
 #endif
         host_first1 = get_host_pointer(first1);
+#    if _ONEDPL_DEBUG_SYCL
+        for (int i = 0; i < n; ++i)
+        {
+            if (host_first1[i] != value + i)
+            {
+                ::std::cout << "Error_1. i = " << i << ", expected = " << value + i << ", got = " << host_first1[i]
+                          << ::std::endl;
+            }
+        }
+#    endif
         EXPECT_TRUE(::std::is_sorted(host_first1, host_first1 + n), "wrong effect from stable_sort_1");
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, ::std::greater<T1>());
@@ -2295,6 +2443,16 @@ struct test_stable_sort
         exec.queue().wait_and_throw();
 #endif
         host_first1 = get_host_pointer(first1);
+#    if _ONEDPL_DEBUG_SYCL
+        for (int i = 0; i < n; ++i)
+        {
+            if (host_first1[i] != value + n - 1 - i)
+            {
+                ::std::cout << "Error_2. i = " << i << ", expected = " << value + n - 1 - i
+                          << ", got = " << host_first1[i] << ::std::endl;
+            }
+        }
+#    endif
         EXPECT_TRUE(::std::is_sorted(host_first1, host_first1 + n, ::std::greater<T1>()),
                     "wrong effect from stable_sort_3");
     }
@@ -2720,8 +2878,6 @@ struct test_nth_element
         ::std::for_each(host_first2, host_first2 + n, [&value2](T2& val) { val = (value2++ % 10) + 1; });
 
         auto middle1 = first1 + n / 2;
-        auto middle2 = first2 + n / 2;
-
         // invoke
         ::std::nth_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, middle1, last1, comp);
 #if _PSTL_SYCL_TEST_USM
@@ -2844,7 +3000,6 @@ constexpr auto na = sizeof(a) / sizeof(a[0]);
 constexpr auto nb = sizeof(b) / sizeof(b[0]);
 constexpr auto nc = sizeof(c) / sizeof(c[0]);
 constexpr auto nd = sizeof(d) / sizeof(d[0]);
-constexpr auto ne = sizeof(e) / sizeof(e[0]);
 
 struct test_includes
 {
@@ -2947,8 +3102,6 @@ struct test_set_difference
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        auto nres = last3 - first3;
-
         int res_expect[na];
         auto host_first3 = get_host_pointer(first3);
         auto nres_expect =
@@ -2975,8 +3128,6 @@ struct test_set_union
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        auto nres = last3 - first3;
-
         int res_expect[na + nb];
         auto host_first3 = get_host_pointer(first3);
         auto nres_expect =
@@ -3004,8 +3155,6 @@ struct test_set_symmetric_difference
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        auto nres = last3 - first3;
-
         int res_expect[na + nb];
         auto host_first3 = get_host_pointer(first3);
         auto nres_expect =
@@ -3019,7 +3168,7 @@ struct test_set_symmetric_difference
 int32_t
 main()
 {
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
     // test1buffer
     PRINT_DEBUG("test_for_each");
     test1buffer<int32_t, test_for_each>();
@@ -3103,14 +3252,10 @@ main()
     test1buffer<int32_t, test_is_heap>();
     PRINT_DEBUG("test_destroy");
     test1buffer<SyclTypeWrapper<int32_t>, test_destroy>();
-#if !_SYCL_ARITHMETIC_TYPES_DESTRUCTION_BROKEN
     test1buffer<int32_t, test_destroy>();
-#endif
     PRINT_DEBUG("test_destroy_n");
     test1buffer<SyclTypeWrapper<int32_t>, test_destroy_n>();
-#if !_SYCL_ARITHMETIC_TYPES_DESTRUCTION_BROKEN
     test1buffer<int32_t, test_destroy_n>();
-#endif
 
     //test2buffers
     PRINT_DEBUG("test_nth_element");

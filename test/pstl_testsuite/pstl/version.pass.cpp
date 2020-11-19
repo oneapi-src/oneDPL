@@ -13,22 +13,29 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <oneapi/dpl/pstl/pstl_config.h>
+#include <oneapi/dpl/pstl/onedpl_config.h>
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
 #include "support/utils.h"
 
+#if defined(__has_include)
+#define HAS_EXECUTION_HEADER __has_include(<execution>)
+#else
+#define HAS_EXECUTION_HEADER 0
+#endif
 
-static_assert(_PSTL_VERSION == 10000, "");
-static_assert(_PSTL_VERSION_MAJOR == 10, "");
+#if __cplusplus < 201703L || !HAS_EXECUTION_HEADER
+static_assert(_PSTL_VERSION == 11000, "");
+static_assert(_PSTL_VERSION_MAJOR == 11, "");
 static_assert(_PSTL_VERSION_MINOR == 00, "");
 static_assert(_PSTL_VERSION_PATCH == 0, "");
+#endif
 
-static_assert(__INTEL_PSTL_VERSION == 220, "");
-static_assert(__INTEL_PSTL_VERSION_MAJOR == 2, "");
-static_assert(__INTEL_PSTL_VERSION_MINOR == 20, "");
+static_assert(ONEDPL_VERSION_MAJOR == 2021, "");
+static_assert(ONEDPL_VERSION_MINOR == 1, "");
+static_assert(ONEDPL_VERSION_PATCH == 1, "");
 
 int main() {
     ::std::cout << TestUtils::done() << ::std::endl;

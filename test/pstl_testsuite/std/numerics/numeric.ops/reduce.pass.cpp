@@ -137,7 +137,7 @@ main()
     test_long_form(42, ::std::plus<int32_t>(), [](int32_t x) { return x; });
     test_long_form(42.0, ::std::plus<float64_t>(), [](float64_t x) { return x; });
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     // Test for strict types
     // Creation of temporary buffer from const iterators requires default ctor of Number
     // TODO: fix it

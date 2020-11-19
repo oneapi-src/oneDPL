@@ -27,7 +27,7 @@ template <typename T>
 struct wrapper
 {
     T t;
-    wrapper() {}
+    wrapper(): t() {}
     explicit wrapper(T t_) : t(t_) {}
     wrapper&
     operator=(const T& t_)
@@ -86,7 +86,6 @@ struct test_one_policy
     {
         using namespace std;
         using T = typename iterator_traits<Iterator1>::value_type;
-        using DifferenceType = typename iterator_traits<Iterator1>::difference_type;
 
         fill(actual_b, actual_e, T(-123));
         Iterator1 actual_return = reverse_copy(exec, data_b, data_e, actual_b);
@@ -106,7 +105,6 @@ void
 test()
 {
     typedef typename Sequence<T1>::iterator iterator_type;
-    typedef typename Sequence<T1>::const_bidirectional_iterator cbi_iterator_type;
 
     const ::std::size_t max_len = 100000;
 
@@ -119,7 +117,8 @@ test()
         invoke_on_all_policies<0>()(test_one_policy<iterator_type, T1, T2>(data.begin(), data.begin() + len),
                                     actual.begin(), actual.begin() + len);
 //For a heterogeneous version is only valid random access iterator
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
+        typedef typename Sequence<T1>::const_bidirectional_iterator cbi_iterator_type;
         invoke_on_all_policies<1>()(test_one_policy<cbi_iterator_type, T1, T2>(data.cbibegin(),
                                     ::std::next(data.cbibegin(), len)), actual.begin(), actual.begin() + len);
 #endif
@@ -135,7 +134,7 @@ main()
     test<uint16_t, float32_t>();
     test<float64_t, int64_t>();
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<wrapper<float64_t>, wrapper<float64_t>>();
 #endif
 

@@ -18,18 +18,13 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 using ::std::array;
 using ::std::get;
 using ::std::swap;
 using ::std::tuple_element;
 using ::std::tuple_size;
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 } // namespace dpl
 } // namespace oneapi
 #endif

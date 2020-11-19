@@ -13,31 +13,41 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _TEST_SUPPORT_STDLIB_MEMORY
-#define _TEST_SUPPORT_STDLIB_MEMORY
-#include <memory>
-#include "oneapi/dpl/pstl/pstl_config.h"
+#ifndef _ONEDPL_MEMORY
+#define _ONEDPL_MEMORY
 
-#if !_PSTL_MEMORY_FORWARD_DECLARED
+// Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
+#if __cplusplus >= 201703L
+#    if __has_include(<tbb/version.h>)
+#        ifndef PSTL_USE_PARALLEL_POLICIES
+#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#        endif
+#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        endif
+#    endif // __has_include(<tbb/version.h>)
+#endif     // __cplusplus >= 201703L
+
+// ATTENTION!!! Include standard header before the config to see whether the _PSTL_VERSION macro from standard libraries is defined
+#include <memory>
+#include "oneapi/dpl/pstl/onedpl_config.h"
+
+#if !_ONEDPL_MEMORY_FORWARD_DECLARED
 // If not declared, pull in forward declarations
 #    include "oneapi/dpl/pstl/glue_memory_defs.h"
-#    define _PSTL_MEMORY_FORWARD_DECLARED 1
+#    define _ONEDPL_MEMORY_FORWARD_DECLARED 1
 #endif
 
-#if _PSTL_EXECUTION_POLICIES_DEFINED
+#if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations
 #    include "oneapi/dpl/pstl/glue_memory_impl.h"
 #endif
 
 namespace oneapi
 {
-namespace std
-{
-using ::std::addressof;
-}
 namespace dpl
 {
-using namespace oneapi::std;
+using ::std::addressof;
 }
 } // namespace oneapi
 
@@ -45,18 +55,18 @@ namespace dpl = oneapi::dpl;
 
 namespace std
 {
-using oneapi::dpl::uninitialized_copy;
-using oneapi::dpl::uninitialized_copy_n;
-using oneapi::dpl::uninitialized_move;
-using oneapi::dpl::uninitialized_move_n;
-using oneapi::dpl::uninitialized_fill;
-using oneapi::dpl::uninitialized_fill_n;
-using oneapi::dpl::uninitialized_default_construct;
-using oneapi::dpl::uninitialized_default_construct_n;
-using oneapi::dpl::uninitialized_value_construct;
-using oneapi::dpl::uninitialized_value_construct_n;
 using oneapi::dpl::destroy;
 using oneapi::dpl::destroy_n;
+using oneapi::dpl::uninitialized_copy;
+using oneapi::dpl::uninitialized_copy_n;
+using oneapi::dpl::uninitialized_default_construct;
+using oneapi::dpl::uninitialized_default_construct_n;
+using oneapi::dpl::uninitialized_fill;
+using oneapi::dpl::uninitialized_fill_n;
+using oneapi::dpl::uninitialized_move;
+using oneapi::dpl::uninitialized_move_n;
+using oneapi::dpl::uninitialized_value_construct;
+using oneapi::dpl::uninitialized_value_construct_n;
 } // namespace std
 
-#endif /* _TEST_SUPPORT_STDLIB_MEMORY */
+#endif /* _ONEDPL_MEMORY */

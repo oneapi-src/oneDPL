@@ -13,51 +13,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_CONFIG_H
-#define _ONEDPL_CONFIG_H
-
-#include "dpstd_config.h"
+#ifndef _PSTL_CONFIG_H
+#define _PSTL_CONFIG_H
 
 // The version of the Parallel STL upstream project maintained within LLVM
 // The version is XYYZ, where X is major, YY is minor, and Z is patch (i.e. X.YY.Z)
-#define _PSTL_VERSION 10000
+#define _PSTL_VERSION 11000
 #define _PSTL_VERSION_MAJOR (_PSTL_VERSION / 1000)
 #define _PSTL_VERSION_MINOR ((_PSTL_VERSION % 1000) / 10)
 #define _PSTL_VERSION_PATCH (_PSTL_VERSION % 10)
 
-// The version of the Parallel STL implementation released by Intel
-// TODO: decide: remove it or keep.
-#define __INTEL_PSTL_VERSION 220
-#define __INTEL_PSTL_VERSION_MAJOR (__INTEL_PSTL_VERSION / 100)
-#define __INTEL_PSTL_VERSION_MINOR (__INTEL_PSTL_VERSION % 100)
-
-// Check the user-defined macro for parallel policies
-#if defined(ONEDPL_USE_TBB_BACKEND)
-#    undef _PSTL_USE_PAR_POLICIES
-#    define _PSTL_USE_PAR_POLICIES ONEDPL_USE_TBB_BACKEND
-// Check the internal macro for parallel policies
-#elif !defined(_PSTL_USE_PAR_POLICIES)
-#    define _PSTL_USE_PAR_POLICIES 1
-#endif
-
-#if _PSTL_USE_PAR_POLICIES
-#    if !defined(_PSTL_PAR_BACKEND_TBB)
-#        undef _PSTL_PAR_BACKEND_SERIAL
-#        define _PSTL_PAR_BACKEND_TBB 1
-#    endif
-#else
-#    undef _PSTL_PAR_BACKEND_TBB
-#    define _PSTL_PAR_BACKEND_SERIAL 1
-#endif
-
-#if _PSTL_USE_RANGES
-static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minimal version");
-
-#    define _PSTL_CONSTEXPR_FUN constexpr
-#    define _PSTL_CONSTEXPR_VAR inline constexpr
-#else
-#    define _PSTL_CONSTEXPR_FUN inline
-#    define _PSTL_CONSTEXPR_VAR constexpr
+#if !defined(_PSTL_PAR_BACKEND_SERIAL) && !defined(_PSTL_PAR_BACKEND_TBB)
+#    error "A parallel backend must be specified"
 #endif
 
 // Check the user-defined macro for warnings
@@ -80,6 +47,15 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #define _PSTL_STRING(x) _PSTL_STRING_AUX(x)
 #define _PSTL_STRING_CONCAT(x, y) x #y
 
+#ifdef _PSTL_HIDE_FROM_ABI_PER_TU
+#    define _PSTL_HIDE_FROM_ABI_PUSH                                                                                   \
+        _Pragma("clang attribute push(__attribute__((internal_linkage)), apply_to=any(function,record))")
+#    define _PSTL_HIDE_FROM_ABI_POP _Pragma("clang attribute pop")
+#else
+#    define _PSTL_HIDE_FROM_ABI_PUSH /* nothing */
+#    define _PSTL_HIDE_FROM_ABI_POP  /* nothing */
+#endif
+
 // note that when ICC or Clang is in use, _PSTL_GCC_VERSION might not fully match
 // the actual GCC version on the system.
 #define _PSTL_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
@@ -90,7 +66,8 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
-#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900)
+#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900) || \
+    defined(__clang__)
 #    define _PSTL_PRAGMA_SIMD _PSTL_PRAGMA(omp simd)
 #    define _PSTL_PRAGMA_DECLARE_SIMD _PSTL_PRAGMA(omp declare simd)
 #    define _PSTL_PRAGMA_SIMD_REDUCTION(PRM) _PSTL_PRAGMA(omp simd reduction(PRM))
@@ -120,20 +97,8 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #    define _PSTL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM)
 #endif
 
-// Requred to check if libstdc++ is 5.1.0 or greater
-#if defined(__clang__)
-#    if __GLIBCXX__ && __has_include(<experimental/any>)
-#        define _PSTL_LIBSTDCXX_5_OR_GREATER 1
-#    else
-#        define _PSTL_LIBSTDCXX_5_OR_GREATER 0
-#    endif // __GLIBCXX__ && __has_include(<experimental/any>)
-#else
-#    define _PSTL_LIBSTDCXX_5_OR_GREATER (__GLIBCXX__ && _PSTL_GCC_VERSION >= 50100)
-#endif // defined(__clang__)
-
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
-#define _PSTL_CPP17_EXECUTION_POLICIES_PRESENT                                                                         \
-    (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) || (_PSTL_GCC_VERSION >= 90101 && __cplusplus >= 201703L)
+#define _PSTL_CPP17_EXECUTION_POLICIES_PRESENT (_MSC_VER >= 1912)
 
 #define _PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                      \
     (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
@@ -142,8 +107,6 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #define _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
 #define _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                         \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
-#define _PSTL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT                                                               \
-    (_LIBCPP_VERSION || _MSC_VER >= 1700 || (_GLIBCXX_RELEASE >= 7 || _PSTL_LIBSTDCXX_5_OR_GREATER))
 
 #define _PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
@@ -212,33 +175,6 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 // broken macros
 #define _PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
 
-// Some  C++ standard libraries contain 'exclusive_scan' declaration (version with binary_op)
-// w/o "enable_if". So, a call 'exclusive_scan' may be ambiguous in case of a custom policy using.
-#define _PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)
+#define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
-// Check the user-defined macro for parallel policies
-#if !defined(_PSTL_BACKEND_SYCL)
-#    if defined(__PSTL_BACKEND_SYCL)
-#        define _PSTL_BACKEND_SYCL __PSTL_BACKEND_SYCL
-// define _PSTL_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
-#    elif defined(CL_SYCL_LANGUAGE_VERSION)
-#        define _PSTL_BACKEND_SYCL 1
-#    else
-#        define _PSTL_BACKEND_SYCL 0
-#    endif
-#endif
-
-// if SYCL policy switch on then let's switch hetero policy macro on
-#if _PSTL_BACKEND_SYCL
-#    if _PSTL_HETERO_BACKEND
-#        undef _PSTL_HETERO_BACKEND
-#    endif
-#    define _PSTL_HETERO_BACKEND 1
-#endif
-
-#if _PSTL_BACKEND_SYCL
-// Include sycl specific options
-#    include "hetero/dpcpp/pstl_sycl_config.h"
-#endif
-
-#endif /* _ONEDPL_config_H */
+#endif /* _PSTL_CONFIG_H */

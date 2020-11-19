@@ -16,17 +16,17 @@
 #ifndef _ONEDPL_UTILS_H
 #define _ONEDPL_UTILS_H
 
-#include "pstl_config.h"
+#include "onedpl_config.h"
 
 #include <new>
 #include <iterator>
 #include <type_traits>
 
-#if _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT
+#if (_PSTL_CPP14_INTEGER_SEQUENCE_PRESENT || _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT)
 #    include <utility>
 #endif
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include <CL/sycl.hpp>
 #    include "hetero/dpcpp/sycl_iterator.h"
 #endif
@@ -135,7 +135,7 @@ class __not_pred
 
     template <typename... _Args>
     bool
-    operator()(_Args&&... __args)
+    operator()(_Args&&... __args) const
     {
         return !_M_pred(::std::forward<_Args>(__args)...);
     }
@@ -251,7 +251,7 @@ class __equal_value_by_pred
 
     template <typename _Arg>
     bool
-    operator()(_Arg&& __arg)
+    operator()(_Arg&& __arg) const
     {
         return _M_pred(::std::forward<_Arg>(__arg), _M_value);
     }
@@ -291,6 +291,57 @@ class __not_equal_value
     }
 };
 
+template <typename _Pred>
+class __transform_functor
+{
+    _Pred _M_pred;
+
+  public:
+    explicit __transform_functor(_Pred __pred) : _M_pred(__pred) {}
+
+    template <typename _Input1Type, typename _Input2Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
+    {
+        z = _M_pred(x, y);
+    }
+};
+
+template <typename _Tp, typename _Pred>
+class __replace_functor
+{
+    const _Tp _M_value;
+    _Pred _M_pred;
+
+  public:
+    __replace_functor(const _Tp& __value, _Pred __pred) : _M_value(__value), _M_pred(__pred) {}
+
+    template <typename _OutputType>
+    void
+    operator()(_OutputType& __elem) const
+    {
+        if (_M_pred(__elem))
+            __elem = _M_value;
+    }
+};
+
+template <typename _Tp, typename _Pred>
+class __replace_copy_functor
+{
+    const _Tp _M_value;
+    _Pred _M_pred;
+
+  public:
+    __replace_copy_functor(const _Tp& __value, _Pred __pred) : _M_value(__value), _M_pred(__pred) {}
+
+    template <typename _InputType, typename _OutputType>
+    void
+    operator()(const _InputType& __x, _OutputType& __y) const
+    {
+        __y = _M_pred(__x) ? _M_value : __x;
+    }
+};
+
 //! Like ::std::next, but with specialization for dpcpp case
 template <typename _Iter>
 _Iter
@@ -299,12 +350,12 @@ __pstl_next(_Iter __iter, typename ::std::iterator_traits<_Iter>::difference_typ
     return ::std::next(__iter, __n);
 }
 
-#if _PSTL_BACKEND_SYCL
-template <cl::sycl::access::mode _Mode, typename... _Params>
-dpstd::__internal::sycl_iterator<_Mode, _Params...>
+#if _ONEDPL_BACKEND_SYCL
+template <sycl::access::mode _Mode, typename... _Params>
+oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...>
 __pstl_next(
-    dpstd::__internal::sycl_iterator<_Mode, _Params...> __iter,
-    typename ::std::iterator_traits<dpstd::__internal::sycl_iterator<_Mode, _Params...>>::difference_type __n = 1)
+    oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...> __iter,
+    typename ::std::iterator_traits<oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...>>::difference_type __n = 1)
 {
     return __iter + __n;
 }
@@ -400,7 +451,7 @@ struct _ReverseCounter
 // same integral type as _ReverseCounter (it means that we can call accessor::operator[]
 // with the _ReverseCounter itself) then we don't need conversion operator to sycl::id.
 // Otherwise, we define conversion operator to sycl::id.
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
     struct __integral
     {
         operator _IntType();
@@ -416,10 +467,9 @@ struct _ReverseCounter
 
     class __private_class;
 
-    operator typename ::std::conditional<decltype(__check_braces<_Acc>(0))::value, cl::sycl::id<1>,
-                                         __private_class>::type()
+    operator typename ::std::conditional<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>::type()
     {
-        return cl::sycl::id<1>(__my_cn);
+        return sycl::id<1>(__my_cn);
     }
 #endif
 };
@@ -435,7 +485,7 @@ __pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __v
     return __pstl_upper_bound(__a, __beg, __end, __val, __reorder_pred<_Compare>{__comp});
 }
 
-#if _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT
+#if (_PSTL_CPP14_INTEGER_SEQUENCE_PRESENT || _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT)
 
 template <::std::size_t... _Sp>
 using __index_sequence = ::std::index_sequence<_Sp...>;
@@ -463,21 +513,76 @@ struct __make_index_sequence_impl<0, _Sp...>
 template <::std::size_t _Np>
 using __make_index_sequence = typename oneapi::dpl::__internal::__make_index_sequence_impl<_Np>::type;
 
-#endif /* _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT */
+#endif /* _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT || _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT */
 
 // Required to support GNU libstdc++ below 5.x
 template <typename _Tp>
 using __has_trivial_copy_assignemnt =
-#if _PSTL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT
+#if _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT
     ::std::is_trivially_copy_assignable<
 #else
     ::std::has_trivial_copy_assign<
-#endif /* _PSTL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT */
+#endif /* _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT */
         _Tp>;
 
 // Aliases for adjacent_find compile-time dispatching
 using __or_semantic = ::std::true_type;
 using __first_semantic = ::std::false_type;
+
+// Define __void_type via this structure to handle redefinition issue.
+// See CWG 1558 for information about it.
+template <typename... _Ts>
+struct __make_void_type
+{
+    using __type = void;
+};
+
+template <typename... _Ts>
+using __void_type = typename __make_void_type<_Ts...>::__type;
+
+// is_callable_object
+template <typename _Tp, typename = void>
+struct __is_callable_object : ::std::false_type
+{
+};
+
+template <typename _Tp>
+struct __is_callable_object<_Tp, __void_type<decltype(&_Tp::operator())>> : ::std::true_type
+{
+};
+
+// is_pointer_to_const_member
+template <typename _Tp>
+struct __is_pointer_to_const_member_impl : ::std::false_type
+{
+};
+
+template <typename _R, typename _U, typename... _Args>
+struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const> : ::std::true_type
+{
+};
+
+#if __cplusplus >= 201703L
+template <typename _R, typename _U, typename... _Args>
+struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const noexcept> : ::std::true_type
+{
+};
+#endif
+
+template <typename _Tp, bool = __is_callable_object<_Tp>::value>
+struct __is_pointer_to_const_member : ::std::false_type
+{
+};
+
+template <typename _Tp>
+struct __is_pointer_to_const_member<_Tp, true> : __is_pointer_to_const_member_impl<decltype(&_Tp::operator())>
+{
+};
+
+// is_const_callable_object to check whether we call const or non-const object
+template <typename _Tp>
+using __is_const_callable_object =
+    ::std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
 
 } // namespace __internal
 } // namespace dpl

@@ -57,7 +57,7 @@ struct run_unique_copy
         // Run unique_copy
         auto i = unique_copy(first, last, expected_first);
         auto k = unique_copy(exec, first, last, out_first);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         EXPECT_EQ_N(expected_first, out_first, n, "wrong unique_copy effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -112,7 +112,7 @@ struct run_unique_copy_predicate
         // Run unique_copy with predicate
         auto i = unique_copy(first, last, expected_first, pred);
         auto k = unique_copy(exec, first, last, out_first, pred);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         EXPECT_EQ_N(expected_first, out_first, n, "wrong unique_copy with predicate effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -140,7 +140,7 @@ test(T trash, BinaryPredicate pred, Convert convert, bool check_weakness = true)
         // more for sake of detecting buffer overruns.
         Sequence<T> in(n, [&](size_t k) -> T { return convert(k ^ n); });
         using namespace std;
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         size_t count = GuardSize;
         for (size_t k = 0; k < in.size(); ++k)
             count += k == 0 || !pred(in[k], in[k - 1]) ? 1 : 0;
@@ -176,14 +176,14 @@ struct test_non_const
 int
 main()
 {
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<Number>(Number(42, OddTag()), ::std::equal_to<Number>(),
                  [](int32_t j) { return Number(3 * j / 13 ^ (j & 8), OddTag()); });
 #endif
 
     test<float64_t>(float64_t(42), ::std::equal_to<float64_t>(),
                     [](int32_t j) { return float64_t(5 * j / 23 ^ (j / 7)); });
-#if !_PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN && !_PSTL_FPGA_DEVICE
+#if !_PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN && !_ONEDPL_FPGA_DEVICE
     test<float32_t>(float32_t(42), [](float32_t x, float32_t y) { return false; },
                     [](int32_t j) { return float32_t(j); }, false);
 #endif

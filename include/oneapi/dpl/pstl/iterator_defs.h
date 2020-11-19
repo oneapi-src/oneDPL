@@ -18,6 +18,7 @@
 
 #include <iterator>
 #include <type_traits>
+#include "utils.h"
 
 namespace oneapi
 {
@@ -25,17 +26,6 @@ namespace dpl
 {
 namespace __internal
 {
-
-// Define __void_type via this structure to handle redefinition issue.
-// See CWG 1558 for information about it.
-template <typename... _Ts>
-struct __make_void_type
-{
-    using __type = void;
-};
-
-template <typename... _Ts>
-using __void_type = typename __make_void_type<_Ts...>::__type;
 
 // Internal wrapper around ::std::iterator_traits as it is required to be
 // SFINAE-friendly(not produce "hard" error when _Ip is not an iterator)

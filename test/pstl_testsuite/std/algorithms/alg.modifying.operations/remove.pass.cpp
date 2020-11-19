@@ -156,15 +156,15 @@ main()
     test<float64_t>(-666.0, 8.5, [](const float64_t& val) { return val != 8.5; },
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });
 
-#if !_PSTL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
+#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     test<Number>(Number(-666, OddTag()), Number(42, OddTag()), IsMultiple(3, OddTag()),
                  [](int32_t j) { return Number(j, OddTag()); });
 #endif
 
-#if !_PSTL_BACKEND_SYCL
 #ifdef _PSTL_TEST_REMOVE_IF
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
 #endif
+#if !_ONEDPL_BACKEND_SYCL
     test<MemoryChecker>(MemoryChecker{0}, MemoryChecker{1},
         [](const MemoryChecker& val){ return val.value() == 1; },
         [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx % 3 == 0)}; }

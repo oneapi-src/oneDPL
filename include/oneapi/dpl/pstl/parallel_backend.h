@@ -16,15 +16,15 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_H
 #define _ONEDPL_PARALLEL_BACKEND_H
 
-#include "pstl_config.h"
+#include "onedpl_config.h"
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/parallel_backend_sycl.h"
-#    if _PSTL_FPGA_DEVICE
+#    if _ONEDPL_FPGA_DEVICE
 #        include "hetero/dpcpp/parallel_backend_sycl_fpga.h"
 #    endif
 #endif
-#if defined(_PSTL_PAR_BACKEND_SERIAL)
+#if defined(_ONEDPL_PAR_BACKEND_SERIAL)
 #    include "parallel_backend_serial.h"
 namespace oneapi
 {
@@ -37,7 +37,7 @@ using namespace oneapi::dpl::__serial_backend;
 }
 } // namespace dpl
 } // namespace oneapi
-#elif defined(_PSTL_PAR_BACKEND_TBB)
+#elif defined(_ONEDPL_PAR_BACKEND_TBB)
 #    include "parallel_backend_tbb.h"
 #else
 _PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");

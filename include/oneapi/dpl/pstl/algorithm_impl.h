@@ -32,6 +32,10 @@
 #include "parallel_impl.h"
 #include "iterator_impl.h"
 
+#if _ONEDPL_HETERO_BACKEND
+#    include "hetero/algorithm_impl_hetero.h" // for __pattern_fill_n, __pattern_generate_n
+#endif
+
 namespace oneapi
 {
 namespace dpl
@@ -347,20 +351,20 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
 template <class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2, class _Function,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator2>
-__pattern_walk2_n(_ExecutionPolicy&&, _ForwardIterator1 __first1, _Size n, _ForwardIterator2 __first2, _Function f,
-                  _IsVector is_vector, /*parallel=*/::std::false_type) noexcept
+__pattern_walk2_n(_ExecutionPolicy&&, _ForwardIterator1 __first1, _Size __n, _ForwardIterator2 __first2, _Function __f,
+                  _IsVector __is_vector, /*parallel=*/::std::false_type) noexcept
 {
-    return __internal::__brick_walk2_n(__first1, n, __first2, f, is_vector);
+    return __internal::__brick_walk2_n(__first1, __n, __first2, __f, __is_vector);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _Size, class _RandomAccessIterator2,
           class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
-__pattern_walk2_n(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Size n, _RandomAccessIterator2 __first2,
-                  _Function f, _IsVector is_vector, /*parallel=*/::std::true_type)
+__pattern_walk2_n(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Size __n,
+                  _RandomAccessIterator2 __first2, _Function __f, _IsVector __is_vector, /*parallel=*/::std::true_type)
 {
-    return __internal::__pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + n, __first2, f,
-                                       is_vector, ::std::true_type());
+    return __internal::__pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n, __first2,
+                                       __f, __is_vector, ::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Brick>
@@ -548,7 +552,7 @@ bool
 __brick_equal(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
               _ForwardIterator2 __last2, _BinaryPredicate __p, /* IsVector = */ ::std::false_type) noexcept
 {
-#if _PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT
+#if (_PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT || _ONEDPL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT)
     return ::std::equal(__first1, __last1, __first2, __last2, __p);
 #else
     return __invoke_if_else(typename __is_random_access_iterator<_ForwardIterator1, _ForwardIterator2>::type(),
@@ -575,7 +579,7 @@ __brick_equal(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _
     if (__last1 - __first1 != __last2 - __first2)
         return false;
 
-    return __unseq_backend::__simd_first(__first1, __last1 - __first1, __first2, __not_pred<_BinaryPredicate>(__p))
+    return __unseq_backend::__simd_first(__first1, __last1 - __first1, __first2, __not_pred<_BinaryPredicate&>(__p))
                .first == __last1;
 }
 
@@ -626,7 +630,7 @@ bool
 __brick_equal(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
               _BinaryPredicate __p, /* is_vector = */ ::std::true_type) noexcept
 {
-    return __unseq_backend::__simd_first(__first1, __last1 - __first1, __first2, __not_pred<_BinaryPredicate>(__p))
+    return __unseq_backend::__simd_first(__first1, __last1 - __first1, __first2, __not_pred<_BinaryPredicate&>(__p))
                .first == __last1;
 }
 
@@ -732,7 +736,7 @@ __find_subrange(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _
     {
         // find position of *s_first in [first, last) (it can be start of subsequence)
         __first = __internal::__brick_find_if(
-            __first, __last, __equal_value_by_pred<_ValueType, _BinaryPredicate>(*__s_first, __pred), __is_vector);
+            __first, __last, __equal_value_by_pred<_ValueType, _BinaryPredicate&>(*__s_first, __pred), __is_vector);
 
         // if position that was found previously is the start of subsequence
         // then we can exit the loop (b_first == true) or keep the position
@@ -779,8 +783,7 @@ __find_subrange(_RandomAccessIterator __first, _RandomAccessIterator __last, _Ra
         return __last;
     }
 
-    auto __n = __global_last - __first;
-    auto __unary_pred = __equal_value_by_pred<_Tp, _BinaryPredicate>(__value, __pred);
+    auto __unary_pred = __equal_value_by_pred<_Tp, _BinaryPredicate&>(__value, __pred);
     while (__first != __last && (__global_last - __first >= __count))
     {
         __first = __internal::__brick_find_if(__first, __last, __unary_pred, __is_vector);
@@ -788,7 +791,7 @@ __find_subrange(_RandomAccessIterator __first, _RandomAccessIterator __last, _Ra
         // check that all of elements in [first+1, first+count) equal to value
         if (__first != __last && (__global_last - __first >= __count) &&
             !__internal::__brick_any_of(__first + 1, __first + __count,
-                                        __not_pred<decltype(__unary_pred)>(__unary_pred), __is_vector))
+                                        __not_pred<decltype(__unary_pred)&>(__unary_pred), __is_vector))
         {
             return __first;
         }
@@ -896,7 +899,7 @@ __pattern_find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _F
     return __internal::__except_handler([&]() {
         return __internal::__parallel_find(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-            [__s_first, __s_last, __pred, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
+            [__s_first, __s_last, &__pred, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
                 return __internal::__brick_find_first_of(__i, __j, __s_first, __s_last, __pred, __is_vector);
             },
             ::std::true_type{});
@@ -1172,7 +1175,7 @@ _OutputIterator
 __brick_copy_if(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result, _UnaryPredicate __pred,
                 /*vector=*/::std::true_type) noexcept
 {
-#if (_PSTL_MONOTONIC_PRESENT)
+#if (_PSTL_MONOTONIC_PRESENT || _ONEDPL_MONOTONIC_PRESENT)
     return __unseq_backend::__simd_copy_if(__first, __last - __first, __result, __pred);
 #else
     return ::std::copy_if(__first, __last, __result, __pred);
@@ -1231,7 +1234,7 @@ void
 __brick_copy_by_mask(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
                      bool* __restrict __mask, _Assigner __assigner, /*vector=*/::std::true_type) noexcept
 {
-#if (_PSTL_MONOTONIC_PRESENT)
+#if (_PSTL_MONOTONIC_PRESENT || _ONEDPL_MONOTONIC_PRESENT)
     __unseq_backend::__simd_copy_by_mask(__first, __last - __first, __result, __mask, __assigner);
 #else
     __internal::__brick_copy_by_mask(__first, __last, __result, __mask, __assigner, ::std::false_type());
@@ -1263,7 +1266,7 @@ void
 __brick_partition_by_mask(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator1 __out_true,
                           _OutputIterator2 __out_false, bool* __mask, /*vector=*/::std::true_type) noexcept
 {
-#if (_PSTL_MONOTONIC_PRESENT)
+#if (_PSTL_MONOTONIC_PRESENT || _ONEDPL_MONOTONIC_PRESENT)
     __unseq_backend::__simd_partition_by_mask(__first, __last - __first, __out_true, __out_false, __mask);
 #else
     __internal::__brick_partition_by_mask(__first, __last, __out_true, __out_false, __mask, ::std::false_type());
@@ -1515,7 +1518,7 @@ OutputIterator
 __brick_unique_copy(_RandomAccessIterator __first, _RandomAccessIterator __last, OutputIterator __result,
                     _BinaryPredicate __pred, /*vector=*/::std::true_type) noexcept
 {
-#if (_PSTL_MONOTONIC_PRESENT)
+#if (_PSTL_MONOTONIC_PRESENT || _ONEDPL_MONOTONIC_PRESENT)
     return __unseq_backend::__simd_unique_copy(__first, __last - __first, __result, __pred);
 #else
     return ::std::unique_copy(__first, __last, __result, __pred);
@@ -1734,7 +1737,7 @@ _ForwardIterator
 __brick_rotate(_ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last,
                /*is_vector=*/::std::false_type) noexcept
 {
-#if _PSTL_CPP11_STD_ROTATE_BROKEN
+#if (_PSTL_CPP11_STD_ROTATE_BROKEN || _ONEDPL_CPP11_STD_ROTATE_BROKEN)
     ::std::rotate(__first, __middle, __last);
     return ::std::next(__first, ::std::distance(__middle, __last));
 #else
@@ -2008,8 +2011,8 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _ForwardIterator __first, _F
                     if (__pred(*__i))
                     {
                         // find first element that don't satisfy pred
-                        _ForwardIterator __x =
-                            __internal::__brick_find_if(__i + 1, __j, __not_pred<_UnaryPredicate>(__pred), __is_vector);
+                        _ForwardIterator __x = __internal::__brick_find_if(
+                            __i + 1, __j, __not_pred<_UnaryPredicate&>(__pred), __is_vector);
                         if (__x != __j)
                         {
                             // find first element after "x" that satisfy pred
@@ -2255,7 +2258,7 @@ template <class _ForwardIterator, class _OutputIterator1, class _OutputIterator2
 __brick_partition_copy(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator1 __out_true,
                        _OutputIterator2 __out_false, _UnaryPredicate __pred, /*is_vector=*/::std::true_type) noexcept
 {
-#if (_PSTL_MONOTONIC_PRESENT)
+#if (_PSTL_MONOTONIC_PRESENT || _ONEDPL_MONOTONIC_PRESENT)
     return __unseq_backend::__simd_partition_copy(__first, __last - __first, __out_true, __out_false, __pred);
 #else
     return ::std::partition_copy(__first, __last, __out_true, __out_false, __pred);
@@ -2527,7 +2530,6 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
                 // checking (compare_and_swap idiom) its __value at __first.
                 if (__or_semantic && __value < __last)
                 { //found
-                    __par_backend::__cancel_execution();
                     return __value;
                 }
 
@@ -2791,7 +2793,7 @@ _RandomAccessIterator
 __brick_remove_if(_RandomAccessIterator __first, _RandomAccessIterator __last, _UnaryPredicate __pred,
                   /* __is_vector = */ ::std::true_type) noexcept
 {
-#if _PSTL_MONOTONIC_PRESENT
+#if (_PSTL_MONOTONIC_PRESENT || _ONEDPL_MONOTONIC_PRESENT)
     return __unseq_backend::__simd_remove_if(__first, __last - __first, __pred);
 #else
     return ::std::remove_if(__first, __last, __pred);
@@ -3283,11 +3285,11 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
     if (__n1 + __n2 <= __set_algo_cut_off)
         return ::std::set_union(__first1, __last1, __first2, __last2, __result, __comp);
 
-    typedef typename ::std::iterator_traits<_OutputIterator>::value_type _T;
+    typedef typename ::std::iterator_traits<_OutputIterator>::value_type _Tp;
     return __parallel_set_union_op(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
         [](_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
-           _T* __result, _Compare __comp) {
+           _Tp* __result, _Compare __comp) {
             return oneapi::dpl::__utils::__set_union_construct(__first1, __last1, __first2, __last2, __result, __comp,
                                                                __BrickCopyConstruct<_IsVector>());
         },
@@ -3462,7 +3464,7 @@ __pattern_set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
 
     if (__n1 + __n2 > __set_algo_cut_off)
         return __parallel_set_op(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2,
-                                 __result, __comp, [](_DifferenceType __n, _DifferenceType __m) { return __n; },
+                                 __result, __comp, [](_DifferenceType __n, _DifferenceType) { return __n; },
                                  [](_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
                                     _ForwardIterator2 __last2, _T* __result, _Compare __comp) {
                                      return oneapi::dpl::__utils::__set_difference_construct(
@@ -3683,7 +3685,7 @@ _ForwardIterator
 __brick_min_element(_ForwardIterator __first, _ForwardIterator __last, _Compare __comp,
                     /* __is_vector = */ ::std::true_type) noexcept
 {
-#if _PSTL_UDR_PRESENT
+#if (_PSTL_UDR_PRESENT || _ONEDPL_UDR_PRESENT)
     return __unseq_backend::__simd_min_element(__first, __last - __first, __comp);
 #else
     return ::std::min_element(__first, __last, __comp);
@@ -3738,7 +3740,7 @@ template <typename _ForwardIterator, typename _Compare>
 __brick_minmax_element(_ForwardIterator __first, _ForwardIterator __last, _Compare __comp,
                        /* __is_vector = */ ::std::true_type) noexcept
 {
-#if _PSTL_UDR_PRESENT
+#if (_PSTL_UDR_PRESENT || _ONEDPL_UDR_PRESENT)
     return __unseq_backend::__simd_minmax_element(__first, __last - __first, __comp);
 #else
     return ::std::minmax_element(__first, __last, __comp);
@@ -3768,16 +3770,16 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _F
 
         return __par_backend::__parallel_reduce(
             ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last, ::std::make_pair(__first, __first),
-            [=](_ForwardIterator __begin, _ForwardIterator __end, _Result __init) -> _Result {
+            [=, &__comp](_ForwardIterator __begin, _ForwardIterator __end, _Result __init) -> _Result {
                 const _Result __subresult = __internal::__brick_minmax_element(__begin, __end, __comp, __is_vector);
                 return ::std::make_pair(__internal::__cmp_iterators_by_values(__subresult.first, __init.first, __comp),
                                         __internal::__cmp_iterators_by_values(__init.second, __subresult.second,
-                                                                              __not_pred<_Compare>(__comp)));
+                                                                              __not_pred<_Compare&>(__comp)));
             },
-            [=](_Result __p1, _Result __p2) -> _Result {
+            [=, &__comp](_Result __p1, _Result __p2) -> _Result {
                 return ::std::make_pair(
                     __internal::__cmp_iterators_by_values(__p1.first, __p2.first, __comp),
-                    __internal::__cmp_iterators_by_values(__p2.second, __p1.second, __not_pred<_Compare>(__comp)));
+                    __internal::__cmp_iterators_by_values(__p2.second, __p1.second, __not_pred<_Compare&>(__comp)));
             });
     });
 }
@@ -3790,7 +3792,7 @@ template <class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredica
 __mismatch_serial(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
                   _ForwardIterator2 __last2, _BinaryPredicate __pred)
 {
-#if _PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT
+#if (_PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT || _ONEDPL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT)
     return ::std::mismatch(__first1, __last1, __first2, __last2, __pred);
 #else
     for (; __first1 != __last1 && __first2 != __last2 && __pred(*__first1, *__first2); ++__first1, ++__first2)
@@ -3814,7 +3816,7 @@ __brick_mismatch(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Forward
                  _ForwardIterator2 __last2, _Predicate __pred, /* __is_vector = */ ::std::true_type) noexcept
 {
     auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
-    return __unseq_backend::__simd_first(__first1, __n, __first2, __not_pred<_Predicate>(__pred));
+    return __unseq_backend::__simd_first(__first1, __n, __first2, __not_pred<_Predicate&>(__pred));
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Predicate, class _IsVector>

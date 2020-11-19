@@ -16,7 +16,7 @@
 #include "support/pstl_test_config.h"
 #include "support/utils.h"
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 
 #include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
 
@@ -30,7 +30,7 @@ void CheckTuple() {
 
 
 int main() {
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
     CheckTuple<int>();
     CheckTuple<int, long, float>();
 #endif

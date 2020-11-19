@@ -19,7 +19,7 @@
 #include "../algorithm_fwd.h"
 #include "../parallel_backend.h"
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/utils_ranges_sycl.h"
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif
@@ -42,9 +42,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_walk1(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
 {
     if (!__rng.empty())
-        oneapi::dpl::__par_backend_hetero::__ranges::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-            __rng.size(), ::std::forward<_Range>(__rng));
+        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
+                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
+                                                          __rng.size(), ::std::forward<_Range>(__rng))
+            .wait();
 }
 
 //------------------------------------------------------------------------
@@ -56,9 +57,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_walk2(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Function __f)
 {
     if (!__rng1.empty() && !__rng2.empty())
-        oneapi::dpl::__par_backend_hetero::__ranges::__parallel_for(
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-            __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+            __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
+            .wait();
 }
 
 //------------------------------------------------------------------------
@@ -70,10 +72,11 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_walk3(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Function __f)
 {
     if (!__rng1.empty() && !__rng2.empty() && !__rng3.empty())
-        oneapi::dpl::__par_backend_hetero::__ranges::__parallel_for(
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
             __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-            ::std::forward<_Range3>(__rng3));
+            ::std::forward<_Range3>(__rng3))
+            .wait();
 }
 
 //------------------------------------------------------------------------
@@ -232,10 +235,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
 __pattern_search_n(_ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value,
                    _BinaryPredicate __pred)
 {
-    using namespace oneapi::dpl::experimental::ranges;
     //TODO: To consider definition a kind of special factory "multiple_view" (addition to standard "single_view").
     //The factory "multiple_view" would generate a range of N identical values.
-    auto __s_rng = views::iota(0, __count) | views::transform([__value](auto) { return __value; });
+    auto __s_rng = oneapi::dpl::experimental::ranges::views::iota(0, __count) |
+                   oneapi::dpl::experimental::ranges::views::transform([__value](auto) { return __value; });
 
     return __pattern_search(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __s_rng, __pred);
 }

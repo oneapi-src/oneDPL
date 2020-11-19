@@ -91,8 +91,10 @@ test_mismatch_by_type()
         {
             Sequence<T> in2(in);
             invoke_on_all_policies<0>()(test_mismatch<T>(), in.begin(), in.end(), in2.begin(), in2.end());
+#if !_ONEDPL_FPGA_DEVICE
             invoke_on_all_policies<1>()(test_mismatch<T>(), in.begin(), in.end(), in2.begin());
             invoke_on_all_policies<2>()(test_mismatch_predicate<T>(), in.begin(), in.end(), in2.begin(), in2.end());
+#endif
             invoke_on_all_policies<3>()(test_mismatch_predicate<T>(), in.begin(), in.end(), in2.begin());
 
             const size_t min_size = 3;
@@ -112,9 +114,11 @@ test_mismatch_by_type()
             {
                 in2[size / idx_for_2] = val;
                 invoke_on_all_policies<8>()(test_mismatch<T>(), in.cbegin(), in.cend(), in2.cbegin(), in2.cend());
+#if !_ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<9>()(test_mismatch<T>(), in.cbegin(), in.cend(), in2.cbegin());
                 invoke_on_all_policies<10>()(test_mismatch_predicate<T>(), in.cbegin(), in.cend(), in2.cbegin(),
                                              in2.cend());
+#endif
                 invoke_on_all_policies<11>()(test_mismatch_predicate<T>(), in.cbegin(), in.cend(), in2.cbegin());
             }
         }
@@ -145,8 +149,10 @@ test_mismatch_by_type()
         {
             Sequence<T> in2({});
             invoke_on_all_policies<20>()(test_mismatch<T>(), in2.begin(), in2.end(), in.begin(), in.end());
+#if !_ONEDPL_FPGA_DEVICE
             invoke_on_all_policies<21>()(test_mismatch_predicate<T>(), in2.begin(), in2.end(), in.begin(), in.end());
             invoke_on_all_policies<22>()(test_mismatch<T>(), in.cbegin(), in.cend(), in2.cbegin(), in2.cend());
+#endif
             invoke_on_all_policies<23>()(test_mismatch_predicate<T>(), in.cbegin(), in.cend(), in2.cbegin(),
                                          in2.cend());
 
@@ -175,14 +181,14 @@ main()
 {
 
     test_mismatch_by_type<int32_t>();
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test_mismatch_by_type<float64_t>();
 #endif
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test_mismatch_by_type<Wrapper<int32_t>>();
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 #endif
+    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     ::std::cout << done() << ::std::endl;
     return 0;

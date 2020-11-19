@@ -20,14 +20,14 @@
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
 int32_t
 main()
 {
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
     constexpr int max_n = 10;
     int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     int data1[max_n], data2[max_n];
@@ -35,16 +35,16 @@ main()
     int init = 100;
     auto lambda = [](auto i) { return i * i; };
     {
-        cl::sycl::buffer<int> A(data, cl::sycl::range<1>(max_n));
-        cl::sycl::buffer<int> B1(data1, cl::sycl::range<1>(max_n));
-        cl::sycl::buffer<int> B2(data2, cl::sycl::range<1>(max_n));
+        sycl::buffer<int> A(data, sycl::range<1>(max_n));
+        sycl::buffer<int> B1(data1, sycl::range<1>(max_n));
+        sycl::buffer<int> B2(data2, sycl::range<1>(max_n));
 
         using namespace TestUtils;
         using namespace oneapi::dpl::experimental;
 
-        auto view = ranges::all_view<int, cl::sycl::access::mode::read>(A);
-        auto view_res1 = ranges::all_view<int, cl::sycl::access::mode::write>(B1);
-        auto view_res2 = ranges::all_view<int, cl::sycl::access::mode::write>(B2);
+        auto view = ranges::all_view<int, sycl::access::mode::read>(A);
+        auto view_res1 = ranges::all_view<int, sycl::access::mode::write>(B1);
+        auto view_res2 = ranges::all_view<int, sycl::access::mode::write>(B2);
 
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
@@ -61,7 +61,7 @@ main()
     EXPECT_EQ_N(expected1, data1, max_n, "wrong effect from transform_inclusive_scan, sycl ranges");
     EXPECT_EQ_N(expected2, data2, max_n, "wrong effect from transform_inclusive_scan with init, sycl ranges");
 
-#endif //_PSTL_USE_RANGES
+#endif //_ONEDPL_USE_RANGES
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

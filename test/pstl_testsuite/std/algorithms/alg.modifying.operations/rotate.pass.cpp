@@ -171,7 +171,7 @@ int
 main()
 {
     test<int32_t>();
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<wrapper<float64_t>>();
     test<MemoryChecker>();
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from rotate: number of ctor and dtor calls is not equal");

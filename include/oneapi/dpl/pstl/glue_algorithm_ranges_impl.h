@@ -19,7 +19,7 @@
 #include "execution_defs.h"
 #include "glue_algorithm_defs.h"
 
-#if _PSTL_HETERO_BACKEND
+#if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_ranges_impl_hetero.h"
 #    include "hetero/algorithm_impl_hetero.h" //TODO: for __brick_copy
 #endif
@@ -57,8 +57,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 find_if_not(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
-    return find_if(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                   oneapi::dpl::__internal::__not_pred<_Predicate>(__pred));
+    return find_if(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+        oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Predicate>>(
+            __pred));
 }
 
 template <typename _ExecutionPolicy, typename _Range, typename _Tp>
@@ -67,7 +69,8 @@ find(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value)
 {
     return find_if(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Tp>>(__value));
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
+            __value));
 }
 
 // [alg.find.end]
@@ -168,7 +171,7 @@ transform(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Unary
 {
     oneapi::dpl::__internal::__ranges::__pattern_walk2(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng), ::std::forward<_Range2>(__result),
-        [__op](auto x, auto& z) mutable { z = __op(x); });
+        [__op](auto x, auto& z) { z = __op(x); });
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _BinaryOperation>
@@ -177,7 +180,7 @@ transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3
 {
     oneapi::dpl::__internal::__ranges::__pattern_walk3(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-        ::std::forward<_Range3>(__result), [__op](auto x, auto y, auto& z) mutable { z = __op(x, y); });
+        ::std::forward<_Range3>(__result), [__op](auto x, auto y, auto& z) { z = __op(x, y); });
 }
 
 // [is.sorted]

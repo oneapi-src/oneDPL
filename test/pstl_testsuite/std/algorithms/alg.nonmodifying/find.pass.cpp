@@ -88,7 +88,7 @@ int
 main()
 {
     // Note that the "hit" and "miss" functions here avoid overflow issues.
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<Number>(Weird(42, OddTag()), [](int32_t j) { return Number(42, OddTag()); }, // hit
                  [](int32_t j) { return Number(j == 42 ? 0 : j, OddTag()); });        // miss
 #endif

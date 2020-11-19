@@ -144,7 +144,7 @@ struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::
 {
 };
 
-#if _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT
+#if (_PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT || _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT)
 template <class T>
 constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<T>::value;
 #endif
@@ -194,7 +194,7 @@ using __enable_if_host_execution_policy_conditional = typename ::std::enable_if<
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl
 {
-    using type = const _T&;
+    using type = _T&;
 };
 
 template <typename _ExecPolicy, typename _T>
@@ -212,7 +212,7 @@ using __value_t = typename ::std::iterator_traits<decltype(::std::declval<_R&>()
 } // namespace dpl
 } // namespace oneapi
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/execution_sycl_defs.h"
 #endif
 

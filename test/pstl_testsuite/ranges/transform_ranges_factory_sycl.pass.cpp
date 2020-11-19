@@ -19,14 +19,14 @@
 #include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
 int32_t
 main()
 {
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
     constexpr int max_n = 10;
     int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     int data2[max_n];
@@ -37,11 +37,11 @@ main()
     using namespace oneapi::dpl::experimental::ranges;
 
     {
-        cl::sycl::buffer<int> B(data2, cl::sycl::range<1>(max_n));
+        sycl::buffer<int> B(data2, sycl::range<1>(max_n));
 
         auto view = iota_view(0, max_n) | views::transform(lambda1);
 
-        auto range_res = all_view<int, cl::sycl::access::mode::write>(B);
+        auto range_res = all_view<int, sycl::access::mode::write>(B);
         transform(TestUtils::default_dpcpp_policy, view, range_res, lambda2);
     }
 
@@ -51,7 +51,7 @@ main()
     ::std::transform(expected, expected + max_n, expected, lambda2);
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from trasnform with sycl ranges");
-#endif //_PSTL_USE_RANGES
+#endif //_ONEDPL_USE_RANGES
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

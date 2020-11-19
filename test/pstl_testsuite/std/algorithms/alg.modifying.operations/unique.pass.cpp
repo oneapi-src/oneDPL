@@ -183,24 +183,23 @@ main()
 #if !_PSTL_ICC_16_17_18_TEST_UNIQUE_MASK_RELEASE_BROKEN
     test<int32_t>([](size_t j) { return j / 3; },
                   [](const int32_t& val1, const int32_t& val2) { return val1 * val1 == val2 * val2; });
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test<float64_t>([](size_t) { return float64_t(1); },
                     [](const float64_t& val1, const float64_t& val2) { return val1 != val2; });
 #endif
 #endif
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<LocalWrapper<uint32_t>>([](size_t j) { return LocalWrapper<uint32_t>(j); },
                                  [](const LocalWrapper<uint32_t>& val1, const LocalWrapper<uint32_t>& val2) {
                                      return val1.my_val != val2.my_val;
                                  });
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
-
     test<MemoryChecker>(
         [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx / 3)}; },
         [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() == val2.value(); });
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from unique: number of ctor and dtor calls is not equal");
 #endif
+    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     ::std::cout << done() << ::std::endl;
     return 0;

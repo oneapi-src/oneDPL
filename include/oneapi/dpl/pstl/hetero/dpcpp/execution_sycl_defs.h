@@ -17,9 +17,9 @@
 #define _ONEDPL_execution_sycl_defs_H
 
 #include <CL/sycl.hpp>
-#include "../../dpstd_config.h"
+#include "../../onedpl_config.h"
 #include "../../execution_defs.h"
-#if _PSTL_FPGA_DEVICE
+#if _ONEDPL_FPGA_DEVICE
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
 
@@ -29,7 +29,7 @@ namespace dpl
 {
 namespace execution
 {
-inline namespace __dpstd
+inline namespace __dpl
 {
 
 struct DefaultKernelName
@@ -52,10 +52,10 @@ class device_policy
     device_policy(const device_policy<OtherName>& other) : q(other.queue())
     {
     }
-    explicit device_policy(cl::sycl::queue q_) : q(q_) {}
-    explicit device_policy(cl::sycl::device d_) : q(d_) {}
-    operator cl::sycl::queue() const { return q; }
-    cl::sycl::queue
+    explicit device_policy(sycl::queue q_) : q(q_) {}
+    explicit device_policy(sycl::device d_) : q(d_) {}
+    operator sycl::queue() const { return q; }
+    sycl::queue
     queue() const
     {
         return q;
@@ -80,13 +80,10 @@ class device_policy
     }
 
   private:
-    cl::sycl::queue q;
+    sycl::queue q;
 };
 
-template <typename DevicePolicy = parallel_unsequenced_policy, typename KernelName = DefaultKernelName>
-using sycl_policy _POLICY_DEPRECATED = device_policy<KernelName>;
-
-#if _PSTL_FPGA_DEVICE
+#if _ONEDPL_FPGA_DEVICE
 template <unsigned int factor = 1, typename KernelName = DefaultKernelName>
 class fpga_policy : public device_policy<KernelName>
 {
@@ -96,11 +93,11 @@ class fpga_policy : public device_policy<KernelName>
     static constexpr unsigned int unroll_factor = factor;
 
     fpga_policy()
-        : base(cl::sycl::queue(
-#    if _PSTL_FPGA_EMU
-              cl::sycl::INTEL::fpga_emulator_selector {}
+        : base(sycl::queue(
+#    if _ONEDPL_FPGA_EMU
+              sycl::INTEL::fpga_emulator_selector {}
 #    else
-              cl::sycl::INTEL::fpga_selector {}
+              sycl::INTEL::fpga_selector {}
 #    endif
               ))
     {
@@ -108,12 +105,9 @@ class fpga_policy : public device_policy<KernelName>
 
     template <unsigned int other_factor, typename OtherName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
-    explicit fpga_policy(cl::sycl::queue q) : base(q) {}
-    explicit fpga_policy(cl::sycl::device d) : base(d) {}
+    explicit fpga_policy(sycl::queue q) : base(q) {}
+    explicit fpga_policy(sycl::device d) : base(d) {}
 };
-
-template <typename KernelName = DefaultKernelName, int factor = 1, typename DevicePolicy = parallel_unsequenced_policy>
-using fpga_device_policy _POLICY_DEPRECATED = fpga_policy<factor, KernelName>;
 
 #endif
 
@@ -126,10 +120,8 @@ using fpga_device_policy _POLICY_DEPRECATED = fpga_policy<factor, KernelName>;
 // as it's copy, we simply copy-construct a static variable from a reference to that object.
 #if __cplusplus >= 201703L
 
-_POLICY_DEPRECATED inline device_policy<> sycl{};
-_POLICY_DEPRECATED inline device_policy<> default_policy{};
 inline device_policy<> dpcpp_default{};
-#    if _PSTL_FPGA_DEVICE
+#    if _ONEDPL_FPGA_DEVICE
 inline fpga_policy<> dpcpp_fpga{};
 #    endif
 
@@ -142,11 +134,9 @@ __get_default_policy_object(DeviceSelector selector)
     static device_policy<> __sycl_obj(selector);
     return __sycl_obj;
 }
-_POLICY_DEPRECATED static device_policy<> sycl{__get_default_policy_object(cl::sycl::default_selector{})};
-_POLICY_DEPRECATED static device_policy<> default_policy{__get_default_policy_object(cl::sycl::default_selector{})};
-static device_policy<> dpcpp_default{__get_default_policy_object(cl::sycl::default_selector{})};
+static device_policy<> dpcpp_default{__get_default_policy_object(sycl::default_selector{})};
 
-#    if _PSTL_FPGA_DEVICE
+#    if _ONEDPL_FPGA_DEVICE
 inline fpga_policy<>&
 __get_fpga_policy_object()
 {
@@ -159,37 +149,16 @@ static fpga_policy<> dpcpp_fpga{__get_fpga_policy_object()};
 #endif
 
 // make_policy functions
-template <typename KernelName, typename DevicePolicy, typename OldKernelName>
-_POLICY_DEPRECATED sycl_policy<DevicePolicy, KernelName>
-make_sycl_policy(const sycl_policy<DevicePolicy, OldKernelName>& policy)
-{
-    return sycl_policy<DevicePolicy, KernelName>(policy);
-}
-
-template <typename KernelName = DefaultKernelName>
-_POLICY_DEPRECATED sycl_policy<parallel_unsequenced_policy, KernelName>
-make_sycl_policy(const cl::sycl::queue& q)
-{
-    return sycl_policy<parallel_unsequenced_policy, KernelName>(q);
-}
-
-template <typename KernelName = DefaultKernelName>
-_POLICY_DEPRECATED sycl_policy<parallel_unsequenced_policy, KernelName>
-make_sycl_policy(const cl::sycl::device& device)
-{
-    return sycl_policy<parallel_unsequenced_policy, KernelName>(device);
-}
-
 template <typename KernelName = DefaultKernelName>
 device_policy<KernelName>
-make_device_policy(cl::sycl::queue q)
+make_device_policy(sycl::queue q)
 {
     return device_policy<KernelName>(q);
 }
 
 template <typename KernelName = DefaultKernelName>
 device_policy<KernelName>
-make_device_policy(cl::sycl::device d)
+make_device_policy(sycl::device d)
 {
     return device_policy<KernelName>(d);
 }
@@ -201,17 +170,17 @@ make_device_policy(const device_policy<OldKernelName>& policy = dpcpp_default)
     return device_policy<NewKernelName>(policy);
 }
 
-#if _PSTL_FPGA_DEVICE
+#if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelName>
 fpga_policy<unroll_factor, KernelName>
-make_fpga_policy(cl::sycl::queue q)
+make_fpga_policy(sycl::queue q)
 {
     return fpga_policy<unroll_factor, KernelName>(q);
 }
 
 template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelName>
 fpga_policy<unroll_factor, KernelName>
-make_fpga_policy(cl::sycl::device d)
+make_fpga_policy(sycl::device d)
 {
     return fpga_policy<unroll_factor, KernelName>(d);
 }
@@ -225,20 +194,20 @@ make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy = d
 }
 #endif
 
-} // namespace __dpstd
+} // namespace __dpl
 
 inline namespace v1
 {
 
 // 2.3, Execution policy type trait
 template <typename... PolicyParams>
-struct is_execution_policy<__dpstd::device_policy<PolicyParams...>> : ::std::true_type
+struct is_execution_policy<__dpl::device_policy<PolicyParams...>> : ::std::true_type
 {
 };
 
-#if _PSTL_FPGA_DEVICE
+#if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct is_execution_policy<__dpstd::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
+struct is_execution_policy<__dpl::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 #endif
@@ -275,7 +244,7 @@ struct __is_fpga_execution_policy : ::std::false_type
 {
 };
 
-#if _PSTL_FPGA_DEVICE
+#if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
 struct __is_hetero_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
@@ -289,14 +258,14 @@ struct __is_fpga_execution_policy<execution::fpga_policy<unroll_factor, PolicyPa
 template <typename _T, unsigned int unroll_factor, typename... PolicyParams>
 struct __ref_or_copy_impl<execution::fpga_policy<unroll_factor, PolicyParams...>, _T>
 {
-    using type = const _T;
+    using type = _T;
 };
 #endif
 
 template <typename _T, typename... PolicyParams>
 struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 {
-    using type = const _T;
+    using type = _T;
 };
 
 // Extension: execution policies type traits
@@ -316,19 +285,27 @@ using __enable_if_fpga_execution_policy = typename ::std::enable_if<
 // Device run-time information helpers
 //-----------------------------------------------------------------------------
 
+#if _ONEDPL_DEBUG_SYCL
+template <typename _ExecutionPolicy>
+::std::string
+__device_info(_ExecutionPolicy&& __policy)
+{
+    return __policy.queue().get_device().template get_info<sycl::info::device::name>();
+}
+#endif
+
 template <typename _ExecutionPolicy>
 ::std::size_t
 __max_work_group_size(_ExecutionPolicy&& __policy)
 {
-    return __policy.queue().get_device().template get_info<cl::sycl::info::device::max_work_group_size>();
+    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 }
 
 template <typename _ExecutionPolicy, typename _T>
-cl::sycl::cl_ulong
-__max_local_allocation_size(_ExecutionPolicy&& __policy, const cl::sycl::cl_ulong& __local_allocation_size)
+sycl::cl_ulong
+__max_local_allocation_size(_ExecutionPolicy&& __policy, const sycl::cl_ulong& __local_allocation_size)
 {
-    const auto __local_mem_size =
-        __policy.queue().get_device().template get_info<cl::sycl::info::device::local_mem_size>();
+    const auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
     return ::std::min(__local_mem_size / sizeof(_T), __local_allocation_size);
 }
 
@@ -339,8 +316,8 @@ __max_sub_group_size(_ExecutionPolicy&& __policy)
 {
     // TODO: can get_info<sycl::info::device::sub_group_sizes>() return zero-size vector?
     //       Spec does not say anything about that.
-    cl::sycl::vector_class<::std::size_t> __supported_sg_sizes =
-        __policy.queue().get_device().template get_info<cl::sycl::info::device::sub_group_sizes>();
+    sycl::vector_class<::std::size_t> __supported_sg_sizes =
+        __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
 
     // TODO: Since it is unknown if sycl::vector_class returned
     //       by get_info<sycl::info::device::sub_group_sizes>() can be empty,
@@ -350,10 +327,10 @@ __max_sub_group_size(_ExecutionPolicy&& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-cl::sycl::cl_uint
+sycl::cl_uint
 __max_compute_units(_ExecutionPolicy&& __policy)
 {
-    return __policy.queue().get_device().template get_info<cl::sycl::info::device::max_compute_units>();
+    return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
 }
 
 //-----------------------------------------------------------------------------
@@ -362,11 +339,11 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 
 template <typename _ExecutionPolicy>
 ::std::size_t
-__kernel_work_group_size(_ExecutionPolicy&& __policy, const cl::sycl::kernel& __kernel)
+__kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
     const auto& __device = __policy.queue().get_device();
     auto __max_wg_size =
-        __kernel.template get_work_group_info<cl::sycl::info::kernel_work_group::work_group_size>(__device);
+        __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
@@ -377,7 +354,7 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const cl::sycl::kernel& __
 
 template <typename _ExecutionPolicy>
 long
-__kernel_sub_group_size(_ExecutionPolicy&& __policy, const cl::sycl::kernel& __kernel)
+__kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
     auto __device = __policy.queue().get_device();
     auto __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);

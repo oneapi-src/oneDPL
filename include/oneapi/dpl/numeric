@@ -13,18 +13,32 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _TEST_SUPPORT_STDLIB_NUMERIC
-#define _TEST_SUPPORT_STDLIB_NUMERIC
+#ifndef _ONEDPL_NUMERIC
+#define _ONEDPL_NUMERIC
 
-#include "oneapi/dpl/pstl/pstl_config.h"
+// Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
+#if __cplusplus >= 201703L
+#    if __has_include(<tbb/version.h>)
+#        ifndef PSTL_USE_PARALLEL_POLICIES
+#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#        endif
+#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        endif
+#    endif // __has_include(<tbb/version.h>)
+#endif     // __cplusplus >= 201703L
 
-#if !_PSTL_NUMERIC_FORWARD_DECLARED
+// ATTENTION!!! Include standard header before the config to see whether the _PSTL_VERSION macro from standard libraries is defined
+#include <numeric>
+#include "oneapi/dpl/pstl/onedpl_config.h"
+
+#if !_ONEDPL_NUMERIC_FORWARD_DECLARED
 // If not declared, pull in forward declarations
 #    include "oneapi/dpl/pstl/glue_numeric_defs.h"
-#    define _PSTL_NUMERIC_FORWARD_DECLARED 1
+#    define _ONEDPL_NUMERIC_FORWARD_DECLARED 1
 #endif
 
-#if _PSTL_EXECUTION_POLICIES_DEFINED
+#if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
 #endif
@@ -33,13 +47,13 @@ namespace dpl = oneapi::dpl;
 
 namespace std
 {
-using oneapi::dpl::reduce;
-using oneapi::dpl::transform_reduce;
+using oneapi::dpl::adjacent_difference;
 using oneapi::dpl::exclusive_scan;
 using oneapi::dpl::inclusive_scan;
+using oneapi::dpl::reduce;
 using oneapi::dpl::transform_exclusive_scan;
 using oneapi::dpl::transform_inclusive_scan;
-using oneapi::dpl::adjacent_difference;
+using oneapi::dpl::transform_reduce;
 } // namespace std
 
-#endif /* _TEST_SUPPORT_STDLIB_NUMERIC */
+#endif /* _ONEDPL_NUMERIC */

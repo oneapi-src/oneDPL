@@ -144,7 +144,7 @@ main()
     test<int32_t, int8_t>();
     test<uint16_t, float32_t>();
     test<float64_t, int64_t>();
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<wrapper<float64_t>, wrapper<float64_t>>();
 #endif
 

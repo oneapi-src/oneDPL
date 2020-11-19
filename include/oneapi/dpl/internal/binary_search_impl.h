@@ -44,7 +44,7 @@ struct custom_brick
 
     template <typename _ItemId, typename _Acc1>
     void
-    operator()(_ItemId idx, _Acc1 acc)
+    operator()(_ItemId idx, _Acc1 acc) const
     {
         T start_orig = 0;
         auto end_orig = size;
@@ -75,9 +75,9 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                            [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
-                                return ::std::lower_bound(start, end, val, comp) - start;
-                            });
+                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
+                                      return ::std::lower_bound(start, end, val, comp) - start;
+                                  });
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -87,9 +87,9 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                            [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
-                                return ::std::upper_bound(start, end, val, comp) - start;
-                            });
+                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
+                                      return ::std::upper_bound(start, end, val, comp) - start;
+                                  });
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -99,36 +99,34 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                            [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
-                                return ::std::binary_search(start, end, val, comp);
-                            });
+                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
+                                      return ::std::binary_search(start, end, val, comp);
+                                  });
 }
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename StrictWeakOrdering>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
 lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    using namespace __par_backend_hetero::__ranges;
+    namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
     const auto value_size = ::std::distance(value_start, value_end);
 
-    auto keep_input =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, InputIterator1>();
+    auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
 
-    auto keep_values =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, InputIterator2>();
+    auto keep_values = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
     auto value_buf = keep_values(value_start, value_end);
 
-    auto keep_result =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, OutputIterator>();
+    auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __parallel_for(::std::forward<Policy>(policy),
-                   custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size, zip_vw);
+    __bknd::__parallel_for(::std::forward<Policy>(policy),
+                           custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
+                           zip_vw).wait();
     return result + value_size;
 }
 
@@ -138,24 +136,22 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::dec
 upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    using namespace __par_backend_hetero::__ranges;
+    namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
     const auto value_size = ::std::distance(value_start, value_end);
 
-    auto keep_input =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, InputIterator1>();
+    auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
 
-    auto keep_values =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, InputIterator2>();
+    auto keep_values = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
     auto value_buf = keep_values(value_start, value_end);
 
-    auto keep_result =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, OutputIterator>();
+    auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __parallel_for(::std::forward<Policy>(policy),
-                   custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size, zip_vw);
+    __bknd::__parallel_for(::std::forward<Policy>(policy),
+                           custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
+                           zip_vw).wait();
     return result + value_size;
 }
 
@@ -165,24 +161,22 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::dec
 binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    using namespace __par_backend_hetero::__ranges;
+    namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
     const auto value_size = ::std::distance(value_start, value_end);
 
-    auto keep_input =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, InputIterator1>();
+    auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
 
-    auto keep_values =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, InputIterator2>();
+    auto keep_values = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
     auto value_buf = keep_values(value_start, value_end);
 
-    auto keep_result =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, OutputIterator>();
+    auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __parallel_for(::std::forward<Policy>(policy),
-                   custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size, zip_vw);
+    __bknd::__parallel_for(::std::forward<Policy>(policy),
+                           custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
+                           zip_vw).wait();
     return result + value_size;
 }
 
@@ -256,10 +250,4 @@ binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIt
 } // end namespace dpl
 } // end namespace oneapi
 
-namespace dpstd
-{
-using oneapi::dpl::binary_search;
-using oneapi::dpl::lower_bound;
-using oneapi::dpl::upper_bound;
-} // end namespace dpstd
 #endif

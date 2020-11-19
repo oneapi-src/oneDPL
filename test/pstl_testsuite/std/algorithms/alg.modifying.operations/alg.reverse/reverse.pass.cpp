@@ -86,7 +86,7 @@ template <typename T>
 struct wrapper
 {
     T t;
-    wrapper() {}
+    wrapper(): t() {}
     explicit wrapper(T t_) : t(t_) {}
     bool
     operator==(const wrapper<T>& a) const

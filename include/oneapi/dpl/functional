@@ -22,7 +22,7 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 #if __cplusplus < 201703L
 using ::std::binary_function;
@@ -57,10 +57,7 @@ using ::std::plus;
 using ::std::ref;
 using ::std::reference_wrapper;
 using ::std::unary_negate;
-} // namespace std
 
-namespace dpl
-{
 struct identity
 {
     using is_transparent = void;
@@ -92,16 +89,8 @@ struct minimum
         return ::std::less<_T>()(a, b) ? a : b;
     }
 };
-using namespace oneapi::std;
 } // end namespace dpl
 } // end namespace oneapi
-
-namespace dpstd
-{
-using oneapi::dpl::identity;
-using oneapi::dpl::maximum;
-using oneapi::dpl::minimum;
-} // end namespace dpstd
 
 namespace dpl = oneapi::dpl;
 

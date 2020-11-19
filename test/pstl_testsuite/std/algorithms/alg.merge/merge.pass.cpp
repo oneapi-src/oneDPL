@@ -109,12 +109,12 @@ test_merge_by_type(Generator1 generator1, Generator2 generator2)
     ::std::sort(in2.begin(), in2.end());
 
     size_t start_size = 0;
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
     start_size = 2;
 #endif
 
     for (size_t size = start_size; size <= max_size; size = size <= 16 ? size + 1 : size_t(3.1415 * size)) {
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         invoke_on_all_policies<0>()(test_merge<T>(),  in1.cbegin(), in1.cbegin() + size,  in2.data(),
                                     in2.data() + size / 2, out.begin(), out.begin() + 1.5 * size);
         invoke_on_all_policies<1>()(test_merge_compare<T>(), in1.cbegin(), in1.cbegin() + size, in2.data(),
@@ -129,7 +129,7 @@ test_merge_by_type(Generator1 generator1, Generator2 generator2)
         invoke_on_all_policies<3>()(test_merge_compare<T>(), in1.begin(), in1.begin() + size, in2.cbegin(),
                                     in2.cbegin() + size / 2, out.begin(), out.begin() + 1.5 * size, ::std::less<T>());
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         invoke_on_all_policies<4>()(test_merge<T>(), in1.data(), in1.data() + size, in2.cbegin(),
                                     in2.cbegin() + size / 2, out.begin(), out.begin() + 3 * size / 2);
         invoke_on_all_policies<5>()(test_merge_compare<T>(), in1.data(), in1.data() + size, in2.cbegin(),
@@ -153,11 +153,11 @@ int
 main()
 {
     test_merge_by_type<int32_t>([](size_t v) { return (v % 2 == 0 ? v : -v) * 3; }, [](size_t v) { return v * 2; });
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test_merge_by_type<float64_t>([](size_t v) { return float64_t(v); }, [](size_t v) { return float64_t(v - 100); });
 #endif
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     // Wrapper has atomic increment in ctor. It's not allowed in kernel
 
 #if !_PSTL_ICC_16_17_TEST_64_TIMEOUT

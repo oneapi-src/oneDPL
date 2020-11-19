@@ -28,9 +28,6 @@ namespace dpl
 {
 namespace __par_backend_hetero
 {
-
-namespace sycl = cl::sycl;
-
 //------------------------------------------------------------------------
 // radix sort: kernel names
 //------------------------------------------------------------------------
@@ -93,17 +90,17 @@ struct __get_ordered<8, true>
 template <>
 struct __get_ordered<4, false>
 {
-    using _type = uint64_t;
-    constexpr static ::std::uint64_t __nmask = 0xFFFFFFFFull; // for negative numbers
-    constexpr static ::std::uint64_t __pmask = 0x80000000ull; // for positive numbers
+    using _type = uint32_t;
+    constexpr static ::std::uint32_t __nmask = 0xFFFFFFFF; // for negative numbers
+    constexpr static ::std::uint32_t __pmask = 0x80000000; // for positive numbers
 };
 
 template <>
 struct __get_ordered<8, false>
 {
     using _type = uint64_t;
-    constexpr static ::std::uint64_t __nmask = 0xFFFFFFFFFFFFFFFFull; // for negative numbers
-    constexpr static ::std::uint64_t __pmask = 0x8000000000000000ull; // for positive numbers
+    constexpr static ::std::uint64_t __nmask = 0xFFFFFFFFFFFFFFFF; // for negative numbers
+    constexpr static ::std::uint64_t __pmask = 0x8000000000000000; // for positive numbers
 };
 
 //------------------------------------------------------------------------
@@ -163,7 +160,6 @@ inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && ::std::is_fl
                      __ordered_t<_T>>
 __convert_to_ordered(_T __value)
 {
-    // represent as uint64_t
     __ordered_t<_T> __uvalue = *reinterpret_cast<__ordered_t<_T>*>(&__value);
     // check if value negative
     __ordered_t<_T> __is_negative = __uvalue >> (sizeof(_T) * CHAR_BIT - 1);
@@ -277,7 +273,7 @@ __get_bucket_value(_T __value, ::std::uint32_t __radix_iter)
 
 template <typename _KernelName, typename _Iterator, ::std::uint32_t __radix_bits, bool __is_comp_asc,
           typename _ExecutionPolicy, typename _ValBuf, typename _CountBuf
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
           ,
           typename _Kernel
 #endif
@@ -286,7 +282,7 @@ sycl::event
 __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
                           ::std::uint32_t __radix_iter, _ValBuf& __val_buf, ::std::size_t __val_buf_size,
                           _CountBuf& __count_buf, ::std::size_t __count_buf_size, sycl::event __dependency_event
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
                           ,
                           _Kernel& __kernel
 #endif
@@ -321,7 +317,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
             __block_size * __radix_states, __hdl);
 
         __hdl.parallel_for<_KernelName>(
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
             __kernel,
 #endif
             sycl::nd_range<1>(__segments * __block_size, __block_size), [=](sycl::nd_item<1> __self_item) {
@@ -428,7 +424,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, _C
 
 template <typename _KernelName, typename _Iterator, ::std::uint32_t __radix_bits, bool __is_comp_asc,
           typename _ExecutionPolicy, typename _InBuf, typename _OutBuf, typename _OffsetBuf
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
           ,
           typename _Kernel
 #endif
@@ -438,7 +434,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             ::std::size_t __sg_size, ::std::uint32_t __radix_iter, _InBuf& __input_buf,
                             _OutBuf& __output_buf, ::std::size_t __inout_buf_size, _OffsetBuf& __offset_buf,
                             ::std::size_t __offset_buf_size, sycl::event __dependency_event
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
                             ,
                             _Kernel& __kernel
 #endif
@@ -468,7 +464,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
         auto __output_gacc = __internal::get_access<_Iterator>(__hdl)(__output_buf);
 
         __hdl.parallel_for<_KernelName>(
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
             __kernel,
 #endif
             sycl::nd_range<1>(__segments * __sg_size, __sg_size), [=](sycl::nd_item<1> __self_item) {
@@ -537,11 +533,6 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
                                 _InBuf& __in_buf, _OutBuf& __out_buf, ::std::size_t __inout_buf_size,
                                 _TmpBuf& __tmp_buf, ::std::size_t __tmp_buf_size, sycl::event __dependency_event)
 {
-    using __count_kernel_name =
-        __radix_sort_count_kernel<_InBuf, _TmpBuf, typename __decay_t<_ExecutionPolicy>::kernel_name>;
-    using __scan_kernel_name = __radix_sort_scan_kernel<_TmpBuf, typename __decay_t<_ExecutionPolicy>::kernel_name>;
-    using __reorder_kernel_name =
-        __radix_sort_reorder_kernel<_InBuf, _OutBuf, ::std::size_t, typename __decay_t<_ExecutionPolicy>::kernel_name>;
     using _KernelName = typename __decay_t<_ExecutionPolicy>::kernel_name;
     using __count_kernel_name = __radix_sort_count_kernel<_InBuf, _TmpBuf, _KernelName>;
     using __scan_kernel_name = __radix_sort_scan_kernel<_TmpBuf, _KernelName>;
@@ -549,7 +540,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __block_size = __max_sg_size;
     ::std::size_t __reorder_sg_size = __max_sg_size;
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
     auto __count_kernel = __count_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __reorder_kernel = __reorder_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
@@ -565,7 +556,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     sycl::event __count_event = __radix_sort_count_submit<__count_kernel_name, _Iterator, __radix_bits, __is_comp_asc>(
         __exec, __segments, __block_size, __radix_iter, __in_buf, __inout_buf_size, __tmp_buf, __tmp_buf_size,
         __dependency_event
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
         ,
         __count_kernel
 #endif
@@ -580,7 +571,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         __radix_sort_reorder_submit<__reorder_kernel_name, _Iterator, __radix_bits, __is_comp_asc>(
             __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, __in_buf, __out_buf, __inout_buf_size,
             __tmp_buf, __tmp_buf_size, __scan_event
-#if _PSTL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
             ,
             __reorder_kernel
 #endif

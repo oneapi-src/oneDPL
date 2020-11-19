@@ -69,7 +69,7 @@ struct test_one_policy
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                OutputIterator out_first, OutputIterator out_last, BinaryOp op)
     {
-        auto orrr = ::std::transform(exec, first1, last1, first2, out_first, op);
+        ::std::transform(exec, first1, last1, first2, out_first, op);
         check_and_reset(first1, last1, first2, out_first);
     }
 };
@@ -113,12 +113,13 @@ main()
     test<int32_t, int32_t, int32_t>(TheOperation<int32_t, int32_t, int32_t>(1));
     test<float32_t, float32_t, float32_t>(TheOperation<float32_t, float32_t, float32_t>(1.5));
     //non-const operator()
+#if !_ONEDPL_BACKEND_SYCL
     test<int32_t, float32_t, float32_t>(non_const(TheOperation<int32_t, float32_t, float32_t>(1.5)));
     test<int64_t, float64_t, float32_t>(non_const(TheOperation<int64_t, float64_t, float32_t>(1.5)));
+#endif
     // lambda
     test<int32_t, float64_t, int32_t>([](const int32_t& x, const float64_t& y) { return int32_t(int32_t(1.5) + x - y); });
 
-    //test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
     test_algo_basic_double<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
 
     ::std::cout << done() << ::std::endl;

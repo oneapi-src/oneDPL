@@ -51,8 +51,7 @@ struct test_transform_exclusive_scan
     {
         using namespace std;
 
-        auto orr1 = transform_exclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, init, binary_op,
-                                             unary_op);
+        transform_exclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, init, binary_op, unary_op);
         auto orr2 = transform_exclusive_scan(exec, first, last, out_first, init, binary_op, unary_op);
         EXPECT_TRUE(out_last == orr2, "transform_exclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_exclusive_scan");
@@ -81,8 +80,7 @@ struct test_transform_inclusive_scan_init
     {
         using namespace std;
 
-        auto orr1 = transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op,
-                                             init);
+        transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op, init);
         auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op, init);
         EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
@@ -113,8 +111,7 @@ struct test_transform_inclusive_scan
 
         if (n > 0)
         {
-            auto orr1 = transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op,
-                                                 unary_op);
+            transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op);
             auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op);
             EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
             EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
@@ -186,15 +183,14 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         Sequence<Out> out(n, [&](size_t) { return trash; });
 
 #ifdef _PSTL_TEST_TRANSFORM_INCLUSIVE_SCAN
-        auto result_inclusive = transform_inclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init,
-                                                                binary_op);
+        transform_inclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op);
         check_and_reset(expected2.begin(), out.begin(), out.size(), trash);
         invoke_on_all_policies<1>()(test_transform_inclusive_scan_init<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
         invoke_on_all_policies<2>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected2.begin(), expected2.end(), in.size(), unary_op, init, binary_op, trash);
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<3>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
@@ -204,12 +200,11 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
 #endif
 #endif // _PSTL_TEST_TRANSFORM_INCLUSIVE_SCAN
 #ifdef _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
-        auto result_exclusive = transform_exclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init,
-                                                                binary_op);
+        transform_exclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op);
         check_and_reset(expected1.begin(), out.begin(), out.size(), trash);
         invoke_on_all_policies<5>()(test_transform_exclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected1.begin(), expected1.end(), in.size(), unary_op, init, binary_op, trash);
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<6>()(test_transform_exclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected1.begin(), expected1.end(), in.size(), unary_op, init,
                                     binary_op, trash);
@@ -259,7 +254,7 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>([](const Matrix2x2<int32_t> x) { return x; },
                                                         Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
                                                         Matrix2x2<int32_t>(-666, 666));

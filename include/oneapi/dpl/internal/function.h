@@ -17,7 +17,7 @@
 #define DPCPP_INTERNAL_FUNCTION_H_
 
 #include <utility>
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
 #endif
 #include <oneapi/dpl/functional>
@@ -39,14 +39,14 @@ struct rebind_policy
     using type = Policy;
 };
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 template <typename KernelName, typename NewName>
 struct rebind_policy<oneapi::dpl::execution::device_policy<KernelName>, NewName>
 {
     using type = oneapi::dpl::execution::device_policy<NewName>;
 };
 
-#    if _PSTL_FPGA_DEVICE
+#    if _ONEDPL_FPGA_DEVICE
 template <unsigned int factor, typename KernelName, typename NewName>
 struct rebind_policy<oneapi::dpl::execution::fpga_policy<factor, KernelName>, NewName>
 {
@@ -60,7 +60,7 @@ using oneapi::dpl::__par_backend_hetero::__internal::is_hetero_iterator;
 using oneapi::dpl::__par_backend::__buffer;
 #endif
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 // Helpers used to get indexable access to the data passed to the SYCL implementation of an
 // algorithm from either a SYCL iterator or a USM pointer.
 template <cl::sycl::access::mode Mode, typename Iterator>
@@ -203,7 +203,7 @@ class transform_if_stencil_fun
 
     template <typename _T>
     void
-    operator()(_T&& t)
+    operator()(_T&& t) const
     {
         using ::std::get;
         if (pred(get<1>(t)))

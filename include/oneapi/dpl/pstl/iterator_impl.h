@@ -723,23 +723,23 @@ class discard_iterator
     reference operator[](difference_type) const { return internal::ignore; }
 
     // GCC Bug 66297: constexpr non-static member functions of non-literal types
-#if __GNUC__ && _PSTL_GCC_VERSION < 70200 && !(__INTEL_COMPILER || __clang__)
-#    define _PSTL_CONSTEXPR_FIX
+#if __GNUC__ && _ONEDPL_GCC_VERSION < 70200 && !(__INTEL_COMPILER || __clang__)
+#    define _ONEDPL_CONSTEXPR_FIX
 #else
-#    define _PSTL_CONSTEXPR_FIX constexpr
+#    define _ONEDPL_CONSTEXPR_FIX constexpr
 #endif
 
-    _PSTL_CONSTEXPR_FIX bool
+    _ONEDPL_CONSTEXPR_FIX bool
     operator==(const discard_iterator& __it) const
     {
         return __my_position_ - __it.__my_position_ == 0;
     }
-    _PSTL_CONSTEXPR_FIX bool
+    _ONEDPL_CONSTEXPR_FIX bool
     operator!=(const discard_iterator& __it) const
     {
         return !(*this == __it);
     }
-#undef _PSTL_CONSTEXPR_FIX
+#undef _ONEDPL_CONSTEXPR_FIX
 
     bool
     operator<(const discard_iterator& __it) const
@@ -849,16 +849,5 @@ map_zip(F f, TBig<T...> in, RestTuples... rest)
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
-
-namespace dpstd
-{
-using oneapi::dpl::counting_iterator;
-using oneapi::dpl::make_permutation_iterator;
-using oneapi::dpl::make_transform_iterator;
-using oneapi::dpl::make_zip_iterator;
-using oneapi::dpl::permutation_iterator;
-using oneapi::dpl::transform_iterator;
-using oneapi::dpl::zip_iterator;
-} //namespace dpstd
 
 #endif /* _ONEDPL_iterator_impl_H */

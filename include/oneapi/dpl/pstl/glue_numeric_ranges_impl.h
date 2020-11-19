@@ -19,7 +19,7 @@
 #include "execution_defs.h"
 #include "glue_numeric_defs.h"
 
-#if _PSTL_HETERO_BACKEND
+#if _ONEDPL_HETERO_BACKEND
 #    include "hetero/numeric_ranges_impl_hetero.h"
 #endif
 

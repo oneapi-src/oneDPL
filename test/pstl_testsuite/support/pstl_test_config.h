@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_TEST_config_H
-#define _ONEDPL_TEST_config_H
+#ifndef _PSTL_TEST_config_H
+#define _PSTL_TEST_config_H
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
@@ -40,8 +40,8 @@
     (_M_IX86 && _DEBUG && __INTEL_COMPILER >= 1700 && __INTEL_COMPILER < 1800 && _MSC_VER >= 1900)
 #define _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN                                                            \
     (_M_IX86 && _DEBUG && __INTEL_COMPILER >= 1600 && __INTEL_COMPILER < 1700 && _MSC_VER == 1900)
-#define _PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN                                                           \
-    (_PSTL_USE_PAR_POLICIES && ((_M_X64 && _MSC_VER == 1900) || __x86_64) && !_DEBUG && __INTEL_COMPILER < 1700)
+#define _PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN                                                            \
+    (_ONEDPL_USE_PAR_POLICIES && ((_M_X64 && _MSC_VER == 1900) || __x86_64) && !_DEBUG && __INTEL_COMPILER < 1700)
 #define _PSTL_ICC_16_17_TEST_64_TIMEOUT (__x86_64 && __INTEL_COMPILER && __INTEL_COMPILER < 1800 && !__APPLE__)
 #define _PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN (!_DEBUG && __INTEL_COMPILER && __INTEL_COMPILER == 1800)
 #define _PSTL_CLANG_TEST_BIG_OBJ_DEBUG_32_BROKEN                                                                      \
@@ -63,8 +63,7 @@
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN                                                                      \
     (_MSC_VER == 1900)
 
-#define _SYCL_ARITHMETIC_TYPES_DESTRUCTION_BROKEN (__SYCL_COMPILER_VERSION <= 20191123)
 
 #define _PSTL_SYCL_TEST_USM 1
 
-#endif /* _ONEDPL_TEST_config_H */
+#endif /* _PSTL_TEST_config_H */

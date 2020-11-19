@@ -175,9 +175,7 @@ struct test_is_heap_until_predicate
     {
         using namespace std;
         const Iterator expected = is_heap_until(first, last, pred);
-        const auto y = ::std::distance(first, expected);
         const Iterator actual = is_heap_until(exec, first, last, pred);
-        const auto x = ::std::distance(first, actual);
         EXPECT_TRUE(expected == actual, "wrong return value from is_heap_until with predicate");
     }
 
@@ -277,18 +275,16 @@ int
 main()
 {
     test_is_heap_by_type<float32_t>(::std::greater<float32_t>());
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test_is_heap_by_type<WithCmpOp>(::std::less<WithCmpOp>());
 #endif
     test_is_heap_by_type<uint64_t>([](uint64_t x, uint64_t y) { return x % 100 < y % 100; });
 
-#if !_PSTL_BACKEND_SYCL
 #ifdef _PSTL_TEST_IS_HEAP
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const_is_heap<int32_t>>());
 #endif
 #ifdef _PSTL_TEST_IS_HEAP_UNTIL
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const_is_heap_until<int32_t>>());
-#endif
 #endif
 
     ::std::cout << done() << ::std::endl;

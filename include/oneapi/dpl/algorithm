@@ -13,21 +13,34 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _TEST_SUPPORT_STDLIB_ALGORITHM
-#define _TEST_SUPPORT_STDLIB_ALGORITHM
+#ifndef _ONEDPL_ALGORITHM
+#define _ONEDPL_ALGORITHM
 
+// Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
+#if __cplusplus >= 201703L
+#    if __has_include(<tbb/version.h>)
+#        ifndef PSTL_USE_PARALLEL_POLICIES
+#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#        endif
+#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        endif
+#    endif // __has_include(<tbb/version.h>)
+#endif     // __cplusplus >= 201703L
+
+// ATTENTION!!! Include standard header before the config to see whether the _PSTL_VERSION macro from standard libraries is defined
 #include <algorithm>
-#include "oneapi/dpl/pstl/pstl_config.h"
+#include "oneapi/dpl/pstl/onedpl_config.h"
 
-#if !_PSTL_ALGORITHM_FORWARD_DECLARED
+#if !_ONEDPL_ALGORITHM_FORWARD_DECLARED
 // If not declared, pull in forward declarations
 #    include "oneapi/dpl/pstl/glue_algorithm_defs.h"
 #    include "oneapi/dpl/internal/by_segment_extension_defs.h"
 #    include "oneapi/dpl/internal/binary_search_extension_defs.h"
-#    define _PSTL_ALGORITHM_FORWARD_DECLARED 1
+#    define _ONEDPL_ALGORITHM_FORWARD_DECLARED 1
 #endif
 
-#if _PSTL_EXECUTION_POLICIES_DEFINED
+#if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations
 #    include "oneapi/dpl/pstl/glue_algorithm_impl.h"
 
@@ -39,17 +52,12 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 using ::std::binary_search;
 using ::std::equal_range;
 using ::std::lower_bound;
 using ::std::upper_bound;
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 } // namespace dpl
 
 } // namespace oneapi
@@ -57,71 +65,71 @@ namespace dpl = oneapi::dpl;
 
 namespace std
 {
-using oneapi::dpl::any_of;
+using oneapi::dpl::adjacent_find;
 using oneapi::dpl::all_of;
-using oneapi::dpl::none_of;
-using oneapi::dpl::for_each;
-using oneapi::dpl::for_each_n;
-using oneapi::dpl::find_if;
-using oneapi::dpl::find_if_not;
+using oneapi::dpl::any_of;
+using oneapi::dpl::copy;
+using oneapi::dpl::copy_if;
+using oneapi::dpl::copy_n;
+using oneapi::dpl::count;
+using oneapi::dpl::count_if;
+using oneapi::dpl::equal;
+using oneapi::dpl::fill;
+using oneapi::dpl::fill_n;
 using oneapi::dpl::find;
 using oneapi::dpl::find_end;
 using oneapi::dpl::find_first_of;
-using oneapi::dpl::adjacent_find;
-using oneapi::dpl::count;
-using oneapi::dpl::count_if;
-using oneapi::dpl::search;
-using oneapi::dpl::search_n;
-using oneapi::dpl::copy;
-using oneapi::dpl::copy_n;
-using oneapi::dpl::copy_if;
-using oneapi::dpl::swap_ranges;
-using oneapi::dpl::transform;
-using oneapi::dpl::replace_if;
-using oneapi::dpl::replace;
-using oneapi::dpl::replace_copy_if;
-using oneapi::dpl::replace_copy;
-using oneapi::dpl::fill;
-using oneapi::dpl::fill_n;
+using oneapi::dpl::find_if;
+using oneapi::dpl::find_if_not;
+using oneapi::dpl::for_each;
+using oneapi::dpl::for_each_n;
 using oneapi::dpl::generate;
 using oneapi::dpl::generate_n;
-using oneapi::dpl::remove_copy_if;
-using oneapi::dpl::remove_copy;
-using oneapi::dpl::remove_if;
+using oneapi::dpl::includes;
+using oneapi::dpl::inplace_merge;
+using oneapi::dpl::is_heap;
+using oneapi::dpl::is_heap_until;
+using oneapi::dpl::is_partitioned;
+using oneapi::dpl::is_sorted;
+using oneapi::dpl::is_sorted_until;
+using oneapi::dpl::lexicographical_compare;
+using oneapi::dpl::max_element;
+using oneapi::dpl::merge;
+using oneapi::dpl::min_element;
+using oneapi::dpl::minmax_element;
+using oneapi::dpl::mismatch;
+using oneapi::dpl::move;
+using oneapi::dpl::none_of;
+using oneapi::dpl::nth_element;
+using oneapi::dpl::partial_sort;
+using oneapi::dpl::partial_sort_copy;
+using oneapi::dpl::partition;
+using oneapi::dpl::partition_copy;
 using oneapi::dpl::remove;
-using oneapi::dpl::unique;
-using oneapi::dpl::unique_copy;
+using oneapi::dpl::remove_copy;
+using oneapi::dpl::remove_copy_if;
+using oneapi::dpl::remove_if;
+using oneapi::dpl::replace;
+using oneapi::dpl::replace_copy;
+using oneapi::dpl::replace_copy_if;
+using oneapi::dpl::replace_if;
 using oneapi::dpl::reverse;
 using oneapi::dpl::reverse_copy;
 using oneapi::dpl::rotate;
 using oneapi::dpl::rotate_copy;
-using oneapi::dpl::is_partitioned;
-using oneapi::dpl::partition;
-using oneapi::dpl::stable_partition;
-using oneapi::dpl::partition_copy;
-using oneapi::dpl::sort;
-using oneapi::dpl::stable_sort;
-using oneapi::dpl::mismatch;
-using oneapi::dpl::equal;
-using oneapi::dpl::move;
-using oneapi::dpl::partial_sort;
-using oneapi::dpl::partial_sort_copy;
-using oneapi::dpl::is_sorted_until;
-using oneapi::dpl::is_sorted;
-using oneapi::dpl::nth_element;
-using oneapi::dpl::merge;
-using oneapi::dpl::inplace_merge;
-using oneapi::dpl::includes;
-using oneapi::dpl::set_union;
-using oneapi::dpl::set_intersection;
+using oneapi::dpl::search;
+using oneapi::dpl::search_n;
 using oneapi::dpl::set_difference;
+using oneapi::dpl::set_intersection;
 using oneapi::dpl::set_symmetric_difference;
-using oneapi::dpl::is_heap_until;
-using oneapi::dpl::is_heap;
-using oneapi::dpl::min_element;
-using oneapi::dpl::max_element;
-using oneapi::dpl::minmax_element;
-using oneapi::dpl::lexicographical_compare;
+using oneapi::dpl::set_union;
+using oneapi::dpl::sort;
+using oneapi::dpl::stable_partition;
+using oneapi::dpl::stable_sort;
+using oneapi::dpl::swap_ranges;
+using oneapi::dpl::transform;
+using oneapi::dpl::unique;
+using oneapi::dpl::unique_copy;
 } // namespace std
 
-#endif /* _TEST_SUPPORT_STDLIB_ALGORITHM */
+#endif /* _ONEDPL_ALGORITHM */

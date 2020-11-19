@@ -19,7 +19,7 @@
 #include <iterator>
 
 #include "execution_defs.h"
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/execution_sycl_defs.h"
 #endif
 
@@ -67,7 +67,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                _ForwardIterator2 __result, _Tp __init);
 
-#if !_PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY
+#if !_ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
@@ -93,22 +93,22 @@ _ForwardIterator2
 exclusive_scan(oneapi::dpl::execution::parallel_unsequenced_policy, _ForwardIterator1 __first, _ForwardIterator1 __last,
                _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op);
 
-#    if _PSTL_BACKEND_SYCL
+#    if _ONEDPL_BACKEND_SYCL
 template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation, class... PolicyParams>
 _ForwardIterator2
 exclusive_scan(const oneapi::dpl::execution::device_policy<PolicyParams...>& __exec, _ForwardIterator1 __first,
                _ForwardIterator1 __last, _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op);
 
-#        if _PSTL_FPGA_DEVICE
+#        if _ONEDPL_FPGA_DEVICE
 template <class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation, class KernelName,
           int factor>
 _ForwardIterator2
 exclusive_scan(const oneapi::dpl::execution::fpga_policy<factor, KernelName>& __exec, _ForwardIterator1 __first,
                _ForwardIterator1 __last, _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op);
-#        endif // _PSTL_FPGA_DEVICE
-#    endif     // _PSTL_BACKEND_SYCL
+#        endif // _ONEDPL_FPGA_DEVICE
+#    endif     // _ONEDPL_BACKEND_SYCL
 
-#endif // _PSTL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY
+#endif // _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY
 
 // [inclusive.scan]
 

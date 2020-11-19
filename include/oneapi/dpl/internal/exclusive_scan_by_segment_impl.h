@@ -86,7 +86,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     return result + n;
 }
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
           typename BinaryPredicate, typename Operator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
@@ -212,7 +212,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 exclusive_scan_by_key(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                       OutputIterator result, T init, BinaryPredicate binary_pred)
 {
-    typedef typename ::std::iterator_traits<InputIterator2>::value_type V2;
     return exclusive_scan_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result, init, binary_pred);
 }
 
@@ -221,7 +220,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 exclusive_scan_by_key(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                       OutputIterator result, T init)
 {
-    typedef typename ::std::iterator_traits<InputIterator1>::value_type V1;
     return exclusive_scan_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result, init);
 }
 
@@ -230,16 +228,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 exclusive_scan_by_key(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                       OutputIterator result)
 {
-    typedef typename ::std::iterator_traits<InputIterator2>::value_type V2;
     return exclusive_scan_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result);
 }
 
 } // end namespace dpl
 } // end namespace oneapi
 
-namespace dpstd
-{
-using oneapi::dpl::exclusive_scan_by_key;
-using oneapi::dpl::exclusive_scan_by_segment;
-} // end namespace dpstd
 #endif

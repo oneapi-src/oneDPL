@@ -35,7 +35,7 @@ class XOR
   public:
     template <typename T>
     T
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
         operator()(const T left, const T right) const
 #else
         operator()(const T& left, const T& right) const
@@ -132,7 +132,7 @@ test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, 
                                     in2.begin() + n, init, opB1, opB2);
         invoke_on_all_policies<1>()(test_short_transform_reduce<T>(), in1.begin(), in1.begin() + n, in2.begin(),
                                     in2.begin() + n, init, opB1, opU);
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<2>()(test_long_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),
                                     in2.cbegin() + n, init, opB1, opB2);
         invoke_on_all_policies<3>()(test_short_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),

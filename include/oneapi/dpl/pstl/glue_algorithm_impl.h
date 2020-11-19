@@ -22,7 +22,7 @@
 
 #include "utils.h"
 
-#if _PSTL_HETERO_BACKEND
+#if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_impl_hetero.h"
 #    include "hetero/numeric_impl_hetero.h"
 #endif
@@ -55,8 +55,9 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Pred>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 all_of(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Pred __pred)
 {
-    return !oneapi::dpl::any_of(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                oneapi::dpl::__internal::__not_pred<_Pred>(__pred));
+    return !oneapi::dpl::any_of(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Pred>>(__pred));
 }
 
 // [alg.none_of]
@@ -106,8 +107,10 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 find_if_not(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred)
 {
-    return oneapi::dpl::find_if(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                oneapi::dpl::__internal::__not_pred<_Predicate>(__pred));
+    return oneapi::dpl::find_if(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Predicate>>(
+            __pred));
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
@@ -116,7 +119,8 @@ find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __las
 {
     return oneapi::dpl::find_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Tp>>(__value));
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
+            __value));
 }
 
 // [alg.find.end]
@@ -199,10 +203,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<
     _ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::difference_type>
 count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     return oneapi::dpl::__internal::__pattern_count(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Tp>>(__value),
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
+            __value),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
@@ -336,18 +340,17 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator
         __exec.__allow_parallel());
 }
 
+// we can't use non-const __op here
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
           class _BinaryOperation>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
           _ForwardIterator __result, _BinaryOperation __op)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator1>::value_type _Input1Type;
-    typedef typename ::std::iterator_traits<_ForwardIterator2>::value_type _Input2Type;
-    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _OutputType;
     return oneapi::dpl::__internal::__pattern_walk3(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
-        [__op](_Input1Type x, _Input2Type y, _OutputType z) mutable { z = __op(x, y); },
+        oneapi::dpl::__internal::__transform_functor<
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _BinaryOperation>>(__op),
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                               _ForwardIterator>(__exec),
         __exec.__allow_parallel());
@@ -360,15 +363,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 replace_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred,
            const _Tp& __new_value)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ElementType;
     oneapi::dpl::__internal::__pattern_walk1(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        [__pred, __new_value](_ElementType __elem) mutable {
-            if (__pred(__elem))
-            {
-                __elem = __new_value;
-            }
-        },
+        oneapi::dpl::__internal::__replace_functor<
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>,
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>(__new_value, __pred),
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
@@ -380,7 +379,7 @@ replace(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 {
     oneapi::dpl::replace_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Tp>>(
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
             __old_value),
         __new_value);
 }
@@ -390,11 +389,13 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 replace_copy_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                 _ForwardIterator2 __result, _UnaryPredicate __pred, const _Tp& __new_value)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator1>::value_type _InputType;
-    typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _OutputType;
     return oneapi::dpl::__internal::__pattern_walk2(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        [__pred, __new_value](_InputType __x, _OutputType __y) mutable { __y = __pred(__x) ? __new_value : __x; },
+        oneapi::dpl::__internal::__replace_copy_functor<
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>,
+            typename ::std::conditional<
+                oneapi::dpl::__internal::__is_const_callable_object<_UnaryPredicate>::value, _UnaryPredicate,
+                oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>::type>(__new_value, __pred),
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
@@ -408,7 +409,7 @@ replace_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardItera
 {
     return oneapi::dpl::replace_copy_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Tp>>(
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
             __old_value),
         __new_value);
 }
@@ -469,8 +470,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 remove_copy_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                _ForwardIterator2 __result, _Predicate __pred)
 {
-    return oneapi::dpl::copy_if(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-                                oneapi::dpl::__internal::__not_pred<_Predicate>(__pred));
+    return oneapi::dpl::copy_if(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+        oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Predicate>>(
+            __pred));
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp>
@@ -480,7 +483,7 @@ remove_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterat
 {
     return oneapi::dpl::copy_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__not_equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Tp>>(
+        oneapi::dpl::__internal::__not_equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
             __value));
 }
 
@@ -500,7 +503,8 @@ remove(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
 {
     return oneapi::dpl::remove_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Tp>>(__value));
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
+            __value));
 }
 
 // [alg.unique]
@@ -1066,11 +1070,10 @@ template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
-    using namespace oneapi::dpl;
     return oneapi::dpl::__internal::__pattern_is_heap(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        __internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
-        __internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>

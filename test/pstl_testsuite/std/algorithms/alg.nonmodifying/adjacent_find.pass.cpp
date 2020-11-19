@@ -70,7 +70,7 @@ test_adjacent_find_by_type()
 
             invoke_on_all_policies<0>()(test_adjacent_find<T>(), in.begin(), in.end(), ::std::equal_to<T>());
             invoke_on_all_policies<1>()(test_adjacent_find_predicate<T>(), in.begin(), in.end(), ::std::equal_to<T>());
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
             invoke_on_all_policies<2>()(test_adjacent_find<T>(), in.cbegin(), in.cend(), ::std::equal_to<T>());
             invoke_on_all_policies<3>()(test_adjacent_find_predicate<T>(), in.cbegin(), in.cend(), ::std::equal_to<T>());
 #endif
@@ -86,7 +86,7 @@ test_adjacent_find_by_type()
 
         invoke_on_all_policies<4>()(test_adjacent_find<T>(), in.begin(), in.end(), ::std::equal_to<T>());
         invoke_on_all_policies<5>()(test_adjacent_find_predicate<T>(), in.begin(), in.end(), ::std::equal_to<T>());
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<6>()(test_adjacent_find<T>(), in.cbegin(), in.cend(), ::std::equal_to<T>());
         invoke_on_all_policies<7>()(test_adjacent_find_predicate<T>(), in.cbegin(), in.cend(), ::std::equal_to<T>());
 #endif
@@ -99,7 +99,7 @@ test_adjacent_find_by_type()
     invoke_on_all_policies<10>()(test_adjacent_find_predicate<T>(), a1.begin(), a1.end(), ::std::equal_to<T>());
     invoke_on_all_policies<11>()(test_adjacent_find_predicate<T>(), a1.begin() + 1, a1.end(), ::std::equal_to<T>());
 
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     invoke_on_all_policies<12>()(test_adjacent_find<T>(), a1.cbegin(), a1.cend(), ::std::equal_to<T>());
     invoke_on_all_policies<13>()(test_adjacent_find<T>(), a1.cbegin() + 1, a1.cend(), ::std::equal_to<T>());
     invoke_on_all_policies<14>()(test_adjacent_find_predicate<T>(), a1.cbegin(), a1.cend(), ::std::equal_to<T>());
@@ -112,7 +112,7 @@ test_adjacent_find_by_type()
     invoke_on_all_policies<18>()(test_adjacent_find_predicate<T>(), a2.begin(), a2.end(), ::std::equal_to<T>());
     invoke_on_all_policies<19>()(test_adjacent_find_predicate<T>(), a2.begin(), a2.end() - 1, ::std::equal_to<T>());
 
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     invoke_on_all_policies<20>()(test_adjacent_find<T>(), a2.cbegin(), a2.cend(), ::std::equal_to<T>());
     invoke_on_all_policies<21>()(test_adjacent_find<T>(), a2.cbegin(), a2.cend() - 1, ::std::equal_to<T>());
     invoke_on_all_policies<22>()(test_adjacent_find_predicate<T>(), a2.cbegin(), a2.cend(), ::std::equal_to<T>());
@@ -122,7 +122,7 @@ test_adjacent_find_by_type()
     Sequence<T> a3 = { 5, 6, 6, 6, 7, 9, 9, 9, 9 };
     invoke_on_all_policies<24>()(test_adjacent_find<T>(), a3.begin(), a3.end(), ::std::equal_to<T>());
     invoke_on_all_policies<25>()(test_adjacent_find_predicate<T>(), a3.begin(), a3.end(), ::std::equal_to<T>());
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     invoke_on_all_policies<26>()(test_adjacent_find<T>(), a3.cbegin(), a3.cend(), ::std::equal_to<T>());
     invoke_on_all_policies<27>()(test_adjacent_find_predicate<T>(), a3.cbegin(), a3.cend(), ::std::equal_to<T>());
 #endif
@@ -143,14 +143,11 @@ int
 main()
 {
 
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test_adjacent_find_by_type<int32_t>();
 #endif
     test_adjacent_find_by_type<float64_t>();
-
-#if !_PSTL_BACKEND_SYCL
     test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
-#endif
 
     ::std::cout << done() << ::std::endl;
     return 0;

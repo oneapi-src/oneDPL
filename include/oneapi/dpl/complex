@@ -18,14 +18,9 @@
 
 namespace oneapi
 {
-namespace std
-{
-using ::std::complex;
-} // namespace std
-
 namespace dpl
 {
-using namespace oneapi::std;
+using ::std::complex;
 } // namespace dpl
 } // namespace oneapi
 #endif

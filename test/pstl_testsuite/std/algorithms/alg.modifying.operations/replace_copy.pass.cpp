@@ -42,7 +42,7 @@ struct test_replace_copy
         ::std::fill_n(expected_first, n, trash);
         ::std::fill_n(out_first, n, trash);
         // Run replace_copy
-        auto i = ::std::replace_copy(first, last, expected_first, old_value, new_value);
+        ::std::replace_copy(first, last, expected_first, old_value, new_value);
         auto k = ::std::replace_copy(exec, first, last, out_first, old_value, new_value);
         EXPECT_EQ_N(expected_first, out_first, n, "wrong replace_copy effect");
         EXPECT_TRUE(out_last == k, "wrong return value from replace_copy");
@@ -63,7 +63,7 @@ struct test_replace_copy_if
         ::std::fill_n(expected_first, n, trash);
         ::std::fill_n(out_first, n, trash);
         // Run replace_copy_if
-        auto i = replace_copy_if(first, last, expected_first, pred, new_value);
+        replace_copy_if(first, last, expected_first, pred, new_value);
         auto k = replace_copy_if(exec, first, last, out_first, pred, new_value);
         EXPECT_EQ_N(expected_first, out_first, n, "wrong replace_copy_if effect");
         EXPECT_TRUE(out_last == k, "wrong return value from replace_copy_if");
@@ -122,7 +122,7 @@ main()
     test<int32_t>(-666, 42, 99, [](const int32_t& x) { return x != 42; },
                   [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? 42 : -1 - int32_t(j); });
 
-#if !_PSTL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
+#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     test<Number>(Number(42, OddTag()), Number(2001, OddTag()), Number(2017, OddTag()), IsMultiple(3, OddTag()),
                  [](int32_t j) { return ((j + 1) % 3 & 2) != 0 ? Number(2001, OddTag()) : Number(j, OddTag()); });
 #endif

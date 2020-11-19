@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __DPSTD_random
-#define __DPSTD_random
+#ifndef _ONEDPL_random
+#define _ONEDPL_random
 
 #include <CL/sycl.hpp>
 #include <utility>
@@ -32,12 +32,8 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
-// Engines and engine adaptors
-using oneapi::dpl::discard_block_engine;
-using oneapi::dpl::linear_congruential_engine;
-using oneapi::dpl::subtract_with_carry_engine;
 
 // Engines and engine adaptors with predefined parameters
 using minstd_rand0 = linear_congruential_engine<uint_fast32_t, 16807, 0, 2147483647>;
@@ -48,16 +44,6 @@ using ranlux48_base = subtract_with_carry_engine<uint_fast64_t, 48, 5, 12>;
 using ranlux24 = discard_block_engine<ranlux24_base, 223, 23>;
 using ranlux48 = discard_block_engine<ranlux48_base, 389, 11>;
 
-// Distributions
-using oneapi::dpl::normal_distribution;
-using oneapi::dpl::uniform_int_distribution;
-using oneapi::dpl::uniform_real_distribution;
-
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 // Non-standard engines and engine adaptors with predefined parameters
 template <int _N>
 using minstd_rand0_vec = linear_congruential_engine<sycl::vec<uint_fast32_t, _N>, 16807, 0, 2147483647>;
@@ -79,4 +65,4 @@ using ranlux48_vec = discard_block_engine<ranlux48_base_vec<_N>, 389, 11>;
 
 namespace dpl = oneapi::dpl;
 
-#endif /* __DPSTD_random */
+#endif /* _ONEDPL_random */

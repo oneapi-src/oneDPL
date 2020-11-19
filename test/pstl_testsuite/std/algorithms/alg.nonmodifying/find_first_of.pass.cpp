@@ -101,16 +101,18 @@ test(Predicate pred)
                                         in2.begin() + n2, pred);
 
             in2[n2 / 2] = T(1);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
             invoke_on_all_policies<2>()(test_find_first_of<T>(), in1.cbegin(), in1.cbegin() + n1, in2.data(),
                                         in2.data() + n2);
             invoke_on_all_policies<3>()(test_find_first_of_predicate<T>(), in1.cbegin(), in1.cbegin() + n1, in2.data(),
                                         in2.data() + n2, pred);
 #else
+#if !_ONEDPL_FPGA_DEVICE
             invoke_on_all_policies<2>()(test_find_first_of<T>(), in1.cbegin(), in1.cbegin() + n1, in2.begin(),
                                         in2.begin() + n2);
             invoke_on_all_policies<3>()(test_find_first_of_predicate<T>(), in1.cbegin(), in1.cbegin() + n1, in2.begin(),
                                         in2.begin() + n2, pred);
+#endif
 #endif
             if (n2 >= 3)
             {
@@ -147,7 +149,9 @@ int
 main()
 {
     test<int32_t>(::std::equal_to<int32_t>());
+#if !_ONEDPL_FPGA_DEVICE
     test<uint16_t>(::std::not_equal_to<uint16_t>());
+#endif
     test<float64_t>([](const float64_t x, const float64_t y) { return x * x == y * y; });
 
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());

@@ -66,8 +66,10 @@ test()
         const auto flip = [](const Tin& x) { return Tout(1 - x); };
 
         invoke_on_all_policies<0>()(test_one_policy<Tin, Tout>(), in.begin(), in.end(), out.begin(), out.end(), flip);
+#if !_ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<1>()(test_one_policy<Tin, Tout>(), in.cbegin(), in.cend(), out.begin(), out.end(),
                                     flip);
+#endif
     }
 }
 

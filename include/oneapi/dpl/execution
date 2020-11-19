@@ -13,17 +13,32 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _TEST_SUPPORT_STDLIB_EXECUTION
-#define _TEST_SUPPORT_STDLIB_EXECUTION
+#ifndef _ONEDPL_EXECUTION
+#define _ONEDPL_EXECUTION
 
-// #include_next <execution> // None of the standard libraries PSTL is built on top have the <execution> header yet.
+// Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
+#if __cplusplus >= 201703L
+#    if __has_include(<tbb/version.h>)
+#        ifndef PSTL_USE_PARALLEL_POLICIES
+#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#        endif
+#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        endif
+#    endif // __has_include(<tbb/version.h>)
 
-#include "oneapi/dpl/pstl/pstl_config.h"
+// ATTENTION!!! Include standard header before the config to see whether the _PSTL_VERSION macro from standard libraries is defined
+#    if __has_include(<execution>)
+#        include <execution>
+#    endif // __has_include(<execution>)
+#endif     // __cplusplus >= 201703L
+
+#include "oneapi/dpl/pstl/onedpl_config.h"
 #include "oneapi/dpl/pstl/execution_defs.h"
 
-#define _PSTL_EXECUTION_POLICIES_DEFINED 1
+#define _ONEDPL_EXECUTION_POLICIES_DEFINED 1
 
-#if _PSTL_ALGORITHM_FORWARD_DECLARED
+#if _ONEDPL_ALGORITHM_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_algorithm_impl.h"
 
 #    include "oneapi/dpl/internal/exclusive_scan_by_segment_impl.h"
@@ -32,15 +47,15 @@
 #    include "oneapi/dpl/internal/reduce_by_segment_impl.h"
 #endif
 
-#if _PSTL_MEMORY_FORWARD_DECLARED
+#if _ONEDPL_MEMORY_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_memory_impl.h"
 #endif
 
-#if _PSTL_NUMERIC_FORWARD_DECLARED
+#if _ONEDPL_NUMERIC_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
 #endif
 
-#if _PSTL_CPP17_EXECUTION_POLICIES_PRESENT
+#if _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 _PSTL_PRAGMA_MESSAGE_POLICIES(
     "The <Parallel STL> execution policies are defined in the namespace oneapi::dpl::execution")
 #    include "oneapi/dpl/pstl/algorithm_impl.h"
@@ -52,31 +67,20 @@ _PSTL_PRAGMA_MESSAGE_POLICIES(
     "The <Parallel STL> execution policies are injected into the standard namespace std::execution")
 #endif
 
-#define __PSTL_USE_STANDALONE 1
-
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 namespace oneapi
 {
 namespace dpl
 {
 namespace execution
 {
-using namespace oneapi::dpl::execution::__dpstd;
+using namespace oneapi::dpl::execution::__dpl;
 } // end namespace execution
 } // end namespace dpl
 } // end namespace oneapi
 
-namespace dpstd
-{
-namespace execution
-{
-using namespace oneapi::dpl::execution;
-using namespace oneapi::dpl::execution::__dpstd;
-using oneapi::dpl::execution::v1::is_execution_policy;
-} // end namespace execution
-} // end namespace dpstd
 #endif
 
 namespace dpl = oneapi::dpl;
 
-#endif /* _TEST_SUPPORT_STDLIB_EXECUTION */
+#endif /* _ONEDPL_EXECUTION */

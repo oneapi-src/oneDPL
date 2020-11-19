@@ -70,8 +70,6 @@ struct test_uninit_default_construct
     void
     operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::true_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
-
         ::std::uninitialized_default_construct(exec, begin, end);
     }
 };
@@ -98,8 +96,6 @@ struct test_uninit_default_construct_n
     void
     operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::true_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
-
         ::std::uninitialized_default_construct_n(exec, begin, n);
     }
 };
@@ -169,7 +165,7 @@ test_uninit_construct_by_type()
     ::std::size_t N = 100000;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         ::std::unique_ptr<T[]> p(new T[n]);
         auto p_begin = p.get();
 #else
@@ -201,7 +197,7 @@ int
 main()
 {
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     // for user-defined types
 #if !_PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN
     test_uninit_construct_by_type<Wrapper<int32_t>>();

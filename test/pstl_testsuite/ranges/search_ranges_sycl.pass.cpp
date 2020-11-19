@@ -20,14 +20,14 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
 int32_t
 main()
 {
-#if _PSTL_USE_RANGES
+#if _ONEDPL_USE_RANGES
     const int count1 = 10;
     int data1[count1] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -40,8 +40,8 @@ main()
     using namespace TestUtils;
     using namespace oneapi::dpl::experimental::ranges;
     {
-        cl::sycl::buffer<int> A(data1, cl::sycl::range<1>(count1));
-        cl::sycl::buffer<int> B(data2, cl::sycl::range<1>(count2));
+        sycl::buffer<int> A(data1, sycl::range<1>(count1));
+        sycl::buffer<int> B(data2, sycl::range<1>(count2));
 
         auto view_a = all_view(A);
         auto view_b = all_view(B);
@@ -57,7 +57,7 @@ main()
     EXPECT_TRUE(res1 == idx, "wrong effect from 'search' with sycl ranges");
     EXPECT_TRUE(res2 == idx, "wrong effect from 'search' with predicate, sycl ranges");
 
-#endif //_PSTL_USE_RANGES
+#endif //_ONEDPL_USE_RANGES
 
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

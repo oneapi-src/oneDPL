@@ -158,7 +158,7 @@ struct test_adjacent_difference_functor
     {
         using namespace std;
         using T2 = typename ::std::iterator_traits<Iterator1>::value_type;
-        
+
         fill(actual_b, actual_e, trash);
 
         Iterator2 actual_return = adjacent_difference(exec, data_b, data_e, actual_b, f);
@@ -172,8 +172,6 @@ template <typename T1, typename T2, typename Pred>
 void
 test(Pred pred)
 {
-    typedef typename Sequence<T2>::iterator iterator_type;
-
     const ::std::size_t max_len = 100000;
 
     const T2 value = T2(77);
@@ -181,7 +179,7 @@ test(Pred pred)
 
     Sequence<T1> actual(max_len, [](::std::size_t i) { return T1(i); });
 
-    Sequence<T2> data(max_len, [&value](::std::size_t i) { return i % 3 == 2 ? T2(i * i) : value; });
+    Sequence<T2> data(max_len, [value](::std::size_t i) { return i % 3 == 2 ? T2(i * i) : value; });
 
     for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
     {
@@ -202,7 +200,7 @@ main()
     test<uint8_t, uint32_t>([](uint32_t a, uint32_t b) { return a - b; });
     test<int32_t, int64_t>([](int64_t a, int64_t b) { return a / (b + 1); });
     test<int64_t, float32_t>([](float32_t a, float32_t b) { return (a + b) / 2; });
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<wrapper<int32_t>, wrapper<int64_t>>(
         [](const wrapper<int64_t>& a, const wrapper<int64_t>& b) { return a - b; });
 #endif

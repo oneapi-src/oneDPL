@@ -48,8 +48,6 @@ struct test_one_policy
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
-
-        using T = typename ::std::iterator_traits<BiDirIt1>::value_type;
         const BiDirIt1 mid1 = ::std::next(first1, m);
         fill_data(first1, mid1, generator1);
         fill_data(mid1, last1, generator2);
@@ -92,7 +90,7 @@ test_by_type(Generator1 generator1, Generator2 generator2, Compare comp)
         invoke_on_all_policies<1>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
                                generator1, generator2, comp);
 
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
         m = 2 * n / 3;
         invoke_on_all_policies<2>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
                                generator1, generator2, comp);
@@ -145,25 +143,24 @@ struct test_non_const
 int
 main()
 {
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test_by_type<float64_t>([](int32_t i) { return -2 * i; }, [](int32_t i) { return -(2 * i + 1); },
                             [](const float64_t x, const float64_t y) { return x > y; });
 #endif
 
     test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, ::std::less<int32_t>());
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test_by_type<LocalWrapper<float32_t>>([](int32_t i) { return LocalWrapper<float32_t>(2 * i + 1); },
                                           [](int32_t i) { return LocalWrapper<float32_t>(2 * i); },
                                           ::std::less<LocalWrapper<float32_t>>());
-    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
-
     test_by_type<MemoryChecker>(
         [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx * 2)}; },
         [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx * 2 + 1)}; },
         [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() < val2.value(); });
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from inplace_merge: number of ctor and dtor calls is not equal");
 #endif
+    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
 
     ::std::cout << done() << ::std::endl;
     return 0;

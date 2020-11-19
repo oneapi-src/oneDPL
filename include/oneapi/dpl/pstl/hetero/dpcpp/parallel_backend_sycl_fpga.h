@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-//!!! NOTE: This file should be included under the macro _PSTL_BACKEND_SYCL
+//!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #ifndef _ONEDPL_parallel_backend_sycl_fpga_H
 #define _ONEDPL_parallel_backend_sycl_fpga_H
 
@@ -38,11 +38,6 @@ namespace dpl
 {
 namespace __par_backend_hetero
 {
-
-namespace sycl = cl::sycl;
-
-namespace __ranges
-{
 //------------------------------------------------------------------------
 // parallel_for
 //------------------------------------------------------------------------
@@ -50,7 +45,7 @@ namespace __ranges
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     auto __n = __get_first_range(::std::forward<_Ranges>(__rngs)...).size();
@@ -69,7 +64,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
         //get an access to data under SYCL buffer:
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
-        __cgh.single_task<__kernel_name_t>([=]() mutable {
+        __cgh.single_task<__kernel_name_t>([=]() {
 #pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
             for (auto __idx = 0; __idx < __count; ++__idx)
             {
@@ -77,9 +72,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
             }
         });
     });
+    return __future<_ExecutionPolicy>(__exec);
 }
-
-} //namespace __ranges
 
 //------------------------------------------------------------------------
 // parallel_transform_reduce
@@ -189,21 +183,32 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     return oneapi::dpl::__par_backend_hetero::__parallel_find(__device_policy, __first, __last, __f, __is_first);
 }
 
+template <typename _ExecutionPolicy>
+auto
+__device_policy(_ExecutionPolicy&& __exec)
+    -> decltype(oneapi::dpl::execution::make_device_policy<typename ::std::decay<_ExecutionPolicy>::type::kernel_name>(
+        __exec.queue()))
+{
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using __kernel_name = typename _Policy::kernel_name;
+    return oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
+}
+
 //------------------------------------------------------------------------
 // parallel_merge
 //-----------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Iterator3, typename _Compare>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, _Iterator3>
+auto
 __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2,
                  _Iterator2 __last2, _Iterator3 __d_first, _Compare __comp)
+    -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
+        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_merge(
+                              __device_policy(__exec), __first1, __last1, __first2, __last2, __d_first, __comp))>
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-    auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
-    return oneapi::dpl::__par_backend_hetero::__parallel_merge(__device_policy, __first1, __last1, __first2, __last2,
-                                                               __d_first, __comp);
+    return oneapi::dpl::__par_backend_hetero::__parallel_merge(__device_policy(__exec), __first1, __last1, __first2,
+                                                               __last2, __d_first, __comp);
 }
 
 //------------------------------------------------------------------------
@@ -211,14 +216,14 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __la
 //-----------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, void>
+auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
+    -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
+        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec),
+                                                                                             __first, __last, __comp))>
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-    auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
-    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy, __first, __last, __comp);
+    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec), __first, __last, __comp);
 }
 
 //------------------------------------------------------------------------
@@ -227,15 +232,16 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator _
 
 // TODO: check if it makes sense to move these wrappers out of backend to a common place
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, void>
+auto
 __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,
                         _Compare __comp)
+    -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
+        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(
+                              __device_policy(__exec), __first, __mid, __last, __comp))>
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-    auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
-    return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(__device_policy, __first, __mid, __last, __comp);
+    return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(__device_policy(__exec), __first, __mid, __last,
+                                                                      __comp);
 }
 
 } // namespace __par_backend_hetero

@@ -37,7 +37,6 @@ struct test_none_of
     void
     operator()(ExecutionPolicy&& exec, Iterator begin, Iterator end, Predicate pred, bool expected)
     {
-
         auto actualr = ::std::none_of(exec, begin, end, pred);
         EXPECT_EQ(expected, actualr, "result for none_of");
     }
@@ -57,7 +56,6 @@ test(size_t bits)
 
         invoke_on_all_policies<0>()(test_none_of<T>(), in.begin(), in.end(), is_equal_to<T>(spike), true);
         invoke_on_all_policies<1>()(test_none_of<T>(), in.cbegin(), in.cend(), is_equal_to<T>(spike), true);
- 
         if (n > 0)
         {
             // Sprinkle in a hit
@@ -94,7 +92,7 @@ main()
     test<int32_t>(8 * sizeof(int32_t));
     test<uint16_t>(8 * sizeof(uint16_t));
     test<float64_t>(53);
-#if !_PSTL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
+#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>(1);
 #endif
 

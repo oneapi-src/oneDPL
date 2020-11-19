@@ -31,7 +31,7 @@
 #include _PSTL_TEST_HEADER(execution)
 #include "iterator_utils.h"
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #include "utils_sycl.h"
 #endif
 
@@ -609,15 +609,14 @@ multiply_matrix(const Matrix2x2<T>& left, const Matrix2x2<T>& right)
 }
 
 // Check that Intel(R) Threading Building Blocks header files are not used when parallel policies are off
-#if !_PSTL_USE_PAR_POLICIES
+#if !_ONEDPL_USE_PAR_POLICIES
 #if defined(TBB_INTERFACE_VERSION)
-#error The parallel backend is used while it should not (_PSTL_USE_PAR_POLICIES==0)
+#        error The parallel backend is used while it should not (_ONEDPL_USE_PAR_POLICIES==0)
 #endif
 #endif
 
-// Invoke op(policy,rest...) for each possible policy.
-template <::std::size_t CallNumber = 0>
-struct invoke_on_all_policies
+// Invoke op(policy,rest...) for each non-hetero policy.
+struct invoke_on_all_host_policies
 {
     template <typename Op, typename... T>
     void
@@ -629,13 +628,24 @@ struct invoke_on_all_policies
         // Try static execution policies
         invoke_on_all_iterator_types()(seq, op, ::std::forward<T>(rest)...);
         invoke_on_all_iterator_types()(unseq, op, ::std::forward<T>(rest)...);
-#if _PSTL_USE_PAR_POLICIES
         invoke_on_all_iterator_types()(par, op, ::std::forward<T>(rest)...);
         invoke_on_all_iterator_types()(par_unseq, op, ::std::forward<T>(rest)...);
+
 #endif
-#endif
-#if _PSTL_BACKEND_SYCL
-    	invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
+    }
+};
+
+template <::std::size_t CallNumber = 0>
+struct invoke_on_all_policies
+{
+    template <typename Op, typename... T>
+    void
+    operator()(Op op, T&&... rest)
+    {
+
+        invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
+#if _ONEDPL_BACKEND_SYCL
+        invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
 #endif
 
     }
@@ -801,13 +811,7 @@ test_algo_basic_single(F&& f)
 {
     size_t N = 10;
     Sequence<T> in(N, [](size_t v) -> T { return T(v); });
-
-#if !TEST_ONLY_HETERO_POLICIES
-    invoke_on_all_policies<>()(f, in.begin());
-#endif
-#if _PSTL_BACKEND_SYCL
-    invoke_on_all_hetero_policies<>()(f, in.begin());
-#endif
+    invoke_on_all_host_policies()(::std::forward<F>(f), in.begin());
 }
 
 // Should be used with binary predicate
@@ -815,13 +819,10 @@ template <typename T, typename F>
 static void
 test_algo_basic_double(F&& f)
 {
-#if !TEST_ONLY_HETERO_POLICIES
     size_t N = 10;
     Sequence<T> in(N, [](size_t v) -> T { return T(v); });
     Sequence<T> out(N, [](size_t v) -> T { return T(v); });
-
-    invoke_on_all_policies<>()(f, in.begin(), out.begin());
-#endif
+    invoke_on_all_host_policies()(::std::forward<F>(f), in.begin(), out.begin());
 }
 
 template <typename Policy, typename F>

@@ -18,7 +18,7 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 using ::std::declval;
 using ::std::forward;
@@ -38,11 +38,6 @@ using ::std::exchange;
 using ::std::in_place;
 using ::std::in_place_t;
 #endif
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 } // namespace dpl
 } // namespace oneapi
 #endif

@@ -18,7 +18,7 @@
 
 #include <iterator>
 #include "../parallel_backend.h"
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/execution_sycl_defs.h"
 #    include "algorithm_impl_hetero.h" // to use __pattern_walk2_brick
 #    include "dpcpp/parallel_backend_sycl_utils.h"
@@ -46,15 +46,16 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
     if (__first1 == __last1)
         return __init;
 
-    using namespace __par_backend_hetero;
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
     auto __n = __last1 - __first1;
-    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<cl::sycl::access::mode::read, _RandomAccessIterator1>();
+    auto __keep1 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
-    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<cl::sycl::access::mode::read, _RandomAccessIterator2>();
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
     _RepackedTp __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp>(
@@ -82,12 +83,11 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
     if (__first == __last)
         return __init;
 
-    using namespace __par_backend_hetero;
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<cl::sycl::access::mode::read, _ForwardIterator>();
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
     _RepackedTp __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp>(
         __exec,
@@ -218,21 +218,22 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
 #endif
     {
         return __internal::__except_handler([&__exec, __first, __last, __d_first, __d_last, &__op, __n]() {
-            using namespace __par_backend_hetero;
-
-            auto __fn = [__op](_It1ValueT __in1, _It1ValueT __in2, _It2ValueTRef __out1) mutable {
+            auto __fn = [__op](_It1ValueT __in1, _It1ValueT __in2, _It2ValueTRef __out1) {
                 __out1 = __op(__in2, __in1); // This move assignment is allowed by the C++ standard draft N4810
             };
 
-            auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<cl::sycl::access::mode::read, _ForwardIterator1>();
+            auto __keep1 =
+                oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
             auto __buf1 = __keep1(__first, __last);
-            auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<cl::sycl::access::mode::write, _ForwardIterator2>();
+            auto __keep2 =
+                oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator2>();
             auto __buf2 = __keep2(__d_first, __d_last);
 
             using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn)>;
 
-            oneapi::dpl::__par_backend_hetero::__ranges::__parallel_for(__exec, _Function{__fn}, __n, __buf1.all_view(),
-                                                                        __buf2.all_view());
+            oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, _Function{__fn}, __n, __buf1.all_view(),
+                                                              __buf2.all_view())
+                .wait();
 
             return __d_last;
         });

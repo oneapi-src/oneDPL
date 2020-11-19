@@ -111,12 +111,12 @@ main()
     test<int32_t>(42, [](const int32_t& x) { return true; }, [](int32_t j) { return j; });
 #endif
     test<float64_t>(42, IsEqual<float64_t>(50, OddTag()), [](int32_t j) { return float64_t(j); });
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test<Number>(Number(42, OddTag()), IsEqual<Number>(Number(50, OddTag()), OddTag()),
                  [](int32_t j) { return Number(j, OddTag()); });
+#endif
 #ifdef _PSTL_TEST_COUNT_IF
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
-#endif
 #endif
 
     ::std::cout << done() << ::std::endl;

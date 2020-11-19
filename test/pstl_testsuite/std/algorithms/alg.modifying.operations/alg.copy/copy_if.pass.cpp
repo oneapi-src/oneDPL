@@ -81,7 +81,7 @@ struct run_copy_if
         // Run copy_if
         auto i = copy_if(first, last, expected_first, pred);
         auto k = copy_if(exec, first, last, out_first, pred);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         EXPECT_EQ_N(expected_first, out_first, n, "wrong copy_if effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -151,7 +151,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
         // Run remove_copy_if
         auto i = remove_copy_if(first, last, expected_first, [=](const T& x) { return !pred(x); });
         auto k = remove_copy_if(exec, first, last, out_first, [=](const T& x) { return !pred(x); });
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         EXPECT_EQ_N(expected_first, out_first, n, "wrong remove_copy_if effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -174,7 +174,7 @@ test(T trash, Predicate pred, Convert convert, bool check_weakness = true)
     // Try sequences of various lengths.
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
         // count is number of output elements, plus a handful
         // more for sake of detecting buffer overruns.
         size_t count = GuardSize;
@@ -183,7 +183,7 @@ test(T trash, Predicate pred, Convert convert, bool check_weakness = true)
 #endif
         Sequence<T> in(n, [&](size_t k) -> T {
             T val = convert(n ^ k);
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
             count += pred(val) ? 1 : 0;
 #endif
             return val;
@@ -246,12 +246,12 @@ main()
     test<float64_t>(-666.0, [](const float64_t& x) { return x * x <= 1024; },
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
 
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
     test<int16_t>(-666, [](const int16_t& x) { return x != 42; },
                   [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? int16_t(j + 1) : 42; });
-#endif // _PSTL_FPGA_DEVICE
+#endif // _ONEDPL_FPGA_DEVICE
 
-#if !_PSTL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
+#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
     test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
 #endif
 

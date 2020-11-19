@@ -31,17 +31,17 @@ namespace __ranges
 {
 
 //A SYCL range over SYCL buffer
-template <typename _T, cl::sycl::access::mode AccMode = cl::sycl::access::mode::read>
+template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read>
 class all_view
 {
-    using return_t = typename ::std::conditional<AccMode == cl::sycl::access::mode::read, const _T, _T>::type;
-    using accessor_t = cl::sycl::accessor<_T, 1, AccMode, cl::sycl::access::target::global_buffer,
-                                          cl::sycl::access::placeholder::true_t>;
+    using return_t = typename ::std::conditional<AccMode == sycl::access::mode::read, const _T, _T>::type;
+    using accessor_t =
+        sycl::accessor<_T, 1, AccMode, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>;
     using diff_type = typename ::std::iterator_traits<_T*>::difference_type;
 
   public:
-    all_view(cl::sycl::buffer<_T, 1> __buf = cl::sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
-        : m_acc(__buf, cl::sycl::range<1>(__n > 0 ? __n : __buf.get_count()), __offset)
+    all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
+        : m_acc(__buf, sycl::range<1>(__n > 0 ? __n : __buf.get_count()), __offset)
     {
     }
 
@@ -72,7 +72,7 @@ class all_view
     }
 
     void
-    require_access(cl::sycl::handler& cgh)
+    require_access(sycl::handler& cgh)
     {
         cgh.require(m_acc);
     } //non-standard method
@@ -83,16 +83,16 @@ class all_view
 
 struct all_view_fn
 {
-    template <typename _T, typename cl::sycl::access::mode AccMode = cl::sycl::access::mode::read>
-    _PSTL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
-    operator()(cl::sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
+    template <typename _T, typename sycl::access::mode AccMode = sycl::access::mode::read>
+    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
+    operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
                typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
     {
         return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf, __offset, __n);
     }
 
-    template <typename _T, typename cl::sycl::access::mode AccMode>
-    _PSTL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
+    template <typename _T, typename sycl::access::mode AccMode>
+    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
     operator()(oneapi::dpl::__ranges::all_view<_T, AccMode> __view) const
     {
         return __view;
@@ -102,7 +102,7 @@ struct all_view_fn
 namespace views
 {
 
-_PSTL_CONSTEXPR_VAR all_view_fn all;
+_ONEDPL_CONSTEXPR_VAR all_view_fn all;
 }
 
 //all_view traits
@@ -179,7 +179,7 @@ struct _require_access_args
 
 template <typename... _Ranges>
 void
-__require_access_zip(cl::sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_Ranges...>& __zip)
+__require_access_zip(sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_Ranges...>& __zip)
 {
     const ::std::size_t __num_ranges = sizeof...(_Ranges);
     oneapi::dpl::__ranges::invoke(__zip.tuple(), _require_access_args<decltype(__cgh)>{__cgh},
@@ -189,33 +189,33 @@ __require_access_zip(cl::sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_
 //__require_access utility
 
 inline void
-__require_access(cl::sycl::handler& __cgh)
+__require_access(sycl::handler& __cgh)
 {
 }
 
-template <typename T, cl::sycl::access::mode M>
+template <typename T, sycl::access::mode M>
 void
-__require_access_range(cl::sycl::handler& __cgh, oneapi::dpl::__ranges::all_view<T, M>& sycl_view)
+__require_access_range(sycl::handler& __cgh, oneapi::dpl::__ranges::all_view<T, M>& sycl_view)
 {
     sycl_view.require_access(__cgh);
 }
 
 template <typename... _Ranges>
 void
-__require_access_range(cl::sycl::handler& __cgh, zip_view<_Ranges...>& zip_rng)
+__require_access_range(sycl::handler& __cgh, zip_view<_Ranges...>& zip_rng)
 {
     __require_access_zip(__cgh, zip_rng);
 }
 
 template <typename _BaseRange>
 void
-__require_access_range(cl::sycl::handler& __cgh, _BaseRange&)
+__require_access_range(sycl::handler& __cgh, _BaseRange&)
 {
 }
 
 template <typename _Range, typename... _Ranges>
 void
-__require_access(cl::sycl::handler& __cgh, _Range&& __rng, _Ranges&&... __rest)
+__require_access(sycl::handler& __cgh, _Range&& __rng, _Ranges&&... __rest)
 {
     assert(!__rng.empty());
 
@@ -232,7 +232,7 @@ template <typename _R>
 struct __range_holder
 {
     _R __r;
-    _PSTL_CONSTEXPR_FUN _R
+    _ONEDPL_CONSTEXPR_FUN _R
     all_view() const
     {
         return __r;
@@ -262,14 +262,14 @@ struct __range_holder
 // We have to keep sycl buffer intance here by sync reasons, at least in case of host iterators. SYCL runtime has sync
 // in bufer desctruction and a sycl view instance keeps just placeholder accessor, not a buffer.
 template <typename _T>
-using buf_type = cl::sycl::buffer<_T, 1>;
+using buf_type = sycl::buffer<_T, 1>;
 
-template <typename _T, cl::sycl::access::mode AccMode>
+template <typename _T, sycl::access::mode AccMode>
 struct __buffer_holder
 {
     buf_type<_T> __buf;
 
-    _PSTL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
+    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
     all_view() const
     {
         return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf);
@@ -281,7 +281,7 @@ struct __buffer_wrap : public buf_type<_T>
 {
     __buffer_wrap() : buf_type<_T>(0) {}
 
-    template <cl::sycl::access::mode AccMode>
+    template <sycl::access::mode AccMode>
     __buffer_wrap&
     operator=(__buffer_holder<_T, AccMode> buf)
     {
@@ -332,7 +332,7 @@ struct __iter_types<oneapi::dpl::permutation_iterator<_It, _Map>>
     using type = oneapi::dpl::__internal::tuple<type1, type2>;
 };
 
-template <cl::sycl::access::mode AccMode, typename _Iterator>
+template <sycl::access::mode AccMode, typename _Iterator>
 struct __get_sycl_range
 {
   private:
@@ -361,8 +361,8 @@ struct __get_sycl_range
     {
         //create a SYCL buffer and copy data [first, last) or create a empty SYCL buffer with size = (last - first)
         return oneapi::dpl::__internal::__invoke_if_else(
-            _copy_direct_tag{}, [&]() { return cl::sycl::buffer<val_t<_Iter>, 1>(__first, __last); },
-            [&]() { return cl::sycl::buffer<val_t<_Iter>, 1>(__last - __first); });
+            _copy_direct_tag{}, [&]() { return sycl::buffer<val_t<_Iter>, 1>(__first, __last); },
+            [&]() { return sycl::buffer<val_t<_Iter>, 1>(__last - __first); });
     }
 
     template <typename _F, typename _It, typename _DiffType>
@@ -558,16 +558,15 @@ struct __get_sycl_range
         typename ::std::enable_if<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
                                   __buffer_holder<val_t<_Iter>, AccMode>>::type
     {
-        static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value ||
-                          AccMode == cl::sycl::access::mode::read,
+        static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value || AccMode == sycl::access::mode::read,
                       "Should be non-const iterator for a modifying algorithm.");
 
         assert(__first < __last);
 
-        using copy_direct_tag = ::std::integral_constant<bool, AccMode == cl::sycl::access::mode::read_write ||
-                                                                   AccMode == cl::sycl::access::mode::read>;
-        using copy_back_tag = ::std::integral_constant<bool, AccMode == cl::sycl::access::mode::read_write ||
-                                                                 AccMode == cl::sycl::access::mode::write>;
+        using copy_direct_tag = ::std::integral_constant<bool, AccMode == sycl::access::mode::read_write ||
+                                                                   AccMode == sycl::access::mode::read>;
+        using copy_back_tag = ::std::integral_constant<bool, AccMode == sycl::access::mode::read_write ||
+                                                                 AccMode == sycl::access::mode::write>;
 
         auto buf = copy_direct(__first, __last, copy_direct_tag());
         buf = copy_back(__first, buf, copy_back_tag());

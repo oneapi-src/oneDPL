@@ -87,8 +87,7 @@ struct test_set_union
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
-               Compare comp)
+    operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
 };
@@ -118,8 +117,7 @@ struct test_set_intersection
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
-               Compare comp)
+    operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
 };
@@ -149,8 +147,7 @@ struct test_set_difference
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
-               Compare comp)
+    operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
 };
@@ -181,8 +178,7 @@ struct test_set_symmetric_difference
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
-               Compare comp)
+    operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
 };
@@ -202,7 +198,7 @@ test_set(Compare compare)
         for (::std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
         {
             //prepare the input ranges
-            Sequence<T1> in1(n, [n](::std::size_t k) { return rand() % (2 * k + 1); });
+            Sequence<T1> in1(n, [](::std::size_t k) { return rand() % (2 * k + 1); });
             Sequence<T2> in2(m, [m](::std::size_t k) { return (m % 2) * rand() + rand() % (k + 1); });
 
             ::std::sort(in1.begin(), in1.end(), compare);
@@ -278,7 +274,7 @@ int
 main()
 {
     using data_t =
-#if !_PSTL_FPGA_DEVICE
+#if !_ONEDPL_FPGA_DEVICE
         float64_t;
 #else
         int32_t;
@@ -286,7 +282,7 @@ main()
 
     test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less());
 
-#if !_PSTL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     test_set<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; });
 
     test_set<MemoryChecker, MemoryChecker>([](const MemoryChecker& val1, const MemoryChecker& val2) -> bool {

@@ -13,13 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-//!!! NOTE: This file should be included under the macro _PSTL_BACKEND_SYCL
+//!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #ifndef _ONEDPL_unseq_backend_sycl_H
 #define _ONEDPL_unseq_backend_sycl_H
 
 #include <type_traits>
 
-#include "pstl_sycl_config.h"
+#include "../../onedpl_config.h"
 #include "../../utils.h"
 
 #include <CL/sycl.hpp>
@@ -30,9 +30,6 @@ namespace dpl
 {
 namespace unseq_backend
 {
-
-namespace sycl = cl::sycl;
-
 // helpers to encapsulate void and other types
 template <typename _Tp>
 using void_type = typename ::std::enable_if<::std::is_void<_Tp>::value, _Tp>::type;
@@ -41,22 +38,25 @@ using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp
 
 // a way to get value_type from both accessors and USM that is needed for transform_init
 template <typename _Unknown>
-struct __accessor_traits
+struct __accessor_traits_impl
 {
 };
 
 template <typename _T, int _Dim, sycl::access::mode _AccMode, sycl::access::target _AccTarget,
           sycl::access::placeholder _Placeholder>
-struct __accessor_traits<sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>>
+struct __accessor_traits_impl<sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>>
 {
     using value_type = typename sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>::value_type;
 };
 
 template <typename _RawArrayValueType>
-struct __accessor_traits<_RawArrayValueType*>
+struct __accessor_traits_impl<_RawArrayValueType*>
 {
     using value_type = _RawArrayValueType;
 };
+
+template <typename _Unknown>
+using __accessor_traits = __accessor_traits_impl<typename ::std::decay<_Unknown>::type>;
 
 template <typename _ExecutionPolicy, typename _F>
 struct walk_n
@@ -65,7 +65,7 @@ struct walk_n
 
     template <typename _ItemId, typename... _Ranges>
     auto
-    operator()(const _ItemId __idx, _Ranges&&... __rngs) -> decltype(__f(__rngs[__idx]...))
+    operator()(const _ItemId __idx, _Ranges&&... __rngs) const -> decltype(__f(__rngs[__idx]...))
     {
         return __f(__rngs[__idx]...);
     }
@@ -81,24 +81,9 @@ struct walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>
 
     template <typename _ItemId, typename _Range>
     auto
-    operator()(const _ItemId __idx, _Range&& __rng) -> decltype(__rng[__idx])
+    operator()(const _ItemId __idx, _Range&& __rng) const -> decltype(__rng[__idx])
     {
         return __rng[__idx];
-    }
-};
-
-using ::std::get;
-template <typename _ExecutionPolicy, typename _F>
-struct walk2
-{
-    _F __f;
-
-    template <typename _ItemId, typename _Acc>
-    auto
-    operator()(const _ItemId __idx, const _Acc& __inout_acc)
-        -> decltype(__f(get<0>((__inout_acc)[__idx]), get<1>((__inout_acc)[__idx])))
-    {
-        return __f(get<0>((__inout_acc)[__idx]), get<1>((__inout_acc)[__idx]));
     }
 };
 
@@ -113,7 +98,7 @@ struct walk_adjacent_difference
 
     template <typename _ItemId, typename _Acc1, typename _Acc2>
     void
-    operator()(const _ItemId __idx, const _Acc1& _acc_src, _Acc2& _acc_dst)
+    operator()(const _ItemId __idx, const _Acc1& _acc_src, _Acc2& _acc_dst) const
     {
         using ::std::get;
 
@@ -158,7 +143,7 @@ struct transform_init
     template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal, typename... _Acc>
     void
     operator()(const _NDItemId __item_id, const _GlobalIdx __global_idx, _Size __n, _AccLocal& __local_mem,
-               const _Acc&... __acc)
+               const _Acc&... __acc) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __global_range_size = __item_id.get_global_range().size();
@@ -191,7 +176,7 @@ struct reduce
 
     template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal>
     _Tp
-    operator()(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem)
+    operator()(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __group_size = __item_id.get_local_range().size();
@@ -220,7 +205,7 @@ struct single_match_pred_by_idx
 
     template <typename _Idx, typename _Acc>
     bool
-    operator()(const _Idx __shifted_idx, _Acc& __acc)
+    operator()(const _Idx __shifted_idx, _Acc& __acc) const
     {
         return __pred(__shifted_idx, __acc);
     }
@@ -239,7 +224,7 @@ struct multiple_match_pred
 
     template <typename _Idx, typename _Acc1, typename _Acc2>
     bool
-    operator()(const _Idx __shifted_idx, _Acc1& __acc, const _Acc2& __s_acc)
+    operator()(const _Idx __shifted_idx, _Acc1& __acc, const _Acc2& __s_acc) const
     {
         // if __shifted_idx > __n - __s_n then subrange bigger than original range.
         // So the second range is not a subrange of the first range
@@ -265,7 +250,7 @@ struct n_elem_match_pred
 
     template <typename _Idx, typename _Acc>
     bool
-    operator()(const _Idx __shifted_idx, const _Acc& __acc)
+    operator()(const _Idx __shifted_idx, const _Acc& __acc) const
     {
 
         bool __result = ((__shifted_idx + __count) <= __acc.size());
@@ -285,7 +270,7 @@ struct first_match_pred
 
     template <typename _Idx, typename _Acc1, typename _Acc2>
     bool
-    operator()(const _Idx __shifted_idx, const _Acc1& __acc, const _Acc2& __s_acc)
+    operator()(const _Idx __shifted_idx, const _Acc1& __acc, const _Acc2& __s_acc) const
     {
 
         // assert: __shifted_idx < __n
@@ -310,7 +295,8 @@ struct __mask_assigner
 {
     template <typename _Acc, typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
-    operator()(_Acc& __acc, _OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, const _InIdx __in_idx)
+    operator()(_Acc& __acc, _OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc,
+               const _InIdx __in_idx) const
     {
         using ::std::get;
         get<N>(__acc[__out_idx]) = __in_acc[__in_idx];
@@ -322,14 +308,14 @@ struct __scan_assigner
 {
     template <typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
-    operator()(_OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, _InIdx __in_idx)
+    operator()(_OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, _InIdx __in_idx) const
     {
         __out_acc[__out_idx] = __in_acc[__in_idx];
     }
 
     template <typename _Acc, typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
-    operator()(_Acc&, _OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, _InIdx __in_idx)
+    operator()(_Acc&, _OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, _InIdx __in_idx) const
     {
         __out_acc[__out_idx] = __in_acc[__in_idx];
     }
@@ -339,7 +325,7 @@ struct __scan_no_assign
 {
     template <typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
-    operator()(_OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, const _InIdx __in_idx)
+    operator()(_OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, const _InIdx __in_idx) const
     {
     }
 };
@@ -364,25 +350,25 @@ struct __scan_init_processing
 {
     template <typename _Tp>
     void
-    operator()(const __scan_init<_InitType>& __init, _Tp&& __value)
+    operator()(const __scan_init<_InitType>& __init, _Tp&& __value) const
     {
         __value = __init.__value;
     }
     template <typename _Tp>
     void
-    operator()(const __scan_no_init<_InitType>&, _Tp&&)
+    operator()(const __scan_no_init<_InitType>&, _Tp&&) const
     {
     }
 
     template <typename _Tp, typename _BinaryOp>
     void
-    operator()(const __scan_init<_InitType>& __init, _Tp&& __value, _BinaryOp __bin_op)
+    operator()(const __scan_init<_InitType>& __init, _Tp&& __value, _BinaryOp __bin_op) const
     {
         __value = __bin_op(__init.__value, __value);
     }
     template <typename _Tp, typename _BinaryOp>
     void
-    operator()(const __scan_no_init<_InitType>&, _Tp&&, _BinaryOp)
+    operator()(const __scan_no_init<_InitType>&, _Tp&&, _BinaryOp) const
     {
     }
 };
@@ -397,7 +383,7 @@ struct __copy_by_mask
               typename _SizePerWg>
     void
     operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
-               _SizePerWg __size_per_wg)
+               _SizePerWg __size_per_wg) const
     {
         using ::std::get;
         auto __item_idx = __item.get_linear_id();
@@ -444,7 +430,7 @@ struct __partition_by_mask
               typename _SizePerWg>
     void
     operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
-               _SizePerWg __size_per_wg)
+               _SizePerWg __size_per_wg) const
     {
         auto __item_idx = __item.get_linear_id();
         if (__item_idx < __n)
@@ -487,14 +473,16 @@ struct __global_scan_functor
               typename _SizePerWg>
     void
     operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& _in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
-               _SizePerWg __size_per_wg)
+               _SizePerWg __size_per_wg) const
     {
         constexpr auto __shift = _Inclusive{} ? 0 : 1;
         auto __item_idx = __item.get_linear_id();
-        __item_idx += __shift;
+        // skip the first group scanned locally
         if (__item_idx >= __size_per_wg && __item_idx < __n)
         {
-            auto __wg_sums_idx = (__item_idx - __shift) / __size_per_wg - 1;
+            auto __wg_sums_idx = __item_idx / __size_per_wg - 1;
+            // an initial value preceeds the first group for the exclusive scan
+            __item_idx += __shift;
             auto __bin_op_result = __binary_op(__wg_sums_acc[__wg_sums_idx], __out_acc[__item_idx]);
             using __out_type = typename ::std::decay<decltype(__out_acc[__item_idx])>::type;
             using __in_type = typename ::std::decay<decltype(__bin_op_result)>::type;
@@ -504,7 +492,6 @@ struct __global_scan_functor
     }
 };
 
-// TODO: more performant optimization for simple types based on work group algorithms needs to be implemented
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
           typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
 struct __scan
@@ -519,7 +506,8 @@ struct __scan
               typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
     void operator()(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
                     _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
-                    _ItersPerWG __iters_per_wg, _InitType __init = __scan_no_init<typename _InitType::__value_type>{})
+                    _ItersPerWG __iters_per_wg,
+                    _InitType __init = __scan_no_init<typename _InitType::__value_type>{}) const
     {
         using _Tp = typename _InitType::__value_type;
         auto __group_id = __item.get_group(0);
@@ -643,7 +631,7 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
               typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
     void operator()(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
                     const _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
-                    _ItersPerWG __iters_per_wg, _InitType __init = __scan_no_init<_Tp>{})
+                    _ItersPerWG __iters_per_wg, _InitType __init = __scan_no_init<_Tp>{}) const
     {
         auto __group_id = __item.get_group(0);
         auto __global_id = __item.get_global_id(0);
@@ -710,7 +698,7 @@ struct __brick_includes
 
     template <typename _ItemId, typename _Acc1, typename _Acc2>
     bool
-    operator()(_ItemId __idx, const _Acc1& __b_acc, const _Acc2& __a_acc)
+    operator()(_ItemId __idx, const _Acc1& __b_acc, const _Acc2& __a_acc) const
     {
         using ::std::get;
 
@@ -759,7 +747,7 @@ struct __reverse_functor
     _Size __size;
     template <typename _Idx, typename _Accessor>
     void
-    operator()(const _Idx __idx, _Accessor& __acc)
+    operator()(const _Idx __idx, _Accessor& __acc) const
     {
         ::std::swap(__acc[__idx], __acc[__size - __idx - 1]);
     }
@@ -774,7 +762,7 @@ struct __reverse_copy
     _Size __size;
     template <typename _Idx, typename _AccessorSrc, typename _AccessorDst>
     void
-    operator()(const _Idx __idx, const _AccessorSrc& __acc1, _AccessorDst& __acc2)
+    operator()(const _Idx __idx, const _AccessorSrc& __acc1, _AccessorDst& __acc2) const
     {
         __acc2[__idx] = __acc1[__size - __idx - 1];
     }
@@ -790,7 +778,7 @@ struct __rotate_copy
     _Size __shift;
     template <typename _Idx, typename _AccessorSrc, typename _AccessorDst>
     void
-    operator()(const _Idx __idx, const _AccessorSrc& __acc1, _AccessorDst& __acc2)
+    operator()(const _Idx __idx, const _AccessorSrc& __acc1, _AccessorDst& __acc2) const
     {
         __acc2[__idx] = __acc1[(__shift + __idx) % __size];
     }
@@ -818,7 +806,7 @@ class __brick_set_op
 
     template <typename _ItemId, typename _Acc>
     bool
-    operator()(_ItemId __idx, const _Acc& __inout_acc)
+    operator()(_ItemId __idx, const _Acc& __inout_acc) const
     {
         using ::std::get;
         auto __a = get<0>(__inout_acc.tuple()); // first sequence
@@ -826,13 +814,9 @@ class __brick_set_op
         auto __c = get<2>(__inout_acc.tuple()); // mask buffer
 
         auto __a_beg = _Size1(0);
-        auto __a_end = __na;
-
         auto __b_beg = _Size2(0);
-        auto __b_end = __nb;
 
         auto __idx_c = __idx;
-
         const auto __idx_a = __idx;
         auto __val_a = __a[__a_beg + __idx_a];
 

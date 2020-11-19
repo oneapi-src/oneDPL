@@ -119,7 +119,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     return ::std::make_pair(result1 + N, result2 + N);
 }
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
@@ -552,9 +552,4 @@ reduce_by_key(Policy&& policy, InputIt1 first1, InputIt1 last1, InputIt2 first2,
 } // end namespace dpl
 } // end namespace oneapi
 
-namespace dpstd
-{
-using oneapi::dpl::reduce_by_key;
-using oneapi::dpl::reduce_by_segment;
-} // end namespace dpstd
 #endif

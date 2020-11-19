@@ -19,7 +19,7 @@
 #include "../numeric_fwd.h"
 #include "../parallel_backend.h"
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/utils_ranges_sycl.h"
 #    include "dpcpp/unseq_backend_sycl.h"
 #endif

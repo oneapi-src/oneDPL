@@ -20,18 +20,19 @@
 
 #include "execution_defs.h"
 
+#if !_ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 namespace std
 {
 // Type trait
 using oneapi::dpl::execution::is_execution_policy;
-#if _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT
-#    if __INTEL_COMPILER
+#    if (_PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT || _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT)
+#        if __INTEL_COMPILER
 template <class T>
 constexpr bool is_execution_policy_v = is_execution_policy<T>::value;
-#    else
+#        else
 using oneapi::dpl::execution::is_execution_policy_v;
+#        endif
 #    endif
-#endif
 
 namespace execution
 {
@@ -50,8 +51,9 @@ using oneapi::dpl::execution::unseq;
 using oneapi::dpl::execution::unsequenced_policy;
 } // namespace execution
 } // namespace std
+#endif // !_ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 
-#if _PSTL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "hetero/algorithm_impl_hetero.h"
 #    include "hetero/numeric_impl_hetero.h"
 #endif

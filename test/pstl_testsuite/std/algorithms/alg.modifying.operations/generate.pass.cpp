@@ -33,7 +33,7 @@ struct Generator_count
 {
     const T def_val = T(-1);
     T
-    operator()()
+    operator()() const
     {
         return def_val;
     }

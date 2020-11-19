@@ -18,7 +18,7 @@
 
 namespace oneapi
 {
-namespace std
+namespace dpl
 {
 using ::std::ratio;
 using ::std::ratio_add;
@@ -31,11 +31,6 @@ using ::std::ratio_less_equal;
 using ::std::ratio_multiply;
 using ::std::ratio_not_equal;
 using ::std::ratio_subtract;
-} // namespace std
-
-namespace dpl
-{
-using namespace oneapi::std;
 } // namespace dpl
 } // namespace oneapi
 #endif

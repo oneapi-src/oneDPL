@@ -111,7 +111,7 @@ main()
     test<uint16_t>(8 * sizeof(uint16_t));
     test<float64_t>(53);
 
-#if !_PSTL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
+#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>(1);
 #endif
 
