@@ -14,7 +14,7 @@ The following variables are provided for oneDPL configuration:
 | ONEDPL_USE_UNNAMED_LAMBDA      | BOOL   | Pass `-fsycl-unnamed-lambda` compile option                                                   | OFF           |
 | ONEDPL_USE_RANGES_API          | BOOL   | Enable the use of ranges API for algorithms                                                   | OFF           |
 | ONEDPL_FPGA_STATIC_REPORT      | BOOL   | Enable the static report generation for the FPGA_HW device type                               | OFF           |
-| ONEDPL_USE_OFFLINE_COMPILATION | BOOL   | Enable the offline compilation via OCLOC compiler                                             | OFF           |
+| ONEDPL_USE_OFFLINE_COMPILATION | BOOL   | Enable the offline compilation via OpenCL™ Offline Compiler (OCLOC)                           | OFF           |
 | ONEDPL_COMPILE_ARCH            | STRING | Architecture options for the offline compilation                                              | *             |
 
 Some useful CMake variables ([here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) you can find a full list of CMake variables for the latest version):
@@ -36,8 +36,8 @@ Steps:
 
 The following targets are available for build system after configuration:
 
-- `<test-name>` - build specific test, e.g. `for_each`;
-- `run-<test-name>` - build and run specific test, e.g. `run-for_each`;
+- `<test-name>` - build specific test, e.g. `for_each.pass`;
+- `run-<test-name>` - build and run specific test, e.g. `run-for_each.pass`;
 - `build-<tests-subdir>` - build all tests from specific subdirectory under `<root>/test`, e.g. `build-std`;
 - `run-<tests-subdir>` - build and run all tests from specific subdirectory under `<root>/test`, e.g. `run-std`;
 - build-all - build all tests;
