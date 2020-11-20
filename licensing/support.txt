@@ -1,0 +1,14 @@
+
+Package ID: <package_id> 
+This package contains: <product name> <product_version> for <OS platform>.
+Please use the above information when submitting customer support requests.
+-----------------
+Technical Support
+-----------------
+Need support? Go to https://software.intel.com/en-us/oneapi/support for your 
+support options” 
+
+Note: If your distributor provides technical support for this product, please 
+contact them for support rather than Intel.
+
+

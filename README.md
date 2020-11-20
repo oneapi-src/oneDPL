@@ -1,37 +1,33 @@
-# Parallel STL 
-[![Stable release](https://img.shields.io/badge/version-20181204-green.svg)](https://github.com/intel/parallelstl/releases/tag/20181204)
-[![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE)
+# oneAPI DPC++ Library (oneDPL)
 
-Parallel STL is an implementation of the C++ standard library algorithms with support for execution policies, 
-as specified in the working draft N4659 for the next version of the C++ standard, commonly called C++17. 
-The implementation also supports the unsequenced execution policy specified in the ISO* C++ working group paper P0076R3.
-
-Parallel STL offers a portable implementation of threaded and vectorized execution of standard C++ algorithms, optimized and validated for Intel(R) 64 processors.
-For sequential execution, it relies on an available implementation of the C++ standard library.
+The oneAPI DPC++ Library (oneDPL) aims to work with the oneAPI DPC++ Compiler
+to provide high-productivity APIs to developers, which can minimize DPC++
+programming efforts across devices for high performance parallel applications.
+oneDPL consists of following components:
+* Parallel STL for DPC++
+* An additional set of library classes and functions (referred below as "Extension API")
+* Tested standard C++ APIs
 
 ## Prerequisites
-To use Parallel STL, you must have the following software installed:
-* C++ compiler with:
-  * Support for C++11
-  * Support for OpenMP* 4.0 SIMD constructs
-* Threading Building Blocks (TBB) which is available to download in the GitHub [repository](https://github.com/01org/tbb/)
+Install Intel(R) oneAPI Base Toolkit (Base Kit) to use oneDPL and please refer to [System requirements](https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-system-requirements-beta.html).
 
 ## Release Information
-Here are the latest [Changes](CHANGES) and [Release Notes](doc/Release_Notes.txt) (contains system requirements and known issues).
+Here is the latest [Release Notes](https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes-beta.html).
 
 ## License
-Parallel STL is licensed under [Apache License Version 2.0](LICENSE).
+oneDPL is licensed under [Apache License Version 2.0 with LLVM exceptions](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt).
+
+## Contributing
+See [CONTRIBUTING.md](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/CONTRIBUTING.md) for details.
 
 ## Documentation
-[Getting Started](https://software.intel.com/en-us/get-started-with-pstl) with Parallel STL.
+See [Library Guide](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html) with oneDPL.
 
-## Support
-Please report issues and suggestions via
-[GitHub issues](https://github.com/intel/parallelstl/issues) or start a topic on the
-[TBB forum](http://software.intel.com/en-us/forums/intel-threading-building-blocks/).
+## Samples
+You can find oneDPL samples in [Samples](https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL).
 
-## Engineering team contacts
-* [E-mail us.](mailto:inteltbbdevelopers@intel.com)
+## Support and contribution
+Please report issues and suggestions via [GitHub issues](https://github.com/oneapi-src/oneDPL/issues).
 
 ------------------------------------------------------------------------
 Intel and the Intel logo are trademarks of Intel Corporation or its subsidiaries in the U.S. and/or other countries.
