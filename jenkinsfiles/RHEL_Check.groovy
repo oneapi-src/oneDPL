@@ -181,7 +181,7 @@ pipeline {
                     }
                 }
 
-                stage('Check_pstl_testsuite'){
+                stage('Check_parallel_api'){
                     steps {
                         timeout(time: 2, unit: 'HOURS'){
                             script {
@@ -193,7 +193,7 @@ pipeline {
                                             sh script: 'rm -rf ./output;', label: "Remove output Folder"
                                         }
                                         sh "mkdir output; cp /export/users/oneDPL_CI/Makefile_RHEL ./; mv Makefile_RHEL Makefile"
-                                        def tests = findFiles glob: 'pstl_testsuite/**/*pass.cpp'
+                                        def tests = findFiles glob: 'parallel_api/**/*pass.cpp'
 
                                         def failCount = 0
                                         def passCount = 0

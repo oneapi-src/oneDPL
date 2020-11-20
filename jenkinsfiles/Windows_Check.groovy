@@ -254,14 +254,14 @@ pipeline {
                     }
                 }
 
-                stage('Check_pstl_testsuite'){
+                stage('Check_parallel_api'){
                     steps {
                         timeout(time: 2, unit: 'HOURS'){
                             script {
                                 def results = []
                                 try {
                                     script {
-                                        def tests = findFiles glob: 'src/test/pstl_testsuite/**/*pass.cpp' //uncomment this line to run all tests
+                                        def tests = findFiles glob: 'src/test/parallel_api/**/*pass.cpp' //uncomment this line to run all tests
                                         echo tests.toString()
                                         def failCount = 0
                                         def passCount = 0
@@ -271,7 +271,7 @@ pipeline {
                                                 try {
                                                     phase = "Build&Run"
                                                     bat script: """
-                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test/pstl_testsuite $x
+                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test/parallel_api $x
                                                         test.exe
                                                     """, label: "Check $x"
                                                     passCount++
@@ -315,7 +315,7 @@ pipeline {
                                 def results = []
                                 try {
                                     script {
-                                        //def tests = findFiles glob: 'ci/test/pstl_testsuite/pstl/**/*pass.cpp'
+                                        //def tests = findFiles glob: 'ci/test/parallel_api/pstl/**/*pass.cpp'
                                         def tests = findFiles glob: 'src/test/extensions_testsuite/**/*pass.cpp' //uncomment this line to run all tests
                                         echo tests.toString()
                                         def failCount = 0
