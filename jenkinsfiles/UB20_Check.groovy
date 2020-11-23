@@ -174,7 +174,7 @@ pipeline {
                     }
                 }
 
-                stage('Check_pstl_testsuite'){
+                stage('Check_parallel_api'){
                     steps {
                         timeout(time: 2, unit: 'HOURS'){
                             script {
@@ -186,7 +186,7 @@ pipeline {
                                             sh script: 'rm -rf ./output;', label: "Remove output Folder"
                                         }
                                         sh "mkdir output; cp /export/users/oneDPL_CI/Makefile ./"
-                                        def tests = findFiles glob: 'pstl_testsuite/**/*pass.cpp'
+                                        def tests = findFiles glob: 'parallel_api/**/*pass.cpp'
 
                                         def failCount = 0
                                         def passCount = 0
@@ -217,7 +217,7 @@ pipeline {
                                 }
                                 catch(e) {
                                     build_ok = false
-                                    fail_stage = fail_stage + "    " + "Check_pstl_testsuite"
+                                    fail_stage = fail_stage + "    " + "Check_parallel_api"
                                     failed_cases = "Failed cases are: "
                                     results.each { item ->
                                         if (!item.pass) {
