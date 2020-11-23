@@ -12,7 +12,6 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
-ONEDPLROOT=SUBSTITUTE_INSTALL_DIR_HERE
 if [ -n "$1" ]; then
     ONEDPLROOT=$1
 else
