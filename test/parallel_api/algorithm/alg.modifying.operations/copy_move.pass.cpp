@@ -16,10 +16,11 @@
 // Tests for copy, move and copy_n
 
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
+
+#include "support/utils.h"
 
 #if  !defined(_PSTL_TEST_COPY) && !defined(_PSTL_TEST_COPY_N) && !defined(_PSTL_TEST_MOVE)
 #define _PSTL_TEST_COPY

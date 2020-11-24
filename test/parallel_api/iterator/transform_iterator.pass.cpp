@@ -13,10 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/utils.h"
+#include "support/pstl_test_config.h"
+
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
+
+#include "support/utils.h"
 
 #include <tuple>
 

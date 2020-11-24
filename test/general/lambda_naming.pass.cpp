@@ -17,12 +17,13 @@
 #    include <CL/sycl.hpp>
 #endif
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(numeric)
 #include _PSTL_TEST_HEADER(iterator)
+
+#include "support/utils.h"
 
 using namespace TestUtils;
 

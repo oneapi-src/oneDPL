@@ -16,10 +16,11 @@
 // Tests for uninitialized_copy, uninitialized_copy_n, uninitialized_move, uninitialized_move_n
 
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(memory)
+
+#include "support/utils.h"
 
 #if  !defined(UNITIALIZED_COPY) && !defined(UNITIALIZED_COPY_N) &&\
      !defined(UNITIALIZED_MOVE) && !defined(UNITIALIZED_MOVE_N)
