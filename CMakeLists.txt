@@ -39,6 +39,11 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
 
+# Enable C++ version switch and the processing of exceptions for MSVC
+if (MSVC)
+    target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc)
+endif()
+
 if (ONEDPL_USE_PARALLEL_POLICIES)
     message(STATUS "Using Parallel Policies with ${ONEDPL_BACKEND} backend")
     string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
