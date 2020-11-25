@@ -73,11 +73,7 @@ endif
 target ?= $(os_name)
 #OS specific keys
 ifeq ($(target),windows)
-    ifneq (, $(filter $(compiler), gcc g++))
-        include $(proj_root)/make/mingw.inc
-    else
-        include $(proj_root)/make/windows.inc
-    endif
+    include $(proj_root)/make/windows.inc
 else
     include $(proj_root)/make/unix.inc
     ifneq (,$(wildcard $(proj_root)/make/$(target).inc))
@@ -105,10 +101,6 @@ endif
 
 ifneq (, $(filter $(compiler), dpcpp dpc++))
     include $(proj_root)/make/dpcpp.inc
-endif
-
-ifneq (, $(filter $(compiler), compute++ computecpp))
-    include $(proj_root)/make/computecpp.inc
 endif
 
 CPLUS := $(compiler) $(COMPILER_NOLOGO_KEY) $(USE_SHARED_CPPRUNTIME_KEY)
