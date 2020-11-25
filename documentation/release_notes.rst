@@ -1,52 +1,56 @@
-Intel® oneAPI DPC++ Library (oneDPL) Release Notes (Beta)
-##########################################################
+Intel® oneAPI DPC++ Library (oneDPL) Release Notes
+###################################################
 
 Overview
-========
+=========
 
-Learn more about the new features and known issues for this library.
+The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C++ Compiler
+and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
+creating efficient heterogeneous applications.
 
-New in 2021.1-beta10
-====================
+New in 2021.1 Gold
+===================
 
-New Features
------------------------------
-- All oneDPL functionality, including the parallel algorithm functions, is accessible via the ``oneapi::dpl`` namespace.
-
-Changes to Existing Features
------------------------------
-- The following methods of the permutation_iterator have been renamed: ``get_source_iterator()`` is renamed to ``base()``, ``get_map_iterator()`` is renamed to ``map()``.
-- Improved performance of the following algorithms: ``copy_if``, ``count``, ``count_if``, ``exclusive_scan``, ``inclusive_scan``, ``is_partitioned``, ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``partition``, ``partition_copy``, ``reduce``, ``remove``, ``remove_copy``, ``remove_copy_if``, ``remove_if``, ``set_difference``, ``set_intersection``, ``set_symmetric_difference``, ``set_union``, ``stable_partition``, ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``transform_reduce``, ``unique``, ``unique_copy``.
-- Improved performance of the ``nth_element`` algorithm when input contains large number of duplicates.
-
-Fixed Issues
+Key Features
 -------------
-- Fixed the failures of the ``sort``, ``stable_sort`` algorithms when using Radix sort [#fnote1]_ on oneAPI
-  CPU devices.
+- This version implements `the oneDPL Specification`_ v1.0, including parallel algorithms,
+  DPC++ execution policies, special iterators, and other utilities.
+- oneDPL algorithms can work with data in DPC++ buffers as well as in unified shared memory (USM).
+- For several algorithms, experimental API that accepts ranges (similar to C++20) is additionally provided.
+- A subset of the standard C++ libraries for Microsoft* Visual C++, GCC, and Clang is supported
+  in DPC++ kernels, including ``<array>``, ``<complex>``, ``<functional>``, ``<tuple>``,
+  ``<type_traits>``, ``<utility>`` and other standard library API.
+  For the detailed list, please refer to `the oneDPL User Guide`_.
+- Standard C++ random number generators and distributions for use in DPC++ kernels.
 
-Known Issues
--------------
-- The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to compilation errors (caused by oneTBB API changes).
-  To overcome these, switch off the use of TBB for parallel execution policies in the standard library.
-- The use of the -sycl-std=2020 option may lead to compilation errors for oneDPL parallel algorithms.
+
+Known Issues and Limitations
+-----------------------------
+- The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
+  compilation errors (caused by oneTBB API changes).
+  To overcome these issues, include oneDPL header files before the standard C++ header files,
+  or disable parallel algorithms support in the standard library. For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
 - The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
-  with some compilers including GCC 7 and earlier. Instead of this directive, use fully qualified
-  names or namespace aliases.
+  with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
+  ``oneapi::dpl`` namespace, or create a namespace alias.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort in debug mode on oneAPI CPU devices .
-- The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms may produce incorrect result
-  when using Radix sort with 32-bit ``float`` data type.
-- Some algorithms with a DPC++ policy may fail on CPU or on FPGA emulator.
+  when using Radix sort [#fnote1]_ in debug mode on oneAPI CPU devices.
+- The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
+- The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
+  or Clang 7 (or higher).
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
-- When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects whose type meets DPC++ requirements for use in kernels
-  and for data transfer, respectively.
+- When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects
+  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
 - ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
   use ``std::array::operator[]`` instead.
-- ``std::array`` member function swap cannot be used in DPC++ kernels on Windows* platform.
-- ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows* platform.
-- Not all functions in <cmath> are supported currently, please refer to DPC++ library guide for detail list.
-- Due to specifics of Microsoft* Visual C++ implementation, some standard math functions for float
-  (including: ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
+  (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision.
 
-.. [#fnote1] The sorting algorithms in oneDPL use Radix sort for arithmetic data types compared with ``std::less`` or ``std::greater``, otherwise Merge sort.
+.. [#fnote1] The sorting algorithms in oneDPL use Radix sort for arithmetic data types compared with
+   ``std::less`` or ``std::greater``, otherwise Merge sort.
+.. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
+.. _`the oneDPL User Guide`: https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html
+.. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html

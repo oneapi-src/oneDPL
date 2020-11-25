@@ -1,94 +1,92 @@
 Random Number Generators
 ########################
 
-An Introduction to random number generation usage in oneDPL.
+An introduction to random number generation usage in the oneAPI DPC++ Library (oneDPL).
 
-oneDPL library offers support of random number generation, including:
+oneDPL offers support of random number generation, including:
 
-- Random number engines, which generate unsigned integer sequences of random numbers
-- Random number distributions (e.g. uniform_real_distribution), which convert the output of random number engines into various statistical distributions
+- Random number engines, which generate unsigned integer sequences of random numbers.
+- Random number distributions (example: ``uniform_real_distribution``), which convert the output of
+  random number engines into various statistical distributions.
 
-Random number engines
+Random Number Engines
 ---------------------
 
-Random number engines use seed data as entropy source to generate pseudo-random numbers.
-Customized class templates which are available for oneDPL:
-
-Defined in header ``<oneapi/dpl/random>``
+Random number engines use seed data as an entropy source to generate pseudo-random numbers. 
+oneDPL provides several class templates for customized engines, they are defined in the header
+``<oneapi/dpl/random>``.
 
 ============================== =========================================================================================================
 Engine                         Description
 ============================== =========================================================================================================
-``linear_congruential_engine`` implements linear congruential algorithm
-``subtract_with_carry_engine`` implements subtract with carry algorithm
-``discard_block_engine``       implements discard block adaptor
+``linear_congruential_engine`` Implements a linear congruential algorithm
+``subtract_with_carry_engine`` Implements a subtract-with-carry algorithm
+``discard_block_engine``       Implements a discard block adaptor
 ============================== =========================================================================================================
 
-Predefined random number egnines
+Predefined Random Number Engines
 -----------------------------------
 
-Predefined instantiations of random number engines class templates
-
-Defined in header ``<oneapi/dpl/random>`` under ``oneapi::std::`` namespace
-
-===================================================================== =========================================================================================================
-Type                                                                  Description
-===================================================================== =========================================================================================================
-``minstd_rand0``                                                      ``oneapi::std::linear_congruential_engine<std::uint32_t, 16807, 0, 2147483647>``
-``minstd_rand``                                                       ``oneapi::std::linear_congruential_engine<std::uint32_t, 48271, 0, 2147483647>``
-``ranlux24_base``                                                     ``oneapi::std::subtract_with_carry_engine<std::uint32_t, 24, 10, 24>``
-``ranlux48_base``                                                     ``oneapi::std::subtract_with_carry_engine<std::uint64_t, 48, 5, 12>``
-``ranlux24``                                                          ``oneapi::std::discard_block_engine<ranlux24_base, 223, 23>``
-``ranlux48``                                                          ``oneapi::std::discard_block_engine<ranlux48_base, 389, 11>``
-===================================================================== =========================================================================================================
-
-Defined in header ``<oneapi/dpl/random>`` under ``oneapi::dpl::`` namespace
+Predefined random number engines are instantiations of random number engines class templates. 
+The types below are are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
 
 ===================================================================== =========================================================================================================
 Type                                                                  Description
 ===================================================================== =========================================================================================================
-``template<std::int32_t N> minstd_rand0_vec<N>``                      ``oneapi::std::linear_congruential_engine<sycl::vec<std::uint32_t, N>, 16807, 0, 2147483647>``
-                                                                      minstd_rand0 for vector genertion case
-``template<std::int32_t N> minstd_rand_vec<N>``                       ``oneapi::std::linear_congruential_engine<sycl::vec<std::uint32_t, N>, 48271, 0, 2147483647>``
-                                                                      minstd_rand for vector genertion case
-``template<std::int32_t N> ranlux24_base_vec<N>``                     ``oneapi::std::subtract_with_carry_engine<sycl::vec<std::uint32_t, N>, 24, 10, 24>``
-                                                                      ranlux24_base for vector genertion case
-``template<std::int32_t N> ranlux48_base_vec<N>``                     ``oneapi::std::subtract_with_carry_engine<sycl::vec<std::uint64_t, N>, 48, 5, 12>``
-                                                                      ranlux48_base for vector genertion case
-``template<std::int32_t N> ranlux24_vec<N>``                          ``oneapi::std::discard_block_engine<ranlux24_base_vec<N>, 223, 23>``
-                                                                      ranlux24 for vector genertion case
-``template<std::int32_t N> ranlux48_vec<N>``                          ``oneapi::std::discard_block_engine<ranlux48_base_vec<N>, 389, 11>``
+``minstd_rand0``                                                      ``oneapi::dpl::linear_congruential_engine<std::uint32_t, 16807, 0, 2147483647>``
+``minstd_rand``                                                       ``oneapi::dpl::linear_congruential_engine<std::uint32_t, 48271, 0, 2147483647>``
+``ranlux24_base``                                                     ``oneapi::dpl::subtract_with_carry_engine<std::uint32_t, 24, 10, 24>``
+``ranlux48_base``                                                     ``oneapi::dpl::subtract_with_carry_engine<std::uint64_t, 48, 5, 12>``
+``ranlux24``                                                          ``oneapi::dpl::discard_block_engine<ranlux24_base, 223, 23>``
+``ranlux48``                                                          ``oneapi::dpl::discard_block_engine<ranlux48_base, 389, 11>``
+===================================================================== =========================================================================================================
+
+The engines described below can efficiently generate vectors of random numbers. These types are
+defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
+
+===================================================================== =========================================================================================================
+Type                                                                  Description
+===================================================================== =========================================================================================================
+``template<std::int32_t N> minstd_rand0_vec<N>``                      ``oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, N>, 16807, 0, 2147483647>``
+                                                                      minstd_rand0 for a vector generation case
+``template<std::int32_t N> minstd_rand_vec<N>``                       ``oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, N>, 48271, 0, 2147483647>``
+                                                                      minstd_rand for a vector generation case
+``template<std::int32_t N> ranlux24_base_vec<N>``                     ``oneapi::dpl::subtract_with_carry_engine<sycl::vec<std::uint32_t, N>, 24, 10, 24>``
+                                                                      ranlux24_base for a vector generation case
+``template<std::int32_t N> ranlux48_base_vec<N>``                     ``oneapi::dpl::subtract_with_carry_engine<sycl::vec<std::uint64_t, N>, 48, 5, 12>``
+                                                                      ranlux48_base for a vector generation case
+``template<std::int32_t N> ranlux24_vec<N>``                          ``oneapi::dpl::discard_block_engine<ranlux24_base_vec<N>, 223, 23>``
+                                                                      ranlux24 for a vector generation case
+``template<std::int32_t N> ranlux48_vec<N>``                          ``oneapi::dpl::discard_block_engine<ranlux48_base_vec<N>, 389, 11>``
                                                                       ranlux48 for vector genertion case
 ===================================================================== =========================================================================================================
 
-Random number distributions
+Random Number Distributions
 ---------------------------
 
-Random number distributions process the output of random number engines in such a way that resulting output is distributed according to a defined statistical probability density function
-
-Defined in header ``<oneapi/dpl/random>``
+Random number distributions process the output of random number engines in such a way that the
+resulting output is distributed according to a defined statistical probility density function. They
+are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
 
 ============================== =========================================================================================================
 Distribution                   Description
 ============================== =========================================================================================================
-``uniform_int_distribution``   produces integer values evenly distributed across a range
-``uniform_real_distribution``  produces real values evenly distributed across a range
-``normal_distribution``        produces real values according to the Normal (Gaussian) distribution
+``uniform_int_distribution``   Produces integer values evenly distributed across a range
+``uniform_real_distribution``  Produces real values evenly distributed across a range
+``normal_distribution``        Produces real values according to the Normal (Gaussian) distribution
 ============================== =========================================================================================================
 
-Usage model of oneDPL random number generation functionality
+Usage Model of oneDPL Random Number Generation Functionality
 ------------------------------------------------------------
 
-Random number generation may work for both DPC++ device-side and host-side code.
-
-Example is represented below:
+Random number generation is available for DPC++ device-side and host-side code. Example:
 
 .. code:: cpp
 
     #include <iostream>
     #include <vector>
     #include <CL/sycl.hpp>
-    #include <dstd/random>
+    #include <oneapi/dpl/random>
 
     int main() {
         sycl::queue queue(sycl::default_selector{});
@@ -109,10 +107,10 @@ Example is represented below:
                     std::uint64_t offset = idx.get_linear_id();
 
                     // Create minstd_rand engine
-                    oneapi::std::minstd_rand engine(seed, offset);
+                    oneapi::dpl::minstd_rand engine(seed, offset);
 
                     // Create float uniform_real_distribution distribution
-                    oneapi::std::uniform_real_distribution<float> distr;
+                    oneapi::dpl::uniform_real_distribution<float> distr;
 
                     // Generate float random number
                     auto res = distr(engine);
