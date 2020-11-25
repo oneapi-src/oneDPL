@@ -141,8 +141,9 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             
             # DPC++ specific link options
             target_link_libraries(oneDPL INTERFACE
-                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-Xshardware>
-                $<$<AND:$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
+                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
+                $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
+                $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
                 $<$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
                 $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_REL}>
                 $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_DEB}>
