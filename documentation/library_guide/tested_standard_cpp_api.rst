@@ -1,35 +1,40 @@
 Tested Standard C++ APIs
 ################################
-Contains the Tested Standard C++ APIs for Intel® oneAPI DPC++ Library.
-The basic functionality for a number of C++ standard APIs has been tested for use in DPC++ kernels. These APIs can be employed in device kernels similarly to how they are employed in code for a typical CPU-based platform. The Tested Standard C++ APIs are added to namespace "oneapi::std" and "oneapi::dpl", corresponding headers are also added in oneDPL package. In order to use these APIs via namespace "oneapi::std" or "oneapi::dpl", headers in <oneapi/dpl/...> must be included. Currently, Tested Standard C++ APIs can be used in 3 ways:
-1. via namespace "std::" and standard headers(e.g <utility>...)
-2. via namespace "oneapi::std" and oneDPL headers(e.g <oneapi/dpl/utility>...)
-3. via namespace "oneapi::dpl" and oneDPL headers(e.g <oneapi/dpl/utility>...)
-Below is an example code that shows how to use oneapi::std::swap in SYCL device code:
 
-Example:
+Contains the Tested Standard C++ APIs for oneAPI DPC++ Library (oneDPL).
+
+The basic functionality for a number of C++ standard APIs has been tested for use in DPC++ kernels.
+These APIs can be employed in device kernels similarly to how they are employed in code for a typical CPU-based platform.
+The Tested Standard C++ APIs are added to namespace "oneapi::dpl", corresponding headers have been added in the oneDPL package.
+In order to use these APIs via the namespace "oneapi::dpl", the headers in <oneapi/dpl/...> must be included.
+Currently, Tested Standard C++ APIs can be used in two ways:
+
+  #. Via the namespace "std::" and standard headers(e.g <utility>...)
+  #. Via the namespace "oneapi::dpl" and oneDPL headers(e.g <oneapi/dpl/utility>...)
+
+Below is an example code that shows how to use oneapi::dpl::swap in SYCL device code:
 
 .. code:: cpp
 
   #include <CL/sycl.hpp>
   #include <oneapi/dpl/utility>
   #include <iostream>
-  constexpr cl::sycl::access::mode sycl_read_write = cl::sycl::access::mode::read_write;
+  constexpr sycl::access::mode sycl_read_write = sycl::access::mode::read_write;
   class KernelSwap;
   void kernel_test() {    
-    cl::sycl::queue deviceQueue;
-    cl::sycl::range<1> numOfItems{2};
-    cl::sycl::cl_int swap_num[2] = {4, 5};
+    sycl::queue deviceQueue;
+    sycl::range<1> numOfItems{2};
+    sycl::cl_int swap_num[2] = {4, 5};
     std::cout << swap_num[0] << ", " << swap_num[1] << std::endl;
     {
-    cl::sycl::buffer<cl::sycl::cl_int, 1> swap_buffer
+    sycl::buffer<sycl::cl_int, 1> swap_buffer
     (swap_num, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler &cgh) {
+    deviceQueue.submit([&](sycl::handler &cgh) {
     auto swap_accessor = swap_buffer.get_access<sycl_read_write>(cgh);
     cgh.single_task<class KernelSwap>([=]() {
         int & num1 = swap_accessor[0];
         int & num2 = swap_accessor[1];
-        oneapi::std::swap(num1, num2);
+        oneapi::dpl::swap(num1, num2);
         });
     });
     }
@@ -54,7 +59,6 @@ The printed result is:
 
 Tested Standard C++ API Reference
 =================================
-
 
 ================================= ========== ========== ==========
 C++ Standard API                  libstdc++  libc++     MSVC
@@ -233,85 +237,85 @@ std::ratio                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
 std::complex                      Tested                Tested
 --------------------------------- ---------- ---------- ----------
-std::assert                       Tested                Tested
+std::assert                       Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::sin                          Tested                Tested
+std::sin                          Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::cos                          Tested                Tested
+std::cos                          Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::tan                          Tested                Tested
+std::tan                          Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::asin                         Tested                Tested
+std::asin                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::acos                         Tested                Tested
+std::acos                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::atan                         Tested                Tested
+std::atan                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::atan2                        Tested                Tested
+std::atan2                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::sinh                         Tested                Tested
+std::sinh                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::cosh                         Tested                Tested
+std::cosh                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::tanh                         Tested                Tested
+std::tanh                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::asinh                        Tested                Tested
+std::asinh                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::acosh                        Tested                Tested
+std::acosh                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::atanh                        Tested                Tested
+std::atanh                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::exp                          Tested                Tested
+std::exp                          Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::frexp                        Tested                Tested
+std::frexp                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::ldexp                        Tested                Tested
+std::ldexp                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::log                          Tested                Tested
+std::log                          Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::log10                        Tested                Tested
+std::log10                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::modf                         Tested                Tested
+std::modf                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::exp2                         Tested                Tested
+std::exp2                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::expm1                        Tested                Tested
+std::expm1                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::ilogb                        Tested                Tested
+std::ilogb                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::log1p                        Tested                Tested
+std::log1p                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::log2                         Tested                Tested
+std::log2                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::logb                         Tested                Tested
+std::logb                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::pow                          Tested                Tested
+std::pow                          Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::sqrt                         Tested                Tested
+std::sqrt                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::cbrt                         Tested                Tested
+std::cbrt                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::hypot                        Tested                Tested
+std::hypot                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::erf                          Tested                Tested
+std::erf                          Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::erfc                         Tested                Tested
+std::erfc                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::tgamma                       Tested                Tested
+std::tgamma                       Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::lgamma                       Tested                Tested
+std::lgamma                       Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::fmod                         Tested                Tested
+std::fmod                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::remainder                    Tested                Tested
+std::remainder                    Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::remquo                       Tested                Tested
+std::remquo                       Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::nextafter                    Tested                Tested
+std::nextafter                    Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::fdim                         Tested                Tested
+std::fdim                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::optional                     Tested                Tested
+std::optional                     Tested     Tested     Tested
 ================================= ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

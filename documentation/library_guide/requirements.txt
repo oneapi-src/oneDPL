@@ -1,0 +1,6 @@
+breathe==4.9.1
+sphinx==3.2.1
+docutils==0.14
+sphinx_rtd_theme
+sphinx-intl==2.0.0
+sphinx-tabs

@@ -243,13 +243,13 @@ lesser argument unchanged.
 - maximum: A function object type where the operator() applies ``std::greater`` to its arguments, then returns the
 greater argument unchanged.
 
-
 Range-based API
 --------------------------
 
 C++20 indroduces the *Ranges* library. С++20 standard splits ranges into two categories: *factories* and *adaptors*.
 A range factory doesn't have underlying data. An element is generated on success by an index or by dereferencing an iterator.
-A range adaptor, from the DPC++ library perspective, is an utility that transforms *base range*, or another adapted range into a view with custom behavior.
+A range adaptor, from the DPC++ library perspective, is an utility that transforms *base range*, or another adapted range into 
+a view with custom behavior.
 
 The DPC++ library supports ``iota_view`` range factory.
 
@@ -264,7 +264,8 @@ The range adaptors may be combined into a pipeline with a ``base`` range at the 
     auto range_1 = iota_view(0, 10) | views::reverse();
     auto range_2 = all_view(buf) | views::reverse();
 
-For the range, based on the ``all_view`` factory, data access is permitted on a device only. ``size()`` and ``empty()`` methods are allowed to be called on both host and device.
+For the range, based on the ``all_view`` factory, data access is permitted on a device only. ``size()`` and ``empty()`` methods are allowed 
+to be called on both host and device.
 
 The following algorithms are available to use with the ranges:
 
