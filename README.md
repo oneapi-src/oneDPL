@@ -12,10 +12,10 @@ oneDPL consists of following components:
 Install Intel(R) oneAPI Base Toolkit (Base Kit) to use oneDPL and please refer to [System requirements](https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-system-requirements-beta.html).
 
 ## Release Information
-Here is the latest [Release Notes](https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes-beta.html). Refer to the "[LICENSE](licensing/LICENSE.txt)" file for the full license text and copyright notice.
+Here is the latest [Release Notes](https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes-beta.html).
 
 ## License
-oneDPL is licensed under [Apache License Version 2.0 with LLVM exceptions](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt).
+oneDPL is licensed under [Apache License Version 2.0 with LLVM exceptions](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt). Refer to the "[LICENSE](licensing/LICENSE.txt)" file for the full license text and copyright notice.
 
 ## Security
 See Intel's [Security Center](https://www.intel.com/content/www/us/en/security-center/default.html)
