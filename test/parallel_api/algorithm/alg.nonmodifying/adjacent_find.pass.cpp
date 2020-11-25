@@ -20,7 +20,6 @@
 
 #include "support/utils.h"
 
-
 using namespace TestUtils;
 
 template <typename T>

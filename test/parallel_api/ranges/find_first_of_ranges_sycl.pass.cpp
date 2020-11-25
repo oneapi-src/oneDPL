@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -24,6 +22,8 @@
 #endif
 
 #include "support/utils.h
+
+#include <iostream>
 
 int32_t
 main()

@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <cmath>
-
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -26,6 +24,8 @@
 #include "support/utils.h"
 
 #include "oneapi/dpl/pstl/utils.h"
+
+#include <cmath>
 
 #if !defined(_PSTL_TEST_FOR_EACH) && \
     !defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY) && \
