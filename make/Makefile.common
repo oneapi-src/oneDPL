@@ -1,0 +1,152 @@
+##===-- Makefile.common ---------------------------------------------------===##
+#
+# Copyright (C) 2017-2020 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
+
+#------------------------------------------------------------------------------
+# Define common parts for Parallel STL
+#------------------------------------------------------------------------------
+
+.SUFFIXES:
+
+goals = $(or $(MAKECMDGOALS),all)
+ifneq (, $(filter-out clean clean_all,$(goals)))
+    ifeq (, $(filter $(backend), serial tbb sycl_only sycl))
+        $(info Threading backend was not specified; using TBB)
+        backend=tbb
+    endif
+endif
+
+ifndef os_name
+  # Windows sets environment variable OS; for other systems, ask uname
+  ifeq ($(OS),)
+    OS:=$(shell uname)
+    ifeq ($(OS),)
+      $(error "Cannot detect operating system")
+    endif
+    os_name=$(OS)
+  endif
+
+  ifeq ($(OS), Windows_NT)
+    os_name=windows
+  endif
+  ifeq ($(OS), Linux)
+    os_name=linux
+  endif
+  ifeq ($(OS), Darwin)
+    os_name=macos
+  endif
+endif # !os_name
+
+cfg ?= release
+
+device_type ?= GPU
+use_unnamed_lambda ?= 0
+ranges_api ?= 0
+
+ifeq ($(backend), sycl)
+    ifeq ($(findstring FPGA, $(device_type)),)
+        export SYCL_DEVICE_TYPE=$(device_type)
+    endif
+endif
+
+# refer to "FPGA flow" chapter in "Intel oneAPI Programming Guide" for more info
+static_report ?= 0
+ifneq ($(static_report), 0)
+    ifneq ($(backend), sycl)
+        $(warning "static_report is set, but will not be used due to wrong backend: $(backend), supported backend: sycl")
+    endif
+    ifneq ($(device_type), FPGA)
+        $(warning static_report is set, but will not be used due to wrong device type: $(device_type), supported device type: FPGA")
+    endif
+endif
+
+target ?= $(os_name)
+#OS specific keys
+ifeq ($(target),windows)
+    include $(proj_root)/make/windows.inc
+else
+    include $(proj_root)/make/unix.inc
+    ifneq (,$(wildcard $(proj_root)/make/$(target).inc))
+        include $(proj_root)/make/$(target).inc
+        $(info included additional file $(proj_root)/make/$(target).inc)
+    endif
+endif
+
+# compiler specific keys
+ifneq (, $(filter $(compiler), gcc g++))
+    include $(proj_root)/make/gcc.inc
+endif
+
+ifneq (, $(filter $(compiler), clang clang++))
+    include $(proj_root)/make/clang.inc
+endif
+
+ifneq (, $(filter $(compiler), icc icpc))
+    include $(proj_root)/make/icc.inc
+endif
+
+ifneq (, $(filter $(compiler), icl))
+    include $(proj_root)/make/icl.inc
+endif
+
+ifneq (, $(filter $(compiler), dpcpp dpc++))
+    include $(proj_root)/make/dpcpp.inc
+endif
+
+CPLUS := $(compiler) $(COMPILER_NOLOGO_KEY) $(USE_SHARED_CPPRUNTIME_KEY)
+
+ifdef extra_def_macros
+    EXTRA_DEF_MACROS = $(patsubst %,$(KEY)D%, $(extra_def_macros))
+endif
+
+override INCLUDES += $(KEY)I$(proj_root)/include $(KEY)I$(proj_root)/test/pstl_testsuite $(KEY)I$(proj_root)/stdlib
+
+TEST_MACRO += $(KEY)D_PSTL_TEST_SUCCESSFUL_KEYWORD=1
+
+OPTIMIZATION_ENABLED_FLAGS += $(XHOST_FLAG)
+OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG)
+
+
+ifeq ($(cfg), debug)
+    TBB_LIB_NAME = tbb_debug
+    BACKEND_MACRO += $(KEY)DTBB_USE_DEBUG=1
+    DEBUG_MACRO += $(KEY)DPSTL_USE_DEBUG
+    OPTIMIZATION_KEYS = $(OPTIMIZATION_DISABLED_FLAGS)
+else
+    OPTIMIZATION_KEYS = $(OPTIMIZATION_ENABLED_FLAGS)
+endif
+
+ifeq ($(backend), serial)
+    EXTRA_DEF_MACROS += $(KEY)DONEDPL_USE_TBB_BACKEND=0 $(KEY)DONEDPL_USE_DPCPP_BACKEND=0
+endif
+
+ifeq ($(backend), sycl_only)
+    EXTRA_DEF_MACROS += $(KEY)DONEDPL_USE_TBB_BACKEND=0
+endif
+
+ifeq ($(backend), tbb)
+    EXTRA_DEF_MACROS += $(KEY)DONEDPL_USE_DPCPP_BACKEND=0
+endif
+
+DYN_LDFLAGS += $(PSTL_ARCH)
+
+CPLUS_FLAGS += $(EXTRA_DEF_MACROS)
+CPLUS_FLAGS += $(TEST_MACRO)
+CPLUS_FLAGS += $(INCLUDES)
+CPLUS_FLAGS += $(BACKEND_MACRO)
+CPLUS_FLAGS += $(DEBUG_MACRO)
+CPLUS_FLAGS += $(CXXFLAGS)
+CPLUS_FLAGS += $(OPTIMIZATION_KEYS)
+
+CPLUS_FLAGS += $(DISABLED_WARNINGS)
+CPLUS_FLAGS += $(PSTL_ARCH)
