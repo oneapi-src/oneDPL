@@ -14,7 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
+
+#include _PSTL_TEST_HEADER(execution)
 
 #if _ONEDPL_BACKEND_SYCL
 
@@ -28,6 +29,7 @@ void CheckTuple() {
 
 #endif
 
+#include "support/utils.h"
 
 int main() {
 #if _ONEDPL_BACKEND_SYCL

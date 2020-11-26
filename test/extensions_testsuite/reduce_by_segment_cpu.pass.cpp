@@ -13,9 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
+
+#include <iostream>
 
 template<typename _T1, typename _T2>
 void ASSERT_EQUAL(_T1&& X, _T2&& Y) {

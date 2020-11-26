@@ -13,15 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-#include <chrono>
-
-#include <CL/sycl.hpp>
-
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/iterator>
+
+#include <iostream>
+#include <chrono>
+
+#include <CL/sycl.hpp>
 
 template<typename _T1, typename _T2> void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
     if(X!=Y)

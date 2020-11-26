@@ -13,14 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
-#ifndef ONEDPL_STANDARD_POLICIES_ONLY
-#include <CL/sycl.hpp>
-#else
-#include <vector>
-#endif
-
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/numeric>
@@ -28,6 +20,14 @@
 #include <oneapi/dpl/iterator>
 
 #include <oneapi/dpl/functional>
+
+#include <iostream>
+
+#ifndef ONEDPL_STANDARD_POLICIES_ONLY
+#include <CL/sycl.hpp>
+#else
+#include <vector>
+#endif
 
 template<typename Iterator, typename T>
 bool check_values(Iterator first, Iterator last, const T& val)

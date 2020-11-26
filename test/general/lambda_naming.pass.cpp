@@ -13,9 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if _ONEDPL_BACKEND_SYCL
-#    include <CL/sycl.hpp>
-#endif
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -24,6 +21,10 @@
 #include _PSTL_TEST_HEADER(iterator)
 
 #include "support/utils.h"
+
+#if _ONEDPL_BACKEND_SYCL
+#    include <CL/sycl.hpp>
+#endif
 
 using namespace TestUtils;
 

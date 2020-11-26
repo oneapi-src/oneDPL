@@ -13,13 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
-#include <CL/sycl.hpp>
-
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
+
+#include <iostream>
+
+#include <CL/sycl.hpp>
 
 int main()
 {

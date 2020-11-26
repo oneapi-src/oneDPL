@@ -13,14 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "oneapi/dpl/execution"
+#include "oneapi/dpl/algorithm"
+#include "oneapi/dpl/iterator"
+
 #include <iostream>
 #include <iomanip>
 
 #include <CL/sycl.hpp>
-
-#include "oneapi/dpl/execution"
-#include "oneapi/dpl/algorithm"
-#include "oneapi/dpl/iterator"
 
 template<typename _T1, typename _T2>
 void ASSERT_EQUAL(_T1&& X, _T2&& Y) {

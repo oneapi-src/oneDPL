@@ -13,9 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <cmath>
-#include <type_traits>
-
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -26,6 +23,9 @@
 
 #include "support/utils.h"
 #include "oneapi/dpl/pstl/utils.h"
+
+#include <cmath>
+#include <type_traits>
 
 using namespace TestUtils;
 
