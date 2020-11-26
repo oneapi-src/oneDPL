@@ -2,7 +2,7 @@
 
 The project uses CMake for integration and testing purposes.
 
-Conguration phase can be customized by passing additional variables: `cmake -D<var1>=<val1> -D<var2>=<val2> ... -D<varN>=<valN> <sources-dir>`
+Configuration phase can be customized by passing additional variables: `cmake -D<var1>=<val1> -D<var2>=<val2> ... -D<varN>=<valN> <sources-dir>`
 
 The following variables are provided for oneDPL configuration:
 
@@ -37,8 +37,8 @@ The following targets are available for build system after configuration:
 - `run-<test-name>` - build and run specific test, e.g. `run-for_each.pass`;
 - `build-<tests-subdir>` - build all tests from specific subdirectory under `<root>/test`, e.g. `build-std`;
 - `run-<tests-subdir>` - build and run all tests from specific subdirectory under `<root>/test`, e.g. `run-std`;
-- build-all - build all tests;
-- run-all - build and run all tests.
+- `build-all` - build all tests;
+- `run-all` - build and run all tests.
 
 Sudirectories are added as labels for each test and can be used with `ctest -L <label>`.
 For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` labels.
