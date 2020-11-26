@@ -21,7 +21,7 @@ option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
 option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
 option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
-option(ONEDPL_USE_OFFLINE_COMPILATION "Enable the offline compilation via OCLOC compiler" OFF)
+option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
@@ -97,19 +97,19 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             endif()
 
             # settings for the specific compilation type
-            if (NOT ONEDPL_USE_OFFLINE_COMPILATION)
-                message(STATUS "Use online compilation. No additional parameters needed")
+            if (NOT ONEDPL_USE_AOT_COMPILATION)
+                message(STATUS "Use the ahead of time compilation. No additional parameters needed")
             else()
-                if (NOT ONEDPL_COMPILE_ARCH)
-                    set(ONEDPL_COMPILE_ARCH "*")
-                    message(STATUS "Offline compilation for all available architectures")
+                if (NOT ONEDPL_AOT_ARCH)
+                    set(ONEDPL_AOT_ARCH "*")
+                    message(STATUS "Ahead of time compilation for all available architectures")
                 else()
-                    string(TOLOWER ${ONEDPL_COMPILE_ARCH} ONEDPL_COMPILE_ARCH)
-                    message(STATUS "Offline compilation for ${ONEDPL_COMPILE_ARCH} architecture")
+                    string(TOLOWER ${ONEDPL_AOT_ARCH} ONEDPL_AOT_ARCH)
+                    message(STATUS "Ahead of time compilation for ${ONEDPL_AOT_ARCH} architecture")
                 endif()
-                set(ONEDPL_OFFLINE_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_COMPILE_ARCH}\"")
-                set(ONEDPL_OFFLINE_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_COMPILE_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
-                set(ONEDPL_OFFLINE_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_COMPILE_ARCH} -internal_options -cl-kernel-debug-enable\"")
+                set(ONEDPL_AOT_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_AOT_ARCH}\"")
+                set(ONEDPL_AOT_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
+                set(ONEDPL_AOT_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable\"")
             endif()
 
             # check device type
@@ -154,10 +154,10 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
                 $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
                 $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
                 $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
-                $<$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
-                $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_REL}>
-                $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_DEB}>
-                $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_OFFLINE_COMPILATION}>>:${ONEDPL_OFFLINE_COMP_OPTION_RELDEB}>
+                $<$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
+                $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_REL}>
+                $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_DEB}>
+                $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_RELDEB}>
                 )
         endif()
 
