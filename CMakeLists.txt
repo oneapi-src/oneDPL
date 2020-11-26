@@ -17,8 +17,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 project(oneDPL VERSION 2021.1 LANGUAGES CXX)
 
-set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
-
 option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
 option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
 option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
@@ -27,6 +25,18 @@ option(ONEDPL_USE_OFFLINE_COMPILATION "Enable the offline compilation via OCLOC 
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
+
+# Set default back-end in according with compiler (DPC++ or others)
+check_cxx_compiler_flag("-fsycl" _fsycl_option)
+if (NOT ONEDPL_BACKEND)
+    if (_fsycl_option)
+        set(ONEDPL_BACKEND "sycl" CACHE STRING "Threading backend; defaults to SYCL")
+    else()
+        set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
+    endif()
+    string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
+    message(STATUS "Use ${ONEDPL_BACKEND} as default back-end")
+endif()
 
 ###############################################################################
 # Setup the oneDPL library target
@@ -45,7 +55,8 @@ if (MSVC)
 endif()
 
 if (ONEDPL_USE_PARALLEL_POLICIES)
-    message(STATUS "Using Parallel Policies with ${ONEDPL_BACKEND} backend")
+    string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
+    message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
     string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
     if (ONEDPL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
@@ -80,7 +91,6 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             )
 
         if (ONEDPL_BACKEND MATCHES "^(sycl|sycl_only)$")
-            check_cxx_compiler_flag("-fsycl" _fsycl_option)
             if (NOT _fsycl_option)
                 message(FATAL_ERROR "Compiler doesn't support SYCL extensions (-fsycl option).\n"
                 "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
