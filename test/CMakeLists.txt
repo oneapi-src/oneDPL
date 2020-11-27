@@ -21,9 +21,6 @@ add_custom_target(run-all
     DEPENDS build-all
     COMMENT "Build and run all the unit tests.")
 
-add_library(test_support INTERFACE)
-target_include_directories(test_support INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/pstl_testsuite")
-
 macro(onedpl_add_test test_source_file)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
@@ -34,7 +31,7 @@ macro(onedpl_add_test test_source_file)
         target_compile_options(${_test_name} PRIVATE /bigobj)
     endif()
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
-    target_link_libraries(${_test_name} PRIVATE oneDPL test_support)
+    target_link_libraries(${_test_name} PRIVATE oneDPL)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
     if (ONEDPL_DEVICE_TYPE)
         set(SYCL_DEVICE_TYPE ${ONEDPL_DEVICE_TYPE})
@@ -74,10 +71,6 @@ macro(onedpl_add_test test_source_file)
     endforeach()
     add_dependencies(build-all ${_test_name})
 endmacro()
-
-#add_subdirectory(pstl_testsuite)
-#add_subdirectory(extenstions_testsuite)
-#if (ONEDPL_BACKEND MATCHES "^(sycl|sycl_only)$")
 
 set(_skip_regex_for_not_sycl "(rng_testsuite|extensions_testsuite)")
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
