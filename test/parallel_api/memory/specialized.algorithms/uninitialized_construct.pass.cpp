@@ -17,10 +17,11 @@
 //           uninitialized_value_consruct,   uninitialized_value_consruct_n
 
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(memory)
+
+#include "support/utils.h"
 
 #if  !defined(_PSTL_TEST_UNITIALIZED_DEFAULT_CONSTRUCT) && !defined(_PSTL_TEST_UNITIALIZED_DEFAULT_CONSTRUCT_N) &&\
      !defined(_PSTL_TEST_UNITIALIZED_VALUE_CONSTRUCT) && !defined(_PSTL_TEST_UNITIALIZED_VALUE_CONSTRUCT_N)

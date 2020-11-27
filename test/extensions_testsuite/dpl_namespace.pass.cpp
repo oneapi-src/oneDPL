@@ -13,14 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
-#include <CL/sycl.hpp>
-
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
 #include <oneapi/dpl/functional>
+
+#include <iostream>
+
+#include <CL/sycl.hpp>
 
 namespace sycl = cl::sycl;
 

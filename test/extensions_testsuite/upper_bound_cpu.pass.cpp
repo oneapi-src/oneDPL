@@ -13,11 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
+
+#include <iostream>
 
 class binarySearch {};
 int main()

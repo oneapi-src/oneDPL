@@ -14,11 +14,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
 #include _PSTL_TEST_HEADER(algorithm)
+
+#include "support/utils.h"
 
 #if  !defined(_PSTL_TEST_TRANSFORM_INCLUSIVE_SCAN) && !defined(_PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN)
 #define _PSTL_TEST_TRANSFORM_INCLUSIVE_SCAN

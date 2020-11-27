@@ -16,10 +16,11 @@
 // Tests for transform
 
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
+
+#include "support/utils.h"
 
 using namespace TestUtils;
 

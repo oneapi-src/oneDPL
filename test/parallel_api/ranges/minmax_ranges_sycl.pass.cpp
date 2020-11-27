@@ -13,16 +13,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
 #include "support/pstl_test_config.h"
-#include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
 #if _ONEDPL_USE_RANGES
 #include _PSTL_TEST_HEADER(ranges)
 #endif
+
+#include "support/utils.h"
+
+#include <iostream>
 
 int32_t
 main()

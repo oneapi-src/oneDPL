@@ -13,10 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <oneapi/dpl/pstl/onedpl_config.h>
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
+
+#include <oneapi/dpl/pstl/onedpl_config.h>
 
 #include "support/utils.h"
 
