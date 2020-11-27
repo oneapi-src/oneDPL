@@ -35,7 +35,7 @@ if (NOT ONEDPL_BACKEND)
         set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
     endif()
     string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
-    message(STATUS "Use ${ONEDPL_BACKEND} as default back-end")
+    message(STATUS "Use ${ONEDPL_BACKEND} as default backend")
 endif()
 
 ###############################################################################
@@ -43,15 +43,16 @@ endif()
 ###############################################################################
 add_library(oneDPL INTERFACE)
 
-# Build type by default
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+if (CMAKE_BUILD_TYPE)
+    message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
+else()
+    message(STATUS "Build type is not set")
 endif()
-message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
 
-# Enable C++ version switch and the processing of exceptions for MSVC
 if (MSVC)
     target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc)
+else()
+    target_compile_options(oneDPL INTERFACE $<$<CONFIG:Debug>:-O0>)
 endif()
 
 if (ONEDPL_USE_PARALLEL_POLICIES)
@@ -182,11 +183,6 @@ target_include_directories(oneDPL
     INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
-
-target_compile_features(oneDPL
-    INTERFACE
-    cxx_constexpr
-    cxx_inline_namespaces)
 
 ###############################################################################
 # Setup tests
