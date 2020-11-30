@@ -33,14 +33,16 @@ macro(onedpl_add_test test_source_file)
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
+
+    add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
     if (ONEDPL_DEVICE_TYPE)
+        # TODO: Consider replacement of SYCL_DEVICE_TYPE with a new variable.
+        #       See for details: https://github.com/intel/llvm/blob/sycl/sycl/doc/EnvironmentVariables.md
         set(SYCL_DEVICE_TYPE ${ONEDPL_DEVICE_TYPE})
         if (ONEDPL_DEVICE_TYPE MATCHES "FPGA")
             set(SYCL_DEVICE_TYPE ACC)
         endif()
-        add_test(NAME ${_test_name} COMMAND ${CMAKE_COMMAND} -E env SYCL_DEVICE_TYPE=${SYCL_DEVICE_TYPE} ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
-    else()
-        add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
+        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT SYCL_DEVICE_TYPE=${SYCL_DEVICE_TYPE})
     endif()
 
     add_custom_target(run-${_test_name}
