@@ -43,6 +43,28 @@
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
 #endif
 
+namespace oneapi
+{
+namespace dpl
+{
+using ::std::accumulate;
+using ::std::adjacent_difference;
+using ::std::inner_product;
+using ::std::iota;
+using ::std::partial_sum;
+#if (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
+    (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
+using ::std::exclusive_scan;
+using ::std::inclusive_scan;
+using ::std::reduce;
+using ::std::transform_exclusive_scan;
+using ::std::transform_inclusive_scan;
+using ::std::transform_reduce;
+#endif
+} // namespace dpl
+
+} // namespace oneapi
+
 namespace dpl = oneapi::dpl;
 
 namespace std
