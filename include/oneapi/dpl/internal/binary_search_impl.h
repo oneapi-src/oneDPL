@@ -19,7 +19,7 @@
 
 #include "function.h"
 #include "binary_search_extension_defs.h"
-#include "oneapi/dpl/iterator"
+#include "../iterator"
 
 namespace oneapi
 {

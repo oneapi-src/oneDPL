@@ -18,9 +18,9 @@
 
 #include <utility>
 #if _ONEDPL_BACKEND_SYCL
-#    include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
+#    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #endif
-#include <oneapi/dpl/functional>
+#include "../functional"
 #include <tuple>
 
 namespace oneapi

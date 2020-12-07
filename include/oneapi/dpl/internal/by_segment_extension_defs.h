@@ -19,7 +19,7 @@
 #ifndef DPCPP_BY_SEGMENT_EXTENSION_DEFS_H_
 #define DPCPP_BY_SEGMENT_EXTENSION_DEFS_H_
 
-#include <oneapi/dpl/pstl/onedpl_config.h>
+#include "../pstl/onedpl_config.h"
 
 namespace oneapi
 {

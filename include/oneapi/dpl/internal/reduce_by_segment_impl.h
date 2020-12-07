@@ -19,7 +19,7 @@
 #ifndef DPSTD_REDUCE_BY_KEY
 #define DPSTD_REDUCE_BY_KEY
 
-#include "oneapi/dpl/iterator"
+#include "../iterator"
 #include "function.h"
 #include "by_segment_extension_defs.h"
 
