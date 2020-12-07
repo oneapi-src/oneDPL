@@ -110,8 +110,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // scatter the keys and accumulated values
     typename internal::rebind_policy<policy_type, class ReduceByKey3>::type policy3(policy);
     oneapi::dpl::for_each(policy3, make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1),
-                    make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1) + n,
-                    internal::scatter_and_accumulate_fun<OutputIterator1, OutputIterator2>(result1, result2));
+                          make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1) + n,
+                          internal::scatter_and_accumulate_fun<OutputIterator1, OutputIterator2>(result1, result2));
 
     // for example: result1 = {1, 2, 3, 4, 1, 3, 1, 3, 0}
     // for example: result2 = {1, 2, 3, 4, 2, 6, 2, 6, 0}
@@ -124,8 +124,8 @@ template <typename Policy, typename InputIterator1, typename InputIterator2, typ
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
     oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-    !oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
-    !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
+        !oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
+        !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
     ::std::pair<OutputIterator1, OutputIterator2>>::type
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
@@ -205,7 +205,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // Compute the indicies each segment sum should be written
     typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                          ::std::plus<CountType>());
+                                ::std::plus<CountType>());
 
     // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
 
@@ -231,15 +231,15 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     {
         auto permute_it1 = make_permutation_iterator(result1, _scanned_tail_flags.get());
         oneapi::dpl::for_each(policy3, make_zip_iterator(first1, _mask.get() + 1, permute_it1),
-                        make_zip_iterator(last1, _mask.get() + 1 + n, permute_it1 + n),
-                        internal::transform_if_stencil_fun<FlagType, identity>(identity()));
+                              make_zip_iterator(last1, _mask.get() + 1 + n, permute_it1 + n),
+                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
     }
 
     {
         auto permute_it2 = make_permutation_iterator(result2, _scanned_tail_flags.get());
         oneapi::dpl::for_each(policy4, make_zip_iterator(_scanned_values.get(), _mask.get() + 1, permute_it2),
-                        make_zip_iterator(_scanned_values.get() + n, _mask.get() + 1 + n, permute_it2 + n),
-                        internal::transform_if_stencil_fun<FlagType, identity>(identity()));
+                              make_zip_iterator(_scanned_values.get() + n, _mask.get() + 1 + n, permute_it2 + n),
+                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
     }
     // for example: result1 = {1, 2, 3, 4, 1, 3, 1, 3, 0}
     // for example: result2 = {1, 2, 3, 4, 2, 6, 2, 6, 0}
@@ -251,8 +251,8 @@ template <typename Policy, typename InputIterator1, typename InputIterator2, typ
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
     oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-    oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
-    !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
+        oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
+        !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
     ::std::pair<OutputIterator1, OutputIterator2>>::type
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
@@ -332,7 +332,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // Compute the indicies each segment sum should be written
     typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                          ::std::plus<CountType>());
+                                ::std::plus<CountType>());
 
     // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
 
@@ -360,8 +360,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     {
         auto permute_it2 = make_permutation_iterator(result2, _scanned_tail_flags.get());
         oneapi::dpl::for_each(policy4, make_zip_iterator(_scanned_values.get(), _mask.get() + 1, permute_it2),
-                        make_zip_iterator(_scanned_values.get() + n, _mask.get() + 1 + n, permute_it2 + n),
-                        internal::transform_if_stencil_fun<FlagType, identity>(identity()));
+                              make_zip_iterator(_scanned_values.get() + n, _mask.get() + 1 + n, permute_it2 + n),
+                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
     }
     // for example: result2 = {1, 2, 3, 4, 2, 6, 2, 6, 0}
 
@@ -371,8 +371,8 @@ template <typename Policy, typename InputIterator1, typename InputIterator2, typ
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
     oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-    !oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
-    oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
+        !oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
+        oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
     ::std::pair<OutputIterator1, OutputIterator2>>::type
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
@@ -452,7 +452,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // Compute the indicies each segment sum should be written
     typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                          ::std::plus<CountType>());
+                                ::std::plus<CountType>());
 
     // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
 
@@ -478,8 +478,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     {
         auto permute_it1 = make_permutation_iterator(result1, _scanned_tail_flags.get());
         oneapi::dpl::for_each(policy3, make_zip_iterator(first1, _mask.get() + 1, permute_it1),
-                        make_zip_iterator(last1, _mask.get() + 1 + n, permute_it1 + n),
-                        internal::transform_if_stencil_fun<FlagType, identity>(identity()));
+                              make_zip_iterator(last1, _mask.get() + 1 + n, permute_it1 + n),
+                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
     }
 
     // result2 is a discard_iterator instance so we omit the write to it.

@@ -126,7 +126,8 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
-                           zip_vw).wait();
+                           zip_vw)
+        .wait();
     return result + value_size;
 }
 
@@ -151,7 +152,8 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
-                           zip_vw).wait();
+                           zip_vw)
+        .wait();
     return result + value_size;
 }
 
@@ -176,7 +178,8 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
-                           zip_vw).wait();
+                           zip_vw)
+        .wait();
     return result + value_size;
 }
 
