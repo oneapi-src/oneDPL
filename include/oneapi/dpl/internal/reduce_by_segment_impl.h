@@ -19,7 +19,7 @@
 #ifndef DPSTD_REDUCE_BY_KEY
 #define DPSTD_REDUCE_BY_KEY
 
-#include "../iterator"
+#include "../pstl/iterator_impl.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
 
@@ -96,8 +96,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // Compute the indicies each segment sum should be written
     typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
-    ::std::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                          ::std::plus<CountType>());
+    oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
+                                ::std::plus<CountType>());
 
     // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
 

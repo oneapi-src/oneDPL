@@ -19,7 +19,7 @@
 #ifndef DPCPP_INCLUSIVE_SCAN_BY_KEY_IMPL_H_
 #define DPCPP_INCLUSIVE_SCAN_BY_KEY_IMPL_H_
 
-#include "../numeric"
+#include "../pstl/glue_numeric_impl.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
 
