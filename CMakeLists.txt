@@ -38,9 +38,9 @@ include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
 if (NOT ONEDPL_BACKEND)
     if (_fsycl_option)
-        set(ONEDPL_BACKEND "sycl" CACHE STRING "Threading backend; defaults to SYCL")
+        set(ONEDPL_BACKEND "dpcpp" CACHE STRING "Threading backend")
     else()
-        set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
+        set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend")
     endif()
     string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
     message(STATUS "Use ${ONEDPL_BACKEND} as default backend")
@@ -68,11 +68,11 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
     message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
     string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
-    if (ONEDPL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
+    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
         set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
-        if (ONEDPL_BACKEND MATCHES "^(tbb|sycl)$")
+        if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
             find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
             message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
             target_link_libraries(oneDPL INTERFACE TBB::tbb)
@@ -95,13 +95,13 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
             $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
-            $<$<BOOL:${ONEDPL_USE_BACKEND_SYCL_ONLY}>:ONEDPL_USE_TBB_BACKEND=0> 
+            $<$<BOOL:${ONEDPL_USE_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
             $<$<BOOL:${ONEDPL_USE_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
             )
 
-        if (ONEDPL_BACKEND MATCHES "^(sycl|sycl_only)$")
+        if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
             if (NOT _fsycl_option)
-                message(FATAL_ERROR "Compiler doesn't support SYCL extensions (-fsycl option).\n"
+                message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
                 "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
             endif()
 
@@ -157,7 +157,7 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
                 $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
                 $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>:ONEDPL_FPGA_EMULATOR>
                 )
-            
+
             # DPC++ specific link options
             target_link_libraries(oneDPL INTERFACE
                 $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
