@@ -15,7 +15,15 @@
 cmake_minimum_required(VERSION 3.4.3)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-project(oneDPL VERSION 2021.1 LANGUAGES CXX)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
+    _onedpl_version_info
+    LIMIT 1024)
+string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_ver_major "${_onedpl_version_info}")
+string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
+string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
+
+project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
+message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 
 option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
 option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
