@@ -9,7 +9,7 @@ The following variables are provided for oneDPL configuration:
 | Variable                     | Type   | Description                                                                                   | Default value |
 |------------------------------|--------|-----------------------------------------------------------------------------------------------|---------------|
 | ONEDPL_USE_PARALLEL_POLICIES | BOOL   | Enable parallel policies                                                                      | ON            |
-| ONEDPL_BACKEND               | STRING | Threading backend; supported values: tbb, sycl, sycl_only, ...; the default value is defined by compiler: sycl for DPC++ and tbb for others | tbb/sycl      |
+| ONEDPL_BACKEND               | STRING | Threading backend; supported values: tbb, dpcpp, dpcpp_only, ...; the default value is defined by compiler: dpcpp for DPC++ and tbb for others | tbb/dpcpp |
 | ONEDPL_DEVICE_TYPE           | STRING | Device type, applicable only for sycl backends; supported values: GPU, CPU, FPGA_HW, FPGA_EMU | GPU           |
 | ONEDPL_USE_UNNAMED_LAMBDA    | BOOL   | Pass `-fsycl-unnamed-lambda` compile option                                                   | OFF           |
 | ONEDPL_USE_RANGES_API        | BOOL   | Enable the use of ranges API for algorithms                                                   | OFF           |
