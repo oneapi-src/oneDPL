@@ -47,21 +47,6 @@ struct WithCmpOp
 template <typename T>
 struct test_is_heap
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last)
-    {
-    }
-
-    template <typename Iterator>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last)
@@ -83,21 +68,6 @@ struct test_is_heap
 template <typename T>
 struct test_is_heap_predicate
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator, typename Predicate>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred)
-    {
-    }
-
-    template <typename Iterator, typename Predicate>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator, typename Predicate>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
@@ -119,21 +89,6 @@ struct test_is_heap_predicate
 template <typename T>
 struct test_is_heap_until
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last)
-    {
-    }
-
-    template <typename Iterator>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last)
@@ -155,21 +110,6 @@ struct test_is_heap_until
 template <typename T>
 struct test_is_heap_until_predicate
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator, typename Predicate>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred)
-    {
-    }
-
-    template <typename Iterator, typename Predicate>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator, typename Predicate>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
@@ -276,9 +216,7 @@ int
 main()
 {
     test_is_heap_by_type<float32_t>(::std::greater<float32_t>());
-#if !_ONEDPL_BACKEND_SYCL
     test_is_heap_by_type<WithCmpOp>(::std::less<WithCmpOp>());
-#endif
     test_is_heap_by_type<uint64_t>([](uint64_t x, uint64_t y) { return x % 100 < y % 100; });
 
 #ifdef _PSTL_TEST_IS_HEAP

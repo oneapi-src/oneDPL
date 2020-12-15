@@ -160,12 +160,8 @@ main()
 
 #if !_ONEDPL_BACKEND_SYCL
     // Wrapper has atomic increment in ctor. It's not allowed in kernel
-
-#if !_PSTL_ICC_16_17_TEST_64_TIMEOUT
     test_merge_by_type<Wrapper<int16_t>>([](size_t v) { return Wrapper<int16_t>(v % 100); },
                                          [](size_t v) { return Wrapper<int16_t>(v % 10); });
-#endif
-
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 #endif
 

@@ -66,22 +66,6 @@ struct test_uninitialized_copy
         EXPECT_TRUE(T::Count() == n, "wrong uninitialized_copy");
     }
 
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-#endif
-
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
@@ -110,22 +94,6 @@ struct test_uninitialized_copy_n
         ::std::uninitialized_copy_n(exec, first, n, out_first);
         EXPECT_TRUE(T::Count() == n, "wrong uninitialized_copy_n");
     }
-
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-#endif
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
@@ -156,22 +124,6 @@ struct test_uninitialized_move
         EXPECT_TRUE(T::MoveCount() == n, "wrong uninitialized_move");
     }
 
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-#endif
-
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first, size_t n,
@@ -200,22 +152,6 @@ struct test_uninitialized_move_n
         ::std::uninitialized_move_n(exec, first, n, out_first);
         EXPECT_TRUE(T::MoveCount() == n, "wrong uninitialized_move_n");
     }
-
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-
-    template <typename InputIterator, typename OutputIterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, size_t n, /*is_trivial<T>=*/::std::true_type)
-    {
-    }
-#endif
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
@@ -276,10 +212,7 @@ main()
 
 #if !_ONEDPL_BACKEND_SYCL
     // for user-defined types
-#if !_PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN && !_PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN &&     \
-    !_PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN
     test_uninitialized_copy_move_by_type<Wrapper<int8_t>>();
-#endif
 #endif
 
     ::std::cout << done() << ::std::endl;

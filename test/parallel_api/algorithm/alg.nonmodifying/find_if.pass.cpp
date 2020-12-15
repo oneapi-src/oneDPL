@@ -31,23 +31,6 @@ using namespace TestUtils;
 template <typename T>
 struct test_find_if
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator, typename Predicate, typename NotPredicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred,
-               NotPredicate not_pred)
-    {
-    }
-
-    template <typename Iterator, typename Predicate, typename NotPredicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred,
-               NotPredicate not_pred)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator, typename Predicate, typename NotPredicate>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate not_pred)
@@ -61,23 +44,6 @@ struct test_find_if
 template <typename T>
 struct test_find_if_not
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator, typename Predicate, typename NotPredicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator first, Iterator last, Predicate pred,
-               NotPredicate not_pred)
-    {
-    }
-
-    template <typename Iterator, typename Predicate, typename NotPredicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Predicate pred,
-               NotPredicate not_pred)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator, typename Predicate, typename NotPredicate>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate not_pred)
@@ -153,7 +119,7 @@ struct test_non_const_find_if_not
 int
 main()
 {
-#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
+#if !_ONEDPL_BACKEND_SYCL
     // Note that the "hit" and "miss" functions here avoid overflow issues.
     test<Number>(IsMultiple(5, OddTag()), [](int32_t j) { return Number(j - j % 5, OddTag()); }, // hit
                  [](int32_t j) { return Number(j % 5 == 0 ? j ^ 1 : j, OddTag()); });            // miss
