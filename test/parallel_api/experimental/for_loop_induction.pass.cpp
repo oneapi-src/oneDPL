@@ -13,11 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <type_traits>
-#include <utility>
-
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/pstl/experimental/algorithm"
+
+#include <type_traits>
+#include <utility>
 
 #include "support/utils.h"
 
