@@ -27,7 +27,7 @@
 #        endif
 #    endif // __has_include(<tbb/version.h>)
 
-// ATTENTION!!! Include standard header before the config to see whether the _PSTL_VERSION macro from standard libraries is defined
+// ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
 #    if __has_include(<execution>)
 #        include <execution>
 #    endif // __has_include(<execution>)
@@ -67,19 +67,16 @@ _PSTL_PRAGMA_MESSAGE_POLICIES(
     "The <Parallel STL> execution policies are injected into the standard namespace std::execution")
 #endif
 
-#if _ONEDPL_BACKEND_SYCL
 namespace oneapi
 {
 namespace dpl
 {
 namespace execution
 {
-using namespace oneapi::dpl::execution::__dpl;
+using namespace oneapi::dpl::execution;
 } // end namespace execution
 } // end namespace dpl
 } // end namespace oneapi
-
-#endif
 
 namespace dpl = oneapi::dpl;
 
