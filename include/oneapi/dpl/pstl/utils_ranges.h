@@ -91,16 +91,6 @@ invoke(const _TupleType& __t, _F __f, oneapi::dpl::__internal::__index_sequence<
     __f(::std::get<_Ip>(__t)...);
 }
 
-struct __invoke_begin
-{
-    template <typename _R>
-    _ONEDPL_CONSTEXPR_FUN auto
-    operator()(_R __r) -> decltype(::std::begin(__r))
-    {
-        return ::std::begin(__r);
-    }
-};
-
 template <typename... _Ranges>
 class zip_view
 {
@@ -119,6 +109,7 @@ class zip_view
     }
 
   public:
+    using __value_t = oneapi::dpl::__internal::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>;
     static constexpr ::std::size_t __num_ranges = sizeof...(_Ranges);
 
     explicit zip_view(_Ranges... __args) : __m_ranges(oneapi::dpl::__internal::make_tuple(__args...)) {}
@@ -355,6 +346,15 @@ struct permutation_discard_view
 };
 
 } // namespace __ranges
+
+namespace __internal
+{
+template <typename... _Ranges>
+struct __range_traits<oneapi::dpl::__ranges::zip_view<_Ranges...>>
+{
+    using __value_t = typename oneapi::dpl::__ranges::zip_view<_Ranges...>::__value_t;
+};
+} // namespace __internal
 } // namespace dpl
 } // namespace oneapi
 
