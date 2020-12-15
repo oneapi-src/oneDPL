@@ -18,8 +18,8 @@
 
 #define __cpp_lib_experimental_parallel_for_loop 201711
 
-#include "pstl/reduction.h"
-#include "pstl/induction.h"
-#include "pstl/for_loop.h"
+#include "internal/reduction.h"
+#include "internal/induction.h"
+#include "internal/for_loop.h"
 
 #endif /* _ONEDPL_experimental_algorithm */

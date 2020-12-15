@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <functional>
 
-#include "../../internal/utils.h"
+#include "../../utils.h"
 #include "reduction_impl.h"
 
 namespace std

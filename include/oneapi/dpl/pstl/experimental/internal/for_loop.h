@@ -18,9 +18,9 @@
 
 #include <tuple>
 
-#include "../../internal/onedpl_config.h"
-#include "../../internal/execution_impl.h"
-#include "../../internal/utils.h"
+#include "../../onedpl_config.h"
+#include "../../execution_impl.h"
+#include "../../utils.h"
 #include "for_loop_impl.h"
 
 namespace std

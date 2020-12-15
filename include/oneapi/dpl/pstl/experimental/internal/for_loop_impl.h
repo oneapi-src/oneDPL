@@ -21,13 +21,13 @@
 #include <utility>
 #include <tuple>
 
-#include "../../internal/algorithm_impl.h"
-#include "../../internal/execution_impl.h"
-#include "../../internal/iterator_impl.h"
-#include "../../internal/iterator_defs.h"
-#include "../../internal/utils.h"
+#include "../../algorithm_impl.h"
+#include "../../execution_impl.h"
+#include "../../iterator_impl.h"
+#include "../../iterator_defs.h"
+#include "../../utils.h"
 
-#include "../../internal/parallel_backend.h"
+#include "../../parallel_backend.h"
 
 namespace oneapi
 {

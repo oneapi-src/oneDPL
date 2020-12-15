@@ -17,7 +17,7 @@
 #include <utility>
 
 #include "oneapi/dpl/execution"
-#include "oneapi/dpl/experimental/algorithm"
+#include "oneapi/dpl/pstl/experimental/algorithm"
 
 #include "support/utils.h"
 
