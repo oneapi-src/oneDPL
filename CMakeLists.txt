@@ -95,8 +95,6 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             endif()
         endif()
 
-        
-
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
             $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
