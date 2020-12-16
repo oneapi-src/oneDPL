@@ -98,7 +98,7 @@ class fpga_policy : public device_policy<KernelName>
               sycl::INTEL::fpga_emulator_selector {}
 #    else
               sycl::INTEL::fpga_selector {}
-#    endif
+#    endif // _ONEDPL_FPGA_EMU
               ))
     {
     }
@@ -109,23 +109,25 @@ class fpga_policy : public device_policy<KernelName>
     explicit fpga_policy(sycl::device d) : base(d) {}
 };
 
-#endif
+#endif // _ONEDPL_FPGA_DEVICE
 
 // 2.8, Execution policy objects
+#if _ONEDPL_USE_PREDEFINED_POLICIES
+
 // In order to be useful oneapi::dpl::execution::dpcpp_default.queue() from one translation unit should be equal to
 // oneapi::dpl::execution::dpcpp_default.queue() from another TU.
 // Starting with c++17 we can simply define sycl as inline variable.
 // But for c++11 we need to simulate this feature using local static variable and inline function to achieve
 // a single definition across all TUs. As it's required for underlying sycl's queue to behave in the same way
 // as it's copy, we simply copy-construct a static variable from a reference to that object.
-#if __cplusplus >= 201703L
+#    if __cplusplus >= 201703L
 
 inline device_policy<> dpcpp_default{};
-#    if _ONEDPL_FPGA_DEVICE
+#        if _ONEDPL_FPGA_DEVICE
 inline fpga_policy<> dpcpp_fpga{};
-#    endif
+#        endif // _ONEDPL_FPGA_DEVICE
 
-#else
+#    else
 
 template <typename DeviceSelector>
 inline device_policy<>&
@@ -136,7 +138,7 @@ __get_default_policy_object(DeviceSelector selector)
 }
 static device_policy<> dpcpp_default{__get_default_policy_object(sycl::default_selector{})};
 
-#    if _ONEDPL_FPGA_DEVICE
+#        if _ONEDPL_FPGA_DEVICE
 inline fpga_policy<>&
 __get_fpga_policy_object()
 {
@@ -144,9 +146,11 @@ __get_fpga_policy_object()
     return __sycl_obj;
 }
 static fpga_policy<> dpcpp_fpga{__get_fpga_policy_object()};
-#    endif
+#        endif // _ONEDPL_FPGA_DEVICE
 
-#endif
+#    endif // __cplusplus >= 201703L
+
+#endif // _ONEDPL_USE_PREDEFINED_POLICIES
 
 // make_policy functions
 template <typename KernelName = DefaultKernelName>
@@ -165,7 +169,11 @@ make_device_policy(sycl::device d)
 
 template <typename NewKernelName, typename OldKernelName>
 device_policy<NewKernelName>
-make_device_policy(const device_policy<OldKernelName>& policy = dpcpp_default)
+make_device_policy(const device_policy<OldKernelName>& policy
+#if _ONEDPL_USE_PREDEFINED_POLICIES
+                   = dpcpp_default
+#endif // _ONEDPL_USE_PREDEFINED_POLICIES
+)
 {
     return device_policy<NewKernelName>(policy);
 }
@@ -188,11 +196,15 @@ make_fpga_policy(sycl::device d)
 template <unsigned int new_unroll_factor, typename NewKernelName, unsigned int old_unroll_factor,
           typename OldKernelName>
 fpga_policy<new_unroll_factor, NewKernelName>
-make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy = dpcpp_fpga)
+make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy
+#    if _ONEDPL_USE_PREDEFINED_POLICIES
+                 = dpcpp_fpga
+#    endif // _ONEDPL_USE_PREDEFINED_POLICIES
+)
 {
     return fpga_policy<new_unroll_factor, NewKernelName>(policy);
 }
-#endif
+#endif // _ONEDPL_FPGA_DEVICE
 
 } // namespace __dpl
 
