@@ -136,7 +136,8 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
 __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f)
 {
-    __f(__begin, __end);
+    for (auto __iter = __begin; __iter != __end; ++__iter)
+        __f(*__iter);
 }
 
 } // namespace __serial_backend

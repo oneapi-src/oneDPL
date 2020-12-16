@@ -31,24 +31,6 @@ using namespace TestUtils;
 template <typename T>
 struct run_remove
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename InputIterator, typename OutputIterator, typename Size>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
-               const T& value)
-    {
-    }
-    template <typename InputIterator, typename OutputIterator, typename Size>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, OutputIterator out_last, OutputIterator expected_first,
-               OutputIterator expected_last, Size n, const T& value)
-    {
-    }
-#endif
-
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
@@ -70,24 +52,6 @@ struct run_remove
 template <typename T>
 struct run_remove_if
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename InputIterator, typename OutputIterator, typename Size, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
-               Predicate pred)
-    {
-    }
-    template <typename InputIterator, typename OutputIterator, typename Size, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, OutputIterator out_last, OutputIterator expected_first,
-               OutputIterator expected_last, Size n, Predicate pred)
-    {
-    }
-#endif
-
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename Predicate>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
@@ -157,7 +121,7 @@ main()
     test<float64_t>(-666.0, 8.5, [](const float64_t& val) { return val != 8.5; },
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });
 
-#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
+#if !_ONEDPL_BACKEND_SYCL
     test<Number>(Number(-666, OddTag()), Number(42, OddTag()), IsMultiple(3, OddTag()),
                  [](int32_t j) { return Number(j, OddTag()); });
 #endif

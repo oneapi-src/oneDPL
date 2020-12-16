@@ -17275,6 +17275,13 @@ struct basic_istream_view : view_interface<basic_istream_view<Val, CharT, Traits
         constexpr explicit iterator(basic_istream_view& parent) noexcept : parent_(::std::addressof(parent)) {}
 
         // Disable move-only iterator until views support them properly
+#        if 0
+        iterator(const iterator&) = delete;
+        iterator(iterator&&) = default;
+
+        iterator& operator=(const iterator&) = delete;
+        iterator& operator=(iterator&&) = default;
+#        endif
         iterator&
         operator++()
         {

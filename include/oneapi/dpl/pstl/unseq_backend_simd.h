@@ -91,6 +91,8 @@ __simd_or_impl(_Index __first, _DifferenceType __n, _Pred __pred) noexcept
     const _Index __last = __first + __n;
     while (__last != __first)
     {
+        // Some compilers may have issue with reduction(||:...) and reduction(&&:...),
+        // so use DeMorgan dual
         int32_t __flag = 1;
         _ONEDPL_PRAGMA_SIMD_REDUCTION(& : __flag)
         for (_DifferenceType __i = 0; __i < __block_size; ++__i)
@@ -564,6 +566,9 @@ struct _Combiner
 
     _Combiner() : __value{}, __bin_op(nullptr) {}
     _Combiner(const _Tp& value, const _BinaryOp* bin_op) : __value(value), __bin_op(const_cast<_BinaryOp*>(bin_op)) {}
+    // TODO: That copy constructor breaks a private accumulator initialization according to the OpenMP spec:
+    // "initializer(omp_priv = omp_orig). That solution was done just for UDR simd bricks, when an identity
+    // value unknown and it assumes getting an identity by _Tp value initialization - _Tp{}.
     _Combiner(const _Combiner& __obj) : __value{}, __bin_op(__obj.__bin_op) {}
 
     void
@@ -653,6 +658,8 @@ __simd_min_element(_ForwardIterator __first, _Size __n, _Compare __comp) noexcep
         _ValueType __min_val;
         _Size __min_ind;
         _Compare* __min_comp;
+        // The default constructor is not used during the algorithm, so it is not required for it.
+        // However, some compilers may require it.
 
         _ComplexType() : __min_val{}, __min_ind{}, __min_comp(nullptr) {}
         _ComplexType(const _ValueType& val, const _Compare* comp)
@@ -714,6 +721,8 @@ __simd_minmax_element(_ForwardIterator __first, _Size __n, _Compare __comp) noex
         _Size __min_ind;
         _Size __max_ind;
         _Compare* __minmax_comp;
+        // The default constructor is not used during the algorithm, so it is not required for it.
+        // However, some compilers may require it.
 
         _ComplexType() : __min_val{}, __max_val{}, __min_ind{}, __max_ind{}, __minmax_comp(nullptr) {}
         _ComplexType(const _ValueType& min_val, const _ValueType& max_val, const _Compare* comp)

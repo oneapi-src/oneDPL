@@ -25,22 +25,6 @@ using namespace TestUtils;
 template <typename Type>
 struct test_search_n
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator, typename Size, typename T, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
-    {
-    }
-
-    template <typename Iterator, typename Size, typename T, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
-               Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator, typename Size, typename T, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
@@ -55,22 +39,6 @@ struct test_search_n
 template <typename Type>
 struct test_search_n_predicate
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator, typename Size, typename T, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
-    {
-    }
-
-    template <typename Iterator, typename Size, typename T, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator b, Iterator e, Size count, const T& value,
-               Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator, typename Size, typename T, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator b, Iterator e, Size count, const T& value, Predicate pred)
@@ -136,9 +104,7 @@ main()
     test<uint16_t>();
 #endif
     test<float64_t>();
-#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>();
-#endif
 
     test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 

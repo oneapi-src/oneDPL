@@ -574,6 +574,7 @@ struct Matrix2x2
     T a[2][2];
     Matrix2x2() : a{{1, 0}, {0, 1}} {}
     Matrix2x2(T x, T y) : a{{0, x}, {x, y}} {}
+    //Explicit definition of a copy constructor and assignment operator to avoid an error for some compilers
 #if !_PSTL_ICL_19_VC14_VC141_TEST_SCAN_RELEASE_BROKEN
     Matrix2x2(const Matrix2x2& m) : a{{m.a[0][0], m.a[0][1]}, {m.a[1][0], m.a[1][1]}} {}
     Matrix2x2&
@@ -829,11 +830,7 @@ template <typename Policy, typename F>
 static void
 invoke_if(Policy&& p, F f)
 {
-#if _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-    oneapi::dpl::__internal::__invoke_if_not(oneapi::dpl::__internal::__allow_unsequenced<Policy>(), f);
-#else
     f();
-#endif
 }
 
 template<typename T, typename = bool>

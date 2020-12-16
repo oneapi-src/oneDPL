@@ -63,26 +63,6 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
     {
     }
 #endif
-
-#if _PSTL_ICC_1800_TEST_MONOTONIC_RELEASE_64_BROKEN
-    template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename UnaryOp>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, ::std::reverse_iterator<InputIterator> first,
-               ::std::reverse_iterator<InputIterator> last, ::std::reverse_iterator<OutputIterator> true_first,
-               ::std::reverse_iterator<OutputIterator> true_last, ::std::reverse_iterator<OutputIterator2> false_first,
-               OutputIterator2 false_last, UnaryOp unary_op)
-    {
-    }
-
-    template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename UnaryOp>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ::std::reverse_iterator<InputIterator> first,
-               ::std::reverse_iterator<InputIterator> last, ::std::reverse_iterator<OutputIterator> true_first,
-               ::std::reverse_iterator<OutputIterator> true_last, ::std::reverse_iterator<OutputIterator2> false_first,
-               OutputIterator2 false_last, UnaryOp unary_op)
-    {
-    }
-#endif
 };
 
 template <typename T, typename UnaryPred>
@@ -126,10 +106,7 @@ int
 main()
 {
     test<int16_t>([](const int32_t value) { return value % 2 == 0; });
-
-#if !_PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN
     test<int32_t>([](const int32_t value) { return true; });
-#endif
 
 #if !_ONEDPL_FPGA_DEVICE
     test<float64_t>([](const float64_t value) { return value > 2 << 6; });

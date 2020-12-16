@@ -98,23 +98,6 @@ compute_and_check(Iterator1 first, Iterator1 last, Iterator2 d_first, T, Functio
 template <typename Type>
 struct test_adjacent_difference
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2, typename T>
-    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b,
-               Iterator2 actual_e, T trash)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2, typename T>
-    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b,
-               Iterator2 actual_e, T trash)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename T>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e,
@@ -135,23 +118,6 @@ struct test_adjacent_difference
 template <typename Type>
 struct test_adjacent_difference_functor
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                            \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2, typename T, typename Function>
-    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b,
-               Iterator2 actual_e, T trash, Function f)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2, typename T, typename Function>
-    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b,
-               Iterator2 actual_e, T trash, Function f)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename T, typename Function>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e,

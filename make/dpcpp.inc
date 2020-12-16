@@ -13,7 +13,9 @@
 ##===----------------------------------------------------------------------===##
 
 override compiler:=clang++
+
 ifeq ($(os_name), linux)
+    DPCPP_OPTIMIZATION_DISABLED_FLAGS=$(KEY)O1 $(KEY)g
     ifneq (, $(shell which dpcpp))
         override compiler:=dpcpp
     endif
@@ -33,6 +35,7 @@ ifeq ($(os_name), linux)
 endif
 
 ifeq ($(os_name), windows)
+    DPCPP_OPTIMIZATION_DISABLED_FLAGS=$(KEY)O1 $(KEY)Zi $(KEY)Fd"$*.pdb" $(KEY)DEBUG
     override compiler:=dpcpp
     ifneq ($(stdver),)
         CPLUS_FLAGS += $(QKEY)std:$(stdver)

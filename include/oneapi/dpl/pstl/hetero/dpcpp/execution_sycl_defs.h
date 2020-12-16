@@ -342,6 +342,7 @@ template <typename _ExecutionPolicy>
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
     const auto& __device = __policy.queue().get_device();
+    // TODO: investigate can we use kernel_work_group::preferred_work_group_size_multiple here.
     auto __max_wg_size =
         __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
     // The variable below is needed to achieve better performance on CPU devices.

@@ -28,7 +28,7 @@
 #    endif // __has_include(<tbb/version.h>)
 #endif     // __cplusplus >= 201703L
 
-// ATTENTION!!! Include standard header before the config to see whether the _PSTL_VERSION macro from standard libraries is defined
+// ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
 #include <algorithm>
 #include "oneapi/dpl/pstl/onedpl_config.h"
 

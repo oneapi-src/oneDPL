@@ -70,37 +70,6 @@ is_equal(Iterator first, Iterator last, Iterator d_first)
 template<typename T>
 struct test_partition
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specializations to skip testing in case of broken configuration
-    template <typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last,
-               Size n, UnaryOp unary_op, Generator generator)
-    {
-    }
-
-    template <typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first,
-               BiDirIt exp_last, Size n, UnaryOp unary_op, Generator generator)
-    {
-    }
-#elif _PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN //dummy specializations to skip testing in case of broken configuration
-    template <typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::parallel_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last,
-               Size n, UnaryOp unary_op, Generator generator)
-    {
-    }
-
-    template <typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, BiDirIt first, BiDirIt last, BiDirIt exp_first,
-               BiDirIt exp_last, Size n, UnaryOp unary_op, Generator generator)
-    {
-    }
-#endif
-
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
     typename ::std::enable_if<!is_same_iterator_category<BiDirIt, ::std::forward_iterator_tag>::value, void>::type
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size n,
@@ -156,9 +125,7 @@ struct test_non_const_partition
 int
 main()
 {
-#if !_PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN
     test_by_type<int32_t>([](int32_t i) { return i; }, [](int32_t) { return true; });
-#endif
     test_by_type<float64_t>([](int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
 #if !_ONEDPL_FPGA_DEVICE
     test_by_type<int64_t>([](int32_t i) { return i + 1; }, [](int64_t x) { return x % 3 == 0; });

@@ -151,6 +151,10 @@ struct shifted_buffer
     shifted_buffer(const container_t& buf, StartIdx sId) : buffer(buf), startIdx(sId) {}
 };
 
+//------------------------------------------------------------------------
+// functor to get buffer from iterator
+// (or tuple of buffers from zip_iterator)
+//------------------------------------------------------------------------
 struct get_buffer
 {
     // for heterogeneous iterator
