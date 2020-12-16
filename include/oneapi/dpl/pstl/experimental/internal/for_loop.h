@@ -23,7 +23,9 @@
 #include "../../utils.h"
 #include "for_loop_impl.h"
 
-namespace std
+namespace oneapi
+{
+namespace dpl
 {
 namespace experimental
 {
@@ -89,36 +91,37 @@ template <typename _Ip, typename... _Rest>
 void
 for_loop(type_identity_t<_Ip> __start, _Ip __finish, _Rest&&... __rest)
 {
-    ::std::experimental::parallelism_v2::for_loop(oneapi::dpl::execution::v1::seq, __start, __finish,
-                                                  ::std::forward<_Rest>(__rest)...);
+    oneapi::dpl::experimental::parallelism_v2::for_loop(oneapi::dpl::execution::v1::seq, __start, __finish,
+                                                        ::std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Sp, typename... _Rest>
 void
 for_loop_strided(type_identity_t<_Ip> __start, _Ip __finish, _Sp __stride, _Rest&&... __rest)
 {
-    ::std::experimental::parallelism_v2::for_loop_strided(oneapi::dpl::execution::v1::seq, __start, __finish, __stride,
-                                                          ::std::forward<_Rest>(__rest)...);
+    oneapi::dpl::experimental::parallelism_v2::for_loop_strided(oneapi::dpl::execution::v1::seq, __start, __finish,
+                                                                __stride, ::std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Size, typename... _Rest>
 void
 for_loop_n(_Ip __start, _Size __n, _Rest&&... __rest)
 {
-    ::std::experimental::parallelism_v2::for_loop_n(oneapi::dpl::execution::v1::seq, __start, __n,
-                                                    ::std::forward<_Rest>(__rest)...);
+    oneapi::dpl::experimental::parallelism_v2::for_loop_n(oneapi::dpl::execution::v1::seq, __start, __n,
+                                                          ::std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Size, typename _Sp, typename... _Rest>
 void
 for_loop_n_strided(_Ip __start, _Size __n, _Sp __stride, _Rest&&... __rest)
 {
-    ::std::experimental::parallelism_v2::for_loop_n_strided(oneapi::dpl::execution::v1::seq, __start, __n, __stride,
-                                                            ::std::forward<_Rest>(__rest)...);
+    oneapi::dpl::experimental::parallelism_v2::for_loop_n_strided(oneapi::dpl::execution::v1::seq, __start, __n,
+                                                                  __stride, ::std::forward<_Rest>(__rest)...);
 }
 
 } // namespace parallelism_v2
 } // namespace experimental
-} // namespace std
+} // namespace dpl
+} // namespace oneapi
 
 #endif /* _ONEDPL_experimental_for_loop_H */

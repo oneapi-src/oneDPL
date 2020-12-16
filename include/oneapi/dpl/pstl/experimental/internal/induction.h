@@ -20,7 +20,9 @@
 
 #include "induction_impl.h"
 
-namespace std
+namespace oneapi
+{
+namespace dpl
 {
 namespace experimental
 {
@@ -43,6 +45,7 @@ induction(_Tp&& __var, _Sp __stride)
 
 } // namespace parallelism_v2
 } // namespace experimental
-} // namespace std
+} // namespace dpl
+} // namespace oneapi
 
 #endif /* _ONEDPL_experimental_induction_H */
