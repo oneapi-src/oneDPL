@@ -133,8 +133,8 @@ template <typename DeviceSelector>
 inline device_policy<>&
 __get_default_policy_object(DeviceSelector selector)
 {
-    static device_policy<> __sycl_obj(selector);
-    return __sycl_obj;
+    static device_policy<> __single_base_obj(selector);
+    return __single_base_obj;
 }
 static device_policy<> dpcpp_default{__get_default_policy_object(sycl::default_selector{})};
 
@@ -142,8 +142,8 @@ static device_policy<> dpcpp_default{__get_default_policy_object(sycl::default_s
 inline fpga_policy<>&
 __get_fpga_policy_object()
 {
-    static fpga_policy<> __sycl_obj{};
-    return __sycl_obj;
+    static fpga_policy<> __single_base_obj{};
+    return __single_base_obj;
 }
 static fpga_policy<> dpcpp_fpga{__get_fpga_policy_object()};
 #        endif // _ONEDPL_FPGA_DEVICE

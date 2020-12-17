@@ -112,7 +112,7 @@ namespace TestUtils
     auto default_selector = sycl::default_selector{};
     auto default_dpcpp_policy =
 #if ONEDPL_USE_PREDEFINED_POLICIES
-        oneapi::dpl::execution::dpcpp_fpga;
+        oneapi::dpl::execution::dpcpp_default;
 #else
         oneapi::dpl::execution::make_device_policy(sycl::queue{default_selector});
 #endif // ONEDPL_USE_PREDEFINED_POLICIES
