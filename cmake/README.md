@@ -42,3 +42,25 @@ The following targets are available for build system after configuration:
 
 Sudirectories are added as labels for each test and can be used with `ctest -L <label>`.
 For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` labels.
+
+## oneDPLConfig files
+
+oneDPLConfig.cmake and oneDPLConfigVersion.cmake allow users to integrate oneDPL package into their CMake projects using `find_package(oneDPL <options>)`.
+
+An imported target `oneDPL` is created after successful invocation of `find_package(oneDPL <options>)`. The target can be used via `target_link_libraries` function.
+
+Example of integration:
+
+```cmake
+# Search for oneDPL 2021 or newer.
+find_package(oneDPL 2021 REQUIRED)
+
+# Integrate found oneDPL with foo.
+target_link_libraries(foo oneDPL)
+```
+
+`cmake/script/generate_config.cmake` is provided to generate oneDPLConfig files for oneDPL package.
+
+How to use:
+
+`cmake [-DOUTPUT_DIR=<output_dir>] -P cmake/script/generate_config.cmake`
