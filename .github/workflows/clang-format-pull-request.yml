@@ -18,8 +18,7 @@ jobs:
 
     - name: Applying clang-format for changed files
       run: |
-        echo ${{ github.event.pull_request.base.sha }}
-        FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} | grep ^include | grep -v nanorange\.hpp\$)
+        FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} | grep ^include | grep -v nanorange\.hpp\$ || true)
         clang-format-6.0 -i -style=file $FILES
 
     - name: Creating diff
