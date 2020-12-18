@@ -95,6 +95,7 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
         if(CMAKE_CXX_STANDARD GREATER_EQUAL 17 AND (_onedpl_gxx_version AND _onedpl_gxx_version GREATER_EQUAL 80100 OR NOT CLANG_DETECT))
             set(ONEDPL_USE_RANGES_API ON)
         endif()
+
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
             $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
