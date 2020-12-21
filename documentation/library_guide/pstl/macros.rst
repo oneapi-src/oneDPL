@@ -81,7 +81,7 @@ Macro                              Description
                                    or evaluates to non-zero, predefined policies objects can be used.
                                    When the macro is set to 0, predefined policies objects and make functions
                                    without arguments, e.g. ``make_device_policy()``,
-                                   ``make_fpga_policy()``,  are not available.
+                                   ``make_fpga_policy()``, are not available.
 ---------------------------------- ------------------------------
 ``ONEDPL_ALLOW_DEFERRED_WAITING``  This macro allows waiting for completion of certain algorithms executed with 
                                    DPC++ policies to be deferred. (Disabled by default.)
@@ -96,4 +96,3 @@ Macro                              Description
                                    application to run on a FPGA emulation device.
                                    Define only the ``ONEDPL_FPGA_DEVICE`` macro to run on a FPGA hardware device.
 ================================== ==============================
-
