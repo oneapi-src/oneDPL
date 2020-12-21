@@ -102,7 +102,7 @@ namespace TestUtils
 #else
         sycl::INTEL::fpga_selector{};
 #endif // ONEDPL_FPGA_EMULATOR
-    auto default_dpcpp_policy =
+    auto&& default_dpcpp_policy =
 #if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_fpga;
 #else
@@ -110,7 +110,7 @@ namespace TestUtils
 #endif // ONEDPL_USE_PREDEFINED_POLICIES
 #else
     auto default_selector = sycl::default_selector{};
-    auto default_dpcpp_policy =
+    auto&& default_dpcpp_policy =
 #if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_default;
 #else
