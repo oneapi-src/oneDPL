@@ -271,7 +271,7 @@ pipeline {
                                                 try {
                                                     phase = "Build&Run"
                                                     bat script: """
-                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test/parallel_api $x
+                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test /Isrc/test/parallel_api $x
                                                         test.exe
                                                     """, label: "Check $x"
                                                     passCount++
@@ -326,7 +326,7 @@ pipeline {
                                                 try {
                                                     phase = "Build&Run"
                                                     bat script: """
-                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test/extensions_testsuite $x
+                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test /Isrc/test/extensions_testsuite $x
                                                         test.exe
                                                     """, label: "Check $x"
                                                     passCount++
@@ -379,7 +379,7 @@ pipeline {
                         githubStatus.setFailed(this, "Jenkins/Win_Check")
                     }
                 }
-           }
+            }
         }
     }
 
