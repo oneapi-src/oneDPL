@@ -81,7 +81,7 @@ pipeline {
         def NUMBER = sh(script: "expr ${env.BUILD_NUMBER}", returnStdout: true).trim()
         def TIMESTEMP = sh(script: "date +%s", returnStdout: true).trim()
         def DATESTEMP = sh(script: "date +\"%Y-%m-%d\"", returnStdout: true).trim()
-        def TEST_TIMEOUT = 360
+        def TEST_TIMEOUT = 720
     }
 
     parameters {
@@ -184,7 +184,7 @@ pipeline {
 
                 stage('Check_tests') {
                     steps {
-                        timeout(time: 3, unit: 'HOURS'){
+                        timeout(time: 2, unit: 'HOURS') {
                             script {
                                 try {
                                     dir("./src") {
@@ -208,7 +208,7 @@ pipeline {
                     }
                 }
 
-                stage('Check_Samples'){
+                stage('Check_Samples') {
                     steps {
                         timeout(time: 1, unit: 'HOURS'){
                             script {

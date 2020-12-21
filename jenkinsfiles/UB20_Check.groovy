@@ -80,6 +80,7 @@ pipeline {
         def NUMBER = sh(script: "expr ${env.BUILD_NUMBER}", returnStdout: true).trim()
         def TIMESTEMP = sh(script: "date +%s", returnStdout: true).trim()
         def DATESTEMP = sh(script: "date +\"%Y-%m-%d\"", returnStdout: true).trim()
+        def TEST_TIMEOUT = 720
     }
 
     parameters {
@@ -150,7 +151,7 @@ pipeline {
             }
             agent { label "Debug_UB20" }
             stages {
-                stage('Git-monorepo'){
+                stage('Git-monorepo') {
                     steps {
                         script {
                             try {
@@ -174,120 +175,26 @@ pipeline {
                     }
                 }
 
-                stage('Check_parallel_api'){
+                stage('Check_tests') {
                     steps {
-                        timeout(time: 2, unit: 'HOURS'){
+                        timeout(time: 2, unit: 'HOURS') {
                             script {
-                                def results = []
                                 try {
-
-                                    dir("./src/test") {
-                                        if (fileExists('./output')) {
-                                            sh script: 'rm -rf ./output;', label: "Remove output Folder"
-                                        }
-                                        sh "mkdir output; cp /export/users/oneDPL_CI/Makefile ./"
-                                        def tests = findFiles glob: 'parallel_api/**/*pass.cpp'
-
-                                        def failCount = 0
-                                        def passCount = 0
-
-                                        for ( x in tests ) {
-                                            try {
-                                                phase = "Build&Run"
-                                                case_name = x.name.toString()
-                                                case_name = case_name.substring(0, case_name.indexOf(".cpp"))
-
-                                                sh script: """
-                                                    echo "Build and Run: ${x.path}"
-                                                    make pstl-${case_name}
-                                                """, label: "${case_name} Test"
-
-                                                passCount++
-                                                results.add([name: case_name, pass: true, phase: phase])
-                                            }
-                                            catch (e) {
-                                                failCount++
-                                                results.add([name: case_name, pass: false, phase: phase])
-                                            }
-                                        }
-                                        if (failCount > 0) {
-                                            sh "exit -1"
-                                        }
+                                    dir("./src") {
+                                            sh script: """
+                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=GPU -DCMAKE_BUILD_TYPE=release .
+                                                make VERBOSE=1 build-all -j -k || true
+                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
+                                            """, label: "all tests"
                                     }
                                 }
                                 catch(e) {
                                     build_ok = false
-                                    fail_stage = fail_stage + "    " + "Check_parallel_api"
-                                    failed_cases = "Failed cases are: "
-                                    results.each { item ->
-                                        if (!item.pass) {
-                                            failed_cases = failed_cases + "\n" + "${item.name}"
-                                        }
+                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                        sh script: """
+                                            exit -1
+                                        """
                                     }
-                                    sh script: """
-                                        echo "${failed_cases}"
-                                        exit -1
-                                    """, label: "Print Failed Cases"
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Check_extensions_testsuite'){
-                    steps {
-                        timeout(time: 2, unit: 'HOURS'){
-                            script {
-                                def results = []
-                                try {
-
-                                    dir("./src/test") {
-                                        if (fileExists('./output')) {
-                                            sh script: 'rm -rf ./output;', label: "Remove output Folder"
-                                        }
-                                        sh "mkdir output; cp /export/users/oneDPL_CI/Makefile ./"
-                                        def tests = findFiles glob: 'extensions_testsuite/**/*pass.cpp'
-
-                                        def failCount = 0
-                                        def passCount = 0
-
-                                        for ( x in tests ) {
-                                            try {
-                                                phase = "Build&Run"
-                                                case_name = x.name.toString()
-                                                case_name = case_name.substring(0, case_name.indexOf(".cpp"))
-
-                                                sh script: """
-                                                    echo "Build and Run: ${x.path}"
-                                                    make extensions-${case_name}
-                                                """, label: "${case_name} Test"
-
-                                                passCount++
-                                                results.add([name: case_name, pass: true, phase: phase])
-                                            }
-                                            catch (e) {
-                                                failCount++
-                                                results.add([name: case_name, pass: false, phase: phase])
-                                            }
-                                        }
-                                        if (failCount > 0) {
-                                            sh "exit -1"
-                                        }
-                                    }
-                                }
-                                catch(e) {
-                                    build_ok = false
-                                    fail_stage = fail_stage + "    " + "Check_extensions_testsuite"
-                                    failed_cases = "Failed cases are: "
-                                    results.each { item ->
-                                        if (!item.pass) {
-                                            failed_cases = failed_cases + "\n" + "${item.name}"
-                                        }
-                                    }
-                                    sh script: """
-                                        echo "${failed_cases}"
-                                        exit -1
-                                    """, label: "Print Failed Cases"
                                 }
                             }
                         }
