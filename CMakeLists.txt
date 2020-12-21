@@ -25,8 +25,17 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_v
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 
+find_program(FIND_GXX_EXE g++)
+if (FIND_GXX_EXE)
+    execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
+ endif()
+
 option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
-option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
+if (CMAKE_CXX_STANDARD GREATER_EQUAL 17 AND (NOT _onedpl_gxx_version OR _onedpl_gxx_version VERSION_GREATER_EQUAL 8.1))
+    option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" ON)
+else()
+    option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
+endif()
 option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
@@ -80,23 +89,16 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
 
         # It is for Clang and DPC++ compilers (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
         if (UNIX)
-            find_program(FIND_GXX_EXE g++)
-            if (FIND_GXX_EXE)
-                set(GXX_DETECT TRUE)
-                execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
-            endif()
             if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
                 if (FIND_GXX_EXE)
-                    string(REPLACE "\." "0" _onedpl_gxx_version ${_onedpl_gxx_version})
-                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${_onedpl_gxx_version})
+                    string(REPLACE "\." "0" tbb_use_onedpl_gxx_version ${_onedpl_gxx_version})
+                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${tbb_use_onedpl_gxx_version})
                 else()
                     target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=70300)
                 endif()
             endif()
         endif()
-        if (CMAKE_CXX_STANDARD GREATER_EQUAL 17 AND (_onedpl_gxx_version AND _onedpl_gxx_version VERSION_GREATER_EQUAL 8.1 OR NOT GXX_DETECT))
-            set(ONEDPL_USE_RANGES_API ON)
-        endif()
+        
 
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
