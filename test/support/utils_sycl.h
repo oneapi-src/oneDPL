@@ -95,18 +95,28 @@ namespace TestUtils
     }
 #endif
 
-#if _ONEDPL_FPGA_DEVICE
-    auto& default_dpcpp_policy = oneapi::dpl::execution::dpcpp_fpga;
+#if ONEDPL_FPGA_DEVICE
     auto default_selector =
-#if _ONEDPL_FPGA_EMU
+#if ONEDPL_FPGA_EMULATOR
         sycl::INTEL::fpga_emulator_selector{};
 #else
         sycl::INTEL::fpga_selector{};
-#endif
+#endif // ONEDPL_FPGA_EMULATOR
+    auto&& default_dpcpp_policy =
+#if ONEDPL_USE_PREDEFINED_POLICIES
+        oneapi::dpl::execution::dpcpp_fpga;
 #else
-    auto& default_dpcpp_policy = oneapi::dpl::execution::dpcpp_default;
+        oneapi::dpl::execution::make_fpga_policy(sycl::queue{default_selector});
+#endif // ONEDPL_USE_PREDEFINED_POLICIES
+#else
     auto default_selector = sycl::default_selector{};
-#endif
+    auto&& default_dpcpp_policy =
+#if ONEDPL_USE_PREDEFINED_POLICIES
+        oneapi::dpl::execution::dpcpp_default;
+#else
+        oneapi::dpl::execution::make_device_policy(sycl::queue{default_selector});
+#endif // ONEDPL_USE_PREDEFINED_POLICIES
+#endif // ONEDPL_FPGA_DEVICE
 
     // create the queue with custom asynchronous exceptions handler
     static auto my_queue = sycl::queue(default_selector, async_handler);
