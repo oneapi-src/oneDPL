@@ -375,6 +375,6 @@ Known Issues and Limitations
 - A ``std::array`` member function swap and ``std::swap`` for ``std::array`` cannot be used in DPC++ kernels on Windows* platforms.
 
 
-* Other names and brands may be claimed as the property of others.
+`*` Other names and brands may be claimed as the property of others.
 
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
