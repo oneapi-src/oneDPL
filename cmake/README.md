@@ -43,21 +43,31 @@ The following targets are available for build system after configuration:
 Sudirectories are added as labels for each test and can be used with `ctest -L <label>`.
 For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` labels.
 
-## oneDPLConfig files
+## How to use oneDPL package from CMake
 
-oneDPLConfig.cmake and oneDPLConfigVersion.cmake allow users to integrate oneDPL package into their CMake projects using `find_package(oneDPL <options>)`.
+oneDPLConfig.cmake and oneDPLConfigVersion.cmake are included into oneDPL distribution.
 
-An imported target `oneDPL` is created after successful invocation of `find_package(oneDPL <options>)`. The target can be used via `target_link_libraries` function.
+These files allow to integrate oneDPL into user project with the find_package() function. Successful invocation of `find_package(oneDPL <options>)` creates imported target `oneDPL` that can be passed to the target_link_libraries() function.
 
-Example of integration:
+For example:
 
 ```cmake
-# Search for oneDPL 2021 or newer.
-find_package(oneDPL 2021 REQUIRED)
+project(Foo)
+add_executable(foo foo.cpp)
 
-# Integrate found oneDPL with foo.
+# Search for oneDPL
+find_package(oneDPL REQUIRED)
+
+# Connect oneDPL to foo
 target_link_libraries(foo oneDPL)
 ```
+
+Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)`:
+
+- macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if oneTBB is not available;
+- macro `ONEDPL_USE_DPCPP_BACKEND` is set to `0` if DPC++ is not available.
+
+### oneDPLConfig files generation
 
 `cmake/script/generate_config.cmake` is provided to generate oneDPLConfig files for oneDPL package.
 
