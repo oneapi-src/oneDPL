@@ -272,7 +272,7 @@ pipeline {
                                                     -DONEDPL_BACKEND=dpcpp
                                                     -DONEDPL_DEVICE_TYPE=GPU . &&
                                                 ("%MAKE_PROGRAM%" build-all -v -k 0 &
-                                                ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%)'
+                                                ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%)
                                             """, label: "All tests"
                                         }
                                     }
