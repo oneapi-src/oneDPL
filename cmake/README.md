@@ -47,7 +47,7 @@ For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` label
 
 oneDPLConfig.cmake and oneDPLConfigVersion.cmake are included into oneDPL distribution.
 
-These files allow to integrate oneDPL into user project with the find_package() function. Successful invocation of `find_package(oneDPL <options>)` creates imported target `oneDPL` that can be passed to the target_link_libraries() function.
+These files allow to integrate oneDPL into user project with the [find_package](https://cmake.org/cmake/help/latest/command/find_package.html) command. Successful invocation of `find_package(oneDPL <options>)` creates imported target `oneDPL` that can be passed to the [target_link_libraries](https://cmake.org/cmake/help/latest/command/target_link_libraries.html) command.
 
 For example:
 
