@@ -4,7 +4,7 @@ Intel® oneAPI DPC++ Library (oneDPL) CHANGES
 Overview
 ========
 
-The list of most significant changes made over time in oneDPL.
+The list of the most significant changes made over time in oneDPL.
 
 New in 2021.1 Gold
 ====================
