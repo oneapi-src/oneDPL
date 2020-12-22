@@ -91,14 +91,14 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
         if (UNIX)
             if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
                 if (FIND_GXX_EXE)
-                    string(REPLACE "\." "0" tbb_use_onedpl_gxx_version ${_onedpl_gxx_version})
-                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${tbb_use_onedpl_gxx_version})
+                    string(REPLACE "\." "0" _onedpl_tbb_use_glibcxx_version ${_onedpl_gxx_version})
+                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${_onedpl_tbb_use_glibcxx_version})
                 else()
                     target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=70300)
                 endif()
             endif()
         endif()
-        
+
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
             $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
