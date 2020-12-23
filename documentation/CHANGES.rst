@@ -314,24 +314,28 @@ New in 2021.1-beta04
 New Features
 -------------
 - Added 64-bit atomics support.
-- Added the following to Tested standard C++ APIs
-- - ``<complex>`` and most functions in ``<cmath>`` (GNU* libstdc++)
-- - ``<ratio>`` (GNU libstdc++, LLVM* libc++, MSVC*)
-- - ``std::numeric_limits`` (GNU libstdc++, MSVC)
+- Added the following to Tested standard C++ APIs:
+
+  - ``<complex>`` and most functions in ``<cmath>`` (GNU* libstdc++);
+  - ``<ratio>`` (GNU libstdc++, LLVM* libc++, MSVC*);
+  - ``std::numeric_limits`` (GNU libstdc++, MSVC).
+
 
 Changes to Existing Features
 -----------------------------
-- The following DPC++ execution policies were renamed.
-- - From ``dpstd::execution::sycl_policy`` to ``dpstd::execution::device_policy``.
-- - From ``dpstd::execution::make_sycl_policy`` to ``dpstd::execution::make_device_policy``.
-- - From ``dpstd::execution::sycl`` object to ``dpstd::execution::default_policy``.
+- The following DPC++ execution policies were renamed:
+
+  - From ``dpstd::execution::sycl_policy`` to ``dpstd::execution::device_policy``.
+  - From ``dpstd::execution::make_sycl_policy`` to ``dpstd::execution::make_device_policy``.
+  - From ``dpstd::execution::sycl`` object to ``dpstd::execution::default_policy``.
 
 ``dpstd::execution::sycl_policy, dpstd::execution::make_sycl_policy, dpstd::execution::sycl`` were deprecated.
 
-- The following algorithms in Extension API were renamed.
-- - From ``reduce_by_key`` to ``reduce_by_segment``.
-- - From ``inclusive_scan_by_key`` to ``inclusive_scan_by_segment``.
-- - From ``exclusive_scan_by_key`` to ``exclusive_scan_by_segment``.
+- The following algorithms in Extension API were renamed:
+
+  - From ``reduce_by_key`` to ``reduce_by_segment``.
+  - From ``inclusive_scan_by_key`` to ``inclusive_scan_by_segment``.
+  - From ``exclusive_scan_by_key`` to ``exclusive_scan_by_segment``.
 
 
 Known Issues and Limitations
