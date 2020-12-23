@@ -67,6 +67,24 @@ Availability of DPC++ and oneTBB backends is automatically checked during the in
 - macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if oneTBB is not available;
 - macro `ONEDPL_USE_DPCPP_BACKEND` is set to `0` if DPC++ is not available.
 
+Detailed description of these and other macros is available in the [documentation](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top/parallel-stl-overview/macros.html). The macros can be explicitly set from user project.
+
+For example:
+
+```cmake
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Search for oneDPL
+find_package(oneDPL REQUIRED)
+
+# Connect oneDPL to foo
+target_link_libraries(foo oneDPL)
+
+# Disable TBB backend in oneDPL
+target_compile_definitions(foo PRIVATE ONEDPL_USE_TBB_BACKEND=0)
+```
+
 ### oneDPLConfig files generation
 
 `cmake/script/generate_config.cmake` is provided to generate oneDPLConfig files for oneDPL package.
