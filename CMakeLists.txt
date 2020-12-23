@@ -28,7 +28,7 @@ message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 find_program(FIND_GXX_EXE g++)
 if (FIND_GXX_EXE)
     execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
- endif()
+endif()
 
 option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
 if (CMAKE_CXX_STANDARD GREATER_EQUAL 17 AND (NOT _onedpl_gxx_version OR _onedpl_gxx_version VERSION_GREATER_EQUAL 8.1))
