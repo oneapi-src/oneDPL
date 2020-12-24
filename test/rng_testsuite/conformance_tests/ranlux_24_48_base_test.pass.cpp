@@ -27,6 +27,15 @@
 //     The 10000th consecutive invocation of a default-constructed object of type ranlux48_base
 //     produces the value 61839128582725
 
+#if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
+#include <iostream>
+
+int main() {
+    std::cout << "\tTest is skipped for non-SYCL backend. Passed" << std::endl;
+    return 0;
+}
+
+#else
 
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
@@ -98,3 +107,5 @@ int main() {
 
     return 0;
 }
+
+#endif // #if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))

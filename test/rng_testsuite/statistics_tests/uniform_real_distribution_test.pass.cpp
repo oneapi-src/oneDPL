@@ -18,6 +18,16 @@
 // Test of uniform_real_distribution - comparison with std::
 // Note not all types can be compared with std:: implementation is different
 
+#if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
+#include <iostream>
+
+int main() {
+    std::cout << "\tTest is skipped for non-SYCL backend. Passed" << std::endl;
+    return 0;
+}
+
+#else
+
 #include <iostream>
 #include <vector>
 #include <CL/sycl.hpp>
@@ -274,3 +284,5 @@ int main() {
     std::cout << "Test PASSED" << std::endl;
     return 0;
 }
+
+#endif // #if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
