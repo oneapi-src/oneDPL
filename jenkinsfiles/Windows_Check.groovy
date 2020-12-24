@@ -262,18 +262,20 @@ pipeline {
                                 try {
                                     script {
                                         withEnv(oneapi_env) {
-                                            bat script: """
-                                                set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
-                                                cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
-                                                    -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
-                                                    -DCMAKE_CXX_STANDARD=17^
-                                                    -DCMAKE_BUILD_TYPE=release^
-                                                    -DCMAKE_CXX_COMPILER=dpcpp^
-                                                    -DONEDPL_BACKEND=dpcpp^
-                                                    -DONEDPL_DEVICE_TYPE=GPU . &&^
-                                                ("%MAKE_PROGRAM%" build-all -v -k 0 &^
-                                                ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%)
-                                            """, label: "All tests"
+                                            dir("./src") {
+                                                bat script: """
+                                                    set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
+                                                    cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
+                                                        -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
+                                                        -DCMAKE_CXX_STANDARD=17^
+                                                        -DCMAKE_BUILD_TYPE=release^
+                                                        -DCMAKE_CXX_COMPILER=dpcpp^
+                                                        -DONEDPL_BACKEND=dpcpp^
+                                                        -DONEDPL_DEVICE_TYPE=GPU . &&^
+                                                    ("%MAKE_PROGRAM%" build-all -v -k 0 &^
+                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%)
+                                                """, label: "All tests"
+                                            }
                                         }
                                     }
                                 }
