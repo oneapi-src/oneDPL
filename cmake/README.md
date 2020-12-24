@@ -42,3 +42,53 @@ The following targets are available for build system after configuration:
 
 Sudirectories are added as labels for each test and can be used with `ctest -L <label>`.
 For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` labels.
+
+## How to use oneDPL package from CMake
+
+oneDPLConfig.cmake and oneDPLConfigVersion.cmake are included into oneDPL distribution.
+
+These files allow to integrate oneDPL into user project with the [find_package](https://cmake.org/cmake/help/latest/command/find_package.html) command. Successful invocation of `find_package(oneDPL <options>)` creates imported target `oneDPL` that can be passed to the [target_link_libraries](https://cmake.org/cmake/help/latest/command/target_link_libraries.html) command.
+
+For example:
+
+```cmake
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Search for oneDPL
+find_package(oneDPL REQUIRED)
+
+# Connect oneDPL to foo
+target_link_libraries(foo oneDPL)
+```
+
+Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)`:
+
+- macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if oneTBB is not available;
+- macro `ONEDPL_USE_DPCPP_BACKEND` is set to `0` if DPC++ is not available.
+
+Detailed description of these and other macros is available in the [documentation](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top/parallel-stl-overview/macros.html). The macros can be explicitly set from user project.
+
+For example:
+
+```cmake
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Search for oneDPL
+find_package(oneDPL REQUIRED)
+
+# Connect oneDPL to foo
+target_link_libraries(foo oneDPL)
+
+# Disable TBB backend in oneDPL
+target_compile_definitions(foo PRIVATE ONEDPL_USE_TBB_BACKEND=0)
+```
+
+### oneDPLConfig files generation
+
+`cmake/script/generate_config.cmake` is provided to generate oneDPLConfig files for oneDPL package.
+
+How to use:
+
+`cmake [-DOUTPUT_DIR=<output_dir>] -P cmake/script/generate_config.cmake`
