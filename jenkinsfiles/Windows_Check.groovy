@@ -156,7 +156,7 @@ pipeline {
             }
             agent { label "windows_test" }
             stages {
-                stage('Git-monorepo'){
+                stage('Git-monorepo') {
                     steps {
                         script {
                             try {
@@ -186,9 +186,9 @@ pipeline {
                     }
                 }
 
-                stage('Check_Samples'){
+                stage('Check_Samples') {
                     steps {
-                        timeout(time: 1, unit: 'HOURS'){
+                        timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
                                     bat script: """
