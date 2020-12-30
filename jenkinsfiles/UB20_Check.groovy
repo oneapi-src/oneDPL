@@ -80,7 +80,7 @@ pipeline {
         def NUMBER = sh(script: "expr ${env.BUILD_NUMBER}", returnStdout: true).trim()
         def TIMESTEMP = sh(script: "date +%s", returnStdout: true).trim()
         def DATESTEMP = sh(script: "date +\"%Y-%m-%d\"", returnStdout: true).trim()
-        def TEST_TIMEOUT = 1200
+        def TEST_TIMEOUT = 1400
     }
 
     parameters {
