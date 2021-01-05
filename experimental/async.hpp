@@ -130,6 +130,7 @@ class __future_with_tmps
         : __my_future(__future<_ExecPolicy>{__f}), __tmp(_TempObjs<_Ts...>{__t...})
     {
     }
+    operator __future<_ExecPolicy>() const { return __my_future; }
     void
     wait()
     {
@@ -140,7 +141,6 @@ class __future_with_tmps
         template<typename _ExecPolicy, typename... _Ts> class __future_with_tmps<_ExecPolicy>
    __make_future_with_tmps(_ExecPolicy __f , _Ts... __t) { return __future_with_tmps<_ExecPolicy>{__f,__t...};}
 */
-// using tbb::internal::make_unique;
 
 template <typename _ExecutionPolicy, typename _Tp /*, typename... _Ts*/>
 class __future_promise_pair //: public __future<_ExecutionPolicy>
@@ -152,13 +152,13 @@ class __future_promise_pair //: public __future<_ExecutionPolicy>
   public:
     template <typename... _Ts>
     __future_promise_pair(__future<_ExecutionPolicy> __f, _Tp __d, _Ts... __t)
-        : __my_future(__f), __data(tbb::internal::make_unique<__async_direct<_Tp>>(__d)),
+        : __my_future(__f), __data(::std::unique_ptr<__async_direct<_Tp>>(new __async_direct<_Tp>(__d))),
           __tmp(_TempObjs<_Ts...>{__t...})
     {
     }
     template <typename... _Ts>
     __future_promise_pair(__future<_ExecutionPolicy> __f, sycl::buffer<_Tp> __d, _Ts... __t)
-        : __my_future(__f), __data(tbb::internal::make_unique<__async_indirect<_Tp>>(__d)),
+        : __my_future(__f), __data(::std::unique_ptr<__async_indirect<_Tp>>(new __async_indirect<_Tp>(__d))),
           __tmp(_TempObjs<_Ts...>{__t...})
     {
     }
@@ -166,9 +166,10 @@ class __future_promise_pair //: public __future<_ExecutionPolicy>
     template <typename _Op>
     __future_promise_pair(const __future_promise_pair<_ExecutionPolicy, _Tp>& _fp, _Tp __i, _Op __o)
         : __my_future(_fp.__my_future),
-          __data(tbb::internal::make_unique<__async_indirect<_Tp, _Op>>(_fp.raw_data(), __i, __o)), __tmp(_fp.__tmp)
+          __data(::std::unique_ptr<__async_indirect<_Tp, _Op>>(new __async_indirect<_Tp, _Op>(_fp.raw_data(), __i, __o))), __tmp(_fp.__tmp)
     {
     }
+    operator __future<_ExecutionPolicy>() const { return __my_future; }
     void
     wait() // TODO: Func over permissive, not waiting on actual event.
     {
