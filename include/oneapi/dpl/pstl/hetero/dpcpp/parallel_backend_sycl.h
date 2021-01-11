@@ -336,21 +336,23 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-    auto __mcu = oneapi::dpl::__internal::__max_compute_units(::std::forward<_ExecutionPolicy>(__exec));
-    auto __n_groups = (__n - 1) / __wgroup_size + 1;
-    __n_groups = ::std::min(decltype(__n_groups)(__mcu), __n_groups);
-    // TODO: try to change __n_groups with another formula for more perfect load balancing
+    // It can be replaced with another value for more perfect load balancing
+    auto __iters_per_witem = decltype(__wgroup_size)(4);
+    auto __size_per_wg = __iters_per_witem * __wgroup_size; // how much buffer elements work group processes
+    auto __n_groups = (__n - 1) / __size_per_wg + 1;        // number of work groups
+    auto __n_blocks = (__n - 1) / __iters_per_witem + 1;    // number of bunch of elements that the algorithm processes
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size);
 
     // Create temporary global buffers to store temporary values
-    auto __temp_1 = sycl::buffer<_Tp>(sycl::range<1>(__n_groups));
-    auto __temp_2 = sycl::buffer<_Tp>(sycl::range<1>(__n_groups));
+    auto __temp_1 = sycl::buffer<_Tp>(sycl::range<1>(2 * __n_groups));
     // __is_first == true. Reduce over each work_group
     // __is_first == false. Reduce between work groups
     bool __is_first = true;
-    auto __buf_1_ptr = &__temp_1; // __buf_1_ptr is not accessed on the device when __is_first == true
-    auto __buf_2_ptr = &__temp_1;
+
+    auto __offset_1 = decltype(__n_groups)(0);
+    auto __offset_2 = __n_groups;
+
     sycl::event __reduce_event;
     do
     {
@@ -358,8 +360,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             __cgh.depends_on(__reduce_event);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-            auto __temp_1_acc = __buf_1_ptr->template get_access<access_mode::read_write>(__cgh);
-            auto __temp_2_acc = __buf_2_ptr->template get_access<access_mode::write>(__cgh);
+            auto __temp_1_acc = __temp_1.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
                 sycl::range<1>(__wgroup_size), __cgh);
             __cgh.parallel_for<__kernel_name_t>(
@@ -373,37 +374,31 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                     // 1. Initialization (transform part). Fill local memory
                     if (__is_first)
                     {
-                        __u(__item_id, __global_idx, __n, __temp_local, __rngs...);
+                        __u(__item_id, __n, __iters_per_witem, __temp_local, __rngs...);
                     }
                     else
                     {
-                        if (__global_idx < __n)
-                            __temp_local[__local_idx] = __temp_1_acc[__global_idx];
+                        if (__global_idx < __n_blocks)
+                            __temp_local[__local_idx] = __temp_1_acc[__offset_2 + __global_idx];
                         __item_id.barrier(sycl::access::fence_space::local_space);
                     }
                     // 2. Reduce within work group using local memory
-                    auto __res = __brick_reduce(__item_id, __global_idx, __n, __temp_local);
+                    auto __res = __brick_reduce(__item_id, __global_idx, __n_blocks, __temp_local);
                     if (__local_idx == 0)
                     {
-                        __temp_2_acc[__item_id.get_group(0)] = __res;
+                        __temp_1_acc[__offset_1 + __item_id.get_group(0)] = __res;
                     }
                 });
         });
         if (__is_first)
         {
-            __buf_2_ptr = &__temp_2;
             __is_first = false;
         }
-        else
-        {
-            ::std::swap(__buf_1_ptr, __buf_2_ptr);
-        }
-        __n = __n_groups;
-        __n_groups = (__n - 1) / __wgroup_size + 1;
-    } while (__n > 1);
-
-    //point of syncronization (on host access)
-    return __buf_1_ptr->template get_access<access_mode::read>()[0];
+        ::std::swap(__offset_1, __offset_2);
+        __n_blocks = __n_groups;
+        __n_groups = (__n_blocks - 1) / __wgroup_size + 1;
+    } while (__n_blocks > 1);
+    return __temp_1.template get_access<access_mode::read_write>()[__offset_2];
 }
 
 //------------------------------------------------------------------------
@@ -436,7 +431,6 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     auto __n = __rng1.size();
     assert(__n > 0);
 
-    auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __wgroup_size according to local memory limit
     __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Type>(
@@ -459,7 +453,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     // Storage for the results of scan for each workgroup
     sycl::buffer<_Type> __wg_sums(__n_groups);
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size);
 
     // 1. Local scan on each workgroup
     auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {

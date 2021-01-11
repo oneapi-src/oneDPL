@@ -114,56 +114,32 @@ struct walk_adjacent_difference
 // transform_reduce
 //------------------------------------------------------------------------
 
-// calculate shift where we should start processing on current item
-template <typename _NDItemId, typename _GlobalIdx, typename _SizeNIter, typename _SizeN>
-_SizeN
-calc_shift(const _NDItemId __item_id, const _GlobalIdx __global_idx, _SizeNIter& __n_iter, const _SizeN __n)
-{
-    auto __global_range_size = __item_id.get_global_range().size();
-
-    auto __start = __n_iter * __global_idx;
-    auto __global_shift = __global_idx + __n_iter * __global_range_size;
-    if (__n_iter > 0 && __global_shift > __n)
-    {
-        __start += __n % __global_range_size - __global_idx;
-    }
-    else if (__global_shift < __n)
-    {
-        __n_iter++;
-    }
-    return __start;
-}
-
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
 struct transform_init
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal, typename... _Acc>
+    template <typename _NDItemId, typename _Size, typename _ItersPerWG, typename _AccLocal, typename... _Acc>
     void
-    operator()(const _NDItemId __item_id, const _GlobalIdx __global_idx, _Size __n, _AccLocal& __local_mem,
+    operator()(const _NDItemId __item, _Size __n, _ItersPerWG __iters_per_witem, _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
-        auto __local_idx = __item_id.get_local_id(0);
-        auto __global_range_size = __item_id.get_global_range().size();
-        auto __n_iter = __n / __global_range_size;
-        auto __start = calc_shift(__item_id, __global_idx, __n_iter, __n);
-        auto __shifted_global_idx = __global_idx + __start;
+        auto __global_id = __item.get_global_id(0);
+        auto __adjusted_global_id = __iters_per_witem * __global_id;
 
-        typename __accessor_traits<_AccLocal>::value_type __res;
-        if (__global_idx < __n)
+        if (__adjusted_global_id < __n)
         {
-            __res = __unary_op(__shifted_global_idx, __acc...);
-        }
-        // Add neighbour to the current __local_mem
-        for (decltype(__n_iter) __i = 1; __i < __n_iter; ++__i)
-        {
-            __res = __binary_op(__res, __unary_op(__shifted_global_idx + __i, __acc...));
-        }
-        if (__global_idx < __n)
-        {
-            __local_mem[__local_idx] = __res;
+            using _T = typename __accessor_traits<_AccLocal>::value_type;
+            auto __local_id = __item.get_local_id(0);
+            _T __res = __unary_op(__adjusted_global_id, __acc...);
+            // Add neighbour to the current __local_mem
+            for (_ItersPerWG __i = 1; __i < __iters_per_witem; ++__i)
+            {
+                if (__adjusted_global_id + __i < __n)
+                    __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            }
+            __local_mem[__local_id] = __res;
         }
     }
 };
