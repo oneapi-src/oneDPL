@@ -324,7 +324,7 @@ __parallel_transform_reduce_async(_ExecutionPolicy&& __exec, _Up __u, _Cp __comb
 
     // point of syncronization (on host access)
     // return __buf_1_ptr->template get_access<access_mode::read>()[0];
-    return ::oneapi::dpl::__internal::__future<_Tp>( __reduce_event, __temp_1, __temp_2);
+    return ::oneapi::dpl::__internal::__future<_Tp>( __reduce_event, *__buf_1_ptr, *__buf_2_ptr);
 }
 
 } // namespace __par_backend_hetero
