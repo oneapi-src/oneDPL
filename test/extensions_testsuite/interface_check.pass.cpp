@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- interface_check.pass.cpp --------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -44,7 +44,6 @@ using oneapi::dpl::make_zip_iterator;
 using oneapi::dpl::begin;
 using oneapi::dpl::end;
 using oneapi::dpl::identity;
-using std::get;
 
 int main()
 {
