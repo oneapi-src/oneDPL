@@ -22,21 +22,22 @@ int main() {
         sycl::buffer<int> b{a,sycl::range<1>{N}};
     
         sycl::queue q;
+        auto my_policy = oneapi::dpl::execution::make_device_policy(q);
 
-        auto result1 = oneapi::dpl::async::for_each(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), [](int &n){ n++; });
+        auto result1 = oneapi::dpl::for_each_async(my_policy, oneapi::dpl::begin(b), oneapi::dpl::end(b), [](int &n){ n++; });
 
         auto result = oneapi::dpl::reduce_async(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), 1, std::plus<int>(), result1);
 
         auto result2 = oneapi::dpl::sort_async(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), result);
 
+        // Test different signature of sort algorithm:
         auto result3 = oneapi::dpl::sort_async(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), std::greater<int>(), result2);
     
         //oneapi::dpl::async::wait_for_all(result1,result,result2);
-        //oneapi::dpl::async::wait_for_all(result1.get_event(),result.get_event(),result2.get_event());
-        //result.wait();
-        oneapi::dpl::async::wait_for_all(result3);
+        result3.wait();
     
-        std::cout << "" << result.data() << std::endl;
+        std::cout << "Result: " << result.data() << std::endl;
+        std::cout << "Expected: 50\n";
     }
 
     return 0;
