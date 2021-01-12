@@ -32,7 +32,7 @@ namespace internal
 using ::std::get;
 
 // Helper used to eliminate compile errors when an algorithm needs to pass a policy instance to
-// multiple parallel STL functions.
+// multiple Parallel STL functions.
 template <typename Policy, typename NewName>
 struct rebind_policy
 {

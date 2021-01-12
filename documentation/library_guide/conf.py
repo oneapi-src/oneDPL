@@ -15,7 +15,8 @@
 #===============================================================================
 
 ##  Content:
-##     Intel(R) DAAL configuration file for the Sphinx documentation builder
+## Intel(R) Data Analytics Acceleration Library (Intel(R) DAAL) configuration
+## file for the Sphinx documentation builder.
 ##******************************************************************************
 
 # Configuration file for the Sphinx documentation builder.
