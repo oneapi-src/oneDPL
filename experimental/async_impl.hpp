@@ -29,9 +29,9 @@ namespace __par_backend_hetero
 {
 
 //template <typename _ExecPolicy>
-using __future_with_tmps = oneapi::dpl::__internal::__future_with_tmps /*<_ExecPolicy>*/;
+using __future_with_tmps = oneapi::dpl::__internal::__future<void> /*<_ExecPolicy>*/;
 
-using __future_base = oneapi::dpl::__internal::__future_base;
+using __future_base = oneapi::dpl::__internal::__future<void>;
 
 //------------------------------------------------------------------------
 // parallel_stable_sort - async pattern 2.0
@@ -338,13 +338,13 @@ namespace __internal
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__internal::__future_base>
+                                                            oneapi::dpl::__internal::__future<void>>
 __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
     auto __n = __last - __first;
     if (__n <= 0)
-        return oneapi::dpl::__internal::__future_base(sycl::event{});
+        return oneapi::dpl::__internal::__future<void>(sycl::event{});
 
     auto __keep =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
@@ -445,7 +445,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future_with_tmps>
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
 __pattern_sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                      /*vector=*/::std::true_type, /*parallel=*/::std::true_type,
                      /*is_move_constructible=*/::std::true_type)
@@ -495,7 +495,7 @@ copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 // [alg.async.sort]
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future_with_tmps>
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
     // Calls oneDPL/include/oneapi/dpl/pstl/hetero/algorithm_impl_hetero.h
@@ -511,7 +511,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
 // [alg.async.foreach]
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__internal::__future_base>
+                                                            oneapi::dpl::__internal::__future<void>>
 for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
     auto ret_val = oneapi::dpl::__internal::__pattern_walk1_async(
