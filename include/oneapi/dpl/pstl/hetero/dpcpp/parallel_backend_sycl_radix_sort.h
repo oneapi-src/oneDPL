@@ -541,9 +541,12 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 {
     using _KernelName = typename __decay_t<_ExecutionPolicy>::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
-    using __count_kernel_name = __radix_sort_count_kernel<_InRange, _TmpBuf, _KernelName>;
-    using __scan_kernel_name = __radix_sort_scan_kernel<_TmpBuf, _KernelName>;
-    using __reorder_kernel_name = __radix_sort_reorder_kernel<_InRange, _OutRange, ::std::size_t, _KernelName>;
+    using __in_range_t = __decay_t<_InRange>;
+    using __out_range_t = __decay_t<_OutRange>;
+    using __tmp_buf_t = __decay_t<_TmpBuf>;
+    using __count_kernel_name = __radix_sort_count_kernel<__in_range_t, __tmp_buf_t, _KernelName>;
+    using __scan_kernel_name = __radix_sort_scan_kernel<__tmp_buf_t, _KernelName>;
+    using __reorder_kernel_name = __radix_sort_reorder_kernel<__in_range_t, __out_range_t, ::std::size_t, _KernelName>;
 #else
     using __count_kernel_name = __radix_sort_count_kernel<_KernelName>;
     using __scan_kernel_name = __radix_sort_scan_kernel<_KernelName>;
