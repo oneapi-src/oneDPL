@@ -27,20 +27,16 @@
 //     The 10000th consecutive invocation of a default-constructed object of type ranlux48_base
 //     produces the value 61839128582725
 
-#if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
 #include <iostream>
 
-int main() {
-    std::cout << "\tTest is skipped for non-SYCL backend. Passed" << std::endl;
-    return 0;
-}
-
-#else
-
+#if ONEDPL_USE_DPCPP_BACKEND
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
+#endif // ONEDPL_USE_DPCPP_BACKEND
 
 int main() {
+
+#if ONEDPL_USE_DPCPP_BACKEND
 
     // Reference values
     uint_fast32_t ranlux24_base_ref_sample = 7937952;
@@ -63,19 +59,15 @@ int main() {
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux24_base_vec<4> is "  << ranlux24_base_sample_vec4 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux24_base_vec<8> is "  << ranlux24_base_sample_vec8 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux24_base_vec<16> is " << ranlux24_base_sample_vec16 << std::endl;
-    if((ranlux24_base_ref_sample == ranlux24_base_sample)                   &&
-        (ranlux24_base_ref_sample == ranlux24_base_sample_vec2)             &&
-        (ranlux24_base_ref_sample == ranlux24_base_sample_vec3)             &&
-        (ranlux24_base_ref_sample == ranlux24_base_sample_vec4)             &&
-        (ranlux24_base_ref_sample == ranlux24_base_sample_vec8)             &&
-        (ranlux24_base_ref_sample == ranlux24_base_sample_vec16)) {
-        std::cout << "Test PASSED" << std::endl;
-    }
-    else {
+    if((ranlux24_base_ref_sample != ranlux24_base_sample)                   ||
+        (ranlux24_base_ref_sample != ranlux24_base_sample_vec2)             ||
+        (ranlux24_base_ref_sample != ranlux24_base_sample_vec3)             ||
+        (ranlux24_base_ref_sample != ranlux24_base_sample_vec4)             ||
+        (ranlux24_base_ref_sample != ranlux24_base_sample_vec8)             ||
+        (ranlux24_base_ref_sample != ranlux24_base_sample_vec16)) {
         std::cout << "Test FAILED" << std::endl;
         return 1;
     }
-
 
     auto ranlux48_base_sample       = test<oneapi::dpl::ranlux48_base,        10000, 1>();
     auto ranlux48_base_sample_vec2  = test<oneapi::dpl::ranlux48_base_vec<2>, 10000, 2>();
@@ -85,6 +77,7 @@ int main() {
     auto ranlux48_base_sample_vec8  = test<oneapi::dpl::ranlux48_base_vec<8>, 10000, 8>();
     auto ranlux48_base_sample_vec16 = test<oneapi::dpl::ranlux48_base_vec<16>,10000, 16>();
 
+    // Comparison
     std::cout << "\nThe 10000th reference value of ranlux48_base engine is "                    << ranlux48_base_ref_sample  << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux48_base is "                  << ranlux48_base_sample << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux48_base_vec<2> is "           << ranlux48_base_sample_vec2 << std::endl;
@@ -92,20 +85,20 @@ int main() {
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux48_base_vec<4> is "           << ranlux48_base_sample_vec4 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux48_base_vec<8> is "           << ranlux48_base_sample_vec8 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::ranlux48_base_vec<16> is "          << ranlux48_base_sample_vec16 << std::endl;
-    if((ranlux48_base_ref_sample == ranlux48_base_sample)                   &&
-        (ranlux48_base_ref_sample == ranlux48_base_sample_vec2)             &&
-        (ranlux48_base_ref_sample == ranlux48_base_sample_vec3)             &&
-        (ranlux48_base_ref_sample == ranlux48_base_sample_vec4)             &&
-        (ranlux48_base_ref_sample == ranlux48_base_sample_vec8)             &&
-        (ranlux48_base_ref_sample == ranlux48_base_sample_vec16)) {
-        std::cout << "Test PASSED" << std::endl;
-    }
-    else {
+    if((ranlux48_base_ref_sample != ranlux48_base_sample)                   ||
+        (ranlux48_base_ref_sample != ranlux48_base_sample_vec2)             ||
+        (ranlux48_base_ref_sample != ranlux48_base_sample_vec3)             ||
+        (ranlux48_base_ref_sample != ranlux48_base_sample_vec4)             ||
+        (ranlux48_base_ref_sample != ranlux48_base_sample_vec8)             ||
+        (ranlux48_base_ref_sample != ranlux48_base_sample_vec16)) {
         std::cout << "Test FAILED" << std::endl;
         return 1;
     }
 
+#else
+    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
+#endif // ONEDPL_USE_DPCPP_BACKEND
+
+    std::cout << "Test PASSED" << std::endl;
     return 0;
 }
-
-#endif // #if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))

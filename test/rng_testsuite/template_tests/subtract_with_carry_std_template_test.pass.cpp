@@ -17,17 +17,9 @@
 //
 // Test of subtract_with_carry_engine - comparison with std::
 
-#if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
 #include <iostream>
 
-int main() {
-    std::cout << "\tTest is skipped for non-SYCL backend. Passed" << std::endl;
-    return 0;
-}
-
-#else
-
-#include <iostream>
+#if ONEDPL_USE_DPCPP_BACKEND
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>
@@ -193,7 +185,12 @@ int tests_set_portion(int nsamples, unsigned int part) {
     return 0;
 }
 
+#endif // ONEDPL_USE_DPCPP_BACKEND
+
 int main() {
+
+#if ONEDPL_USE_DPCPP_BACKEND
+
     constexpr int nsamples = 100;
     int err;
 
@@ -299,7 +296,7 @@ int main() {
         return 1;
     }
 
-#if defined(DETAILED_TESTING)
+#if defined(_ONEDPL_RNG_DETAILED_TESTING_)
 
     // testing sycl::vec<std::uint64_t, 1>
     std::cout << "-----------------------------" << std::endl;
@@ -383,10 +380,12 @@ int main() {
         return 1;
     }
 
-#endif // #if defined(DETAILED_TESTING)
+#endif // #if defined(_ONEDPL_RNG_DETAILED_TESTING_)
+
+#else
+    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
+#endif // ONEDPL_USE_DPCPP_BACKEND
 
     std::cout << "Test PASSED" << std::endl;
     return 0;
 }
-
-#endif // #if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))

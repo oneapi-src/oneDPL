@@ -27,20 +27,16 @@
 //     The 10000th consecutive invocation of a default-constructed object of type minstd_rand
 //     produces the value 399268537
 
-#if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
 #include <iostream>
 
-int main() {
-    std::cout << "\tTest is skipped for non-SYCL backend. Passed" << std::endl;
-    return 0;
-}
-
-#else
-
+#if ONEDPL_USE_DPCPP_BACKEND
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
+#endif // ONEDPL_USE_DPCPP_BACKEND
 
 int main() {
+
+#if ONEDPL_USE_DPCPP_BACKEND
 
     // Reference values
     uint_fast32_t minstd_rand0_ref_sample = 1043618065;
@@ -63,15 +59,12 @@ int main() {
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand0_vec<4> is "  << minstd_rand0_sample_vec4 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand0_vec<8> is "  << minstd_rand0_sample_vec8 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand0_vec<16> is " << minstd_rand0_sample_vec16 << std::endl;
-    if((minstd_rand0_ref_sample == minstd_rand0_sample)                   &&
-        (minstd_rand0_ref_sample == minstd_rand0_sample_vec2)             &&
-        (minstd_rand0_ref_sample == minstd_rand0_sample_vec3)             &&
-        (minstd_rand0_ref_sample == minstd_rand0_sample_vec4)             &&
-        (minstd_rand0_ref_sample == minstd_rand0_sample_vec8)             &&
-        (minstd_rand0_ref_sample == minstd_rand0_sample_vec16)) {
-        std::cout << "Test PASSED" << std::endl;
-    }
-    else {
+    if((minstd_rand0_ref_sample != minstd_rand0_sample)                   ||
+        (minstd_rand0_ref_sample != minstd_rand0_sample_vec2)             ||
+        (minstd_rand0_ref_sample != minstd_rand0_sample_vec3)             ||
+        (minstd_rand0_ref_sample != minstd_rand0_sample_vec4)             ||
+        (minstd_rand0_ref_sample != minstd_rand0_sample_vec8)             ||
+        (minstd_rand0_ref_sample != minstd_rand0_sample_vec16)) {
         std::cout << "Test FAILED" << std::endl;
         return 1;
     }
@@ -85,6 +78,7 @@ int main() {
     auto minstd_rand_sample_vec8  = test<oneapi::dpl::minstd_rand_vec<8>, 10000, 8>();
     auto minstd_rand_sample_vec16 = test<oneapi::dpl::minstd_rand_vec<16>,10000, 16>();
 
+    // Comparison
     std::cout << "\nThe 10000th reference value of minstd_rand engine is "                    << minstd_rand_ref_sample  << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand is "                  << minstd_rand_sample << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand_vec<2> is "           << minstd_rand_sample_vec2 << std::endl;
@@ -92,20 +86,20 @@ int main() {
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand_vec<4> is "           << minstd_rand_sample_vec4 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand_vec<8> is "           << minstd_rand_sample_vec8 << std::endl;
     std::cout << "The 10000th produced value of oneapi::dpl::minstd_rand_vec<16> is "          << minstd_rand_sample_vec16 << std::endl;
-    if((minstd_rand_ref_sample == minstd_rand_sample)                   &&
-        (minstd_rand_ref_sample == minstd_rand_sample_vec2)             &&
-        (minstd_rand_ref_sample == minstd_rand_sample_vec3)             &&
-        (minstd_rand_ref_sample == minstd_rand_sample_vec4)             &&
-        (minstd_rand_ref_sample == minstd_rand_sample_vec8)             &&
-        (minstd_rand_ref_sample == minstd_rand_sample_vec16)) {
-        std::cout << "Test PASSED" << std::endl;
-    }
-    else {
+    if((minstd_rand_ref_sample != minstd_rand_sample)                   ||
+        (minstd_rand_ref_sample != minstd_rand_sample_vec2)             ||
+        (minstd_rand_ref_sample != minstd_rand_sample_vec3)             ||
+        (minstd_rand_ref_sample != minstd_rand_sample_vec4)             ||
+        (minstd_rand_ref_sample != minstd_rand_sample_vec8)             ||
+        (minstd_rand_ref_sample != minstd_rand_sample_vec16)) {
         std::cout << "Test FAILED" << std::endl;
         return 1;
     }
 
+#else
+    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
+#endif // ONEDPL_USE_DPCPP_BACKEND
+
+    std::cout << "Test PASSED" << std::endl;
     return 0;
 }
-
-#endif // #if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))

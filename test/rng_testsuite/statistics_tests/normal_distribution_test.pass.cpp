@@ -17,17 +17,9 @@
 //
 // Test of normal_distribution - comparison with std::
 
-#if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
 #include <iostream>
 
-int main() {
-    std::cout << "\tTest is skipped for non-SYCL backend. Passed" << std::endl;
-    return 0;
-}
-
-#else
-
-#include <iostream>
+#if ONEDPL_USE_DPCPP_BACKEND
 #include <CL/sycl.hpp>
 #include <random>
 #include <limits>
@@ -262,7 +254,12 @@ int tests_set_portion(std::int32_t nsamples, unsigned int part) {
     return 0;
 }
 
+#endif // ONEDPL_USE_DPCPP_BACKEND
+
 int main() {
+
+#if ONEDPL_USE_DPCPP_BACKEND
+
     constexpr int nsamples = 100;
     int err;
 
@@ -356,8 +353,10 @@ int main() {
         return 1;
     }
 
+#else
+    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
+#endif // ONEDPL_USE_DPCPP_BACKEND
+
     std::cout << "Test PASSED" << std::endl;
     return 0;
 }
-
-#endif // #if (!defined(_ONEDPL_BACKEND_SYCL) || (_ONEDPL_BACKEND_SYCL == 0))
