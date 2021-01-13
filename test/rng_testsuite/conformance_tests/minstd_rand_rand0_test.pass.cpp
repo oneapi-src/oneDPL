@@ -29,14 +29,14 @@
 
 #include <iostream>
 
-#if ONEDPL_USE_DPCPP_BACKEND
+#if _ONEDPL_BACKEND_SYCL
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
-#endif // ONEDPL_USE_DPCPP_BACKEND
+#endif // _ONEDPL_BACKEND_SYCL
 
 int main() {
 
-#if ONEDPL_USE_DPCPP_BACKEND
+#if _ONEDPL_BACKEND_SYCL
 
     // Reference values
     uint_fast32_t minstd_rand0_ref_sample = 1043618065;
@@ -98,7 +98,7 @@ int main() {
 
 #else
     std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
-#endif // ONEDPL_USE_DPCPP_BACKEND
+#endif // _ONEDPL_BACKEND_SYCL
 
     std::cout << "Test PASSED" << std::endl;
     return 0;
