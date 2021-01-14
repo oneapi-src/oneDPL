@@ -34,9 +34,12 @@ int main() {
     
         //oneapi::dpl::async::wait_for_all(result1,result,result2);
         result3.wait();
-    
-        std::cout << "Result: " << result.get() << std::endl;
-        std::cout << "Expected: 50\n";
+
+        auto x = result.get();
+        if (x == 1+0+2+4+6+8+10+12+7)
+            std::cout << "done\n";
+        else
+            std::cout << "FAIL: expected " << (1+0+2+4+6+8+10+12+7) << " actual " << x << "\n";    
     }
 
     return 0;
