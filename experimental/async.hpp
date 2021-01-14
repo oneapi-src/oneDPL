@@ -73,7 +73,16 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIt2>>
 transform(_ExecutionPolicy&& policy, _ForwardIt1 first1, _ForwardIt1 last1, _ForwardIt2 d_first, _UnaryOperation unary_op);
 
-// fill();
+template< class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _ForwardIt3, class _BinaryOperation >
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIt3>>
+transform( _ExecutionPolicy&& policy, _ForwardIt1 first1, _ForwardIt1 last1,
+                    _ForwardIt2 first2, _ForwardIt3 d_first, _BinaryOperation binary_op );
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
+fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
 // merge();
 
@@ -113,6 +122,22 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterat
     return __internal::async::reduce(std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op);
 }
 
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _UnaryOperation, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIt2>, _Events...>
+transform_async(_ExecutionPolicy&& __exec, _ForwardIt1 first1, _ForwardIt1 last1, _ForwardIt2 d_first, _UnaryOperation unary_op, _Events&&... __dependencies) {
+    wait_for_all(__dependencies...);
+    return __internal::async::transform( std::forward<_ExecutionPolicy>(__exec), first1, last1, d_first, unary_op ); 
+}
+
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _ForwardIt3, class _BinaryOperation, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIt3>, _BinaryOperation, _Events...>
+transform_async(_ExecutionPolicy&& __exec, _ForwardIt1 first1, _ForwardIt1 last1, _ForwardIt2 first2, _ForwardIt3 d_first , _BinaryOperation binary_op, _Events&&... __dependencies) {
+    wait_for_all(__dependencies...);
+    return __internal::async::transform( std::forward<_ExecutionPolicy>(__exec), first1, last1, first2, d_first, binary_op );
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<void>, _Events...>
@@ -128,6 +153,14 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
 sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp, _Events&&... __dependencies) {
     wait_for_all(__dependencies...);
     return __internal::async::sort( std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp );
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>, _Events...>
+fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value, _Events&&... __dependencies) {
+    wait_for_all(__dependencies...);
+    return __internal::async::fill( std::forward<_ExecutionPolicy>(__exec), __first, __last, __value );
 }
 
 } // namespace dpl
