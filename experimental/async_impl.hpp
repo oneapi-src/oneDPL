@@ -386,6 +386,35 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     return oneapi::dpl::__internal::__future<_ForwardIterator2>(__future_obj, __first2 + __n);
 }
 
+template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
+          typename _Function>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIterator3>>
+__pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f, /*vector=*/::std::true_type,
+                /*parallel=*/::std::true_type)
+{
+    auto __n = __last1 - __first1;
+    if (__n <= 0)
+        return  oneapi::dpl::__internal::__future<_ForwardIterator3>( sycl::event{}, __first3);
+
+    auto __keep1 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
+    auto __buf1 = __keep1(__first1, __last1);
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>();
+    auto __buf2 = __keep2(__first2, __first2 + __n);
+    auto __keep3 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
+    auto __buf3 = __keep3(__first3, __first3 + __n);
+
+    auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for_async(::std::forward<_ExecutionPolicy>(__exec),
+                                                      unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                      __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
+
+    return oneapi::dpl::__internal::__future<_ForwardIterator3>(__future_obj, __first3 + __n);
+}
+
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Brick>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIterator2>>
@@ -455,6 +484,18 @@ __pattern_sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec};
 }
 
+template <typename _ExecutionPolicy, typename _ForwardIterator, typename _T>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
+__pattern_fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _T& __value,
+               /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
+{
+    auto ret_val = __pattern_walk1_async(::std::forward<_ExecutionPolicy>(__exec),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
+                    fill_functor<_T>{__value}, ::std::true_type{}, ::std::true_type{});
+    return ret_val;
+}
 
 namespace async
 {
@@ -473,6 +514,22 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator
             __exec),
         __exec.__allow_parallel());
     return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy,_ForwardIterator2>{__exec, ret_val};
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
+          class _BinaryOperation>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIterator>>
+transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
+          _ForwardIterator __result, _BinaryOperation __op)
+{
+    auto ret_val = oneapi::dpl::__internal::__pattern_walk3_async(
+        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
+        oneapi::dpl::__internal::__transform_functor<
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _BinaryOperation>>(__op),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
+                                                              _ForwardIterator>(__exec),
+        __exec.__allow_parallel());
+    return ret_val;
 }
 
 // [alg.async.copy]
@@ -538,6 +595,19 @@ reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
     // oneapi::dpl::__internal::__make_future_promise_pair(::oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec},
     // ret_val);
     return ret_val;
+}
+
+// [alg.fill]
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
+fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
+{
+    return oneapi::dpl::__internal::__pattern_fill_async(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __value,
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
 } // namespace __internal
