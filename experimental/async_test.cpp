@@ -22,9 +22,13 @@ int main() {
         sycl::buffer<int> b{a,sycl::range<1>{N}};
     
         sycl::queue q;
-        auto my_policy = oneapi::dpl::execution::make_device_policy(q);
 
-        auto result1 = oneapi::dpl::for_each_async(my_policy, oneapi::dpl::begin(b), oneapi::dpl::end(b), [](int &n){ n++; });
+#if 0
+        std::for_each(oneapi::dpl::execution::make_device_policy<class algo1>(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), [](int &n){ n++; });
+        sycl::event result1;
+#else
+        auto result1 = oneapi::dpl::for_each_async(oneapi::dpl::execution::make_device_policy<class algo1>(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), [](int &n){ n++; });
+#endif
 
         auto result = oneapi::dpl::reduce_async(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), 1, std::plus<int>(), result1);
 
