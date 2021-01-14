@@ -372,8 +372,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
 #endif
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
-                    auto __global_idx = __item_id.get_global_id(0);
-                    auto __local_idx = __item_id.get_local_id(0);
+                    ::std::size_t __global_idx = __item_id.get_global_id(0);
+                    ::std::size_t __local_idx = __item_id.get_local_id(0);
                     // 1. Initialization (transform part). Fill local memory
                     if (__is_first)
                     {
