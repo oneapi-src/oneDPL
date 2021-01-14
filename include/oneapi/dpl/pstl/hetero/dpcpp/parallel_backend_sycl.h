@@ -319,6 +319,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     auto __n = __get_first_range(__rngs...).size();
     assert(__n > 0);
 
+    using _Size = decltype(__n);
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
@@ -327,31 +328,33 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     using __kernel_name_t = __parallel_reduce_kernel<__kernel_name>;
 #endif
 
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __wgroup_size according to local memory limit
-    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
-        ::std::forward<_ExecutionPolicy>(__exec), __wgroup_size);
+    ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    // change __work_group_size according to local memory limit
+    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
+        ::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __kernel_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                  ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+    sycl::kernel __kernel = __kernel_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
+                                                          ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
     // It can be replaced with another value for more perfect load balancing
-    auto __iters_per_witem = decltype(__wgroup_size)(4);
-    auto __size_per_wg = __iters_per_witem * __wgroup_size; // how much buffer elements work group processes
-    auto __n_groups = (__n - 1) / __size_per_wg + 1;        // number of work groups
-    auto __n_blocks = (__n - 1) / __iters_per_witem + 1;    // number of bunch of elements that the algorithm processes
+    ::std::size_t __iters_per_work_item = 4;
+    ::std::size_t __size_per_work_group =
+        __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
+    _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
+    _Size __n_items = (__n - 1) / __iters_per_work_item + 1; // number of bunch of elements that the algorithm processes
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size);
 
     // Create temporary global buffers to store temporary values
-    auto __temp_1 = sycl::buffer<_Tp>(sycl::range<1>(2 * __n_groups));
+    sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
     // __is_first == true. Reduce over each work_group
     // __is_first == false. Reduce between work groups
     bool __is_first = true;
 
-    auto __offset_1 = decltype(__n_groups)(0);
-    auto __offset_2 = __n_groups;
+    // For memory utilization it's better to use one big buffer instead of two small because size of the buffer is close to a few MB
+    _Size __offset_1 = 0;
+    _Size __offset_2 = __n_groups;
 
     sycl::event __reduce_event;
     do
@@ -360,33 +363,33 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             __cgh.depends_on(__reduce_event);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-            auto __temp_1_acc = __temp_1.template get_access<access_mode::read_write>(__cgh);
+            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
-                sycl::range<1>(__wgroup_size), __cgh);
+                sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<__kernel_name_t>(
 #if _ONEDPL_COMPILE_KERNEL
                 __kernel,
 #endif
-                sycl::nd_range<1>(sycl::range<1>(__n_groups * __wgroup_size), sycl::range<1>(__wgroup_size)),
+                sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
                     auto __global_idx = __item_id.get_global_id(0);
                     auto __local_idx = __item_id.get_local_id(0);
                     // 1. Initialization (transform part). Fill local memory
                     if (__is_first)
                     {
-                        __u(__item_id, __n, __iters_per_witem, __temp_local, __rngs...);
+                        __u(__item_id, __n, __iters_per_work_item, __temp_local, __rngs...);
                     }
                     else
                     {
-                        if (__global_idx < __n_blocks)
-                            __temp_local[__local_idx] = __temp_1_acc[__offset_2 + __global_idx];
+                        if (__global_idx < __n_items)
+                            __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
                         __item_id.barrier(sycl::access::fence_space::local_space);
                     }
                     // 2. Reduce within work group using local memory
-                    auto __res = __brick_reduce(__item_id, __global_idx, __n_blocks, __temp_local);
+                    _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
                     if (__local_idx == 0)
                     {
-                        __temp_1_acc[__offset_1 + __item_id.get_group(0)] = __res;
+                        __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
                     }
                 });
         });
@@ -395,10 +398,10 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             __is_first = false;
         }
         ::std::swap(__offset_1, __offset_2);
-        __n_blocks = __n_groups;
-        __n_groups = (__n_blocks - 1) / __wgroup_size + 1;
-    } while (__n_blocks > 1);
-    return __temp_1.template get_access<access_mode::read_write>()[__offset_2];
+        __n_items = __n_groups;
+        __n_groups = (__n_items - 1) / __work_group_size + 1;
+    } while (__n_items > 1);
+    return __temp.template get_access<access_mode::read_write>()[__offset_2];
 }
 
 //------------------------------------------------------------------------
@@ -447,9 +450,9 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
 #endif
 
     // Practically this is the better value that was found
-    auto __iters_per_witem = decltype(__wgroup_size)(16);
-    auto __size_per_wg = __iters_per_witem * __wgroup_size;
-    auto __n_groups = (__n - 1) / __size_per_wg + 1;
+    auto __iters_per_work_item = decltype(__wgroup_size)(16);
+    auto __size_per_work_group = __iters_per_work_item * __wgroup_size;
+    auto __n_groups = (__n - 1) / __size_per_work_group + 1;
     // Storage for the results of scan for each workgroup
     sycl::buffer<_Type> __wg_sums(__n_groups);
 
@@ -467,8 +470,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
             __kernel_1,
 #endif
             sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
-                __local_scan(__item, __n, __local_acc, __rng1, __rng2, __wg_sums_acc, __size_per_wg, __wgroup_size,
-                             __iters_per_witem, __init);
+                __local_scan(__item, __n, __local_acc, __rng1, __rng2, __wg_sums_acc, __size_per_work_group,
+                             __wgroup_size, __iters_per_work_item, __init);
             });
     });
 
@@ -499,9 +502,10 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         __cgh.depends_on(__submit_event);
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
-        __cgh.parallel_for<__kernel_3_name_t>(sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) {
-            __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg);
-        });
+        __cgh.parallel_for<__kernel_3_name_t>(
+            sycl::range<1>(__n_groups * __size_per_work_group), [=](sycl::item<1> __item) {
+                __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_work_group);
+            });
     });
 
     //point of syncronization (on host access)
