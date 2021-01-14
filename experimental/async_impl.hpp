@@ -14,17 +14,15 @@
  *  limitations under the License.
  */
 
-#ifndef async_reduce_impl_hpp
-#define async_reduce_impl_hpp
+#ifndef _ONEDPL_ASYNC_IMPL_HPP
+#define _ONEDPL_ASYNC_IMPL_HPP
 
 //#include "oneapi/dpl/pstl/hetero/numeric_impl_hetero.h"
 
 namespace oneapi
 {
-
 namespace dpl
 {
-
 namespace __par_backend_hetero
 {
 
@@ -380,7 +378,7 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
-    auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
+    auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for_async(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf1.all_view(), __buf2.all_view());
     oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
@@ -457,7 +455,6 @@ __pattern_sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec};
 }
 
-} // namespace __internal
 
 namespace async
 {
@@ -542,6 +539,8 @@ reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
     // ret_val);
     return ret_val;
 }
+
+} // namespace __internal
 
 #if 0
 template<class _ExecutionPolicy, class _ForwardIterator, class T>
