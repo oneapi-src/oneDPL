@@ -15,7 +15,7 @@ your change directly to the repository:
   [coding conventions](#coding-conventions).
 - Submit a
   [pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) into the
-  main branch. You may add a description of your contribution into [CREDITS.txt](https://github.com/oneapi-src/oneDPL/blob/main/CMakeLists.txt).
+  main branch. You may add a description of your contribution into [CREDITS.txt](https://github.com/oneapi-src/oneDPL/blob/main/CREDITS.txt).
 
 # Coding conventions
 
