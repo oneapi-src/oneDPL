@@ -1,5 +1,5 @@
 #===============================================================================
-# Copyright 2014-2020 Intel Corporation
+# Copyright 2014-2021 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 #===============================================================================
 
 ##  Content:
-##     Intel(R) DAAL configuration file for the Sphinx documentation builder
+## Intel(R) Data Analytics Acceleration Library (Intel(R) DAAL) configuration
+## file for the Sphinx documentation builder.
 ##******************************************************************************
 
 # Configuration file for the Sphinx documentation builder.

@@ -87,7 +87,7 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
             target_link_libraries(oneDPL INTERFACE TBB::tbb)
         endif()
 
-        # It is for Clang and DPC++ compilers (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
+        # It is for Clang and Intel® oneAPI DPC++ Compiler (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
         if (UNIX)
             if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
                 if (FIND_GXX_EXE)
