@@ -150,14 +150,14 @@ __internal::sycl_iterator<access_mode::read_write, T, Allocator> end(sycl::buffe
 // begin
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-                                                    sycl::mode_tag_t<Mode> tag)
+                                                    sycl::mode_tag_t<Mode>)
 {
     return __internal::sycl_iterator<Mode, T, Allocator>{buf, 0};
 }
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode> tag, sycl::property::noinit)
+    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, sycl::property::noinit)
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, 0};
 }
@@ -171,14 +171,14 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
 
 // end
 template <typename T, typename Allocator, access_mode Mode>
-__internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode> tag)
+__internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>)
 {
     return __internal::sycl_iterator<Mode, T, Allocator>{buf, buf.get_count()};
 }
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode> tag, sycl::property::noinit)
+    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, sycl::property::noinit)
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, buf.get_count()};
 }

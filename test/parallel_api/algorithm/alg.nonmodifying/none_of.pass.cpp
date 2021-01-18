@@ -50,7 +50,7 @@ test(size_t bits)
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         // Sequence of odd values
-        Sequence<T> in(n, [n, bits](size_t k) { return T(2 * HashBits(n, bits - 1) ^ 1); });
+        Sequence<T> in(n, [n, bits](size_t) { return T(2 * HashBits(n, bits - 1) ^ 1); });
 
         // Even value, or false when T is bool.
         T spike(2 * HashBits(n, bits - 1));

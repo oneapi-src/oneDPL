@@ -162,7 +162,7 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator>::value, void>
 __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
-                _IsVector __is_vector,
+                _IsVector,
                 /*parallel=*/::std::true_type)
 {
     typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
@@ -325,7 +325,7 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterato
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator1, _ForwardIterator2>::value, _ForwardIterator2>
 __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                _ForwardIterator2 __first2, _Function __f, _IsVector __is_vector, /*parallel=*/::std::true_type)
+                _ForwardIterator2 __first2, _Function __f, _IsVector, /*parallel=*/::std::true_type)
 {
     return __internal::__except_handler([&]() {
         using _iterator_tuple = zip_forward_iterator<_ForwardIterator1, _ForwardIterator2>;
@@ -516,7 +516,7 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator1, _ForwardIterator2, _ForwardIterator3>::value,
     _ForwardIterator3>
 __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f, _IsVector __is_vector,
+                _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f, _IsVector,
                 /*parallel=*/::std::true_type)
 {
     return __internal::__except_handler([&]() {
@@ -2507,7 +2507,7 @@ __brick_adjacent_find(_ForwardIterator __first, _ForwardIterator __last, _Binary
 template <class _ForwardIterator, class _BinaryPredicate>
 _ForwardIterator
 __brick_adjacent_find(_ForwardIterator __first, _ForwardIterator __last, _BinaryPredicate __pred,
-                      /* IsVector = */ ::std::false_type, bool __or_semantic) noexcept
+                      /* IsVector = */ ::std::false_type, bool) noexcept
 {
     return ::std::adjacent_find(__first, __last, __pred);
 }
@@ -2962,7 +2962,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __firs
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
-__pattern_includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+__pattern_includes(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                    _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp, _IsVector,
                    /*is_parallel=*/::std::false_type) noexcept
 {
@@ -2972,7 +2972,7 @@ __pattern_includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwa
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
 __pattern_includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                   _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp, _IsVector __is_vector,
+                   _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp, _IsVector,
                    /*is_parallel=*/::std::true_type)
 {
     if (__first2 == __last2)
@@ -3992,7 +3992,7 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterato
           class _IsParallel>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-               _ForwardIterator2 __first2, _Function __f, _IsVector __is_vector, _IsParallel __is_parallel)
+               _ForwardIterator2 __first2, _Function __f, _IsVector __is_vector, _IsParallel)
 {
     return __pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f, __is_vector,
                            __is_vector);

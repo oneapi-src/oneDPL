@@ -107,7 +107,7 @@ int test_portion(oneapi::dpl::internal::element_type_t<typename Engine::result_t
                 Engine engine(seed, offset);
 
                 auto res = engine(part);
-                for(int i = 0; i < n_elems; ++i)
+                for(unsigned int i = 0; i < n_elems; ++i)
                     dpstd_acc.get_pointer()[offset + i] = res[i];
             });
         });

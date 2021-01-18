@@ -315,7 +315,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
           typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Tp>
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
     auto __n = __get_first_range(__rngs...).size();
     assert(__n > 0);
@@ -385,9 +385,14 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                     }
                     else
                     {
+<<<<<<< HEAD
                         // TODO: check the approach when we use grainsize here too
                         if (__global_idx < __n_items)
                             __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
+=======
+                        if (__global_idx < (decltype(__global_idx))__n)
+                            __temp_local[__local_idx] = __temp_1_acc[__global_idx];
+>>>>>>> Warning keys are added to CMakeLists, fixed warnings on several tests
                         __item_id.barrier(sycl::access::fence_space::local_space);
                     }
                     // 2. Reduce within work group using local memory
@@ -416,7 +421,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
     _ExecutionPolicy, ::std::pair<oneapi::dpl::__internal::__difference_t<_Range2>, typename _InitType::__value_type>>
-__parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
+__parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation,
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -607,7 +612,6 @@ struct __early_exit_find_or
         using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
         auto __n = oneapi::dpl::__ranges::__get_first_range(__rngs...).size();
-        using _Size = decltype(__n);
 
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
@@ -619,7 +623,7 @@ struct __early_exit_find_or
         auto __init_index =
             __shift_global * __wg_size * __n_iter + __shift_local * __shift * __n_iter + __local_idx % __shift;
 
-        for (_Size __i = 0; __i < __n_iter; ++__i)
+        for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
             using _ShiftedIdxType =
@@ -631,7 +635,7 @@ struct __early_exit_find_or
             _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
             // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for erly exit)
             // should be investigated later, with other HW
-            if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
+            if ((decltype(__n))__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
                 oneapi::dpl::__internal::__invoke_if_else(
                     _OrTagType{}, [&__found_local]() { __found_local.store(1); },
@@ -1006,7 +1010,7 @@ struct __partial_merge_kernel
         const auto __part_end_2 = sycl::min(__start_2 + __k, __end_2);
 
         // Handle elements from p1
-        if (__global_idx >= __start_1 && __global_idx < __part_end_1)
+        if (__global_idx >= (_Idx)__start_1 && __global_idx < (_Idx)__part_end_1)
         {
             const auto __shift =
                 /* index inside p1 */ __global_idx - __start_1 +
@@ -1017,7 +1021,7 @@ struct __partial_merge_kernel
             __out_acc[__out_shift + __shift] = __in_acc1[__global_idx];
         }
         // Handle elements from p2
-        else if (__global_idx >= __part_end_1 && __global_idx < __end_1)
+        else if (__global_idx >= (_Idx)__part_end_1 && __global_idx < (_Idx)__end_1)
         {
             const auto __shift =
                 /* index inside p2 */ (__global_idx - __part_end_1) +
@@ -1025,7 +1029,7 @@ struct __partial_merge_kernel
             __out_acc[__out_shift + __shift] = __in_acc1[__global_idx];
         }
         // Handle elements from p3
-        else if (__global_idx >= __start_2 && __global_idx < __part_end_2)
+        else if (__global_idx >= (_Idx)__start_2 && __global_idx < (_Idx)__part_end_2)
         {
             const auto __shift =
                 /* index inside p3 */ __global_idx - __start_2 +
@@ -1036,7 +1040,7 @@ struct __partial_merge_kernel
             __out_acc[__out_shift + __shift] = __in_acc2[__global_idx];
         }
         // Handle elements from p4
-        else if (__global_idx >= __part_end_2 && __global_idx < __end_2)
+        else if (__global_idx >= (_Idx)__part_end_2 && __global_idx < (_Idx)__end_2)
         {
             const auto __shift =
                 /* index inside p4 + size of p3 */ __global_idx - __start_2 +
@@ -1337,7 +1341,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__value_t<_Range>, _Compare>::value,
               __future<_ExecutionPolicy>>
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare)
 {
     __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng));

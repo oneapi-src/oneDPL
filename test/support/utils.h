@@ -43,7 +43,7 @@ typedef float float32_t;
 
 template <class T, ::std::size_t N>
 constexpr size_t
-const_size(const T (&array)[N]) noexcept
+const_size(const T (&)[N]) noexcept
 {
     return N;
 }
@@ -828,7 +828,7 @@ test_algo_basic_double(F&& f)
 
 template <typename Policy, typename F>
 static void
-invoke_if(Policy&& p, F f)
+invoke_if(Policy&&, F f)
 {
     f();
 }

@@ -374,7 +374,7 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
 // T must have a trivial constructor and destructor.
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
-__parallel_strict_scan(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
+__parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
                        _Ap __apex)
 {
     tbb::this_task_arena::isolate([=, &__combine]() {
@@ -642,7 +642,7 @@ class __func_task : public __task
     };
 
     __task*
-    cancel(tbb::detail::d1::execution_data& __ed) override
+    cancel(tbb::detail::d1::execution_data& ) override
     {
         return finalize(nullptr);
     }
@@ -695,14 +695,14 @@ template <typename _Func>
 class __root_task : public __task
 {
     __task*
-    execute(tbb::detail::d1::execution_data& __ed) override
+    execute(tbb::detail::d1::execution_data&) override
     {
         _M_wait_object.release();
         return nullptr;
     };
 
     __task*
-    cancel(tbb::detail::d1::execution_data& __ed) override
+    cancel(tbb::detail::d1::execution_data&) override
     {
         _M_wait_object.release();
         return nullptr;
@@ -1173,7 +1173,7 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
+__parallel_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
                        _Compare __comp, _LeafSort __leaf_sort, ::std::size_t __nsort)
 {
     tbb::this_task_arena::isolate([=, &__nsort]() {

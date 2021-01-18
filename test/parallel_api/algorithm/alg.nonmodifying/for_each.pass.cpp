@@ -70,7 +70,7 @@ struct test_for_each_n
 {
     template <typename Policy, typename Iterator, typename Size>
     void
-    operator()(Policy&& exec, Iterator first, Iterator last, Iterator expected_first, Iterator expected_last, Size n)
+    operator()(Policy&& exec, Iterator first, Iterator, Iterator expected_first, Iterator, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator>::value_type T;
 

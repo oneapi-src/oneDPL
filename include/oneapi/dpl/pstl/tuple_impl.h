@@ -234,6 +234,7 @@ struct __copy_assignable_holder<_Tp, false> : __value_holder<_Tp>
 {
     using __value_holder<_Tp>::__value_holder;
 
+    __copy_assignable_holder(const __copy_assignable_holder& other)=default;
     __copy_assignable_holder&
     operator=(const __copy_assignable_holder& other)
     {
@@ -368,19 +369,19 @@ struct tuple<>
     tuple&
     operator=(const tuple&) = default;
     tuple&
-    operator=(const ::std::tuple<>& other)
+    operator=(const ::std::tuple<>&)
     {
         return *this;
     }
     friend bool
-    operator==(const tuple& __lhs, const tuple& __rhs)
+    operator==(const tuple&, const tuple&)
     {
         return true;
     }
 };
 
 inline void
-swap(tuple<>& __x, tuple<>& __y)
+swap(tuple<>&, tuple<>&)
 {
 }
 

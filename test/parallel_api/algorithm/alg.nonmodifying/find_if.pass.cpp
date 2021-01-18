@@ -33,7 +33,7 @@ struct test_find_if
 {
     template <typename Policy, typename Iterator, typename Predicate, typename NotPredicate>
     void
-    operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate not_pred)
+    operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate)
     {
         auto i = ::std::find_if(first, last, pred);
         auto j = find_if(exec, first, last, pred);

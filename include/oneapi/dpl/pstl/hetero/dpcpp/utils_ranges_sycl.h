@@ -162,7 +162,7 @@ template <typename _Range, typename... _Ranges>
 constexpr _Range
 __get_first_range(_Range&& __rng, _Ranges&&...)
 {
-    return __rng;
+    return ::std::forward<_Range>(__rng);
 }
 
 template <typename _Cgh>
@@ -189,7 +189,7 @@ __require_access_zip(sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_Rang
 //__require_access utility
 
 inline void
-__require_access(sycl::handler& __cgh)
+__require_access(sycl::handler&)
 {
 }
 
@@ -209,7 +209,7 @@ __require_access_range(sycl::handler& __cgh, zip_view<_Ranges...>& zip_rng)
 
 template <typename _BaseRange>
 void
-__require_access_range(sycl::handler& __cgh, _BaseRange&)
+__require_access_range(sycl::handler&, _BaseRange&)
 {
 }
 
@@ -341,7 +341,7 @@ struct __get_sycl_range
 
     template <typename _Iter>
     buf_type<val_t<_Iter>>
-    copy_back(_Iter __first, buf_type<val_t<_Iter>> buf, /*_copy_back*/ ::std::false_type)
+    copy_back(_Iter, buf_type<val_t<_Iter>> buf, /*_copy_back*/ ::std::false_type)
     {
         return buf;
     }
@@ -432,20 +432,20 @@ struct __get_sycl_range
     }
     template <typename _Map, typename _Size>
     auto
-    __get_it_map_view(_Map __m, _Size __n) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Size>::type
+    __get_it_map_view(_Map, _Size) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Size>::type
     {
         return _Size(0);
     }
     template <typename _Map, typename _T>
     static auto
-    __get_all_view(_Map __m, _T __t) ->
+    __get_all_view(_Map, _T __t) ->
         typename ::std::enable_if<is_map_iterator<_Map>::value, decltype(__t.all_view())>::type
     {
         return __t.all_view();
     }
     template <typename _Map, typename _T>
     static auto
-    __get_all_view(_Map __m, _T __t) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Map>::type
+    __get_all_view(_Map __m, _T) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Map>::type
     {
         return __m;
     }
