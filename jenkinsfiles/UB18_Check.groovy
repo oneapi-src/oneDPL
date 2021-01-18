@@ -70,7 +70,7 @@ user_in_github_group = false
 
 pipeline {
 
-    agent { label "master" }
+    agent { label "oneDPL_UB18" }
     options {
         durabilityHint 'PERFORMANCE_OPTIMIZED'
         timeout(time: 5, unit: 'HOURS')
@@ -117,14 +117,14 @@ pipeline {
     stages {
         stage('Check_User_in_Org') {
             agent {
-                label "master"
+                label "oneDPL_UB18"
             }
             steps {
                 script {
                     try {
                         retry(2) {
                             fill_task_name_description()
-                            def check_user_return = sh(script: "python3 /localdisk2/oneDPL_CI/check_user_in_group.py -u  ${env.User}", returnStatus: true, label: "Check User in Group")
+                            def check_user_return = sh(script: "python3 /export/users/oneDPL_CI/check_user_in_group.py -u  ${env.User}", returnStatus: true, label: "Check User in Group")
                             echo "check_user_return value is $check_user_return"
                             if (check_user_return == 0) {
                                 user_in_github_group = true
@@ -149,7 +149,7 @@ pipeline {
             when {
                 expression { user_in_github_group }
             }
-            agent { label "Ubuntu_18_04" }
+            agent { label "oneDPL_UB18" }
             stages {
                 stage('Git-monorepo') {
                     steps {
@@ -232,7 +232,7 @@ pipeline {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
-                                    withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                    withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
                                         def gamma_return_value = sh(
                                                 script: """
                                                     cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
