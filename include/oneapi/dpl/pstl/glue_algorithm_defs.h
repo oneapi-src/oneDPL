@@ -561,6 +561,16 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                         _ForwardIterator2 __first2, _ForwardIterator2 __last2);
 
+template <class _ExecutionPolicy, class _ForwardIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+           typename ::std::iterator_traits<_ForwardIterator>::difference_type __n);
+
+template <class _ExecutionPolicy, class _BidirectionalIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
+shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
+            typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n);
+
 } // namespace dpl
 } // namespace oneapi
 #endif /* _ONEDPL_GLUE_ALGORITHM_DEFS_H */
