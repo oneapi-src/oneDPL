@@ -70,7 +70,7 @@ user_in_github_group = false
 
 pipeline {
 
-    agent { label "master" }
+    agent { label "oneDPL_Debug" }
     options {
         durabilityHint 'PERFORMANCE_OPTIMIZED'
         timeout(time: 5, unit: 'HOURS')
@@ -149,11 +149,12 @@ pipeline {
             when {
                 expression { user_in_github_group }
             }
-            agent { label "Debug_RHEL" }
+            agent { label "oneDPL_Debug" }
             stages {
                 stage('Git-monorepo') {
                     steps {
                         script {
+                            deleteDir()
                             try {
                                 retry(2) {
                                     githubStatus.setPending(this, "Jenkins/RHEL_Check")
@@ -182,21 +183,42 @@ pipeline {
                     }
                 }
 
+                stage('Setting_Env') {
+                    steps {
+                        script {
+                            sh script: """
+                                set -x
+                                bash /export/users/oneDPL_CI/generate_env_file.sh
+                                if [ ! -f ./envs_tobe_loaded.txt ]; then
+                                    echo "Environment file not generated."
+                                    exit -1
+                                fi
+                            """, label: "Generate environment vars"
+
+                        }
+                    }
+                }
+
                 stage('Check_tests') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
                                 try {
                                     dir("./src") {
-                                        sh script: """
-                                            cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=GPU -DCMAKE_BUILD_TYPE=release .
-                                            make VERBOSE=1 build-all -j -k || true
-                                            ctest --output-on-failure --timeout ${TEST_TIMEOUT}
-                                        """, label: "all tests"
+                                        withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                            sh script: """
+                                                export PATH=/usr/bin/:$PATH
+                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=GPU -DCMAKE_BUILD_TYPE=release .
+                                                make VERBOSE=1 build-all -j -k || true
+                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
+                                            """, label: "all tests"
+                                        }
+
                                     }
                                 }
                                 catch(e) {
                                     build_ok = false
+                                    echo "Exception is" + e.toString()
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                         sh script: """
                                             exit -1
@@ -213,31 +235,34 @@ pipeline {
                         timeout(time: 1, unit: 'HOURS'){
                             script {
                                 try {
-                                    def gamma_return_value = sh(
-                                            script: """
-                                                    cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
-                                                    mkdir build
-                                                    cd build/
-                                                    cmake ..
-                                                    make
-                                                    make run
-                                                    exit \$?""",
-                                            returnStatus: true, label: "gamma_return_value Step")
-                                    def stable_sort_return_value = sh(
-                                            script: """
-                                                    cd oneAPI-samples/Libraries/oneDPL/stable_sort_by_key/
-                                                    mkdir build
-                                                    cd build/
-                                                    cmake ..
-                                                    make
-                                                    make run
-                                                    exit \$?""",
-                                            returnStatus: true, label: "stable_sort_return_value Step")
+                                    withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                        def gamma_return_value = sh(
+                                                script: """
+                                                        cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
+                                                        mkdir build
+                                                        cd build/
+                                                        cmake ..
+                                                        make
+                                                        make run
+                                                        exit \$?""",
+                                                returnStatus: true, label: "gamma_return_value Step")
+                                        def stable_sort_return_value = sh(
+                                                script: """
+                                                        cd oneAPI-samples/Libraries/oneDPL/stable_sort_by_key/
+                                                        mkdir build
+                                                        cd build/
+                                                        cmake ..
+                                                        make
+                                                        make run
+                                                        exit \$?""",
+                                                returnStatus: true, label: "stable_sort_return_value Step")
 
-                                    if (gamma_return_value != 0 || stable_sort_return_value !=0) {
-                                        echo "gamma-correction or stable_sort_by_key check failed. Please check log to fix the issue."
-                                        sh script: "exit -1", label: "Set failure"
+                                        if (gamma_return_value != 0 || stable_sort_return_value !=0) {
+                                            echo "gamma-correction or stable_sort_by_key check failed. Please check log to fix the issue."
+                                            sh script: "exit -1", label: "Set failure"
+                                        }
                                     }
+
 
                                 }
                                 catch(e) {

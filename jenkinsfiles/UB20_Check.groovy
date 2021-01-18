@@ -175,17 +175,35 @@ pipeline {
                     }
                 }
 
+                stage('Setting_Env') {
+                    steps {
+                        script {
+                            sh script: """
+                                set -x
+                                bash /export/users/oneDPL_CI/generate_env_file.sh
+                                if [ ! -f ./envs_tobe_loaded.txt ]; then
+                                    echo "Environment file not generated."
+                                    exit -1
+                                fi
+                            """, label: "Generate environment vars"
+
+                        }
+                    }
+                }
+
                 stage('Check_tests') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
                                 try {
                                     dir("./src") {
-                                        sh script: """
-                                            cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
-                                            make VERBOSE=1 build-all -j -k || true
-                                            ctest --output-on-failure --timeout ${TEST_TIMEOUT}
-                                        """, label: "All tests"
+                                        withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                            sh script: """
+                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
+                                                make VERBOSE=1 build-all -j -k || true
+                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
+                                            """, label: "All tests"
+                                        }
                                     }
                                 }
                                 catch(e) {

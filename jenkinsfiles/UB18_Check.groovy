@@ -183,17 +183,35 @@ pipeline {
                     }
                 }
 
+                stage('Setting_Env') {
+                    steps {
+                        script {
+                            sh script: """
+                                set -x
+                                bash /export/users/oneDPL_CI/generate_env_file.sh
+                                if [ ! -f ./envs_tobe_loaded.txt ]; then
+                                    echo "Environment file not generated."
+                                    exit -1
+                                fi
+                            """, label: "Generate environment vars"
+
+                        }
+                    }
+                }
+
                 stage('Check_tests') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
                                 try {
                                     dir("./src") {
-                                        sh script: """
-                                            cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
-                                            make VERBOSE=1 build-all -j -k || true
-                                            ctest --output-on-failure --timeout ${TEST_TIMEOUT}
-                                        """, label: "All tests"
+                                        withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                            sh script: """
+                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
+                                                make VERBOSE=1 build-all -j -k || true
+                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
+                                            """, label: "All tests"
+                                        }
                                     }
                                 }
                                 catch(e) {
@@ -214,9 +232,9 @@ pipeline {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
-
-                                    def gamma_return_value = sh(
-                                            script: """
+                                    withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                        def gamma_return_value = sh(
+                                                script: """
                                                     cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
                                                     mkdir build
                                                     cd build/
@@ -224,9 +242,9 @@ pipeline {
                                                     make
                                                     make run
                                                     exit \$?""",
-                                            returnStatus: true, label: "gamma_return_value Step")
-                                    def stable_sort_return_value = sh(
-                                            script: """
+                                                returnStatus: true, label: "gamma_return_value Step")
+                                        def stable_sort_return_value = sh(
+                                                script: """
                                                     cd oneAPI-samples/Libraries/oneDPL/stable_sort_by_key/
                                                     mkdir build
                                                     cd build/
@@ -234,13 +252,13 @@ pipeline {
                                                     make
                                                     make run
                                                     exit \$?""",
-                                            returnStatus: true, label: "stable_sort_return_value Step")
+                                                returnStatus: true, label: "stable_sort_return_value Step")
 
-                                    if (gamma_return_value != 0 || stable_sort_return_value !=0) {
-                                        echo "gamma-correction or stable_sort_by_key check failed. Please check log to fix the issue."
-                                        sh script: "exit -1", label: "Set failure"
+                                        if (gamma_return_value != 0 || stable_sort_return_value !=0) {
+                                            echo "gamma-correction or stable_sort_by_key check failed. Please check log to fix the issue."
+                                            sh script: "exit -1", label: "Set failure"
+                                        }
                                     }
-
                                 }
                                 catch(e) {
                                     build_ok = false
