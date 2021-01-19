@@ -71,7 +71,7 @@ test_shift_right_by_type(Size m, Size n)
     TestUtils::Sequence<T> orig(m, [](::std::size_t v) -> T { return T(v); }); //fill data
     TestUtils::Sequence<T> in(m, [](::std::size_t v) -> T { return T(v); }); //fill data
 
-    TestUtils::invoke_on_all_policies<>()(test_shift_right<T>(), in.begin(), orig.begin(), m, n);
+    TestUtils::invoke_on_all_host_policies()(test_shift_right<T>(), in.begin(), orig.begin(), m, n);
 }
 
 int
