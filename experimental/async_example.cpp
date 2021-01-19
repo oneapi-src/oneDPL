@@ -14,12 +14,13 @@
  *  limitations under the License.
  */
 
-#include <iostream>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/iterator>
 #include "async.hpp"
+
+#include <iostream>
 #include <vector>
 
 #include <CL/sycl.hpp>
