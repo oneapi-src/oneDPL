@@ -4009,7 +4009,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
                    /*is_vector=*/::std::false_type) noexcept
 {
 #if __cplusplus >= 202000L
-    return ::std::shift_left(::std::execution::seq, __first, __last, __n);
+    return ::std::shift_left(__first, __last, __n);
 #else
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
     if (__n <= 0)
