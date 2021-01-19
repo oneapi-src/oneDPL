@@ -41,17 +41,14 @@ struct rebind_policy<oneapi::dpl::execution::fpga_policy<factor, KernelName>, Ne
 using oneapi::dpl::counting_iterator;
 using oneapi::dpl::discard_iterator;
 using oneapi::dpl::make_zip_iterator;
-using oneapi::dpl::begin;
-using oneapi::dpl::end;
-using oneapi::dpl::identity;
 
 int main()
 {
     cl::sycl::buffer<int, 1> buf{ cl::sycl::range<1>(10) };
 
-    auto b = begin(buf);
-    auto e = end(buf);
+    auto b = oneapi::dpl::begin(buf);
+    auto e = oneapi::dpl::end(buf);
     auto z = make_zip_iterator(counting_iterator<int>(), discard_iterator());
-    std::get<1>(z[0]) = identity()(*counting_iterator<int>());
+    std::get<1>(z[0]) = oneapi::dpl::identity()(*counting_iterator<int>());
     return 0;
 }
