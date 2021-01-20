@@ -126,17 +126,17 @@ struct transform_init
                const _Acc&... __acc) const
     {
         ::std::size_t __global_id = __item.get_global_id(0);
-        ::std::size_t __adjusted_global_id = __iters_per_work_item * __global_id;
+        ::std::size_t __group_size = __item.get_local_range().size();
 
-        if (__adjusted_global_id < __n)
+        if (__global_id < __n)
         {
             using _Tp = typename __accessor_traits<_AccLocal>::value_type;
             ::std::size_t __local_id = __item.get_local_id(0);
-            _Tp __res = __unary_op(__adjusted_global_id, __acc...);
+            _Tp __res = __unary_op(__global_id, __acc...);
             // Add neighbour to the current __local_mem
             for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
             {
-                ::std::size_t __shifted_id = __adjusted_global_id + __i;
+                ::std::size_t __shifted_id = __global_id + __i * __group_size;
                 if (__shifted_id < __n)
                     __res = __binary_op(__res, __unary_op(__shifted_id, __acc...));
             }

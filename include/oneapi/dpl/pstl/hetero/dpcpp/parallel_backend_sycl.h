@@ -312,7 +312,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 // parallel_transform_reduce - sync pattern
 //------------------------------------------------------------------------
 
-template <typename _Tp, unsigned int __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp, typename _Rp, typename... _Ranges>
+template <typename _Tp, unsigned int __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
+          typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Tp>
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
@@ -339,13 +340,12 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                                                           ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
     ::std::size_t __iters_per_work_item = __grainsize;
-    if(__exec.queue().get_device().is_cpu()){
+    if (__exec.queue().get_device().is_cpu())
         __iters_per_work_item = __n / (__mcu * __work_group_size);
-    }
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
     _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
-    _Size __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of bunch of elements that the algorithm processes
+    _Size __n_items = (__n - 1) / __iters_per_work_item + 1; // number of bunch of elements that the algorithm processes
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size);
 
@@ -384,6 +384,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                     }
                     else
                     {
+                        // TODO: check the approach when we use grainsize here too
                         if (__global_idx < __n_items)
                             __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
                         __item_id.barrier(sycl::access::fence_space::local_space);
@@ -474,8 +475,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
             __kernel_1,
 #endif
             sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
-                __local_scan(__item, __n, __local_acc, __rng1, __rng2, __wg_sums_acc, __size_per_wg,
-                             __wgroup_size, __iters_per_witem, __init);
+                __local_scan(__item, __n, __local_acc, __rng1, __rng2, __wg_sums_acc, __size_per_wg, __wgroup_size,
+                             __iters_per_witem, __init);
             });
     });
 
@@ -506,10 +507,9 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         __cgh.depends_on(__submit_event);
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
-        __cgh.parallel_for<__kernel_3_name_t>(
-            sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) {
-                __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg);
-            });
+        __cgh.parallel_for<__kernel_3_name_t>(sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) {
+            __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg);
+        });
     });
 
     //point of syncronization (on host access)
