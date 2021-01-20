@@ -13,6 +13,8 @@
 
 #include "async.hpp"
 
+using namespace oneapi;
+
 int main() {
     
     const int N = 7;
@@ -22,15 +24,16 @@ int main() {
         sycl::buffer<int> b{a,sycl::range<1>{N}};
     
         sycl::queue q;
+        auto my_policy = dpl::execution::make_device_policy(q);
 
-        auto result1 = oneapi::dpl::for_each_async(oneapi::dpl::execution::make_device_policy<class algo1>(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), [](int &n){ n++; });
+        auto result1 = dpl::experimental::for_each_async(my_policy, dpl::begin(b), dpl::end(b), [](int &n){ n++; });
 
-        auto result = oneapi::dpl::reduce_async(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), 1, std::plus<int>(), result1);
+        auto result = dpl::experimental::reduce_async(my_policy, dpl::begin(b), dpl::end(b), 1, std::plus<int>(), result1);
 
-        auto result2 = oneapi::dpl::sort_async(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), result);
+        auto result2 = dpl::experimental::sort_async(my_policy, dpl::begin(b), dpl::end(b), result);
 
         // Test different signature of sort algorithm:
-        auto result3 = oneapi::dpl::sort_async(oneapi::dpl::execution::make_device_policy(q), oneapi::dpl::begin(b), oneapi::dpl::end(b), std::greater<int>(), result2);
+        auto result3 = dpl::experimental::sort_async(my_policy, dpl::begin(b), dpl::end(b), std::greater<int>(), result2);
     
         //oneapi::dpl::async::wait_for_all(result1,result,result2);
         result3.wait();

@@ -610,6 +610,34 @@ fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __las
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
+template<class _ExecutionPolicy,
+         class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOp1, class _BinaryOp2>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>>
+transform_reduce(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
+                       _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2)
+{
+    return oneapi::dpl::__internal::__pattern_transform_reduce_async(
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1, __binary_op2,
+            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>(
+                __exec),
+            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>(
+                __exec));
+}
+
+template<class _ExecutionPolicy,
+         class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>>
+transform_reduce(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last,
+                 _T __init, _BinaryOp __binary_op, _UnaryOp __unary_op)
+{
+    return oneapi::dpl::__internal::__pattern_transform_reduce_async(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op,
+            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIt>(__exec),
+            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIt>(__exec));
+}
+
 } // namespace __internal
 
 #if 0

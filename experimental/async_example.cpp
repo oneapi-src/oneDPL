@@ -62,22 +62,28 @@ int main() {
         sycl::buffer<int> y{n};//std::vector<int> y(n);
 
         auto my_policy = dpl::execution::make_device_policy(q);
-        auto res_1a = dpl::copy_async(my_policy, dpl::counting_iterator<int>(0), dpl::counting_iterator<int>(n), dpl::begin(x));
+        auto res_1a = dpl::experimental::copy_async(my_policy, dpl::counting_iterator<int>(0), dpl::counting_iterator<int>(n), dpl::begin(x));
         //std::iota(x.begin(), x.end(), 0); // x = [0..n]
-        auto res_1b = dpl::fill_async(my_policy, dpl::begin(y), dpl::end(y), 7); // y = [7..7]
+        auto res_1b = dpl::experimental::fill_async(my_policy, dpl::begin(y), dpl::end(y), 7); // y = [7..7]
 
-        auto res_2a = dpl::for_each_async(my_policy, dpl::begin(x), dpl::end(x), [](auto& e) { ++e; }, res_1a); // x = [1..n]
-        auto res_2b = dpl::transform_async(my_policy, dpl::begin(y), dpl::end(y), dpl::begin(y), [](const auto& e) { return e / 2; }, res_1b); // y = [3..3]
+        auto res_2a = dpl::experimental::for_each_async(my_policy, dpl::begin(x), dpl::end(x), [](auto& e) { ++e; }, res_1a); // x = [1..n]
+        auto res_2b = dpl::experimental::transform_async(my_policy, dpl::begin(y), dpl::end(y), dpl::begin(y), [](const auto& e) { return e / 2; }, res_1b); // y = [3..3]
 
         sycl::buffer<int> z{n};//std::vector<int> z(n);
-        auto res_3 = dpl::transform_async(my_policy, dpl::begin(x), dpl::end(x), dpl::begin(y), dpl::begin(z), std::plus<int>(), res_2a, res_2b); // z = [4..n+3]
+        auto res_3 = dpl::experimental::transform_async(my_policy, dpl::begin(x), dpl::end(x), dpl::begin(y), dpl::begin(z), std::plus<int>(), res_2a, res_2b); // z = [4..n+3]
 
-        auto res_4 = dpl::reduce_async(my_policy, dpl::begin(x), dpl::end(x), 0, std::plus<int>(), res_2a); // alpha = n*(n+1)/2
+        auto res_4 = dpl::experimental::reduce_async(my_policy, dpl::begin(x), dpl::end(x), 0, std::plus<int>(), res_2a); // alpha = n*(n+1)/2
         auto alpha = res_4.get();
 
         //auto new_transform_iterator = oneapi::dpl::make_transform_iterator(dpl::begin(z), [=](auto x) { return alpha*x; });
         // beta = (n*(n+1)/2) * ((n+3)*(n+4)/2 - 6)
+#if 0
         auto beta = std::transform_reduce(my_policy, dpl::begin(z), dpl::end(z), 0, std::plus<int>(), [=](auto e){ return alpha*e; });
+#else
+        auto r_beta = dpl::experimental::transform_reduce_async(my_policy, dpl::begin(z), dpl::end(z), 0, std::plus<int>(), [=](auto e){ return alpha*e; });
+        auto beta = r_beta.get();
+#endif
+
 
         if (beta == (n*(n+1)/2) * ((n+3)*(n+4)/2 - 6))
             std::cout << "done\n";
