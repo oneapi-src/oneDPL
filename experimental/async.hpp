@@ -84,6 +84,20 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
 fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
+template<class _ExecutionPolicy,
+         class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOp1, class _BinaryOp2>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>>
+transform_reduce(_ExecutionPolicy&& __exec, _ForwardIt1 first1, _ForwardIt1 last1, _ForwardIt2 first2,
+                       _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2);
+
+template<class _ExecutionPolicy,
+         class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>>
+transform_reduce(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last,
+                       _T __init, _BinaryOp __binary_op, _UnaryOp __unary_op);
+
 // merge();
 
 } // namespace async
@@ -91,6 +105,8 @@ fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __las
 } // namespace __internal
 
 // Public API for asynch algorithms:
+namespace experimental
+{
 
 template <typename... _Ts>
 void
@@ -138,6 +154,37 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIt1 first1, _ForwardIt1 last1
     return __internal::async::transform( std::forward<_ExecutionPolicy>(__exec), first1, last1, first2, d_first, binary_op );
 }
 
+template<class _ExecutionPolicy,
+         class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOp1, class _BinaryOp2, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy_double_no_default<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _BinaryOp1, _BinaryOp2, _Events...>
+transform_reduce_async(_ExecutionPolicy&& __exec,
+                   _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
+                         _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2, _Events&&... __dependencies) {
+    wait_for_all(__dependencies...);
+    return __internal::async::transform_reduce( std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1, __binary_op2 );
+}
+
+template<class _ExecutionPolicy,
+         class _ForwardIt1, class _ForwardIt2, class _T, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _Events...>
+transform_reduce_async(_ExecutionPolicy&& __exec,
+                         _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2, _T __init, _Events&&... __dependencies) {
+    wait_for_all(__dependencies...);
+    return __internal::async::transform_reduce( std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, ::std::plus<>(), ::std::multiplies<>() );
+}
+
+template<class _ExecutionPolicy,
+         class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _UnaryOp, _Events...>
+transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last,
+                       _T __init, _BinaryOp __binary_op, _UnaryOp __unary_op, _Events&&... __dependencies) {
+    wait_for_all(__dependencies...);
+    return __internal::async::transform_reduce( std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op );
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<void>, _Events...>
@@ -162,6 +209,8 @@ fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
     wait_for_all(__dependencies...);
     return __internal::async::fill( std::forward<_ExecutionPolicy>(__exec), __first, __last, __value );
 }
+
+} // namespace experimental
 
 } // namespace dpl
 
