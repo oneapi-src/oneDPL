@@ -596,6 +596,68 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
+//-----------------------------------------------------------------------
+// future and helper classes for async pattern/algorithm
+//-----------------------------------------------------------------------
+
+struct __tmp_base
+{
+};
+
+template <typename... Ts>
+struct __TempObjs : public __tmp_base
+{
+    ::std::tuple<Ts&...> __my_tmps;
+    __TempObjs(Ts&... __t) : __my_tmps(::std::forward_as_tuple(__t...)) {}
+};
+
+class __future_base {
+    using event = sycl::event;
+    event __my_event;
+public:
+    __future_base(event __e) : __my_event(__e) {}
+    event get_event() const { return __my_event; }
+    void
+    wait()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __my_event.wait();
+#endif
+    }
+    operator event() const { return event(__my_event); }
+};
+
+// TODO: Rework to future<T>
+template <typename _ExecutionPolicy>
+class __future
+{
+    _ExecutionPolicy __exec;
+
+  public:
+    __future(const _ExecutionPolicy& __e) : __exec(__e) {}
+    void
+    wait()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __exec.queue().wait_and_throw();
+#endif
+    }
+};
+
+template <>
+class __future<void> : public __future_base
+{
+    __tmp_base __tmps;
+
+  public:
+    template <typename... _Ts>
+    __future(sycl::event __e, _Ts... __t) : __future_base(__e),  __tmps(__TempObjs<_Ts...>{__t...})
+    {
+    }
+    void
+    get() { this->wait(); }
+};
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi

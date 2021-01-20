@@ -259,22 +259,6 @@ class __parallel_sort_kernel_3 : public __kernel_name_base<__parallel_sort_kerne
 {
 };
 
-template <typename _ExecutionPolicy>
-class __future
-{
-    _ExecutionPolicy __exec;
-
-  public:
-    __future(const _ExecutionPolicy& __e) : __exec(__e) {}
-    void
-    wait()
-    {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __exec.queue().wait_and_throw();
-#endif
-    }
-};
-
 //------------------------------------------------------------------------
 // parallel_for - async pattern
 //------------------------------------------------------------------------
@@ -282,7 +266,7 @@ class __future
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     assert(__get_first_range(::std::forward<_Ranges>(__rngs)...).size() > 0);
@@ -296,7 +280,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 #endif
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
-    __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+    auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
         //get an access to data under SYCL buffer:
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
@@ -305,7 +289,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
             __brick(__idx, __rngs...);
         });
     });
-    return __future<_ExecutionPolicy>(__exec);
+    return __future<void>(__event);
 }
 
 //------------------------------------------------------------------------
@@ -1044,7 +1028,7 @@ struct __partial_merge_kernel
 };
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Iterator3, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2,
                  _Iterator2 __last2, _Iterator3 __d_first, _Compare __comp)
 {
@@ -1071,7 +1055,7 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __la
     const auto __max_n = ::std::max(__n, static_cast<decltype(__n)>(__n_2));
     const ::std::size_t __steps = ((__max_n - 1) / __chunk) + 1;
 
-    __exec.queue().submit([&](sycl::handler& __cgh) {
+    auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
         auto __in_acc1 = __internal::get_access<_Iterator1>(__cgh)(__in_buffer1);
         auto __in_acc2 = __internal::get_access<_Iterator2>(__cgh)(__in_buffer2);
         auto __out_acc = __internal::get_access<_Iterator3>(__cgh)(__out_buffer);
@@ -1080,7 +1064,7 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __la
                                   decltype(__n_2)(0), __n_2, __out_acc, decltype(__n)(0), __comp, __chunk);
         });
     });
-    return __future<_ExecutionPolicy>(__exec);
+    return __future<void>(__event);
 }
 
 //-----------------------------------------------------------------------
