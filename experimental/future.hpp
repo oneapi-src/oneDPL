@@ -51,7 +51,7 @@ struct __async_direct : public __async_value<_T>
 
 // return transform iterator that applies: op(ret_val,init)
 
-template <typename _Tp, typename _Op = ::std::plus<_Tp>, typename _Buf = sycl::buffer<_Tp> /*, typename _T = std::iterator_traits<_Tp>::value_type*/>
+template <typename _Tp, typename _Op = ::std::plus<_Tp>, typename _Buf = sycl::buffer<_Tp> >
 struct __async_transform : public __async_value<_Tp>
 {
     _Buf __buf;
@@ -71,58 +71,24 @@ struct __async_transform : public __async_value<_Tp>
     }
 };
 
-struct __tmp_base
-{
-};
-
-template <typename... Ts>
-struct __TempObjs : public __tmp_base
-{
-    std::tuple<Ts&...> __my_tmps;
-    __TempObjs(Ts&... __t) : __my_tmps(::std::forward_as_tuple(__t...)) {}
-};
-
-#if 1
-
-using event = sycl::event;
-
-#else
-
-class event {
-    sycl::event __event;
-    event( sycl::event __e ) : __event(__e) {}
-}
-
-#endif
-
-class __future_base {
-    event __my_event;
-public:
-    __future_base(event __e) : __my_event(__e) {}
-    event get_event() const { return __my_event; }
-    void wait() /* const */ { __my_event.wait(); }
-    operator event() const { return event(__my_event); }
-};
-
 // TODO: pull future into public API
-
 template <typename _Tp>
-class __future : public __future_base
+class __future : public __par_backend_hetero::__future_base
 {
     ::std::unique_ptr<__async_value<_Tp>> __data; // This is a value/buffer for read access!
-    __tmp_base __tmp;
+    __par_backend_hetero::__tmp_base __tmp;
 
   public:
     template <typename... _Ts>
-    __future(event __e, sycl::buffer<_Tp> __d, _Ts... __t)
-        : __future_base(__e), __data(::std::unique_ptr<__async_transform<_Tp>>(new __async_transform<_Tp>(__d))),
-          __tmp(__TempObjs<_Ts...>{__t...})
+    __future(sycl::event __e, sycl::buffer<_Tp> __d, _Ts... __t)
+        : __par_backend_hetero::__future_base(__e), __data(::std::unique_ptr<__async_transform<_Tp>>(new __async_transform<_Tp>(__d))),
+          __tmp(__par_backend_hetero::__TempObjs<_Ts...>{__t...})
     {
     }
     // Constructor for reduce_transform pattern
     template <typename _Op>
     __future(const __future<_Tp>& _fp, _Tp __i, _Op __o)
-        : __future_base(_fp.get_event()),
+        : __par_backend_hetero::__future_base(_fp.get_event()),
           __data(::std::unique_ptr<__async_transform<_Tp, _Op>>(new __async_transform<_Tp, _Op>(_fp.raw_data().get_buffer(), __i, __o))), __tmp(_fp.__tmp)
     {
     }
@@ -142,17 +108,17 @@ class __future : public __future_base
 
 // Specialization for sycl_iterator
 template <typename T>
-class __future<sycl_iterator<sycl::access::mode::read_write,T,sycl::buffer_allocator>> : public __future_base
+class __future<sycl_iterator<sycl::access::mode::read_write,T,sycl::buffer_allocator>> : public __par_backend_hetero::__future_base
 {
     using _Tp = sycl_iterator<sycl::access::mode::read_write,T,sycl::buffer_allocator>;
     ::std::unique_ptr<__async_value<T>> __data;
-    __tmp_base __tmp;
+    __par_backend_hetero::__tmp_base __tmp;
     
   public:
     template <typename... _Ts>
-    __future(event __e, _Tp __d, _Ts... __t)
+    __future(sycl::event __e, _Tp __d, _Ts... __t)
         : __future_base(__e), __data(::std::unique_ptr<__async_direct<_Tp>>(new __async_direct<_Tp>(__d))),
-          __tmp(__TempObjs<_Ts...>{__t...})
+          __tmp(__par_backend_hetero::__TempObjs<_Ts...>{__t...})
     {
     }
     _Tp
@@ -161,20 +127,6 @@ class __future<sycl_iterator<sycl::access::mode::read_write,T,sycl::buffer_alloc
         this->wait();
         return __data->data();
     }
-};
-
-template<>
-class __future<void> : public __future_base
-{
-    __tmp_base __tmp;
-
-  public:
-    template <typename... _Ts>
-    __future(event __e, _Ts... __t)
-        : __future_base(__e), __tmp(__TempObjs<_Ts...>{__t...})
-    {
-    }
-    void get() { this->wait(); }
 };
 
 } // end namespace __internal
