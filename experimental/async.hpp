@@ -28,6 +28,8 @@ namespace dpl
 namespace __internal
 {
 
+using sycl::event;
+
 template <typename _T>
 struct __is_async_execution_policy : ::std::false_type
 {
@@ -60,12 +62,12 @@ reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
        _BinaryOperation __binary_op);
 
 template <class _ExecutionPolicy, class InputIter, class UnaryFunction>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>>
 for_each(_ExecutionPolicy&& __exec, InputIter __first, InputIter __last, UnaryFunction __f);
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _UnaryOperation>
@@ -81,7 +83,7 @@ transform( _ExecutionPolicy&& policy, _ForwardIt1 first1, _ForwardIt1 last1,
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>>
 fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
 template<class _ExecutionPolicy,
@@ -111,7 +113,7 @@ namespace experimental
 template <typename... _Ts>
 void
 wait_for_all(const _Ts&... __Events) {
-    ::std::vector<__internal::event> __wait_list = {__Events...};
+    ::std::vector<sycl::event> __wait_list = {__Events...};
     for(auto _a : __wait_list) _a.wait();
 }
 
@@ -124,7 +126,7 @@ copy_async(_ExecutionPolicy&& __exec, InputIter __input_first, InputIter __input
 }
 
 template <class _ExecutionPolicy, class InputIter, class UnaryFunction, class... _Events>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<void>>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>>
 for_each_async(_ExecutionPolicy&& __exec, InputIter __first, InputIter __last, UnaryFunction __f,  _Events&&... __dependencies) {
     wait_for_all(__dependencies...);
     return __internal::async::for_each(std::forward<_ExecutionPolicy>(__exec), __first, __last, __f);
@@ -187,7 +189,7 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>, _Events...>
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>, _Events...>
 sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Events&&... __dependencies) {
     using __T = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
     wait_for_all(__dependencies...);
@@ -196,7 +198,7 @@ sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcce
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class... _Events>
 oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>, _Compare, _Events...>
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>, _Compare, _Events...>
 sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp, _Events&&... __dependencies) {
     wait_for_all(__dependencies...);
     return __internal::async::sort( std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp );
@@ -204,7 +206,7 @@ sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcce
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class... _Events>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future<void>, _Events...>
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>, _Events...>
 fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value, _Events&&... __dependencies) {
     wait_for_all(__dependencies...);
     return __internal::async::fill( std::forward<_ExecutionPolicy>(__exec), __first, __last, __value );
