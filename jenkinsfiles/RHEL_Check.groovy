@@ -90,29 +90,6 @@ pipeline {
         string(name: 'Repository', defaultValue: 'oneapi-src/oneDPL', description: '',)
         string(name: 'User', defaultValue: 'None', description: '',)
     }
-    triggers {
-        GenericTrigger(
-                genericVariables: [
-                        [key: 'Commit_id', value: '$.pull_request.head.sha', defaultValue: 'None'],
-                        [key: 'PR_number', value: '$.number', defaultValue: 'None'],
-                        [key: 'Repository', value: '$.pull_request.base.repo.full_name', defaultValue: 'None'],
-                        [key: 'User', value: '$.pull_request.user.login', defaultValue: 'None'],
-                        [key: 'action', value: '$.action', defaultValue: 'None']
-                ],
-
-                causeString: 'Triggered on $PR_number',
-
-                token: 'oneDPL-pre-ci',
-
-                printContributedVariables: true,
-                printPostContent: true,
-
-                silentResponse: false,
-
-                regexpFilterText: '$action',
-                regexpFilterExpression: '(opened|reopened|synchronize)'
-        )
-    }
 
     stages {
         stage('Check_User_in_Org') {
