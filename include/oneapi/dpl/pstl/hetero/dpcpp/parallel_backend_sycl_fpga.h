@@ -45,7 +45,7 @@ namespace __par_backend_hetero
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
+oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     auto __n = __get_first_range(::std::forward<_Ranges>(__rngs)...).size();
@@ -60,7 +60,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 #endif
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
-    __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+    auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
         //get an access to data under SYCL buffer:
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
@@ -72,7 +72,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
             }
         });
     });
-    return __future<_ExecutionPolicy>(__exec);
+    return __future<void>(__event);
 }
 
 //------------------------------------------------------------------------
