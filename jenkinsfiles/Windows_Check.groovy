@@ -75,7 +75,7 @@ user_in_github_group = false
 
 pipeline {
 
-    agent { label "master" }
+    agent { label "oneDPL_scheduler" }
     options {
         durabilityHint 'PERFORMANCE_OPTIMIZED'
         timeout(time: 5, unit: 'HOURS')
@@ -122,14 +122,14 @@ pipeline {
     stages {
         stage('Check_User_in_Org') {
             agent {
-                label "master"
+                label "oneDPL_scheduler"
             }
             steps {
                 script {
                     try {
                         retry(2) {
                             fill_task_name_description()
-                            def check_user_return = sh(script: "python3 /localdisk2/oneDPL_CI/check_user_in_group.py -u  ${env.User}", returnStatus: true, label: "Check User in Group")
+                            def check_user_return = sh(script: "python3 /export/users/oneDPL_CI/check_user_in_group.py -u  ${env.User}", returnStatus: true, label: "Check User in Group")
                             echo "check_user_return value is $check_user_return"
                             if (check_user_return == 0) {
                                 user_in_github_group = true
@@ -154,7 +154,7 @@ pipeline {
             when {
                 expression { user_in_github_group }
             }
-            agent { label "windows_test" }
+            agent { label "oneDPL_Win" }
             stages {
                 stage('Git-monorepo') {
                     steps {
@@ -164,8 +164,15 @@ pipeline {
                                     githubStatus.setPending(this, "Jenkins/Win_Check")
                                     deleteDir()
 
-                                    checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '${Commit_id}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'src'], [$class: 'CloneOption', timeout: 200]], submoduleCfg: [], userRemoteConfigs: [[refspec: "+refs/pull/${PR_number}/head:refs/remotes/origin/PR-${PR_number}", url: 'https://github.com/oneapi-src/oneDPL.git']]]
-
+                                    bat script: """
+                                        d:
+                                        cd ${env.WORKSPACE}
+                                        git clone https://github.com/oneapi-src/oneDPL.git src
+                                        cd src
+                                        git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}
+                                        git pull origin
+                                        git checkout ${env.Commit_id}
+                                     """
                                 }
                             }
                             catch (e) {
@@ -180,8 +187,19 @@ pipeline {
                 stage('Setting_Env') {
                     steps {
                         script {
-                            output = bat returnStdout: true, script: '@call "C:\\Program Files (x86)\\Intel\\oneAPI\\setvars.bat" > NUL && set'
-                            oneapi_env = output.split('\r\n') as List
+                            bat script: """
+                                        d:
+                                        cd ${env.WORKSPACE}
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat
+                                        
+                                     """
+
+                            bat script: """
+                                        d:
+                                        cd ${env.WORKSPACE}
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\setup_env.bat && wcontext && call ${env.WORKSPACE}\\win_prod\\compiler\\env\\vars.bat && call ${env.WORKSPACE}\\win_prod\\dpl\\env\\vars.bat && set>envs_tobe_loaded.txt
+                                     """
+                            oneapi_env = readFile('envs_tobe_loaded.txt').split('\r\n') as List
                         }
                     }
                 }
@@ -202,20 +220,19 @@ pipeline {
                                     try {
                                         withEnv(oneapi_env) {
                                             bat script: """
-                                                cmd.exe /c
-                                                call "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2017\\Visual Studio Tools\\VC\\x64 Native Tools Command Prompt for VS 2017.lnk"
-                                                call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
-
                                                 d:
-                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\gamma-correction
+                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\gamma-correction\\src
+                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
+                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
 
-                                                MSBuild gamma-correction.sln /t:Rebuild /p:Configuration="Release"
+                                                ::MSBuild gamma-correction.sln /t:Rebuild /p:Configuration="Release"
                                             """, label: "Gamma_return_value Test Step"
                                         }
                                     }
                                     catch(e) {
                                         build_ok = false
                                         fail_stage = fail_stage + "    " + "Check_Samples_gamma-correction"
+                                        echo "Exception is" + e.toString()
                                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                             bat 'exit 1'
                                         }
@@ -224,10 +241,6 @@ pipeline {
                                     try {
                                         withEnv(oneapi_env) {
                                             bat script: """
-                                                cmd.exe /c
-                                                call "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2017\\Visual Studio Tools\\VC\\x64 Native Tools Command Prompt for VS 2017.lnk"
-                                                call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
-
                                                 d:
                                                 cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\stable_sort_by_key\\src
                                                 echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
@@ -238,6 +251,7 @@ pipeline {
                                     catch(e) {
                                         build_ok = false
                                         fail_stage = fail_stage + "    " + "Check_Samples_stable_sort_by_key"
+                                        echo "Exception is" + e.toString()
                                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                             bat 'exit 1'
                                         }
@@ -281,6 +295,7 @@ pipeline {
                                 }
                                 catch(e) {
                                     build_ok = false
+                                    echo "Exception is" + e.toString()
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                         bat 'exit 1'
                                     }
@@ -310,24 +325,4 @@ pipeline {
         }
     }
 
-}
-@NonCPS
-def write_results_xml(results) {
-    def xmlWriter = new StringWriter()
-    def xml = new MarkupBuilder(xmlWriter)
-    xml.testsuites{
-        delegate.testsuite(name: 'tests') {
-            results.each { item ->
-                if (item.pass) {
-                    delegate.delegate.testcase(name: item.name, classname: item.name)
-                }
-                else {
-                    delegate.delegate.testcase(name: item.name, classname: item.name) {
-                        delegate.failure(message: 'Fail', item.phase)
-                    }
-                }
-            }
-        }
-    }
-    return xmlWriter.toString()
 }
