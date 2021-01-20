@@ -20,8 +20,11 @@
 
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
 #include <CL/sycl.hpp>
+#endif
 
 template<typename _T1, typename _T2> void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
     if(X!=Y)
@@ -169,6 +172,7 @@ int main(int argc, char** argv) {
 
     evaluate(oneapi::dpl::execution::par, ref.begin(), ref.end(), p, std::string("CPU discard"));
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
     // Case 2 -- Compare traversal on accelerator
     {
         using policy_type = decltype(oneapi::dpl::execution::dpcpp_default);
@@ -328,7 +332,7 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
-
+#endif
     std::cout << "done" << std::endl;
     return 0;
 }
