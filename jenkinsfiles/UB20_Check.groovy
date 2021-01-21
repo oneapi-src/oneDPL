@@ -90,6 +90,30 @@ pipeline {
         string(name: 'User', defaultValue: 'None', description: '',)
     }
 
+    triggers {
+        GenericTrigger(
+                genericVariables: [
+                        [key: 'Commit_id', value: '$.pull_request.head.sha', defaultValue: 'None'],
+                        [key: 'PR_number', value: '$.number', defaultValue: 'None'],
+                        [key: 'Repository', value: '$.pull_request.base.repo.full_name', defaultValue: 'None'],
+                        [key: 'User', value: '$.pull_request.user.login', defaultValue: 'None'],
+                        [key: 'action', value: '$.action', defaultValue: 'None']
+                ],
+
+                causeString: 'Triggered on $PR_number',
+
+                token: 'oneDPL-pre-ci',
+
+                printContributedVariables: true,
+                printPostContent: true,
+
+                silentResponse: false,
+
+                regexpFilterText: '$action',
+                regexpFilterExpression: '(opened|reopened|synchronize)'
+        )
+    }
+
     stages {
         stage('Check_User_in_Org') {
             agent {
@@ -155,7 +179,6 @@ pipeline {
                     steps {
                         script {
                             sh script: """
-                                set +x
                                 bash /export/users/oneDPL_CI/generate_env_file.sh
                                 if [ ! -f ./envs_tobe_loaded.txt ]; then
                                     echo "Environment file not generated."
@@ -175,7 +198,6 @@ pipeline {
                                     dir("./src") {
                                         withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
-                                                set +x
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
                                                 make VERBOSE=1 build-all -j -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
