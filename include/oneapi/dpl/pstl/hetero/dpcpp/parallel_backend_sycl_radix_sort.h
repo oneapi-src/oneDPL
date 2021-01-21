@@ -585,12 +585,12 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 //-----------------------------------------------------------------------
 
 template <bool __is_comp_asc, typename _Iterator, typename _ExecutionPolicy>
-void
+__future<void>
 __parallel_radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
 {
     const ::std::size_t __inout_buf_size = __last - __first;
     if (__inout_buf_size <= 1)
-        return;
+        return __future<void>(sycl::event{});
 
     auto __in_buf = __internal::get_buffer()(__first, __last);
 
@@ -636,7 +636,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         explicit_wait_if<::std::is_pointer<_Iterator>::value>{}(__iteration_event);
     }
 
-    return;
+    return __future<void>(__iteration_event, __tmp_buf, __out_buf);
 }
 
 } // namespace __par_backend_hetero
