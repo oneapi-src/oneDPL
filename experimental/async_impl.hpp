@@ -17,174 +17,12 @@
 #ifndef _ONEDPL_ASYNC_IMPL_HPP
 #define _ONEDPL_ASYNC_IMPL_HPP
 
-//#include "oneapi/dpl/pstl/hetero/numeric_impl_hetero.h"
-
 namespace oneapi
 {
 namespace dpl
 {
 namespace __par_backend_hetero
 {
-
-//------------------------------------------------------------------------
-// parallel_stable_sort - async pattern 2.0
-//-----------------------------------------------------------------------
-
-template <typename _ExecutionPolicy, typename _Iterator, typename _Merge, typename _Compare>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, __future<void>>
-__parallel_sort_impl_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Merge __merge,
-                           _Compare __comp)
-{
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_sort_kernel_1<_Iterator, _Merge, _Compare, __kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<_Iterator, _Merge, _Compare, __kernel_name>;
-    using __kernel_3_name_t = __parallel_sort_kernel_3<_Iterator, _Merge, _Compare, __kernel_name>;
-#else
-    using __kernel_1_name_t = __parallel_sort_kernel_1<__kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<__kernel_name>;
-    using __kernel_3_name_t = __parallel_sort_kernel_3<__kernel_name>;
-#endif
-
-    using _Tp = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _Size = typename ::std::iterator_traits<_Iterator>::difference_type;
-    _Size __n = __last - __first;
-    if (__n <= 1)
-    {
-        return __future<void>(sycl::event{});
-    }
-    auto __buffer = __internal::get_buffer()(__first, __last);
-    _PRINT_INFO_IN_DEBUG_MODE(__exec);
-
-    // __leaf: size of a block to sort using algorithm suitable for small sequences
-    // __optimal_chunk: best size of a block to merge duiring a step of the merge sort algorithm
-    // The coefficients were found experimentally
-    _Size __leaf = 4;
-    _Size __optimal_chunk = 4;
-    if (__exec.queue().get_device().is_cpu())
-    {
-        __leaf = 16;
-        __optimal_chunk = 32;
-    }
-    // Assume powers of 2
-    assert((__leaf & (__leaf - 1)) == 0);
-    assert((__optimal_chunk & (__optimal_chunk - 1)) == 0);
-
-    const _Size __leaf_steps = ((__n - 1) / __leaf) + 1;
-
-    // 1. Perform sorting of the leaves of the merge sort tree
-    sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
-        auto __acc = __internal::get_access<_Iterator>(__cgh)(__buffer);
-        __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__leaf_steps),
-                                              [=](sycl::item</*dim=*/1> __item_id) {
-                                                  const _Size __idx = __item_id.get_linear_id() * __leaf;
-                                                  const _Size __start = __idx;
-                                                  const _Size __end = sycl::min(__start + __leaf, __n);
-                                                  __leaf_sort_kernel()(__acc, __start, __end, __comp);
-                                              });
-    });
-
-    _Size __sorted = __leaf;
-    // Chunk size cannot be bigger than size of a sorted sequence
-    _Size __chunk = ::std::min(__leaf, __optimal_chunk);
-
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_Policy, _Tp> __temp_buf(__exec, __n);
-    auto __temp = __temp_buf.get_buffer();
-    bool __data_in_temp = false;
-
-    // 2. Perform merge sorting
-    // TODO: try to presort sequences with the same approach using local memory
-    while (__sorted < __n)
-    {
-        // Number of steps is a number of work items required during a single merge sort stage.
-        // Each work item handles a pair of chunks:
-        // one chunk from the first sorted sequence and one chunk from the second sorted sequence.
-        // Both chunks are placed with the same offset regarding the beginning of a sorted sequence.
-        // Consider the following example:
-        //  * Sequence: 0 1 2 3 1 2 3 4 2 3 4 5 3 4 5 6 4 5 6 7 5
-        //  * Size of a sorted sequence: 4
-        //  * Size of a chunk: 2
-        //  Work item id and chunks it handles:   0     1     0     1      2     3     2     3      4     5    4
-        //  Sequence:                          [ 0 1 | 2 3 @ 1 2 | 3 4 ][ 2 3 | 4 5 @ 3 4 | 5 6 ][ 4 5 | 6 7 @ 5 ]
-        //  Legend:
-        //  * [] - border between pairs of sorted sequences which are to be merged
-        //  * @  - border between each sorted sequence in a pair
-        //  * || - border between chunks
-
-        _Size __sorted_pair = 2 * __sorted;
-        _Size __chunks_in_sorted = __sorted / __chunk;
-        _Size __full_pairs = __n / __sorted_pair;
-        _Size __incomplete_pair = __n - __sorted_pair * __full_pairs;
-        _Size __first_block_in_incomplete_pair = __incomplete_pair > __sorted ? __sorted : __incomplete_pair;
-        _Size __incomplete_last_chunk = __first_block_in_incomplete_pair % __chunk != 0;
-        _Size __incomplete_pair_steps = __first_block_in_incomplete_pair / __chunk + __incomplete_last_chunk;
-        _Size __full_pairs_steps = __full_pairs * __chunks_in_sorted;
-        _Size __steps = __full_pairs_steps + __incomplete_pair_steps;
-
-        __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
-            __cgh.depends_on(__event1);
-            auto __acc = __internal::get_access<_Iterator>(__cgh)(__buffer);
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-            __cgh.parallel_for<__kernel_2_name_t>(
-                sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                    const _Size __idx = __item_id.get_linear_id();
-                    // Borders of the first and the second sorted sequences
-                    const _Size __start_1 = sycl::min(__sorted_pair * ((__idx * __chunk) / __sorted), __n);
-                    const _Size __end_1 = sycl::min(__start_1 + __sorted, __n);
-                    const _Size __start_2 = __end_1;
-                    const _Size __end_2 = sycl::min(__start_2 + __sorted, __n);
-
-                    // Distance between the beginning of a sorted sequence and the begining of a chunk
-                    const _Size __offset = __chunk * (__idx % __chunks_in_sorted);
-
-                    if (!__data_in_temp)
-                    {
-                        __merge(__offset, __acc, __start_1, __end_1, __acc, __start_2, __end_2, __temp_acc, __start_1,
-                                __comp, __chunk);
-                    }
-                    else
-                    {
-                        __merge(__offset, __temp_acc, __start_1, __end_1, __temp_acc, __start_2, __end_2, __acc,
-                                __start_1, __comp, __chunk);
-                    }
-                });
-        });
-        __data_in_temp = !__data_in_temp;
-        __sorted = __sorted_pair;
-        if (__chunk < __optimal_chunk)
-            __chunk *= 2;
-    }
-
-    // 3. If the data remained in the temporary buffer then copy it back
-    if (__data_in_temp)
-    {
-        __exec.queue().submit([&](sycl::handler& __cgh) {
-            __cgh.depends_on(__event1);
-            auto __acc =
-                __internal::get_access<decltype(make_iter_mode<access_mode::write>(::std::declval<_Iterator>()))>(
-                    __cgh)(__buffer);
-            auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
-            // We cannot use __cgh.copy here because of zip_iterator usage
-            __cgh.parallel_for<__kernel_3_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                __acc[__item_id.get_linear_id()] = __temp_acc[__item_id];
-            });
-        });
-    }
-    return __future<void>(__event1, __temp);
-}
-
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, __future<void>>
-//__enable_if_t<oneapi::dpl::__internal::__is_async_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
-//                  !__is_radix_sort_usable_for_type<__value_t<_Iterator>, _Compare>::value,
-//              __future<_ExecutionPolicy>>
-__parallel_stable_sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
-{
-    return  __parallel_sort_impl_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                               // Pass special tag to choose 'full' merge subroutine at compile-time
-                               __full_merge_kernel(), __comp);
-}
 
 //------------------------------------------------------------------------
 // parallel_transform_reduce - async pattern 2.0
@@ -294,8 +132,6 @@ namespace __internal
 
 // Async pattern overloads:
 
-// From: oneDPL/include/oneapi/dpl/pstl/hetero/algorithm_impl_hetero.h
-
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
                                                             oneapi::dpl::__par_backend_hetero::__future<void>>
@@ -313,14 +149,10 @@ __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forw
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for/*_async*/(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf.all_view());
-    // TODO: Pass correct return value;
-    return __future_obj; // oneapi::dpl::__internal::__future<_ExecutionPolicy>(__exec);
+    return __future_obj; 
 }
 
-// TODO: A tag _IsSync is used for provide a patterns call pipeline, where the last one should be synchronous
-// Probably it should be re-designed by a pipeline approach, when a patern returns some sync obejects
-// and ones are combined into a "pipeline" (probably like Range pipeline)
-template <typename _IsSync = ::std::true_type,
+template <typename _IsSync = ::std::false_type,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
           typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
@@ -397,17 +229,14 @@ template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp, ty
           typename _UnaryOperation>
 oneapi::dpl::__internal::__enable_if_async_execution_policy<
     _ExecutionPolicy,
-    //_Tp>
     oneapi::dpl::__internal::__future<_Tp>>
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                                  _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                                  /*vector=*/::std::true_type,
                                  /*parallel=*/::std::true_type)
 {
-    // TODO: Empty sequence -> RETURN VALUE!
-    // if (__first == __last)
-    //    return ::oneapi::dpl::__internal::__make_future_promise_pair(
-    //    ::oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec}, __init );//__init;
+    if (__first == __last)
+        return oneapi::dpl::__internal::__future<_Tp>(sycl::event{}, __init );
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
@@ -423,27 +252,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
         __binary_op,                                                                              // combine
         unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op},               // reduce
         __buf.all_view());
-    // TODO: add binary op and initial value to future obj
-    // return value holds single element buffer, event and tempories.
     return oneapi::dpl::__internal::__future<_Tp>(__res, __init, __binary_op);
-    // return __res; //__binary_op(__init, _Tp{__res});
-}
-
-//------------------------------------------------------------------------
-// sort
-//------------------------------------------------------------------------
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>>
-__pattern_sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
-                     /*vector=*/::std::true_type, /*parallel=*/::std::true_type,
-                     /*is_move_constructible=*/::std::true_type)
-{
-    auto ret_val = __par_backend_hetero::__parallel_stable_sort_async(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp);
-    return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec};
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _T>
@@ -475,7 +284,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec),
         __exec.__allow_parallel());
-    return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy,_ForwardIterator2>{__exec, ret_val};
+    return ret_val; 
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
@@ -505,7 +314,7 @@ copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
         oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
-    return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy,_ForwardIterator2>{__exec, ret_val};
+    return ret_val; 
 }
 
 // [alg.async.sort]
@@ -514,14 +323,11 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
     _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
-    // Calls oneDPL/include/oneapi/dpl/pstl/hetero/algorithm_impl_hetero.h
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _InputType;
-    auto ret_val = oneapi::dpl::__internal::__pattern_sort_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
-        typename ::std::is_move_constructible<_InputType>::type());
-    return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec};
+    auto ret_val = __par_backend_hetero::__parallel_stable_sort(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp);
+    return ret_val; 
 }
 
 // [alg.async.foreach]
@@ -534,7 +340,7 @@ for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator _
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
         __exec.__allow_parallel());
-    return ret_val; // oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec};
+    return ret_val; 
 }
 
 // [alg.async.reduce]
@@ -544,18 +350,12 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
 reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
        _BinaryOperation __binary_op)
 {
-    // return transform_reduce(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op,
-    //                        oneapi::dpl::__internal::__no_op());
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _InputType;
     auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_InputType>(),
-        oneapi::dpl::__internal::__no_op(), //::std::multiplies<_InputType>(),
+        oneapi::dpl::__internal::__no_op(), 
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
-    // return oneapi::dpl::__internal::__future<_ExecutionPolicy, _Tp>{__exec, ret_val};
-    // return
-    // oneapi::dpl::__internal::__make_future_promise_pair(::oneapi::dpl::__internal::__future<_ExecutionPolicy>{__exec},
-    // ret_val);
     return ret_val;
 }
 
@@ -601,20 +401,6 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __las
 }
 
 } // namespace __internal
-
-#if 0
-template<class _ExecutionPolicy, class _ForwardIterator, class T>
-//oneapi::dpl::__internal::__enable_if_async_execution_policy<Policy,
-//oneapi::dpl::__internal::__future_promise_pair<Policy, T>>
-//reduce(Policy&& exec, Iter __first, Iter __last)
-//template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-    oneapi::dpl::__internal::__future_promise_pair<_ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::value_type>>
-reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last) {
-    using _Tp = typename ::std::iterator_traits<_ForwardIterator>::value_type;
-    return oneapi::dpl::async::reduce(std::forward<_ExecutionPolicy>(__exec), __first, __last, T{0}, std::plus<T>{});
-}
-#endif
 
 } // namespace async
 

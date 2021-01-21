@@ -25,6 +25,7 @@ namespace dpl
 namespace __internal
 {
 
+// TODO: rework structure of async return value and specializations
 template <typename _T, typename _Tp = sycl_iterator<sycl::access::mode::read_write,_T,sycl::buffer_allocator>>
 struct __async_value
 {
@@ -35,6 +36,20 @@ struct __async_value
     raw_data() const;
 };
 
+template <typename _T>
+struct __async_init : public __async_value<_T>
+{
+    _T __data;
+    __async_init(_T _d) : __data(_d) {}
+    _T
+    data()
+    {
+        return __data;
+    }
+    virtual sycl_iterator<sycl::access::mode::read_write,_T,sycl::buffer_allocator>
+    raw_data() const { return oneapi::dpl::begin(sycl::buffer<_T>{&this->__data, 1}); }
+};
+
 template <typename _Tp, typename _T = typename std::iterator_traits<_Tp>::value_type>
 struct __async_direct : public __async_value<_T>
 {
@@ -43,7 +58,7 @@ struct __async_direct : public __async_value<_T>
     _T
     data()
     {
-        return _T(0);
+        return __data.get_buffer().template get_access<access_mode::read>()[0];
     }
     virtual sycl_iterator<sycl::access::mode::read_write,_T,sycl::buffer_allocator>
     raw_data() const { return __data;}
@@ -92,6 +107,9 @@ class __future : public __par_backend_hetero::__future_base
           __data(::std::unique_ptr<__async_transform<_Tp, _Op>>(new __async_transform<_Tp, _Op>(_fp.raw_data().get_buffer(), __i, __o))), __tmp(_fp.__tmp)
     {
     }
+    __future(sycl::event __e, _Tp __i)
+        : __par_backend_hetero::__future_base(__e),
+          __data(::std::unique_ptr<__async_init<_Tp>>(new __async_init<_Tp>(__i))) {}
     // Return underlying buffer
     auto
     raw_data() const
