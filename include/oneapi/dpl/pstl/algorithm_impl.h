@@ -4106,7 +4106,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     }
     else //2. n < size/2; there is not enough memory to parallel copying; doing parallel copying by n elements
     {
-        //TODO: to consider parallel scan pattern
+        //TODO: to consider parallel processing by the 'internal' loop (but we may probably get cache locality issues)
         for (auto __k = __n; __k < __size; __k += __n)
         {
             auto __end = std::min(__k + __n, __size);
