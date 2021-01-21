@@ -1314,7 +1314,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 //------------------------------------------------------------------------
 // sort
 //------------------------------------------------------------------------
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
@@ -1332,7 +1332,7 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
 //------------------------------------------------------------------------
 // stable_sort
 //------------------------------------------------------------------------
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)

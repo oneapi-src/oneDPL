@@ -384,6 +384,7 @@ class __future_base
     operator sycl::event() const { return __my_event; }
 };
 
+// TODO: Extend to support value type and sycl iterator.
 template <typename T>
 class __future : public __future_base
 {
