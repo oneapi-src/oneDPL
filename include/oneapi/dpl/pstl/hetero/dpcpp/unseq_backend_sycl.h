@@ -853,6 +853,25 @@ class __brick_set_op
     }
 };
 
+template <typename _ExecutionPolicy, typename _Size>
+struct __brick_shift_left
+{
+    _Size __size;
+    _Size __n;
+
+    template <typename _ItemId, typename _Range>
+    void
+    operator()(const _ItemId __idx, _Range&& __rng) const
+    {
+        const auto __i = __idx - __n; //loop invariant
+        for (auto __k = __n; __k < __size; __k += __n)
+        {
+            if (__k + __idx < __size)
+                __rng[__k + __i] = ::std::move(__rng[__k + __idx]);
+        }
+    }
+};
+
 } // namespace unseq_backend
 } // namespace dpl
 } // namespace oneapi
