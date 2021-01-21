@@ -1098,7 +1098,7 @@ template <typename T>
 class t_printer;
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Merge, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1118,7 +1118,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     _Size __n = __last - __first;
     if (__n <= 1)
     {
-        return;
+        return __future<void>(sycl::event{});
     }
     auto __buffer = __internal::get_buffer()(__first, __last);
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
@@ -1225,7 +1225,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     // 3. If the data remained in the temporary buffer then copy it back
     if (__data_in_temp)
     {
-        __exec.queue().submit([&](sycl::handler& __cgh) {
+        __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
             auto __acc =
                 __internal::get_access<decltype(make_iter_mode<access_mode::write>(::std::declval<_Iterator>()))>(
@@ -1237,10 +1237,12 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
             });
         });
     }
+
+    return __future<void>(__event1, __temp);
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Merge, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Merge __merge,
                              _Compare __comp)
 {
@@ -1259,7 +1261,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iter
     _Size __n = __last - __first;
     if (__n <= 1)
     {
-        return;
+        return __future<void>(sycl::event{});
     }
     auto __buffer = __internal::get_buffer()(__first, __last);
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_Policy, _Tp> __temp_buf(__exec, __n);
@@ -1301,7 +1303,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iter
     // if results are in temporary buffer then copy back those
     if (__data_in_temp)
     {
-        __exec.queue().submit([&](sycl::handler& __cgh) {
+        __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
             auto __acc = __internal::get_access<_Iterator>(__cgh)(__buffer);
             auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
@@ -1311,6 +1313,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iter
             });
         });
     }
+    return __future<void>(__event1, __temp);
 }
 
 //------------------------------------------------------------------------
@@ -1333,24 +1336,22 @@ struct __is_radix_sort_usable_for_type
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   __is_radix_sort_usable_for_type<__value_t<_Iterator>, _Compare>::value,
-              __future<_ExecutionPolicy>>
+              __future<void>>
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
 {
-    __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(__exec, __first, __last);
-    return __future<_ExecutionPolicy>(__exec);
+    return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(__exec, __first, __last);
 }
 #endif
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   !__is_radix_sort_usable_for_type<__value_t<_Iterator>, _Compare>::value,
-              __future<_ExecutionPolicy>>
+              __future<void>>
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
 {
-    __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                          // Pass special tag to choose 'full' merge subroutine at compile-time
                          __full_merge_kernel(), __comp);
-    return __future<_ExecutionPolicy>(__exec);
 }
 
 //------------------------------------------------------------------------
@@ -1361,14 +1362,13 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator _
 // TODO: consider changing __partial_merge_kernel to make it compatible with
 //       __full_merge_kernel in order to use __parallel_sort_impl routine
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,
                         _Compare __comp)
 {
     const auto __mid_idx = __mid - __first;
-    __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                  __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
-    return __future<_ExecutionPolicy>(__exec);
 }
 
 } // namespace __par_backend_hetero

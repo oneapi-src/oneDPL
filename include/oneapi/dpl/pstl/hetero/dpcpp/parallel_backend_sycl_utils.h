@@ -627,21 +627,10 @@ public:
     operator event() const { return event(__my_event); }
 };
 
-// TODO: Rework to future<T>
-template <typename _ExecutionPolicy>
-class __future
+// TODO: Extend to support value type and sycl iterator.
+template <typename T>
+class __future : public __future_base
 {
-    _ExecutionPolicy __exec;
-
-  public:
-    __future(const _ExecutionPolicy& __e) : __exec(__e) {}
-    void
-    wait()
-    {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __exec.queue().wait_and_throw();
-#endif
-    }
 };
 
 template <>
