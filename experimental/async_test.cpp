@@ -33,7 +33,7 @@ int main() {
         auto result2 = dpl::experimental::sort_async(my_policy, dpl::begin(b), dpl::end(b), result);
 
         // Test different signature of sort algorithm:
-        auto result3 = dpl::experimental::sort_async(my_policy, dpl::begin(b), dpl::end(b), std::greater<int>(), result2);
+        auto result3 = dpl::experimental::sort_async( dpl::execution::make_device_policy<class sort2>(q), dpl::begin(b), dpl::end(b), std::greater<int>(), result2);
     
         //oneapi::dpl::async::wait_for_all(result1,result,result2);
         result3.wait();
