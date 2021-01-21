@@ -164,7 +164,7 @@ pipeline {
                     steps {
                         script {
                             sh script: """
-                                set -x
+                                set +x
                                 bash /export/users/oneDPL_CI/generate_env_file.sh
                                 if [ ! -f ./envs_tobe_loaded.txt ]; then
                                     echo "Environment file not generated."
@@ -184,6 +184,7 @@ pipeline {
                                     dir("./src") {
                                         withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
+                                                set +x
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
                                                 make VERBOSE=1 build-all -j -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
@@ -212,6 +213,7 @@ pipeline {
                                     withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
                                         def gamma_return_value = sh(
                                                 script: """
+                                                    set +x
                                                     cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
                                                     mkdir build
                                                     cd build/
@@ -222,6 +224,7 @@ pipeline {
                                                 returnStatus: true, label: "gamma_return_value Step")
                                         def stable_sort_return_value = sh(
                                                 script: """
+                                                    set +x
                                                     cd oneAPI-samples/Libraries/oneDPL/stable_sort_by_key/
                                                     mkdir build
                                                     cd build/
