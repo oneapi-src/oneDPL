@@ -615,12 +615,18 @@ struct __TempObjs : public __tmp_base
     __TempObjs(Ts&... __t) : __my_tmps(::std::forward_as_tuple(__t...)) {}
 };
 
-class __future_base {
+class __future_base
+{
     using event = sycl::event;
     event __my_event;
-public:
+
+  public:
     __future_base(event __e) : __my_event(__e) {}
-    event get_event() const { return __my_event; }
+    event
+    get_event() const
+    {
+        return __my_event;
+    }
     void
     wait()
     {
@@ -644,11 +650,14 @@ class __future<void> : public __future_base
 
   public:
     template <typename... _Ts>
-    __future(sycl::event __e, _Ts... __t) : __future_base(__e),  __tmps(__TempObjs<_Ts...>{__t...})
+    __future(sycl::event __e, _Ts... __t) : __future_base(__e), __tmps(__TempObjs<_Ts...>{__t...})
     {
     }
     void
-    get() { this->wait(); }
+    get()
+    {
+        this->wait();
+    }
 };
 
 } // namespace __par_backend_hetero
