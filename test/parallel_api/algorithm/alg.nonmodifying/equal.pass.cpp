@@ -161,12 +161,8 @@ main()
     test<int32_t>(8 * sizeof(int32_t));
     test<uint16_t>(8 * sizeof(uint16_t));
     test<float64_t>(53);
-#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>(1);
-#endif
-#if !_ONEDPL_BACKEND_SYCL
     test<UserType>(256);
-#endif
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
     ::std::cout << done() << ::std::endl;

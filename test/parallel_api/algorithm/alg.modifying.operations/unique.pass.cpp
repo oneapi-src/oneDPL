@@ -26,37 +26,6 @@ using namespace TestUtils;
 template <typename T>
 struct run_unique
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename ForwardIt, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, Generator generator)
-    {
-    }
-
-    template <typename ForwardIt, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, Generator generator)
-    {
-    }
-
-    template <typename ForwardIt, typename BinaryPred, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, BinaryPred pred, Generator generator)
-    {
-    }
-
-    template <typename ForwardIt, typename BinaryPred, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, BinaryPred pred, Generator generator)
-    {
-    }
-#endif
-
     template <typename Policy, typename ForwardIt, typename Generator>
     void
     operator()(Policy&& exec, ForwardIt first1, ForwardIt last1, ForwardIt first2, ForwardIt last2, Generator generator)
@@ -79,37 +48,6 @@ struct run_unique
 template <typename T>
 struct run_unique_predicate
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                            \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename ForwardIt, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, Generator generator)
-    {
-    }
-
-    template <typename ForwardIt, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, Generator generator)
-    {
-    }
-
-    template <typename ForwardIt, typename BinaryPred, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, BinaryPred pred, Generator generator)
-    {
-    }
-
-    template <typename ForwardIt, typename BinaryPred, typename Generator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, ForwardIt first1, ForwardIt last1, ForwardIt first2,
-               ForwardIt last2, BinaryPred pred, Generator generator)
-    {
-    }
-#endif
-
     template <typename Policy, typename ForwardIt, typename BinaryPred, typename Generator>
     void
     operator()(Policy&& exec, ForwardIt first1, ForwardIt last1, ForwardIt first2, ForwardIt last2, BinaryPred pred,
@@ -181,13 +119,11 @@ struct test_non_const
 int
 main()
 {
-#if !_PSTL_ICC_16_17_18_TEST_UNIQUE_MASK_RELEASE_BROKEN
     test<int32_t>([](size_t j) { return j / 3; },
                   [](const int32_t& val1, const int32_t& val2) { return val1 * val1 == val2 * val2; });
 #if !_ONEDPL_FPGA_DEVICE
     test<float64_t>([](size_t) { return float64_t(1); },
                     [](const float64_t& val1, const float64_t& val2) { return val1 != val2; });
-#endif
 #endif
 
 #if !_ONEDPL_BACKEND_SYCL

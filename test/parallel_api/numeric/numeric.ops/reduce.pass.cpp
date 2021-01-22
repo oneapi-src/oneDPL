@@ -58,21 +58,6 @@ test_long_form(T init, BinaryOp binary_op, F f)
 
 struct test_short_reduce
 {
-
-#if _PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_policy, Iterator first, Iterator last, Sum init, Sum expected)
-    {
-    }
-
-    template <typename Iterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Sum init, Sum expected)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Sum init, Sum expected)
@@ -86,21 +71,6 @@ struct test_short_reduce
 
 struct test_short_reduce_init
 {
-
-#if _PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_policy, Iterator first, Iterator last, Sum init, Sum expected)
-    {
-    }
-
-    template <typename Iterator>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator first, Iterator last, Sum init, Sum expected)
-    {
-    }
-#endif
-
     template <typename Policy, typename Iterator>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Sum init, Sum expected)

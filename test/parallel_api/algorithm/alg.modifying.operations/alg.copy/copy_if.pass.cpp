@@ -31,24 +31,6 @@ using namespace TestUtils;
 template <typename Type>
 struct run_copy_if
 {
-#if _PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN // dummy specializations to skip testing in case of broken configuration
-    template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename Predicate, typename T>
-    void
-    operator()(oneapi::dpl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
-               Predicate pred, T trash)
-    {
-    }
-    template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename Predicate, typename T>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
-               OutputIterator2 expected_last, Size n, Predicate pred, T trash)
-    {
-    }
-#endif
 #if _PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
@@ -101,24 +83,6 @@ struct run_copy_if
 template <typename Type>
 struct run_remove_copy_if
 {
-#if _PSTL_ICC_16_VC14_TEST_PAR_TBB_RT_RELEASE_64_BROKEN // dummy specializations to skip testing in case of broken configuration
-    template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename Predicate, typename T>
-    void
-    operator()(oneapi::dpl::execution::parallel_policy, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
-               Predicate pred, T trash)
-    {
-    }
-    template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename Predicate, typename T>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last,
-               OutputIterator out_first, OutputIterator out_last, OutputIterator2 expected_first,
-               OutputIterator2 expected_last, Size n, Predicate pred, T trash)
-    {
-    }
-#endif
 #if _PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN
 template <typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Predicate, typename T>
@@ -252,13 +216,10 @@ main()
                   [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? int16_t(j + 1) : 42; });
 #endif // _ONEDPL_FPGA_DEVICE
 
-#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_17_TEST_MAC_RELEASE_32_BROKEN
+#if !_ONEDPL_BACKEND_SYCL
     test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
 #endif
-
-#if !_PSTL_ICC_16_17_TEST_REDUCTION_RELEASE_BROKEN
     test<int32_t>(-666, [](const int32_t& x) { return true; }, [](size_t j) { return j; }, false);
-#endif
 
 #if defined(_PSTL_TEST_REMOVE_COPY_IF)
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_remove_copy_if>());

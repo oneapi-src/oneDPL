@@ -1237,23 +1237,37 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
                 _Iterator2 __last2, _Iterator3 __d_first, _Compare __comp, /*vector=*/::std::true_type,
                 /*parallel=*/::std::true_type)
 {
-    auto __n = __last1 - __first1;
-    auto __n_2 = __last2 - __first2;
-    if (__n == 0 && __n_2 == 0)
+    auto __n1 = __last1 - __first1;
+    auto __n2 = __last2 - __first2;
+    auto __n = __n1 + __n2;
+    if (__n == 0)
         return __d_first;
 
-    __par_backend_hetero::__parallel_merge(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last1),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last2),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__d_first), __comp)
-        .wait();
+    //To consider the direct copying pattern call in case just one of sequences is empty.
+    if (__n1 == 0)
+        oneapi::dpl::__internal::__pattern_walk2_brick(
+            ::std::forward<_ExecutionPolicy>(__exec), __first2, __last2, __d_first,
+            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+    else if (__n2 == 0)
+        oneapi::dpl::__internal::__pattern_walk2_brick(
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __d_first,
+            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+    else
+    {
+        auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+        auto __buf1 = __keep1(__first1, __last1);
+        auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
+        auto __buf2 = __keep2(__first2, __last2);
 
-    return __d_first + __n + __n_2;
+        auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator3>();
+        auto __buf3 = __keep3(__d_first, __d_first + __n);
+
+        __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
+                                               __buf2.all_view(), __buf3.all_view(), __comp)
+            .wait();
+    }
+    return __d_first + __n;
 }
-
 //------------------------------------------------------------------------
 // inplace_merge
 //------------------------------------------------------------------------
@@ -1273,13 +1287,14 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
     auto __copy_first = __buf.get();
     auto __copy_last = __copy_first + __n;
-    __par_backend_hetero::__parallel_merge(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__copy_first), __comp);
+
+    __pattern_merge(::std::forward<_ExecutionPolicy>(__exec),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__copy_first),
+                    __comp, ::std::true_type{}, ::std::true_type{});
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     __pattern_walk2(
@@ -1295,6 +1310,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
 {
+    if (__last - __first < 2)
+        return;
+
     auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
@@ -1310,6 +1328,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
+    if (__last - __first < 2)
+        return;
+
     auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
@@ -1472,6 +1493,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last, _Compare __comp,
                        /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
+    if (__last - __first < 2)
+        return;
+
     __par_backend_hetero::__parallel_partial_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
@@ -1579,10 +1603,11 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
                       /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type) noexcept
 {
     if (__first == __last || __nth == __last)
-    {
         return;
-    }
 
+    // TODO: check partition-based implementation
+    // - try to avoid host dereference issue
+    // - measure performance of the issue-free implementation
     __pattern_partial_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __nth + 1, __last, __comp,
                            /*vector*/ ::std::true_type{}, /*parallel*/ ::std::true_type{});
 }
@@ -1804,7 +1829,8 @@ template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Forwa
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _OutputIterator>
 __pattern_set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
-                         _Compare __comp, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
+                         _Compare __comp, /*vector=*/::std::true_type,
+                         /*parallel=*/::std::true_type)
 {
     // {} \ {2}: the difference is empty
     if (__first1 == __last1)
@@ -1913,7 +1939,8 @@ template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Forwa
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _OutputIterator>
 __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                                    _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
-                                   _Compare __comp, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
+                                   _Compare __comp, /*vector=*/::std::true_type,
+                                   /*parallel=*/::std::true_type)
 {
     if (__first1 == __last1 && __first2 == __last2)
         return __result;

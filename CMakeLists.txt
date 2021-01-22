@@ -15,10 +15,27 @@
 cmake_minimum_required(VERSION 3.4.3)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-project(oneDPL VERSION 2021.1 LANGUAGES CXX)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
+    _onedpl_version_info
+    LIMIT 1024)
+string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_ver_major "${_onedpl_version_info}")
+string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
+string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
+
+project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
+message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
+
+find_program(FIND_GXX_EXE g++)
+if (FIND_GXX_EXE)
+    execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
+endif()
 
 option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
-option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
+if (CMAKE_CXX_STANDARD GREATER_EQUAL 17 AND (NOT _onedpl_gxx_version OR _onedpl_gxx_version VERSION_GREATER_EQUAL 8.1))
+    option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" ON)
+else()
+    option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
+endif()
 option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
@@ -30,9 +47,9 @@ include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
 if (NOT ONEDPL_BACKEND)
     if (_fsycl_option)
-        set(ONEDPL_BACKEND "sycl" CACHE STRING "Threading backend; defaults to SYCL")
+        set(ONEDPL_BACKEND "dpcpp" CACHE STRING "Threading backend")
     else()
-        set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend; defaults to TBB")
+        set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend")
     endif()
     string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
     message(STATUS "Use ${ONEDPL_BACKEND} as default backend")
@@ -52,7 +69,7 @@ endif()
 if (MSVC)
     target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc)
 else()
-    target_compile_options(oneDPL INTERFACE $<$<CONFIG:Debug>:-O0>)
+    set(CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()
 
 if (ONEDPL_USE_PARALLEL_POLICIES)
@@ -60,24 +77,22 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
     message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
     string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
-    if (ONEDPL_BACKEND MATCHES "^(tbb|sycl|sycl_only)$")
+    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
         set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
-        if (ONEDPL_BACKEND MATCHES "^(tbb|sycl)$")
+        if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
             find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
             message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
             target_link_libraries(oneDPL INTERFACE TBB::tbb)
         endif()
 
-        # It is for Clang and DPC++ compilers (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
+        # It is for Clang and Intel® oneAPI DPC++ Compiler (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
         if (UNIX)
             if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-                find_program(FIND_GXX_EXE g++)
                 if (FIND_GXX_EXE)
-                    execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
-                    string(REPLACE "\." "0" _onedpl_gxx_version ${_onedpl_gxx_version})
-                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${_onedpl_gxx_version})
+                    string(REPLACE "\." "0" _onedpl_tbb_use_glibcxx_version ${_onedpl_gxx_version})
+                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${_onedpl_tbb_use_glibcxx_version})
                 else()
                     target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=70300)
                 endif()
@@ -87,13 +102,13 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
         target_compile_definitions(oneDPL INTERFACE
             $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
             $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
-            $<$<BOOL:${ONEDPL_USE_BACKEND_SYCL_ONLY}>:ONEDPL_USE_TBB_BACKEND=0> 
+            $<$<BOOL:${ONEDPL_USE_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
             $<$<BOOL:${ONEDPL_USE_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
             )
 
-        if (ONEDPL_BACKEND MATCHES "^(sycl|sycl_only)$")
+        if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
             if (NOT _fsycl_option)
-                message(FATAL_ERROR "Compiler doesn't support SYCL extensions (-fsycl option).\n"
+                message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
                 "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
             endif()
 
@@ -149,7 +164,7 @@ if (ONEDPL_USE_PARALLEL_POLICIES)
                 $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
                 $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>:ONEDPL_FPGA_EMULATOR>
                 )
-            
+
             # DPC++ specific link options
             target_link_libraries(oneDPL INTERFACE
                 $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>

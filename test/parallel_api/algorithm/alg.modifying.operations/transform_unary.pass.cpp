@@ -64,7 +64,7 @@ test()
         Sequence<Tin> in(n, [](int32_t k) { return k % 5 != 1 ? 3 * k - 7 : 0; });
 
         Sequence<Tout> out(n);
-        const auto flip = [](const Tin& x) { return Tout(1 - x); };
+        const auto flip = Complement<Tin, Tout>(1);
 
         invoke_on_all_policies<0>()(test_one_policy<Tin, Tout>(), in.begin(), in.end(), out.begin(), out.end(), flip);
 #if !_ONEDPL_FPGA_DEVICE

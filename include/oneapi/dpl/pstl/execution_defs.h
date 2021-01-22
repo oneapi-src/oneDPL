@@ -205,7 +205,13 @@ template <typename _R>
 using __difference_t = decltype(::std::declval<_R&>().size());
 
 template <typename _R>
-using __value_t = typename ::std::iterator_traits<decltype(::std::declval<_R&>().begin())>::value_type;
+struct __range_traits
+{
+    using __value_t = typename ::std::decay<decltype(::std::declval<_R&>()[0])>::type;
+};
+
+template <typename _R>
+using __value_t = typename __range_traits<_R>::__value_t;
 
 } // namespace __internal
 

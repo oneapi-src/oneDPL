@@ -361,11 +361,11 @@ __pstl_next(
 }
 #endif
 
-template <typename _ForwardIterator, typename _Compare>
+template <typename _ForwardIterator, typename _Compare, typename _CompareIt>
 _ForwardIterator
-__cmp_iterators_by_values(_ForwardIterator __a, _ForwardIterator __b, _Compare __comp)
+__cmp_iterators_by_values(_ForwardIterator __a, _ForwardIterator __b, _Compare __comp, _CompareIt __comp_it)
 {
-    if (__a < __b)
+    if (__comp_it(__a, __b))
     { // we should return closer iterator
         return __comp(*__b, *__a) ? __b : __a;
     }

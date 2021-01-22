@@ -1023,6 +1023,9 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ra
 //------------------------------------------------------------------------
 // copy_n
 //------------------------------------------------------------------------
+// It might be possible to share more between copy and copy_n, but it's not
+// clear that doing so is worth the trouble and extra layers of call chain.
+// Sometimes a little duplication for sake of regularity is better than the alternative.
 
 template <typename _ExecutionPolicy>
 struct __brick_copy_n<_ExecutionPolicy,
@@ -1352,6 +1355,11 @@ __pattern_count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
                 /* is_parallel */ ::std::true_type, _IsVector __is_vector)
 {
     typedef typename ::std::iterator_traits<_ForwardIterator>::difference_type _SizeType;
+
+    //trivial pre-checks
+    if (__first == __last)
+        return _SizeType(0);
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, _SizeType(0),
@@ -1970,96 +1978,96 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, boo
 __pattern_is_partitioned(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                          _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
 {
+    //trivial pre-checks
     if (__first == __last)
-    {
         return true;
-    }
-    else
-    {
-        return __internal::__except_handler([&]() {
-            // State of current range:
-            // broken     - current range is not partitioned by pred
-            // all_true   - all elements in current range satisfy pred
-            // all_false  - all elements in current range don't satisfy pred
-            // true_false - elements satisfy pred are placed before elements that don't satisfy pred
-            enum _ReduceType
-            {
-                __not_init = -1,
-                __broken,
-                __all_true,
-                __all_false,
-                __true_false
-            };
-            _ReduceType __init = __not_init;
 
-            // Array with states that we'll have when state from the left branch is merged with state from the right branch.
-            // State is calculated by formula: new_state = table[left_state * 4 + right_state]
-            _ReduceType __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
-                                     __true_false, __true_false, __broken,     __broken, __all_false, __broken,
-                                     __broken,     __broken,     __true_false, __broken};
+    return __internal::__except_handler([&]() {
+        // State of current range:
+        // broken     - current range is not partitioned by pred
+        // all_true   - all elements in current range satisfy pred
+        // all_false  - all elements in current range don't satisfy pred
+        // true_false - elements satisfy pred are placed before elements that don't satisfy pred
+        enum _ReduceRes
+        {
+            __not_init = -1,
+            __broken,
+            __all_true,
+            __all_false,
+            __true_false
+        };
+        // Array with states that we'll have when state from the left branch is merged with state from the right branch.
+        // State is calculated by formula: new_state = table[left_state * 4 + right_state]
+        const _ReduceRes __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
+                                      __true_false, __true_false, __broken,     __broken, __all_false, __broken,
+                                      __broken,     __broken,     __true_false, __broken};
+        struct _ReduceType
+        {
+            _ReduceRes __val;
+            _ForwardIterator __pos;
+        };
+        //a commutative combiner
+        auto __combine = [&__table](_ReduceType __x, _ReduceType __y) {
+            return __x.__pos > __y.__pos ? _ReduceType{__table[__y.__val * 4 + __x.__val], __y.__pos}
+                                         : _ReduceType{__table[__x.__val * 4 + __y.__val], __x.__pos};
+        };
 
-            __init = __par_backend::__parallel_reduce(
-                ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
-                [&__pred, &__table, __is_vector](_ForwardIterator __i, _ForwardIterator __j,
-                                                 _ReduceType __value) -> _ReduceType {
-                    if (__value == __broken)
+        const _ReduceType __identity{__not_init, __last};
+
+        _ReduceType __result = __par_backend::__parallel_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __identity,
+            [&__pred, __combine, __is_vector](_ForwardIterator __i, _ForwardIterator __j,
+                                              _ReduceType __value) -> _ReduceType {
+                if (__value.__val == __broken)
+                    return _ReduceType{__broken, __i};
+
+                _ReduceType __res{__not_init, __i};
+                // if first element satisfy pred
+                if (__pred(*__i))
+                {
+                    // find first element that don't satisfy pred
+                    _ForwardIterator __x =
+                        __internal::__brick_find_if(__i + 1, __j, __not_pred<_UnaryPredicate&>(__pred), __is_vector);
+                    if (__x != __j)
                     {
-                        return __broken;
-                    }
-                    _ReduceType __res = __not_init;
-                    // if first element satisfy pred
-                    if (__pred(*__i))
-                    {
-                        // find first element that don't satisfy pred
-                        _ForwardIterator __x = __internal::__brick_find_if(
-                            __i + 1, __j, __not_pred<_UnaryPredicate&>(__pred), __is_vector);
-                        if (__x != __j)
-                        {
-                            // find first element after "x" that satisfy pred
-                            _ForwardIterator __y = __internal::__brick_find_if(__x + 1, __j, __pred, __is_vector);
-                            // if it was found then range isn't partitioned by pred
-                            if (__y != __j)
-                            {
-                                return __broken;
-                            }
-                            else
-                            {
-                                __res = __true_false;
-                            }
-                        }
-                        else
-                        {
-                            __res = __all_true;
-                        }
+                        // find first element after "x" that satisfy pred
+                        _ForwardIterator __y = __internal::__brick_find_if(__x + 1, __j, __pred, __is_vector);
+                        // if it was found then range isn't partitioned by pred
+                        if (__y != __j)
+                            return _ReduceType{__broken, __i};
+
+                        __res = _ReduceType{__true_false, __i};
                     }
                     else
-                    { // if first element doesn't satisfy pred
-                        // then we should find the first element that satisfy pred.
-                        // If we found it then range isn't partitioned by pred
-                        if (__internal::__brick_find_if(__i + 1, __j, __pred, __is_vector) != __j)
-                        {
-                            return __broken;
-                        }
-                        else
-                        {
-                            __res = __all_false;
-                        }
-                    }
-                    // if we have value from left range then we should calculate the result
-                    return (__value == -1) ? __res : __table[__value * 4 + __res];
-                },
+                        __res = _ReduceType{__all_true, __i};
+                }
+                else
+                { // if first element doesn't satisfy pred
+                    // then we should find the first element that satisfy pred.
+                    // If we found it then range isn't partitioned by pred
+                    if (__internal::__brick_find_if(__i + 1, __j, __pred, __is_vector) != __j)
+                        return _ReduceType{__broken, __i};
 
-                [&__table](_ReduceType __val1, _ReduceType __val2) -> _ReduceType {
-                    if (__val1 == __broken || __val2 == __broken)
-                    {
-                        return __broken;
-                    }
-                    // calculate the result for new big range
-                    return __table[__val1 * 4 + __val2];
-                });
-            return __init != __broken;
-        });
-    }
+                    __res = _ReduceType{__all_false, __i};
+                }
+                // if we have value from left range then we should calculate the result
+                return (__value.__val == __not_init) ? __res : __combine(__value, __res);
+            },
+
+            [__combine](_ReduceType __val1, _ReduceType __val2) -> _ReduceType {
+                if (__val1.__val == __not_init)
+                    return __val2;
+                if (__val2.__val == __not_init)
+                    return __val1;
+                assert(__val1.__val != __not_init && __val2.__val != __not_init);
+
+                if (__val1.__val == __broken || __val2.__val == __broken)
+                    return _ReduceType{__broken, __val1.__pos};
+                // calculate the result for new big range
+                return __combine(__val1, __val2);
+            });
+        return __result.__val != __broken;
+    });
 }
 
 //------------------------------------------------------------------------
@@ -3705,20 +3713,28 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ra
 __pattern_min_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                       _Compare __comp, _IsVector __is_vector, /* is_parallel = */ ::std::true_type)
 {
-    if (__first == __last)
-        return __last;
+    // a trivial case pre-check
+    if (__last - __first < 2)
+        return __first;
 
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last, __first,
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, /*identity*/ __last,
             [=](_RandomAccessIterator __begin, _RandomAccessIterator __end,
                 _RandomAccessIterator __init) -> _RandomAccessIterator {
-                const _RandomAccessIterator subresult =
+                const _RandomAccessIterator __subresult =
                     __internal::__brick_min_element(__begin, __end, __comp, __is_vector);
-                return __internal::__cmp_iterators_by_values(__init, subresult, __comp);
+                return __init == __last ? __subresult
+                                        : __internal::__cmp_iterators_by_values(__init, __subresult, __comp,
+                                                                                oneapi::dpl::__internal::__pstl_less());
             },
             [=](_RandomAccessIterator __it1, _RandomAccessIterator __it2) -> _RandomAccessIterator {
-                return __internal::__cmp_iterators_by_values(__it1, __it2, __comp);
+                if (__it1 == __last)
+                    return __it2;
+                if (__it2 == __last)
+                    return __it1;
+                return __internal::__cmp_iterators_by_values(__it1, __it2, __comp,
+                                                             oneapi::dpl::__internal::__pstl_less());
             });
     });
 }
@@ -3762,24 +3778,38 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
 __pattern_minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp,
                          _IsVector __is_vector, /* is_parallel = */ ::std::true_type)
 {
-    if (__first == __last)
+    // a trivial case pre-check
+    if (__last - __first < 2)
         return ::std::make_pair(__first, __first);
 
     return __internal::__except_handler([&]() {
         typedef ::std::pair<_ForwardIterator, _ForwardIterator> _Result;
 
         return __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last, ::std::make_pair(__first, __first),
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            /*identity*/ ::std::make_pair(__last, __first - 1),
             [=, &__comp](_ForwardIterator __begin, _ForwardIterator __end, _Result __init) -> _Result {
                 const _Result __subresult = __internal::__brick_minmax_element(__begin, __end, __comp, __is_vector);
-                return ::std::make_pair(__internal::__cmp_iterators_by_values(__subresult.first, __init.first, __comp),
-                                        __internal::__cmp_iterators_by_values(__init.second, __subresult.second,
-                                                                              __not_pred<_Compare&>(__comp)));
+                if (__init.first == __last) // = identity
+                    return __subresult;
+                return ::std::make_pair(
+                    __internal::__cmp_iterators_by_values(__init.first, __subresult.first, __comp,
+                                                          oneapi::dpl::__internal::__pstl_less()),
+                    __internal::__cmp_iterators_by_values(__init.second, __subresult.second,
+                                                          oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
+                                                          oneapi::dpl::__internal::__pstl_greater()));
             },
             [=, &__comp](_Result __p1, _Result __p2) -> _Result {
+                if (__p1.first == __last)
+                    return __p2;
+                if (__p2.first == __last)
+                    return __p1;
                 return ::std::make_pair(
-                    __internal::__cmp_iterators_by_values(__p1.first, __p2.first, __comp),
-                    __internal::__cmp_iterators_by_values(__p2.second, __p1.second, __not_pred<_Compare&>(__comp)));
+                    __internal::__cmp_iterators_by_values(__p1.first, __p2.first, __comp,
+                                                          oneapi::dpl::__internal::__pstl_less()),
+                    __internal::__cmp_iterators_by_values(__p1.second, __p2.second,
+                                                          oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
+                                                          oneapi::dpl::__internal::__pstl_greater()));
             });
     });
 }

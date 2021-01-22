@@ -198,17 +198,18 @@ __device_policy(_ExecutionPolicy&& __exec)
 // parallel_merge
 //-----------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Iterator3, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 auto
-__parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2,
-                 _Iterator2 __last2, _Iterator3 __d_first, _Compare __comp)
+__parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
     -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
         _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_merge(
-                              __device_policy(__exec), __first1, __last1, __first2, __last2, __d_first, __comp))>
+                              __device_policy(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+                              ::std::forward<_Range3>(__rng3), __comp))>
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_merge(__device_policy(__exec), __first1, __last1, __first2,
-                                                               __last2, __d_first, __comp);
+    return oneapi::dpl::__par_backend_hetero::__parallel_merge(__device_policy(__exec), ::std::forward<_Range1>(__rng1),
+                                                               ::std::forward<_Range2>(__rng2),
+                                                               ::std::forward<_Range3>(__rng3), __comp);
 }
 
 //------------------------------------------------------------------------

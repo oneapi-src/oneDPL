@@ -30,23 +30,6 @@ using namespace TestUtils;
 template <typename T>
 struct test_find_end
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred)
@@ -61,23 +44,6 @@ struct test_find_end
 template <typename T>
 struct test_find_end_predicate
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred)
@@ -92,23 +58,6 @@ struct test_find_end_predicate
 template <typename T>
 struct test_search
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred)
@@ -123,23 +72,6 @@ struct test_search
 template <typename T>
 struct test_search_predicate
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred)
@@ -232,7 +164,6 @@ main()
     test<int32_t>(8 * sizeof(int32_t));
     test<uint16_t>(8 * sizeof(uint16_t));
     test<float64_t>(53);
-#if !_ONEDPL_BACKEND_SYCL && !_PSTL_ICC_16_17_TEST_REDUCTION_BOOL_TYPE_RELEASE_64_BROKEN
     test<bool>(1);
 
 #ifdef _PSTL_TEST_FIND_END
@@ -240,7 +171,6 @@ main()
 #endif
 #ifdef _PSTL_TEST_SEARCH
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_search<int32_t>>());
-#endif
 #endif
 
     ::std::cout << done() << ::std::endl;
