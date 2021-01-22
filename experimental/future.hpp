@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-
 #ifndef _ONEDPL_FUTURE_HPP
 #define _ONEDPL_FUTURE_HPP
 
@@ -26,7 +25,7 @@ namespace __internal
 {
 
 // TODO: rework structure of async return value and specializations
-template <typename _T, typename _Tp = sycl_iterator<sycl::access::mode::read_write,_T,sycl::buffer_allocator>>
+template <typename _T, typename _Tp = sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>>
 struct __async_value
 {
     virtual _T
@@ -46,8 +45,11 @@ struct __async_init : public __async_value<_T>
     {
         return __data;
     }
-    virtual sycl_iterator<sycl::access::mode::read_write,_T,sycl::buffer_allocator>
-    raw_data() const { return oneapi::dpl::begin(sycl::buffer<_T>{&this->__data, 1}); }
+    virtual sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>
+    raw_data() const
+    {
+        return oneapi::dpl::begin(sycl::buffer<_T>{&this->__data, 1});
+    }
 };
 
 template <typename _Tp, typename _T = typename std::iterator_traits<_Tp>::value_type>
@@ -60,13 +62,16 @@ struct __async_direct : public __async_value<_T>
     {
         return __data.get_buffer().template get_access<access_mode::read>()[0];
     }
-    virtual sycl_iterator<sycl::access::mode::read_write,_T,sycl::buffer_allocator>
-    raw_data() const { return __data;}
+    virtual sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>
+    raw_data() const
+    {
+        return __data;
+    }
 };
 
 // return transform iterator that applies: op(ret_val,init)
 
-template <typename _Tp, typename _Op = ::std::plus<_Tp>, typename _Buf = sycl::buffer<_Tp> >
+template <typename _Tp, typename _Op = ::std::plus<_Tp>, typename _Buf = sycl::buffer<_Tp>>
 struct __async_transform : public __async_value<_Tp>
 {
     _Buf __buf;
@@ -79,7 +84,7 @@ struct __async_transform : public __async_value<_Tp>
         auto ret_val = __buf.template get_access<access_mode::read>()[0];
         return __op(ret_val, __init);
     }
-    virtual sycl_iterator<sycl::access::mode::read_write,_Tp,sycl::buffer_allocator>
+    virtual sycl_iterator<sycl::access::mode::read_write, _Tp, sycl::buffer_allocator>
     raw_data() const
     {
         return oneapi::dpl::begin(__buf);
@@ -96,7 +101,8 @@ class __future : public __par_backend_hetero::__future_base
   public:
     template <typename... _Ts>
     __future(sycl::event __e, sycl::buffer<_Tp> __d, _Ts... __t)
-        : __par_backend_hetero::__future_base(__e), __data(::std::unique_ptr<__async_transform<_Tp>>(new __async_transform<_Tp>(__d))),
+        : __par_backend_hetero::__future_base(__e),
+          __data(::std::unique_ptr<__async_transform<_Tp>>(new __async_transform<_Tp>(__d))),
           __tmp(__par_backend_hetero::__TempObjs<_Ts...>{__t...})
     {
     }
@@ -104,12 +110,16 @@ class __future : public __par_backend_hetero::__future_base
     template <typename _Op>
     __future(const __future<_Tp>& _fp, _Tp __i, _Op __o)
         : __par_backend_hetero::__future_base(_fp.get_event()),
-          __data(::std::unique_ptr<__async_transform<_Tp, _Op>>(new __async_transform<_Tp, _Op>(_fp.raw_data().get_buffer(), __i, __o))), __tmp(_fp.__tmp)
+          __data(::std::unique_ptr<__async_transform<_Tp, _Op>>(
+              new __async_transform<_Tp, _Op>(_fp.raw_data().get_buffer(), __i, __o))),
+          __tmp(_fp.__tmp)
     {
     }
     __future(sycl::event __e, _Tp __i)
         : __par_backend_hetero::__future_base(__e),
-          __data(::std::unique_ptr<__async_init<_Tp>>(new __async_init<_Tp>(__i))) {}
+          __data(::std::unique_ptr<__async_init<_Tp>>(new __async_init<_Tp>(__i)))
+    {
+    }
     // Return underlying buffer
     auto
     raw_data() const
@@ -126,12 +136,13 @@ class __future : public __par_backend_hetero::__future_base
 
 // Specialization for sycl_iterator
 template <typename T>
-class __future<sycl_iterator<sycl::access::mode::read_write,T,sycl::buffer_allocator>> : public __par_backend_hetero::__future_base
+class __future<sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_allocator>>
+    : public __par_backend_hetero::__future_base
 {
-    using _Tp = sycl_iterator<sycl::access::mode::read_write,T,sycl::buffer_allocator>;
+    using _Tp = sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_allocator>;
     ::std::unique_ptr<__async_value<T>> __data;
     __par_backend_hetero::__tmp_base __tmp;
-    
+
   public:
     template <typename... _Ts>
     __future(sycl::event __e, _Tp __d, _Ts... __t)
@@ -149,6 +160,7 @@ class __future<sycl_iterator<sycl::access::mode::read_write,T,sycl::buffer_alloc
 
 } // end namespace __internal
 
-}}
+} // namespace dpl
+} // namespace oneapi
 
 #endif
