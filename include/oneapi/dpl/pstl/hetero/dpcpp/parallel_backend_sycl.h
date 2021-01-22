@@ -1340,8 +1340,8 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator _
     auto __buf = __keep(__first, __last);
 
     return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
-                         // Pass special tag to choose 'full' merge subroutine at compile-time
-                         __full_merge_kernel(), __comp);
+                                // Pass special tag to choose 'full' merge subroutine at compile-time
+                                __full_merge_kernel(), __comp);
 }
 
 //------------------------------------------------------------------------
@@ -1362,7 +1362,7 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     auto __buf = __keep(__first, __last);
 
     return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
-                                 __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
+                                        __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 
 } // namespace __par_backend_hetero
