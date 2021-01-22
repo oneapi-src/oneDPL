@@ -649,7 +649,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         explicit_wait_if<::std::is_pointer<decltype(__in_rng.begin())>::value>{}(__iteration_event);
     }
 
-    return __future<void>(__iteration_event, __tmp_buf, __out_buf);
+    return __future<void>(__iteration_event, __tmp_buf, __out_buffer_holder.get_buffer());
 }
 
 } // namespace __par_backend_hetero
