@@ -122,14 +122,23 @@ struct transform_init
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id, ::std::size_t __size_per_work_group, _AccLocal& __local_mem,
-               const _Acc&... __acc) const
+    operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id,
+               _AccLocal& __local_mem, const _Acc&... __acc) const
     {
-        ::std::size_t __local_id = __item.get_local_id(0);
-
-        if (__global_id < __n)
+        using _Tp = typename __accessor_traits<_AccLocal>::value_type;
+        ::std::size_t __adjusted_global_id = __iters_per_work_item * __global_id;
+        if (__adjusted_global_id < __n)
         {
-            __local_mem[__local_id] = __unary_op(__global_id, __acc...);
+            ::std::size_t __local_id = __item.get_local_id(0);
+            _Tp __res = __unary_op(__adjusted_global_id, __acc...);
+            // Add neighbour to the current __local_mem
+            for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
+            {
+                ::std::size_t __shifted_id = __adjusted_global_id + __i;
+                if (__shifted_id < __n)
+                    __res = __binary_op(__res, __unary_op(__shifted_id, __acc...));
+            }
+            __local_mem[__local_id] = __res;
         }
     }
 };

@@ -377,32 +377,23 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                 [=](sycl::nd_item<1> __item_id) {
                     ::std::size_t __global_idx = __item_id.get_global_id(0);
                     ::std::size_t __local_idx = __item_id.get_local_id(0);
-                    ::std::size_t __group_id = __item_id.get_group(0);
-                    ::std::size_t __adjusted_global_id = __local_idx + __group_id * __size_per_work_group;
                     // 1. Initialization (transform part). Fill local memory
-                    for (::std::size_t __i = 0; __i < __iters_per_work_item; ++__i, __adjusted_global_id += __work_group_size)
+                    if (__is_first)
                     {
-                        if (__is_first)
-                        {
-                            __u(__item_id, __n, __iters_per_work_item, __adjusted_global_id, __size_per_work_group, __temp_local, __rngs...);
-                        }
-                        else
-                        {
-                            // TODO: check the approach when we use grainsize here too
-                            if (__adjusted_global_id < __n)
-                                __temp_local[__local_idx] = __temp_acc[__offset_2 + __adjusted_global_id];
-                            __item_id.barrier(sycl::access::fence_space::local_space);
-                        }
-                        // 2. Reduce within work group using local memory
-                        _Tp __result = __brick_reduce(__item_id, __adjusted_global_id, __n, __temp_local);
-                        if (__local_idx == 0 && __i == 0)
-                        {
-                            __temp_acc[__offset_1 + __group_id] = __result;
-                        }
-                        else if(__local_idx == 0 && __adjusted_global_id < __n)
-                        {
-                            __temp_acc[__offset_1 + __group_id] = __combine(__temp_acc[__offset_1 + __group_id], __result);
-                        }
+                        __u(__item_id, __n, __iters_per_work_item, __global_idx, __temp_local, __rngs...);
+                    }
+                    else
+                    {
+                        // TODO: check the approach when we use grainsize here too
+                        if (__global_idx < __n_items)
+                            __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
+                        __item_id.barrier(sycl::access::fence_space::local_space);
+                    }
+                    // 2. Reduce within work group using local memory
+                    _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
+                    if (__local_idx == 0)
+                    {
+                        __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
                     }
                 });
         });
@@ -411,9 +402,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             __is_first = false;
         }
         ::std::swap(__offset_1, __offset_2);
-        __n = __n_groups;
-        __n_groups = (__n - 1) / __work_group_size + 1;
-    } while (__n > 1);
+        __n_items = __n_groups;
+        __n_groups = (__n_items - 1) / __work_group_size + 1;
+    } while (__n_items > 1);
     return __temp.template get_access<access_mode::read_write>()[__offset_2];
 }
 
