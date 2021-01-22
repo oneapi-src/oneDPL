@@ -25,21 +25,6 @@ using namespace TestUtils;
 template <typename T>
 struct test_find_first_of
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub)
@@ -54,23 +39,6 @@ struct test_find_first_of
 template <typename T>
 struct test_find_first_of_predicate
 {
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN //dummy specialization by policy type, in case of broken configuration
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-
-    template <typename Iterator1, typename Iterator2, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub,
-               Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 b, Iterator1 e, Iterator2 bsub, Iterator2 esub, Predicate pred)

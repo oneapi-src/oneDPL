@@ -36,11 +36,7 @@ class XOR
   public:
     template <typename T>
     T
-#if _ONEDPL_BACKEND_SYCL
-        operator()(const T left, const T right) const
-#else
-        operator()(const T& left, const T& right) const
-#endif
+    operator()(const T& left, const T& right) const
     {
         return left ^ right;
     }

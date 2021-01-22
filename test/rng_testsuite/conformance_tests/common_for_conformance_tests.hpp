@@ -20,7 +20,6 @@
 #ifndef DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON
 #define DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON
 
-#include <iostream>
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>

@@ -49,10 +49,12 @@ struct Num
     }
 };
 
-template <typename RandomAccessIterator, typename Type>
+template <typename Type>
 struct test_one_policy
 {
-    using __functor_type = Type;
+    // Entites defined in ::std:: are prohibited to be inside a device kernel name,
+    // thus avoid passing the iterator type as a template paramemter to test_one_policy
+    using RandomAccessIterator = typename Sequence<Type>::iterator;
 
     RandomAccessIterator d_first;
     RandomAccessIterator d_last;
@@ -63,36 +65,6 @@ struct test_one_policy
         : d_first(b1), d_last(e1), exp_first(b2), exp_last(e2)
     {
     }
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN ||                                                             \
-    _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN // dummy specialization by policy type, in case of broken configuration
-    template <typename InputIterator, typename Size, typename T, typename Compare>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, Size n1, Size n2,
-               const T& trash, Compare compare)
-    {
-    }
-
-    template <typename InputIterator, typename Size, typename T, typename Compare>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last, Size n1, Size n2,
-               const T& trash, Compare compare)
-    {
-    }
-
-    template <typename InputIterator, typename Size, typename T>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator first, InputIterator last, Size n1, Size n2,
-               const T& trash)
-    {
-    }
-
-    template <typename InputIterator, typename Size, typename T>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator first, InputIterator last, Size n1, Size n2,
-               const T& trash)
-    {
-    }
-#endif
 
     template <typename Policy, typename InputIterator, typename Size, typename T, typename Compare>
     void
@@ -137,8 +109,6 @@ template <typename T, typename Compare>
 void
 test_partial_sort_copy(Compare compare)
 {
-
-    typedef typename Sequence<T>::iterator iterator_type;
     const ::std::size_t n_max = 100000;
     Sequence<T> in(n_max);
     Sequence<T> out(2 * n_max);
@@ -152,21 +122,21 @@ test_partial_sort_copy(Compare compare)
         // If both sequences are equal
         n2 = n1;
         invoke_on_all_policies<0>()(
-            test_one_policy<iterator_type, T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2),
+            test_one_policy<T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2),
                                               in.begin(), in.begin() + n1, n1, n2, trash, compare);
 #endif
 
         // If first sequence is greater than second
         n2 = n1 / 3;
         invoke_on_all_policies<1>()(
-            test_one_policy<iterator_type, T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2),
+            test_one_policy<T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2),
                                               in.begin(), in.begin() + n1, n1, n2, trash, compare);
 
 #if !_ONEDPL_FPGA_DEVICE
         // If first sequence is less than second
         n2 = 2 * n1;
         invoke_on_all_policies<2>()(
-            test_one_policy<iterator_type, T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2),
+            test_one_policy<T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2),
                                               in.begin(), in.begin() + n1, n1, n2, trash, compare);
 #endif
     }
@@ -175,7 +145,7 @@ test_partial_sort_copy(Compare compare)
     n1 = n_max;
     n2 = 2 * n1;
     invoke_on_all_policies<3>()(
-        test_one_policy<iterator_type, T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2), in.begin(),
+        test_one_policy<T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2), in.begin(),
                                           in.begin() + n1, n1, n2, trash);
 #endif
 }

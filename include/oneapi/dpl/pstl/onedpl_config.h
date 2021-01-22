@@ -42,6 +42,13 @@
 #    define _ONEDPL_FPGA_EMU ONEDPL_FPGA_EMULATOR
 #endif
 
+#if defined(ONEDPL_USE_PREDEFINED_POLICIES)
+#    undef _ONEDPL_USE_PREDEFINED_POLICIES
+#    define _ONEDPL_USE_PREDEFINED_POLICIES ONEDPL_USE_DEFAULT_POLICIES
+#elif !defined(_ONEDPL_USE_PREDEFINED_POLICIES)
+#    define _ONEDPL_USE_PREDEFINED_POLICIES 1
+#endif
+
 // macros for deprecation
 #if (__cplusplus >= 201402L)
 #    define _DPSTD_DEPRECATED [[deprecated]]

@@ -46,33 +46,7 @@ namespace TestUtils
 #       endif
     }
 
-    template <typename T>
-    struct has_functor_type {
-        struct __res { char p[2]; };
-
-        template <typename P>
-        static __res __test(...);
-
-        template <typename P>
-        static char __test(typename P::__functor_type*);
-
-        static constexpr bool value = sizeof(__test<T>(0)) == sizeof(char);
-    };
-
-    // If type T has __functor_type field, use it as a kernel name
-    // otherwise use the type itself.
-    template <typename T, bool has_type = has_functor_type<T>::value>
-    struct kernel_type {
-        using type = T;
-    };
-
-    template <typename T>
-    struct kernel_type<T, true> {
-        using type = typename T::__functor_type;
-    };
-
     // Check values in sequence
-
     template<typename Iterator, typename T>
     bool check_values(Iterator first, Iterator last, const T& val)
     {
@@ -121,18 +95,28 @@ namespace TestUtils
     }
 #endif
 
-#if _ONEDPL_FPGA_DEVICE
-    auto& default_dpcpp_policy = oneapi::dpl::execution::dpcpp_fpga;
+#if ONEDPL_FPGA_DEVICE
     auto default_selector =
-#if _ONEDPL_FPGA_EMU
+#if ONEDPL_FPGA_EMULATOR
         sycl::INTEL::fpga_emulator_selector{};
 #else
         sycl::INTEL::fpga_selector{};
-#endif
+#endif // ONEDPL_FPGA_EMULATOR
+    auto&& default_dpcpp_policy =
+#if ONEDPL_USE_PREDEFINED_POLICIES
+        oneapi::dpl::execution::dpcpp_fpga;
 #else
-    auto& default_dpcpp_policy = oneapi::dpl::execution::dpcpp_default;
+        oneapi::dpl::execution::make_fpga_policy(sycl::queue{default_selector});
+#endif // ONEDPL_USE_PREDEFINED_POLICIES
+#else
     auto default_selector = sycl::default_selector{};
-#endif
+    auto&& default_dpcpp_policy =
+#if ONEDPL_USE_PREDEFINED_POLICIES
+        oneapi::dpl::execution::dpcpp_default;
+#else
+        oneapi::dpl::execution::make_device_policy(sycl::queue{default_selector});
+#endif // ONEDPL_USE_PREDEFINED_POLICIES
+#endif // ONEDPL_FPGA_DEVICE
 
     // create the queue with custom asynchronous exceptions handler
     static auto my_queue = sycl::queue(default_selector, async_handler);
@@ -147,7 +131,11 @@ namespace TestUtils
         {
             //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
             //of kernels from operator type and ::std::size_t
-            using kernel_name = unique_kernel_name<typename kernel_type<Op>::type, CallNumber>;
+            // There may be an issue when there is a kernel parameter which has a pointer in its name.
+            // For example, param<int*>. In this case the runtime interpreters it as a memory object and
+            // performs some checks that fails. As a workaround, define for functors which have this issue
+            // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
+            using kernel_name = unique_kernel_name<Op, CallNumber>;
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
 #if _ONEDPL_FPGA_DEVICE
                 oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(my_queue), op, ::std::forward<T>(rest)...);

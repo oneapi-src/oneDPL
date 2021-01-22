@@ -312,6 +312,12 @@ __split(_Index __m)
 // __parallel_strict_scan
 //------------------------------------------------------------------------
 
+// TODO: Here are improvements to consider:
+// 1. Affinitize leaves of upsweep and leaves of downsweep.  For working sets that
+//    fit in cache, this might reduce memory interconnect load significantly.
+// 2. Add automatic tilesize adjustment.  Initial stealing during upsweep ought to provide a good hint.
+// 3. Use continuation-passing style for the tasks.  For downsweep, a binomial tree pattern is likely optimal.
+
 template <typename _Index, typename _Tp, typename _Rp, typename _Cp>
 void
 __upsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsize, _Rp __reduce, _Cp __combine)

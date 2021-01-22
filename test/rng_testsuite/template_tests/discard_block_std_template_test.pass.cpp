@@ -18,6 +18,8 @@
 // Test of discard_block_engine - comparison with std::
 
 #include <iostream>
+
+#if _ONEDPL_BACKEND_SYCL
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>
@@ -138,8 +140,8 @@ int test_portion(oneapi::dpl::internal::element_type_t<typename Engine::result_t
 
 template<class Engine, class StdEngine>
 int tests_set(int nsamples) {
-    const int nseeds = 3;
-    int64_t seed_array [nseeds] = {0, 777, 19780503u};
+    const int nseeds = 2;
+    int64_t seed_array [nseeds] = {0, 19780503u};
 
     int err;
     for(int i = 0; i < nseeds; ++i) {
@@ -155,8 +157,8 @@ int tests_set(int nsamples) {
 
 template<class Engine, class StdEngine>
 int tests_set_portion(int nsamples, unsigned int part) {
-    const int nseeds = 2;
-    int64_t seed_array [nseeds] = {0, 19780503u};
+    const int nseeds = 1;
+    int64_t seed_array [nseeds] = {19780503u};
 
     int err;
     for(int i = 0; i < nseeds; ++i) {
@@ -170,7 +172,12 @@ int tests_set_portion(int nsamples, unsigned int part) {
     return 0;
 }
 
+#endif // _ONEDPL_BACKEND_SYCL
+
 int main() {
+
+#if _ONEDPL_BACKEND_SYCL
+
     constexpr int nsamples = 100;
     int err;
 
@@ -263,6 +270,10 @@ int main() {
         std::cout << "Test FAILED" << std::endl;
         return 1;
     }
+
+#else
+    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
+#endif // _ONEDPL_BACKEND_SYCL
 
     std::cout << "Test PASSED" << std::endl;
     return 0;

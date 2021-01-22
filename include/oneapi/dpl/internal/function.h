@@ -18,9 +18,9 @@
 
 #include <utility>
 #if _ONEDPL_BACKEND_SYCL
-#    include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
+#    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #endif
-#include <oneapi/dpl/functional>
+#include "../functional"
 #include <tuple>
 
 namespace oneapi
@@ -32,7 +32,7 @@ namespace internal
 using ::std::get;
 
 // Helper used to eliminate compile errors when an algorithm needs to pass a policy instance to
-// multiple parallel STL functions.
+// multiple Parallel STL functions.
 template <typename Policy, typename NewName>
 struct rebind_policy
 {

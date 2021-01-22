@@ -19,6 +19,8 @@
 // Note not all types can be compared with std:: implementation is different
 
 #include <iostream>
+
+#if _ONEDPL_BACKEND_SYCL
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>
@@ -233,7 +235,12 @@ int tests_set_portion(int nsamples, unsigned int part) {
     return 0;
 }
 
+#endif // _ONEDPL_BACKEND_SYCL
+
 int main() {
+
+#if _ONEDPL_BACKEND_SYCL
+
     constexpr int nsamples = 100;
     int err;
 
@@ -303,6 +310,10 @@ int main() {
         std::cout << "Test FAILED" << std::endl;
         return 1;
     }
+
+#else
+    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
+#endif // _ONEDPL_BACKEND_SYCL
 
     std::cout << "Test PASSED" << std::endl;
     return 0;

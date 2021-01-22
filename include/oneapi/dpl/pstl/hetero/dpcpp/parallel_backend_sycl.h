@@ -1027,28 +1027,22 @@ struct __partial_merge_kernel
     }
 };
 
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Iterator3, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
-__parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2,
-                 _Iterator2 __last2, _Iterator3 __d_first, _Compare __comp)
+__parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_merge_kernel<_Iterator1, _Iterator2, _Iterator3, _Compare, __kernel_name>;
+    using __kernel_1_name_t = __parallel_merge_kernel<_Range1, _Range2, _Range3, _Compare, __kernel_name>;
 #else
     using __kernel_1_name_t = __parallel_merge_kernel<__kernel_name>;
 #endif
-    auto __n = __last1 - __first1;
-    auto __n_2 = __last2 - __first2;
+    auto __n = __rng1.size();
+    auto __n_2 = __rng2.size();
 
     assert(__n > 0 || __n_2 > 0);
-    //TODO: To investigate the perfomance in case of one sequence is empty. Does it make sense to dispatch such case
-    //on the algorithm patterns level and call just copying, not pattern_merge?
 
-    auto __in_buffer1 = __internal::get_buffer()(__first1, __last1);
-    auto __in_buffer2 = __internal::get_buffer()(__first2, __last2);
-    auto __out_buffer = __internal::get_buffer()(__d_first, __d_first + __n + __n_2);
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
     const ::std::size_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 8;
@@ -1056,12 +1050,10 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __la
     const ::std::size_t __steps = ((__max_n - 1) / __chunk) + 1;
 
     auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
-        auto __in_acc1 = __internal::get_access<_Iterator1>(__cgh)(__in_buffer1);
-        auto __in_acc2 = __internal::get_access<_Iterator2>(__cgh)(__in_buffer2);
-        auto __out_acc = __internal::get_access<_Iterator3>(__cgh)(__out_buffer);
+        oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
         __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-            __full_merge_kernel()(__item_id.get_linear_id() * __chunk, __in_acc1, decltype(__n)(0), __n, __in_acc2,
-                                  decltype(__n_2)(0), __n_2, __out_acc, decltype(__n)(0), __comp, __chunk);
+            __full_merge_kernel()(__item_id.get_linear_id() * __chunk, __rng1, decltype(__n)(0), __n, __rng2,
+                                  decltype(__n_2)(0), __n_2, __rng3, decltype(__n)(0), __comp, __chunk);
         });
     });
     return __future<void>(__event);
@@ -1097,30 +1089,28 @@ struct __leaf_sort_kernel
 template <typename T>
 class t_printer;
 
-template <typename _ExecutionPolicy, typename _Iterator, typename _Merge, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
-__parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Merge __merge, _Compare __comp)
+__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_sort_kernel_1<_Iterator, _Merge, _Compare, __kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<_Iterator, _Merge, _Compare, __kernel_name>;
-    using __kernel_3_name_t = __parallel_sort_kernel_3<_Iterator, _Merge, _Compare, __kernel_name>;
+    using __kernel_1_name_t = __parallel_sort_kernel_1<_Range, _Merge, _Compare, __kernel_name>;
+    using __kernel_2_name_t = __parallel_sort_kernel_2<_Range, _Merge, _Compare, __kernel_name>;
+    using __kernel_3_name_t = __parallel_sort_kernel_3<_Range, _Merge, _Compare, __kernel_name>;
 #else
     using __kernel_1_name_t = __parallel_sort_kernel_1<__kernel_name>;
     using __kernel_2_name_t = __parallel_sort_kernel_2<__kernel_name>;
     using __kernel_3_name_t = __parallel_sort_kernel_3<__kernel_name>;
 #endif
 
-    using _Tp = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _Size = typename ::std::iterator_traits<_Iterator>::difference_type;
-    _Size __n = __last - __first;
-    if (__n <= 1)
-    {
-        return __future<void>(sycl::event{});
-    }
-    auto __buffer = __internal::get_buffer()(__first, __last);
+    using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
+    using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
+
+    _Size __n = __rng.size();
+    assert(__n > 1);
+
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
     // __leaf: size of a block to sort using algorithm suitable for small sequences
@@ -1141,13 +1131,13 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
 
     // 1. Perform sorting of the leaves of the merge sort tree
     sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
-        auto __acc = __internal::get_access<_Iterator>(__cgh)(__buffer);
+        oneapi::dpl::__ranges::__require_access(__cgh, __rng);
         __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__leaf_steps),
                                               [=](sycl::item</*dim=*/1> __item_id) {
                                                   const _Size __idx = __item_id.get_linear_id() * __leaf;
                                                   const _Size __start = __idx;
                                                   const _Size __end = sycl::min(__start + __leaf, __n);
-                                                  __leaf_sort_kernel()(__acc, __start, __end, __comp);
+                                                  __leaf_sort_kernel()(__rng, __start, __end, __comp);
                                               });
     });
 
@@ -1190,8 +1180,8 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
 
         __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
-            auto __acc = __internal::get_access<_Iterator>(__cgh)(__buffer);
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            auto __temp_acc = __temp.template get_access<__par_backend_hetero::access_mode::read_write>(__cgh);
             __cgh.parallel_for<__kernel_2_name_t>(
                 sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                     const _Size __idx = __item_id.get_linear_id();
@@ -1206,12 +1196,12 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
 
                     if (!__data_in_temp)
                     {
-                        __merge(__offset, __acc, __start_1, __end_1, __acc, __start_2, __end_2, __temp_acc, __start_1,
+                        __merge(__offset, __rng, __start_1, __end_1, __rng, __start_2, __end_2, __temp_acc, __start_1,
                                 __comp, __chunk);
                     }
                     else
                     {
-                        __merge(__offset, __temp_acc, __start_1, __end_1, __temp_acc, __start_2, __end_2, __acc,
+                        __merge(__offset, __temp_acc, __start_1, __end_1, __temp_acc, __start_2, __end_2, __rng,
                                 __start_1, __comp, __chunk);
                     }
                 });
@@ -1227,13 +1217,11 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     {
         __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
-            auto __acc =
-                __internal::get_access<decltype(make_iter_mode<access_mode::write>(::std::declval<_Iterator>()))>(
-                    __cgh)(__buffer);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
             // We cannot use __cgh.copy here because of zip_iterator usage
             __cgh.parallel_for<__kernel_3_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                __acc[__item_id.get_linear_id()] = __temp_acc[__item_id];
+                __rng[__item_id.get_linear_id()] = __temp_acc[__item_id];
             });
         });
     }
@@ -1241,29 +1229,25 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     return __future<void>(__event1, __temp);
 }
 
-template <typename _ExecutionPolicy, typename _Iterator, typename _Merge, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
-__parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Merge __merge,
-                             _Compare __comp)
+__parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
 #if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_sort_kernel_1<_Iterator, _Merge, _Compare, __kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<_Iterator, _Merge, _Compare, __kernel_name>;
+    using __kernel_1_name_t = __parallel_sort_kernel_1<_Range, _Merge, _Compare, __kernel_name>;
+    using __kernel_2_name_t = __parallel_sort_kernel_2<_Range, _Merge, _Compare, __kernel_name>;
 #else
     using __kernel_1_name_t = __parallel_sort_kernel_1<__kernel_name>;
     using __kernel_2_name_t = __parallel_sort_kernel_2<__kernel_name>;
 #endif
 
-    using _Tp = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _Size = typename ::std::iterator_traits<_Iterator>::difference_type;
-    _Size __n = __last - __first;
-    if (__n <= 1)
-    {
-        return __future<void>(sycl::event{});
-    }
-    auto __buffer = __internal::get_buffer()(__first, __last);
+    using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
+    using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
+    _Size __n = __rng.size();
+    assert(__n > 1);
+
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_Policy, _Tp> __temp_buf(__exec, __n);
     auto __temp = __temp_buf.get_buffer();
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
@@ -1275,7 +1259,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iter
     {
         __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
-            auto __acc = __internal::get_access<_Iterator>(__cgh)(__buffer);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
             __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
                 auto __global_idx = __item_id.get_linear_id();
@@ -1286,12 +1270,12 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iter
 
                 if (!__data_in_temp)
                 {
-                    __merge(__global_idx, __acc, __start, __end_1, __acc, __end_1, __end_2, __temp_acc, __start,
+                    __merge(__global_idx, __rng, __start, __end_1, __rng, __end_1, __end_2, __temp_acc, __start,
                             __comp);
                 }
                 else
                 {
-                    __merge(__global_idx, __temp_acc, __start, __end_1, __temp_acc, __end_1, __end_2, __acc, __start,
+                    __merge(__global_idx, __temp_acc, __start, __end_1, __temp_acc, __end_1, __end_2, __rng, __start,
                             __comp);
                 }
             });
@@ -1305,11 +1289,11 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iter
     {
         __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
-            auto __acc = __internal::get_access<_Iterator>(__cgh)(__buffer);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
             // we cannot use __cgh.copy here because of zip_iterator usage
             __cgh.parallel_for<__kernel_2_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                __acc[__item_id.get_linear_id()] = __temp_acc[__item_id];
+                __rng[__item_id.get_linear_id()] = __temp_acc[__item_id];
             });
         });
     }
@@ -1339,7 +1323,10 @@ __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_E
               __future<void>>
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
 {
-    return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(__exec, __first, __last);
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(__exec, __buf.all_view());
 }
 #endif
 
@@ -1349,9 +1336,12 @@ __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_E
               __future<void>>
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
 {
-    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                         // Pass special tag to choose 'full' merge subroutine at compile-time
-                         __full_merge_kernel(), __comp);
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+                                // Pass special tag to choose 'full' merge subroutine at compile-time
+                                __full_merge_kernel(), __comp);
 }
 
 //------------------------------------------------------------------------
@@ -1367,8 +1357,12 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                         _Compare __comp)
 {
     const auto __mid_idx = __mid - __first;
-    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                 __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+                                        __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 
 } // namespace __par_backend_hetero

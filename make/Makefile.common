@@ -115,15 +115,26 @@ TEST_MACRO += $(KEY)D_PSTL_TEST_SUCCESSFUL_KEYWORD=1
 
 OPTIMIZATION_ENABLED_FLAGS += $(XHOST_FLAG)
 OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG)
+DPCPP_OPTIMIZATION_DISABLED_FLAGS += $(XHOST_FLAG)
 
-
-ifeq ($(cfg), debug)
+ifeq ($(cfg), $(filter $(cfg),debug dpcpp_debug))
     TBB_LIB_NAME = tbb_debug
     BACKEND_MACRO += $(KEY)DTBB_USE_DEBUG=1
     DEBUG_MACRO += $(KEY)DPSTL_USE_DEBUG
+endif
+
+ifeq ($(cfg), debug)
     OPTIMIZATION_KEYS = $(OPTIMIZATION_DISABLED_FLAGS)
 else
-    OPTIMIZATION_KEYS = $(OPTIMIZATION_ENABLED_FLAGS)
+    ifeq ($(cfg), dpcpp_debug)
+        ifneq ($(compiler), dpcpp)
+            $(error dpcpp_debug is used only for dpcpp compiler)
+        endif
+        $(info "Attention: basic optimizations are turned on in order to avoid issues occurring with disabled optimizations when using dpcpp compiler")
+        OPTIMIZATION_KEYS = $(DPCPP_OPTIMIZATION_DISABLED_FLAGS)
+    else
+        OPTIMIZATION_KEYS = $(OPTIMIZATION_ENABLED_FLAGS)
+    endif
 endif
 
 ifeq ($(backend), serial)

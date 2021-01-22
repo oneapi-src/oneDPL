@@ -1,33 +1,9 @@
->>>
-
-**CONTRIBUTING**
-
-Tell would-be contributors what you would like them to do and how to do it. At
-minimum, the following guidance is recommended:
-
-- Code contributions: Do you want PRs or patches submitted to a mailing list?
-- Bug reporting: Logged as GitHub issue or some other format?
-- Use of "Signed-off-by". This is recommended by the OSPDT, but is ultimately a
-  BU + BU legal decision to adopt.
-
-Contribution guidance can be short or long. Additional guidance might include:
-- Coding conventions/patch formats for a good contribution
-- Commit message style
-- Testing
-- Code of conduct
-
-Consider [configuring issue and PR templates](https://docs.github.com/en/free-pro-team@latest/github/building-a-strong-community/using-templates-to-encourage-useful-issues-and-pull-requests)
-to promote minimum levels of information quality.
-
-Refer to the CONTRIBUTING example below.
-
->>>
-
 # How to contribute
+
 We welcome community contributions to oneAPI DPC++ Library (oneDPL). You can:
 
-- Submit your changes directly with a [pull request]. (https://github.com/oneapi-src/oneDPL/pulls)
-- Log a bug or feedback with an [issue](https://github.com/oneapi-src/oneDPL/issues)
+- Submit your changes directly with a [pull request](https://github.com/oneapi-src/oneDPL/pulls).
+- Log a bug or feedback with an [issue](https://github.com/oneapi-src/oneDPL/issues).
 
 # Pull requests
 
@@ -39,7 +15,7 @@ your change directly to the repository:
   [coding conventions](#coding-conventions).
 - Submit a
   [pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) into the
-  master branch.
+  main branch. You may add a description of your contribution into [CREDITS.txt](https://github.com/oneapi-src/oneDPL/blob/main/CREDITS.txt).
 
 # Coding conventions
 
@@ -49,17 +25,11 @@ linking to the standard.
 
 # License
 
-PROJECT NAME is licensed under the terms in [LICENSE](LICENSE). By contributing
-to the project, you agree to the license and copyright terms therein and
+oneDPL is licensed under the terms in [LICENSE](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt).
+By contributing to the project, you agree to the license and copyright terms therein and
 release your contribution under these terms.
 
 # Sign your work
-
->>>
-**Attention:** The following sign-off guidance is based on the standard
-Developer Certificate of Origin. If your project requires alternate sign-off
-guidance, replace the below content with your project-specific guidance.
->>>
 
 Please use the sign-off line at the end of the patch. Your signature certifies
 that you wrote the patch or otherwise have the right to pass it on as an
@@ -106,7 +76,7 @@ By making a contribution to this project, I certify that:
 
 Then you just add a line to every git commit message:
 
-    Signed-off-by: Kris Smith <kris.smith@email.com>
+    Signed-off-by: Name Surname <user@email.com>
 
 Use your real name (sorry, no pseudonyms or anonymous contributions.)
 

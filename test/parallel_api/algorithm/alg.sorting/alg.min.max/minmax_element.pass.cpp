@@ -272,10 +272,11 @@ main()
 
     for (::std::size_t n = 0; n < N; n = n < 16 ? n + 1 : size_t(3.14159 * n))
     {
-        test_by_type<float64_t>(n);
-#if !_ONEDPL_BACKEND_SYCL
-        test_by_type<OnlyLessCompare>(n);
+#if !_ONEDPL_FPGA_DEVICE
+        test_by_type<int32_t>(n);
 #endif
+        test_by_type<float64_t>(n);
+        test_by_type<OnlyLessCompare>(n);
     }
 
 #ifdef _PSTL_TEST_MIN_ELEMENT

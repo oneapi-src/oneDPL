@@ -25,21 +25,6 @@ using namespace TestUtils;
 template <typename T>
 struct test_is_partitioned
 {
-    //dummy specialization by policy type, in case of broken configuration
-#if _PSTL_ICC_17_VC141_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN || _PSTL_ICC_16_VC14_TEST_SIMD_LAMBDA_DEBUG_32_BROKEN
-
-    template <typename Iterator1, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
-    {
-    }
-    template <typename Iterator1, typename Predicate>
-    void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 begin1, Iterator1 end1, Predicate pred)
-    {
-    }
-#endif
-
     template <typename ExecutionPolicy, typename Iterator1, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 begin1, Iterator1 end1, Predicate pred)

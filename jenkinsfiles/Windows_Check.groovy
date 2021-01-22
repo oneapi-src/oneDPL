@@ -86,6 +86,7 @@ pipeline {
         def NUMBER = sh(script: "expr ${env.BUILD_NUMBER}", returnStdout: true).trim()
         def TIMESTEMP = sh(script: "date +%s", returnStdout: true).trim()
         def DATESTEMP = sh(script: "date +\"%Y-%m-%d\"", returnStdout: true).trim()
+        def TEST_TIMEOUT = 900
     }
 
     parameters {
@@ -155,7 +156,7 @@ pipeline {
             }
             agent { label "windows_test" }
             stages {
-                stage('Git-monorepo'){
+                stage('Git-monorepo') {
                     steps {
                         script {
                             try {
@@ -185,9 +186,9 @@ pipeline {
                     }
                 }
 
-                stage('Check_Samples'){
+                stage('Check_Samples') {
                     steps {
-                        timeout(time: 1, unit: 'HOURS'){
+                        timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
                                     bat script: """
@@ -195,19 +196,19 @@ pipeline {
                                             xcopy D:\\netbatch\\iusers\\oneDPL_CI\\oneAPI-samples .\\oneAPI-samples /E /Q /H
                                             cd oneAPI-samples
                                             git pull origin master
-                                            
+
                                         """, label: "Prepare oneAPI-samples"
 
                                     try {
                                         withEnv(oneapi_env) {
                                             bat script: """
                                                 cmd.exe /c
-                                                call "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2017\\Visual Studio Tools\\VC\\x64 Native Tools Command Prompt for VS 2017.lnk"  
-                                                call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64  
-                                                
+                                                call "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2017\\Visual Studio Tools\\VC\\x64 Native Tools Command Prompt for VS 2017.lnk"
+                                                call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
+
                                                 d:
                                                 cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\gamma-correction
-                                                
+
                                                 MSBuild gamma-correction.sln /t:Rebuild /p:Configuration="Release"
                                             """, label: "Gamma_return_value Test Step"
                                         }
@@ -224,9 +225,9 @@ pipeline {
                                         withEnv(oneapi_env) {
                                             bat script: """
                                                 cmd.exe /c
-                                                call "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2017\\Visual Studio Tools\\VC\\x64 Native Tools Command Prompt for VS 2017.lnk"                                    
-                                                call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64  
-                                                
+                                                call "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2017\\Visual Studio Tools\\VC\\x64 Native Tools Command Prompt for VS 2017.lnk"
+                                                call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
+
                                                 d:
                                                 cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\stable_sort_by_key\\src
                                                 echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
@@ -254,106 +255,32 @@ pipeline {
                     }
                 }
 
-                stage('Check_parallel_api'){
+                stage('Check_tests') {
                     steps {
-                        timeout(time: 2, unit: 'HOURS'){
+                        timeout(time: 2, unit: 'HOURS') {
                             script {
-                                def results = []
                                 try {
                                     script {
-                                        def tests = findFiles glob: 'src/test/parallel_api/**/*pass.cpp' //uncomment this line to run all tests
-                                        echo tests.toString()
-                                        def failCount = 0
-                                        def passCount = 0
-
                                         withEnv(oneapi_env) {
-                                            for ( x in tests ) {
-                                                try {
-                                                    phase = "Build&Run"
-                                                    bat script: """
-                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test/parallel_api $x
-                                                        test.exe
-                                                    """, label: "Check $x"
-                                                    passCount++
-                                                    results.add([name: x, pass: true, phase: phase])
-                                                }
-                                                catch (e) {
-                                                    failCount++
-                                                    results.add([name: x, pass: false, phase: phase])
-                                                }
+                                            dir("./src") {
+                                                bat script: """
+                                                    set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
+                                                    cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
+                                                        -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
+                                                        -DCMAKE_CXX_STANDARD=17^
+                                                        -DCMAKE_BUILD_TYPE=release^
+                                                        -DCMAKE_CXX_COMPILER=dpcpp^
+                                                        -DONEDPL_BACKEND=dpcpp^
+                                                        -DONEDPL_DEVICE_TYPE=GPU .
+                                                    "%MAKE_PROGRAM%" build-all -v -k 0
+                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
+                                                """, label: "All tests"
                                             }
-                                        }
-                                        xml = write_results_xml(results)
-                                        echo "Passed tests: $passCount, Failed tests: $failCount"
-                                        if (failCount > 0) {
-                                            bat 'exit 1'
                                         }
                                     }
                                 }
                                 catch(e) {
                                     build_ok = false
-                                    fail_stage = fail_stage + "    " + "Check_Run"
-                                    failed_cases = "Failed cases are: "
-                                    results.each { item ->
-                                        if (!item.pass) {
-                                            failed_cases = failed_cases + "\n" + "${item.name}"
-                                        }
-                                    }
-                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        bat 'exit 1'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Check_extensions_testsuite'){
-                    steps {
-                        timeout(time: 2, unit: 'HOURS'){
-                            script {
-                                def results = []
-                                try {
-                                    script {
-                                        //def tests = findFiles glob: 'ci/test/parallel_api/pstl/**/*pass.cpp'
-                                        def tests = findFiles glob: 'src/test/extensions_testsuite/**/*pass.cpp' //uncomment this line to run all tests
-                                        echo tests.toString()
-                                        def failCount = 0
-                                        def passCount = 0
-
-                                        withEnv(oneapi_env) {
-                                            for ( x in tests ) {
-                                                try {
-                                                    phase = "Build&Run"
-                                                    bat script: """
-                                                        dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include /Isrc/test/extensions_testsuite $x
-                                                        test.exe
-                                                    """, label: "Check $x"
-                                                    passCount++
-                                                    results.add([name: x, pass: true, phase: phase])
-                                                }
-                                                catch (e) {
-                                                    failCount++
-                                                    results.add([name: x, pass: false, phase: phase])
-                                                }
-                                            }
-                                        }
-                                        xml = write_results_xml(results)
-                                        echo "Passed tests: $passCount, Failed tests: $failCount"
-                                        if (failCount > 0) {
-                                            bat 'exit 1'
-                                        }
-                                    }
-                                }
-                                catch(e) {
-                                    build_ok = false
-                                    fail_stage = fail_stage + "    " + "Check_extensions_testsuite"
-                                    failed_cases = "Failed cases are: "
-                                    results.each { item ->
-                                        if (!item.pass) {
-                                            failed_cases = failed_cases + "\n" + "${item.name}"
-                                        }
-                                    }
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                         bat 'exit 1'
                                     }
@@ -379,7 +306,7 @@ pipeline {
                         githubStatus.setFailed(this, "Jenkins/Win_Check")
                     }
                 }
-           }
+            }
         }
     }
 

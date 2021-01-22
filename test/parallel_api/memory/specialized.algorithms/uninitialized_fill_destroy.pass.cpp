@@ -189,6 +189,7 @@ test_uninitialized_fill_destroy_by_type()
                                    ::std::is_trivial<T>());
 #endif
 #if !_ONEDPL_BACKEND_SYCL
+        // SYCL kernel cannot call through a function pointer
 #ifdef _PSTL_TEST_UNITIALIZED_DESTROY
         invoke_on_all_policies<>()(test_destroy<T>(), p_begin, p_end, T(), n,
                                    ::std::is_trivial<T>());

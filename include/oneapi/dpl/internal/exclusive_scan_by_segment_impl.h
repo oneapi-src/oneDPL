@@ -68,7 +68,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     typename internal::rebind_policy<policy_type, class ExclusiveScan1>::type policy1(policy);
 
-    // TODO : add stencil form of replace_copy_if to DPC++ library if the
+    // TODO : add stencil form of replace_copy_if to oneDPL if the
     // transform call here is difficult to understand and maintain.
 #if 1
     transform(policy1, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
@@ -134,7 +134,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     typename internal::rebind_policy<policy_type, class ExclusiveScan1>::type policy1(policy);
 
-    // TODO : add stencil form of replace_copy_if to DPC++ library if the
+    // TODO : add stencil form of replace_copy_if to oneDPL if the
     // transform call here is difficult to understand and maintain.
 #    if 1
     transform(policy1, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
