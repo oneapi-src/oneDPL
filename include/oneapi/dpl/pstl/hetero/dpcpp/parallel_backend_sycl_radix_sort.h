@@ -372,7 +372,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 // 2.3. count per wgroup: write local count array to global count array
                 if (__self_lidx < __radix_states)
                 {
-                    // __count_rng[__radix_states * __wgroup_idx + __self_lidx] = __count_lacc[__self_lidx];
+                    // move buckets with the same id to adjacent positions,
+                    // thus splitting __count_rng into __radix_states regions
                     __count_rng[(__segments + 1) * __self_lidx + __wgroup_idx] = __count_lacc[__self_lidx];
                 }
             });
@@ -396,69 +397,46 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                          _CountBuf& __count_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
                          ,
-                         _Kernel1& __kernel_1, _Kernel2 __kernel_2
+                         _Kernel1& __kernel_1, _Kernel2& __kernel_2
 #endif
 )
 {
-    // typedefs
     using _CountT = typename _CountBuf::value_type;
-
-    // radix states used for an array storing bucket state counters
-    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
 
     auto __count_rng =
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
 
+    // there are no local offsets for the first segment, but the rest segments shoud be scanned
+    // with respect to the count value in the first segment what requires n + 1 positions
     const ::std::size_t __scan_size = __segments + 1;
+
     __scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
     const ::std::size_t __iters_per_witem = __get_roundedup_div(__scan_size, __scan_wg_size);
     const ::std::size_t __count_size = __count_buf.get_count();
+
+    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
     const ::std::size_t __global_scan_begin = __count_size - __radix_states;
 
+    // 1. Local scan: produces local offsets using count values
     sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
         __hdl.depends_on(__dependency_event);
-
         // an accessor with value counter from each work_group
         oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
-        sycl::accessor<_CountT, 1, sycl::access::mode::read_write, sycl::access::target::local> loc_acc(__scan_wg_size, __hdl);
         __hdl.parallel_for<_KernelName1>(
 #if _ONEDPL_COMPILE_KERNEL
             __kernel_1,
 #endif
             sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
-                // item info
-                const ::std::size_t __self_lidx = __self_item.get_local_id(0);
-                const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                const ::std::size_t __scan_begin = __scan_size * __wgroup_idx;
-                const ::std::size_t __scan_end = __scan_begin + __scan_size;
-                const sycl::group<1> __work_group = __self_item.get_group();
+                // find borders of a region with a specific bucket id
+                sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
+                sycl::global_ptr<_CountT> __end = __begin + __scan_size;
 
-                ::std::size_t __adder = 0;
-                ::std::size_t __adjusted_gidx = __scan_begin + __self_lidx;
-                for(::std::size_t __i = 0; __i < __iters_per_witem; ++__i, __adjusted_gidx += __scan_wg_size)
-                {
-                    if (__adjusted_gidx < __scan_end)
-                        loc_acc[__self_lidx] = __count_rng[__adjusted_gidx];
-                    else
-                        loc_acc[__self_lidx] = 0;
-
-                    if (__i > 0 && __self_lidx == 0)
-                        loc_acc[__self_lidx] += __adder;
-
-                    loc_acc[__self_lidx] = sycl::ONEAPI::exclusive_scan(
-                        __work_group, loc_acc[__self_lidx], _CountT(0), sycl::ONEAPI::plus<_CountT>{});
-                    __self_item.barrier(sycl::access::fence_space::local_space);
-
-                    __adder = loc_acc[__scan_wg_size - 1];
-                    if (__adjusted_gidx < __scan_end)
-                        __count_rng[__adjusted_gidx] = loc_acc[__self_lidx];
-
-                    if(__i == __iters_per_witem - 1 && __adjusted_gidx == __scan_end - 1)
-                        __count_rng[__global_scan_begin + __wgroup_idx] = loc_acc[__self_lidx];
-                }
+                sycl::ONEAPI::exclusive_scan(__self_item.get_group(), __begin, __end, __begin, _CountT(0),
+                                             sycl::ONEAPI::plus<_CountT>{});
             });
     });
 
+    // 2. Global scan: produces global offsets using local offsets
     __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
         __hdl.depends_on(__scan_event);
         oneapi::dpl::__ranges::__require_access(__hdl, __count_rng);
@@ -467,9 +445,15 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
             __kernel_2,
 #endif
             sycl::nd_range<1>(__radix_states, __radix_states), [=](sycl::nd_item<1> __self_item) {
-                ::std::size_t __adjusted_gidx = __global_scan_begin + __self_item.get_local_id(0);
-                __count_rng[__adjusted_gidx] = sycl::ONEAPI::exclusive_scan(
-                    __self_item.get_group(), __count_rng[__adjusted_gidx], sycl::ONEAPI::plus<_CountT>{});
+                ::std::size_t __self_lidx = __self_item.get_local_id(0);
+
+                ::std::size_t __global_offset_idx = __global_scan_begin + __self_lidx;
+                ::std::size_t __last_segment_bucket_idx = (__self_lidx + 1) * __scan_size - 1;
+
+                // copy buckets from the last segment, scan them to get global offsets
+                _CountT __val = __count_rng[__last_segment_bucket_idx];
+                __count_rng[__global_offset_idx] = sycl::ONEAPI::exclusive_scan(
+                    __self_item.get_group(), __val, sycl::ONEAPI::plus<_CountT>{});
             });
     });
 
@@ -688,7 +672,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     const ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
 
-    // additional __radix_states elements are used for storing total scan sums
+    // additional 2 * __radix_states elements are used for getting local and global offsets from count values
     const ::std::size_t __tmp_buf_size = __segments * __radix_states + 2 * __radix_states;
     // memory for storing count and offset values
     auto __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
