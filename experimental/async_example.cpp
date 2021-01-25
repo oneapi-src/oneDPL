@@ -15,10 +15,7 @@
  */
 
 #include <oneapi/dpl/execution>
-#include <oneapi/dpl/algorithm>
-#include <oneapi/dpl/numeric>
-#include <oneapi/dpl/iterator>
-#include "async.hpp"
+#include <oneapi/dpl/async>
 
 #include <iostream>
 #include <vector>
