@@ -49,10 +49,11 @@ class GithubStatus {
     }
 }
 
-def fill_task_name_description () {
+def fill_task_name_description (String oneapi_package_date = "Default") {
     script {
+        short_commit_sha = env.Commit_id.substring(0,10)
         currentBuild.displayName = "PR#${env.PR_number}-No.${env.BUILD_NUMBER}"
-        currentBuild.description = "PR number: ${env.PR_number} / Commit id: ${env.Commit_id}"
+        currentBuild.description = "PR number: ${env.PR_number} / Commit id: ${short_commit_sha} / Oneapi package date: ${oneapi_package_date}"
     }
 }
 
@@ -66,6 +67,7 @@ def githubStatus = new GithubStatus(
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+oneapi_package_date = "Default"
 
 pipeline {
 
@@ -116,9 +118,6 @@ pipeline {
 
     stages {
         stage('Check_User_in_Org') {
-            agent {
-                label "oneDPL_UB20"
-            }
             steps {
                 script {
                     try {
@@ -128,6 +127,12 @@ pipeline {
                             echo "check_user_return value is $check_user_return"
                             if (check_user_return == 0) {
                                 user_in_github_group = true
+                                sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
+                                if (fileExists('./Oneapi_Package_Date.txt')) {
+                                    oneapi_package_date = readFile('./Oneapi_Package_Date.txt')
+                                    echo "Oneapi package date is: " + oneapi_package_date.toString()
+                                    fill_task_name_description(oneapi_package_date)
+                                }
                             }
                             else {
                                 user_in_github_group = false
@@ -149,13 +154,13 @@ pipeline {
             when {
                 expression { user_in_github_group }
             }
-            agent { label "oneDPL_UB20" }
             stages {
                 stage('Git-monorepo') {
                     steps {
                         script {
                             try {
                                 retry(2) {
+                                    deleteDir()
                                     githubStatus.setPending(this, "Jenkins/UB20_Check")
                                     if (fileExists('./src')) {
                                         sh script: 'rm -rf src', label: "Remove Src Folder"
@@ -179,7 +184,7 @@ pipeline {
                     steps {
                         script {
                             sh script: """
-                                bash /export/users/oneDPL_CI/generate_env_file.sh
+                                bash /export/users/oneDPL_CI/generate_env_file.sh ${oneapi_package_date}
                                 if [ ! -f ./envs_tobe_loaded.txt ]; then
                                     echo "Environment file not generated."
                                     exit -1

@@ -51,10 +51,11 @@ class GithubStatus {
 }
 
 
-def fill_task_name_description () {
+def fill_task_name_description (String oneapi_package_date = "Default") {
     script {
+        short_commit_sha = env.Commit_id.substring(0,10)
         currentBuild.displayName = "PR#${env.PR_number}-No.${env.BUILD_NUMBER}"
-        currentBuild.description = "PR number: ${env.PR_number} / Commit id: ${env.Commit_id}"
+        currentBuild.description = "PR number: ${env.PR_number} / Commit id: ${short_commit_sha} / Oneapi package date: ${oneapi_package_date}"
     }
 }
 
@@ -72,6 +73,7 @@ def shell(String command, String label_string = "Bat Command") {
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+oneapi_package_date = "Default"
 
 pipeline {
 
@@ -134,6 +136,12 @@ pipeline {
                             echo "check_user_return value is $check_user_return"
                             if (check_user_return == 0) {
                                 user_in_github_group = true
+                                sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
+                                if (fileExists('./Oneapi_Package_Date.txt')) {
+                                    oneapi_package_date = readFile('./Oneapi_Package_Date.txt')
+                                    echo "Oneapi package date is: " + oneapi_package_date.toString()
+                                    fill_task_name_description(oneapi_package_date)
+                                }
                             }
                             else {
                                 user_in_github_group = false
@@ -191,14 +199,14 @@ pipeline {
                             bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
-                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat
-                                        
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${oneapi_package_date}                                        
                                      """
 
                             bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
-                                        call D:\\netbatch\\iusers\\oneDPL_CI\\setup_env.bat && wcontext && call ${env.WORKSPACE}\\win_prod\\compiler\\env\\vars.bat && call ${env.WORKSPACE}\\win_prod\\dpl\\env\\vars.bat && set>envs_tobe_loaded.txt
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\setup_env.bat ${oneapi_package_date} 
+                                        wcontext && call ${env.WORKSPACE}\\win_prod\\compiler\\env\\vars.bat && call ${env.WORKSPACE}\\win_prod\\dpl\\env\\vars.bat && set>envs_tobe_loaded.txt
                                      """
                             oneapi_env = readFile('envs_tobe_loaded.txt').split('\r\n') as List
                         }
