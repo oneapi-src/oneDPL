@@ -162,7 +162,6 @@ class __future<sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_all
     }
 };
 
-
 template <typename _T>
 struct __is_async_execution_policy : ::std::false_type
 {
@@ -209,9 +208,23 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
 for_each_async(_ExecutionPolicy&& __exec, InputIter __first, InputIter __last, UnaryFunction __f,
                _Events&&... __dependencies);
 
+// reduce_async (2)
+template <class _ExecutionPolicy, class _ForwardIt, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<typename std::iterator_traits<_ForwardIt>::value_type>,
+    _Events...>
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _Events&&... __dependencies);
+
+// reduce_async (4)
+template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _T, _Events...>
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T init, _Events&&... __dependencies);
+
+// reduce_async (6)
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation, class... _Events>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>,
-                                                            _Events...>
+oneapi::dpl::__internal::__enable_if_async_execution_policy_double_no_default<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>, _Tp, _BinaryOperation, _Events...>
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
              _BinaryOperation __binary_op, _Events&&... __dependencies);
 
