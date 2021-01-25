@@ -660,12 +660,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     using _T = oneapi::dpl::__internal::__value_t<_Range>;
 
     const ::std::size_t __wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    const ::std::size_t __cunits = oneapi::dpl::__internal::__max_compute_units(__exec);
-
-    ::std::size_t __seg_k = 12;
-    if (__n < __cunits * __wg_size * __seg_k)
-        __seg_k = 1;
-    const ::std::size_t __segments = __get_roundedup_div(__n, __wg_size * __seg_k);
+    const ::std::size_t __segments = __get_roundedup_div(__n, __wg_size);
 
     // radix bits represent number of processed bits in each value during one iteration
     const ::std::uint32_t __radix_bits = 4;
