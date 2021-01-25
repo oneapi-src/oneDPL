@@ -19,6 +19,7 @@
 #include <oneapi/dpl/functional>
 
 #include <iostream>
+#include <tuple>
 
 #include <CL/sycl.hpp>
 

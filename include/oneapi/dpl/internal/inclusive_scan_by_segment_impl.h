@@ -20,6 +20,7 @@
 #define DPCPP_INCLUSIVE_SCAN_BY_KEY_IMPL_H_
 
 #include "../pstl/glue_numeric_impl.h"
+#include "../pstl/parallel_backend.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
 
