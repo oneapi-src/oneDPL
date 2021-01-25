@@ -432,9 +432,27 @@ for_each_async(_ExecutionPolicy&& __exec, InputIter __first, InputIter __last, U
     return __internal::async::for_each(std::forward<_ExecutionPolicy>(__exec), __first, __last, __f);
 }
 
+template <class _ExecutionPolicy, class _ForwardIt, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<typename std::iterator_traits<_ForwardIt>::value_type>,
+    _Events...>
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _Events&&... __dependencies)
+{
+    using _Tp = typename std::iterator_traits<_ForwardIt>::value_type;
+    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, _Tp(0), ::std::plus<_Tp>());
+}
+
+template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _T, _Events...>
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init, _Events&&... __dependencies)
+{
+    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>());
+}
+
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation, class... _Events>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>,
-                                                            _Events...>
+oneapi::dpl::__internal::__enable_if_async_execution_policy_double_no_default<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>, _Tp, _BinaryOperation, _Events...>
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
              _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
