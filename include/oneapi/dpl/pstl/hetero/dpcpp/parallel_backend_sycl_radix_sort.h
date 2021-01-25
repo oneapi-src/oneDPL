@@ -386,7 +386,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 // radix sort: scan kernel (per iteration)
 //-----------------------------------------------------------------------
 
-template <typename _KernelName1, typename _KernelName2, ::std::uint32_t __radix_bits, typename _ExecutionPolicy, typename _CountBuf
+template <typename _KernelName1, typename _KernelName2, ::std::uint32_t __radix_bits, typename _ExecutionPolicy,
+          typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
           ,
           typename _Kernel1, typename _Kernel2
@@ -452,8 +453,8 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
 
                 // copy buckets from the last segment, scan them to get global offsets
                 _CountT __val = __count_rng[__last_segment_bucket_idx];
-                __count_rng[__global_offset_idx] = sycl::ONEAPI::exclusive_scan(
-                    __self_item.get_group(), __val, sycl::ONEAPI::plus<_CountT>{});
+                __count_rng[__global_offset_idx] =
+                    sycl::ONEAPI::exclusive_scan(__self_item.get_group(), __val, sycl::ONEAPI::plus<_CountT>{});
             });
     });
 
@@ -605,8 +606,8 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
-    __scan_wg_size = oneapi::dpl::__internal::__kernel_work_group_size(
-        ::std::forward<_ExecutionPolicy>(__exec), __scan_kernel_1);
+    __scan_wg_size =
+        oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __scan_kernel_1);
 #endif
     // TODO: block size mustn't be less than number of states now. Check how to get rid of that restriction.
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
@@ -623,14 +624,13 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     );
 
     // 2. Scan Phase
-    sycl::event __scan_event =
-        __radix_sort_scan_submit<__scan_kernel_name_1, __scan_kernel_name_2, __radix_bits>(
-            __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
+    sycl::event __scan_event = __radix_sort_scan_submit<__scan_kernel_name_1, __scan_kernel_name_2, __radix_bits>(
+        __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
         __scan_kernel_1, __scan_kernel_2
 #endif
-);
+    );
 
     // 3. Reorder Phase
     sycl::event __reorder_event = __radix_sort_reorder_submit<__reorder_kernel_name, __radix_bits, __is_comp_asc>(
