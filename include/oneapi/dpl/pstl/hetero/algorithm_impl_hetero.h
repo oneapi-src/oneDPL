@@ -2033,7 +2033,8 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     {
         auto __brick = unseq_backend::__brick_shift_left<_ExecutionPolicy, _DiffType>{__size, __n};
 
-        auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+        auto __keep =
+            oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
         auto __buf = __keep(__first, __last);
 
         oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n,
