@@ -8,10 +8,10 @@
 // Compile with xmain: dpcpp -fsycl async_reduce.cpp -std=c++11 -I ../parallelstl/include -I ../parallelstl/include/dpstd/pstl/hetero/dpcpp -I [add TBB include path]
 
 #include <oneapi/dpl/execution>
-#include <oneapi/dpl/algorithm>
-#include <oneapi/dpl/numeric>
+//#include <oneapi/dpl/algorithm>
+//#include <oneapi/dpl/numeric>
 
-#include "async.hpp"
+#include <oneapi/dpl/async>
 
 using namespace oneapi;
 
