@@ -142,10 +142,9 @@ pipeline {
                                     if (fileExists('./Oneapi_Package_Date.txt')) {
                                         env.OneAPI_Package_Date = readFile('./Oneapi_Package_Date.txt')
                                     }
-                                    echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
-                                    fill_task_name_description(env.OneAPI_Package_Date)
                                 }
-
+                                echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
+                                fill_task_name_description(env.OneAPI_Package_Date)
                             }
                             else {
                                 user_in_github_group = false
