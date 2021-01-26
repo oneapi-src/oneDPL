@@ -199,19 +199,26 @@ pipeline {
                 stage('Setting_Env') {
                     steps {
                         script {
-                            bat script: """
+                            try {
+                                bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
                                         call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${env.OneAPI_Package_Date}                                    
                                      """
 
-                            bat script: """
+                                bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
                                         call D:\\netbatch\\iusers\\oneDPL_CI\\setup_env.bat ${env.OneAPI_Package_Date}
                                         wcontext && call ${env.WORKSPACE}\\win_prod\\compiler\\env\\vars.bat && call ${env.WORKSPACE}\\win_prod\\dpl\\env\\vars.bat && set>envs_tobe_loaded.txt
                                      """
-                            oneapi_env = readFile('envs_tobe_loaded.txt').split('\r\n') as List
+                                oneapi_env = readFile('envs_tobe_loaded.txt').split('\r\n') as List
+                            }
+                            catch (e) {
+                                build_ok = false
+                                fail_stage = fail_stage + "    " + "Setting_Env"
+                                bat "exit -1"
+                            }
                         }
                     }
                 }
