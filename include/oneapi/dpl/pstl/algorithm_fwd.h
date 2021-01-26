@@ -1295,6 +1295,32 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Fo
 __pattern_swap(_ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Function, _IsVector,
                _IsParallel);
 
+//------------------------------------------------------------------------
+// shift_left
+//------------------------------------------------------------------------
+
+template <class _ForwardIterator>
+_ForwardIterator __brick_shift_left(_ForwardIterator, _ForwardIterator,
+                                    typename ::std::iterator_traits<_ForwardIterator>::difference_type,
+                                    /*__is_vector=*/::std::false_type) noexcept;
+
+template <class _ForwardIterator>
+_ForwardIterator __brick_shift_left(_ForwardIterator, _ForwardIterator,
+                                    typename ::std::iterator_traits<_ForwardIterator>::difference_type,
+                                    /*__is_vector=*/::std::true_type) noexcept;
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type, _IsVector,
+                     /*is_parallel=*/::std::false_type) noexcept;
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type, _IsVector,
+                     /*is_parallel=*/::std::true_type);
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

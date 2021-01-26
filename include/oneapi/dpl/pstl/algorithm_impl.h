@@ -3997,6 +3997,129 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
                            __is_vector);
 }
 
+//------------------------------------------------------------------------
+// shift_left
+//------------------------------------------------------------------------
+
+template <class _ForwardIterator>
+_ForwardIterator
+__brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
+                   typename std::iterator_traits<_ForwardIterator>::difference_type __n,
+                   /*is_vector=*/::std::false_type) noexcept
+{
+#if __cplusplus >= 202000L
+    return ::std::shift_left(__first, __last, __n);
+#else
+    //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
+    if (__n <= 0)
+        return __last;
+
+    //seek for (first + n)
+    auto __it = __first;
+    for (; --__n >= 0; ++__it)
+        if (__it == __last) // n >= last - first;
+            return __first;
+
+    //Moving the rest elements from a position number n to the begin of the sequence.
+    for (; __it != __last; ++__it, ++__first)
+        *__first = ::std::move(*__it);
+
+    return __first;
+#endif
+}
+
+template <class _ForwardIterator>
+_ForwardIterator
+__brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
+                   typename ::std::iterator_traits<_ForwardIterator>::difference_type __n,
+                   /*is_vector=*/::std::true_type) noexcept
+{
+    //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
+    if (__n <= 0)
+        return __last;
+    auto __size = __last - __first;
+    if (__n >= __size)
+        return __first;
+
+    using _DiffType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
+    using _ReferenceType = typename ::std::iterator_traits<_ForwardIterator>::reference;
+
+    _DiffType __mid = __size % 2 ? __size / 2 + 1 : __size / 2;
+    _DiffType __size_res = __size - __n;
+
+    //1. n >= size/2; there is enough memory to 'total' parallel (SIMD) copying
+    if (__n >= __mid)
+    {
+        __unseq_backend::__simd_walk_2(__first + __n, __size_res, __first,
+                                       [](_ReferenceType __x, _ReferenceType __y) { __y = ::std::move(__x); });
+    }
+    else //2. n < size/2; there is not enough memory to parallel (SIMD) copying; doing SIMD copying by n elements
+    {
+        for (auto __k = __n; __k < __size; __k += __n)
+        {
+            auto __end = std::min(__k + __n, __size);
+            __unseq_backend::__simd_walk_2(__first + __k, __end - __k, __first + __k - __n,
+                                           [](_ReferenceType __x, _ReferenceType __y) { __y = ::std::move(__x); });
+        }
+    }
+
+    return __first + __size_res;
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
+                     typename std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
+                     /*is_parallel=*/::std::false_type) noexcept
+{
+    return __brick_shift_left(__first, __last, __n, __is_vector);
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
+__pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                     typename std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
+                     /*is_parallel=*/::std::true_type)
+{
+    //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
+    if (__n <= 0)
+        return __last;
+
+    using _DiffType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
+
+    _DiffType __size = __last - __first;
+    if (__n >= __size)
+        return __first;
+
+    _DiffType __mid = __size % 2 ? __size / 2 + 1 : __size / 2;
+    _DiffType __size_res = __size - __n;
+
+    //1. n >= size/2; there is enough memory to 'total' parallel copying
+    if (__n >= __mid)
+    {
+        __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __n, __size,
+                                      [__first, __n, __is_vector](_DiffType __i, _DiffType __j) {
+                                          __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
+                                                                           __first + __i - __n, __is_vector);
+                                      });
+    }
+    else //2. n < size/2; there is not enough memory to parallel copying; doing parallel copying by n elements
+    {
+        //TODO: to consider parallel processing by the 'internal' loop (but we may probably get cache locality issues)
+        for (auto __k = __n; __k < __size; __k += __n)
+        {
+            auto __end = std::min(__k + __n, __size);
+            __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __k, __end,
+                                          [__first, __k, __n, __is_vector](_DiffType __i, _DiffType __j) {
+                                              __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
+                                                                               __first + __i - __n, __is_vector);
+                                          });
+        }
+    }
+
+    return __first + __size_res;
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

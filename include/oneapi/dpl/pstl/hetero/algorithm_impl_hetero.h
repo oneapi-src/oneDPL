@@ -1996,6 +1996,56 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
                                                     __comp, ::std::true_type(), ::std::true_type());
 }
 
+template <typename _ExecutionPolicy, typename _Iterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
+__pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                     typename std::iterator_traits<_Iterator>::difference_type __n, /*vector=*/::std::true_type,
+                     /*is_parallel=*/::std::true_type)
+{
+    //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
+    if (__n <= 0)
+        return __last;
+
+    using _DiffType = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    _DiffType __size = __last - __first;
+    if (__n >= __size)
+        return __first;
+
+    _DiffType __mid = __size % 2 ? __size / 2 + 1 : __size / 2;
+    _DiffType __size_res = __size - __n;
+
+    //1. n >= size/2; 'size - _n' parallel copying
+    if (__n >= __mid)
+    {
+        using _Function = __brick_move<_ExecutionPolicy>;
+        auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
+
+        auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+        auto __src = __keep1(__first + __n, __last);
+        auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator>();
+        auto __dst = __keep2(__first, __first + __size_res);
+
+        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __size_res,
+                                                          __src.all_view(), __dst.all_view())
+            .wait();
+    }
+    else //2. n < size/2; 'n' parallel copying
+    {
+        auto __brick = unseq_backend::__brick_shift_left<_ExecutionPolicy, _DiffType>{__size, __n};
+
+        auto __keep =
+            oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+        auto __buf = __keep(__first, __last);
+
+        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n,
+                                                          __buf.all_view())
+            .wait();
+    }
+
+    return __first + __size_res;
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
