@@ -29,12 +29,12 @@
 template <typename T>
 struct test_shift_right
 {
-    template <typename Policy, typename It, typename ItExp, typename Size>
+    template <typename Policy, typename It, typename Size>
     typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value,
                             void>::type
-    operator()(Policy&& exec, It first, ItExp first_exp, Size m, Size n)
+    operator()(Policy&& exec, It first, Size m, It first_exp, Size n)
     {
-	auto res = oneapi::dpl::shift_right(exec, first, std::next(first, m), n);
+	    auto res = oneapi::dpl::shift_right(exec, first, std::next(first, m), n);
 
         //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
         //Otherwise, returns first;
@@ -57,10 +57,10 @@ struct test_shift_right
        std::copy(first_exp, std::next(first_exp, m), first);
     }
 
-    template <typename Policy, typename It, typename ItExp, typename Size>
+    template <typename Policy, typename It, typename Size>
     typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value,
                             void>::type
-    operator()(Policy&& exec, It first, ItExp first_exp, Size m, Size n)
+    operator()(Policy&& exec, It first, Size m, It first_exp, Size n)
     {
     }    
 };
@@ -72,7 +72,7 @@ test_shift_right_by_type(Size m, Size n)
     TestUtils::Sequence<T> orig(m, [](::std::size_t v) -> T { return T(v); }); //fill data
     TestUtils::Sequence<T> in(m, [](::std::size_t v) -> T { return T(v); }); //fill data
 
-    TestUtils::invoke_on_all_host_policies()(test_shift_right<T>(), in.begin(), orig.begin(), m, n);
+    TestUtils::invoke_on_all_host_policies()(test_shift_right<T>(), in.begin(), m, orig.begin(), n);
 }
 
 int

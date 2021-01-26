@@ -29,18 +29,18 @@
 template <typename T>
 struct test_shift_left
 {
-    template <typename Policy, typename It, typename ItExp, typename Size>
+    template <typename Policy, typename It, typename Size>
     void
-    operator()(Policy&& exec, It first, ItExp first_exp, Size m, Size n)
+    operator()(Policy&& exec, It first, Size m, It first_exp, Size n)
     {
 #if 0
-        std::cout << "orig: ";
+        std::cout << "origin: ";
         for(auto i = 0; i < m; ++i)
             std::cout << *(first + i) << " ";
         std::cout << std::endl;
 #endif
 
-	auto res = oneapi::dpl::shift_left(exec, first, std::next(first, m), n);
+	    auto res = oneapi::dpl::shift_left(exec, first, std::next(first, m), n);
 
 #if 0
         std::cout << "shifted: ";
@@ -62,12 +62,12 @@ struct test_shift_left
         EXPECT_TRUE(res_exp == res, "wrong return value of shift_left");
 
         if(n > m || n < 0) //should be no effect in this case
-	    n = 0;
+	        n = 0;
 
         EXPECT_EQ_N(first, std::next(first_exp, + n), m - n, "wrong effect of shift_left");
 
         //restore unput data
-       std::copy(first_exp, std::next(first_exp, m), first);
+       std::copy_n(first_exp, m, first);
     }
 };
 
@@ -78,13 +78,13 @@ test_shift_left_by_type(Size m, Size n)
     TestUtils::Sequence<T> orig(m, [](::std::size_t v) -> T { return T(v); }); //fill data
     TestUtils::Sequence<T> in(m, [](::std::size_t v) -> T { return T(v); }); //fill data
 
-    TestUtils::invoke_on_all_host_policies()(test_shift_left<T>(), in.begin(), orig.begin(), m, n);
+    TestUtils::invoke_on_all_host_policies()(test_shift_left<T>(), in.begin(), m, orig.begin(), n);
 }
 
 int
 main()
 {
-    const ::std::size_t N = 100000;
+    const ::std::size_t N = 10000;
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
     {
