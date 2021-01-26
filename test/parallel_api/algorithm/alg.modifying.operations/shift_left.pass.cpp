@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- shift_left.pass.cpp -----------------------------------------------===//
 //
-// Copyright (C) 2017-2020 Intel Corporation
+// Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -62,7 +62,7 @@ struct test_shift_left
         EXPECT_TRUE(res_exp == res, "wrong return value of shift_left");
 
         if(n > m || n < 0) //should be no effect in this case
-	        n = 0;
+	    n = 0;
 
         EXPECT_EQ_N(first, std::next(first_exp, + n), m - n, "wrong effect of shift_left");
 
