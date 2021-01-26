@@ -286,6 +286,51 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
     return return_value(result, __rng.size(), __is__or_semantic);
 }
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
+__pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
+{
+    auto __n1 = __rng1.size();
+    auto __n2 = __rng2.size();
+    auto __n = __n1 + __n2;
+    if (__n == 0)
+        return 0;
+
+    //To consider the direct copying pattern call in case just one of sequences is empty.
+    if (__n1 == 0)
+    {
+        oneapi::dpl::__internal::__ranges::__pattern_walk2(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3),
+            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    }
+    else if (__n2 == 0)
+    {
+        oneapi::dpl::__internal::__ranges::__pattern_walk2(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range3>(__rng3),
+            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    }
+    else
+    {
+        __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec),
+                                               ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+                                               ::std::forward<_Range3>(__rng3), __comp)
+            .wait();
+    }
+
+    return __n;
+}
+
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+__pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+{
+    if (__rng.size() >= 2)
+        __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec),
+                                                     ::std::forward<_Range>(__rng), __comp)
+            .wait();
+}
+
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range>>

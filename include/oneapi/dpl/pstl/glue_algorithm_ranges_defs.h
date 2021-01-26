@@ -107,6 +107,26 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _BinaryOperation __op);
 
+// [alg.sort]
+
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp);
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+sort(_ExecutionPolicy&& __exec, _Range&& __rng);
+
+// [stable.sort]
+
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp);
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng);
+
 // [is.sorted]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
@@ -124,6 +144,18 @@ is_sorted(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp);
 template <typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _Range&& __rng);
+
+// [alg.merge]
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range3>>
+merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp);
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range3>>
+merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3);
 
 // [alg.min.max]
 
