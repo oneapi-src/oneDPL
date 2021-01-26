@@ -19,6 +19,7 @@
 #include <oneapi/dpl/functional>
 
 #include <iostream>
+#include <tuple>
 
 #include <CL/sycl.hpp>
 
@@ -26,7 +27,6 @@ namespace sycl = cl::sycl;
 
 int main()
 {
-
     const int n = 1000;
     const int k = 1000;
     using T = uint64_t;
@@ -40,13 +40,12 @@ int main()
     auto res_first = dpl::begin(res_buf);
     auto counting_first = dpl::counting_iterator<T>(0);
     auto zip_first = dpl::make_zip_iterator(counting_first, key_first);
- 
+
     // key_buf = {0,0,...0,1,1,...,1}
     std::for_each(dpl::execution::make_device_policy<class ForEach>(dpl::execution::dpcpp_default),
 		zip_first, zip_first + n,
-        [](auto x){
-            using std::get;
-            get<1>(x) = (2 * get<0>(x)) / n;
+        [](std::tuple<T, T> x){
+            std::get<1>(x) = (2 * std::get<0>(x)) / n;
         });
     // val_buf = {0,1,2,...,n-1}
     std::transform(dpl::execution::make_device_policy<class Transform>(dpl::execution::dpcpp_default),
