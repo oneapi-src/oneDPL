@@ -14,11 +14,6 @@
 # limitations under the License.
 #===============================================================================
 
-##  Content:
-## Intel(R) Data Analytics Acceleration Library (Intel(R) DAAL) configuration
-## file for the Sphinx documentation builder.
-##******************************************************************************
-
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -50,19 +45,12 @@ rst_prolog = """
 .. |short_name| replace:: oneAPI
 .. |product| replace:: prod
 .. |namespace| replace:: namespace
-.. |daal_in_code| replace:: in_code
 .. |reg| unicode:: U+000AE
 .. |copy| unicode:: U+000A9
 .. |base_tk| replace:: Intel\ |reg|\  oneAPI Base Toolkit
 .. |dpcpp| replace:: Intel\ |reg|\  oneAPI DPC++ Compiler
 """
 
-
-# for substitutions in code blocks and sphinx-prompts:
-substitutions = [
-    ('|short_name|', 'oneDAL'),
-    ('|daal_in_code|', 'daal')
-    ]
 
 # -- General configuration ---------------------------------------------------
 
@@ -91,15 +79,8 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["opt-notice.rst", 'dev_guide/data-management/numeric-tables/*.rst', 'topics/*.rst',
-                    'dev_guide/algorithms/dbscan/distributed-steps/*',
-                    'dev_guide/algorithms/kmeans/includes/*',
-                    'notes/issues/2021.1-beta06/includes/*']
+exclude_patterns = []
 
-extlinks = {'cpp_example': ('https://github.com/oneapi-src/oneDAL/tree/master/examples/cpp/source/%s', ''),
-'java_example': ('https://github.com/oneapi-src/oneDAL/tree/master/examples/java/com/intel/daal/examples/%s', ''),
-'daal4py_example': ('https://github.com/IntelPython/daal4py/tree/master/examples/%s', ''),
-'cpp_sample': ('https://github.com/oneapi-src/oneDAL/tree/master/samples/cpp/%s', '')}
 
 # -- Options for HTML output -------------------------------------------------
 
