@@ -73,7 +73,6 @@ def shell(String command, String label_string = "Bat Command") {
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
-oneapi_package_date = "Default"
 
 pipeline {
 
@@ -96,6 +95,7 @@ pipeline {
         string(name: 'PR_number', defaultValue: 'None', description: '',)
         string(name: 'Repository', defaultValue: 'oneapi-src/oneDPL', description: '',)
         string(name: 'User', defaultValue: 'None', description: '',)
+        string(name: 'OneAPI_Package_Date', defaultValue: 'Default', description: '',)
     }
 
     triggers {
@@ -137,11 +137,15 @@ pipeline {
                             if (check_user_return == 0) {
                                 user_in_github_group = true
                                 sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
-                                if (fileExists('./Oneapi_Package_Date.txt')) {
-                                    oneapi_package_date = readFile('./Oneapi_Package_Date.txt')
-                                    echo "Oneapi package date is: " + oneapi_package_date.toString()
-                                    fill_task_name_description(oneapi_package_date)
+                                if (env.OneAPI_Package_Date == "Default") {
+                                    sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
+                                    if (fileExists('./Oneapi_Package_Date.txt')) {
+                                        env.OneAPI_Package_Date = readFile('./Oneapi_Package_Date.txt')
+                                    }
+                                    echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
+                                    fill_task_name_description(env.OneAPI_Package_Date)
                                 }
+
                             }
                             else {
                                 user_in_github_group = false
@@ -199,13 +203,13 @@ pipeline {
                             bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
-                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${oneapi_package_date}                                        
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${env.OneAPI_Package_Date}                                    
                                      """
 
                             bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
-                                        call D:\\netbatch\\iusers\\oneDPL_CI\\setup_env.bat ${oneapi_package_date} 
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\setup_env.bat ${env.OneAPI_Package_Date}
                                         wcontext && call ${env.WORKSPACE}\\win_prod\\compiler\\env\\vars.bat && call ${env.WORKSPACE}\\win_prod\\dpl\\env\\vars.bat && set>envs_tobe_loaded.txt
                                      """
                             oneapi_env = readFile('envs_tobe_loaded.txt').split('\r\n') as List

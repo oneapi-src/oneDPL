@@ -67,7 +67,6 @@ def githubStatus = new GithubStatus(
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
-oneapi_package_date = "Default"
 
 pipeline {
 
@@ -90,6 +89,7 @@ pipeline {
         string(name: 'PR_number', defaultValue: 'None', description: '',)
         string(name: 'Repository', defaultValue: 'oneapi-src/oneDPL', description: '',)
         string(name: 'User', defaultValue: 'None', description: '',)
+        string(name: 'OneAPI_Package_Date', defaultValue: 'Default', description: '',)
     }
 
     triggers {
@@ -127,12 +127,15 @@ pipeline {
                             echo "check_user_return value is $check_user_return"
                             if (check_user_return == 0) {
                                 user_in_github_group = true
-                                sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
-                                if (fileExists('./Oneapi_Package_Date.txt')) {
-                                    oneapi_package_date = readFile('./Oneapi_Package_Date.txt')
-                                    echo "Oneapi package date is: " + oneapi_package_date.toString()
-                                    fill_task_name_description(oneapi_package_date)
+                                if (env.OneAPI_Package_Date == "Default") {
+                                    sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
+                                    if (fileExists('./Oneapi_Package_Date.txt')) {
+                                        env.OneAPI_Package_Date = readFile('./Oneapi_Package_Date.txt')
+                                    }
+                                    echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
+                                    fill_task_name_description(env.OneAPI_Package_Date)
                                 }
+
                             }
                             else {
                                 user_in_github_group = false
@@ -184,7 +187,7 @@ pipeline {
                     steps {
                         script {
                             sh script: """
-                                bash /export/users/oneDPL_CI/generate_env_file.sh ${oneapi_package_date}
+                                bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
                                 if [ ! -f ./envs_tobe_loaded.txt ]; then
                                     echo "Environment file not generated."
                                     exit -1
