@@ -216,15 +216,16 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 // parallel_stable_sort
 //-----------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 auto
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
     -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
-        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec),
-                                                                                             __first, __last, __comp))>
+        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(
+                              __device_policy(__exec), ::std::forward<_Range>(__rng), __comp))>
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec), __first, __last, __comp);
+    oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec), ::std::forward<_Range>(__rng),
+                                                              __comp);
 }
 
 //------------------------------------------------------------------------
