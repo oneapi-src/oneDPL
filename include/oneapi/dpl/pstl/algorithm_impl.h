@@ -4016,10 +4016,9 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
         return __last;
 
     //seek for (first + n)
-    auto __it = __first;
-    for (; --__n >= 0; ++__it)
-        if (__it == __last) // n >= last - first;
-            return __first;
+    auto __it = oneapi::dpl::__internal::__next_to_last()(__first, __last, __n);
+    if (__it == __last) // n >= last - first;
+        return __first;
 
     //Moving the rest elements from a position number n to the begin of the sequence.
     for (; __it != __last; ++__it, ++__first)
@@ -4058,7 +4057,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
     {
         for (auto __k = __n; __k < __size; __k += __n)
         {
-            auto __end = std::min(__k + __n, __size);
+            auto __end = ::std::min(__k + __n, __size);
             __unseq_backend::__simd_walk_2(__first + __k, __end - __k, __first + __k - __n,
                                            [](_ReferenceType __x, _ReferenceType __y) { __y = ::std::move(__x); });
         }

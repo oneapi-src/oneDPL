@@ -584,6 +584,32 @@ template <typename _Tp>
 using __is_const_callable_object =
     ::std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
 
+struct __next_to_last
+{
+    template <typename _Iterator>
+    typename ::std::enable_if<::std::is_same<typename ::std::iterator_traits<_Iterator>::iterator_category,
+                                             ::std::random_access_iterator_tag>::value,
+                              _Iterator>::type
+    operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
+    {
+        __it += __n;
+        return __it <= __last ? __it : __last;
+    }
+
+    template <typename _Iterator>
+    typename ::std::enable_if<!::std::is_same<typename ::std::iterator_traits<_Iterator>::iterator_category,
+                                              ::std::random_access_iterator_tag>::value,
+                              _Iterator>::type
+    operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
+    {
+        for (; --__n >= 0; ++__it)
+            if (__it == __last) // n >= last - first;
+                break;
+
+        return __it;
+    }
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
