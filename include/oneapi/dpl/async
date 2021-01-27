@@ -38,7 +38,8 @@
 
 #if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations
-#    include "oneapi/dpl/internal/async_extension_impl.h"
+#    include "oneapi/dpl/internal/async_impl/async_impl.h"
+#    include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
 #endif
 
 #endif /* _ONEDPL_ASYNC */
