@@ -302,16 +302,6 @@ static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minim
 #    if !defined(_ONEDPL_COMPILE_KERNEL)
 #        define _ONEDPL_COMPILE_KERNEL 1
 #    endif
-
-// Get access to __SYCL_COMPILER_VERSION macro
-#    include <CL/sycl/version.hpp>
-
-// 20201214 value corresponds to oneAPI C++ Compiler Classic 2021.1.2 Patch release
-#    if __SYCL_COMPILER_VERSION <= 20201214
-#        define _USE_KERNEL_DEVICE_SPECIFIC_API 0
-#    else
-#        define _USE_KERNEL_DEVICE_SPECIFIC_API 1
-#    endif
 #endif
 
 #if !defined(ONEDPL_ALLOW_DEFERRED_WAITING)

@@ -349,6 +349,13 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 // Kernel run-time information helpers
 //-----------------------------------------------------------------------------
 
+// 20201214 value corresponds to oneAPI C++ Compiler Classic 2021.1.2 Patch release
+#if __SYCL_COMPILER_VERSION > 20201214
+#    define _USE_KERNEL_DEVICE_SPECIFIC_API 1
+#else
+#    define _USE_KERNEL_DEVICE_SPECIFIC_API 0
+#endif
+
 template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
