@@ -1998,7 +1998,7 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
 template <typename _ExecutionPolicy, typename _Iterator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
 __pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
-                     typename std::iterator_traits<_Iterator>::difference_type __n, /*vector=*/::std::true_type,
+                     typename ::std::iterator_traits<_Iterator>::difference_type __n, /*vector=*/::std::true_type,
                      /*is_parallel=*/::std::true_type)
 {
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
@@ -2011,14 +2011,14 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
     if (__n >= __size)
         return __first;
 
-    _DiffType __mid = __size % 2 ? __size / 2 + 1 : __size / 2;
+    _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
     //1. n >= size/2; 'size - _n' parallel copying
     if (__n >= __mid)
     {
         using _Function = __brick_move<_ExecutionPolicy>;
-        auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
+        auto __brick = oneapi::dpl::unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
 
         auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
         auto __src = __keep1(__first + __n, __last);
