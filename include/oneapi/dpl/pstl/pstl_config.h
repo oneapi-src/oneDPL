@@ -177,4 +177,9 @@
 
 #define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
+//'present' macros
+// shift_left, ahift_right; GCC 10; VS 2019 16.1
+#define _PSTL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                           \
+    (__cplusplus >= 202000L && ((__GLIBCXX__ && __GLIBCXX__ >= 20200507) || (_MSC_VER && _MSC_VER >= 1921))
+
 #endif /* _PSTL_CONFIG_H */
