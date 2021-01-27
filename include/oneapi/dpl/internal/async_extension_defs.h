@@ -192,16 +192,16 @@ template <typename... _Ts>
 void
 wait_for_all(const _Ts&... __Events);
 
-template <class _ExecutionPolicy, class InputIter, class OutputIter, class... _Events>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__internal::__future<OutputIter>>
-copy_async(_ExecutionPolicy&& __exec, InputIter __input_first, InputIter __input_last, OutputIter __output_first,
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__internal::__future<_ForwardIterator2>, _Events...>
+copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result,
            _Events&&... __dependencies);
 
-template <class _ExecutionPolicy, class InputIter, class UnaryFunction, class... _Events>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__par_backend_hetero::__future<void>>
-for_each_async(_ExecutionPolicy&& __exec, InputIter __first, InputIter __last, UnaryFunction __f,
+template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class... _Events>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>, _Events...>
+for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                _Events&&... __dependencies);
 
 template <class _ExecutionPolicy, class _ForwardIt, class... _Events>
