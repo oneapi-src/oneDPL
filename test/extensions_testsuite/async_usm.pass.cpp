@@ -1,7 +1,7 @@
 // -*- C++ -*-
-//===-- reduce_by_segment_usm.pass.cpp --------------------------------------------===//
+//===-- async_usm.pass.cpp ------------------------------------------------===//
 //
-// Copyright (C) 2019 Intel Corporation
+// Copyright (C) 2021 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -27,40 +27,12 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
         std::cout << "CHECK CORRECTNESS (PSTL WITH SYCL): fail (" << X << "," << Y << ")" << std::endl;
 }
 
-// comparator implementing operator==
-template<typename T>
-class my_equal
-{
-public:
-    using first_argument_type = T;
-    using second_argument_type = T;
-
-    explicit my_equal() {}
-
-    template <typename _Xp, typename _Yp>
-    bool operator()(_Xp&& __x, _Yp&& __y) const {
-        return std::forward<_Xp>(__x) == std::forward<_Yp>(__y);
-    }
-};
-
-// binary functor implementing operator+
-class my_plus
-{
-public:
-    explicit my_plus() {}
-
-    template <typename _Xp, typename _Yp>
-    bool operator()(_Xp&& __x, _Yp&& __y) const {
-        return std::forward<_Xp>(__x) + std::forward<_Yp>(__y);
-    }
-};
-
 int main() {
 
     cl::sycl::queue q;
     const int n = 13;
 
-    // #6 REDUCE BY SEGMENT TEST //
+    // ASYNC TEST USING USM //
 
     {
         // Allocate space for data using USM.
