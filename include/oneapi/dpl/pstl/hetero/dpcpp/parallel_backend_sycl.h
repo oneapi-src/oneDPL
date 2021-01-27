@@ -329,7 +329,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     using __kernel_name_t = __parallel_reduce_kernel<__kernel_name>;
 #endif
 
-    sycl::cl_uint __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+    sycl::cl_uint __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
     ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __work_group_size according to local memory limit
     __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
@@ -340,14 +340,15 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                                                           ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
     ::std::size_t __iters_per_work_item = __grainsize;
+    // distribution is ~1 work groups per compute init
     if (__exec.queue().get_device().is_cpu())
-        __iters_per_work_item = __n / (__mcu * __work_group_size);
+        __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
     _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
-    _Size __n_items = (__n - 1) / __iters_per_work_item + 1; // number of bunch of elements that the algorithm processes
+    _Size __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of work items
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
 
     // Create temporary global buffers to store temporary values
     sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
