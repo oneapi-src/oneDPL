@@ -64,7 +64,7 @@ test_body_for_loop(Policy&& exec, Iterator first, Iterator last, Iterator expect
 
 template <typename Policy, typename Iterator, typename Size>
 void
-test_body_for_loop_integral(Policy&& exec, Iterator first, Iterator last, Iterator expected_first,
+test_body_for_loop_integral(Policy&& exec, Iterator first, Iterator, Iterator expected_first,
                             Iterator expected_last, Size n)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
@@ -127,7 +127,7 @@ test_body_for_loop_strided(Policy&& exec, Iterator first, Iterator last, Iterato
 
 template <typename Policy, typename Iterator, typename Size>
 void
-test_body_for_loop_strided_n(Policy&& exec, Iterator first, Iterator last, Iterator expected_first,
+test_body_for_loop_strided_n(Policy&& exec, Iterator first, Iterator, Iterator expected_first,
                              Iterator expected_last, Size n, size_t loop_stride)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
@@ -152,7 +152,7 @@ test_body_for_loop_strided_n(Policy&& exec, Iterator first, Iterator last, Itera
 
 template <typename Policy, typename Iterator, typename Size>
 void
-test_body_for_loop_strided_integral(Policy&& exec, Iterator first, Iterator last, Iterator expected_first,
+test_body_for_loop_strided_integral(Policy&& exec, Iterator first, Iterator, Iterator expected_first,
                                     Iterator expected_last, Size n, size_t loop_stride)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
@@ -180,7 +180,7 @@ test_body_for_loop_strided_integral(Policy&& exec, Iterator first, Iterator last
 // Test for for_loop_n_strided, it works for both positive and negative stride values.
 template <typename Policy, typename Iterator, typename Size, typename S>
 void
-test_body_for_loop_strided_n_integral(Policy&& exec, Iterator first, Iterator last, Iterator expected_first,
+test_body_for_loop_strided_n_integral(Policy&& exec, Iterator first, Iterator, Iterator expected_first,
                                       Iterator expected_last, Size n, S loop_stride)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
@@ -233,8 +233,8 @@ template <typename Policy, typename Iterator, typename Size, typename S>
 typename ::std::enable_if<
     !::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value,
     void>::type
-test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator last, Iterator expected_first,
-                               Iterator expected_last, Size n, S loop_stride)
+test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator, Iterator expected_first,
+                               Iterator, Size n, S loop_stride)
 {
     assert(loop_stride < 0);
 
@@ -259,8 +259,8 @@ template <typename Policy, typename Iterator, typename Size, typename S>
 typename ::std::enable_if<
     ::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value,
     void>::type
-test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator last, Iterator expected_first,
-                               Iterator expected_last, Size n, S loop_stride)
+test_body_for_loop_strided_neg(Policy&&, Iterator, Iterator, Iterator,
+                               Iterator, Size, S)
 {
     // no-op for forward iterators. As it's not possible to iterate backwards.
 }

@@ -113,7 +113,7 @@ int
 main()
 {
 #if !_PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN
-    test<uint32_t>(666, 42, [](uint32_t val) { return true; }, [](size_t j) { return j; });
+    test<uint32_t>(666, 42, [](uint32_t) { return true; }, [](size_t j) { return j; });
 #endif
 
     test<int32_t>(666, 2001, [](const int32_t& val) { return val != 2001; },

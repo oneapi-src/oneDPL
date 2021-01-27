@@ -69,7 +69,7 @@ struct test_uninit_default_construct
 
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::true_type)
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t, /*is_trivial<T>=*/::std::true_type)
     {
         ::std::uninitialized_default_construct(exec, begin, end);
     }
@@ -80,7 +80,7 @@ struct test_uninit_default_construct_n
 {
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::false_type)
+    operator()(Policy&& exec, Iterator begin, Iterator, size_t n, /*is_trivial<T>=*/::std::false_type)
     {
         typedef typename ::std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
@@ -95,7 +95,7 @@ struct test_uninit_default_construct_n
 
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::true_type)
+    operator()(Policy&& exec, Iterator begin, Iterator, size_t n, /*is_trivial<T>=*/::std::true_type)
     {
         ::std::uninitialized_default_construct_n(exec, begin, n);
     }
@@ -121,7 +121,7 @@ struct test_uninit_value_construct
 
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::true_type)
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t, /*is_trivial<T>=*/::std::true_type)
     {
         typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
@@ -135,7 +135,7 @@ struct test_uninit_value_construct_n
 {
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::false_type)
+    operator()(Policy&& exec, Iterator begin, Iterator, size_t n, /*is_trivial<T>=*/::std::false_type)
     {
         typedef typename ::std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
@@ -170,7 +170,7 @@ test_uninit_construct_by_type()
         ::std::unique_ptr<T[]> p(new T[n]);
         auto p_begin = p.get();
 #else
-        Sequence<T> p(n, [](size_t k){ return T{}; });
+        Sequence<T> p(n, [](size_t){ return T{}; });
         auto p_begin = p.begin();
 #endif
         auto p_end = ::std::next(p_begin, n);

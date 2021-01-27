@@ -451,9 +451,9 @@ struct __global_scan_functor
                _SizePerWg __size_per_wg) const
     {
         constexpr auto __shift = _Inclusive{} ? 0 : 1;
-        _Size __item_idx = __item.get_linear_id();
+        ::std::size_t __item_idx = __item.get_linear_id();
         // skip the first group scanned locally
-        if (__item_idx >= __size_per_wg && __item_idx < __n)
+        if (__item_idx >= (::std::size_t)__size_per_wg && __item_idx < (::std::size_t)__n)
         {
             auto __wg_sums_idx = __item_idx / __size_per_wg - 1;
             // an initial value preceeds the first group for the exclusive scan

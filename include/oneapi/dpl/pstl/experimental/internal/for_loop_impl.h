@@ -342,7 +342,7 @@ __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _
 // Vectorized version of for_loop_n
 template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename... _Rest>
 void
-__pattern_for_loop_n(_ExecutionPolicy&& exec, _Ip __first, _Size __n, _Function __f, __single_stride_type,
+__pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, __single_stride_type,
                      /*vector=*/::std::true_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
@@ -356,7 +356,7 @@ __pattern_for_loop_n(_ExecutionPolicy&& exec, _Ip __first, _Size __n, _Function 
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp, typename... _Rest>
 void
-__pattern_for_loop_n(_ExecutionPolicy&& exec, _Ip __first, _Size __n, _Function __f, _Sp __stride,
+__pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, _Sp __stride,
                      /*vector=*/::std::true_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};

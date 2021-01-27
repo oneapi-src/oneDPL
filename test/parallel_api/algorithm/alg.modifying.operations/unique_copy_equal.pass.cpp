@@ -48,7 +48,7 @@ struct run_unique_copy
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last,
+               OutputIterator, OutputIterator2 expected_first, OutputIterator2,
                Size n, T trash)
     {
         // Cleaning
@@ -103,7 +103,7 @@ struct run_unique_copy_predicate
               typename Predicate>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
+               OutputIterator, OutputIterator2 expected_first, OutputIterator2, Size n,
                Predicate pred, T trash)
     {
         // Cleaning
@@ -185,7 +185,7 @@ main()
     test<float64_t>(float64_t(42), ::std::equal_to<float64_t>(),
                     [](int32_t j) { return float64_t(5 * j / 23 ^ (j / 7)); });
 #if !_ONEDPL_FPGA_DEVICE
-    test<float32_t>(float32_t(42), [](float32_t x, float32_t y) { return false; },
+    test<float32_t>(float32_t(42), [](float32_t, float32_t) { return false; },
                     [](int32_t j) { return float32_t(j); }, false);
 #endif
 

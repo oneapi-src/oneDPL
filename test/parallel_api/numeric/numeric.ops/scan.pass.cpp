@@ -101,7 +101,7 @@ struct test_inclusive_scan_with_plus
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T>
     void
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
-               Iterator3 expected_first, Iterator3 expected_last, Size n, T init, T trash)
+               Iterator3 expected_first, Iterator3, Size n, T, T trash)
     {
         using namespace std;
 
@@ -119,7 +119,7 @@ struct test_exclusive_scan_with_plus
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T>
     void
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
-               Iterator3 expected_first, Iterator3 expected_last, Size n, T init, T trash)
+               Iterator3 expected_first, Iterator3, Size n, T init, T trash)
     {
         using namespace std;
 
@@ -181,7 +181,7 @@ struct test_inclusive_scan_with_binary_op
               typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
-               Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
+               Iterator3 expected_first, Iterator3, Size n, T init, BinaryOp binary_op, T trash)
     {
         using namespace std;
 
@@ -196,8 +196,8 @@ struct test_inclusive_scan_with_binary_op
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
               typename BinaryOp>
     typename ::std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
-    operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
-               Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
+    operator()(Policy&&, Iterator1, Iterator1, Iterator2, Iterator2,
+               Iterator3, Iterator3, Size, T, BinaryOp, T)
     {
     }
 };
@@ -209,7 +209,7 @@ struct test_exclusive_scan_with_binary_op
               typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
     operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
-               Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
+               Iterator3 expected_first, Iterator3, Size n, T init, BinaryOp binary_op, T trash)
     {
         using namespace std;
 
@@ -225,8 +225,8 @@ struct test_exclusive_scan_with_binary_op
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
               typename BinaryOp>
     typename ::std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
-    operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
-               Iterator3 expected_first, Iterator3 expected_last, Size n, T init, BinaryOp binary_op, T trash)
+    operator()(Policy&&, Iterator1, Iterator1, Iterator2, Iterator2,
+               Iterator3, Iterator3, Size, T, BinaryOp, T)
     {
     }
 };

@@ -60,7 +60,7 @@ struct test_is_heap
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&& exec, Iterator first, Iterator last)
+    operator()(Policy&&, Iterator, Iterator)
     {
     }
 };
@@ -81,7 +81,7 @@ struct test_is_heap_predicate
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
+    operator()(Policy&&, Iterator, Iterator, Predicate)
     {
     }
 };
@@ -102,7 +102,7 @@ struct test_is_heap_until
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&& exec, Iterator first, Iterator last)
+    operator()(Policy&&, Iterator, Iterator)
     {
     }
 };
@@ -123,7 +123,7 @@ struct test_is_heap_until_predicate
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
+    operator()(Policy&&, Iterator, Iterator, Predicate)
     {
     }
 };
@@ -175,7 +175,7 @@ test_is_heap_by_type(Comp comp)
 #endif
     }
 
-    Sequence<T> in(max_size / 10, [](size_t v) -> T { return T(1); });
+    Sequence<T> in(max_size / 10, [](size_t) -> T { return T(1); });
 #ifdef _PSTL_TEST_IS_HEAP
     invoke_on_all_policies<16>()(test_is_heap<T>(), in.begin(), in.end());
     invoke_on_all_policies<17>()(test_is_heap_predicate<T>(), in.begin(), in.end(), comp);

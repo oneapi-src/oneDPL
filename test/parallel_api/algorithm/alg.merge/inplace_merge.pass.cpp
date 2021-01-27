@@ -48,8 +48,8 @@ struct test_one_policy
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
     typename ::std::enable_if<is_same_iterator_category<BiDirIt1, ::std::forward_iterator_tag>::value, void>::type
-    operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
-               Generator1 generator1, Generator2 generator2, Compare comp)
+    operator()(Policy&&, BiDirIt1, BiDirIt1, BiDirIt1, BiDirIt1, Size, Size,
+               Generator1, Generator2, Compare)
     {
     }
 };
