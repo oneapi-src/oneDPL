@@ -35,7 +35,7 @@ struct __async_value
     data() = 0;
     virtual ~__async_value() = default;
     virtual _Tp
-    raw_data() const;
+    raw_data() const = 0;
 };
 
 template <typename _T>
