@@ -159,10 +159,10 @@ struct __get_first_range_type
 };
 
 template <typename _Range, typename... _Ranges>
-constexpr _Range
+constexpr _Range&
 __get_first_range(_Range&& __rng, _Ranges&&...)
 {
-    return ::std::forward<_Range>(__rng);
+    return __rng;
 }
 
 template <typename _Cgh>
