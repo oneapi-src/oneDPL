@@ -349,6 +349,9 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 // Kernel run-time information helpers
 //-----------------------------------------------------------------------------
 
+// 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
+#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214)
+
 template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
@@ -356,7 +359,11 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
     const auto& __device = __policy.queue().get_device();
     // TODO: investigate can we use kernel_work_group::preferred_work_group_size_multiple here.
     auto __max_wg_size =
+#if _USE_KERNEL_DEVICE_SPECIFIC_API
+        __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
+#else
         __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
+#endif
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
@@ -372,7 +379,11 @@ __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kerne
     auto __device = __policy.queue().get_device();
     auto __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
     const ::std::size_t __sg_size =
+#if _USE_KERNEL_DEVICE_SPECIFIC_API
+        __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
+#else
         __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
+#endif
             __device, sycl::range<3>{__wg_size, 1, 1});
     return __sg_size;
 }
