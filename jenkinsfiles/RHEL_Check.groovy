@@ -71,7 +71,7 @@ user_in_github_group = false
 
 pipeline {
 
-    agent { label "oneDPL_RHEL" }
+    agent { label "oneDPL_scheduler" }
     options {
         durabilityHint 'PERFORMANCE_OPTIMIZED'
         timeout(time: 5, unit: 'HOURS')
@@ -161,6 +161,7 @@ pipeline {
             when {
                 expression { user_in_github_group }
             }
+            agent { label "oneDPL_RHEL" }
             stages {
                 stage('Git-monorepo') {
                     steps {
