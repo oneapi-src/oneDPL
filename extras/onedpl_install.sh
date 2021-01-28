@@ -1,7 +1,7 @@
 #!/bin/sh
 ##===-- onedpl_install.sh -------------------------------------------------===##
 #
-# Copyright (C) 2019-2020 Intel Corporation
+# Copyright (C) Intel Corporation
 #
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #

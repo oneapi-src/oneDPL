@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- reduce_by_segment_usm.pass.cpp --------------------------------------------===//
 //
-// Copyright (C) 2019 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //

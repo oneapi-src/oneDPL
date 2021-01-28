@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2019-2020 Intel Corporation
+ *  Copyright (c) Intel Corporation
  *
  *  Copyright 2008-2013 NVIDIA Corporation
  *

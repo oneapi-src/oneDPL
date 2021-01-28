@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- permutation_iterator_sycl.pass.cpp --------------------------------===//
 //
-// Copyright (C) 2019 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
