@@ -74,13 +74,7 @@ macro(onedpl_add_test test_source_file)
     add_dependencies(build-all ${_test_name})
 endmacro()
 
-set(_skip_regex_for_not_dpcpp "(extensions_testsuite)")
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
-    if (_file MATCHES "${_skip_regex_for_not_dpcpp}" AND NOT ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-        message(STATUS "Skip test ${_file} as it requires DPC++ backend")
-        continue()
-    endif()
-
     onedpl_add_test(${_file})
 endforeach()

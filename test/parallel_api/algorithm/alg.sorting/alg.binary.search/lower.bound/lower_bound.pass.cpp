@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- lower_bound_sycl.pass.cpp --------------------------------------------===//
+//===-- lower_bound.pass.cpp --------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -19,13 +19,30 @@
 
 #include <iostream>
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
 #include <CL/sycl.hpp>
+#endif
 
-int main()
+void test_on_host()
+{
+    int key[10] = {0, 2, 2, 2, 3, 3, 3, 3, 6, 6};
+    int val[5] = {0, 2, 4, 7, 6};
+    int res[5];
+  
+     // call algorithm
+     oneapi::dpl::lower_bound(oneapi::dpl::execution::par, std::begin(key), std::end(key), std::begin(val), std::end(val), std::begin(res), std::less<int>());
+
+     //check data
+     if((res[0] != 0) || (res[1] != 1) || (res[2] != 8) || (res[3] != 10) || (res[4] != 8))
+         std::cout << "lower_bound on host FAIL." << std::endl;
+}
+
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+void test_on_device()
 {
     bool correctness_flag =true;
 
-    //Test case 1
+    //Test case #1
     cl::sycl::buffer<uint64_t, 1> _key_buf{ cl::sycl::range<1>(10) };
     cl::sycl::buffer<uint64_t, 1> _val_buf{ cl::sycl::range<1>(5) };
     cl::sycl::buffer<uint64_t, 1> _res_buf{ cl::sycl::range<1>(5) };
@@ -48,19 +65,16 @@ int main()
     auto val_end = oneapi::dpl::end(_val_buf);
     auto res_beg = oneapi::dpl::begin(_res_buf);
 
-    // create named policy from existing one
-    auto new_policy = oneapi::dpl::execution::make_device_policy<class binarySearch>(oneapi::dpl::execution::dpcpp_default);
-    
     // call algorithm
-    oneapi::dpl::binary_search(new_policy, key_beg, key_end, val_beg , val_end, res_beg);
+    oneapi::dpl::lower_bound(oneapi::dpl::execution::dpcpp_default, key_beg, key_end, val_beg , val_end, res_beg);
     
     auto res = _res_buf.template get_access<cl::sycl::access::mode::read>();
     
     //check data
-    if((res[0] != true) || (res[1] != true) || (res[2] != false) && (res[3] != false) && (res[4] != true))
+    if((res[0] != 0) || (res[1] != 1) || (res[2] != 8) || (res[3] != 10) || (res[4] != 8 ))
         correctness_flag = false;
 
-    //test case 2
+    //Test case #2
     cl::sycl::buffer<uint64_t, 1> _key_buf_2{ cl::sycl::range<1>(2) };
     cl::sycl::buffer<uint64_t, 1> _res_buf_2{ cl::sycl::range<1>(5) };
     {
@@ -76,20 +90,28 @@ int main()
     auto res_beg_2 = oneapi::dpl::begin(_res_buf_2);
     
     // create named policy from existing one
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class binarySearch2>(oneapi::dpl::execution::dpcpp_default);
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class LowerBound>(oneapi::dpl::execution::dpcpp_default);
 
     // call algorithm
-    oneapi::dpl::binary_search(new_policy2, key_beg_2, key_end_2, val_beg , val_end, res_beg_2, std::less<int>());
+    oneapi::dpl::lower_bound(new_policy, key_beg_2, key_end_2, val_beg , val_end, res_beg_2, std::less<int>());
 
     auto res_2 = _res_buf_2.template get_access<cl::sycl::access::mode::read>();
+
     //check data
-    if((res_2[0] != true) || (res_2[1]!= true) || (res_2[2] != false) || (res_2[3] != false) || (res_2[4] != false))
+    if((res_2[0] != 0) || (res_2[1] != 1) || (res_2[2] != 2) || (res_2[3] != 2) || (res_2[4] != 2 ))
         correctness_flag = false;
-    
-    if(correctness_flag == true)
-        std::cout << "done" << std::endl;
-    else
-        std::cout << "Values do not match." << std::endl;
-    
+
+    if(correctness_flag != true)
+       std::cout << "lower_bound on device FAIL." << std::endl;
+}
+#endif
+
+int main()
+{
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+    test_on_device();
+#endif
+    test_on_host();    
+    std::cout << "done" << std::endl;
     return 0;
 }
