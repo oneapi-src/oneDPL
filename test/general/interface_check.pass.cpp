@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- interface_check.pass.cpp --------------------------------------------===//
 //
-// Copyright (C) 2021 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
