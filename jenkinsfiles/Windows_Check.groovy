@@ -136,15 +136,15 @@ pipeline {
                             echo "check_user_return value is $check_user_return"
                             if (check_user_return == 0) {
                                 user_in_github_group = true
-                                sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
                                 if (env.OneAPI_Package_Date == "Default") {
-                                    sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
+                                    sh(script: "bash /export/users/oneDPL_CI/get_good_compiler.sh ", label: "Get good compiler stamp")
                                     if (fileExists('./Oneapi_Package_Date.txt')) {
                                         env.OneAPI_Package_Date = readFile('./Oneapi_Package_Date.txt')
                                     }
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
+                                githubStatus.setPending(this, "Jenkins/Win_Check")
                             }
                             else {
                                 user_in_github_group = false
@@ -173,7 +173,6 @@ pipeline {
                         script {
                             try {
                                 retry(2) {
-                                    githubStatus.setPending(this, "Jenkins/Win_Check")
                                     deleteDir()
 
                                     bat script: """
@@ -243,8 +242,6 @@ pipeline {
                                                 cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\gamma-correction\\src
                                                 echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
                                                 dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
-
-                                                ::MSBuild gamma-correction.sln /t:Rebuild /p:Configuration="Release"
                                             """, label: "Gamma_return_value Test Step"
                                         }
                                     }

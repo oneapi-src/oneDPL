@@ -119,6 +119,9 @@ pipeline {
 
     stages {
         stage('Check_User_in_Org') {
+            agent {
+                label "oneDPL_scheduler"
+            }
             steps {
                 script {
                     try {
@@ -129,13 +132,14 @@ pipeline {
                             if (check_user_return == 0) {
                                 user_in_github_group = true
                                 if (env.OneAPI_Package_Date == "Default") {
-                                    sh(script: "bash /export/users/oneDPL_CI/get_good_compilor.sh ", label: "Get good compiler stamp")
+                                    sh(script: "bash /export/users/oneDPL_CI/get_good_compiler.sh ", label: "Get good compiler stamp")
                                     if (fileExists('./Oneapi_Package_Date.txt')) {
                                         env.OneAPI_Package_Date = readFile('./Oneapi_Package_Date.txt')
                                     }
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
+                                githubStatus.setPending(this, "Jenkins/UB1804_Check")
                             }
                             else {
                                 user_in_github_group = false
@@ -164,7 +168,6 @@ pipeline {
                             try {
                                 retry(2) {
                                     deleteDir()
-                                    githubStatus.setPending(this, "Jenkins/UB1804_Check")
                                     if (fileExists('./src')) {
                                         sh script: 'rm -rf src', label: "Remove Src Folder"
                                     }
