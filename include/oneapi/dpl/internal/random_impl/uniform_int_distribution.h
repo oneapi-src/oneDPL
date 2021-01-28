@@ -150,7 +150,7 @@ class uniform_int_distribution
             __engine, ::std::pair<double, double>(static_cast<double>(__params.first),
                                                   static_cast<double>(__params.second) + 1.0));
 
-        return __res.template convert<scalar_type, cl::sycl::rounding_mode::rte>();
+        return __res.template convert<scalar_type, sycl::rounding_mode::rte>();
     }
 
     template <int _Ndistr, class _Engine>
@@ -175,7 +175,7 @@ class uniform_int_distribution
                                                                    static_cast<double>(__params.second) + 1.0),
                                        __N);
 
-        return __res.template convert<scalar_type, cl::sycl::rounding_mode::rte>();
+        return __res.template convert<scalar_type, sycl::rounding_mode::rte>();
     }
 };
 

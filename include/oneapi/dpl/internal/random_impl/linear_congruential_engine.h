@@ -129,7 +129,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0>
-    typename ::std::enable_if<(_N != 0)>::type
+    typename ::std::enable_if<(_N > 0)>::type
     init(scalar_type __seed)
     {
         if ((increment % modulus == 0) && (__seed % modulus == 0))
@@ -147,7 +147,7 @@ class linear_congruential_engine
             state_[__i] = mod_scalar(state_[__i - 1u]);
     }
 
-    // Intenal function for calculate degrees of multiplier
+    // Internal function for calculate degrees of multiplier
     scalar_type
     pow_mult_n(unsigned long long __num_to_skip)
     {
@@ -231,8 +231,8 @@ class linear_congruential_engine
     {
         ::std::uint64_t __mod = modulus, __inc = increment;
         ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        state_ = ((__mult * state_.template convert<::std::uint64_t, cl::sycl::rounding_mode::rte>()) % __mod)
-                     .template convert<scalar_type, cl::sycl::rounding_mode::rte>();
+        state_ = ((__mult * state_.template convert<::std::uint64_t, sycl::rounding_mode::rte>()) % __mod)
+                     .template convert<scalar_type, sycl::rounding_mode::rte>();
     }
 
     // result_portion implementation
