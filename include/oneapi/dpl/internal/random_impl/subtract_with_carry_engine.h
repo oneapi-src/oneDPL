@@ -100,11 +100,10 @@ class subtract_with_carry_engine
 
   private:
     // Static asserts
-    static_assert((0 < _S) && (_S < _R),
-        "oneapi::dpl::subtract_with_carry_engine. Error: unsupported parameters");
+    static_assert((0 < _S) && (_S < _R), "oneapi::dpl::subtract_with_carry_engine. Error: unsupported parameters");
 
     static_assert((0 < _W) && (_W <= std::numeric_limits<scalar_type>::digits),
-        "oneapi::dpl::subtract_with_carry_engine. Error: unsupported parameters");
+                  "oneapi::dpl::subtract_with_carry_engine. Error: unsupported parameters");
     // Initialization function
     void
     init(scalar_type __seed)
@@ -159,7 +158,6 @@ class subtract_with_carry_engine
     {
         return generate_internal_scalar();
     }
-
 
     template <int _N>
     typename ::std::enable_if<(_N > 0), result_type>::type

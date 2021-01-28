@@ -36,13 +36,17 @@ class uniform_real_distribution
 
     // Constructors
     uniform_real_distribution() : uniform_real_distribution(static_cast<scalar_type>(0.0)) {}
-    explicit uniform_real_distribution(scalar_type __a, scalar_type __b = static_cast<scalar_type>(1.0)) :
-        a_(__a), b_(__b) {}
+    explicit uniform_real_distribution(scalar_type __a, scalar_type __b = static_cast<scalar_type>(1.0))
+        : a_(__a), b_(__b)
+    {
+    }
     explicit uniform_real_distribution(const param_type& __params) : a_(__params.first), b_(__params.second) {}
 
     // Reset function
     void
-    reset() {}
+    reset()
+    {
+    }
 
     // Property functions
     scalar_type
@@ -95,8 +99,8 @@ class uniform_real_distribution
     operator()(_Engine& __engine, const param_type& __params)
     {
         result_type __res =
-            generate<size_of_type_, internal::type_traits_t<typename _Engine::result_type>::num_elems, _Engine>(__engine,
-                                                                                                              __params);
+            generate<size_of_type_, internal::type_traits_t<typename _Engine::result_type>::num_elems, _Engine>(
+                __engine, __params);
         return __res;
     }
 
@@ -129,7 +133,7 @@ class uniform_real_distribution
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,
-        "oneapi::dpl::uniform_real_distribution. Error: unsupported data type");
+                  "oneapi::dpl::uniform_real_distribution. Error: unsupported data type");
 
     // Distribution parameters
     scalar_type a_;
@@ -143,8 +147,8 @@ class uniform_real_distribution
         auto __engine_output = __engine();
         auto __res = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
         __res = ((__res - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                  (__params.second - __params.first) +
-              __params.first;
+                    (__params.second - __params.first) +
+                __params.first;
         return __res;
     }
 
@@ -155,9 +159,9 @@ class uniform_real_distribution
         auto __engine_output = __engine();
         auto __res = static_cast<scalar_type>(__engine_output);
         __res = ((__res - static_cast<scalar_type>(__engine.min())) /
-               (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                  (__params.second - __params.first) +
-              __params.first;
+                 (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first;
         return __res;
     }
 
@@ -170,9 +174,10 @@ class uniform_real_distribution
         for (int __i = 0; __i < _Ndistr; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
-            __res[__i] = ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                         (__params.second - __params.first) +
-                     __params.first;
+            __res[__i] =
+                ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first;
         }
 
         return __res;
@@ -184,8 +189,8 @@ class uniform_real_distribution
     {
         scalar_type __res = static_cast<scalar_type>(__engine(1)[0]);
         __res = ((__res - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                  (__params.second - __params.first) +
-              __params.first;
+                    (__params.second - __params.first) +
+                __params.first;
         return __res;
     }
 
@@ -200,9 +205,10 @@ class uniform_real_distribution
         {
             auto __engine_output = __engine();
             auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
-            __res_tmp = ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                          (__params.second - __params.first) +
-                      __params.first;
+            __res_tmp =
+                ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first;
 
             for (int __j = 0; __j < _Negnine; ++__j)
                 __res[__i + __j] = __res_tmp[__j];
@@ -213,9 +219,10 @@ class uniform_real_distribution
             __i = _Ndistr - __tail_size;
             auto __engine_output = __engine(__tail_size);
             auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
-            __res_tmp = ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                          (__params.second - __params.first) +
-                      __params.first;
+            __res_tmp =
+                ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first;
             for (int __j = 0; __j < _Negnine; __j++)
                 __res[__i + __j] = __res_tmp[__j];
         }
@@ -230,9 +237,10 @@ class uniform_real_distribution
         for (int __i = 0; __i < _Ndistr; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine());
-            __res[__i] = ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                         (__params.second - __params.first) +
-                     __params.first;
+            __res[__i] =
+                ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first;
         }
         return __res;
     }
@@ -247,9 +255,10 @@ class uniform_real_distribution
         for (unsigned int __i = 0; __i < __N; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
-            __res[__i] = ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                         (__params.second - __params.first) +
-                     __params.first;
+            __res[__i] =
+                ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first;
         }
 
         return __res;
@@ -268,9 +277,10 @@ class uniform_real_distribution
             for (unsigned int __i = 0; __i < __N; ++__i)
             {
                 __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
-                __res[__i] = ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                             (__params.second - __params.first) +
-                         __params.first;
+                __res[__i] =
+                    ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                        (__params.second - __params.first) +
+                    __params.first;
             }
         }
         else
@@ -280,8 +290,10 @@ class uniform_real_distribution
             {
                 auto __engine_output = __engine();
                 auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
-                __res_tmp = ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                              (__params.second - __params.first) + __params.first;
+                __res_tmp =
+                    ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                        (__params.second - __params.first) +
+                    __params.first;
                 for (int __j = 0; __j < _Negnine; ++__j)
                 {
                     __res[__i + __j] = __res_tmp[__j];
@@ -292,8 +304,10 @@ class uniform_real_distribution
                 __i = _Ndistr - __tail_size;
                 auto __engine_output = __engine(__tail_size);
                 auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
-                __res_tmp = ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                              (__params.second - __params.first) + __params.first;
+                __res_tmp =
+                    ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                        (__params.second - __params.first) +
+                    __params.first;
 
                 for (unsigned int __j = 0; __j < __tail_size; ++__j)
                 {
@@ -313,9 +327,10 @@ class uniform_real_distribution
         for (unsigned int __i = 0; __i < __N; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine());
-            __res[__i] = ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                         (__params.second - __params.first) +
-                     __params.first;
+            __res[__i] =
+                ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first;
         }
 
         return __res;
