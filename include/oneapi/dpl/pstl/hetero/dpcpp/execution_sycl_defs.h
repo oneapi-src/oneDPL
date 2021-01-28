@@ -350,11 +350,7 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 //-----------------------------------------------------------------------------
 
 // 20201214 value corresponds to oneAPI C++ Compiler Classic 2021.1.2 Patch release
-#if __SYCL_COMPILER_VERSION > 20201214
-#    define _USE_KERNEL_DEVICE_SPECIFIC_API 1
-#else
-#    define _USE_KERNEL_DEVICE_SPECIFIC_API 0
-#endif
+#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214)
 
 template <typename _ExecutionPolicy>
 ::std::size_t
@@ -385,11 +381,10 @@ __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kerne
     const ::std::size_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
-            __device, sycl::range<3>{__wg_size, 1, 1});
 #else
         __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
-            __device, sycl::range<3>{__wg_size, 1, 1});
 #endif
+            __device, sycl::range<3>{__wg_size, 1, 1});
     return __sg_size;
 }
 
