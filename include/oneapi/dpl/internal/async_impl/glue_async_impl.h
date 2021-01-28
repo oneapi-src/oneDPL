@@ -38,10 +38,7 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIt
     wait_for_all(__dependencies...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk2_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__invoke_unary_op<_UnaryOperation>{::std::move(__op)},
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
-        __exec.__allow_parallel());
+        oneapi::dpl::__internal::__invoke_unary_op<_UnaryOperation>{::std::move(__op)});
     return ret_val;
 }
 
@@ -57,10 +54,7 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     auto ret_val = oneapi::dpl::__internal::__pattern_walk3_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
         oneapi::dpl::__internal::__transform_functor<
-            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _BinaryOperation>>(__op),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator>(__exec),
-        __exec.__allow_parallel());
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _BinaryOperation>>(__op));
     return ret_val;
 }
 
@@ -74,9 +68,7 @@ copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterato
     wait_for_all(__dependencies...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk2_brick_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec));
+        oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     return ret_val;
 }
 
@@ -103,10 +95,8 @@ for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
                _Events&&... __dependencies)
 {
     wait_for_all(__dependencies...);
-    auto ret_val = oneapi::dpl::__internal::__pattern_walk1_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        __exec.__allow_parallel());
+    auto ret_val =
+        oneapi::dpl::__internal::__pattern_walk1_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f);
     return ret_val;
 }
 
@@ -122,9 +112,7 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterat
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _InputType;
     auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_InputType>(),
-        oneapi::dpl::__internal::__no_op(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+        oneapi::dpl::__internal::__no_op());
     return ret_val;
 }
 
@@ -137,10 +125,8 @@ fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
            _Events&&... __dependencies)
 {
     wait_for_all(__dependencies...);
-    return oneapi::dpl::__internal::__pattern_fill_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __value,
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+    return oneapi::dpl::__internal::__pattern_fill_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                                         __value);
 }
 
 // [async.transform_reduce]
@@ -154,9 +140,7 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _Forward
 {
     wait_for_all(__dependencies...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1, __binary_op2,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>(__exec),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>(__exec));
+        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1, __binary_op2);
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp, class... _Events>
@@ -166,10 +150,8 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt
                        _BinaryOp __binary_op, _UnaryOp __unary_op, _Events&&... __dependencies)
 {
     wait_for_all(__dependencies...);
-    return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIt>(__exec),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIt>(__exec));
+    return oneapi::dpl::__internal::__pattern_transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                                     __last, __init, __binary_op, __unary_op);
 }
 
 } // namespace experimental
