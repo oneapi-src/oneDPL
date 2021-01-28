@@ -4088,6 +4088,8 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     if (__n >= __size)
         return __first;
 
+    using _DiffType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
+
     _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
