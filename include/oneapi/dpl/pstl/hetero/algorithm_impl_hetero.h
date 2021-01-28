@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- algorithm_impl_hetero.h -------------------------------------------===//
 //
-// Copyright (C) 2019-2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -490,7 +490,8 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    _ReduceValueType __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+    _ReduceValueType __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                                            /*__grainsize=*/8>(
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>, decltype(__identity_init_fn)>{
             __identity_reduce_fn<_Compare>{__comp}, __identity_init_fn},
