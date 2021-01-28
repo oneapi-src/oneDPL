@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- minstd_rand_rand0_test.cpp -----------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
