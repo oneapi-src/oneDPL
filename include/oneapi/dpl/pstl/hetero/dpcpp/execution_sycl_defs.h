@@ -349,7 +349,7 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 // Kernel run-time information helpers
 //-----------------------------------------------------------------------------
 
-// 20201214 value corresponds to oneAPI C++ Compiler Classic 2021.1.2 Patch release
+// 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
 #define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214)
 
 template <typename _ExecutionPolicy>
