@@ -4044,7 +4044,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
     using _DiffType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
     using _ReferenceType = typename ::std::iterator_traits<_ForwardIterator>::reference;
 
-    _DiffType __mid = __size % 2 == 0 ? __size / 2 : __size / 2 + 1;
+    _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
     //1. n >= size/2; there is enough memory to 'total' parallel (SIMD) copying
@@ -4088,7 +4088,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     if (__n >= __size)
         return __first;
 
-    _DiffType __mid = __size % 2 == 0 ? __size / 2 : __size / 2 + 1;
+    _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
     //1. n >= size/2; there is enough memory to 'total' parallel copying
