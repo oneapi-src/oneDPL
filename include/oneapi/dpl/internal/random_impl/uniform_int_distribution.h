@@ -36,13 +36,17 @@ class uniform_int_distribution
 
     // Constructors
     uniform_int_distribution() : uniform_int_distribution(static_cast<scalar_type>(0)) {}
-    explicit uniform_int_distribution(scalar_type __a, scalar_type __b = ::std::numeric_limits<scalar_type>::max()) :
-        a_(__a), b_(__b) {}
+    explicit uniform_int_distribution(scalar_type __a, scalar_type __b = ::std::numeric_limits<scalar_type>::max())
+        : a_(__a), b_(__b)
+    {
+    }
     explicit uniform_int_distribution(const param_type& __params) : a_(__params.first), b_(__params.second) {}
 
     // Reset function
     void
-    reset() {}
+    reset()
+    {
+    }
 
     // Property functions
     scalar_type
@@ -81,7 +85,6 @@ class uniform_int_distribution
     {
         return b();
     }
-
 
     // Generate functions
     template <class _Engine>
@@ -129,7 +132,7 @@ class uniform_int_distribution
 
     // Static asserts
     static_assert(::std::is_integral<scalar_type>::value,
-        "oneapi::dpl::uniform_int_distribution. Error: unsupported data type");
+                  "oneapi::dpl::uniform_int_distribution. Error: unsupported data type");
 
     // Distribution parameters
     scalar_type a_;
@@ -143,20 +146,20 @@ class uniform_int_distribution
     typename ::std::enable_if<(_Ndistr != 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        RealType __res =
-            uniform_real_distribution_(__engine, ::std::pair<double, double>(static_cast<double>(__params.first),
-                                                                         static_cast<double>(__params.second) + 1.0));
+        RealType __res = uniform_real_distribution_(
+            __engine, ::std::pair<double, double>(static_cast<double>(__params.first),
+                                                  static_cast<double>(__params.second) + 1.0));
 
-        return __res.template convert<scalar_type, cl::sycl::rounding_mode::rte>();
+        return __res.template convert<scalar_type, sycl::rounding_mode::rte>();
     }
 
     template <int _Ndistr, class _Engine>
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        RealType __res =
-            uniform_real_distribution_(__engine, ::std::pair<double, double>(static_cast<double>(__params.first),
-                                                                         static_cast<double>(__params.second) + 1.0));
+        RealType __res = uniform_real_distribution_(
+            __engine, ::std::pair<double, double>(static_cast<double>(__params.first),
+                                                  static_cast<double>(__params.second) + 1.0));
 
         return static_cast<scalar_type>(__res);
     }
@@ -166,11 +169,13 @@ class uniform_int_distribution
     typename ::std::enable_if<(_Ndistr != 0), result_type>::type
     result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
-        RealType __res = uniform_real_distribution_(__engine,
-            ::std::pair<double, double>(static_cast<double>(__params.first),
-            static_cast<double>(__params.second) + 1.0), __N);
+        RealType __res =
+            uniform_real_distribution_(__engine,
+                                       ::std::pair<double, double>(static_cast<double>(__params.first),
+                                                                   static_cast<double>(__params.second) + 1.0),
+                                       __N);
 
-        return __res.template convert<scalar_type, cl::sycl::rounding_mode::rte>();
+        return __res.template convert<scalar_type, sycl::rounding_mode::rte>();
     }
 };
 
