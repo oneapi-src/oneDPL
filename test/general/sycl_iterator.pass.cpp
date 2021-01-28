@@ -638,7 +638,7 @@ struct test_copy_n
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1, Iterator2 first2, Iterator2, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);

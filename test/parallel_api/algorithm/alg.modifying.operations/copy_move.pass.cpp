@@ -82,8 +82,8 @@ struct run_move
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2t, Size size,
-               Size n, T trash)
+               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2, Size size,
+               Size, T trash)
     {
         // Cleaning
         ::std::fill_n(expected_first, size, trash);
