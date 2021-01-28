@@ -62,12 +62,12 @@ struct test_shift_left
         EXPECT_TRUE(res_exp == res, "wrong return value of shift_left");
 
         if(n > m || n < 0) //should be no effect in this case
-	    n = 0;
+            n = 0;
 
         EXPECT_EQ_N(first, std::next(first_exp, + n), m - n, "wrong effect of shift_left");
 
         //restore unput data
-       std::copy_n(first_exp, m, first);
+        std::copy_n(first_exp, m, first);
     }
 };
 

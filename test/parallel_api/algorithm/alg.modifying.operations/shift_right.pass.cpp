@@ -49,12 +49,12 @@ struct test_shift_right
         EXPECT_TRUE(res_exp == res, "wrong return value of shift_right");
 
         if(n > m || n < 0) //should be no effect in this case
-	    n = 0;
+            n = 0;
 
         EXPECT_EQ_N(std::next(first, + n), first_exp, m - n, "wrong effect of shift_right");
 
         //restore unput data
-       std::copy(first_exp, std::next(first_exp, m), first);
+        std::copy(first_exp, std::next(first_exp, m), first);
     }
 
     template <typename Policy, typename It, typename Size>
