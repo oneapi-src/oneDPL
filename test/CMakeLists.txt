@@ -51,7 +51,7 @@ macro(onedpl_add_test test_source_file)
         DEPENDS ${_test_name}
         COMMENT "Build and run test ${_test_name}")
 
-    target_compile_options(${_test_name} PRIVATE "-Wall" PRIVATE "-Wformat-security" PRIVATE "-Werror=format-security" PRIVATE "-Wno-unused-lambda-capture" PRIVATE "-Wextra")
+    target_compile_options(${_test_name} PRIVATE -Wunused-parameter -Wformat-security -Werror=format-security -Wno-unused-lambda-capture)
 
     # Add labels and group targets
     file(RELATIVE_PATH _test_rel_path ${CMAKE_CURRENT_SOURCE_DIR} ${test_source_file})
