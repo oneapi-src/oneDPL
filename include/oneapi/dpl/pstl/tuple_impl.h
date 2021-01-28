@@ -369,19 +369,19 @@ struct tuple<>
     tuple&
     operator=(const tuple&) = default;
     tuple&
-    operator=(const ::std::tuple<>&)
+    operator=(const ::std::tuple<>& /*other*/)
     {
         return *this;
     }
     friend bool
-    operator==(const tuple&, const tuple&)
+    operator==(const tuple& /*__lhs*/, const tuple& /*__rhs*/)
     {
         return true;
     }
 };
 
 inline void
-swap(tuple<>&, tuple<>&)
+swap(tuple<>& /*__x*/, tuple<>& /*__y*/)
 {
 }
 

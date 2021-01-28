@@ -451,9 +451,9 @@ struct __global_scan_functor
                _SizePerWg __size_per_wg) const
     {
         constexpr auto __shift = _Inclusive{} ? 0 : 1;
-        ::std::size_t __item_idx = __item.get_linear_id();
+        auto __item_idx = __item.get_linear_id();
         // skip the first group scanned locally
-        if (__item_idx >= (::std::size_t)__size_per_wg && __item_idx < (::std::size_t)__n)
+        if (__item_idx >= __size_per_wg && __item_idx < __n)
         {
             auto __wg_sums_idx = __item_idx / __size_per_wg - 1;
             // an initial value preceeds the first group for the exclusive scan
@@ -497,9 +497,9 @@ struct __scan
                 __use_init(__init, __out_acc[__global_id]);
         });
 
-        _Size __adjusted_global_id = __local_id + __size_per_wg * __group_id;
+        auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
-        for (_ItersPerWG __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
+        for (auto __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
             if (__adjusted_global_id < __n)
             {
@@ -514,7 +514,7 @@ struct __scan
                 __use_init(__init, __local_acc[__global_id], __bin_op);
 
             // 1. reduce
-            _WGSize __k = 1;
+            auto __k = 1;
             do
             {
                 __item.barrier(sycl::access::fence_space::local_space);
@@ -579,7 +579,7 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
     operator()(_NDItem __item, _GlobalIdx __global_id, _GlobalSize __n, _LocalAcc __local_mem) const
     {
         auto __local_id = __item.get_local_id(0);
-        if (__global_id >= (_GlobalIdx)__n)
+        if (__global_id >= __n)
         {
             // Fill the rest of local buffer with 0s so each of inclusive_scan method could correctly work
             // for each work-item in sub-group

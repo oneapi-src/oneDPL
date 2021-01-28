@@ -341,7 +341,7 @@ struct __get_sycl_range
 
     template <typename _Iter>
     buf_type<val_t<_Iter>>
-    copy_back(_Iter, buf_type<val_t<_Iter>> buf, /*_copy_back*/ ::std::false_type)
+    copy_back(_Iter /*__first*/, buf_type<val_t<_Iter>> buf, /*_copy_back*/ ::std::false_type)
     {
         return buf;
     }
