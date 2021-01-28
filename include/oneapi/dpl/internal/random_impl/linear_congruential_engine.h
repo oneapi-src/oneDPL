@@ -152,7 +152,8 @@ class linear_congruential_engine
     pow_mult_n(unsigned long long __num_to_skip)
     {
         ::std::uint64_t __a2;
-        ::std::uint64_t __a = multiplier;
+        ::std::uint64_t __mod = static_cast<::std::uint64_t>(modulus);
+        ::std::uint64_t __a = static_cast<::std::uint64_t>(multiplier);
         scalar_type __r;
 
         __r = 1;
@@ -161,13 +162,13 @@ class linear_congruential_engine
         {
             if (__num_to_skip & 1)
             {
-                __a2 = static_cast<::std::uint64_t>(__r) * static_cast<::std::uint64_t>(__a);
-                __r = __a2 % modulus;
+                __a2 = static_cast<::std::uint64_t>(__r) * __a;
+                __r = static_cast<scalar_type>(__a2 % __mod);
             }
 
             __num_to_skip >>= 1;
-            __a2 = static_cast<::std::uint64_t>(__a) * static_cast<::std::uint64_t>(__a);
-            __a = __a2 % modulus;
+            __a2 = __a * __a;
+            __a = __a2 % __mod;
 
         } while (__num_to_skip);
 
