@@ -109,7 +109,7 @@ class __future : public __par_backend_hetero::__future_base
     // Constructor for reduce_transform pattern
     template <typename _Op>
     __future(const __future<_Tp>& _fp, _Tp __i, _Op __o)
-        : __par_backend_hetero::__future_base(_fp.get_event()),
+        : __par_backend_hetero::__future_base(_fp),
           __data(::std::unique_ptr<__async_transform<_Tp, _Op>>(
               new __async_transform<_Tp, _Op>(_fp.raw_data().get_buffer(), __i, __o))),
           __tmp(_fp.__tmp)
