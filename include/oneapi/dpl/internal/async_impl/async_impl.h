@@ -31,12 +31,11 @@ namespace experimental
 
 // [wait_for_all]
 template <typename... _Ts>
-void
-wait_for_all(const _Ts&... __Events)
+typename ::std::enable_if<(true && ... && ::std::is_convertible_v<_Ts, sycl::event>), void>::type
+wait_for_all(_Ts&&... __events)
 {
-    ::std::vector<sycl::event> __wait_list = {__Events...};
-    for (auto _a : __wait_list)
-        _a.wait();
+    ::std::initializer_list<int> i = {0, (__events.wait(), 0)...};
+    (void)i;
 }
 
 // [async.reduce]
@@ -47,7 +46,8 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _Events&&... __dependencies)
 {
     using _Tp = typename std::iterator_traits<_ForwardIt>::value_type;
-    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, _Tp(0), ::std::plus<_Tp>(), __dependencies...);
+    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, _Tp(0), ::std::plus<_Tp>(),
+                        __dependencies...);
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events>
@@ -55,7 +55,8 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _T, _Events...>
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init, _Events&&... __dependencies)
 {
-    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>(), __dependencies...);
+    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>(),
+                        __dependencies...);
 }
 
 // [async.transform_reduce]
