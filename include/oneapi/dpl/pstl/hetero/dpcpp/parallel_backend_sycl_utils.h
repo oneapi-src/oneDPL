@@ -604,29 +604,25 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 // future and helper classes for async pattern/algorithm
 //-----------------------------------------------------------------------
 
+// empty base class for type erasure
 struct __tmp_base
 {
 };
 
+// derived class to keep temporaries (e.g. buffer) alive
 template <typename... Ts>
 struct __TempObjs : public __tmp_base
 {
-    ::std::tuple<Ts&...> __my_tmps;
-    __TempObjs(Ts&... __t) : __my_tmps(::std::forward_as_tuple(__t...)) {}
+    ::std::tuple<Ts...> __my_tmps;
+    __TempObjs(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
 };
 
 class __future_base
 {
-    using event = sycl::event;
-    event __my_event;
+    sycl::event __my_event;
 
   public:
-    __future_base(event __e) : __my_event(__e) {}
-    event
-    get_event() const
-    {
-        return __my_event;
-    }
+    __future_base(sycl::event __e) : __my_event(__e) {}
     void
     wait()
     {
@@ -634,7 +630,7 @@ class __future_base
         __my_event.wait();
 #endif
     }
-    operator event() const { return event(__my_event); }
+    operator sycl::event() const { return __my_event; }
 };
 
 // TODO: Extend to support value type and sycl iterator.
@@ -646,12 +642,14 @@ class __future : public __future_base
 template <>
 class __future<void> : public __future_base
 {
-    __tmp_base __tmps;
+    ::std::unique_ptr<__tmp_base> __tmps;
 
   public:
     template <typename... _Ts>
-    __future(sycl::event __e, _Ts... __t) : __future_base(__e), __tmps(__TempObjs<_Ts...>{__t...})
+    __future(sycl::event __e, _Ts... __t) : __future_base(__e)
     {
+        if (sizeof...(__t) != 0)
+            __tmps = ::std::unique_ptr<__TempObjs<_Ts...>>(new __TempObjs<_Ts...>(__t...));
     }
     void
     get()
