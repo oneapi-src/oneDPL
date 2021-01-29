@@ -390,7 +390,7 @@ template <typename _KernelName1, typename _KernelName2, ::std::uint32_t __radix_
           typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
           ,
-          typename _Kernel1, typename _Kernel2
+          typename _Kernel1
 #endif
           >
 sycl::event
@@ -398,7 +398,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                          _CountBuf& __count_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
                          ,
-                         _Kernel1& __kernel_1, _Kernel2& __kernel_2
+                         _Kernel1& __kernel_1
 #endif
 )
 {
@@ -442,9 +442,6 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
         __hdl.depends_on(__scan_event);
         oneapi::dpl::__ranges::__require_access(__hdl, __count_rng);
         __hdl.parallel_for<_KernelName2>(
-#if _ONEDPL_COMPILE_KERNEL
-            __kernel_2,
-#endif
             sycl::nd_range<1>(__radix_states, __radix_states), [=](sycl::nd_item<1> __self_item) {
                 ::std::size_t __self_lidx = __self_item.get_local_id(0);
 
@@ -602,7 +599,6 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 #if _ONEDPL_COMPILE_KERNEL
     auto __count_kernel = __count_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __scan_kernel_1 = __scan_kernel_name_1::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    auto __scan_kernel_2 = __scan_kernel_name_2::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __reorder_kernel = __reorder_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
@@ -629,7 +625,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
-        __scan_kernel_1, __scan_kernel_2
+        __scan_kernel_1
 #endif
     );
 
