@@ -80,6 +80,8 @@ sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcce
            _Events&&... __dependencies)
 {
     wait_for_all(::std::forward<_Events>(__dependencies)...);
+    if (__last - __first < 2)
+        return oneapi::dpl::__par_backend_hetero::__future<void>(sycl::event{});
     auto ret_val = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
