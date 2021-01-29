@@ -46,7 +46,7 @@
 #define _PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN (__INTEL_COMPILER == 1900 && _MSC_VER && !_DEBUG)
 // ICC 18,19 generate wrong result
 #define _PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN													  \
-	((__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900) && _MSC_VER && !_DEBUG)
+    ((__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900) && _MSC_VER && !_DEBUG)
 // ICC 18,19 generate wrong result with for_loop_strided and reverse iterators
 #define _PSTL_ICC_18_19_TEST_REVERSE_ITERATOR_WITH_STRIDE_BROKEN                                                      \
     (__i386__ && (__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900))
@@ -54,5 +54,9 @@
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN (_MSC_VER == 1900)
 
 #define _PSTL_SYCL_TEST_USM 1
+
+// Check for C++ standard and standard library for the use of ranges API
+#define _ONEDPL_USE_RANGES                                                                                            \
+    (__cplusplus >= 201703L && ((_GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502) || _LIBCPP_VERSION >= 7000))
 
 #endif /* _PSTL_TEST_config_H */

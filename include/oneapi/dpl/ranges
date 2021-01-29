@@ -28,9 +28,7 @@
 #    endif // __has_include(<tbb/version.h>)
 #endif     // __cplusplus >= 201703L
 
-#define _ONEDPL_USE_RANGES 1
 #include "oneapi/dpl/pstl/onedpl_config.h"
-
 #include "oneapi/dpl/pstl/ranges_defs.h"
 
 #if !_ONEDPL_ALGORITHM_RANGES_FORWARD_DECLARED
