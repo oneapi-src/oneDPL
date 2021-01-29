@@ -177,7 +177,8 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
         __binary_op,                                                                              // combine
         unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op},               // reduce
         __buf.all_view());
-    return oneapi::dpl::__internal::__future<_Tp>(__res, __init, __binary_op);
+    return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
+                                                  __binary_op);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _T>
