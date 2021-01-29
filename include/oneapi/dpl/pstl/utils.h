@@ -592,8 +592,7 @@ struct __next_to_last
                               _Iterator>::type
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
-        __it += __n;
-        return __it <= __last ? __it : __last;
+        return __n > __last - __it ? __last : __it + __n;
     }
 
     template <typename _Iterator>
@@ -602,10 +601,7 @@ struct __next_to_last
                               _Iterator>::type
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
-        for (; --__n >= 0; ++__it)
-            if (__it == __last) // n >= last - first;
-                break;
-
+        for (; --__n >= 0 && __it != __last; ++__it);
         return __it;
     }
 };
