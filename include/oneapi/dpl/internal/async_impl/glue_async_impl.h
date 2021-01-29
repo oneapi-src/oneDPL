@@ -35,7 +35,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
 transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                 _ForwardIterator2 __result, _UnaryOperation __op, _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk2_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
         oneapi::dpl::__internal::__invoke_unary_op<_UnaryOperation>{::std::move(__op)});
@@ -50,7 +50,7 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
                 _ForwardIterator2 __first2, _ForwardIterator __result, _BinaryOperation __op,
                 _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk3_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
         oneapi::dpl::__internal::__transform_functor<
@@ -65,7 +65,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
 copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result,
            _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk2_brick_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
         oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
@@ -79,7 +79,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
 sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
            _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
@@ -94,7 +94,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
 for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val =
         oneapi::dpl::__internal::__pattern_walk1_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f);
     return ret_val;
@@ -108,7 +108,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy_double_no_default<
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
              _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _InputType;
     auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_InputType>(),
@@ -124,7 +124,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
 fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value,
            _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_fill_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                                          __value);
 }
@@ -138,7 +138,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy_double_no_default<
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2, _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1, __binary_op2);
 }
@@ -149,7 +149,7 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init,
                        _BinaryOp __binary_op, _UnaryOp __unary_op, _Events&&... __dependencies)
 {
-    wait_for_all(__dependencies...);
+    wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first,
                                                                      __last, __init, __binary_op, __unary_op);
 }

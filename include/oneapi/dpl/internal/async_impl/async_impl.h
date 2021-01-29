@@ -46,8 +46,8 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _Events&&... __dependencies)
 {
     using _Tp = typename std::iterator_traits<_ForwardIt>::value_type;
-    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, _Tp(0), ::std::plus<_Tp>(),
-                        __dependencies...);
+    return reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, _Tp(0), ::std::plus<_Tp>(),
+                        ::std::forward<_Events>(__dependencies)...);
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events>
@@ -55,8 +55,8 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy_single_no_default<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _T, _Events...>
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init, _Events&&... __dependencies)
 {
-    return reduce_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>(),
-                        __dependencies...);
+    return reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>(),
+                        ::std::forward<_Events>(__dependencies)...);
 }
 
 // [async.transform_reduce]
@@ -66,8 +66,8 @@ oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, on
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _Events&&... __dependencies)
 {
-    return transform_reduce_async(std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init,
-                                  ::std::plus<>(), ::std::multiplies<>(), __dependencies...);
+    return transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init,
+                                  ::std::plus<>(), ::std::multiplies<>(), ::std::forward<_Events>(__dependencies)...);
 }
 
 // [async.sort]
@@ -78,7 +78,8 @@ sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcce
            _Events&&... __dependencies)
 {
     using __T = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
-    return sort_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, ::std::less<__T>(), __dependencies...);
+    return sort_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, ::std::less<__T>(),
+                      ::std::forward<_Events>(__dependencies)...);
 }
 
 } // namespace experimental
