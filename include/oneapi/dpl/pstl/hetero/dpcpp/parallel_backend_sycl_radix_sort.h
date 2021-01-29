@@ -530,6 +530,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                         __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
                 }
 
+                // find offsets for the same values within a segment and fill the resulting buffer
                 for (::std::size_t __block_idx = 0; __block_idx < __blocks_per_segment * __it_size; ++__block_idx)
                 {
                     const ::std::size_t __val_idx = __start_idx + __sg_size * __block_idx;
