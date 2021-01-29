@@ -37,7 +37,7 @@ void test_on_host()
          std::cout << "upper_bound on host FAIL." << std::endl;
 }
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
 void test_on_device()
 {
      bool correctness_flag = true;
@@ -105,7 +105,7 @@ void test_on_device()
 
 int main()
 {
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
     test_on_device();
 #endif
     test_on_host();
