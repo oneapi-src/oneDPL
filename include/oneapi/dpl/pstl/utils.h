@@ -601,7 +601,8 @@ struct __next_to_last
                               _Iterator>::type
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
-        for (; --__n >= 0 && __it != __last; ++__it);
+        for (; --__n >= 0 && __it != __last; ++__it)
+            ;
         return __it;
     }
 };
