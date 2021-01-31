@@ -114,7 +114,8 @@ struct shift_left_algo
 struct shift_right_algo
 {
     template <typename Policy, typename It, typename Size>
-    typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value,
+    typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
+                            || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, Size n)
     {
@@ -122,7 +123,8 @@ struct shift_right_algo
     }
     //skip the test for non-bidirectional iterator (forward iterator, etc)
     template <typename Policy, typename It, typename Size>
-    typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value,
+    typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
+                            && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, Size n)
     {
@@ -130,7 +132,8 @@ struct shift_right_algo
     }
 
     template <typename It, typename Size>
-    typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value,
+    typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
+                            || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
     check(It res, It first, Size m, It first_exp, Size n)
     {
@@ -150,7 +153,8 @@ struct shift_right_algo
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
     template <typename It, typename Size>
-    typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value,
+    typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
+                            && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
     check(It res, It first, Size m, It first_exp, Size n)
     {
@@ -166,7 +170,7 @@ main()
     {
         //std::cout << "m: " << m << " n: " << n << std::endl;
 #ifdef _PSTL_TEST_SHIFT_LEFT
-        test_shift_by_type<int32_t>(m, n, shift_left_algo{}); 
+       test_shift_by_type<int32_t>(m, n, shift_left_algo{}); 
 #endif
 #ifdef _PSTL_TEST_SHIFT_RIGHT
        test_shift_by_type<int32_t>(m, n, shift_right_algo{});
