@@ -373,7 +373,7 @@ class __future_base
     sycl::event __my_event;
 
   public:
-    __future_base(sycl::event __e) : __my_event(__e) {}
+    __hetero_future_base(sycl::event __e) : __my_event(__e) {}
     void
     wait()
     {
@@ -384,24 +384,39 @@ class __future_base
     operator sycl::event() const { return __my_event; }
 };
 
-// TODO: Extend to support value type and sycl iterator.
-template <typename T>
-class __future : public __future_base
+// future<_T> general implementation
+template <typename _Exec, typename _T>
+class __future
 {
+    _T __data;
+
+  public:
+    __future(_T _t) : __data(_t) {}
+    _T
+    get()
+    {
+        return __data;
+    }
+    void
+    wait()
+    {
+    }
 };
 
-template <>
-class __future<void> : public __future_base
+// future<void>
+template <typename _Exec>
+class __future<_Exec, void> : public __hetero_future_base
 {
     ::std::unique_ptr<__lifetime_keeper_base> __tmps;
 
   public:
     template <typename... _Ts>
-    __future(sycl::event __e, _Ts... __t) : __future_base(__e)
+    __future(sycl::event __e, _Ts... __t) : __hetero_future_base(__e)
     {
         if (sizeof...(__t) != 0)
             __tmps = ::std::unique_ptr<__lifetime_keeper<_Ts...>>(new __lifetime_keeper<_Ts...>(__t...));
     }
+    __future() : __hetero_future_base(sycl::event{}) {}
     void
     get()
     {
