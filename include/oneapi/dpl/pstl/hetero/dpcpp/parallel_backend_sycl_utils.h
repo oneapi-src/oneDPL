@@ -605,13 +605,14 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 //-----------------------------------------------------------------------
 
 // empty base class for type erasure
-struct __tmp_base
+struct __KeepAlive
 {
+    virtual ~__KeepAlive() {}
 };
 
 // derived class to keep temporaries (e.g. buffer) alive
 template <typename... Ts>
-struct __TempObjs : public __tmp_base
+struct __TempObjs : public __KeepAlive
 {
     ::std::tuple<Ts...> __my_tmps;
     __TempObjs(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
@@ -642,7 +643,7 @@ class __future : public __future_base
 template <>
 class __future<void> : public __future_base
 {
-    ::std::unique_ptr<__tmp_base> __tmps;
+    ::std::unique_ptr<__KeepAlive> __tmps;
 
   public:
     template <typename... _Ts>
