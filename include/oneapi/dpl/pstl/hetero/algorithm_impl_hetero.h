@@ -36,23 +36,22 @@ namespace __internal
 // walk1
 //------------------------------------------------------------------------
 
-template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, __par_backend_hetero::__future<void>>
+template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                 /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
     auto __n = __last - __first;
     if (__n <= 0)
-        return __par_backend_hetero::__future<void>{};
+        return;
 
     auto __keep =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        __exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view());
-    oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
-    return __future_obj;
+    oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
+                                                      __n, __buf.all_view())
+        .wait();
 }
 
 //------------------------------------------------------------------------
@@ -65,8 +64,7 @@ __pattern_walk1_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n
                   /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
     __pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n, __f,
-                    /*vector=*/::std::true_type(), /*parallel=*/::std::true_type())
-        .wait();
+                    /*vector=*/::std::true_type(), /*parallel=*/::std::true_type());
     return __first + __n;
 }
 
@@ -182,8 +180,7 @@ __pattern_walk_brick(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     __pattern_walk1(
         __par_backend_hetero::make_wrapped_policy<__walk_brick_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __first, __last, __f,
-        /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{})
-        .wait();
+        /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{});
 }
 
 template <typename _Name>
@@ -199,8 +196,7 @@ __pattern_walk_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Siz
     __pattern_walk1(
         __par_backend_hetero::make_wrapped_policy<__walk_brick_n_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __first, __first + __n, __f,
-        /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{})
-        .wait();
+        /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{});
     return __first + __n;
 }
 
@@ -266,8 +262,7 @@ __pattern_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
     __pattern_walk1(::std::forward<_ExecutionPolicy>(__exec),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
-                    fill_functor<_T>{__value}, ::std::true_type{}, ::std::true_type{})
-        .wait();
+                    fill_functor<_T>{__value}, ::std::true_type{}, ::std::true_type{});
     return __last;
 }
 
@@ -296,8 +291,7 @@ __pattern_generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
     __pattern_walk1(::std::forward<_ExecutionPolicy>(__exec),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
-                    generate_functor<_Generator>{__g}, ::std::true_type{}, ::std::true_type{})
-        .wait();
+                    generate_functor<_Generator>{__g}, ::std::true_type{}, ::std::true_type{});
     return __last;
 }
 
@@ -1311,39 +1305,35 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 //------------------------------------------------------------------------
 // sort
 //------------------------------------------------------------------------
-template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, __par_backend_hetero::__future<void>>
+template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
 {
     if (__last - __first < 2)
-        return __par_backend_hetero::__future<void>{};
+        return;
 
     auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp);
-    oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
-    return __future_obj;
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp).wait();
 }
 
 //------------------------------------------------------------------------
 // stable_sort
 //------------------------------------------------------------------------
-template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, __par_backend_hetero::__future<void>>
+template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
     if (__last - __first < 2)
-        return __par_backend_hetero::__future<void>{};
+        return;
 
     auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp);
-    oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
-    return __future_obj;
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp).wait();
 }
 
 template <typename Name>
