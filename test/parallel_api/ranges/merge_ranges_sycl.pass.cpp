@@ -32,7 +32,7 @@ main()
     const int max_n = 10;
     int data1[max_n] = { 0,  1, 2, 3, 4, 5, 6, 6, 6, 6};
     int data2[max_n] = {-2, -1, 2, 3, 3, 5, 6, 7, 8, 9};
-    int data3[max_n] = { 0,  0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int data3[2 * max_n] = {};
 
     using namespace TestUtils;
     using namespace oneapi::dpl::experimental::ranges;
