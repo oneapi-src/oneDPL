@@ -433,9 +433,8 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                 ::std::size_t __last_segment_bucket_idx = (__self_lidx + 1) * __scan_size - 1;
 
                 // copy buckets from the last segment, scan them to get global offsets
-                __count_rng[__global_offset_idx] =
-                    sycl::ONEAPI::exclusive_scan(__self_item.get_group(), __count_rng[__last_segment_bucket_idx],
-                                                 sycl::ONEAPI::plus<_CountT>{});
+                __count_rng[__global_offset_idx] = sycl::ONEAPI::exclusive_scan(
+                    __self_item.get_group(), __count_rng[__last_segment_bucket_idx], sycl::ONEAPI::plus<_CountT>{});
             });
     });
 
