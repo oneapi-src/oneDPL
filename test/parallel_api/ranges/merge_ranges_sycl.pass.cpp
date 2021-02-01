@@ -43,11 +43,11 @@ main()
 
         auto exec = TestUtils::default_dpcpp_policy;
 
-        merge(exec, all_view(A), all_view(B), all_view<int, sycl::access::mode::write>(C));
+        merge(exec, all_view(A), all_view(B), all_view<int, sycl::access::mode::write>(C), oneapi::dpl::__internal::__pstl_less());
     }
 
     //check result
-    bool res = ::std::is_sorted(data3, data3 + 2 * max_n);
+    bool res = ::std::is_sorted(data3, data3 + 2 * max_n, oneapi::dpl::__internal::__pstl_less());
     EXPECT_TRUE(res, "wrong effect from 'merge' with sycl ranges");
 #endif //_ONEDPL_USE_RANGES
 
