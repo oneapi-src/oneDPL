@@ -229,6 +229,10 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
+//------------------------------------------------------------------------
+// search_n
+//------------------------------------------------------------------------
+
 template <typename _ExecutionPolicy, typename _Range, typename _Size, typename _Tp, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range>>
@@ -256,6 +260,10 @@ return_value(_Size __res, _Size __size, ::std::false_type)
 {
     return __res == __size - 1 ? __size : __res;
 }
+
+//------------------------------------------------------------------------
+// adjacent_find
+//------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate, typename _OrFirstTag>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
@@ -285,6 +293,10 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
     // reorder_predicate in glue_algorithm_impl.h
     return return_value(result, __rng.size(), __is__or_semantic);
 }
+
+//------------------------------------------------------------------------
+// merge
+//------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
@@ -321,6 +333,10 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
     return __n;
 }
 
+//------------------------------------------------------------------------
+// sort
+//------------------------------------------------------------------------
+
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
@@ -330,6 +346,10 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
                                                      ::std::forward<_Range>(__rng), __comp)
             .wait();
 }
+
+//------------------------------------------------------------------------
+// min_element
+//------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
@@ -361,6 +381,10 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
     using ::std::get;
     return get<0>(__ret_idx);
 }
+
+//------------------------------------------------------------------------
+// minmax_element
+//------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<

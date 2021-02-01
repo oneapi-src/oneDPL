@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -42,13 +42,12 @@ main()
         sycl::buffer<int> C(data3, sycl::range<1>(max_n));
 
         auto exec = TestUtils::default_dpcpp_policy;
-        using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         merge(exec, all_view(A), all_view(B), all_view<int, sycl::access::mode::write>(C));
     }
 
     //check result
-    bool res = ::std::is_sorted(data3, data3 + max_n);
+    bool res = ::std::is_sorted(data3, data3 + 2 * max_n);
     EXPECT_TRUE(res, "wrong effect from 'merge' with sycl ranges");
 #endif //_ONEDPL_USE_RANGES
 
