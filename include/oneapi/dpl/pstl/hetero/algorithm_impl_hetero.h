@@ -1995,22 +1995,16 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
                                                     __comp, ::std::true_type(), ::std::true_type());
 }
 
-template <typename _ExecutionPolicy, typename _Iterator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
-__pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
-                     typename ::std::iterator_traits<_Iterator>::difference_type __n, /*vector=*/::std::true_type,
-                     /*is_parallel=*/::std::true_type)
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+__pattern_shift_left(_ExecutionPolicy&& __exec, _Range __rng, oneapi::dpl::__internal::__difference_t<_Range> __n)
 {
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
-    if (__n <= 0)
-        return __last;
-
-    using _DiffType = typename ::std::iterator_traits<_Iterator>::difference_type;
-
-    _DiffType __size = __last - __first;
-    if (__n >= __size)
-        return __first;
-
+    using _DiffType = oneapi::dpl::__internal::__difference_t<_Range>;
+    _DiffType __size = __rng.size();
+    
+    assert(__n > 0 && __n < __size);
+    
     _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
@@ -2020,29 +2014,61 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
         using _Function = __brick_move<_ExecutionPolicy>;
         auto __brick = oneapi::dpl::unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
 
-        auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
-        auto __src = __keep1(__first + __n, __last);
-        auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator>();
-        auto __dst = __keep2(__first, __first + __size_res);
+        auto __src = oneapi::dpl::__ranges::drop_view_simple<_Range, _DiffType>{__rng, __n};
+        auto __dst = oneapi::dpl::__ranges::take_view_simple<_Range, _DiffType>{__rng, __size_res};
 
-        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __size_res,
-                                                          __src.all_view(), __dst.all_view())
-            .wait();
+        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __size_res, __src, __dst).wait();
     }
     else //2. n < size/2; 'n' parallel copying
     {
         auto __brick = unseq_backend::__brick_shift_left<_ExecutionPolicy, _DiffType>{__size, __n};
-
-        auto __keep =
-            oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
-        auto __buf = __keep(__first, __last);
-
-        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n,
-                                                          __buf.all_view())
-            .wait();
+        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n, __rng).wait();
     }
 
-    return __first + __size_res;
+    return __size_res;
+}
+
+template <typename _ExecutionPolicy, typename _Iterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
+__pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                     typename ::std::iterator_traits<_Iterator>::difference_type __n, /*vector=*/::std::true_type,
+                     /*is_parallel=*/::std::true_type)
+{
+    //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
+    auto __size = __last - __first;
+    if (__n <= 0)
+        return __last;    
+    if (__n >= __size)
+        return __first;
+    
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+        
+    auto __res = oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __n);
+    return __first + __res;
+}
+
+template <typename _ExecutionPolicy, typename _Iterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
+__pattern_shift_right(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                     typename ::std::iterator_traits<_Iterator>::difference_type __n, /*vector=*/::std::true_type,
+                     /*is_parallel=*/::std::true_type)
+{
+    //If (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last. Otherwise, returns first.
+    auto __size = __last - __first;
+    if (__n <= 0)
+        return __first;    
+    if (__n >= __size)
+        return __last;
+    
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+    
+    using _DiffType = typename ::std::iterator_traits<_Iterator>::difference_type;
+    auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__buf.all_view()), _DiffType>{__buf.all_view(), __n};
+        
+    auto __res = oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec), __rng, __n);
+    return __first + __res;
 }
 
 } // namespace __internal

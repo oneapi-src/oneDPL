@@ -197,6 +197,102 @@ class guard_view
     diff_type m_count; // size of the data
 };
 
+//It is kind of pseudo-view for reverse_view support.
+template <typename _R, typename _Size>
+struct reverse_view_simple
+{
+    _R __r;
+    _Size __n;
+
+    template <typename Idx>
+    auto operator[](Idx __i) const -> decltype(__r[__i])
+    {
+        return __r[__n - __i - 1];
+    }
+
+    auto
+    size() const -> decltype(__r.size())
+    {
+        return __r.size();
+    }
+
+    bool
+    empty() const
+    {
+        return __r.empty();
+    }
+
+    auto
+    base() const -> decltype(__r)
+    {
+        return __r;
+    }
+};
+
+//It is kind of pseudo-view for take_view support.
+template <typename _R, typename _Size>
+struct take_view_simple
+{
+    _R __r;
+    _Size __n;
+
+    template <typename Idx>
+    auto operator[](Idx __i) const -> decltype(__r[__i])
+    {
+        return __r[__i];
+    }
+
+    _Size
+    size() const
+    {
+        return __n;
+    }
+
+    bool
+    empty() const
+    {
+        return size() <= 0;
+    }
+
+    auto
+    base() const -> decltype(__r)
+    {
+        return __r;
+    }
+};
+
+//It is kind of pseudo-view for drop_view support.
+template <typename _R, typename _Size>
+struct drop_view_simple
+{
+    _R __r;
+    _Size __n;
+
+    template <typename Idx>
+    auto operator[](Idx __i) const -> decltype(__r[__i])
+    {
+        return __r[__n + __i];
+    }
+
+    _Size
+    size() const
+    {
+        return __r.size() - __n;
+    }
+
+    bool
+    empty() const
+    {
+        return size() <= 0;
+    }
+
+    auto
+    base() const -> decltype(__r)
+    {
+        return __r;
+    }
+};
+
 //It is kind of pseudo-view for transfom_iterator support.
 template <typename _R, typename _F>
 struct transform_view_simple
