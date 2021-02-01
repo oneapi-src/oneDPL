@@ -385,7 +385,7 @@ class __future_base
 };
 
 // future<_T> general implementation
-template <typename _Exec, typename _T>
+template <typename _T>
 class __future
 {
     _T __data;
@@ -404,8 +404,8 @@ class __future
 };
 
 // future<void>
-template <typename _Exec>
-class __future<_Exec, void> : public __hetero_future_base
+template <>
+class __future<void> : public __hetero_future_base
 {
     ::std::unique_ptr<__lifetime_keeper_base> __tmps;
 

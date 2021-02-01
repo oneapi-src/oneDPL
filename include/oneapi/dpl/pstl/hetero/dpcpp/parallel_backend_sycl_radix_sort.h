@@ -626,7 +626,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 //-----------------------------------------------------------------------
 
 template <bool __is_comp_asc, typename _Range, typename _ExecutionPolicy>
-__future<_ExecutionPolicy, void>
+__future<void>
 __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
 {
     const ::std::size_t __n = __in_rng.size();
@@ -674,7 +674,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         explicit_wait_if<::std::is_pointer<decltype(__in_rng.begin())>::value>{}(__iteration_event);
     }
 
-    return __future<_ExecutionPolicy, void>(__iteration_event, __tmp_buf, __out_buffer_holder.get_buffer());
+    return __future<void>(__iteration_event, __tmp_buf, __out_buffer_holder.get_buffer());
 }
 
 } // namespace __par_backend_hetero
