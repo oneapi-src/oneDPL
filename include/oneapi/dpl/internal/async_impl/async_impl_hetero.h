@@ -147,7 +147,8 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1},                // reduce
         __buf1.all_view(), __buf2.all_view());
 
-    return oneapi::dpl::__internal::__future<_Tp>(__res, __init, __binary_op1);
+    return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
+                                                  __binary_op1);
 }
 
 //------------------------------------------------------------------------
