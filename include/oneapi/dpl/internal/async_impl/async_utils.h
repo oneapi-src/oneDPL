@@ -96,7 +96,7 @@ template <typename _Tp>
 class __future : public __par_backend_hetero::__future_base
 {
     ::std::unique_ptr<__async_value<_Tp>> __data; // This is a value/buffer for read access!
-    ::std::unique_ptr<__par_backend_hetero::__tmp_base> __tmp;
+    ::std::unique_ptr<__par_backend_hetero::__object_keeper> __tmp;
 
   public:
     template <typename... _Ts>
@@ -105,20 +105,20 @@ class __future : public __par_backend_hetero::__future_base
           __data(::std::unique_ptr<__async_transform<_Tp>>(new __async_transform<_Tp>(__d)))
     {
         if (sizeof...(_Ts) != 0)
-            __tmp = ::std::unique_ptr<__par_backend_hetero::__TempObjs<_Ts...>>(
-                new __par_backend_hetero::__TempObjs<_Ts...>(__t...));
+            __tmp = ::std::unique_ptr<__par_backend_hetero::__temp_objs<_Ts...>>(
+                new __par_backend_hetero::__temp_objs<_Ts...>(__t...));
     }
     // Constructor for reduce_transform pattern
     template <typename _Op>
-    __future(__future<_Tp>&& _fp, _Tp __i, _Op __o)
-        : __par_backend_hetero::__future_base(_fp),
+    __future(__future<_ExecutionPolicy,_Tp>&& _fp, _Tp __i, _Op __o)
+        : __par_backend_hetero::__hetero_future_base(_fp),
           __data(::std::unique_ptr<__async_transform<_Tp, _Op>>(
               new __async_transform<_Tp, _Op>(_fp.raw_data().get_buffer(), __i, __o)))
     {
         __tmp.swap(_fp.__tmp);
     }
     __future(sycl::event __e, _Tp __i)
-        : __par_backend_hetero::__future_base(__e),
+        : __par_backend_hetero::__hetero_future_base(__e),
           __data(::std::unique_ptr<__async_init<_Tp>>(new __async_init<_Tp>(__i)))
     {
     }
@@ -143,16 +143,16 @@ class __future<sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_all
 {
     using _Tp = sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_allocator>;
     ::std::unique_ptr<__async_value<T>> __data;
-    ::std::unique_ptr<__par_backend_hetero::__tmp_base> __tmp;
+    ::std::unique_ptr<__par_backend_hetero::__object_keeper> __tmp;
 
   public:
     template <typename... _Ts>
     __future(sycl::event __e, _Tp __d, _Ts... __t)
-        : __future_base(__e), __data(::std::unique_ptr<__async_direct<_Tp>>(new __async_direct<_Tp>(__d)))
+        : __hetero_future_base(__e), __data(::std::unique_ptr<__async_direct<_Tp>>(new __async_direct<_Tp>(__d)))
     {
         if (sizeof...(_Ts) != 0)
-            __tmp = ::std::unique_ptr<__par_backend_hetero::__TempObjs<_Ts...>>(
-                new __par_backend_hetero::__TempObjs<_Ts...>(__t...));
+            __tmp = ::std::unique_ptr<__par_backend_hetero::__temp_objs<_Ts...>>(
+                new __par_backend_hetero::__temp_objs<_Ts...>(__t...));
     }
     _Tp
     get()
