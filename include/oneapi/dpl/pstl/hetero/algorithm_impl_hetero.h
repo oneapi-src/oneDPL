@@ -1313,10 +1313,11 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
     if (__last - __first < 2)
         return;
 
-    auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
+    __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp).wait();
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp)
+        .wait();
 }
 
 //------------------------------------------------------------------------
@@ -1330,10 +1331,11 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     if (__last - __first < 2)
         return;
 
-    auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
+    __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp).wait();
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp)
+        .wait();
 }
 
 template <typename Name>
