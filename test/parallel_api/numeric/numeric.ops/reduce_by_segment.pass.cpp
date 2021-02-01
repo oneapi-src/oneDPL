@@ -21,7 +21,7 @@
 #include <iostream>
 #include <iomanip>
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -31,7 +31,7 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
         std::cout << "CHECK CORRECTNESS (REDUCE_BY_SEGMENT): fail (" << X << "," << Y << ")" << std::endl;
 }
 
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
+#if TEST_DPCPP_BACKEND_PRESENT
 void test_with_buffers()
 {
     // create buffers
@@ -213,7 +213,7 @@ void test_on_host() {
 }
 
 int main() {
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
+#if TEST_DPCPP_BACKEND_PRESENT
     test_with_buffers();
     test_with_usm();
 #endif

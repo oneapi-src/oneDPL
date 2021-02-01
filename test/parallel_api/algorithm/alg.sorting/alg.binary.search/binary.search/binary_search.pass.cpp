@@ -19,7 +19,7 @@
 
 #include <iostream>
 
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
+#if TEST_DPCPP_BACKEND_PRESENT
 
 #include <CL/sycl.hpp>
 
@@ -111,7 +111,7 @@ bool test_on_host()
 
 int main()
 {
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
+#if TEST_DPCPP_BACKEND_PRESENT
     test_on_device();
 #endif
     test_on_host();

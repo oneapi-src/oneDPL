@@ -22,7 +22,7 @@
 #include <chrono>
 #include <cmath>
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
 
     evaluate(oneapi::dpl::execution::par, oneapi::dpl::execution::par, ref.begin(), ref.end(), p, std::string("CPU Reverse"));
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_DPCPP_BACKEND_PRESENT
     // Case 4 -- Linear traversal on accelerator
     {
         using policy_type = decltype(oneapi::dpl::execution::dpcpp_default);

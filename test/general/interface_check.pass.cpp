@@ -22,14 +22,14 @@
 #include <functional>
 #include <iterator>
 #include <vector>
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
 template <typename Policy, typename NewName>
 struct rebind_policy { using type = Policy; };
 
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
+#if TEST_DPCPP_BACKEND_PRESENT
 template <typename KernelName, typename NewName>
 struct rebind_policy<oneapi::dpl::execution::device_policy<KernelName>, NewName>
 { using type = oneapi::dpl::execution::device_policy<NewName>; };
@@ -48,7 +48,7 @@ using oneapi::dpl::make_zip_iterator;
 
 int main()
 {
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
+#if TEST_DPCPP_BACKEND_PRESENT
     cl::sycl::buffer<int, 1> buf{ cl::sycl::range<1>(10) };
 
     auto b = oneapi::dpl::begin(buf);

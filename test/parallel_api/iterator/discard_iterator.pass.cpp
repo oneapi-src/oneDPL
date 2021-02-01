@@ -22,7 +22,7 @@
 #include <chrono>
 #include <cmath>
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
 
     evaluate(oneapi::dpl::execution::par, ref.begin(), ref.end(), p, std::string("CPU discard"));
 
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && ONEDPL_USE_DPCPP_BACKEND)
+#if TEST_DPCPP_BACKEND_PRESENT
     // Case 2 -- Compare traversal on accelerator
     {
         using policy_type = decltype(oneapi::dpl::execution::dpcpp_default);
