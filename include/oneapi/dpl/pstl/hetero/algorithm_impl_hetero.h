@@ -37,14 +37,13 @@ namespace __internal
 //------------------------------------------------------------------------
 
 template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             __par_backend_hetero::__future<_ExecutionPolicy, void>>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, __par_backend_hetero::__future<void>>
 __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                 /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
     auto __n = __last - __first;
     if (__n <= 0)
-        return __par_backend_hetero::__future<_ExecutionPolicy, void>{};
+        return __par_backend_hetero::__future<void>{};
 
     auto __keep =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
@@ -1313,13 +1312,12 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 // sort
 //------------------------------------------------------------------------
 template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             __par_backend_hetero::__future<_ExecutionPolicy, void>>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, __par_backend_hetero::__future<void>>
 __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
 {
     if (__last - __first < 2)
-        return __par_backend_hetero::__future<_ExecutionPolicy, void>{};
+        return __par_backend_hetero::__future<void>{};
 
     auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
@@ -1333,13 +1331,12 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
 // stable_sort
 //------------------------------------------------------------------------
 template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             __par_backend_hetero::__future<_ExecutionPolicy, void>>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, __par_backend_hetero::__future<void>>
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
     if (__last - __first < 2)
-        return __par_backend_hetero::__future<_ExecutionPolicy, void>{};
+        return __par_backend_hetero::__future<void>{};
 
     auto __future_obj = __par_backend_hetero::__parallel_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec),
