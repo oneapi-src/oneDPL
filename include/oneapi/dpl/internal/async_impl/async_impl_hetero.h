@@ -71,7 +71,7 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         __buf1.all_view(), __buf2.all_view());
     oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
 
-    return oneapi::dpl::__internal::__future<_ForwardIterator2>(__future_obj, __first2 + __n);
+    return oneapi::dpl::__internal::__future<_ForwardIterator2>(__future_obj).set(__first2 + __n);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
@@ -119,13 +119,14 @@ __pattern_walk2_brick_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Tp,
           typename _BinaryOperation1, typename _BinaryOperation2>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp,_BinaryOperation1>>
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    if (__first1 == __last1)
-        return oneapi::dpl::__internal::__future<_Tp>(sycl::event{}, __init);
+    auto __ret_val = oneapi::dpl::__internal::__future<_Tp,_BinaryOperation1,_Tp*>(__init);
+    if (__first1 == __last1) return __ret_val;
+        //return oneapi::dpl::__internal::__future<_Tp>(sycl::event{}, __init);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
@@ -147,8 +148,9 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1},                // reduce
         __buf1.all_view(), __buf2.all_view());
 
-    return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
-                                                  __binary_op1);
+    return __res.set(__init);
+    //return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
+    //                                              __binary_op1);
 }
 
 //------------------------------------------------------------------------
@@ -157,12 +159,12 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp, typename _BinaryOperation,
           typename _UnaryOperation>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>>
+oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp,_BinaryOperation>>
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                                  _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
     if (__first == __last)
-        return oneapi::dpl::__internal::__future<_Tp>(sycl::event{}, __init);
+        return oneapi::dpl::__internal::__future<_Tp,_BinaryOperation>(__init);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
@@ -178,8 +180,9 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
         __binary_op,                                                                              // combine
         unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op},               // reduce
         __buf.all_view());
-    return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
-                                                  __binary_op);
+    return __res.set(__init);
+    //return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
+    //                                              __binary_op);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _T>

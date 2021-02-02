@@ -27,7 +27,7 @@ namespace __internal
 {
 
 using sycl::event;
-
+#if 0
 template <typename _T, typename _Tp = sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>>
 struct __async_value
 {
@@ -91,7 +91,9 @@ struct __async_transform : public __async_value<_Tp>
         return oneapi::dpl::begin(__buf);
     }
 };
+#endif
 
+#if 0
 template <typename _Tp>
 class __future : public __par_backend_hetero::__future_base
 {
@@ -159,6 +161,71 @@ class __future<sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_all
     {
         this->wait();
         return __data->data();
+    }
+};
+#endif
+
+template <typename _T, typename _Op = ::std::plus<_T>, typename _Buf = sycl::buffer<_T>>
+class __future : public __par_backend_hetero::__future_base
+{
+    _Buf __data;
+    _Op __op;
+    //::std::unique_ptr<__async_value<_Tp>> __data; // This is a value/buffer for read access!
+    ::std::unique_ptr<__par_backend_hetero::__object_keeper> __tmp;
+    _T __init;
+    //sycl::event __my_event;
+
+  public:
+    
+    __future(_T __i) : __par_backend_hetero::__future_base(sycl::event{}), __init(__i) {}
+    
+    template <typename... _Ts>
+    __future(sycl::event __e, sycl::buffer<_T> __d, _Op __o, _Ts... __t) : __par_backend_hetero::__future_base(__e), __data(__d) {
+    //set(sycl::event __e, sycl::buffer<_Tp> __d, _Op __o, _Ts... __t) {
+        __my_event = __e;
+        __op = __o;
+        //__data = __d;
+        //__data = ::std::unique_ptr<__async_transform<_Tp,_Op>>(new __async_transform<_Tp,_Op>(__d, __i, __o));
+        __tmp = ::std::unique_ptr<__par_backend_hetero::__temp_objs<_Ts...>>(new __par_backend_hetero::__temp_objs<_Ts...>(__t...));
+    }
+    void set(_T __i) { __init = __i; }
+    _T
+    get()
+    {
+        this->wait();
+        auto ret_val = __data.template get_access<access_mode::read>()[0];
+        return __op(ret_val, __init);
+    }
+};
+
+// Specialization for sycl_iterator
+template <typename _T>
+class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>>
+    : public __par_backend_hetero::__future_base
+{
+    using _Tp = sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>;
+    _Tp __data;
+    ::std::unique_ptr<__par_backend_hetero::__object_keeper> __tmp;
+
+  public:
+    template <typename... _Ts>
+    __future(sycl::event __e, _Ts... __t)
+        : __par_backend_hetero::__future_base(__e)
+    {
+        if (sizeof...(_Ts) != 0)
+            __tmp = ::std::unique_ptr<__par_backend_hetero::__temp_objs<_Ts...>>(
+                new __par_backend_hetero::__temp_objs<_Ts...>(__t...));
+    }
+    void
+    set(_Tp __d)
+    {
+        __data = __d;
+    }
+    _Tp
+    get()
+    {
+        this->wait();
+        return __data;
     }
 };
 

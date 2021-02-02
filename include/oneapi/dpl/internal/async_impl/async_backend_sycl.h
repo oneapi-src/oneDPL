@@ -29,7 +29,7 @@ namespace __par_backend_hetero
 //------------------------------------------------------------------------
 
 template <typename _Tp, typename _ExecutionPolicy, typename _Up, typename _Cp, typename _Rp, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp,_Cp>>
 __parallel_transform_reduce_async(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce,
                                   _Ranges&&... __rngs)
 {
@@ -118,8 +118,8 @@ __parallel_transform_reduce_async(_ExecutionPolicy&& __exec, _Up __u, _Cp __comb
         __n = __n_groups;
         __n_groups = (__n - 1) / __wgroup_size + 1;
     } while (__n > 1);
-
-    return ::oneapi::dpl::__internal::__future<_Tp>(__reduce_event, *__buf_1_ptr, *__buf_2_ptr);
+    return ::oneapi::dpl::__internal::__future<_Tp,_Cp>(__reduce_event, *__buf_1_ptr, __combine, *__buf_2_ptr);
+    //return ::oneapi::dpl::__internal::__future<_Tp>(__reduce_event, *__buf_1_ptr, *__buf_2_ptr);
 }
 
 } // namespace __par_backend_hetero
