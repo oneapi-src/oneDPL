@@ -1203,7 +1203,7 @@ shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
 template <class _ExecutionPolicy, class _BidirectionalIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
 shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
-            typename std::iterator_traits<_BidirectionalIterator>::difference_type __n)
+            typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
 {
     return oneapi::dpl::__internal::__pattern_shift_right(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
