@@ -235,10 +235,7 @@ struct take_view_simple
     _R __r;
     _Size __n;
 
-    take_view_simple(_R __rng, _Size __size): __r(__rng), __n(__size)
-    {
-        assert(__n >= 0&& __n < __r.size());
-    }
+    take_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n < __r.size()); }
 
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
@@ -272,10 +269,7 @@ struct drop_view_simple
     _R __r;
     _Size __n;
 
-    drop_view_simple(_R __rng, _Size __size): __r(__rng), __n(__size)
-    {
-        assert(__n >= 0&& __n < __r.size());
-    }
+    drop_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n < __r.size()); }
 
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
