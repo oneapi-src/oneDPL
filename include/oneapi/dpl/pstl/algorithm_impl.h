@@ -4125,7 +4125,7 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
                       typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n, _IsVector __is_vector,
                       _IsParallel is_parallel)
 {
-    using _ReverseIterator = typename std::reverse_iterator<_BidirectionalIterator>;
+    using _ReverseIterator = typename ::std::reverse_iterator<_BidirectionalIterator>;
     auto __res = oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec),
                                                                _ReverseIterator(__last), _ReverseIterator(__first), __n,
                                                                __is_vector, is_parallel);
