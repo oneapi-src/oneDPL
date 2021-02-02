@@ -168,7 +168,7 @@ main()
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
     {
-        //std::cout << "m: " << m << " n: " << n << std::endl;
+       //std::cout << "m: " << m << " n: " << n << std::endl;
 #ifdef _PSTL_TEST_SHIFT_LEFT
        test_shift_by_type<int32_t>(m, n, shift_left_algo{}); 
 #endif

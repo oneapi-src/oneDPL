@@ -2069,11 +2069,10 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    using _DiffType = typename ::std::iterator_traits<_Iterator>::difference_type;
-    auto __rng =
-        oneapi::dpl::__ranges::reverse_view_simple<decltype(__buf.all_view()), _DiffType>{__buf.all_view(), __n};
-
+    //A shift right is the shift left with a reverse logic.
+    auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__buf.all_view())>{__buf.all_view()};
     auto __res = oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec), __rng, __n);
+
     return __first + __res;
 }
 

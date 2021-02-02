@@ -198,16 +198,15 @@ class guard_view
 };
 
 //It is kind of pseudo-view for reverse_view support.
-template <typename _R, typename _Size>
+template <typename _R>
 struct reverse_view_simple
 {
     _R __r;
-    _Size __n;
 
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
     {
-        return __r[__n - __i - 1];
+        return __r[size() - __i - 1];
     }
 
     auto
