@@ -224,7 +224,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __com
                               __device_policy(__exec), ::std::forward<_Range>(__rng), __comp))>
 {
     // workaround until we implement more performant version for patterns
-    oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec), ::std::forward<_Range>(__rng),
+    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec), ::std::forward<_Range>(__rng),
                                                               __comp);
 }
 
