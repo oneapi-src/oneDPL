@@ -1190,7 +1190,7 @@ lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-           typename std::iterator_traits<_ForwardIterator>::difference_type __n)
+           typename ::std::iterator_traits<_ForwardIterator>::difference_type __n)
 {
     return oneapi::dpl::__internal::__pattern_shift_left(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
