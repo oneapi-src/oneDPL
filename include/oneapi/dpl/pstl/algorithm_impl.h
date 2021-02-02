@@ -4069,7 +4069,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
 template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
 __pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
-                     typename std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
                      /*is_parallel=*/::std::false_type) noexcept
 {
     return __brick_shift_left(__first, __last, __n, __is_vector);
