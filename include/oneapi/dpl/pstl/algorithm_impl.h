@@ -4008,7 +4008,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
                    typename std::iterator_traits<_ForwardIterator>::difference_type __n,
                    /*is_vector=*/::std::false_type) noexcept
 {
-#if _PSTL_CPP20_SHIFT_LEFT_RIGHT_PRESENT
+#if _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT
     return ::std::shift_left(__first, __last, __n);
 #else
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
