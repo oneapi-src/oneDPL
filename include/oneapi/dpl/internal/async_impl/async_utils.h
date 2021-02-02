@@ -165,24 +165,26 @@ class __future<sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_all
 };
 #endif
 
+template<typename _T>
 struct async_value_base {
-    virtual ~async_value_base() = 0;
+    virtual ~async_value_base() = default;
+    virtual _T data(_T) = 0;
 };
 
 template<typename _T, typename _Buf, typename _Op>
-class async_value : async_value_base {
+class async_value : public async_value_base<_T> {
     _Buf __my_buffer;
     _Op __my_op;
 public:
     async_value(_Buf __b, _Op __o) : __my_buffer(__b) , __my_op(__o) {}
-    _T data(_T __init) const { return __my_op(__my_buffer.template get_access<access_mode::read>()[0],__init); }
-}
+    _T data(_T __init) { return __my_op(__my_buffer.template get_access<access_mode::read>()[0],__init); }
+};
 
 template <typename _T>
 class __future : public __par_backend_hetero::__future_base
 {
-    ::std::unique_ptr<async_value_base> __ret_val; // This is a value/buffer for read access!
-    ::std::unique_ptr<__par_backend_hetero::__object_keeper> __tmp;
+    ::std::unique_ptr<async_value_base<_T>> __ret_val; // This is a value/buffer for read access!
+    ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmp;
     _T __init;
 
   public:
@@ -190,9 +192,9 @@ class __future : public __par_backend_hetero::__future_base
     __future(_T __i) : __par_backend_hetero::__future_base(sycl::event{}), __init(__i) {}
     
     template <typename _Op, typename _Buf, typename... _Ts>
-    __future(sycl::event __e, _Buf __d, _Op __o, _Ts... __t) : __par_backend_hetero::__future_base(__e), __data(__d) {
-        __ret_val = ::std::unique_ptr<async_value<_T,_Buf,_Op>>(new __async_value<_Tp,_Buf,_Op>(__d, __i, __o));
-        __tmp = ::std::unique_ptr<__par_backend_hetero::__temp_objs<_Ts...>>(new __par_backend_hetero::__temp_objs<_Ts...>(__t...));
+    __future(sycl::event __e, _Buf __b, _Op __o, _Ts... __t) : __par_backend_hetero::__future_base(__e){
+        __ret_val = ::std::unique_ptr<async_value<_T,_Buf,_Op>>(new async_value<_T,_Buf,_Op>(__b, __o));
+        __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
     void set(_T __i) { __init = __i; }
     _T
@@ -210,7 +212,7 @@ class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_al
 {
     using _Tp = sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>;
     _Tp __data;
-    ::std::unique_ptr<__par_backend_hetero::__object_keeper> __tmp;
+    ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmp;
 
   public:
     template <typename... _Ts>
@@ -218,8 +220,8 @@ class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_al
         : __par_backend_hetero::__future_base(__e)
     {
         if (sizeof...(_Ts) != 0)
-            __tmp = ::std::unique_ptr<__par_backend_hetero::__temp_objs<_Ts...>>(
-                new __par_backend_hetero::__temp_objs<_Ts...>(__t...));
+            __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
+                new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
     void
     set(_Tp __d)
