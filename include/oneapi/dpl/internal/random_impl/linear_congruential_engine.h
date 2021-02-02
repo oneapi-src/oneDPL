@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- linear_congruential_engine.h --------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -41,7 +41,8 @@ class linear_congruential_engine
     static constexpr scalar_type
     min()
     {
-        return (increment == static_cast<scalar_type>(0u)) ? static_cast<scalar_type>(1u) : static_cast<scalar_type>(0u);
+        return (increment == static_cast<scalar_type>(0u)) ? static_cast<scalar_type>(1u)
+                                                           : static_cast<scalar_type>(0u);
     }
     static constexpr scalar_type
     max()
@@ -55,7 +56,7 @@ class linear_congruential_engine
 
     explicit linear_congruential_engine(scalar_type __seed, unsigned long long __offset = 0)
     {
-        init<internal::type_traits_t<result_type>::num_elems, increment>(__seed);
+        init<internal::type_traits_t<result_type>::num_elems>(__seed);
         discard(__offset);
     }
 
@@ -64,7 +65,7 @@ class linear_congruential_engine
     seed(scalar_type __seed = default_seed)
     {
         // Engine initalization
-        init<internal::type_traits_t<result_type>::num_elems, increment>(__seed);
+        init<internal::type_traits_t<result_type>::num_elems>(__seed);
     }
 
     // Discard procedure
@@ -72,7 +73,11 @@ class linear_congruential_engine
     discard(unsigned long long __num_to_skip)
     {
         // Skipping sequence
-        skip_seq<internal::type_traits_t<result_type>::num_elems, increment>(__num_to_skip);
+        if (__num_to_skip == 0)
+            return;
+        constexpr bool flag = (increment == 0) && (modulus < ::std::numeric_limits<::std::uint32_t>::max()) &&
+                              (multiplier < ::std::numeric_limits<::std::uint32_t>::max());
+        skip_seq<internal::type_traits_t<result_type>::num_elems, flag>(__num_to_skip);
     }
 
     // operator () returns bits of engine recurrence
@@ -80,8 +85,9 @@ class linear_congruential_engine
     operator()()
     {
         result_type __state_tmp = state_;
-        unsigned long long __discard_num =
-            (internal::type_traits_t<result_type>::num_elems == 0) ? 1 : internal::type_traits_t<result_type>::num_elems;
+        unsigned long long __discard_num = (internal::type_traits_t<result_type>::num_elems == 0)
+                                               ? 1
+                                               : internal::type_traits_t<result_type>::num_elems;
         discard(__discard_num);
         return __state_tmp;
     }
@@ -95,8 +101,8 @@ class linear_congruential_engine
 
   private:
     // Static asserts
-    static_assert(((_M == 0) || (_A < _M) && ( _C < _M)),
-        "oneapi::dpl::linear_congruential_engine. Error: unsupported parameters");
+    static_assert(((_M == 0) || (_A < _M) && (_C < _M)),
+                  "oneapi::dpl::linear_congruential_engine. Error: unsupported parameters");
 
     // Function for state adjustment
     scalar_type
@@ -107,8 +113,8 @@ class linear_congruential_engine
     }
 
     // Initialization function
-    template <int _N = 0, scalar_type _INC = 0>
-    typename ::std::enable_if<_N == 0>::type
+    template <int _N = 0>
+    typename ::std::enable_if<(_N == 0)>::type
     init(scalar_type __seed)
     {
         if ((increment % modulus == 0) && (__seed % modulus == 0))
@@ -122,8 +128,8 @@ class linear_congruential_engine
         state_ = mod_scalar(state_);
     }
 
-    template <int _N = 0, scalar_type _INC = 0>
-    typename ::std::enable_if<(_N != 0)>::type
+    template <int _N = 0>
+    typename ::std::enable_if<(_N > 0)>::type
     init(scalar_type __seed)
     {
         if ((increment % modulus == 0) && (__seed % modulus == 0))
@@ -141,25 +147,55 @@ class linear_congruential_engine
             state_[__i] = mod_scalar(state_[__i - 1u]);
     }
 
+    // Internal function for calculate degrees of multiplier
+    scalar_type
+    pow_mult_n(unsigned long long __num_to_skip)
+    {
+        ::std::uint64_t __a2;
+        ::std::uint64_t __mod = static_cast<::std::uint64_t>(modulus);
+        ::std::uint64_t __a = static_cast<::std::uint64_t>(multiplier);
+        scalar_type __r;
+
+        __r = 1;
+
+        do
+        {
+            if (__num_to_skip & 1)
+            {
+                __a2 = static_cast<::std::uint64_t>(__r) * __a;
+                __r = static_cast<scalar_type>(__a2 % __mod);
+            }
+
+            __num_to_skip >>= 1;
+            __a2 = __a * __a;
+            __a = __a2 % __mod;
+
+        } while (__num_to_skip);
+
+        return __r;
+    }
+
     // Internal function which is used in discard procedure
-    template <int _N = 0, scalar_type _INC = 0>
-    typename ::std::enable_if<_N == 0>::type
+    // _FLAG - is flag that used for optimizations
+    // if _FLAG == true in this case we can used optimized versions of skip_seq
+    template <int _N = 0, bool _FLAG = false>
+    typename ::std::enable_if<(_N == 0) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
         for (unsigned long long __i = 0; __i < __num_to_skip; ++__i)
             state_ = mod_scalar(state_);
     }
 
-    template <int _N = 0, scalar_type _INC = 0>
-    typename ::std::enable_if<(_N == 1)>::type
+    template <int _N = 0, bool _FLAG = false>
+    typename ::std::enable_if<(_N == 1) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
         for (unsigned long long __i = 0; __i < __num_to_skip; ++__i)
             state_[0] = mod_scalar(state_[0]);
     }
 
-    template <int _N = 0, scalar_type _INC = 0>
-    typename ::std::enable_if<(_N > 1)>::type
+    template <int _N = 0, bool _FLAG = false>
+    typename ::std::enable_if<(_N > 1) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
         for (unsigned long long __i = 0; __i < __num_to_skip; ++__i)
@@ -170,6 +206,34 @@ class linear_congruential_engine
             }
             state_[_N - 1] = mod_scalar(state_[_N - 2]);
         }
+    }
+
+    template <int _N = 0, bool _FLAG = false>
+    typename ::std::enable_if<(_N == 0) && (_FLAG == true)>::type
+    skip_seq(unsigned long long __num_to_skip)
+    {
+        ::std::uint64_t __mod = modulus, __inc = increment;
+        ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
+        state_ = static_cast<scalar_type>((__mult * static_cast<::std::uint64_t>(state_) + __inc) % __mod);
+    }
+
+    template <int _N = 0, bool _FLAG = false>
+    typename ::std::enable_if<(_N == 1) && (_FLAG == true)>::type
+    skip_seq(unsigned long long __num_to_skip)
+    {
+        ::std::uint64_t __mod = modulus;
+        ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
+        state_[0] = static_cast<scalar_type>((__mult * static_cast<::std::uint64_t>(state_[0])) % __mod);
+    }
+
+    template <int _N = 0, bool _FLAG = false>
+    typename ::std::enable_if<(_N > 1) && (_FLAG == true)>::type
+    skip_seq(unsigned long long __num_to_skip)
+    {
+        ::std::uint64_t __mod = modulus, __inc = increment;
+        ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
+        for (unsigned int __i = 0; __i < _N; ++__i)
+            state_[__i] = static_cast<scalar_type>(((__mult * static_cast<::std::uint64_t>(state_[__i])) % __mod));
     }
 
     // result_portion implementation

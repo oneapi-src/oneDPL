@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- parallel_backend_sycl_fpga.h --------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -79,7 +79,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 // parallel_transform_reduce
 //------------------------------------------------------------------------
 
-template <typename _Tp, typename _ExecutionPolicy, typename _Up, typename _Cp, typename _Rp, typename... _Ranges>
+template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
+          typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, _Tp>
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
@@ -87,7 +88,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp>(
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, __grainsize>(
         __device_policy, __u, __combine, __brick_reduce, ::std::forward<_Ranges>(__rngs)...);
 }
 
@@ -216,15 +217,16 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 // parallel_stable_sort
 //-----------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 auto
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
     -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
-        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec),
-                                                                                             __first, __last, __comp))>
+        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(
+                              __device_policy(__exec), ::std::forward<_Range>(__rng), __comp))>
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec), __first, __last, __comp);
+    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec),
+                                                                     ::std::forward<_Range>(__rng), __comp);
 }
 
 //------------------------------------------------------------------------

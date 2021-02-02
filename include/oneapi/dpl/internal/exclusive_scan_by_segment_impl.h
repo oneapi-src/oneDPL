@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2019-2020 Intel Corporation
+ *  Copyright (c) Intel Corporation
  *
  *  Copyright 2008-2013 NVIDIA Corporation
  *
@@ -19,6 +19,7 @@
 #ifndef DPSTD_EXCLUSIVE_SCAN_BY_KEY
 #define DPSTD_EXCLUSIVE_SCAN_BY_KEY
 
+#include "../pstl/parallel_backend.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
 

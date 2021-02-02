@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- parallel_backend_sycl_radix_sort.h --------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -41,7 +41,12 @@ class __radix_sort_count_kernel : public __kernel_name_base<__radix_sort_count_k
 };
 
 template <typename... _Name>
-class __radix_sort_scan_kernel : public __kernel_name_base<__radix_sort_scan_kernel<_Name...>>
+class __radix_sort_scan_kernel_1 : public __kernel_name_base<__radix_sort_scan_kernel_1<_Name...>>
+{
+};
+
+template <typename... _Name>
+class __radix_sort_scan_kernel_2 : public __kernel_name_base<__radix_sort_scan_kernel_2<_Name...>>
 {
 };
 
@@ -366,7 +371,11 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 }
                 // 2.3. count per wgroup: write local count array to global count array
                 if (__self_lidx < __radix_states)
-                    __count_rng[__radix_states * __wgroup_idx + __self_lidx] = __count_lacc[__self_lidx];
+                {
+                    // move buckets with the same id to adjacent positions,
+                    // thus splitting __count_rng into __radix_states regions
+                    __count_rng[(__segments + 1) * __self_lidx + __wgroup_idx] = __count_lacc[__self_lidx];
+                }
             });
     });
 
@@ -377,45 +386,55 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 // radix sort: scan kernel (per iteration)
 //-----------------------------------------------------------------------
 
-template <typename _KernelName, ::std::uint32_t __radix_bits, typename _ExecutionPolicy, typename _CountBuf>
+template <typename _KernelName1, typename _KernelName2, ::std::uint32_t __radix_bits, typename _ExecutionPolicy,
+          typename _CountBuf>
 sycl::event
-__radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, _CountBuf& __count_buf,
-                         sycl::event __dependency_event)
+__radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size, ::std::size_t __segments,
+                         _CountBuf& __count_buf, sycl::event __dependency_event)
 {
-    // typedefs
     using _CountT = typename _CountBuf::value_type;
-
-    // radix states used for an array storing bucket state counters
-    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
 
     auto __count_rng =
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
 
+    // there are no local offsets for the first segment, but the rest segments shoud be scanned
+    // with respect to the count value in the first segment what requires n + 1 positions
+    const ::std::size_t __scan_size = __segments + 1;
+
+    __scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
+
+    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+    const ::std::size_t __global_scan_begin = __count_buf.get_count() - __radix_states;
+
+    // 1. Local scan: produces local offsets using count values
     sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
         __hdl.depends_on(__dependency_event);
-
         // an accessor with value counter from each work_group
         oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
+        __hdl.parallel_for<_KernelName1>(
+            sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
+                // find borders of a region with a specific bucket id
+                sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
+                // TODO: consider another approach with use of local memory
+                sycl::ONEAPI::exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
+                                             _CountT(0), sycl::ONEAPI::plus<_CountT>{});
+            });
+    });
 
-        __hdl.parallel_for<_KernelName>(
+    // 2. Global scan: produces global offsets using local offsets
+    __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
+        __hdl.depends_on(__scan_event);
+        oneapi::dpl::__ranges::__require_access(__hdl, __count_rng);
+        __hdl.parallel_for<_KernelName2>(
             sycl::nd_range<1>(__radix_states, __radix_states), [=](sycl::nd_item<1> __self_item) {
-                // item info
-                const ::std::size_t __self_lidx = __self_item.get_local_id(0);
+                ::std::size_t __self_lidx = __self_item.get_local_id(0);
 
-                // exclusive scan (but in last __radix_states we write total sum)
-                ::std::uint32_t __part_sum = 0u;
-                for (::std::uint32_t __i = 0; __i <= __segments; ++__i)
-                {
-                    ::std::size_t __count_val_idx = __i * __radix_states + __self_lidx;
-                    ::std::uint32_t __prev_val = __count_rng[__count_val_idx];
-                    __count_rng[__count_val_idx] = __part_sum;
-                    __part_sum += __prev_val;
-                }
+                ::std::size_t __global_offset_idx = __global_scan_begin + __self_lidx;
+                ::std::size_t __last_segment_bucket_idx = (__self_lidx + 1) * __scan_size - 1;
 
-                // exclusive scan over total radix sums
-                ::std::size_t __total_sum_idx = __segments * __radix_states + __self_lidx;
-                __count_rng[__total_sum_idx] = sycl::ONEAPI::exclusive_scan(
-                    __self_item.get_group(), __count_rng[__total_sum_idx], sycl::ONEAPI::plus<_CountT>());
+                // copy buckets from the last segment, scan them to get global offsets
+                __count_rng[__global_offset_idx] = sycl::ONEAPI::exclusive_scan(
+                    __self_item.get_group(), __count_rng[__last_segment_bucket_idx], sycl::ONEAPI::plus<_CountT>{});
             });
     });
 
@@ -482,12 +501,16 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 // 1. create a private array for storing offset values
                 //    and add total offset and offset for compute unit for a certain radix state
                 _OffsetT __offset_arr[__radix_states];
-                const ::std::uint32_t __global_offset_start_idx = __segments * __radix_states;
-                const ::std::uint32_t __local_offset_start_idx = __wgroup_idx * __radix_states;
+                const ::std::uint32_t __global_offset_start_idx = (__segments + 1) * __radix_states;
                 for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
-                    __offset_arr[__radix_state_idx] = __offset_rng[__global_offset_start_idx + __radix_state_idx] +
-                                                      __offset_rng[__local_offset_start_idx + __radix_state_idx];
+                {
+                    const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state_idx;
+                    const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
+                    __offset_arr[__radix_state_idx] =
+                        __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
+                }
 
+                // find offsets for the same values within a segment and fill the resulting buffer
                 for (::std::size_t __block_idx = 0; __block_idx < __blocks_per_segment * __it_size; ++__block_idx)
                 {
                     const ::std::size_t __val_idx = __start_idx + __sg_size * __block_idx;
@@ -545,19 +568,23 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     using __out_range_t = __decay_t<_OutRange>;
     using __tmp_buf_t = __decay_t<_TmpBuf>;
     using __count_kernel_name = __radix_sort_count_kernel<__in_range_t, __tmp_buf_t, _KernelName>;
-    using __scan_kernel_name = __radix_sort_scan_kernel<__tmp_buf_t, _KernelName>;
+    using __scan_kernel_name_1 = __radix_sort_scan_kernel_1<__tmp_buf_t, _KernelName>;
+    using __scan_kernel_name_2 = __radix_sort_scan_kernel_2<__tmp_buf_t, _KernelName>;
     using __reorder_kernel_name = __radix_sort_reorder_kernel<__in_range_t, __out_range_t, ::std::size_t, _KernelName>;
 #else
     using __count_kernel_name = __radix_sort_count_kernel<_KernelName>;
-    using __scan_kernel_name = __radix_sort_scan_kernel<_KernelName>;
+    using __scan_kernel_name_1 = __radix_sort_scan_kernel_1<_KernelName>;
+    using __scan_kernel_name_2 = __radix_sort_scan_kernel_2<_KernelName>;
     using __reorder_kernel_name = __radix_sort_reorder_kernel<_KernelName>;
 #endif
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
+    ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     ::std::size_t __block_size = __max_sg_size;
     ::std::size_t __reorder_sg_size = __max_sg_size;
 #if _ONEDPL_COMPILE_KERNEL
     auto __count_kernel = __count_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __scan_kernel_1 = __scan_kernel_name_1::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __reorder_kernel = __reorder_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
@@ -578,8 +605,8 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     );
 
     // 2. Scan Phase
-    sycl::event __scan_event =
-        __radix_sort_scan_submit<__scan_kernel_name, __radix_bits>(__exec, __segments, __tmp_buf, __count_event);
+    sycl::event __scan_event = __radix_sort_scan_submit<__scan_kernel_name_1, __scan_kernel_name_2, __radix_bits>(
+        __exec, __scan_wg_size, __segments, __tmp_buf, __count_event);
 
     // 3. Reorder Phase
     sycl::event __reorder_event = __radix_sort_reorder_submit<__reorder_kernel_name, __radix_bits, __is_comp_asc>(
@@ -609,20 +636,15 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     using _T = oneapi::dpl::__internal::__value_t<_Range>;
 
     const ::std::size_t __wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    const ::std::size_t __cunits = oneapi::dpl::__internal::__max_compute_units(__exec);
-
-    ::std::size_t __seg_k = 12;
-    if (__n < __cunits * __wg_size * __seg_k)
-        __seg_k = 1;
-    const ::std::size_t __segments = __get_roundedup_div(__n, __wg_size * __seg_k);
+    const ::std::size_t __segments = __get_roundedup_div(__n, __wg_size);
 
     // radix bits represent number of processed bits in each value during one iteration
     const ::std::uint32_t __radix_bits = 4;
     const ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
 
-    // additional __radix_states elements are used for storing total scan sums
-    const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states;
+    // additional 2 * __radix_states elements are used for getting local and global offsets from count values
+    const ::std::size_t __tmp_buf_size = __segments * __radix_states + 2 * __radix_states;
     // memory for storing count and offset values
     auto __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
 

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- discard_block_engine.h ---------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -112,8 +112,7 @@ class discard_block_engine
 
   private:
     // Static asserts
-    static_assert((0 < _R) && ( _R <= _P),
-        "oneapi::dpl::discard_block_engine. Error: unsupported parameters");
+    static_assert((0 < _R) && (_R <= _P), "oneapi::dpl::discard_block_engine. Error: unsupported parameters");
 
     // Function for state adjustment
     template <int _N>

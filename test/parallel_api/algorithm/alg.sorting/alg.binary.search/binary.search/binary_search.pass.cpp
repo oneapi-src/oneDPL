@@ -1,7 +1,7 @@
 // -*- C++ -*-
-//===-- lower_bound_sycl.pass.cpp --------------------------------------------===//
+//===-- binary_search.pass.cpp --------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -19,9 +19,10 @@
 
 #include <iostream>
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
 #include <CL/sycl.hpp>
 
-int main()
+void test_on_device()
 {
     bool correctness_flag =true;
 
@@ -86,10 +87,33 @@ int main()
     if((res_2[0] != true) || (res_2[1]!= true) || (res_2[2] != false) || (res_2[3] != false) || (res_2[4] != false))
         correctness_flag = false;
     
-    if(correctness_flag == true)
-        std::cout << "done" << std::endl;
-    else
-        std::cout << "Values do not match." << std::endl;
-    
+    if(correctness_flag != true)
+        std::cout << "binary_search on device FAIL." << std::endl;
+}
+#endif
+
+bool test_on_host()
+{
+    int key[10] = {0, 2, 2, 2, 3, 3, 3, 3, 6, 6};
+    int val[5] = {0, 2, 4, 7, 6};
+    int res[5];
+  
+     // call algorithm
+     oneapi::dpl::binary_search(oneapi::dpl::execution::par, std::begin(key), std::end(key), std::begin(val), std::end(val), std::begin(res), std::less<int>());
+
+     //check data
+     if((res[0] != true) || (res[1] != true) || (res[2] !=false) || (res[3] != false) || (res[4] != true))
+         std::cout << "binary_search on host FAIL." << std::endl;
+
+     return 0;
+}
+
+int main()
+{
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+    test_on_device();
+#endif
+    test_on_host();
+    std::cout << "done" << std::endl;
     return 0;
 }
