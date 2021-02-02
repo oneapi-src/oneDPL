@@ -620,6 +620,7 @@ struct __temp_objs : public __object_keeper
 
 class __future_base
 {
+  protected:
     sycl::event __my_event;
 
   public:
