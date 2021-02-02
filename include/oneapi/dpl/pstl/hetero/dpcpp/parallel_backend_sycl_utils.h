@@ -605,17 +605,17 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 //-----------------------------------------------------------------------
 
 // empty base class for type erasure
-struct __object_keeper
+struct __lifetime_keeper_base
 {
-    virtual ~__object_keeper() {}
+    virtual ~__lifetime_keeper_base() {}
 };
 
 // derived class to keep temporaries (e.g. buffer) alive
 template <typename... Ts>
-struct __temp_objs : public __object_keeper
+struct __lifetime_keeper : public __lifetime_keeper_base
 {
     ::std::tuple<Ts...> __my_tmps;
-    __temp_objs(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
+    __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
 };
 
 class __future_base
@@ -635,7 +635,6 @@ class __future_base
     operator sycl::event() const { return __my_event; }
 };
 
-// TODO: Extend to support value type and sycl iterator.
 template <typename T>
 class __future : public __future_base
 {
@@ -644,14 +643,14 @@ class __future : public __future_base
 template <>
 class __future<void> : public __future_base
 {
-    ::std::unique_ptr<__object_keeper> __tmps;
+    ::std::unique_ptr<__lifetime_keeper_base> __tmps;
 
   public:
     template <typename... _Ts>
     __future(sycl::event __e, _Ts... __t) : __future_base(__e)
     {
         if (sizeof...(__t) != 0)
-            __tmps = ::std::unique_ptr<__temp_objs<_Ts...>>(new __temp_objs<_Ts...>(__t...));
+            __tmps = ::std::unique_ptr<__lifetime_keeper<_Ts...>>(new __lifetime_keeper<_Ts...>(__t...));
     }
     void
     get()
