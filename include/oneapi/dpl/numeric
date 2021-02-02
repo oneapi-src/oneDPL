@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- numeric -----------------------------------------------------------===//
 //
-// Copyright (C) 2017-2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -42,6 +42,18 @@
 // If <execution> has already been included, pull in implementations
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
 #endif
+
+namespace oneapi
+{
+namespace dpl
+{
+using ::std::accumulate;
+using ::std::inner_product;
+using ::std::iota;
+using ::std::partial_sum;
+} // namespace dpl
+
+} // namespace oneapi
 
 namespace dpl = oneapi::dpl;
 

@@ -1,7 +1,7 @@
 // -*- C++ -*-
-//===-- lower_bound_sycl.pass.cpp --------------------------------------------===//
+//===-- lower_bound.pass.cpp --------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -19,11 +19,27 @@
 
 #include <iostream>
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
 #include <CL/sycl.hpp>
+#endif
 
-int main()
+void test_on_host()
 {
+    int key[10] = {0, 2, 2, 2, 3, 3, 3, 3, 6, 6};
+    int val[5] = {0, 2, 4, 7, 6};
+    int res[5];
+  
+     // call algorithm
+     oneapi::dpl::lower_bound(oneapi::dpl::execution::par, std::begin(key), std::end(key), std::begin(val), std::end(val), std::begin(res), std::less<int>());
 
+     //check data
+     if((res[0] != 0) || (res[1] != 1) || (res[2] != 8) || (res[3] != 10) || (res[4] != 8))
+         std::cout << "lower_bound on host FAIL." << std::endl;
+}
+
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+void test_on_device()
+{
     bool correctness_flag =true;
 
     //Test case #1
@@ -85,10 +101,17 @@ int main()
     if((res_2[0] != 0) || (res_2[1] != 1) || (res_2[2] != 2) || (res_2[3] != 2) || (res_2[4] != 2 ))
         correctness_flag = false;
 
-    if(correctness_flag == true)
-        std::cout << "done" << std::endl;
-    else
-       std::cout << "Values do not match." << std::endl;
-    
+    if(correctness_flag != true)
+       std::cout << "lower_bound on device FAIL." << std::endl;
+}
+#endif
+
+int main()
+{
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+    test_on_device();
+#endif
+    test_on_host();    
+    std::cout << "done" << std::endl;
     return 0;
 }

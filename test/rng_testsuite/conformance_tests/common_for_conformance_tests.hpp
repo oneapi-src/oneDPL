@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- common_for_conformance_tests.hpp -----------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //

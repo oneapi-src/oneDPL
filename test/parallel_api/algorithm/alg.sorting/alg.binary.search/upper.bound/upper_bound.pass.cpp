@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- upper_bound_sycl.pass.cpp --------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -19,12 +19,27 @@
 
 #include <iostream>
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
 #include <CL/sycl.hpp>
+#endif
 
-class binarySearch {};
-int main()
+void test_on_host()
 {
+    int key[10] = {0, 2, 2, 2, 3, 3, 3, 3, 6, 6};
+    int val[5] = {0, 2, 4, 7, 8};
+    int res[5];
+  
+     // call algorithm
+     oneapi::dpl::upper_bound(oneapi::dpl::execution::par, std::begin(key), std::end(key), std::begin(val), std::end(val), std::begin(res), std::less<int>());
 
+     //check data
+     if((res[0] != 1) || (res[1] != 4) || (res[2] != 8) || (res[3] != 10) || (res[4] != 10 ))
+         std::cout << "upper_bound on host FAIL." << std::endl;
+}
+
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+void test_on_device()
+{
      bool correctness_flag = true;
 
      //Test case #1
@@ -50,7 +65,7 @@ int main()
      auto res_beg = oneapi::dpl::begin(_res_buf);
 
      // create named policy from existing one
-     auto new_policy = oneapi::dpl::execution::make_device_policy<binarySearch>(oneapi::dpl::execution::dpcpp_default);
+     auto new_policy = oneapi::dpl::execution::make_device_policy<class upperBound>(oneapi::dpl::execution::dpcpp_default);
      
      // call algorithm
      oneapi::dpl::upper_bound(new_policy, key_beg, key_end, val_beg , val_end, res_beg, std::less<int>());
@@ -83,10 +98,16 @@ int main()
      if((res_2[0] != 1) || (res_2[1] != 2) || (res_2[2] != 2) || (res_2[3] != 2) || (res_2[4] != 2 ))
          correctness_flag = false;
 
-     if(correctness_flag == true)
-         std::cout << "done" << std::endl;
-     else
-         std::cout << "Values do not match." << std::endl;
-     
-     return 0;
+     if(correctness_flag != true)
+         std::cout << "upper_bound on device FAIL." << std::endl;
+}
+#endif
+
+int main()
+{
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+    test_on_device();
+#endif
+    test_on_host();
+    std::cout << "done" << std::endl;
 }

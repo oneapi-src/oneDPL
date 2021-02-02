@@ -49,10 +49,11 @@ class GithubStatus {
     }
 }
 
-def fill_task_name_description () {
+def fill_task_name_description (String oneapi_package_date = "Default") {
     script {
+        short_commit_sha = env.Commit_id.substring(0,10)
         currentBuild.displayName = "PR#${env.PR_number}-No.${env.BUILD_NUMBER}"
-        currentBuild.description = "PR number: ${env.PR_number} / Commit id: ${env.Commit_id}"
+        currentBuild.description = "PR number: ${env.PR_number} / Commit id: ${short_commit_sha} / Oneapi package date: ${oneapi_package_date}"
     }
 }
 
@@ -69,7 +70,7 @@ user_in_github_group = false
 
 pipeline {
 
-    agent { label "master" }
+    agent { label "oneDPL_scheduler" }
     options {
         durabilityHint 'PERFORMANCE_OPTIMIZED'
         timeout(time: 5, unit: 'HOURS')
@@ -88,6 +89,7 @@ pipeline {
         string(name: 'PR_number', defaultValue: 'None', description: '',)
         string(name: 'Repository', defaultValue: 'oneapi-src/oneDPL', description: '',)
         string(name: 'User', defaultValue: 'None', description: '',)
+        string(name: 'OneAPI_Package_Date', defaultValue: 'Default', description: '',)
     }
 
     triggers {
@@ -117,17 +119,26 @@ pipeline {
     stages {
         stage('Check_User_in_Org') {
             agent {
-                label "master"
+                label "oneDPL_scheduler"
             }
             steps {
                 script {
                     try {
                         retry(2) {
                             fill_task_name_description()
-                            def check_user_return = sh(script: "python3 /localdisk2/oneDPL_CI/check_user_in_group.py -u  ${env.User}", returnStatus: true, label: "Check User in Group")
+                            def check_user_return = sh(script: "python3 /export/users/oneDPL_CI/check_user_in_group.py -u  ${env.User}", returnStatus: true, label: "Check User in Group")
                             echo "check_user_return value is $check_user_return"
                             if (check_user_return == 0) {
                                 user_in_github_group = true
+                                if (env.OneAPI_Package_Date == "Default") {
+                                    sh(script: "bash /export/users/oneDPL_CI/get_good_compiler.sh ", label: "Get good compiler stamp")
+                                    if (fileExists('./Oneapi_Package_Date.txt')) {
+                                        env.OneAPI_Package_Date = readFile('./Oneapi_Package_Date.txt')
+                                    }
+                                }
+                                echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
+                                fill_task_name_description(env.OneAPI_Package_Date)
+                                githubStatus.setPending(this, "Jenkins/UB20_Check")
                             }
                             else {
                                 user_in_github_group = false
@@ -149,18 +160,17 @@ pipeline {
             when {
                 expression { user_in_github_group }
             }
-            agent { label "Debug_UB20" }
+            agent { label "oneDPL_UB20" }
             stages {
                 stage('Git-monorepo') {
                     steps {
                         script {
                             try {
                                 retry(2) {
-                                    githubStatus.setPending(this, "Jenkins/UB20_Check")
+                                    deleteDir()
                                     if (fileExists('./src')) {
                                         sh script: 'rm -rf src', label: "Remove Src Folder"
                                     }
-
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
                                     sh script: "cd ./src; git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}", label: "Set Git Config"
                                     sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}", label: "Checkout Commit"
@@ -175,21 +185,45 @@ pipeline {
                     }
                 }
 
+                stage('Setting_Env') {
+                    steps {
+                        script {
+                            try {
+                                sh script: """
+                                    bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
+                                    if [ ! -f ./envs_tobe_loaded.txt ]; then
+                                        echo "Environment file not generated."
+                                        exit -1
+                                    fi
+                                """, label: "Generate environment vars"
+                            }
+                            catch (e) {
+                                build_ok = false
+                                fail_stage = fail_stage + "    " + "Setting_Env"
+                                sh script: "exit -1", label: "Set failure"
+                            }
+                        }
+                    }
+                }
+
                 stage('Check_tests') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
                                 try {
                                     dir("./src") {
-                                        sh script: """
-                                            cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
-                                            make VERBOSE=1 build-all -j -k || true
-                                            ctest --output-on-failure --timeout ${TEST_TIMEOUT}
-                                        """, label: "All tests"
+                                        withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                            sh script: """
+                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
+                                                make VERBOSE=1 build-all -j -k || true
+                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
+                                            """, label: "All tests"
+                                        }
                                     }
                                 }
                                 catch(e) {
                                     build_ok = false
+                                    echo "Exception is" + e.toString()
                                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                         sh script: """
                                             exit -1

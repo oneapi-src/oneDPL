@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- normal_distribution.h ---------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -51,7 +51,9 @@ class normal_distribution
     // Constructors
     normal_distribution() : normal_distribution(static_cast<scalar_type>(0.0)) {}
     explicit normal_distribution(scalar_type __mean, scalar_type __stddev = static_cast<scalar_type>(1.0))
-        : mean_(__mean), stddev_(__stddev) {}
+        : mean_(__mean), stddev_(__stddev)
+    {
+    }
     explicit normal_distribution(const param_type& __params) : mean_(__params.first), stddev_(__params.second) {}
 
     // Reset function
@@ -152,7 +154,7 @@ class normal_distribution
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,
-        "oneapi::dpl::normal_distribution. Error: unsupported data type");
+                  "oneapi::dpl::normal_distribution. Error: unsupported data type");
 
     // Real distribution for the conversion
     uniform_real_distribution<uniform_result_type> uniform_real_distribution_;
@@ -204,17 +206,17 @@ class normal_distribution
 
         if (!flag_)
         {
-            result_type __u1 =
-                uniform_real_distribution_(__engine, ::std::pair<scalar_type, scalar_type>(static_cast<scalar_type>(0.0),
-                                                                                       static_cast<scalar_type>(1.0)));
-            result_type __u2 =
-                uniform_real_distribution_(__engine, ::std::pair<scalar_type, scalar_type>(static_cast<scalar_type>(0.0),
-                                                                                       static_cast<scalar_type>(1.0)));
+            result_type __u1 = uniform_real_distribution_(
+                __engine,
+                ::std::pair<scalar_type, scalar_type>(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)));
+            result_type __u2 = uniform_real_distribution_(
+                __engine,
+                ::std::pair<scalar_type, scalar_type>(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)));
 
             __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
 
             __res = __params.first + __params.second * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                  sycl::sin(pi2<scalar_type>() * __u2));
+                                                        sycl::sin(pi2<scalar_type>() * __u2));
 
             saved_ln_ = __ln;
             saved_u2_ = __u2;
@@ -222,7 +224,7 @@ class normal_distribution
         else
         {
             __res = __params.first + __params.second * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
-                                                  sycl::cos(pi2<scalar_type>() * saved_u2_));
+                                                        sycl::cos(pi2<scalar_type>() * saved_u2_));
         }
 
         flag_ = !flag_;
@@ -253,9 +255,9 @@ class normal_distribution
                 __u2 = __u[__i + 1];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                          sycl::sin(pi2<scalar_type>() * __u2));
+                                                  sycl::sin(pi2<scalar_type>() * __u2));
                 __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                              sycl::cos(pi2<scalar_type>() * __u2));
+                                                      sycl::cos(pi2<scalar_type>() * __u2));
             }
             if (__tail)
             {
@@ -263,7 +265,7 @@ class normal_distribution
                 __u2 = __u[__N];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__N - 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                              sycl::sin(pi2<scalar_type>() * __u2));
+                                                      sycl::sin(pi2<scalar_type>() * __u2));
 
                 saved_ln_ = __ln;
                 saved_u2_ = __u2;
@@ -273,7 +275,7 @@ class normal_distribution
         else
         {
             __res[0] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
-                                      sycl::cos(pi2<scalar_type>() * saved_u2_));
+                                            sycl::cos(pi2<scalar_type>() * saved_u2_));
 
             flag_ = false;
 
@@ -288,9 +290,9 @@ class normal_distribution
                 __u2 = __u[__i];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                          sycl::sin(pi2<scalar_type>() * __u2));
+                                                  sycl::sin(pi2<scalar_type>() * __u2));
                 __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                              sycl::cos(pi2<scalar_type>() * __u2));
+                                                      sycl::cos(pi2<scalar_type>() * __u2));
             }
             if (__tail)
             {
@@ -298,7 +300,7 @@ class normal_distribution
                 __u2 = __u[__N];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__N - 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                              sycl::sin(pi2<scalar_type>() * __u2));
+                                                      sycl::sin(pi2<scalar_type>() * __u2));
 
                 saved_ln_ = __ln;
                 saved_u2_ = __u2;

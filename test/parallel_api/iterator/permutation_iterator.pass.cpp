@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- permutation_iterator_sycl.pass.cpp --------------------------------===//
 //
-// Copyright (C) 2019 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -20,8 +20,11 @@
 
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
 #include <CL/sycl.hpp>
+#endif
 
 template<typename _T1, typename _T2> void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
     if(X!=Y)
@@ -164,6 +167,7 @@ int main(int argc, char** argv) {
 
     evaluate(oneapi::dpl::execution::par, oneapi::dpl::execution::par, ref.begin(), ref.end(), p, std::string("CPU Reverse"));
 
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
     // Case 4 -- Linear traversal on accelerator
     {
         using policy_type = decltype(oneapi::dpl::execution::dpcpp_default);
@@ -226,6 +230,7 @@ int main(int argc, char** argv) {
         auto policy2 = oneapi::dpl::execution::make_device_policy<class GPUCyclic>(oneapi::dpl::execution::dpcpp_default);
         evaluate(policy, policy2, ref_begin, ref_end, perm_begin, std::string("GPU Cyclic"));
     }
+#endif
     std::cout << "done" << std::endl;
     return 0;
 }
