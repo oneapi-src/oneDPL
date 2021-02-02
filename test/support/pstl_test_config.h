@@ -56,9 +56,13 @@
 #define _PSTL_SYCL_TEST_USM 1
 
 // Enable when compiler supports SYCL
-#define TEST_SYCL_PRESENT defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#define TEST_SYCL_PRESENT 1
+#else
+#define TEST_SYCL_PRESENT 0
+#endif
 
 // Enable test when the DPC++ backend is available
-#define TEST_DPCPP_BACKEND_PRESENT TEST_SYCL_PRESENT && ONEDPL_USE_DPCPP_BACKEND
+#define TEST_DPCPP_BACKEND_PRESENT TEST_SYCL_PRESENT && _ONEDPL_BACKEND_SYCL
 
 #endif /* _PSTL_TEST_config_H */
