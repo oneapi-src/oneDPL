@@ -165,27 +165,33 @@ class __future<sycl_iterator<sycl::access::mode::read_write, T, sycl::buffer_all
 };
 #endif
 
-template <typename _T, typename _Op = ::std::plus<_T>, typename _Buf = sycl::buffer<_T>>
+struct async_value_base {
+    virtual ~async_value_base() = 0;
+};
+
+template<typename _T, typename _Buf, typename _Op>
+class async_value : async_value_base {
+    _Buf __my_buffer;
+    _Op __my_op;
+public:
+    async_value(_Buf __b, _Op __o) : __my_buffer(__b) , __my_op(__o) {}
+    _T data(_T __init) const { return __my_op(__my_buffer.template get_access<access_mode::read>()[0],__init); }
+}
+
+template <typename _T>
 class __future : public __par_backend_hetero::__future_base
 {
-    _Buf __data;
-    _Op __op;
-    //::std::unique_ptr<__async_value<_Tp>> __data; // This is a value/buffer for read access!
+    ::std::unique_ptr<async_value_base> __ret_val; // This is a value/buffer for read access!
     ::std::unique_ptr<__par_backend_hetero::__object_keeper> __tmp;
     _T __init;
-    //sycl::event __my_event;
 
   public:
     
     __future(_T __i) : __par_backend_hetero::__future_base(sycl::event{}), __init(__i) {}
     
-    template <typename... _Ts>
-    __future(sycl::event __e, sycl::buffer<_T> __d, _Op __o, _Ts... __t) : __par_backend_hetero::__future_base(__e), __data(__d) {
-    //set(sycl::event __e, sycl::buffer<_Tp> __d, _Op __o, _Ts... __t) {
-        __my_event = __e;
-        __op = __o;
-        //__data = __d;
-        //__data = ::std::unique_ptr<__async_transform<_Tp,_Op>>(new __async_transform<_Tp,_Op>(__d, __i, __o));
+    template <typename _Op, typename _Buf, typename... _Ts>
+    __future(sycl::event __e, _Buf __d, _Op __o, _Ts... __t) : __par_backend_hetero::__future_base(__e), __data(__d) {
+        __ret_val = ::std::unique_ptr<async_value<_T,_Buf,_Op>>(new __async_value<_Tp,_Buf,_Op>(__d, __i, __o));
         __tmp = ::std::unique_ptr<__par_backend_hetero::__temp_objs<_Ts...>>(new __par_backend_hetero::__temp_objs<_Ts...>(__t...));
     }
     void set(_T __i) { __init = __i; }
@@ -193,8 +199,7 @@ class __future : public __par_backend_hetero::__future_base
     get()
     {
         this->wait();
-        auto ret_val = __data.template get_access<access_mode::read>()[0];
-        return __op(ret_val, __init);
+        return __ret_val->data(__init);
     }
 };
 
