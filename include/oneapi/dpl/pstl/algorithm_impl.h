@@ -4005,7 +4005,7 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
 template <class _ForwardIterator>
 _ForwardIterator
 __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
-                   typename std::iterator_traits<_ForwardIterator>::difference_type __n,
+                   typename ::std::iterator_traits<_ForwardIterator>::difference_type __n,
                    /*is_vector=*/::std::false_type) noexcept
 {
 #if _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT
