@@ -17,7 +17,7 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
@@ -28,7 +28,7 @@
 int32_t
 main()
 {
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
     const int max_n = 10;
     int data1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     int data2[max_n] = {0, 1, 2, -1, 4, 5, 6, 7, 8, 9};
@@ -51,7 +51,7 @@ main()
     //check result
     EXPECT_TRUE(res1, "wrong effect from 'is_sorted' with sycl ranges (sorted)");
     EXPECT_TRUE(!res2, "wrong effect from 'is_sorted' with sycl ranges (unsorted)");
-#endif //_ONEDPL_USE_RANGES
+#endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

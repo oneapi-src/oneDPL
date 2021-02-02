@@ -16,7 +16,7 @@
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
@@ -27,7 +27,7 @@
 int32_t
 main()
 {
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
     constexpr int max_n = 10;
     int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -55,7 +55,7 @@ main()
     EXPECT_TRUE(res1 == expected1, "wrong effect from reduce with sycl ranges");
     EXPECT_TRUE(res2 == expected2, "wrong effect from reduce with init, sycl ranges");
     EXPECT_TRUE(res3 == expected3, "wrong effect from reduce with init and binary operation, sycl ranges");
-#endif //_ONEDPL_USE_RANGES
+#endif //_ENABLE_RANGES_TESTING
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

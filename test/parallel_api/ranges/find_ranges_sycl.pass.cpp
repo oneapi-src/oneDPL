@@ -17,7 +17,7 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
@@ -29,7 +29,7 @@ int32_t
 main()
 {
 
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
     const int max_n = 10;
     int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -58,7 +58,7 @@ main()
     EXPECT_TRUE(res2 == idx_val, "wrong effect from 'find_if' with sycl ranges");
     EXPECT_TRUE(res3 == idx_val, "wrong effect from 'find_if_not' with sycl ranges");
 
-#endif //_ONEDPL_USE_RANGES
+#endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

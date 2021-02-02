@@ -16,7 +16,7 @@
 #include "support/pstl_test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
 #include _PSTL_TEST_HEADER(ranges)
 #endif
 
@@ -27,7 +27,7 @@
 int32_t
 main()
 {
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
     constexpr int max_n = 10;
     char data[max_n] = {'b', 'e', 'g', 'f', 'c', 'd', 'a', 'j', 'i', 'h'};
     int key[max_n] = {1, 4, 6, 5, 2, 3, 0, 9, 8, 7};
@@ -39,7 +39,7 @@ main()
 
     //check access
     EXPECT_TRUE(::std::get<0>(z[2]) == 'g', "wrong effect with zip_view");
-#endif //_ONEDPL_USE_RANGES
+#endif //_ENABLE_RANGES_TESTING
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }

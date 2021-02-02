@@ -56,7 +56,12 @@
 #define _PSTL_SYCL_TEST_USM 1
 
 // Check for C++ standard and standard library for the use of ranges API
-#define _ONEDPL_USE_RANGES                                                                                            \
-    (__cplusplus >= 201703L && ((_GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502) || _LIBCPP_VERSION >= 7000))
+#if defined(_GLIBCXX_RELEASE)
+#    define _ENABLE_RANGES_TESTING (__cplusplus >= 201703L && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
+#elif defined(_LIBCPP_VERSION)
+#    define _ENABLE_RANGES_TESTING (__cplusplus >= 201703L && _LIBCPP_VERSION >= 7000)
+#else
+#    define _ENABLE_RANGES_TESTING (__cplusplus >= 201703L)
+#endif
 
 #endif /* _PSTL_TEST_config_H */
