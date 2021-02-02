@@ -2016,8 +2016,8 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Range __rng, oneapi::dpl::__int
         auto __brick = oneapi::dpl::unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
 
         //TODO: to consider use just "read" access mode for a source range and just "write" - for a destination range.
-        auto __src = oneapi::dpl::__ranges::drop_view_simple<_Range, _DiffType>{__rng, __n};
-        auto __dst = oneapi::dpl::__ranges::take_view_simple<_Range, _DiffType>{__rng, __size_res};
+        auto __src = oneapi::dpl::__ranges::drop_view_simple<_Range, _DiffType>(__rng, __n);
+        auto __dst = oneapi::dpl::__ranges::take_view_simple<_Range, _DiffType>(__rng, __size_res);
 
         oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __size_res,
                                                           __src, __dst)
