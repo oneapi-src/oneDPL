@@ -44,14 +44,14 @@ main()
 
         stable_sort(exec, all_view<int, sycl::access::mode::read_write>(A));
         stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), all_view<int, sycl::access::mode::read_write>(B),
-            oneapi::dpl::__internal::__pstl_greater());
+            ::std::greater<int>());
     }
 
     //check result
     bool res1 = ::std::is_sorted(data1, data1 + max_n);
     EXPECT_TRUE(res1, "wrong effect from 'stable_sort' with sycl ranges");
 
-    bool res2 = ::std::is_sorted(data2, data2 + max_n, oneapi::dpl::__internal::__pstl_greater());
+    bool res2 = ::std::is_sorted(data2, data2 + max_n, ::std::greater<int>());
     EXPECT_TRUE(res2, "wrong effect from 'stable_sort with comparator' with sycl ranges");
 #endif //_ONEDPL_USE_RANGES
 
