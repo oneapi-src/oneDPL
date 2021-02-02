@@ -1338,8 +1338,8 @@ __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_E
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                         // Pass special tag to choose 'full' merge subroutine at compile-time
-                         __full_merge_kernel(), __comp);
+                                // Pass special tag to choose 'full' merge subroutine at compile-time
+                                __full_merge_kernel(), __comp);
 }
 
 //------------------------------------------------------------------------
