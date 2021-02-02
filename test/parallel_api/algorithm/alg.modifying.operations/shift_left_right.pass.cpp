@@ -39,7 +39,7 @@ struct test_shift
     operator()(Policy&& exec, It first, Size m, It first_exp, Size n, Algo algo)
     {
         //run a test with host policy and host itertors
-        It res = algo(::std::forward<Policy>(exec), first, std::next(first, m), n);
+        It res = algo(::std::forward<Policy>(exec), first, ::std::next(first, m), n);
         //check result
         algo.check(res, first, m, first_exp, n);
     }
@@ -97,14 +97,14 @@ struct shift_left_algo
     {
         //if (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first.
         //Otherwise, returns last.
-        It __last = std::next(first, m);
-        auto res_exp = (n > 0 && n < m ? std::next(first, m - n) : (n > 0 ? first : __last));
+        It __last = ::std::next(first, m);
+        auto res_exp = (n > 0 && n < m ? ::std::next(first, m - n) : (n > 0 ? first : __last));
 
         EXPECT_TRUE(res_exp == res, "wrong return value of shift_left");
 
         if(res != first && res != __last)
         {
-            EXPECT_EQ_N(first, std::next(first_exp, + n), m - n, "wrong effect of shift_left");
+            EXPECT_EQ_N(first, ::std::next(first_exp, + n), m - n, "wrong effect of shift_left");
             //restore unput data
             std::copy_n(first_exp, m, first);
         }
@@ -139,8 +139,8 @@ struct shift_right_algo
     {
         //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
         //Otherwise, returns firts.
-        It __last = std::next(first, m);
-        auto res_exp = (n > 0 && n < m ? std::next(first, n) : (n > 0 ? __last : first));
+        It __last = ::std::next(first, m);
+        auto res_exp = (n > 0 && n < m ? ::std::next(first, n) : (n > 0 ? __last : first));
 
         EXPECT_TRUE(res_exp == res, "wrong return value of shift_right");
 
