@@ -29,26 +29,40 @@ int32_t
 main()
 {
 #if _ONEDPL_USE_RANGES
-    const int max_n = 10;
-    int data1[max_n] = { 0,  1, 2, 3, 4, 5, 6, 6, 6, 6};
-    int data2[max_n] = {-2, -1, 2, 3, 3, 5, 6, 7, 8, 9};
-    int data3[2 * max_n] = {};
+    using T = int;
+
+    const int in_n = 10;
+    const int out_n = 2 * in_n;
+
+    T in1[in_n] = { 0,  1, 2, 3, 4, 5, 6, 6, 6, 6};
+    T in2[in_n] = {-2, -1, 2, 3, 3, 5, 6, 7, 8, 9};
+    T out1[out_n] = {};
+    T out2[out_n] = {};
 
     using namespace TestUtils;
     using namespace oneapi::dpl::experimental::ranges;
     {
-        sycl::buffer<int> A(data1, sycl::range<1>(max_n));
-        sycl::buffer<int> B(data2, sycl::range<1>(max_n));
-        sycl::buffer<int> C(data3, sycl::range<1>(max_n));
+        sycl::buffer<T> A(in1, sycl::range<1>(in_n));
+        sycl::buffer<T> B(in2, sycl::range<1>(in_n));
+        sycl::buffer<T> D(out1, sycl::range<1>(out_n));
+        sycl::buffer<T> E(out2, sycl::range<1>(out_n));
 
         auto exec = TestUtils::default_dpcpp_policy;
 
-        merge(exec, all_view(A), all_view(B), all_view<int, sycl::access::mode::write>(C), oneapi::dpl::__internal::__pstl_less());
+        merge(exec, all_view(A), all_view(B), all_view<T, sycl::access::mode::write>(D));
+        merge(exec, all_view(A), all_view(B), all_view<T, sycl::access::mode::write>(E), ::std::less<T>());
     }
 
     //check result
-    bool res = ::std::is_sorted(data3, data3 + 2 * max_n, oneapi::dpl::__internal::__pstl_less());
-    EXPECT_TRUE(res, "wrong effect from 'merge' with sycl ranges");
+    bool res1 = ::std::is_sorted(out1, out1 + out_n, ::std::less<T>());
+    res1 &= ::std::includes(out1, out1 + out_n, in1, in1 + in_n, ::std::less<T>());
+    res1 &= ::std::includes(out1, out1 + out_n, in2, in2 + in_n, ::std::less<T>());
+    EXPECT_TRUE(res1, "wrong effect from 'merge' with sycl ranges");
+
+    bool res2 = ::std::is_sorted(out2, out2 + out_n, ::std::less<T>());
+    res2 &= ::std::includes(out2, out2 + out_n, in1, in1 + in_n, ::std::less<T>());
+    res2 &= ::std::includes(out2, out2 + out_n, in2, in2 + in_n, ::std::less<T>());
+    EXPECT_TRUE(res2, "wrong effect from 'merge' with sycl ranges with predicate");
 #endif //_ONEDPL_USE_RANGES
 
     ::std::cout << TestUtils::done() << ::std::endl;
