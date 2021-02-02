@@ -59,7 +59,7 @@ struct test_shift
         {//scope for SYCL buffer lifetime
             using _ValueType = typename ::std::iterator_traits<It>::value_type;        
             sycl::buffer<_ValueType> buf(first, first + m);
-	    buf.set_final_data(first);
+            buf.set_final_data(first);
             buf.set_write_back(true);
 
             auto het_begin = oneapi::dpl::begin(buf);
