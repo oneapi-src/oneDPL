@@ -81,7 +81,7 @@ struct test_uninitialized_copy_n
 {
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
-    operator()(Policy&& exec, InputIterator first, InputIterator, OutputIterator out_first, size_t n,
+    operator()(Policy&& exec, InputIterator first, InputIterator /* last */, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::false_type)
     {
         typedef typename ::std::iterator_traits<InputIterator>::value_type T;
@@ -97,7 +97,7 @@ struct test_uninitialized_copy_n
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
-    operator()(Policy&& exec, InputIterator first, InputIterator, OutputIterator out_first, size_t n,
+    operator()(Policy&& exec, InputIterator first, InputIterator /* last */, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::true_type)
     {
         ::std::uninitialized_copy_n(exec, first, n, out_first);
@@ -139,7 +139,7 @@ struct test_uninitialized_move_n
 {
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
-    operator()(Policy&& exec, InputIterator first, InputIterator, OutputIterator out_first, size_t n,
+    operator()(Policy&& exec, InputIterator first, InputIterator /* last */, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::false_type)
     {
         typedef typename ::std::iterator_traits<InputIterator>::value_type T;
@@ -155,7 +155,7 @@ struct test_uninitialized_move_n
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
     void
-    operator()(Policy&& exec, InputIterator first, InputIterator, OutputIterator out_first, size_t n,
+    operator()(Policy&& exec, InputIterator first, InputIterator /* last */, OutputIterator out_first, size_t n,
                /*is_trivial<T>=*/::std::true_type)
     {
         ::std::uninitialized_move_n(exec, first, n, out_first);

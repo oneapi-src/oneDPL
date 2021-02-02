@@ -62,7 +62,7 @@ struct test_replace
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Iterator3, typename T, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 expected_b, Iterator1 expected_e, Iterator2 actual_b,
-               Iterator2 actual_e, Iterator3 data_b, Iterator3 data_e, Predicate, const T& value, const T& old_value)
+               Iterator2 actual_e, Iterator3 data_b, Iterator3 data_e, Predicate /* pred */, const T& value, const T& old_value)
     {
         using namespace std;
 
@@ -97,7 +97,7 @@ struct test_replace_if
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Iterator3, typename T, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 expected_b, Iterator1 expected_e, Iterator2 actual_b,
-               Iterator2 actual_e, Iterator3 data_b, Iterator3 data_e, Predicate pred, const T& value, const T&)
+               Iterator2 actual_e, Iterator3 data_b, Iterator3 data_e, Predicate pred, const T& value, const T& /* old_value */)
     {
         using namespace std;
 

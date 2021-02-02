@@ -79,7 +79,7 @@ CheckResults(const T& expected, const T& in)
 // We need to check correctness only for "int" (for example) except cases
 // if we have "floating-point type"-specialization
 void
-CheckResults(const float32_t&, const float32_t&)
+CheckResults(const float32_t& /* expected */, const float32_t& /* in */)
 {
 }
 
@@ -90,7 +90,7 @@ struct test_long_transform_reduce
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename T, typename BinaryOperation1,
               typename BinaryOperation2>
     void
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2,
+    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
                T init, BinaryOperation1 opB1, BinaryOperation2 opB2)
     {
         auto expectedB = ::std::inner_product(first1, last1, first2, init, opB1, opB2);
@@ -105,7 +105,7 @@ struct test_short_transform_reduce
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename T, typename BinaryOperation,
               typename UnaryOp>
     void
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2, InputIterator2,
+    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 /* first2 */, InputIterator2 /* last2 */,
                T init, BinaryOperation opB, UnaryOp opU)
     {
         auto expectedU = transform_reduce_serial(first1, last1, init, opB, opU);

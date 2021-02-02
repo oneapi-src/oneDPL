@@ -60,7 +60,7 @@ struct test_is_heap
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&&, Iterator, Iterator)
+    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
     {
     }
 };
@@ -81,7 +81,7 @@ struct test_is_heap_predicate
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&&, Iterator, Iterator, Predicate)
+    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
     {
     }
 };
@@ -102,7 +102,7 @@ struct test_is_heap_until
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&&, Iterator, Iterator)
+    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
     {
     }
 };
@@ -123,7 +123,7 @@ struct test_is_heap_until_predicate
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
     typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
-    operator()(Policy&&, Iterator, Iterator, Predicate)
+    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
     {
     }
 };

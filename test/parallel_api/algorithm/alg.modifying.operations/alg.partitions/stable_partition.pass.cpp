@@ -62,7 +62,7 @@ is_equal(Iterator first, Iterator last, Iterator d_first)
 
 template <typename Iterator>
 typename ::std::enable_if<!::std::is_trivial<typename ::std::iterator_traits<Iterator>::value_type>::value, bool>::type
-is_equal(Iterator, Iterator, Iterator)
+is_equal(Iterator /* first */, Iterator /* last */, Iterator /* d_first */)
 {
     return true;
 }
@@ -72,7 +72,7 @@ struct test_stable_partition
 {
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
     typename ::std::enable_if<!is_same_iterator_category<BiDirIt, ::std::forward_iterator_tag>::value, void>::type
-    operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size,
+    operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size /* n */,
                UnaryOp unary_op, Generator generator)
     {
         fill_data(exp_first, exp_last, generator);
@@ -87,8 +87,8 @@ struct test_stable_partition
 
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
     typename ::std::enable_if<is_same_iterator_category<BiDirIt, ::std::forward_iterator_tag>::value, void>::type
-    operator()(Policy&&, BiDirIt, BiDirIt, BiDirIt, BiDirIt, Size,
-               UnaryOp, Generator)
+    operator()(Policy&& /* exec */, BiDirIt /* first */, BiDirIt /* last */, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
+               UnaryOp /* unary_op */, Generator /* generator */)
     {
     }
 };

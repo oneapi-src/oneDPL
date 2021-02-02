@@ -94,7 +94,7 @@ struct test_destroy
 {
     template <typename Policy, typename Iterator, typename T>
     void
-    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t, ::std::false_type)
+    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t /* n */, ::std::false_type)
     {
         using namespace std;
 
@@ -110,7 +110,7 @@ struct test_destroy
 
     template <typename Policy, typename Iterator, typename T>
     void
-    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t, ::std::true_type)
+    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t /* n */, ::std::true_type)
     {
         using namespace std;
 

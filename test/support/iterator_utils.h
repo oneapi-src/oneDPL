@@ -502,7 +502,7 @@ struct iterator_invoker<::std::forward_iterator_tag, /*isReverse=*/::std::true_t
 {
     template <typename... Rest>
     void
-    operator()(Rest&&...)
+    operator()(Rest&&... /* rest */)
     {
     }
 };

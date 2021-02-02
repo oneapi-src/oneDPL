@@ -48,7 +48,7 @@ struct run_unique_copy
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator, OutputIterator2 expected_first, OutputIterator2,
+               OutputIterator /* out_last */, OutputIterator2 expected_first, OutputIterator2 /* expected_last */,
                Size n, T trash)
     {
         // Cleaning
@@ -103,7 +103,7 @@ struct run_unique_copy_predicate
               typename Predicate>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator, OutputIterator2 expected_first, OutputIterator2, Size n,
+               OutputIterator /* out_last */, OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
                Predicate pred, T trash)
     {
         // Cleaning

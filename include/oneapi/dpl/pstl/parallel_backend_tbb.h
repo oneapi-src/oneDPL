@@ -642,7 +642,7 @@ class __func_task : public __task
     };
 
     __task*
-    cancel(tbb::detail::d1::execution_data& ) override
+    cancel(tbb::detail::d1::execution_data&) override
     {
         return finalize(nullptr);
     }

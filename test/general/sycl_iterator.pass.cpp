@@ -112,7 +112,7 @@ struct test_uninitialized_copy
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto host_first1 = get_host_pointer(first1);
@@ -134,7 +134,7 @@ struct test_uninitialized_copy_n
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto host_first1 = get_host_pointer(first1);
@@ -156,7 +156,7 @@ struct test_uninitialized_move
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto host_first1 = get_host_pointer(first1);
@@ -178,7 +178,7 @@ struct test_uninitialized_move_n
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto host_first1 = get_host_pointer(first1);
@@ -200,7 +200,7 @@ struct test_uninitialized_fill
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
@@ -220,7 +220,7 @@ struct test_uninitialized_fill_n
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
@@ -238,7 +238,7 @@ struct test_uninitialized_default_construct
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         T1 exp_value; // default-constructed value
@@ -261,7 +261,7 @@ struct test_uninitialized_default_construct_n
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         T1 exp_value; // default-constructed value
@@ -284,7 +284,7 @@ struct test_uninitialized_value_construct
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
@@ -306,7 +306,7 @@ struct test_uninitialized_value_construct_n
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
@@ -327,7 +327,7 @@ struct test_destroy
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1{2};
@@ -350,7 +350,7 @@ struct test_destroy_n
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1{2};
@@ -372,7 +372,7 @@ struct test_fill
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
@@ -390,7 +390,7 @@ struct test_fill_n
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
@@ -408,7 +408,7 @@ struct test_generate
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(4);
@@ -427,7 +427,7 @@ struct test_generate_n
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(4);
@@ -444,7 +444,7 @@ struct test_for_each
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
 
@@ -470,7 +470,7 @@ struct test_for_each_n
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(6);
@@ -490,7 +490,7 @@ struct test_transform_unary
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
@@ -513,7 +513,7 @@ struct test_transform_binary
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
 
@@ -575,7 +575,7 @@ struct test_replace_copy
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(5);
@@ -595,7 +595,7 @@ struct test_replace_copy_if
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(6);
@@ -616,7 +616,7 @@ struct test_copy
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
@@ -638,7 +638,7 @@ struct test_copy_n
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
@@ -660,7 +660,7 @@ struct test_move
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
@@ -682,7 +682,7 @@ struct test_adjacent_difference
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using Iterator1ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
         using Iterator2ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
@@ -733,7 +733,7 @@ struct test_reduce
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
@@ -782,7 +782,7 @@ struct test_transform_reduce_binary
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 /* firs2 */, Iterator2 /* last2 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
@@ -1408,7 +1408,7 @@ struct test_equal
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using T = typename ::std::iterator_traits<Iterator1>::value_type;
         auto value = T(42);
@@ -1984,7 +1984,7 @@ struct test_unique_copy
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
 
         using Iterator1ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
@@ -2081,8 +2081,8 @@ struct test_partition_copy
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Iterator3 first3,
-               Iterator3, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Iterator3 first3,
+               Iterator3 /* last3 */, Size n)
     {
 
         using Iterator1ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
@@ -2329,8 +2329,8 @@ struct test_merge
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Iterator3 first3,
-               Iterator3, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Iterator3 first3,
+               Iterator3 /* last3 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
@@ -2461,7 +2461,7 @@ struct test_partial_sort
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 /* first1 */, Iterator2 /* last2 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
 
@@ -2861,7 +2861,7 @@ struct test_nth_element
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using T1 = typename ::std::iterator_traits<Iterator1>::value_type;
         using T2 = typename ::std::iterator_traits<Iterator2>::value_type;
@@ -2927,7 +2927,7 @@ struct test_reverse_copy
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator1 result_first, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator1 result_first, Iterator1 /* result_last */, Size n)
     {
         using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
 
@@ -2972,7 +2972,7 @@ struct test_rotate_copy
 {
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator1 result_first, Iterator1, Size n)
+    operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator1 result_first, Iterator1 /* result_last */, Size n)
     {
         using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
 
@@ -3004,7 +3004,7 @@ struct test_includes
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size /* n */)
     {
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
@@ -3035,7 +3035,7 @@ struct test_set_intersection
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3,
-               Iterator3 last3, Size)
+               Iterator3 last3, Size /* n */)
     {
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
@@ -3087,7 +3087,7 @@ struct test_set_difference
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3,
-               Iterator3 last3, Size)
+               Iterator3 last3, Size /* n */)
     {
 
         auto host_first1 = get_host_pointer(first1);
@@ -3114,7 +3114,7 @@ struct test_set_union
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3,
-               Iterator3 last3, Size)
+               Iterator3 last3, Size /* n */)
     {
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
@@ -3140,7 +3140,7 @@ struct test_set_symmetric_difference
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3,
-               Iterator3 last3, Size)
+               Iterator3 last3, Size /* n */)
     {
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);

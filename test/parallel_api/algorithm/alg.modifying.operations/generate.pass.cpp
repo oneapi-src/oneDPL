@@ -65,7 +65,7 @@ struct test_generate_n
 {
     template <typename Policy, typename Iterator, typename Size>
     void
-    operator()(Policy&& exec, Iterator first, Iterator, Size n)
+    operator()(Policy&& exec, Iterator first, Iterator /* last */, Size n)
     {
         using namespace std;
 

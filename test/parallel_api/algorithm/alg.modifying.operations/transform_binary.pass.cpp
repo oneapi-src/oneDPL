@@ -67,8 +67,8 @@ struct test_one_policy
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
               typename BinaryOp>
     void
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2,
-               OutputIterator out_first, OutputIterator, BinaryOp op)
+    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
+               OutputIterator out_first, OutputIterator /* out_last */, BinaryOp op)
     {
         ::std::transform(exec, first1, last1, first2, out_first, op);
         check_and_reset(first1, last1, first2, out_first);

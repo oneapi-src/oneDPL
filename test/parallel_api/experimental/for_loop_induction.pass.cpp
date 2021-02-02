@@ -25,7 +25,7 @@ using namespace TestUtils;
 
 template <typename Policy, typename Iterator, typename Size>
 void
-test_body_induction(Policy&& exec, Iterator, Iterator, Iterator /* expected_first */,
+test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, Iterator /* expected_first */,
                     Iterator /* expected_last */, Size n)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;

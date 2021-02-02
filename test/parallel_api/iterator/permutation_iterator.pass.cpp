@@ -69,7 +69,7 @@ struct statistics {
 
 template <typename RefPolicy, typename Policy, typename Iterator, typename IndexMap>
 void evaluate(RefPolicy&& ref_policy, Policy&& policy, Iterator ref_begin, Iterator ref_end,
-              oneapi::dpl::permutation_iterator<Iterator, IndexMap> perm_start, std::string) {
+              oneapi::dpl::permutation_iterator<Iterator, IndexMap> perm_start, std::string /* test */) {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     using clock = std::chrono::high_resolution_clock;
 

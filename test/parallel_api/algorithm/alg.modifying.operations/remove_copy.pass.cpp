@@ -28,7 +28,7 @@ struct run_remove_copy
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator, OutputIterator2 expected_first, OutputIterator2, Size n,
+               OutputIterator, OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
                const T& value, T trash)
     {
         // Cleaning

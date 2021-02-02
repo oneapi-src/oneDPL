@@ -50,16 +50,16 @@ struct test_partition_copy
 template <typename InputIterator, typename OutputIterator, typename OutputIterator2,
           typename UnaryOp>
     void
-    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator, InputIterator, OutputIterator,
-               OutputIterator, OutputIterator2, OutputIterator2, UnaryOp)
+    operator()(oneapi::dpl::execution::unsequenced_policy, InputIterator /* first */, InputIterator /* last */, OutputIterator /* true_first */,
+               OutputIterator /* true_last */, OutputIterator2 /* false_first */, OutputIterator2 /* false_last */, /* UnaryOp unary_op */)
     {
     }
 
     template <typename InputIterator, typename OutputIterator, typename OutputIterator2,
               typename UnaryOp>
     void
-    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator, InputIterator, OutputIterator,
-               OutputIterator, OutputIterator2, OutputIterator2, UnaryOp)
+    operator()(oneapi::dpl::execution::parallel_unsequenced_policy, InputIterator /* first */, InputIterator /* last */, OutputIterator /* true_first */,
+               OutputIterator /* true_last */, OutputIterator2 /* false_first */, OutputIterator2 /* false_last */, /* UnaryOp unary_op */)
     {
     }
 #endif
