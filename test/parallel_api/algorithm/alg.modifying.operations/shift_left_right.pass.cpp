@@ -31,9 +31,8 @@
 #define _PSTL_TEST_SHIFT_RIGHT
 #endif
 
-template <typename T>
 struct test_shift
-{    
+{
     template <typename Policy, typename It, typename Size, typename Algo>
     oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, void>
     operator()(Policy&& exec, It first, Size m, It first_exp, Size n, Algo algo)
@@ -49,26 +48,48 @@ struct test_shift
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
     operator()(Policy&& exec, It first, Size m, It first_exp, Size n, Algo algo)
     {
-        //1. run a test with hetero policy and host itertors
+        //1.1 run a test with hetero policy and host itertors
         auto res = algo(::std::forward<Policy>(exec), first, first + m, n);
-        //check result
+        //1.2 check result
         algo.check(res, first, m, first_exp, n);
 
-        //2. run a test with hetero policy and hetero itertors
+        using _ValueType = typename ::std::iterator_traits<It>::value_type;
+
+        //2.1 run a test with hetero policy and hetero itertors
         Size res_idx(0);
         {//scope for SYCL buffer lifetime
-            using _ValueType = typename ::std::iterator_traits<It>::value_type;        
             sycl::buffer<_ValueType> buf(first, first + m);
             buf.set_final_data(first);
             buf.set_write_back(true);
 
             auto het_begin = oneapi::dpl::begin(buf);
-        
+
             auto het_res = algo(::std::forward<Policy>(exec), het_begin, het_begin + m, n);
             res_idx = het_res - het_begin;
         }
-        //check result
+        //2.2 check result
         algo.check(first + res_idx, first, m, first_exp, n);
+
+#if _PSTL_SYCL_TEST_USM
+        //3.1 run a test with hetero policy and USM pointers
+        {
+            // allocate USM memory
+            auto queue = exec.queue();
+            auto sycl_deleter = [queue](_ValueType* mem) { sycl::free(mem, queue.get_context()); };
+            ::std::unique_ptr<_ValueType, decltype(sycl_deleter)> ptr(
+                (_ValueType*)sycl::malloc_shared(sizeof(_ValueType)*m, queue.get_device(), queue.get_context()),
+                sycl_deleter);
+
+            //copying data to USM buffer
+            ::std::copy_n(first, m, ptr.get());
+
+            auto het_res = algo(::std::forward<Policy>(exec), ptr.get(), ptr.get() + m, n);
+            res_idx = het_res - ptr.get();
+
+            //3.2 check result
+            algo.check(ptr.get() + res_idx, ptr.get(), m, first_exp, n);
+        }
+#endif
     }
 #endif
 };
@@ -80,7 +101,7 @@ test_shift_by_type(Size m, Size n, Algo algo)
     TestUtils::Sequence<T> orig(m, [](::std::size_t v) -> T { return T(v); }); //fill data
     TestUtils::Sequence<T> in(m, [](::std::size_t v) -> T { return T(v); }); //fill data
 
-    TestUtils::invoke_on_all_policies<>()(test_shift<T>(), in.begin(), m, orig.begin(), n, algo);
+    TestUtils::invoke_on_all_policies<>()(test_shift(), in.begin(), m, orig.begin(), n, algo);
 }
 
 struct shift_left_algo
@@ -91,9 +112,9 @@ struct shift_left_algo
         return oneapi::dpl::shift_left(::std::forward<Policy>(exec), first, last, n);
     }
 
-    template <typename It, typename Size>
+    template <typename It, typename ItExp, typename Size>
     void
-    check(It res, It first, Size m, It first_exp, Size n)
+    check(It res, It first, Size m, ItExp first_exp, Size n)
     {
         //if (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first.
         //Otherwise, returns last.
@@ -131,11 +152,11 @@ struct shift_right_algo
         return first;
     }
 
-    template <typename It, typename Size>
+    template <typename It, typename ItExp, typename Size>
     typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
                             || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
-    check(It res, It first, Size m, It first_exp, Size n)
+    check(It res, It first, Size m, ItExp first_exp, Size n)
     {
         //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
         //Otherwise, returns firts.
@@ -152,11 +173,11 @@ struct shift_right_algo
         }
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
-    template <typename It, typename Size>
+    template <typename It, typename ItExp, typename Size>
     typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
                             && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
-    check(It res, It first, Size m, It first_exp, Size n)
+    check(It res, It first, Size m, ItExp first_exp, Size n)
     {
     }
 };
