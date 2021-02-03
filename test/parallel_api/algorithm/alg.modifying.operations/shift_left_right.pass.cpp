@@ -33,9 +33,10 @@
 
 struct test_shift
 {
-    template <typename Policy, typename It, typename Size, typename Algo>
+    template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, void>
-    operator()(Policy&& exec, It first, Size m, It first_exp, Size n, Algo algo)
+    operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
+	    It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
         //run a test with host policy and host itertors
         It res = algo(::std::forward<Policy>(exec), first, ::std::next(first, m), n);
@@ -44,9 +45,10 @@ struct test_shift
     }
 
 #if _ONEDPL_BACKEND_SYCL
-    template <typename Policy, typename It, typename Size, typename Algo>
+    template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
-    operator()(Policy&& exec, It first, Size m, It first_exp, Size n, Algo algo)
+    operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
+	    It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
         //1.1 run a test with hetero policy and host itertors
         auto res = algo(::std::forward<Policy>(exec), first, first + m, n);
@@ -54,9 +56,10 @@ struct test_shift
         algo.check(res, first, m, first_exp, n);
 
         using _ValueType = typename ::std::iterator_traits<It>::value_type;
+		using _DiffType = typename ::std::iterator_traits<It>::difference_type;
 
         //2.1 run a test with hetero policy and hetero itertors
-        Size res_idx(0);
+        _DiffType res_idx(0);
         {//scope for SYCL buffer lifetime
             sycl::buffer<_ValueType> buf(first, first + m);
             buf.set_final_data(first);
@@ -106,15 +109,16 @@ test_shift_by_type(Size m, Size n, Algo algo)
 
 struct shift_left_algo
 {
-    template <typename Policy, typename It, typename Size>
-    It operator()(Policy&& exec, It first, It last, Size n)
+    template <typename Policy, typename It>
+    It operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
         return oneapi::dpl::shift_left(::std::forward<Policy>(exec), first, last, n);
     }
 
-    template <typename It, typename ItExp, typename Size>
+    template <typename It, typename ItExp>
     void
-    check(It res, It first, Size m, ItExp first_exp, Size n)
+    check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
+	    typename ::std::iterator_traits<It>::difference_type n)
     {
         //if (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first.
         //Otherwise, returns last.
@@ -134,29 +138,30 @@ struct shift_left_algo
 
 struct shift_right_algo
 {
-    template <typename Policy, typename It, typename Size>
+    template <typename Policy, typename It>
     typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
                             || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             It>::type
-    operator()(Policy&& exec, It first, It last, Size n)
+    operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
         return oneapi::dpl::shift_right(::std::forward<Policy>(exec), first, last, n);
     }
     //skip the test for non-bidirectional iterator (forward iterator, etc)
-    template <typename Policy, typename It, typename Size>
+    template <typename Policy, typename It>
     typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
                             && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             It>::type
-    operator()(Policy&& exec, It first, It last, Size n)
+    operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
         return first;
     }
 
-    template <typename It, typename ItExp, typename Size>
+    template <typename It, typename ItExp>
     typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
                             || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
-    check(It res, It first, Size m, ItExp first_exp, Size n)
+    check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
+	    typename ::std::iterator_traits<It>::difference_type n)
     {
         //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
         //Otherwise, returns firts.
@@ -173,11 +178,12 @@ struct shift_right_algo
         }
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
-    template <typename It, typename ItExp, typename Size>
+    template <typename It, typename ItExp>
     typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
                             && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
-    check(It res, It first, Size m, ItExp first_exp, Size n)
+    check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
+	    typename ::std::iterator_traits<It>::difference_type n)
     {
     }
 };
