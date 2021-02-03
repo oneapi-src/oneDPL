@@ -108,7 +108,7 @@ int
 main()
 {
     test<int16_t>(42, IsEqual<int16_t>(50, OddTag()), [](int16_t j) { return j; });
-    test<int32_t>(42, [](const int32_t& x) { return true; }, [](int32_t j) { return j; });
+    test<int32_t>(42, [](const int32_t&) { return true; }, [](int32_t j) { return j; });
     test<float64_t>(42, IsEqual<float64_t>(50, OddTag()), [](int32_t j) { return float64_t(j); });
 #if !_ONEDPL_BACKEND_SYCL
     test<Number>(Number(42, OddTag()), IsEqual<Number>(Number(50, OddTag()), OddTag()),

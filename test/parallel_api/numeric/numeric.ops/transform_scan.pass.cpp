@@ -47,7 +47,7 @@ struct test_transform_exclusive_scan
               typename T, typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
+               OutputIterator out_last, OutputIterator expected_first, OutputIterator /* expected_last */, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
     {
         using namespace std;
@@ -62,9 +62,9 @@ struct test_transform_exclusive_scan
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
-    operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
-               UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
+    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, OutputIterator /* out_first */,
+               OutputIterator /* out_last */, OutputIterator /* expected_first */, OutputIterator /* expected_last */, Size /* n */,
+               UnaryOp /* unary_op */, T /* init */, BinaryOp /* binary_op */, T /* trash */)
     {
     }
 };
@@ -76,7 +76,7 @@ struct test_transform_inclusive_scan_init
               typename T, typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
+               OutputIterator out_last, OutputIterator expected_first, OutputIterator /* expected_last */, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
     {
         using namespace std;
@@ -91,9 +91,9 @@ struct test_transform_inclusive_scan_init
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
-    operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
-               UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
+    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, OutputIterator /* out_first */,
+               OutputIterator /* out_last */, OutputIterator /* expected_first */, OutputIterator /* expected_last */, Size /* n */,
+               UnaryOp /* unary_op */, T /* init */, BinaryOp /* binary_op */, T /* trash */)
     {
     }
 };
@@ -105,8 +105,8 @@ struct test_transform_inclusive_scan
               typename T, typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
-               UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
+               OutputIterator out_last, OutputIterator expected_first, OutputIterator /* expected_last */, Size n,
+               UnaryOp unary_op, T /* init */, BinaryOp binary_op, T trash)
     {
         using namespace std;
 
@@ -123,9 +123,9 @@ struct test_transform_inclusive_scan
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator>::value, void>::type
-    operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator expected_first, OutputIterator expected_last, Size n,
-               UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
+    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, OutputIterator /* out_first */,
+               OutputIterator /* out_last */, OutputIterator /* expected_first */, OutputIterator /* expected_last */, Size /* n */,
+               UnaryOp /* unary_op */, T /* init */, BinaryOp /* binary_op */, T /* trash */)
     {
     }
 };

@@ -232,8 +232,8 @@ class linear_congruential_engine
     {
         ::std::uint64_t __mod = modulus, __inc = increment;
         ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        state_ = ((__mult * state_.template convert<::std::uint64_t, sycl::rounding_mode::rte>()) % __mod)
-                     .template convert<scalar_type, sycl::rounding_mode::rte>();
+        for (unsigned int __i = 0; __i < _N; ++__i)
+            state_[__i] = static_cast<scalar_type>(((__mult * static_cast<::std::uint64_t>(state_[__i])) % __mod));
     }
 
     // result_portion implementation

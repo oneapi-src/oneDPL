@@ -70,7 +70,7 @@ struct statistics {
 
 template <typename Policy, typename Iterator>
 void evaluate(Policy&& policy, Iterator ref_begin, Iterator ref_end,
-              oneapi::dpl::discard_iterator dev_null, std::string test) {
+              oneapi::dpl::discard_iterator dev_null, std::string /* test */) {
     using policy_type = typename std::decay<Policy>::type;
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     using clock = std::chrono::high_resolution_clock;

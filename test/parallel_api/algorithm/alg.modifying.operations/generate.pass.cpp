@@ -65,7 +65,7 @@ struct test_generate_n
 {
     template <typename Policy, typename Iterator, typename Size>
     void
-    operator()(Policy&& exec, Iterator first, Iterator last, Size n)
+    operator()(Policy&& exec, Iterator first, Iterator /* last */, Size n)
     {
         using namespace std;
 
@@ -84,7 +84,7 @@ test_generate_by_type()
 {
     for (size_t n = 0; n <= 100000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> in(n, [](size_t v) -> T { return T(0); }); //fill by zero
+        Sequence<T> in(n, [](size_t) -> T { return T(0); }); //fill by zero
 
 #ifdef _PSTL_TEST_GENERATE
         invoke_on_all_policies<>()(test_generate<T>(), in.begin(), in.end(), in.size());

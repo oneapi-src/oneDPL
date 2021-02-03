@@ -46,7 +46,7 @@
 #define _PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN (__INTEL_COMPILER == 1900 && _MSC_VER && !_DEBUG)
 // ICC 18,19 generate wrong result
 #define _PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN													  \
-	((__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900) && _MSC_VER && !_DEBUG)
+    ((__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900) && _MSC_VER && !_DEBUG)
 // ICC 18,19 generate wrong result with for_loop_strided and reverse iterators
 #define _PSTL_ICC_18_19_TEST_REVERSE_ITERATOR_WITH_STRIDE_BROKEN                                                      \
     (__i386__ && (__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900))
@@ -64,5 +64,14 @@
 
 // Enable test when the DPC++ backend is available
 #define TEST_DPCPP_BACKEND_PRESENT TEST_SYCL_PRESENT && _ONEDPL_BACKEND_SYCL
+
+// Check for C++ standard and standard library for the use of ranges API
+#if defined(_GLIBCXX_RELEASE)
+#    define _ENABLE_RANGES_TESTING (__cplusplus >= 201703L && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
+#elif defined(_LIBCPP_VERSION)
+#    define _ENABLE_RANGES_TESTING (__cplusplus >= 201703L && _LIBCPP_VERSION >= 7000)
+#else
+#    define _ENABLE_RANGES_TESTING (__cplusplus >= 201703L)
+#endif
 
 #endif /* _PSTL_TEST_config_H */

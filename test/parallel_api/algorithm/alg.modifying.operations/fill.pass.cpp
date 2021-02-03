@@ -86,7 +86,7 @@ template <typename T>
 void
 test_fill_by_type(::std::size_t n)
 {
-    Sequence<T> in(n, [](::std::size_t v) -> T { return T(0); }); //fill with zeros
+    Sequence<T> in(n, [](::std::size_t) -> T { return T(0); }); //fill with zeros
     T value = -1;
 
 #ifdef _PSTL_TEST_FILL

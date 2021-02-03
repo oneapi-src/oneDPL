@@ -183,6 +183,42 @@ transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3
         ::std::forward<_Range3>(__result), [__op](auto x, auto y, auto& z) { z = __op(x, y); });
 }
 
+// [alg.sort]
+
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+{
+    oneapi::dpl::__internal::__ranges::__pattern_sort(::std::forward<_ExecutionPolicy>(__exec),
+                                                      ::std::forward<_Range>(__rng), __comp);
+}
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+sort(_ExecutionPolicy&& __exec, _Range&& __rng)
+{
+    oneapi::dpl::__internal::__ranges::__pattern_sort(::std::forward<_ExecutionPolicy>(__exec),
+                                                      ::std::forward<_Range>(__rng),
+                                                      oneapi::dpl::__internal::__pstl_less());
+}
+
+// [stable.sort]
+
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+{
+    sort(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+}
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
+{
+    sort(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+         oneapi::dpl::__internal::__pstl_less());
+}
+
 // [is.sorted]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
@@ -220,6 +256,28 @@ is_sorted(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
     return is_sorted(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
                      oneapi::dpl::__internal::__pstl_less());
+}
+
+// [alg.merge]
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range3>>
+merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
+{
+    return oneapi::dpl::__internal::__ranges::__pattern_merge(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+        ::std::forward<_Range3>(__rng3), __comp);
+}
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range3>>
+merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3)
+{
+    return oneapi::dpl::__internal::__ranges::__pattern_merge(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+        ::std::forward<_Range3>(__rng3), oneapi::dpl::__internal::__pstl_less());
 }
 
 // [alg.min.max]

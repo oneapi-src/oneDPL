@@ -1333,30 +1333,26 @@ struct __is_radix_sort_usable_for_type
 };
 
 #if _USE_RADIX_SORT
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
-                  __is_radix_sort_usable_for_type<__value_t<_Iterator>, _Compare>::value,
+                  __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__value_t<_Range>, _Compare>::value,
               __future<_ExecutionPolicy>>
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare)
 {
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
-    auto __buf = __keep(__first, __last);
+    __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng));
 
-    __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(__exec, __buf.all_view());
     return __future<_ExecutionPolicy>(__exec);
 }
 #endif
 
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
-                  !__is_radix_sort_usable_for_type<__value_t<_Iterator>, _Compare>::value,
+                  !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__value_t<_Range>, _Compare>::value,
               __future<_ExecutionPolicy>>
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
-    auto __buf = __keep(__first, __last);
-
-    __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+    __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
                          // Pass special tag to choose 'full' merge subroutine at compile-time
                          __full_merge_kernel(), __comp);
     return __future<_ExecutionPolicy>(__exec);

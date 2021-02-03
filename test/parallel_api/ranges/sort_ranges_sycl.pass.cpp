@@ -28,36 +28,31 @@
 int32_t
 main()
 {
-
 #if _ENABLE_RANGES_TESTING
     const int max_n = 10;
-    int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int data1[max_n] = {0, 1, 2, -1, 4, 5, 6, 7, 8, 9};
+    int data2[max_n] = {0, 1, 2, -1, 4, 5, 6, 7, 8, 9};
 
-    const int idx_val = 5;
-    const int val = -1;
-    data[idx_val] = val;
-
-    int res1 = -1, res2 = - 1, res3 = -1;
     using namespace TestUtils;
     using namespace oneapi::dpl::experimental::ranges;
     {
-        sycl::buffer<int> A(data, sycl::range<1>(max_n));
-
-        auto view = all_view(A);
+        sycl::buffer<int> A(data1, sycl::range<1>(max_n));
+        sycl::buffer<int> B(data2, sycl::range<1>(max_n));
 
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        res1 = find(exec, view, val);
-        res2 = find_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, [val](auto a) { return a == val;});
-        res3 = find_if_not(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, [val](auto a) { return a >= 0;});
+        sort(exec, all_view<int, sycl::access::mode::read_write>(A));
+        sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), all_view<int, sycl::access::mode::read_write>(B),
+            ::std::greater<int>());
     }
 
     //check result
-    EXPECT_TRUE(res1 == idx_val, "wrong effect from 'find' with sycl ranges");
-    EXPECT_TRUE(res2 == idx_val, "wrong effect from 'find_if' with sycl ranges");
-    EXPECT_TRUE(res3 == idx_val, "wrong effect from 'find_if_not' with sycl ranges");
+    bool res1 = ::std::is_sorted(data1, data1 + max_n);
+    EXPECT_TRUE(res1, "wrong effect from 'sort' with sycl ranges");
 
+    bool res2 = ::std::is_sorted(data2, data2 + max_n, ::std::greater<int>());
+    EXPECT_TRUE(res2, "wrong effect from 'sort with comparator' with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;
