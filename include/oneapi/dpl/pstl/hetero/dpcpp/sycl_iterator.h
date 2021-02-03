@@ -149,8 +149,7 @@ __internal::sycl_iterator<access_mode::read_write, T, Allocator> end(sycl::buffe
 
 // begin
 template <typename T, typename Allocator, access_mode Mode>
-__internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-                                                    sycl::mode_tag_t<Mode>)
+__internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>)
 {
     return __internal::sycl_iterator<Mode, T, Allocator>{buf, 0};
 }

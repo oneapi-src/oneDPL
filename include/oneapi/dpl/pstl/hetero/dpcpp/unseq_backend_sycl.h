@@ -270,8 +270,7 @@ struct __mask_assigner
 {
     template <typename _Acc, typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
-    operator()(_Acc& __acc, _OutAcc&, const _OutIdx __out_idx, const _InAcc& __in_acc,
-               const _InIdx __in_idx) const
+    operator()(_Acc& __acc, _OutAcc&, const _OutIdx __out_idx, const _InAcc& __in_acc, const _InIdx __in_idx) const
     {
         using ::std::get;
         get<N>(__acc[__out_idx]) = __in_acc[__in_idx];

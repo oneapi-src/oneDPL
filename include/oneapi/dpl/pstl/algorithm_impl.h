@@ -161,8 +161,7 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator>::value, void>
-__pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
-                _IsVector,
+__pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f, _IsVector,
                 /*parallel=*/::std::true_type)
 {
     typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
