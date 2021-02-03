@@ -2074,7 +2074,7 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__buf.all_view())>{__buf.all_view()};
     auto __res = oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec), __rng, __n);
 
-    return __first + __res;
+    return __last - __res;
 }
 
 } // namespace __internal
