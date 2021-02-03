@@ -1337,7 +1337,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__value_t<_Range>, _Compare>::value,
               __future<_ExecutionPolicy>>
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare)
 {
     __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng));

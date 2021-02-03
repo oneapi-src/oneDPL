@@ -75,7 +75,7 @@ struct TupleNoOp
 
     template <typename T1, typename T2>
     T2
-    operator()(const T1& t1, const T2& t2) const
+    operator()(const T1&, const T2& t2) const
     {
         return t2;
     }
@@ -148,7 +148,7 @@ struct test_transform_reduce_binary
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 /* first2 */, Iterator2 /* last2 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
@@ -238,7 +238,7 @@ struct test_equal
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
         using T = typename ::std::iterator_traits<Iterator1>::value_type;
         auto value = T(42);
@@ -378,7 +378,7 @@ struct test_unique_copy
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
 
         using Iterator1ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
@@ -416,8 +416,8 @@ struct test_merge
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3,
-               Iterator3 last3, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Iterator3 first3,
+               Iterator3 /* last3 */, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
@@ -547,7 +547,7 @@ struct test_counting_zip_transform
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
 
         using ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
