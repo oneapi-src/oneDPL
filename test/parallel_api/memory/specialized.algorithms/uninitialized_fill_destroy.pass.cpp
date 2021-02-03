@@ -94,7 +94,7 @@ struct test_destroy
 {
     template <typename Policy, typename Iterator, typename T>
     void
-    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t n, ::std::false_type)
+    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t /* n */, ::std::false_type)
     {
         using namespace std;
 
@@ -110,7 +110,7 @@ struct test_destroy
 
     template <typename Policy, typename Iterator, typename T>
     void
-    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t n, ::std::true_type)
+    operator()(Policy&& exec, Iterator first, Iterator last, const T& in, ::std::size_t /* n */, ::std::true_type)
     {
         using namespace std;
 
@@ -176,7 +176,7 @@ test_uninitialized_fill_destroy_by_type()
         ::std::unique_ptr<T[]> p(new T[n]);
         auto p_begin = p.get();
 #else
-        Sequence<T> p(n, [](size_t k){ return T{}; });
+        Sequence<T> p(n, [](size_t){ return T{}; });
         auto p_begin = p.begin();
 #endif
         auto p_end = ::std::next(p_begin, n);

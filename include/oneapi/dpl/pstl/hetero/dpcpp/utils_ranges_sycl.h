@@ -189,7 +189,7 @@ __require_access_zip(sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_Rang
 //__require_access utility
 
 inline void
-__require_access(sycl::handler& __cgh)
+__require_access(sycl::handler&)
 {
 }
 
@@ -209,7 +209,7 @@ __require_access_range(sycl::handler& __cgh, zip_view<_Ranges...>& zip_rng)
 
 template <typename _BaseRange>
 void
-__require_access_range(sycl::handler& __cgh, _BaseRange&)
+__require_access_range(sycl::handler&, _BaseRange&)
 {
 }
 

@@ -54,7 +54,7 @@ struct run_copy_if
               typename Predicate, typename T>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
+               OutputIterator /* out_last */, OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
                Predicate pred, T trash)
     {
         // Cleaning
@@ -106,7 +106,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
               typename Predicate, typename T>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, OutputIterator2 expected_first, OutputIterator2 expected_last, Size n,
+               OutputIterator /* out_last */, OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
                Predicate pred, T trash)
     {
         // Cleaning
@@ -219,7 +219,7 @@ main()
 #if !_ONEDPL_BACKEND_SYCL
     test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
 #endif
-    test<int32_t>(-666, [](const int32_t& x) { return true; }, [](size_t j) { return j; }, false);
+    test<int32_t>(-666, [](const int32_t&) { return true; }, [](size_t j) { return j; }, false);
 
 #if defined(_PSTL_TEST_REMOVE_COPY_IF)
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_remove_copy_if>());

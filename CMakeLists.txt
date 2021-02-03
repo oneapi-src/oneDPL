@@ -30,12 +30,6 @@ if (FIND_GXX_EXE)
     execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
 endif()
 
-option(ONEDPL_USE_PARALLEL_POLICIES "Enable parallel policies" ON)
-if (CMAKE_CXX_STANDARD GREATER_EQUAL 17 AND (NOT _onedpl_gxx_version OR _onedpl_gxx_version VERSION_GREATER_EQUAL 8.1))
-    option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" ON)
-else()
-    option(ONEDPL_USE_RANGES_API "Enable the use of ranges API for algorithms" OFF)
-endif()
 option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
@@ -72,126 +66,124 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()
 
-if (ONEDPL_USE_PARALLEL_POLICIES)
-    string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
-    message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
-    string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
+string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
+message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
+string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
-    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
-        string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
-        set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
+if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
+    string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
+    set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
-        if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
-            find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
-            message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
-            target_link_libraries(oneDPL INTERFACE TBB::tbb)
-        endif()
+    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
+        find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
+        message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
+        target_link_libraries(oneDPL INTERFACE TBB::tbb)
+    endif()
 
-        # It is for Clang and Intel® oneAPI DPC++ Compiler (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
-        if (UNIX)
-            if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-                if (FIND_GXX_EXE)
-                    string(REPLACE "\." "0" _onedpl_tbb_use_glibcxx_version ${_onedpl_gxx_version})
-                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${_onedpl_tbb_use_glibcxx_version})
-                else()
-                    target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=70300)
-                endif()
-            endif()
-        endif()
-
-        target_compile_definitions(oneDPL INTERFACE
-            $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
-            $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
-            $<$<BOOL:${ONEDPL_USE_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
-            $<$<BOOL:${ONEDPL_USE_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
-            )
-
-        if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-            if (NOT _fsycl_option)
-                message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
-                "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
-            endif()
-
-            # settings for the specific compilation type
-            if (NOT ONEDPL_USE_AOT_COMPILATION)
-                message(STATUS "Use the ahead of time compilation. No additional parameters needed")
+    # It is for Clang and Intel® oneAPI DPC++ Compiler (while the last one is detected as Clang; for Linux only), which are used with libstdc++ standard library
+    if (UNIX)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+            if (FIND_GXX_EXE)
+                string(REPLACE "\." "0" _onedpl_tbb_use_glibcxx_version ${_onedpl_gxx_version})
+                target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=${_onedpl_tbb_use_glibcxx_version})
             else()
-                if (NOT ONEDPL_AOT_ARCH)
-                    set(ONEDPL_AOT_ARCH "*")
-                    message(STATUS "Ahead of time compilation for all available architectures")
-                else()
-                    string(TOLOWER ${ONEDPL_AOT_ARCH} ONEDPL_AOT_ARCH)
-                    message(STATUS "Ahead of time compilation for ${ONEDPL_AOT_ARCH} architecture")
-                endif()
-                set(ONEDPL_AOT_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_AOT_ARCH}\"")
-                set(ONEDPL_AOT_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
-                set(ONEDPL_AOT_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable\"")
+                target_compile_definitions(oneDPL INTERFACE TBB_USE_GLIBCXX_VERSION=70300)
             endif()
-
-            # check device type
-            if (NOT ONEDPL_DEVICE_TYPE)
-                set(ONEDPL_DEVICE_TYPE "GPU")
-                message(STATUS "Use GPU as default device")
-            endif()
-
-            string(TOUPPER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
-            if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW?)$")
-                message(STATUS "Compilation for ${ONEDPL_DEVICE_TYPE}")
-                set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
-            else()
-                message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
-                    "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
-            endif()
-
-            # Check correctness of STATIC_REPORT
-            if (ONEDPL_FPGA_STATIC_REPORT)
-                if (NOT ONEDPL_USE_DEVICE_FPGA_HW)
-                    message(FATAL_ERROR "Static report can only be generated for FPGA hardware")
-                else()
-                    message(STATUS "Static report will be generated")
-                endif()
-            endif()
-
-            # DPC++ specific compiler options
-            target_compile_options(oneDPL INTERFACE
-                $<$<BOOL:${ONEDPL_USE_UNNAMED_LAMBDA}>:-fsycl-unnamed-lambda>
-                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
-                )
-
-            # DPC++ specific macro
-            target_compile_definitions(oneDPL INTERFACE
-                $<$<BOOL:${ONEDPL_USE_RANGES_API}>:_ONEDPL_USE_RANGES=1>
-                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
-                $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>:ONEDPL_FPGA_EMULATOR>
-                )
-
-            # DPC++ specific link options
-            target_link_libraries(oneDPL INTERFACE
-                $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
-                $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
-                $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
-                $<$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
-                $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_REL}>
-                $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_DEB}>
-                $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_RELDEB}>
-                )
-        endif()
-
-    else()
-        message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
-        if (TARGET ${ONEDPL_BACKEND})
-            target_link_libraries(oneDPL INTERFACE ${ONEDPL_BACKEND})
-        else()
-            find_package(${ONEDPL_BACKEND} REQUIRED)
-            target_link_libraries(oneDPL INTERFACE ${${ONEDPL_BACKEND}_IMPORTED_TARGETS})
         endif()
     endif()
-else()
+
     target_compile_definitions(oneDPL INTERFACE
-        PSTL_USE_PARALLEL_POLICIES=0
+        $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
+        $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
+        $<$<BOOL:${ONEDPL_USE_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
+        $<$<BOOL:${ONEDPL_USE_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
+        )
+
+    if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
+        if (NOT _fsycl_option)
+            message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
+            "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
+        endif()
+
+        # settings for the specific compilation type
+        if (NOT ONEDPL_USE_AOT_COMPILATION)
+            message(STATUS "Use the ahead of time compilation. No additional parameters needed")
+        else()
+            if (NOT ONEDPL_AOT_ARCH)
+                set(ONEDPL_AOT_ARCH "*")
+                message(STATUS "Ahead of time compilation for all available architectures")
+            else()
+                string(TOLOWER ${ONEDPL_AOT_ARCH} ONEDPL_AOT_ARCH)
+                message(STATUS "Ahead of time compilation for ${ONEDPL_AOT_ARCH} architecture")
+            endif()
+            set(ONEDPL_AOT_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_AOT_ARCH}\"")
+            set(ONEDPL_AOT_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
+            set(ONEDPL_AOT_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable\"")
+        endif()
+
+        # check device type
+        if (NOT ONEDPL_DEVICE_TYPE)
+            set(ONEDPL_DEVICE_TYPE "GPU")
+            message(STATUS "Use GPU as default device")
+        endif()
+
+        string(TOUPPER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
+        if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW?)$")
+            message(STATUS "Compilation for ${ONEDPL_DEVICE_TYPE}")
+            set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
+        else()
+            message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
+                "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
+        endif()
+
+        # Check correctness of STATIC_REPORT
+        if (ONEDPL_FPGA_STATIC_REPORT)
+            if (NOT ONEDPL_USE_DEVICE_FPGA_HW)
+                message(FATAL_ERROR "Static report can only be generated for FPGA hardware")
+            else()
+                message(STATUS "Static report will be generated")
+            endif()
+        endif()
+
+        # DPC++ specific compiler options
+        target_compile_options(oneDPL INTERFACE
+            $<$<BOOL:${ONEDPL_USE_UNNAMED_LAMBDA}>:-fsycl-unnamed-lambda>
+            $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
+            )
+
+        # DPC++ specific macro
+        target_compile_definitions(oneDPL INTERFACE
+            $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
+            $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>:ONEDPL_FPGA_EMULATOR>
+            )
+
+        # DPC++ specific link options
+        target_link_libraries(oneDPL INTERFACE
+            $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
+            $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
+            $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
+            $<$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
+            $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_REL}>
+            $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_DEB}>
+            $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_RELDEB}>
+            )
+    endif()
+
+elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
+    target_compile_definitions(oneDPL INTERFACE
         ONEDPL_USE_TBB_BACKEND=0
         ONEDPL_USE_DPCPP_BACKEND=0
         )
+    message(STATUS "Compilation for CPU device due to serial backend")
+
+else()
+    message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
+    if (TARGET ${ONEDPL_BACKEND})
+        target_link_libraries(oneDPL INTERFACE ${ONEDPL_BACKEND})
+    else()
+        find_package(${ONEDPL_BACKEND} REQUIRED)
+        target_link_libraries(oneDPL INTERFACE ${${ONEDPL_BACKEND}_IMPORTED_TARGETS})
+    endif()
 endif()
 
 target_include_directories(oneDPL
