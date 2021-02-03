@@ -1300,6 +1300,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
             });
         });
     }
+    // return future and extend lifetime of temporary buffer
     return __future<void>(__event1, __temp);
 }
 
