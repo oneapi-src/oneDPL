@@ -13,12 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <oneapi/dpl/execution>
+
 #include "support/pstl_test_config.h"
 
-#include _PSTL_TEST_HEADER(execution)
-#include _PSTL_TEST_HEADER(numeric)
+#include <oneapi/dpl/numeric>
+
 #if _ENABLE_RANGES_TESTING
-#include _PSTL_TEST_HEADER(ranges)
+#include <oneapi/dpl/ranges>
 #endif
 
 #include "support/utils.h"
