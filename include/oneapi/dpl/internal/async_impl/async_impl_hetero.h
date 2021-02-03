@@ -139,14 +139,15 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce_async<_RepackedTp>(
+    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce_async<_RepackedTp>(
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::transform_init<_Policy, _BinaryOperation1, _Functor>{__binary_op1,
                                                                             _Functor{__binary_op2}}, // transform
         __binary_op1,                                                                                // combine
         unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1},                // reduce
-        __buf1.all_view(), __buf2.all_view()).set(__init);
-    //return __res.set(__init);
+        __buf1.all_view(), __buf2.all_view());
+    __res.set(__init);
+    return __res;
     //return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
     //                                              __binary_op1);
 }
@@ -171,13 +172,15 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce_async<_RepackedTp>(
+    auto res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce_async<_RepackedTp>(
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::transform_init<_Policy, _BinaryOperation, _Functor>{__binary_op,
                                                                            _Functor{__unary_op}}, // transform
         __binary_op,                                                                              // combine
         unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op},               // reduce
-        __buf.all_view()).set(__init);
+        __buf.all_view());
+    res.set(__init);
+    return res;
     //return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
     //                                              __binary_op);
 }
