@@ -13,12 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <oneapi/dpl/execution>
+
 #include "support/pstl_test_config.h"
 
-#include _PSTL_TEST_HEADER(execution)
-
-#if _ONEDPL_USE_RANGES
-#include _PSTL_TEST_HEADER(ranges)
+#if _ENABLE_RANGES_TESTING
+#include <oneapi/dpl/ranges>
 #endif
 
 #include "support/utils.h"
@@ -28,7 +28,7 @@
 int32_t
 main()
 {
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
     using T = int;
 
     const int in_n = 10;
@@ -63,7 +63,7 @@ main()
     res2 &= ::std::includes(out2, out2 + out_n, in1, in1 + in_n, ::std::less<T>());
     res2 &= ::std::includes(out2, out2 + out_n, in2, in2 + in_n, ::std::less<T>());
     EXPECT_TRUE(res2, "wrong effect from 'merge' with sycl ranges with predicate");
-#endif //_ONEDPL_USE_RANGES
+#endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

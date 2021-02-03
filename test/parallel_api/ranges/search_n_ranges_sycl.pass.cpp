@@ -13,11 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <oneapi/dpl/execution>
+
 #include "support/pstl_test_config.h"
 
-#include _PSTL_TEST_HEADER(execution)
-#if _ONEDPL_USE_RANGES
-#include _PSTL_TEST_HEADER(ranges)
+#if _ENABLE_RANGES_TESTING
+#include <oneapi/dpl/ranges>
 #endif
 
 #include "support/utils.h"
@@ -27,7 +28,7 @@
 int32_t
 main()
 {
-#if _ONEDPL_USE_RANGES
+#if _ENABLE_RANGES_TESTING
     const int count = 10;
     int data[count] = {0, 1, 2, 3, 4, 4, 4, 7, 8, 9};
 
@@ -47,7 +48,7 @@ main()
     //check result
     EXPECT_TRUE(res == idx, "wrong effect from 'search_n' with sycl ranges");
 
-#endif //_ONEDPL_USE_RANGES
+#endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

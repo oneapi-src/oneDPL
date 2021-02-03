@@ -83,9 +83,7 @@
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
 
-#if _ONEDPL_USE_RANGES
-static_assert(__cplusplus >= 201703L, "The Range support requires C++17 as minimal version");
-
+#if (__cplusplus >= 201703L)
 #    define _ONEDPL_CONSTEXPR_FUN constexpr
 #    define _ONEDPL_CONSTEXPR_VAR inline constexpr
 #else
