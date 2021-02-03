@@ -19,7 +19,10 @@
 
 #include <iostream>
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#include "../../../../../support/pstl_test_config.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+
 #include <CL/sycl.hpp>
 
 void test_on_device()
@@ -110,7 +113,7 @@ bool test_on_host()
 
 int main()
 {
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_DPCPP_BACKEND_PRESENT
     test_on_device();
 #endif
     test_on_host();

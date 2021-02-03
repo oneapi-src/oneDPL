@@ -19,7 +19,9 @@
 
 #include <iostream>
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#include "../../../../../support/pstl_test_config.h"
+
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -37,7 +39,7 @@ void test_on_host()
          std::cout << "upper_bound on host FAIL." << std::endl;
 }
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_DPCPP_BACKEND_PRESENT
 void test_on_device()
 {
      bool correctness_flag = true;
@@ -105,7 +107,7 @@ void test_on_device()
 
 int main()
 {
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_DPCPP_BACKEND_PRESENT
     test_on_device();
 #endif
     test_on_host();

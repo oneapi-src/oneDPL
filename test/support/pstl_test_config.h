@@ -55,6 +55,16 @@
 
 #define _PSTL_SYCL_TEST_USM 1
 
+// Enable when compiler supports SYCL
+#if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#define TEST_SYCL_PRESENT 1
+#else
+#define TEST_SYCL_PRESENT 0
+#endif
+
+// Enable test when the DPC++ backend is available
+#define TEST_DPCPP_BACKEND_PRESENT TEST_SYCL_PRESENT && _ONEDPL_BACKEND_SYCL
+
 // Check for C++ standard and standard library for the use of ranges API
 #if defined(_GLIBCXX_RELEASE)
 #    define _ENABLE_RANGES_TESTING (__cplusplus >= 201703L && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
