@@ -234,7 +234,7 @@ struct __copy_assignable_holder<_Tp, false> : __value_holder<_Tp>
 {
     using __value_holder<_Tp>::__value_holder;
 
-    __copy_assignable_holder(const __copy_assignable_holder& other)=default;
+    __copy_assignable_holder(const __copy_assignable_holder& other) = default;
     __copy_assignable_holder&
     operator=(const __copy_assignable_holder& other)
     {

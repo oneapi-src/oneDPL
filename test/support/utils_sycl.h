@@ -40,14 +40,14 @@ namespace TestUtils
 
     inline void
     print_debug(const char*
-#       if _ONEDPL_DEBUG_SYCL   
+#if _ONEDPL_DEBUG_SYCL   
     message
-#       endif
+#endif
     )
     {
-#       if _ONEDPL_DEBUG_SYCL
+#if _ONEDPL_DEBUG_SYCL
         ::std::cout << message << ::std::endl;
-#       endif
+#endif
     }
 
     // Check values in sequence
