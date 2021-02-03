@@ -463,7 +463,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
             op(exec, make_iterator<Iterator>()(begin + n), n, ::std::forward<Rest>(rest)...);
     }
 	
-	template <typename Policy, typename Op, typename Iterator, typename... Rest>
+    template <typename Policy, typename Op, typename Iterator, typename... Rest>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected,
         Rest&&... rest)
