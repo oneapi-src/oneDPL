@@ -4078,7 +4078,7 @@ __pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardItera
 template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
 __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                     typename std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
                      /*is_parallel=*/::std::true_type)
 {
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
