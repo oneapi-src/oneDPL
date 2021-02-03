@@ -56,7 +56,7 @@ struct test_shift
         algo.check(res, first, m, first_exp, n);
 
         using _ValueType = typename ::std::iterator_traits<It>::value_type;
-		using _DiffType = typename ::std::iterator_traits<It>::difference_type;
+	using _DiffType = typename ::std::iterator_traits<It>::difference_type;
 
         //2.1 run a test with hetero policy and hetero itertors
         _DiffType res_idx(0);
