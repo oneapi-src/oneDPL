@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //===-- iterator_utils.h --------------------------------------------------===//
 //
-// Copyright (C) 2019-2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -257,7 +257,7 @@ struct invoke_if_<::std::false_type, ::std::false_type>
 {
     template <typename Op, typename... Rest>
     void
-    operator()(bool is_allow, Op op, Rest&&... rest)
+    operator()(bool /*is_allow*/, Op op, Rest&&... rest)
     {
         op(::std::forward<Rest>(rest)...);
     }
@@ -292,14 +292,14 @@ struct non_const_wrapper_tagged : non_const_wrapper
 
     template <typename Policy, typename Iterator>
     typename ::std::enable_if<IsPositiveCondition != is_same_iterator_category<Iterator, IteratorTag>::value, void>::type
-    operator()(Policy&& exec, Iterator iter)
+    operator()(Policy&& /*exec*/, Iterator /*iter*/)
     {
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
     typename ::std::enable_if<IsPositiveCondition != is_same_iterator_category<OutputIterator, IteratorTag>::value,
                             void>::type
-    operator()(Policy&& exec, InputIterator input_iter, OutputIterator out_iter)
+    operator()(Policy&& /*exec*/, InputIterator /*input_iter*/, OutputIterator /*out_iter*/)
     {
     }
 };
@@ -535,7 +535,7 @@ struct iterator_invoker<::std::forward_iterator_tag, /*isReverse=*/::std::true_t
 {
     template <typename... Rest>
     void
-    operator()(Rest&&... rest)
+    operator()(Rest&&... /* rest */)
     {
     }
 };
