@@ -54,7 +54,11 @@ struct run_copy_if
               typename Predicate, typename T>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator /* out_last */, OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
+               OutputIterator
+#if !_ONEDPL_BACKEND_SYCL
+               out_last
+#endif
+               , OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
                Predicate pred, T trash)
     {
         // Cleaning
@@ -106,7 +110,11 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
               typename Predicate, typename T>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator /* out_last */, OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
+               OutputIterator
+#if !_ONEDPL_BACKEND_SYCL
+               out_last
+#endif
+               , OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
                Predicate pred, T trash)
     {
         // Cleaning
