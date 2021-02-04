@@ -191,7 +191,6 @@ struct shift_right_algo
 int
 main()
 {
-#if 0
     const ::std::size_t N = 100000;
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
@@ -204,7 +203,7 @@ main()
        test_shift_by_type<int32_t>(m, n, shift_right_algo{});
 #endif
     }
-#endif
+
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
 }
