@@ -357,9 +357,9 @@ struct iterator_invoker
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, 
         Iterator expected, Rest&&... rest)
     {
-	    op(exec, make_iterator<Iterator>()(begin), n, make_iterator<Iterator>()(expected), ::std::forward<Rest>(rest)...);
+        op(exec, make_iterator<Iterator>()(begin), n, make_iterator<Iterator>()(expected), ::std::forward<Rest>(rest)...);
     }
-	
+
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::bidirectional_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n,
@@ -367,7 +367,7 @@ struct iterator_invoker
     {
         op(exec, make_iterator<Iterator>()(begin), n, make_iterator<Iterator>()(expected), ::std::forward<Rest>(rest)...);
     }
-	
+
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Rest&&... rest)
@@ -462,7 +462,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
         if (n <= sizeLimit)
             op(exec, make_iterator<Iterator>()(begin + n), n, ::std::forward<Rest>(rest)...);
     }
-	
+
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected,
@@ -471,8 +471,8 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
         if (n <= sizeLimit)
             op(exec, make_iterator<Iterator>()(begin + n), n, make_iterator<Iterator>()(expected + n), ::std::forward<Rest>(rest)...);
     }
-	
-	template <typename Policy, typename Op, typename Iterator, typename... Rest>
+
+    template <typename Policy, typename Op, typename Iterator, typename... Rest>
     typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::bidirectional_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected, Rest&&... rest)
     {

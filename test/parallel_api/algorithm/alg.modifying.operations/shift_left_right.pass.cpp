@@ -36,7 +36,7 @@ struct test_shift
     template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, void>
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
-	    It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
+        It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
         //run a test with host policy and host itertors
         It res = algo(::std::forward<Policy>(exec), first, ::std::next(first, m), n);
@@ -48,7 +48,7 @@ struct test_shift
     template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
-	    It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
+        It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
         //1.1 run a test with hetero policy and host itertors
         auto res = algo(::std::forward<Policy>(exec), first, first + m, n);
@@ -56,7 +56,7 @@ struct test_shift
         algo.check(res, first, m, first_exp, n);
 
         using _ValueType = typename ::std::iterator_traits<It>::value_type;
-	using _DiffType = typename ::std::iterator_traits<It>::difference_type;
+        using _DiffType = typename ::std::iterator_traits<It>::difference_type;
 
         //2.1 run a test with hetero policy and hetero itertors
         _DiffType res_idx(0);
@@ -118,7 +118,7 @@ struct shift_left_algo
     template <typename It, typename ItExp>
     void
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
-	    typename ::std::iterator_traits<It>::difference_type n)
+        typename ::std::iterator_traits<It>::difference_type n)
     {
         //if (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first.
         //Otherwise, returns last.
@@ -161,7 +161,7 @@ struct shift_right_algo
                             || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
-	    typename ::std::iterator_traits<It>::difference_type n)
+        typename ::std::iterator_traits<It>::difference_type n)
     {
         //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
         //Otherwise, returns firts.
@@ -183,7 +183,7 @@ struct shift_right_algo
                             && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
-	    typename ::std::iterator_traits<It>::difference_type n)
+        typename ::std::iterator_traits<It>::difference_type n)
     {
     }
 };
