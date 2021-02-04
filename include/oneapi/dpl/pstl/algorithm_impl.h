@@ -4004,10 +4004,10 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
 template <class _ForwardIterator>
 _ForwardIterator
 __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
-                   typename std::iterator_traits<_ForwardIterator>::difference_type __n,
+                   typename ::std::iterator_traits<_ForwardIterator>::difference_type __n,
                    /*is_vector=*/::std::false_type) noexcept
 {
-#if __cplusplus >= 202000L
+#if _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT
     return ::std::shift_left(__first, __last, __n);
 #else
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
@@ -4015,10 +4015,9 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
         return __last;
 
     //seek for (first + n)
-    auto __it = __first;
-    for (; --__n >= 0; ++__it)
-        if (__it == __last) // n >= last - first;
-            return __first;
+    auto __it = oneapi::dpl::__internal::__next_to_last()(__first, __last, __n);
+    if (__it == __last) // n >= last - first;
+        return __first;
 
     //Moving the rest elements from a position number n to the begin of the sequence.
     for (; __it != __last; ++__it, ++__first)
@@ -4044,7 +4043,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
     using _DiffType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
     using _ReferenceType = typename ::std::iterator_traits<_ForwardIterator>::reference;
 
-    _DiffType __mid = __size % 2 ? __size / 2 + 1 : __size / 2;
+    _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
     //1. n >= size/2; there is enough memory to 'total' parallel (SIMD) copying
@@ -4057,7 +4056,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
     {
         for (auto __k = __n; __k < __size; __k += __n)
         {
-            auto __end = std::min(__k + __n, __size);
+            auto __end = ::std::min(__k + __n, __size);
             __unseq_backend::__simd_walk_2(__first + __k, __end - __k, __first + __k - __n,
                                            [](_ReferenceType __x, _ReferenceType __y) { __y = ::std::move(__x); });
         }
@@ -4069,7 +4068,7 @@ __brick_shift_left(_ForwardIterator __first, _ForwardIterator __last,
 template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
 __pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
-                     typename std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
                      /*is_parallel=*/::std::false_type) noexcept
 {
     return __brick_shift_left(__first, __last, __n, __is_vector);
@@ -4078,20 +4077,19 @@ __pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardItera
 template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
 __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                     typename std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type __n, _IsVector __is_vector,
                      /*is_parallel=*/::std::true_type)
 {
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
     if (__n <= 0)
         return __last;
-
-    using _DiffType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
-
-    _DiffType __size = __last - __first;
+    auto __size = __last - __first;
     if (__n >= __size)
         return __first;
 
-    _DiffType __mid = __size % 2 ? __size / 2 + 1 : __size / 2;
+    using _DiffType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
+
+    _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
     //1. n >= size/2; there is enough memory to 'total' parallel copying
@@ -4108,7 +4106,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
         //TODO: to consider parallel processing by the 'internal' loop (but we may probably get cache locality issues)
         for (auto __k = __n; __k < __size; __k += __n)
         {
-            auto __end = std::min(__k + __n, __size);
+            auto __end = ::std::min(__k + __n, __size);
             __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __k, __end,
                                           [__first, __k, __n, __is_vector](_DiffType __i, _DiffType __j) {
                                               __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
@@ -4118,6 +4116,20 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     }
 
     return __first + __size_res;
+}
+
+template <class _ExecutionPolicy, class _BidirectionalIterator, class _IsVector, class _IsParallel>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
+__pattern_shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
+                      typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n,
+                      _IsVector __is_vector, _IsParallel is_parallel)
+{
+    using _ReverseIterator = typename ::std::reverse_iterator<_BidirectionalIterator>;
+    auto __res = oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec),
+                                                               _ReverseIterator(__last), _ReverseIterator(__first), __n,
+                                                               __is_vector, is_parallel);
+
+    return __res.base();
 }
 
 } // namespace __internal

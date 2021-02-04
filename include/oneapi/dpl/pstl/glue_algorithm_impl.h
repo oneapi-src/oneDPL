@@ -1190,7 +1190,7 @@ lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-           typename std::iterator_traits<_ForwardIterator>::difference_type __n)
+           typename ::std::iterator_traits<_ForwardIterator>::difference_type __n)
 {
     return oneapi::dpl::__internal::__pattern_shift_left(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
@@ -1203,15 +1203,12 @@ shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
 template <class _ExecutionPolicy, class _BidirectionalIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
 shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
-            typename std::iterator_traits<_BidirectionalIterator>::difference_type __n)
+            typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
 {
-    using _ReverseIterator = typename std::reverse_iterator<_BidirectionalIterator>;
-    auto __res = oneapi::dpl::__internal::__pattern_shift_left(
-        ::std::forward<_ExecutionPolicy>(__exec), _ReverseIterator(__last), _ReverseIterator(__first), __n,
+    return oneapi::dpl::__internal::__pattern_shift_right(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec));
-
-    return __res.base();
 }
 
 } // namespace dpl

@@ -1321,6 +1321,12 @@ __pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
                      typename ::std::iterator_traits<_ForwardIterator>::difference_type, _IsVector,
                      /*is_parallel=*/::std::true_type);
 
+template <class _ExecutionPolicy, class _BidirectionalIterator, class _IsVector, class _IsParallel>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
+__pattern_shift_right(_ExecutionPolicy&&, _BidirectionalIterator, _BidirectionalIterator,
+                      typename ::std::iterator_traits<_BidirectionalIterator>::difference_type, _IsVector,
+                      _IsParallel is_parallel);
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
