@@ -170,7 +170,7 @@ struct shift_right_algo
 
         EXPECT_TRUE(res_exp == res, "wrong return value of shift_right");
 
-        if(res != first && res != __last)
+        if (res != first && res != __last)
         {
             EXPECT_EQ_N(::std::next(first, n), first_exp, m - n, "wrong effect of shift_right");
             //restore unput data
