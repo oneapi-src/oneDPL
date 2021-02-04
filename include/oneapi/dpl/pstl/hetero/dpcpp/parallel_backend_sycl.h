@@ -259,22 +259,6 @@ class __parallel_sort_kernel_3 : public __kernel_name_base<__parallel_sort_kerne
 {
 };
 
-template <typename _ExecutionPolicy>
-class __future
-{
-    _ExecutionPolicy __exec;
-
-  public:
-    __future(const _ExecutionPolicy& __e) : __exec(__e) {}
-    void
-    wait()
-    {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __exec.queue().wait_and_throw();
-#endif
-    }
-};
-
 //------------------------------------------------------------------------
 // parallel_for - async pattern
 //------------------------------------------------------------------------
@@ -282,7 +266,7 @@ class __future
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     assert(__get_first_range(::std::forward<_Ranges>(__rngs)...).size() > 0);
@@ -296,7 +280,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 #endif
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
-    __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+    auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
         //get an access to data under SYCL buffer:
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
@@ -305,7 +289,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
             __brick(__idx, __rngs...);
         });
     });
-    return __future<_ExecutionPolicy>(__exec);
+    return __future<void>(__event);
 }
 
 //------------------------------------------------------------------------
@@ -1047,7 +1031,7 @@ struct __partial_merge_kernel
 };
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1068,14 +1052,14 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     const auto __max_n = ::std::max(__n, static_cast<decltype(__n)>(__n_2));
     const ::std::size_t __steps = ((__max_n - 1) / __chunk) + 1;
 
-    __exec.queue().submit([&](sycl::handler& __cgh) {
+    auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
         __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
             __full_merge_kernel()(__item_id.get_linear_id() * __chunk, __rng1, decltype(__n)(0), __n, __rng2,
                                   decltype(__n_2)(0), __n_2, __rng3, decltype(__n)(0), __comp, __chunk);
         });
     });
-    return __future<_ExecutionPolicy>(__exec);
+    return __future<void>(__event);
 }
 
 //-----------------------------------------------------------------------
@@ -1109,7 +1093,7 @@ template <typename T>
 class t_printer;
 
 template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1234,7 +1218,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
     // 3. If the data remained in the temporary buffer then copy it back
     if (__data_in_temp)
     {
-        __exec.queue().submit([&](sycl::handler& __cgh) {
+        __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
@@ -1244,10 +1228,12 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
             });
         });
     }
+
+    return __future<void>(__event1, __temp);
 }
 
 template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1304,7 +1290,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
     // if results are in temporary buffer then copy back those
     if (__data_in_temp)
     {
-        __exec.queue().submit([&](sycl::handler& __cgh) {
+        __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__event1);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
@@ -1314,6 +1300,8 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
             });
         });
     }
+    // return future and extend lifetime of temporary buffer
+    return __future<void>(__event1, __temp);
 }
 
 //------------------------------------------------------------------------
@@ -1336,26 +1324,23 @@ struct __is_radix_sort_usable_for_type
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__value_t<_Range>, _Compare>::value,
-              __future<_ExecutionPolicy>>
+              __future<void>>
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare)
 {
-    __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
+    return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng));
-
-    return __future<_ExecutionPolicy>(__exec);
 }
 #endif
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__value_t<_Range>, _Compare>::value,
-              __future<_ExecutionPolicy>>
+              __future<void>>
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                         // Pass special tag to choose 'full' merge subroutine at compile-time
-                         __full_merge_kernel(), __comp);
-    return __future<_ExecutionPolicy>(__exec);
+    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                                // Pass special tag to choose 'full' merge subroutine at compile-time
+                                __full_merge_kernel(), __comp);
 }
 
 //------------------------------------------------------------------------
@@ -1366,7 +1351,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __com
 // TODO: consider changing __partial_merge_kernel to make it compatible with
 //       __full_merge_kernel in order to use __parallel_sort_impl routine
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<_ExecutionPolicy>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,
                         _Compare __comp)
 {
@@ -1375,9 +1360,8 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
-                                 __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
-    return __future<_ExecutionPolicy>(__exec);
+    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+                                        __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 
 } // namespace __par_backend_hetero

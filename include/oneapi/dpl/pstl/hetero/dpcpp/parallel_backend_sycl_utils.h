@@ -600,6 +600,65 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
+//-----------------------------------------------------------------------
+// future and helper classes for async pattern/algorithm
+//-----------------------------------------------------------------------
+
+// empty base class for type erasure
+struct __lifetime_keeper_base
+{
+    virtual ~__lifetime_keeper_base() {}
+};
+
+// derived class to keep temporaries (e.g. buffer) alive
+template <typename... Ts>
+struct __lifetime_keeper : public __lifetime_keeper_base
+{
+    ::std::tuple<Ts...> __my_tmps;
+    __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
+};
+
+// TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
+class __future_base
+{
+    sycl::event __my_event;
+
+  public:
+    __future_base(sycl::event __e) : __my_event(__e) {}
+    void
+    wait()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __my_event.wait();
+#endif
+    }
+    operator sycl::event() const { return __my_event; }
+};
+
+template <typename T>
+class __future : public __future_base
+{
+};
+
+template <>
+class __future<void> : public __future_base
+{
+    ::std::unique_ptr<__lifetime_keeper_base> __tmps;
+
+  public:
+    template <typename... _Ts>
+    __future(sycl::event __e, _Ts... __t) : __future_base(__e)
+    {
+        if (sizeof...(__t) != 0)
+            __tmps = ::std::unique_ptr<__lifetime_keeper<_Ts...>>(new __lifetime_keeper<_Ts...>(__t...));
+    }
+    void
+    get()
+    {
+        this->wait();
+    }
+};
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi

@@ -653,7 +653,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _InputType;
-    return oneapi::dpl::__internal::__pattern_sort(
+    oneapi::dpl::__internal::__pattern_sort(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
@@ -674,7 +674,7 @@ template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
-    return oneapi::dpl::__internal::__pattern_stable_sort(
+    oneapi::dpl::__internal::__pattern_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
