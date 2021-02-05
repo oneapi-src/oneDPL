@@ -595,14 +595,17 @@ struct __early_exit_find_or
 
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
-        auto __shift = (__wg_size > 8) ? 8 : __wg_size;
+        auto __shift = 8;
 
         // each work_item processes N_ELEMENTS with step SHIFT
         auto __shift_global = __global_idx / __wg_size;
         auto __shift_local = __local_idx / __shift;
         auto __init_index =
             __shift_global * __wg_size * __n_iter + __shift_local * __shift * __n_iter + __local_idx % __shift;
-
+        auto __leader = (__local_idx / __shift) * __shift;
+        // if our "line" is out of work group size, reduce the line to the number of the rest elements
+        if(__wg_size - __leader < 8)
+            __shift = __wg_size - __leader;
         for (_Size __i = 0; __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
@@ -665,7 +668,6 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
