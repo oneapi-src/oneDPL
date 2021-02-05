@@ -604,7 +604,7 @@ struct __early_exit_find_or
             __shift_global * __wg_size * __n_iter + __shift_local * __shift * __n_iter + __local_idx % __shift;
         auto __leader = (__local_idx / __shift) * __shift;
         // if our "line" is out of work group size, reduce the line to the number of the rest elements
-        if(__wg_size - __leader < 8)
+        if (__wg_size - __leader < 8)
             __shift = __wg_size - __leader;
         for (_Size __i = 0; __i < __n_iter; ++__i)
         {
