@@ -168,7 +168,7 @@ pipeline {
                             try {
                                 retry(2) {
                                     deleteDir()
-                                    if (fileExists('./src/build')) {
+                                    if (fileExists('./src')) {
                                         sh script: 'rm -rf src', label: "Remove Src Folder"
                                     }
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
@@ -216,7 +216,7 @@ pipeline {
                                             sh script: """
                                                 rm -rf *
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
-                                                make VERBOSE=1 build-all -j -k || true
+                                                make VERBOSE=1 build-all -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
                                             """, label: "All tests"
                                         }
@@ -246,7 +246,7 @@ pipeline {
                                             sh script: """
                                                 rm -rf *
                                                 cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=11 -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST -DCMAKE_BUILD_TYPE=release ..
-                                                make VERBOSE=1 build-all -j -k || true
+                                                make VERBOSE=1 build-all -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
                                             """, label: "All tests"
                                         }
