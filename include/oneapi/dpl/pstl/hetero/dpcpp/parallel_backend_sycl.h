@@ -227,19 +227,19 @@ class __parallel_reduce_kernel : public __kernel_name_base<__parallel_reduce_ker
 {
 };
 template <typename... _Name>
-class __parallel_scan_kernel_1 : public __kernel_name_base<__parallel_scan_kernel_1<_Name...>>
+class __parallel_scan_local_kernel : public __kernel_name_base<__parallel_scan_local_kernel<_Name...>>
 {
 };
 template <typename... _Name>
-class __parallel_scan_kernel_2 : public __kernel_name_base<__parallel_scan_kernel_2<_Name...>>
+class __parallel_scan_global_kernel : public __kernel_name_base<__parallel_scan_global_kernel<_Name...>>
 {
 };
 template <typename... _Name>
-class __parallel_scan_kernel_3 : public __kernel_name_base<__parallel_scan_kernel_3<_Name...>>
+class __parallel_scan_propagate_kernel : public __kernel_name_base<__parallel_scan_propagate_kernel<_Name...>>
 {
 };
 template <typename... _Name>
-class __parallel_find_or_kernel_1 : public __kernel_name_base<__parallel_find_or_kernel_1<_Name...>>
+class __parallel_find_or_kernel : public __kernel_name_base<__parallel_find_or_kernel<_Name...>>
 {
 };
 template <typename... _Name>
@@ -272,19 +272,16 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
     assert(__get_first_range(::std::forward<_Ranges>(__rngs)...).size() > 0);
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_name_t = __parallel_for_kernel<_Fp, __kernel_name, _Ranges...>;
-#else
-    using __kernel_name_t = __parallel_for_kernel<__kernel_name>;
-#endif
+    using _CustomName = typename _Policy::kernel_name;
+    using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_for_kernel, _CustomName,
+                                                                                    _Fp, _Ranges...>;
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
     auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
         //get an access to data under SYCL buffer:
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
-        __cgh.parallel_for<__kernel_name_t>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
+        __cgh.parallel_for<_ForKernel>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
             auto __idx = __item_id.get_linear_id();
             __brick(__idx, __rngs...);
         });
@@ -306,12 +303,10 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
 
     using _Size = decltype(__n);
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_name_t = __parallel_reduce_kernel<_Up, _Cp, _Rp, __kernel_name, _Ranges...>;
-#else
-    using __kernel_name_t = __parallel_reduce_kernel<__kernel_name>;
-#endif
+    using _CustomName = typename _Policy::kernel_name;
+    using _ReduceKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_reduce_kernel, _CustomName, _Up, _Cp,
+                                                                     _Rp, _Ranges...>;
 
     sycl::cl_uint __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
     ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -319,7 +314,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
         ::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
 #if _ONEDPL_COMPILE_KERNEL
-    sycl::kernel __kernel = __kernel_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    sycl::kernel __kernel = _ReduceKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                           ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
@@ -354,7 +349,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
-            __cgh.parallel_for<__kernel_name_t>(
+            __cgh.parallel_for<_ReduceKernel>(
 #if _ONEDPL_COMPILE_KERNEL
                 __kernel,
 #endif
@@ -404,21 +399,21 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using _KernelName = typename _Policy::kernel_name;
+    using _CustomName = typename _Policy::kernel_name;
     using _Type = typename _InitType::__value_type;
 
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_scan_kernel_1<_Range1, _Range2, _BinaryOperation, _Type, _LocalScan,
-                                                       _GroupScan, _GlobalScan, _KernelName>;
-    using __kernel_2_name_t = __parallel_scan_kernel_2<_Range1, _Range2, _BinaryOperation, _Type, _LocalScan,
-                                                       _GroupScan, _GlobalScan, _KernelName>;
-    using __kernel_3_name_t = __parallel_scan_kernel_3<_Range1, _Range2, _BinaryOperation, _Type, _LocalScan,
-                                                       _GroupScan, _GlobalScan, _KernelName>;
-#else
-    using __kernel_1_name_t = __parallel_scan_kernel_1<_KernelName>;
-    using __kernel_2_name_t = __parallel_scan_kernel_2<_KernelName>;
-    using __kernel_3_name_t = __parallel_scan_kernel_3<_KernelName>;
-#endif
+    using _LocalScanKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_scan_local_kernel, _CustomName, _Range1,
+                                                                     _Range2, _BinaryOperation, _Type, _LocalScan,
+                                                                     _GroupScan, _GlobalScan>;
+    using _GlobalScanKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_scan_global_kernel, _CustomName,
+                                                                     _Range1, _Range2, _BinaryOperation, _Type,
+                                                                     _LocalScan, _GroupScan, _GlobalScan>;
+    using _PropagateKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_scan_propagate_kernel, _CustomName,
+                                                                     _Range1, _Range2, _BinaryOperation, _Type,
+                                                                     _LocalScan, _GroupScan, _GlobalScan>;
 
     auto __n = __rng1.size();
     assert(__n > 0);
@@ -430,8 +425,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         ::std::forward<_ExecutionPolicy>(__exec), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel_1 = __kernel_1_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel_2 = __kernel_2_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel_1 = _LocalScanKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel_2 = _GlobalScanKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __wgroup_size_kernel_1 =
         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
     auto __wgroup_size_kernel_2 =
@@ -455,7 +450,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
             __wgroup_size, __cgh);
 
-        __cgh.parallel_for<__kernel_1_name_t>(
+        __cgh.parallel_for<_LocalScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL
             __kernel_1,
 #endif
@@ -475,7 +470,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
             sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
                 __wgroup_size, __cgh);
 
-            __cgh.parallel_for<__kernel_2_name_t>(
+            __cgh.parallel_for<_GlobalScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL
                 __kernel_2,
 #endif
@@ -492,7 +487,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         __cgh.depends_on(__submit_event);
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
-        __cgh.parallel_for<__kernel_3_name_t>(sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) {
+        __cgh.parallel_for<_PropagateKernel>(sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) {
             __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg);
         });
     });
@@ -648,14 +643,10 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
+    using _CustomName = typename _Policy::kernel_name;
     using _AtomicType = typename _BrickTag::_AtomicType;
-
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_find_or_kernel_1<_Ranges..., _Brick, __kernel_name>;
-#else
-    using __kernel_1_name_t = __parallel_find_or_kernel_1<__kernel_name>;
-#endif
+    using _FindOrKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_find_or_kernel,
+                                                                                       _CustomName, _Brick, _Ranges...>;
 
     auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range(::std::forward<_Ranges>(__rngs)...).size();
@@ -663,7 +654,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
 
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __kernel_1_name_t::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel = _FindOrKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
@@ -693,7 +684,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
 
             // create local accessor to connect atomic with
             sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
-            __cgh.parallel_for<__kernel_1_name_t>(
+            __cgh.parallel_for<_FindOrKernel>(
 #if _ONEDPL_COMPILE_KERNEL
                 __kernel,
 #endif
@@ -1036,12 +1027,10 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _
 __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_merge_kernel<_Range1, _Range2, _Range3, _Compare, __kernel_name>;
-#else
-    using __kernel_1_name_t = __parallel_merge_kernel<__kernel_name>;
-#endif
+    using _CustomName = typename _Policy::kernel_name;
+    using _FindOrKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_merge_kernel, _CustomName, _Range1,
+                                                                     _Range2, _Range3, _Compare>;
     auto __n = __rng1.size();
     auto __n_2 = __rng2.size();
 
@@ -1055,7 +1044,7 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 
     auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-        __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
+        __cgh.parallel_for<_FindOrKernel>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
             __full_merge_kernel()(__item_id.get_linear_id() * __chunk, __rng1, decltype(__n)(0), __n, __rng2,
                                   decltype(__n_2)(0), __n_2, __rng3, decltype(__n)(0), __comp, __chunk);
         });
@@ -1098,16 +1087,16 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_sort_kernel_1<_Range, _Merge, _Compare, __kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<_Range, _Merge, _Compare, __kernel_name>;
-    using __kernel_3_name_t = __parallel_sort_kernel_3<_Range, _Merge, _Compare, __kernel_name>;
-#else
-    using __kernel_1_name_t = __parallel_sort_kernel_1<__kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<__kernel_name>;
-    using __kernel_3_name_t = __parallel_sort_kernel_3<__kernel_name>;
-#endif
+    using _CustomName = typename _Policy::kernel_name;
+    using _LeafSortKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_1, _CustomName, _Range,
+                                                                     _Merge, _Compare>;
+    using _GlobalSortKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_2, _CustomName, _Range,
+                                                                     _Merge, _Compare>;
+    using _CopyBackKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_3, _CustomName, _Range,
+                                                                     _Merge, _Compare>;
 
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
@@ -1136,13 +1125,12 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
     // 1. Perform sorting of the leaves of the merge sort tree
     sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-        __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__leaf_steps),
-                                              [=](sycl::item</*dim=*/1> __item_id) {
-                                                  const _Size __idx = __item_id.get_linear_id() * __leaf;
-                                                  const _Size __start = __idx;
-                                                  const _Size __end = sycl::min(__start + __leaf, __n);
-                                                  __leaf_sort_kernel()(__rng, __start, __end, __comp);
-                                              });
+        __cgh.parallel_for<_LeafSortKernel>(sycl::range</*dim=*/1>(__leaf_steps), [=](sycl::item</*dim=*/1> __item_id) {
+            const _Size __idx = __item_id.get_linear_id() * __leaf;
+            const _Size __start = __idx;
+            const _Size __end = sycl::min(__start + __leaf, __n);
+            __leaf_sort_kernel()(__rng, __start, __end, __comp);
+        });
     });
 
     _Size __sorted = __leaf;
@@ -1186,7 +1174,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
             __cgh.depends_on(__event1);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<__par_backend_hetero::access_mode::read_write>(__cgh);
-            __cgh.parallel_for<__kernel_2_name_t>(
+            __cgh.parallel_for<_GlobalSortKernel>(
                 sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                     const _Size __idx = __item_id.get_linear_id();
                     // Borders of the first and the second sorted sequences
@@ -1224,7 +1212,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
             // We cannot use __cgh.copy here because of zip_iterator usage
-            __cgh.parallel_for<__kernel_3_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
+            __cgh.parallel_for<_CopyBackKernel>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
                 __rng[__item_id.get_linear_id()] = __temp_acc[__item_id];
             });
         });
@@ -1238,14 +1226,13 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _
 __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_1_name_t = __parallel_sort_kernel_1<_Range, _Merge, _Compare, __kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<_Range, _Merge, _Compare, __kernel_name>;
-#else
-    using __kernel_1_name_t = __parallel_sort_kernel_1<__kernel_name>;
-    using __kernel_2_name_t = __parallel_sort_kernel_2<__kernel_name>;
-#endif
+    using _CustomName = typename _Policy::kernel_name;
+    using _GlobalSortKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_1, _CustomName, _Range,
+                                                                     _Merge, _Compare>;
+    using _CopyBackKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_2, _CustomName, _Range,
+                                                                     _Merge, _Compare>;
 
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
@@ -1265,7 +1252,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
             __cgh.depends_on(__event1);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-            __cgh.parallel_for<__kernel_1_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
+            __cgh.parallel_for<_GlobalSortKernel>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
                 auto __global_idx = __item_id.get_linear_id();
 
                 _Size __start = 2 * __k * (__global_idx / (2 * __k));
@@ -1296,7 +1283,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
             // we cannot use __cgh.copy here because of zip_iterator usage
-            __cgh.parallel_for<__kernel_2_name_t>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
+            __cgh.parallel_for<_CopyBackKernel>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
                 __rng[__item_id.get_linear_id()] = __temp_acc[__item_id];
             });
         });

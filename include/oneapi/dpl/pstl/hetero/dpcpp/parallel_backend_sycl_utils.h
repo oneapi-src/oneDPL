@@ -84,6 +84,12 @@ struct explicit_wait_if<true>
 
 namespace __internal
 {
+
+template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
+using _KernelName_t =
+    typename std::conditional<std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value,
+                              _BaseName<_CustomName, _Args...>, _BaseName<_CustomName>>::type;
+
 #if _ONEDPL_DEBUG_SYCL
 template <typename _Policy>
 inline void
