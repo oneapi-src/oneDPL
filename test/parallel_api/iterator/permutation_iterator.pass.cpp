@@ -21,6 +21,7 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <vector>
 
 #include "../../support/pstl_test_config.h"
 
