@@ -168,7 +168,7 @@ pipeline {
                             try {
                                 retry(2) {
                                     deleteDir()
-                                    if (fileExists('./src')) {
+                                    if (fileExists('./src/build')) {
                                         sh script: 'rm -rf src', label: "Remove Src Folder"
                                     }
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
@@ -206,15 +206,46 @@ pipeline {
                     }
                 }
 
-                stage('Check_tests') {
+                stage('Tests_backend_dpcpp_cxx_17') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
                                 try {
-                                    dir("./src") {
+                                    dir("./src/build") {
                                         withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
-                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release .
+                                                rm -rf *
+                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
+                                                make VERBOSE=1 build-all -j -k || true
+                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
+                                            """, label: "All tests"
+                                        }
+                                    }
+                                }
+                                catch(e) {
+                                    build_ok = false
+                                    echo "Exception is" + e.toString()
+                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                        sh script: """
+                                            exit -1
+                                        """
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Tests_backend_tbb_cxx_11') {
+                    steps {
+                        timeout(time: 2, unit: 'HOURS') {
+                            script {
+                                try {
+                                    dir("./src/build") {
+                                        withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                            sh script: """
+                                                rm -rf *
+                                                cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=11 -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 build-all -j -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
                                             """, label: "All tests"

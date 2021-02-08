@@ -285,23 +285,24 @@ pipeline {
                     }
                 }
 
-                stage('Check_tests') {
+                stage('Tests_backend_dpcpp_cxx_17') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
                                 try {
                                     script {
                                         withEnv(oneapi_env) {
-                                            dir("./src") {
+                                            dir("./src/build") {
                                                 bat script: """
                                                     set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
+                                                    rd /s /q . 2>nul
                                                     cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
                                                         -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
                                                         -DCMAKE_CXX_STANDARD=17^
                                                         -DCMAKE_BUILD_TYPE=release^
                                                         -DCMAKE_CXX_COMPILER=dpcpp^
                                                         -DONEDPL_BACKEND=dpcpp^
-                                                        -DONEDPL_DEVICE_TYPE=GPU .
+                                                        -DONEDPL_DEVICE_TYPE=GPU ..
                                                     "%MAKE_PROGRAM%" build-all -v -k 0
                                                     ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
                                                 """, label: "All tests"
@@ -320,6 +321,81 @@ pipeline {
                         }
                     }
                 }
+
+                stage('Tests_backend_tbb_cxx_17') {
+                    steps {
+                        timeout(time: 2, unit: 'HOURS') {
+                            script {
+                                try {
+                                    script {
+                                        withEnv(oneapi_env) {
+                                            dir("./src/build") {
+                                                bat script: """
+                                                    set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
+                                                    rd /s /q . 2>nul
+                                                    cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
+                                                        -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
+                                                        -DCMAKE_CXX_STANDARD=17^
+                                                        -DCMAKE_BUILD_TYPE=release^
+                                                        -DCMAKE_CXX_COMPILER=cl^
+                                                        -DONEDPL_BACKEND=tbb^
+                                                        -DONEDPL_DEVICE_TYPE=HOST ..
+                                                    "%MAKE_PROGRAM%" build-all -v -k 0
+                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
+                                                """, label: "All tests"
+                                            }
+                                        }
+                                    }
+                                }
+                                catch(e) {
+                                    build_ok = false
+                                    echo "Exception is" + e.toString()
+                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                        bat 'exit 1'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Tests_backend_tbb_cxx_11') {
+                    steps {
+                        timeout(time: 2, unit: 'HOURS') {
+                            script {
+                                try {
+                                    script {
+                                        withEnv(oneapi_env) {
+                                            dir("./src/build") {
+                                                bat script: """
+                                                    set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
+                                                    rd /s /q . 2>nul
+                                                    cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
+                                                        -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
+                                                        -DCMAKE_CXX_STANDARD=11^
+                                                        -DCMAKE_BUILD_TYPE=release^
+                                                        -DCMAKE_CXX_COMPILER=cl^
+                                                        -DONEDPL_BACKEND=tbb^
+                                                        -DONEDPL_DEVICE_TYPE=HOST ..
+                                                    "%MAKE_PROGRAM%" build-all -v -k 0
+                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
+                                                """, label: "All tests"
+                                            }
+                                        }
+                                    }
+                                }
+                                catch(e) {
+                                    build_ok = false
+                                    echo "Exception is" + e.toString()
+                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                        bat 'exit 1'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
             }
 
         }
