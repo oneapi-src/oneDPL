@@ -30,7 +30,7 @@ if (FIND_GXX_EXE)
     execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
 endif()
 
-option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
+option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" ON)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
 
@@ -147,9 +147,17 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
         # DPC++ specific compiler options
         target_compile_options(oneDPL INTERFACE
-            $<$<BOOL:${ONEDPL_USE_UNNAMED_LAMBDA}>:-fsycl-unnamed-lambda>
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             )
+        # if ONEDPL_USE_UNNAMED_LAMBDA on, add -fsycl-unnamed-lambda;
+        # if it's off, add -fno-sycl-unnamed-lambda
+        if(ONEDPL_USE_UNNAMED_LAMBDA)
+            message(STATUS "Use unnamed lambdas")
+            target_compile_options(oneDPL INTERFACE -fsycl-unnamed-lambda)
+        else()
+            message(STATUS "Don't use unnamed lambdas")
+            target_compile_options(oneDPL INTERFACE -fno-sycl-unnamed-lambda)
+        endif()
 
         # DPC++ specific macro
         target_compile_definitions(oneDPL INTERFACE

@@ -87,8 +87,12 @@ namespace __internal
 
 template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
 using _KernelName_t =
+#if __SYCL_UNNAMED_LAMBDA__
     typename std::conditional<std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value,
                               _BaseName<_CustomName, _Args...>, _BaseName<_CustomName>>::type;
+#else
+    _BaseName<_CustomName>;
+#endif
 
 #if _ONEDPL_DEBUG_SYCL
 template <typename _Policy>
