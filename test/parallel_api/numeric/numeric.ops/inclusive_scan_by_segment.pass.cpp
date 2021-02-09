@@ -17,6 +17,8 @@
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/iterator"
 
+#include "support/pstl_test_config.h"
+
 #include <iostream>
 #include <iomanip>
 
