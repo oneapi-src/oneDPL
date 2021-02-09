@@ -1996,6 +1996,11 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
                                                     __comp, ::std::true_type(), ::std::true_type());
 }
 
+template <typename Name>
+class __shift_left
+{
+};
+
 template <typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range>>
@@ -2027,7 +2032,10 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Range __rng, oneapi::dpl::__int
     else //2. n < size/2; 'n' parallel copying
     {
         auto __brick = unseq_backend::__brick_shift_left<_ExecutionPolicy, _DiffType>{__size, __n};
-        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n, __rng)
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__shift_left>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __brick, __n, __rng)
             .wait();
     }
 
