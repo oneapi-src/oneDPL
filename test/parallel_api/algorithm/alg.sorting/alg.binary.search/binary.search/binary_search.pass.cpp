@@ -19,8 +19,6 @@
 
 #include <iostream>
 
-#include "../../../../../support/pstl_test_config.h"
-
 #if TEST_DPCPP_BACKEND_PRESENT
 
 #include <CL/sycl.hpp>
