@@ -212,7 +212,7 @@ pipeline {
                             script {
                                 try {
                                     dir("./src/build") {
-                                        withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                        withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
                                                 rm -rf *
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
@@ -242,7 +242,7 @@ pipeline {
                             script {
                                 try {
                                     dir("./src/build") {
-                                        withEnv(readFile('../envs_tobe_loaded.txt').split('\n') as List) {
+                                        withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
                                                 rm -rf *
                                                 cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=11 -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST -DCMAKE_BUILD_TYPE=release ..
