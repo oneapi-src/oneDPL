@@ -70,6 +70,18 @@ string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
 string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
+# Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported.
+if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp$")
+    foreach(_simd_flag -fopenmp-simd -qopenmp-simd -openmp-simd /Qopenmp-simd)
+        string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
+        check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
+        if (${FLAG_DISPLAY_NAME}_option)
+            target_compile_options(oneDPL INTERFACE ${_simd_flag})
+            break()
+        endif()
+    endforeach()
+endif()
+
 if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
     set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
