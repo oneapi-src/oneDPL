@@ -175,33 +175,6 @@ make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
     return iter_mode<outMode>()(__it);
 }
 
-// function is needed to wrap kernel name into another class
-template <template <typename> class _NewKernelName, typename _Policy,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
-auto
-make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy)))
-{
-    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
-}
-
-#if _ONEDPL_FPGA_DEVICE
-template <template <typename> class _NewKernelName, typename _Policy,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
-auto
-make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
-                                                         _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy)))
-{
-    return oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
-                                                    _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
-}
-#endif
-
 // set of templated classes to name kernels
 template <typename _DerivedKernelName>
 class __kernel_name_base

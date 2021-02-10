@@ -622,6 +622,11 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 // radix sort: main function
 //-----------------------------------------------------------------------
 
+template <typename Name>
+class odd_iteration
+{
+};
+
 template <bool __is_comp_asc, typename _Range, typename _ExecutionPolicy>
 __future<void>
 __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
@@ -660,10 +665,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
-                __exec, __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf, __iteration_event);
-        else //swap __in_rng and__out_rng
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf,
+                __iteration_event);
+        else //swap __in_rng and __out_rng
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
-                __exec, __segments, __radix_iter, __out_rng, __in_rng, __tmp_buf, __iteration_event);
+                make_wrapped_policy<odd_iteration>(::std::forward<_ExecutionPolicy>(__exec)), __segments, __radix_iter,
+                __out_rng, __in_rng, __tmp_buf, __iteration_event);
 
         // TODO: since reassign to __iteration_event does not work, we have to make explicit wait on the event
         explicit_wait_if<::std::is_pointer<decltype(__in_rng.begin())>::value>{}(__iteration_event);

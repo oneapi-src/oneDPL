@@ -1229,6 +1229,16 @@ __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp});
 }
 
+template <typename Name>
+class merge_n1_equals_0
+{
+};
+
+template <typename Name>
+class merge_n2_equals_0
+{
+};
+
 //------------------------------------------------------------------------
 // merge
 //------------------------------------------------------------------------
@@ -1247,12 +1257,16 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            ::std::forward<_ExecutionPolicy>(__exec), __first2, __last2, __d_first,
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<merge_n1_equals_0>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __first2, __last2, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::true_type());
     else if (__n2 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __d_first,
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<merge_n2_equals_0>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __first1, __last1, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::true_type());
     else
     {
         auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -1902,9 +1916,11 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
                                                                            __comp, unseq_backend::_DifferenceTag()) -
                           __buf;
     //2. Merge {1} and the difference
-    return oneapi::dpl::__internal::__pattern_merge(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __buf,
-                                                    __buf + __n_diff, __result, __comp,
-                                                    /*vector=*/::std::true_type(), /*parallel=*/::std::true_type());
+    return oneapi::dpl::__internal::__pattern_merge(
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_2>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __buf, __buf + __n_diff, __result, __comp,
+        /*vector=*/::std::true_type(), /*parallel=*/::std::true_type());
 }
 
 //Dummy names to avoid kernel problems
