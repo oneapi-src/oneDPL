@@ -40,7 +40,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 for_each(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
 {
     oneapi::dpl::__internal::__ranges::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec),
-                                                       ::std::forward<_Range>(__rng), __f);
+                                                       views::all(::std::forward<_Range>(__rng)), __f);
 }
 
 // [alg.find]

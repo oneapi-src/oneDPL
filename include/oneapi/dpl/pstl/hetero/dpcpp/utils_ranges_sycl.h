@@ -91,11 +91,11 @@ struct all_view_fn
         return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf, __offset, __n);
     }
 
-    template <typename _T, typename sycl::access::mode AccMode>
-    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
-    operator()(oneapi::dpl::__ranges::all_view<_T, AccMode> __view) const
+    template <typename _R>
+    auto
+    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
     {
-        return __view;
+        return ::std::forward<_R>(__r);
     }
 };
 
