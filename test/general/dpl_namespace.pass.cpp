@@ -21,12 +21,15 @@
 #include <iostream>
 #include <tuple>
 
-#include <CL/sycl.hpp>
-
-namespace sycl = cl::sycl;
+#if TEST_DPCPP_BACKEND_PRESENT
+#   include <CL/sycl.hpp>
+#endif
 
 int main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
+    namespace sycl = cl::sycl;
+
     const int n = 1000;
     const int k = 1000;
     using T = uint64_t;
@@ -60,6 +63,10 @@ int main()
     else{
         std::cout << "done" << std::endl;
     }
+
+#else
+    std::cout << "done" << std::endl;
+#endif
 
     return 0;
 }

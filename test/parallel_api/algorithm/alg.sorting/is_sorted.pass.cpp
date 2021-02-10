@@ -180,7 +180,7 @@ test_is_sorted_by_type()
 #endif
 
     //non-descending order
-    Sequence<T> in1(9, [](size_t v) -> T { return T(0); });
+    Sequence<T> in1(9, [](size_t) -> T { return T(0); });
 #ifdef _PSTL_TEST_IS_SORTED
     invoke_on_all_policies<32>()(test_is_sorted<T>(), in1.begin(), in1.end());
     invoke_on_all_policies<33>()(test_is_sorted_predicate<T>(), in1.begin(), in1.end());

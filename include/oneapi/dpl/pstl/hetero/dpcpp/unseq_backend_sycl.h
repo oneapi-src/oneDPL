@@ -270,8 +270,7 @@ struct __mask_assigner
 {
     template <typename _Acc, typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
-    operator()(_Acc& __acc, _OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc,
-               const _InIdx __in_idx) const
+    operator()(_Acc& __acc, _OutAcc&, const _OutIdx __out_idx, const _InAcc& __in_acc, const _InIdx __in_idx) const
     {
         using ::std::get;
         get<N>(__acc[__out_idx]) = __in_acc[__in_idx];
@@ -300,7 +299,7 @@ struct __scan_no_assign
 {
     template <typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
-    operator()(_OutAcc& __out_acc, const _OutIdx __out_idx, const _InAcc& __in_acc, const _InIdx __in_idx) const
+    operator()(_OutAcc&, const _OutIdx, const _InAcc&, const _InIdx) const
     {
     }
 };
@@ -447,7 +446,7 @@ struct __global_scan_functor
     template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
               typename _SizePerWg>
     void
-    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& _in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
+    operator()(_Item __item, _OutAcc& __out_acc, const _InAcc&, const _WgSumsAcc& __wg_sums_acc, _Size __n,
                _SizePerWg __size_per_wg) const
     {
         constexpr auto __shift = _Inclusive{} ? 0 : 1;
@@ -825,6 +824,25 @@ class __brick_set_op
         }
         __c[__idx_c] = bres; //store a mask
         return bres;
+    }
+};
+
+template <typename _ExecutionPolicy, typename _DiffType>
+struct __brick_shift_left
+{
+    _DiffType __size;
+    _DiffType __n;
+
+    template <typename _ItemId, typename _Range>
+    void
+    operator()(const _ItemId __idx, _Range&& __rng) const
+    {
+        const _DiffType __i = __idx - __n; //loop invariant
+        for (_DiffType __k = __n; __k < __size; __k += __n)
+        {
+            if (__k + __idx < __size)
+                __rng[__k + __i] = ::std::move(__rng[__k + __idx]);
+        }
     }
 };
 

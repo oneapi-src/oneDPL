@@ -112,8 +112,8 @@ struct test_brick_partial_sort
     template <typename Policy, typename InputIterator, typename Compare>
     typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
                             void>::type
-    operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
-               Compare compare)
+    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */, InputIterator /* exp_last */,
+               Compare /* compare */)
     {
     }
 };

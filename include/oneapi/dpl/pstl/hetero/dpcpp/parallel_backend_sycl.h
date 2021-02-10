@@ -593,23 +593,25 @@ struct __early_exit_find_or
         auto __n = oneapi::dpl::__ranges::__get_first_range(__rngs...).size();
         using _Size = decltype(__n);
 
-        auto __global_idx = __item_id.get_global_id(0);
-        auto __local_idx = __item_id.get_local_id(0);
-        auto __shift = (__wg_size > 8) ? 8 : __wg_size;
+        ::std::size_t __shift = 8;
+        ::std::size_t __global_idx = __item_id.get_global_id(0);
+        ::std::size_t __local_idx = __item_id.get_local_id(0);
+        ::std::size_t __group_idx = __item_id.get_group(0);
 
         // each work_item processes N_ELEMENTS with step SHIFT
-        auto __shift_global = __global_idx / __wg_size;
-        auto __shift_local = __local_idx / __shift;
-        auto __init_index =
-            __shift_global * __wg_size * __n_iter + __shift_local * __shift * __n_iter + __local_idx % __shift;
+        ::std::size_t __leader = (__local_idx / __shift) * __shift;
+        ::std::size_t __init_index = __group_idx * __wg_size * __n_iter + __leader * __n_iter + __local_idx % __shift;
 
-        for (_Size __i = 0; __i < __n_iter; ++__i)
+        // if our "line" is out of work group size, reduce the line to the number of the rest elements
+        if (__wg_size - __leader < __shift)
+            __shift = __wg_size - __leader;
+        for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
             using _ShiftedIdxType =
                 typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
                                             decltype(__found_local.load())>::type;
-            auto __current_iter = oneapi::dpl::__internal::__invoke_if_else(
+            _IterSize __current_iter = oneapi::dpl::__internal::__invoke_if_else(
                 _BackwardTagType{}, [__n_iter, __i]() { return __n_iter - 1 - __i; }, [__i]() { return __i; });
 
             _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
@@ -665,7 +667,6 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
@@ -1300,6 +1301,7 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
             });
         });
     }
+    // return future and extend lifetime of temporary buffer
     return __future<void>(__event1, __temp);
 }
 
@@ -1324,7 +1326,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
                   __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__value_t<_Range>, _Compare>::value,
               __future<void>>
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare)
 {
     return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng));

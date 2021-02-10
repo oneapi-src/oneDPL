@@ -21,8 +21,11 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <vector>
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#include "../../support/pstl_test_config.h"
+
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -69,7 +72,7 @@ struct statistics {
 
 template <typename RefPolicy, typename Policy, typename Iterator, typename IndexMap>
 void evaluate(RefPolicy&& ref_policy, Policy&& policy, Iterator ref_begin, Iterator ref_end,
-              oneapi::dpl::permutation_iterator<Iterator, IndexMap> perm_start, std::string test) {
+              oneapi::dpl::permutation_iterator<Iterator, IndexMap> perm_start, std::string /* test */) {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     using clock = std::chrono::high_resolution_clock;
 
@@ -167,7 +170,7 @@ int main(int argc, char** argv) {
 
     evaluate(oneapi::dpl::execution::par, oneapi::dpl::execution::par, ref.begin(), ref.end(), p, std::string("CPU Reverse"));
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_DPCPP_BACKEND_PRESENT
     // Case 4 -- Linear traversal on accelerator
     {
         using policy_type = decltype(oneapi::dpl::execution::dpcpp_default);

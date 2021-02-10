@@ -86,7 +86,7 @@ struct test_body_predefined
     template <typename Policy, typename Iterator, typename Size>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
-               Size n)
+               Size /* n */)
     {
         using T = typename ::std::iterator_traits<Iterator>::value_type;
         static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
@@ -129,7 +129,7 @@ struct test_body_predefined_bits
     typename ::std::enable_if<!::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value,
                             void>::type
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
-               Size n)
+               Size /* n */)
     {
         using T = typename ::std::iterator_traits<Iterator>::value_type;
         static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
@@ -163,8 +163,8 @@ struct test_body_predefined_bits
     template <typename Policy, typename Iterator, typename Size>
     typename ::std::enable_if<::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value,
                             void>::type
-    operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
-               Size n)
+    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /*expected_first*/, Iterator /*expected_last*/,
+               Size /* n */)
     {
         // no-op for floats
     }

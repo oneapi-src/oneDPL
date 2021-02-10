@@ -19,9 +19,7 @@ your change directly to the repository:
 
 # Coding conventions
 
-Add your project's coding conventions. If you do not have them defined, remove
-this section. If you are following a standard coding convention, consider
-linking to the standard.
+clang-format is required except the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
 
 # License
 

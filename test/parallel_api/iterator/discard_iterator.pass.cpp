@@ -21,8 +21,11 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <vector>
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#include "../../support/pstl_test_config.h"
+
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -68,7 +71,7 @@ struct statistics {
 
 template <typename Policy, typename Iterator>
 void evaluate(Policy&& policy, Iterator ref_begin, Iterator ref_end,
-              oneapi::dpl::discard_iterator dev_null, std::string test) {
+              oneapi::dpl::discard_iterator dev_null, std::string /* test */) {
     using policy_type = typename std::decay<Policy>::type;
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     using clock = std::chrono::high_resolution_clock;
@@ -172,7 +175,7 @@ int main(int argc, char** argv) {
 
     evaluate(oneapi::dpl::execution::par, ref.begin(), ref.end(), p, std::string("CPU discard"));
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#if TEST_DPCPP_BACKEND_PRESENT
     // Case 2 -- Compare traversal on accelerator
     {
         using policy_type = decltype(oneapi::dpl::execution::dpcpp_default);

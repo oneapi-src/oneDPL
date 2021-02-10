@@ -58,7 +58,7 @@ public:
         : expected_buffer_size(buf_size), result_begin(res_begin) {}
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2) {
+    void operator()(ExecutionPolicy&& /* exec */, Iterator1 /* first1 */, Iterator1 /* last1 */, Iterator2 /* first2 */) {
         using value_type = typename ::std::iterator_traits<Iterator1>::value_type;
         auto predicate = [](value_type val) { return val <= 10; };
 

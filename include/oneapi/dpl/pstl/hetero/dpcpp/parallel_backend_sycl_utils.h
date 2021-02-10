@@ -618,9 +618,9 @@ struct __lifetime_keeper : public __lifetime_keeper_base
     __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
 };
 
+// TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
 class __future_base
 {
-  protected:
     sycl::event __my_event;
 
   public:

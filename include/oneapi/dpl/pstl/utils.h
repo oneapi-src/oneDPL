@@ -68,8 +68,7 @@ __invoke_if(::std::true_type, _Fp __f)
 }
 
 template <typename _Fp>
-void
-__invoke_if(::std::false_type, _Fp __f)
+void __invoke_if(::std::false_type, _Fp)
 {
 }
 
@@ -81,21 +80,20 @@ __invoke_if_not(::std::false_type, _Fp __f)
 }
 
 template <typename _Fp>
-void
-__invoke_if_not(::std::true_type, _Fp __f)
+void __invoke_if_not(::std::true_type, _Fp)
 {
 }
 
 template <typename _F1, typename _F2>
 auto
-__invoke_if_else(::std::true_type, _F1 __f1, _F2 __f2) -> decltype(__f1())
+__invoke_if_else(::std::true_type, _F1 __f1, _F2) -> decltype(__f1())
 {
     return __f1();
 }
 
 template <typename _F1, typename _F2>
 auto
-__invoke_if_else(::std::false_type, _F1 __f1, _F2 __f2) -> decltype(__f2())
+__invoke_if_else(::std::false_type, _F1, _F2 __f2) -> decltype(__f2())
 {
     return __f2();
 }
@@ -583,6 +581,29 @@ struct __is_pointer_to_const_member<_Tp, true> : __is_pointer_to_const_member_im
 template <typename _Tp>
 using __is_const_callable_object =
     ::std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
+
+struct __next_to_last
+{
+    template <typename _Iterator>
+    typename ::std::enable_if<::std::is_same<typename ::std::iterator_traits<_Iterator>::iterator_category,
+                                             ::std::random_access_iterator_tag>::value,
+                              _Iterator>::type
+    operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
+    {
+        return __n > __last - __it ? __last : __it + __n;
+    }
+
+    template <typename _Iterator>
+    typename ::std::enable_if<!::std::is_same<typename ::std::iterator_traits<_Iterator>::iterator_category,
+                                              ::std::random_access_iterator_tag>::value,
+                              _Iterator>::type
+    operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
+    {
+        for (; --__n >= 0 && __it != __last; ++__it)
+            ;
+        return __it;
+    }
+};
 
 } // namespace __internal
 } // namespace dpl

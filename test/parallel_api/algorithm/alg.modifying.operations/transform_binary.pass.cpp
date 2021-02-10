@@ -67,8 +67,8 @@ struct test_one_policy
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
               typename BinaryOp>
     void
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
-               OutputIterator out_first, OutputIterator out_last, BinaryOp op)
+    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
+               OutputIterator out_first, OutputIterator /* out_last */, BinaryOp op)
     {
         ::std::transform(exec, first1, last1, first2, out_first, op);
         check_and_reset(first1, last1, first2, out_first);
@@ -84,7 +84,7 @@ test(Predicate pred)
         Sequence<In1> in1(n, [](size_t k) { return k % 5 != 1 ? In1(3 * k + 7) : 0; });
         Sequence<In2> in2(n, [](size_t k) { return k % 7 != 2 ? In2(5 * k + 5) : 0; });
 
-        Sequence<Out> out(n, [](size_t k) { return -1; });
+        Sequence<Out> out(n, [](size_t) { return -1; });
 
         invoke_on_all_policies<0>()(test_one_policy<In1, In2, Out>(), in1.begin(), in1.end(), in2.begin(), in2.end(),
                                     out.begin(), out.end(), pred);
