@@ -158,7 +158,7 @@ test_with_plus(T init, T trash, Convert convert)
 #endif
     }
 
-#if _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE
+#if _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE && !PSTL_USE_DEBUG
     unsigned long n = 100000000;
     Sequence<T> in(n, convert);
     Sequence<T> expected(in);
@@ -171,7 +171,7 @@ test_with_plus(T init, T trash, Convert convert)
     invoke_on_all_hetero_policies<5>()(test_exclusive_scan_with_plus<T>(), in.begin(), in.end(), out.begin(),
                                 out.end(), expected.begin(), expected.end(), in.size(), init, trash);
 #endif
-#endif // _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE
+#endif // _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE && !PSTL_USE_DEBUG
 }
 
 template <typename Type>
