@@ -216,7 +216,7 @@ pipeline {
                     }
                 }
 
-                stage('Tests_backend_dpcpp_cxx_17') {
+                stage('Tests_dpcpp_cpu_cxx_17') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -247,7 +247,7 @@ pipeline {
                     }
                 }
 
-                stage('Tests_backend_tbb_cxx_17') {
+                stage('Tests_g++_tbb_cxx_17') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
