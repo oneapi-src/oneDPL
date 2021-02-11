@@ -322,7 +322,7 @@ pipeline {
                     }
                 }
 
-                stage('Tests_backend_tbb_cxx_17') {
+                stage('Tests_backend_tbb_cxx_11') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -335,7 +335,7 @@ pipeline {
                                                     rd /s /q . 2>nul
                                                     cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
                                                         -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
-                                                        -DCMAKE_CXX_STANDARD=17^
+                                                        -DCMAKE_CXX_STANDARD=11^
                                                         -DCMAKE_BUILD_TYPE=release^
                                                         -DCMAKE_CXX_COMPILER=cl^
                                                         -DONEDPL_BACKEND=tbb^
@@ -358,7 +358,6 @@ pipeline {
                         }
                     }
                 }
-
 
             }
 
