@@ -71,7 +71,9 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         __buf1.all_view(), __buf2.all_view());
     oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
 
-    return oneapi::dpl::__internal::__future<_ForwardIterator2>(__future_obj).set(__first2 + __n);
+    auto __ret_val = oneapi::dpl::__internal::__future<_ForwardIterator2>(__future_obj, __first2 + __n);
+    //__ret_val.set(__first2 + __n);
+    return __ret_val;
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
@@ -148,8 +150,6 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         __buf1.all_view(), __buf2.all_view());
     __res.set(__init);
     return __res;
-    //return oneapi::dpl::__internal::__future<_Tp>(::std::forward<oneapi::dpl::__internal::__future<_Tp>>(__res), __init,
-    //                                              __binary_op1);
 }
 
 //------------------------------------------------------------------------
