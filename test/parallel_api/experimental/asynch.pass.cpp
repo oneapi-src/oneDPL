@@ -1,7 +1,7 @@
 // -*- C++ -*-
-//===-- async_sycl.pass.cpp -----------------------------------------------===//
+//===-- async.pass.cpp ----------------------------------------------------===//
 //
-// Copyright (C) 2020 Intel Corporation
+// Copyright (C) Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
@@ -17,21 +17,23 @@
 #include "oneapi/dpl/async"
 #include "oneapi/dpl/iterator"
 
+#include "support/pstl_test_config.h"
+
 #include <iostream>
 #include <iomanip>
 
+#if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
+#endif
 
-template <typename _T1, typename _T2>
-void
-ASSERT_EQUAL(_T1&& X, _T2&& Y)
-{
-    if (X != Y)
-        std::cout << "CHECK CORRECTNESS (PSTL WITH SYCL): fail (" << X << "," << Y << ")" << std::endl;
+template<typename _T1, typename _T2>
+void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
+    if(X!=Y)
+        std::cout << "CHECK CORRECTNESS (ASYNC): fail (" << X << "," << Y << ")" << std::endl;
 }
 
-int
-main()
+#if TEST_DPCPP_BACKEND_PRESENT
+void test_with_buffers() 
 {
     const int n = 100;
     {
@@ -63,6 +65,61 @@ main()
 
         ASSERT_EQUAL(beta, (n * (n + 1) / 2) * ((n + 3) * (n + 4) / 2 - 6));
     }
+}
+
+void test_with_usm()
+{
+    cl::sycl::queue q;
+    const int n = 13;
+
+    // ASYNC TEST USING USM //
+
+    {
+        // Allocate space for data using USM.
+        uint64_t* data1 = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+        uint64_t* data2 = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+
+        //T data1[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
+        //T data2[n1] = { 2, 3, 4, 5, 2, 2, 4, 4, 2, 2, 4, 4, 0 };
+
+	// Initialize data
+        for (int i = 0; i != n-1; ++i) {
+            data1[i] = i % 4 + 1;
+            data2[i] = i % 4 + 2;
+            if (i > 3) {
+                ++i;
+                data1[i] = data1[i-1];
+                data2[i] = data2[i-1];
+
+            }
+        }
+        data1[n-1] = 0;
+        data2[n-1] = 0;
+
+        // call first algorithm
+        auto new_policy = oneapi::dpl::execution::make_device_policy<class async1>(q);
+        auto fut1 = oneapi::dpl::experimental::reduce_async(new_policy, data1, data1 + n);
+        auto res1 = fut1.get();
+        
+        // check values
+        ASSERT_EQUAL(res1, 26);
+        
+        // call second algorithm
+        auto new_policy2 = oneapi::dpl::execution::make_device_policy<class async2>(q);
+        auto res2 = oneapi::dpl::experimental::transform_reduce_async(new_policy2, data2, data2 + n, data1, 0, std::plus<>(), std::multiplies<>()).get();
+        
+        // check values
+        ASSERT_EQUAL(res2, 96);
+    }    
+}
+#endif
+
+int main() {
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_with_buffers();
+    test_with_usm();
+#endif
     std::cout << "done" << std::endl;
     return 0;
 }
+
