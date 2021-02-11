@@ -440,7 +440,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
 #endif
 
     // Practically this is the better value that was found
-    auto __iters_per_witem = decltype(__wgroup_size)(16);
+    constexpr auto __iters_per_witem = decltype(__wgroup_size)(16);
     auto __size_per_wg = __iters_per_witem * __wgroup_size;
     auto __n_groups = (__n - 1) / __size_per_wg + 1;
     // Storage for the results of scan for each workgroup
