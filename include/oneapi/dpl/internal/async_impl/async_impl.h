@@ -62,7 +62,7 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _
 // [async.transform_reduce]
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_T>,
-                                                            _Events...>
+                                                             _Events...>
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _Events&&... __dependencies)
 {

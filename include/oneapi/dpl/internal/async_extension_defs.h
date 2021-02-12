@@ -63,7 +63,7 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterat
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _UnaryOperation, class... _Events>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__internal::__future<_ForwardIt2>, _Events...>
+                                                             oneapi::dpl::__internal::__future<_ForwardIt2>, _Events...>
 transform_async(_ExecutionPolicy&& __exec, _ForwardIt1 first1, _ForwardIt1 last1, _ForwardIt2 d_first,
                 _UnaryOperation unary_op, _Events&&... __dependencies);
 
@@ -83,7 +83,7 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _Forward
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_T>,
-                                                            _Events...>
+                                                             _Events...>
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _Events&&... __dependencies);
 
