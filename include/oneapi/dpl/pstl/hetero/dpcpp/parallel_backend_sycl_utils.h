@@ -370,7 +370,6 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
 class __future_base
 {
-  protected:
     sycl::event __my_event;
 
   public:

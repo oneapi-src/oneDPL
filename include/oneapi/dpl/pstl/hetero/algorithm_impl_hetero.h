@@ -1326,7 +1326,6 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
     auto __buf = __keep(__first, __last);
 
     __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp)
         .wait();
 }
 
@@ -1345,7 +1344,6 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     auto __buf = __keep(__first, __last);
 
     __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp)
         .wait();
 }
 
