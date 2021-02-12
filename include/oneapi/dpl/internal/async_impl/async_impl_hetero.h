@@ -29,8 +29,8 @@ namespace __internal
 {
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__par_backend_hetero::__future<void>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__par_backend_hetero::__future<void>>
 __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
     auto __n = __last - __first;
@@ -51,8 +51,8 @@ template <typename _IsSync = ::std::false_type,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
           typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__internal::__future<_ForwardIterator2>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__future<_ForwardIterator2>>
 __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _Function __f)
 {
@@ -78,8 +78,8 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
           typename _Function>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__internal::__future<_ForwardIterator3>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__future<_ForwardIterator3>>
 __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f)
 {
@@ -105,8 +105,8 @@ __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Brick>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__internal::__future<_ForwardIterator2>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__future<_ForwardIterator2>>
 __pattern_walk2_brick_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                             _ForwardIterator2 __first2, _Brick __brick)
 {
@@ -121,12 +121,12 @@ __pattern_walk2_brick_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Tp,
           typename _BinaryOperation1, typename _BinaryOperation2>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>>
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    if (__first1 == __last1) 
+    if (__first1 == __last1)
         return oneapi::dpl::__internal::__future<_Tp>(__init);
 
     using _Policy = _ExecutionPolicy;
@@ -158,7 +158,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp, typename _BinaryOperation,
           typename _UnaryOperation>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>>
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                                  _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
@@ -186,8 +186,8 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _T>
-oneapi::dpl::__internal::__enable_if_async_execution_policy<_ExecutionPolicy,
-                                                            oneapi::dpl::__par_backend_hetero::__future<void>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__par_backend_hetero::__future<void>>
 __pattern_fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _T& __value)
 {
     auto ret_val =

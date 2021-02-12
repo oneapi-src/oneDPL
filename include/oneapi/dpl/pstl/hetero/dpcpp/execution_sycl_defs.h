@@ -281,9 +281,11 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 };
 
 // Extension: execution policies type traits
-template <typename _ExecPolicy, typename _T>
+template <typename _ExecPolicy, typename _T, typename... _Events>
 using __enable_if_device_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
+    oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
+        (true && ... && ::std::is_convertible_v<_Events, sycl::event>),
+    _T>::type;
 
 template <typename _ExecPolicy, typename _T>
 using __enable_if_hetero_execution_policy = typename ::std::enable_if<
