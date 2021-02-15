@@ -543,7 +543,6 @@ struct __scan
             __local_acc[__local_id] = __partial_sums;
             __item.barrier(sycl::access::fence_space::local_space);
             __adder = __local_acc[__wgroup_size - 1];
-            __item.barrier(sycl::access::fence_space::local_space);
 
             if (__adjusted_global_id + __shift < __n)
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
@@ -627,7 +626,6 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
                 __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc);
             else
                 __local_acc[__local_id] = _Tp{0}; // for plus only
-            __item.barrier(sycl::access::fence_space::local_space);
 
             // the result of __unary_op must be convertible to _Tp
             _Tp __old_value = __unary_op(__local_id, __local_acc);
@@ -635,13 +633,11 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
                 __old_value = __bin_op(__adder, __old_value);
             else if (__adjusted_global_id == 0)
                 __use_init(__init, __old_value, __bin_op);
-            __item.barrier(sycl::access::fence_space::local_space);
 
             __local_acc[__local_id] = sycl::ONEAPI::inclusive_scan(__item.get_group(), __old_value, __bin_op);
             __item.barrier(sycl::access::fence_space::local_space);
 
             __adder = __local_acc[__wgroup_size - 1];
-            __item.barrier(sycl::access::fence_space::local_space);
 
             if (__adjusted_global_id + __shift < __n)
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
