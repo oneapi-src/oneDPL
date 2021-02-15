@@ -31,6 +31,9 @@
 #define _PSTL_TEST_SHIFT_RIGHT
 #endif
 
+template<typename Name>
+struct USM;
+
 struct test_shift
 {
     template <typename Policy, typename It, typename Algo>
@@ -86,7 +89,7 @@ struct test_shift
             //copying data to USM buffer
             ::std::copy_n(first, m, ptr.get());
 
-            auto het_res = algo(oneapi::dpl::execution::make_device_policy<class USM>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
+            auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
             res_idx = het_res - ptr.get();
 
             //3.2 check result

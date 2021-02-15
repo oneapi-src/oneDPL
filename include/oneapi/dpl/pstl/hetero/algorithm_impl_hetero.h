@@ -2001,7 +2001,7 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
                                                     __comp, ::std::true_type(), ::std::true_type());
 }
 
-template <typename Name>
+template <typename _Name>
 class __shift_left_right
 {
 };

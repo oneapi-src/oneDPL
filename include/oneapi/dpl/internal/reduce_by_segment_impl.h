@@ -30,6 +30,15 @@ namespace dpl
 namespace internal
 {
 
+template <typename Name>
+class Reduce1;
+template <typename Name>
+class Reduce2;
+template <typename Name>
+class Reduce3;
+template <typename Name>
+class Reduce4;
+
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<Policy>::type,
@@ -87,7 +96,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _scanned_tail_flags(n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
-    typename internal::rebind_policy<policy_type, class ReduceByKey1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, Reduce1<policy_type>>::type policy1(policy);
     inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
                    make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
                    internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op));
@@ -95,7 +104,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
     // Compute the indicies each segment sum should be written
-    typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
+    typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
 
@@ -108,7 +117,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     CountType N = scanned_tail_flags[n - 1] + 1;
 
     // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, class ReduceByKey3>::type policy3(policy);
+    typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
     oneapi::dpl::for_each(policy3, make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1),
                           make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1) + n,
                           internal::scatter_and_accumulate_fun<OutputIterator1, OutputIterator2>(result1, result2));
@@ -193,7 +202,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     internal::__buffer<policy_type, FlagType> _scanned_tail_flags(policy, n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
-    typename internal::rebind_policy<policy_type, class ReduceByKey1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, Reduce1<policy_type>>::type policy1(policy);
     transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
                              make_zip_iterator(first2, _mask.get()) + n,
                              make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
@@ -203,7 +212,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
     // Compute the indicies each segment sum should be written
-    typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
+    typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
 
@@ -222,8 +231,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     }
 
     // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, class ReduceByKey3>::type policy3(policy);
-    typename internal::rebind_policy<policy_type, class ReduceByKey4>::type policy4(policy);
+    typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
+    typename internal::rebind_policy<policy_type, Reduce4<policy_type>>::type policy4(policy);
 
     // permutation iterator reorders elements in result1 so the element at index
     // _scanned_tail_flags[i] is returned when index i of the iterator is accessed. The result
@@ -320,7 +329,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     internal::__buffer<policy_type, FlagType> _scanned_tail_flags(policy, n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
-    typename internal::rebind_policy<policy_type, class ReduceByKey1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, Reduce1<policy_type>>::type policy1(policy);
     transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
                              make_zip_iterator(first2, _mask.get()) + n,
                              make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
@@ -330,7 +339,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
     // Compute the indicies each segment sum should be written
-    typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
+    typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
 
@@ -349,8 +358,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     }
 
     // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, class ReduceByKey3>::type policy3(policy);
-    typename internal::rebind_policy<policy_type, class ReduceByKey4>::type policy4(policy);
+    typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
+    typename internal::rebind_policy<policy_type, Reduce4<policy_type>>::type policy4(policy);
 
     // result1 is a discard_iterator instance so we omit the write to it.
 
@@ -440,7 +449,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     internal::__buffer<policy_type, FlagType> _scanned_tail_flags(policy, n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
-    typename internal::rebind_policy<policy_type, class ReduceByKey1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, Reduce1<policy_type>>::type policy1(policy);
     transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
                              make_zip_iterator(first2, _mask.get()) + n,
                              make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
@@ -450,7 +459,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
     // Compute the indicies each segment sum should be written
-    typename internal::rebind_policy<policy_type, class ReduceByKey2>::type policy2(policy);
+    typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
 
@@ -469,8 +478,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     }
 
     // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, class ReduceByKey3>::type policy3(policy);
-    typename internal::rebind_policy<policy_type, class ReduceByKey4>::type policy4(policy);
+    typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
+    typename internal::rebind_policy<policy_type, Reduce4<policy_type>>::type policy4(policy);
 
     // permutation iterator reorders elements in result1 so the element at index
     // _scanned_tail_flags[i] is returned when index i of the iterator is accessed. The result
