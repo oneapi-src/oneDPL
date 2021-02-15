@@ -39,11 +39,14 @@ main()
 
     {
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
+        sycl::buffer<int> C(max_n);
 
         auto view = iota_view(0, max_n) | views::transform(lambda1);
 
+        copy(TestUtils::default_dpcpp_policy, view, C); //check passing a buffer for writting
+
         auto range_res = all_view<int, sycl::access::mode::write>(B);
-        copy(TestUtils::default_dpcpp_policy, view, range_res);
+        copy(TestUtils::default_dpcpp_policy, C, range_res); //check passing a buffer for reading
     }
 
     //check result

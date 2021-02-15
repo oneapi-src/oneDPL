@@ -52,8 +52,8 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        ranges::inclusive_scan(exec, view, view_res1);
-        ranges::inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, view_res2, ::std::plus<int>());
+        ranges::inclusive_scan(exec, A, view_res1);
+        ranges::inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, ::std::plus<int>());
         ranges::inclusive_scan(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, view_res3, ::std::plus<int>(), 100);
     }
 

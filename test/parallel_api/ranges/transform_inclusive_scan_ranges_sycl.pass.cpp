@@ -47,13 +47,12 @@ main()
 
         auto view = ranges::all_view<int, sycl::access::mode::read>(A);
         auto view_res1 = ranges::all_view<int, sycl::access::mode::write>(B1);
-        auto view_res2 = ranges::all_view<int, sycl::access::mode::write>(B2);
 
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        ranges::transform_inclusive_scan(exec, view, view_res1, ::std::plus<int>(), lambda);
-        ranges::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, view_res2, ::std::plus<int>(), lambda, init);
+        ranges::transform_inclusive_scan(exec, A, view_res1, ::std::plus<int>(), lambda);
+        ranges::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, ::std::plus<int>(), lambda, init);
     }
 
     //check result
