@@ -226,11 +226,12 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 is_sorted_until(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    auto __view = views::all_read(::std::forward<_Range>(__rng));
     const auto __res = oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
-        oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp), oneapi::dpl::__internal::__first_semantic());
+        ::std::forward<_ExecutionPolicy>(__exec), __view, oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
+        oneapi::dpl::__internal::__first_semantic());
 
-    return __res == __rng.size() ? __res : __res + 1;
+    return __res == __view.size() ? __res : __res + 1;
 }
 
 template <typename _ExecutionPolicy, typename _Range>
@@ -245,10 +246,11 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    auto __view = views::all_read(::std::forward<_Range>(__rng));
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
-               ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
+               ::std::forward<_ExecutionPolicy>(__exec), __view,
                oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
-               oneapi::dpl::__internal::__or_semantic()) == __rng.size();
+               oneapi::dpl::__internal::__or_semantic()) == __view.size();
 }
 
 template <typename _ExecutionPolicy, typename _Range>

@@ -204,34 +204,57 @@ using __ref_or_copy =
 // utilities for Range API
 template <typename _R>
 auto
-check_size(int) -> decltype(::std::declval<_R>().size(), ::std::true_type{});
+__check_size(int) -> decltype(::std::declval<_R&>().size(), ::std::true_type{});
 
 template <typename _R>
 auto
-check_size(...) -> ::std::false_type;
+__check_size(...) -> ::std::false_type;
 
 template <typename _R, typename _IsSize>
-struct is_size;
+struct __is_size;
 
 template <typename _R>
-struct is_size<_R, ::std::true_type>
+struct __is_size<_R, ::std::true_type>
 {
     using __difference_t = decltype(::std::declval<_R&>().size());
 };
 
 template <typename _R>
-struct is_size<_R, ::std::false_type>
+struct __is_size<_R, ::std::false_type>
 {
-    using __difference_t = decltype(::std::declval<_R&>().get_size());
+    using __difference_t = decltype(::std::declval<_R&>().get_count());
 };
 
 template <typename _R>
-using __difference_t = typename is_size<_R, decltype(check_size<_R>(0))>::__difference_t;
+using __difference_t = typename __is_size<_R, decltype(__check_size<_R>(0))>::__difference_t;
+
+template <typename _R>
+auto
+__check_subscript(int) -> decltype(::std::declval<_R&>()[0], ::std::true_type{});
+
+template <typename _R>
+auto
+__check_subscript(...) -> ::std::false_type;
+
+template <typename _R, typename _IsSubscript>
+struct __value_type;
+
+template <typename _R>
+struct __value_type<_R, ::std::true_type>
+{
+    using type = typename ::std::decay<decltype(::std::declval<_R&>()[0])>::type;
+};
+
+template <typename _R>
+struct __value_type<_R, ::std::false_type>
+{
+    using type = typename ::std::decay<_R>::type::value_type;
+};
 
 template <typename _R>
 struct __range_traits
 {
-    using __value_t = typename ::std::decay<decltype(::std::declval<_R&>()[0])>::type;
+    using __value_t = typename __value_type<_R, decltype(__check_subscript<_R>(0))>::type;
 };
 
 template <typename _R>
