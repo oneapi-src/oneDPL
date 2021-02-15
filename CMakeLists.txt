@@ -72,7 +72,8 @@ message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
 string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
 if (ONEDPL_ENABLE_SIMD)
-    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?$")
+    # TODO: remove skipping of Intel® oneAPI DPC++ Compiler once it can handle such options.
+    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
         foreach(_simd_flag -fopenmp-simd -qopenmp-simd /Qopenmp-simd -openmp:experimental -openmp-simd)
             string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
             check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
