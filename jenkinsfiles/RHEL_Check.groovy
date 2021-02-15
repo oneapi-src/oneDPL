@@ -253,10 +253,10 @@ pipeline {
                                 try {
                                     dir("./src/build") {
                                         withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
+                                            def TESTS="merge.pass copy_if.pass remove_copy.pass adjacent_find.pass all_of.pass equal.pass for_each.pass minmax_element.pass set.pass partial_sort_copy.pass sort.pass transform_reduce.pass transform_scan.pass"
                                             sh script: """
                                                 rm -rf *
                                                 export PATH=/usr/bin/:$PATH
-                                                TESTS=\"merge.pass copy_if.pass remove_copy.pass adjacent_find.pass all_of.pass equal.pass for_each.pass minmax_element.pass set.pass partial_sort_copy.pass sort.pass transform_reduce.pass transform_scan.pass\"
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=FPGA_EMU -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 ${TESTS} -k || true
                                                 ctest  -R \"^(`echo ${TESTS} | sed 's/ /|/g'`)\$\" --output-on-failure --timeout ${TEST_TIMEOUT}
