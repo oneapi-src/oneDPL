@@ -201,8 +201,32 @@ template <typename _ExecPolicy, typename _T>
 using __ref_or_copy =
     typename oneapi::dpl::__internal::__ref_or_copy_impl<typename ::std::decay<_ExecPolicy>::type, _T>::type;
 
+// utilities for Range API
 template <typename _R>
-using __difference_t = decltype(::std::declval<_R&>().size());
+auto
+check_size(int) -> decltype(::std::declval<_R>().size(), ::std::true_type{});
+
+template <typename _R>
+auto
+check_size(...) -> ::std::false_type;
+
+template <typename _R, typename _IsSize>
+struct is_size;
+
+template <typename _R>
+struct is_size<_R, ::std::true_type>
+{
+    using __difference_t = decltype(::std::declval<_R&>().size());
+};
+
+template <typename _R>
+struct is_size<_R, ::std::false_type>
+{
+    using __difference_t = decltype(::std::declval<_R&>().get_size());
+};
+
+template <typename _R>
+using __difference_t = typename is_size<_R, decltype(check_size<_R>(0))>::__difference_t;
 
 template <typename _R>
 struct __range_traits

@@ -81,9 +81,10 @@ class all_view
     accessor_t m_acc;
 };
 
+template <sycl::access::mode AccMode = sycl::access::mode::read_write>
 struct all_view_fn
 {
-    template <typename _T, typename sycl::access::mode AccMode = sycl::access::mode::read>
+    template <typename _T>
     _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
     operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
                typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
@@ -101,9 +102,10 @@ struct all_view_fn
 
 namespace views
 {
-
 _ONEDPL_CONSTEXPR_VAR all_view_fn all;
-}
+_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read> all_read;
+_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::write> all_write;
+} // namespace views
 
 //all_view traits
 

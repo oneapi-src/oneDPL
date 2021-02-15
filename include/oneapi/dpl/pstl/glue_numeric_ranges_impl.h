@@ -65,8 +65,9 @@ transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 {
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
     return oneapi::dpl::__internal::__ranges::__pattern_transform_reduce(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-        __init, ::std::plus<_ValueType>(), ::std::multiplies<_ValueType>());
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        views::all_read(::std::forward<_Range2>(__rng2)), __init, ::std::plus<_ValueType>(),
+        ::std::multiplies<_ValueType>());
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Tp, typename _BinaryOperation1,
@@ -76,8 +77,8 @@ transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
     return oneapi::dpl::__internal::__ranges::__pattern_transform_reduce(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-        __init, __binary_op1, __binary_op2);
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        views::all_read(::std::forward<_Range2>(__rng2)), __init, __binary_op1, __binary_op2);
 }
 
 template <typename _ExecutionPolicy, typename _Range, typename _Tp, typename _BinaryOperation, typename _UnaryOperation>
@@ -85,8 +86,9 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _Range&& __rng, _Tp __init, _BinaryOperation __binary_op,
                  _UnaryOperation __unary_op)
 {
-    return oneapi::dpl::__internal::__ranges::__pattern_transform_reduce(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __init, __binary_op, __unary_op);
+    return oneapi::dpl::__internal::__ranges::__pattern_transform_reduce(::std::forward<_ExecutionPolicy>(__exec),
+                                                                         views::all_read(::std::forward<_Range>(__rng)),
+                                                                         __init, __binary_op, __unary_op);
 }
 
 // [exclusive.scan]
@@ -153,8 +155,9 @@ transform_exclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
                          _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
     return oneapi::dpl::__internal::__ranges::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-        __unary_op, __init, __binary_op, /*inclusive=*/::std::false_type());
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        views::all_write(::std::forward<_Range2>(__rng2)), __unary_op, __init, __binary_op,
+        /*inclusive=*/::std::false_type());
 }
 
 // [transform.inclusive.scan]
@@ -167,8 +170,8 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
                          _UnaryOperation __unary_op, _Tp __init)
 {
     return oneapi::dpl::__internal::__ranges::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-        __unary_op, __init, __binary_op,
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        views::all_write(::std::forward<_Range2>(__rng2)), __unary_op, __init, __binary_op,
         /*inclusive=*/::std::true_type());
 }
 
@@ -180,9 +183,8 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
                          _UnaryOperation __unary_op)
 {
     return oneapi::dpl::__internal::__ranges::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-        __unary_op, __binary_op,
-        /*inclusive=*/::std::true_type());
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        views::all_write(::std::forward<_Range2>(__rng2)), __unary_op, __binary_op, /*inclusive=*/::std::true_type());
 }
 
 } // namespace ranges

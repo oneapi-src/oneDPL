@@ -43,6 +43,8 @@ using nano::ranges::transform_view;
 namespace views
 {
 using oneapi::dpl::__ranges::views::all;
+using oneapi::dpl::__ranges::views::all_read;
+using oneapi::dpl::__ranges::views::all_write;
 
 using nano::views::drop;
 using nano::views::iota;
