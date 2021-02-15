@@ -1064,11 +1064,11 @@ __pattern_unique_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 
     return __result_first + __result.second;
 }
 
-template <typename Name>
+template <typename _Name>
 class copy_back_wrapper
 {
 };
-template <typename Name>
+template <typename _Name>
 class copy_back_wrapper2
 {
 };
@@ -1232,16 +1232,6 @@ __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp});
 }
-
-template <typename Name>
-class merge_n1_equals_0
-{
-};
-
-template <typename Name>
-class merge_n2_equals_0
-{
-};
 
 //------------------------------------------------------------------------
 // merge

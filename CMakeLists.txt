@@ -149,8 +149,6 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         target_compile_options(oneDPL INTERFACE
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             )
-        # if ONEDPL_USE_UNNAMED_LAMBDA on, add -fsycl-unnamed-lambda;
-        # if it's off, add -fno-sycl-unnamed-lambda
         if(ONEDPL_USE_UNNAMED_LAMBDA)
             message(STATUS "Use unnamed lambdas")
             target_compile_options(oneDPL INTERFACE -fsycl-unnamed-lambda)

@@ -220,15 +220,15 @@ class __parallel_merge_kernel : public __kernel_name_base<__parallel_merge_kerne
 {
 };
 template <typename... _Name>
-class __parallel_sort_kernel_1 : public __kernel_name_base<__parallel_sort_kernel_1<_Name...>>
+class __parallel_sort_leaf_kernel : public __kernel_name_base<__parallel_sort_leaf_kernel<_Name...>>
 {
 };
 template <typename... _Name>
-class __parallel_sort_kernel_2 : public __kernel_name_base<__parallel_sort_kernel_2<_Name...>>
+class __parallel_sort_global_kernel : public __kernel_name_base<__parallel_sort_global_kernel<_Name...>>
 {
 };
 template <typename... _Name>
-class __parallel_sort_kernel_3 : public __kernel_name_base<__parallel_sort_kernel_3<_Name...>>
+class __parallel_sort_copy_back_kernel : public __kernel_name_base<__parallel_sort_copy_back_kernel<_Name...>>
 {
 };
 
@@ -1062,14 +1062,14 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _LeafSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_1, _CustomName, _Range,
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_leaf_kernel, _CustomName, _Range,
                                                                      _Merge, _Compare>;
     using _GlobalSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_2, _CustomName, _Range,
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_global_kernel, _CustomName, _Range,
                                                                      _Merge, _Compare>;
     using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_3, _CustomName, _Range,
-                                                                     _Merge, _Compare>;
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_copy_back_kernel, _CustomName,
+                                                                     _Range, _Merge, _Compare>;
 
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
@@ -1201,11 +1201,11 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _GlobalSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_1, _CustomName, _Range,
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_global_kernel, _CustomName, _Range,
                                                                      _Merge, _Compare>;
     using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_kernel_2, _CustomName, _Range,
-                                                                     _Merge, _Compare>;
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_sort_copy_back_kernel, _CustomName,
+                                                                     _Range, _Merge, _Compare>;
 
     using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
     using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
