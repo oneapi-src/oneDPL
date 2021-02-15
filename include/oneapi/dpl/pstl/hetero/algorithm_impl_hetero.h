@@ -1068,6 +1068,10 @@ template <typename Name>
 class copy_back_wrapper
 {
 };
+template <typename Name>
+class copy_back_wrapper2
+{
+};
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
@@ -1257,13 +1261,13 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<merge_n1_equals_0>(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __first2, __last2, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
             ::std::true_type());
     else if (__n2 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<merge_n2_equals_0>(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __first1, __last1, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
             ::std::true_type());
@@ -1352,11 +1356,6 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
         .wait();
 }
-
-template <typename Name>
-class copy_back_wrapper2
-{
-};
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>

@@ -1001,7 +1001,7 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _FindOrKernel =
+    using _MergeKernel =
         oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_merge_kernel, _CustomName, _Range1,
                                                                      _Range2, _Range3, _Compare>;
     auto __n = __rng1.size();
@@ -1017,7 +1017,7 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 
     auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
-        __cgh.parallel_for<_FindOrKernel>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
+        __cgh.parallel_for<_MergeKernel>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
             __full_merge_kernel()(__item_id.get_linear_id() * __chunk, __rng1, decltype(__n)(0), __n, __rng2,
                                   decltype(__n_2)(0), __n_2, __rng3, decltype(__n)(0), __comp, __chunk);
         });
