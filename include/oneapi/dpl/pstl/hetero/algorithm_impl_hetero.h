@@ -2002,7 +2002,7 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
 }
 
 template <typename Name>
-class __shift_left
+class __shift_left_right
 {
 };
 
@@ -2038,7 +2038,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Range __rng, oneapi::dpl::__int
     {
         auto __brick = unseq_backend::__brick_shift_left<_ExecutionPolicy, _DiffType>{__size, __n};
         oneapi::dpl::__par_backend_hetero::__parallel_for(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__shift_left>(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__shift_left_right>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __brick, __n, __rng)
             .wait();
