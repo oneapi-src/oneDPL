@@ -1090,9 +1090,6 @@ struct __leaf_sort_kernel
     }
 };
 
-template <typename T>
-class t_printer;
-
 template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
