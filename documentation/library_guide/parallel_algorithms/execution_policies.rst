@@ -1,5 +1,33 @@
-Parallel STL usage
-###################
+Execution policies for DPC++
+############################
+
+The implementation supports the DPC++ execution policies used to run the massive parallel
+computational model for heterogeneous systems. The policies are specified in
+`the oneDPL Spec <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html#dpc-execution-policy>`_.
+
+For any of the implemented algorithms, pass one of the execution policies values as the first
+argument in a call to the algorithm to specify the desired execution policy. The policies have
+the following meaning:
+
+================================= ==============================
+Execution policy value            Description
+================================= ==============================
+``seq``                           Sequential execution.
+--------------------------------- ------------------------------
+``unseq``                         Unsequenced SIMD execution. This policy requires that
+                                  all functions provided are SIMD-safe.
+--------------------------------- ------------------------------
+``par``                           Parallel execution by multiple threads.
+--------------------------------- ------------------------------
+``par_unseq``                     Combined effect of ``unseq`` and ``par``.
+--------------------------------- ------------------------------
+``dpcpp_default``                 Massive parallel execution on devices using DPC++.
+--------------------------------- ------------------------------
+``dpcpp_fpga``                    Massive parallel execution on FPGA devices.
+================================= ==============================
+
+Implementation is based on Parallel STL from
+`LLVM <https://github.com/llvm/llvm-project/tree/master/pstl>`_.
 
 Follow these steps to add Parallel STL to your application:
 
@@ -23,10 +51,10 @@ Follow these steps to add Parallel STL to your application:
      * Compile the code with options that enable support for SYCL 2020.
 
 Use the C++ Standard Execution Policies
-****************************************
+=======================================
 
 Example
-========
+-------
 
 .. code:: cpp
 
@@ -42,7 +70,7 @@ Example
   }
 
 Use the DPC++ Execution Policies
-*********************************
+================================
 
 The Data Parallel C++ (DPC++) execution policy specifies where a parallel algorithm runs.
 It encapsulates a SYCL* device or queue, and
@@ -72,7 +100,7 @@ kernel names (see above) for compilation.
 The ``make_device_policy`` function templates simplify ``device_policy`` creation.
 
 Usage Examples
-===============
+--------------
 
 Code examples below assume ``using namespace oneapi::dpl::execution;``
 and ``using namespace sycl;`` directive when refer to policy classes and functions:
@@ -137,7 +165,7 @@ Use it to create customized policy objects, or pass directly when invoking an al
 The ``make_fpga_policy`` function templates simplify ``fpga_policy`` creation.
 
 FPGA Policy Usage Examples
-===========================
+--------------------------
 
 The code below assumes ``using namespace oneapi::dpl::execution;`` for policies and
 ``using namespace sycl;`` for queues and device selectors:

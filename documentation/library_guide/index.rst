@@ -9,16 +9,22 @@ efforts across devices for high performance parallel applications. oneDPL contai
 oneDPL consists of the following components:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :titlesonly:
    :glob:
 
    before_you_begin
-   pstl_main
-   pstl/index
-   extension_api
-   tested_standard_cpp_api
-   random 
-   notices_disclaimers
+   parallel_algorithms_main
+   parallel_algorithms/pstl_main
+   parallel_algorithms/advanced_use_cases.rst
+   parallel_algorithms/async_API.rst
+   parallel_algorithms/execution_policies.rst
+   parallel_algorithms/range_based_API.rst
+   macros.rst
+   API_for_DPCPP_kernels_main.rst
+   API_for_DPCPP_kernels/tested_standard_cpp_api.rst
+   API_for_DPCPP_kernels/random.rst
+   API_for_DPCPP_kernels/additional_API.rst
+   notices_disclaimers.rst
 
    

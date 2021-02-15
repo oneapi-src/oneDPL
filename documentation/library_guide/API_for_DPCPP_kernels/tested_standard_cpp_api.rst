@@ -1,5 +1,5 @@
 Tested Standard C++ APIs
-################################
+########################
 
 Contains the Tested Standard C++ APIs for oneAPI DPC++ Library (oneDPL).
 
