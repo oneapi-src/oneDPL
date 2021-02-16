@@ -1064,8 +1064,12 @@ __pattern_unique_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 
     return __result_first + __result.second;
 }
 
-template <typename Name>
+template <typename _Name>
 class copy_back_wrapper
+{
+};
+template <typename _Name>
+class copy_back_wrapper2
 {
 };
 
@@ -1247,12 +1251,16 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            ::std::forward<_ExecutionPolicy>(__exec), __first2, __last2, __d_first,
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __first2, __last2, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::true_type());
     else if (__n2 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __d_first,
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __first1, __last1, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::true_type());
     else
     {
         auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -1338,11 +1346,6 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
         .wait();
 }
-
-template <typename Name>
-class copy_back_wrapper2
-{
-};
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
@@ -1902,9 +1905,11 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
                                                                            __comp, unseq_backend::_DifferenceTag()) -
                           __buf;
     //2. Merge {1} and the difference
-    return oneapi::dpl::__internal::__pattern_merge(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __buf,
-                                                    __buf + __n_diff, __result, __comp,
-                                                    /*vector=*/::std::true_type(), /*parallel=*/::std::true_type());
+    return oneapi::dpl::__internal::__pattern_merge(
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_2>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __buf, __buf + __n_diff, __result, __comp,
+        /*vector=*/::std::true_type(), /*parallel=*/::std::true_type());
 }
 
 //Dummy names to avoid kernel problems
@@ -1996,6 +2001,11 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
                                                     __comp, ::std::true_type(), ::std::true_type());
 }
 
+template <typename _Name>
+class __shift_left_right
+{
+};
+
 template <typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range>>
@@ -2027,7 +2037,10 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Range __rng, oneapi::dpl::__int
     else //2. n < size/2; 'n' parallel copying
     {
         auto __brick = unseq_backend::__brick_shift_left<_ExecutionPolicy, _DiffType>{__size, __n};
-        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n, __rng)
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__shift_left_right>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __brick, __n, __rng)
             .wait();
     }
 
