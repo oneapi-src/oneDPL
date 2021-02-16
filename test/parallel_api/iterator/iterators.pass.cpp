@@ -267,7 +267,7 @@ int main() {
     test_iterator_by_type<int16_t, int64_t>(n2);
 
     test_iterator_by_type<double, int16_t>(n1);
-    //test_iterator_by_type<double, int64_t>(n2);
+    test_iterator_by_type<double, int64_t>(n2);
 
     ::std::cout << done() << ::std::endl;
     return 0;
