@@ -160,12 +160,17 @@ void test_explicit_move(InputIterator i, InputIterator j) {
 }
 
 struct test_zip_iterator {
+    template <typename It1, typename It2>
+    void test_default_constructible() {
+        using args_default_constructible = ::std::integral_constant<bool, ::std::is_default_constructible<It1>::value && ::std::is_default_constructible<It2>::value>;
+        using zip_default_constructible = ::std::integral_constant<bool, ::std::is_default_constructible<oneapi::dpl::zip_iterator<It1, It2>>::value>;
+        static_assert(::std::is_same<args_default_constructible, zip_default_constructible>::value, "Zip_iterator isn't default constructible");
+    }
+
     template <typename T1, typename T2>
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
-        //test that zip_iterator is default constructible
-        oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> b;
-
-        b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
+        test_default_constructible<decltype(in1.begin()), decltype(in2.begin())>();
+        auto b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
         auto e = oneapi::dpl::make_zip_iterator(in1.end(), in2.end());
 
         EXPECT_TRUE( (b+1) != e, "size of input sequence insufficient for test" );
@@ -268,7 +273,7 @@ int main() {
     test_iterator_by_type<int16_t, int64_t>(n2);
 
     test_iterator_by_type<double, int16_t>(n1);
-    test_iterator_by_type<double, int64_t>(n2);
+    //test_iterator_by_type<double, int64_t>(n2);
 
     ::std::cout << done() << ::std::endl;
     return 0;
