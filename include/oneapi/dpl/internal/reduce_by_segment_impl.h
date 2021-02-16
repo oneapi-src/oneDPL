@@ -358,7 +358,6 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     }
 
     // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
     typename internal::rebind_policy<policy_type, Reduce4<policy_type>>::type policy4(policy);
 
     // result1 is a discard_iterator instance so we omit the write to it.
@@ -479,7 +478,6 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // scatter the keys and accumulated values
     typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
-    typename internal::rebind_policy<policy_type, Reduce4<policy_type>>::type policy4(policy);
 
     // permutation iterator reorders elements in result1 so the element at index
     // _scanned_tail_flags[i] is returned when index i of the iterator is accessed. The result
