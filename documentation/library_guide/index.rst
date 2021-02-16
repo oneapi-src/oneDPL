@@ -15,7 +15,6 @@ oneDPL consists of the following components:
 
    before_you_begin
    pstl_main
-   pstl/index
    extension_api
    tested_standard_cpp_api
    random 
