@@ -35,7 +35,6 @@ macro(onedpl_add_test test_source_file)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
-    set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
     if (ONEDPL_DEVICE_TYPE)
         # TODO: Consider replacement of SYCL_DEVICE_TYPE with a new variable.
         #       See for details: https://github.com/intel/llvm/blob/sycl/sycl/doc/EnvironmentVariables.md
