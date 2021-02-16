@@ -50,7 +50,7 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
 
         merge(exec, all_view(A), all_view(B), all_view<T, sycl::access::mode::write>(D));
-        merge(exec, A, B, E, ::std::less<T>()); //check passing sycl buffers directly
+        merge(oneapi::dpl::execution::make_device_policy<class merge_2>(exec), A, B, E, ::std::less<T>()); //check passing sycl buffers directly
     }
 
     //check result

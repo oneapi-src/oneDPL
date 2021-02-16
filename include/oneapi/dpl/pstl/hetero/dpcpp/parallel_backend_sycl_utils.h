@@ -82,8 +82,45 @@ struct explicit_wait_if<true>
     }
 };
 
+// function is needed to wrap kernel name into another class
+template <template <typename> class _NewKernelName, typename _Policy,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
+auto
+make_wrapped_policy(_Policy&& __policy)
+    -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy)))
+{
+    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy));
+}
+
+#if _ONEDPL_FPGA_DEVICE
+template <template <typename> class _NewKernelName, typename _Policy,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
+auto
+make_wrapped_policy(_Policy&& __policy)
+    -> decltype(oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
+                                                         _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy)))
+{
+    return oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
+                                                    _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy));
+}
+#endif
+
 namespace __internal
 {
+
+template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
+using _KernelName_t =
+#if __SYCL_UNNAMED_LAMBDA__
+    typename std::conditional<std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value,
+                              _BaseName<_CustomName, _Args...>, _BaseName<_CustomName>>::type;
+#else
+    _BaseName<_CustomName>;
+#endif
+
 #if _ONEDPL_DEBUG_SYCL
 template <typename _Policy>
 inline void

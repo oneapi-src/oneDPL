@@ -103,7 +103,7 @@ void test_with_usm()
     res_head[5] = 9; res_head[6] = 9; res_head[7] = 9; res_head[8] = 9; res_head[9] = 9;
 
     // call algorithm
-    auto new_policy = oneapi::dpl::execution::make_device_policy(q);
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class exclusive_scan_by_segment_1>(q);
     oneapi::dpl::exclusive_scan_by_segment(new_policy, key_head, key_head+n, val_head, res_head,
         (uint64_t)0, std::equal_to<uint64_t>(), std::plus<uint64_t>());
     q.wait();
@@ -120,7 +120,7 @@ void test_with_usm()
 
     // call algorithm on single element range
     res_head[0] = 9;
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy(q);
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class exclusive_scan_by_segment_2>(q);
     oneapi::dpl::exclusive_scan_by_segment(new_policy2, key_head, key_head+1, val_head, res_head,
         (uint64_t)0);
 

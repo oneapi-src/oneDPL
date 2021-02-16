@@ -30,6 +30,10 @@ namespace dpl
 {
 namespace internal
 {
+
+template <typename Name>
+class InclusiveScan1;
+
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
@@ -58,7 +62,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, ::std::not2(binary_pred));
 
-    typename internal::rebind_policy<policy_type, class InclusiveScan1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
     inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
                    make_zip_iterator(result, _mask.get()),
                    internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op));
@@ -106,7 +110,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, ::std::not2(binary_pred));
 
-    typename internal::rebind_policy<policy_type, class InclusiveScan1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
     transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
                              make_zip_iterator(first2, _mask.get()) + n, make_zip_iterator(result, _mask.get()),
                              internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
