@@ -15,16 +15,16 @@ oneDPL consists of the following components:
 
    before_you_begin
    parallel_algorithms_main
-   parallel_algorithms/pstl_main
+   parallel_algorithms/std_execution_policies.rst
    parallel_algorithms/advanced_use_cases.rst
-   parallel_algorithms/async_API.rst
-   parallel_algorithms/execution_policies.rst
-   parallel_algorithms/range_based_API.rst
+   parallel_algorithms/async_api.rst
+   parallel_algorithms/dpcpp_execution_policies.rst
+   parallel_algorithms/range_based_api.rst
    macros.rst
    API_for_DPCPP_kernels_main.rst
    API_for_DPCPP_kernels/tested_standard_cpp_api.rst
    API_for_DPCPP_kernels/random.rst
-   API_for_DPCPP_kernels/additional_API.rst
+   API_for_DPCPP_kernels/additional_api.rst
    notices_disclaimers.rst
 
    
