@@ -160,16 +160,10 @@ void test_explicit_move(InputIterator i, InputIterator j) {
 }
 
 struct test_zip_iterator {
-    template <typename It1, typename It2>
-    void test_default_constructible() {
-        using args_default_constructible = ::std::integral_constant<bool, ::std::is_default_constructible<It1>::value && ::std::is_default_constructible<It2>::value>;
-        using zip_default_constructible = ::std::integral_constant<bool, ::std::is_default_constructible<oneapi::dpl::zip_iterator<It1, It2>>::value>;
-        static_assert(::std::is_same<args_default_constructible, zip_default_constructible>::value, "Zip_iterator isn't default constructible");
-    }
-
     template <typename T1, typename T2>
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
-        test_default_constructible<decltype(in1.begin()), decltype(in2.begin())>();
+        static_assert(::std::is_default_constructible<oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())>>::value,"Zip_iterator isn't default constructible");
+
         auto b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
         auto e = oneapi::dpl::make_zip_iterator(in1.end(), in2.end());
 
