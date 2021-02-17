@@ -484,21 +484,21 @@ struct __scan
                     _InitType __init = __scan_no_init<typename _InitType::__value_type>{}) const
     {
         using _Tp = typename _InitType::__value_type;
-        auto __group_id = __item.get_group(0);
-        auto __global_id = __item.get_global_id(0);
-        auto __local_id = __item.get_local_id(0);
-        auto __use_init = __scan_init_processing<_Tp>{};
+        ::std::size_t __group_id = __item.get_group(0);
+        ::std::size_t __global_id = __item.get_global_id(0);
+        ::std::size_t __local_id = __item.get_local_id(0);
+        __scan_init_processing<_Tp> __use_init{};
 
-        auto __shift = 0;
+        ::std::size_t __shift = 0;
         __internal::__invoke_if_not(_Inclusive{}, [&]() {
             __shift = 1;
             if (__global_id == 0)
                 __use_init(__init, __out_acc[__global_id]);
         });
 
-        auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
+        ::std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
-        for (auto __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
+        for (_ItersPerWG __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
             if (__adjusted_global_id < __n)
             {
@@ -513,7 +513,7 @@ struct __scan
                 __use_init(__init, __local_acc[__global_id], __bin_op);
 
             // 1. reduce
-            auto __k = 1;
+            ::std::size_t __k = 1;
             // TODO: use adjacent work items for better SIMD utilization
             // Consider the example with the mask of work items performing reduction:
             // iter    now         proposed
