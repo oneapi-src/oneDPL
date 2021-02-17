@@ -56,6 +56,10 @@ main()
     EXPECT_TRUE(res1 == expected1, "wrong effect from reduce with sycl ranges");
     EXPECT_TRUE(res2 == expected2, "wrong effect from reduce with init, sycl ranges");
     EXPECT_TRUE(res3 == expected3, "wrong effect from reduce with init and binary operation, sycl ranges");
+
+#else
+    TestUtils::skip();
+
 #endif //_ENABLE_RANGES_TESTING
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

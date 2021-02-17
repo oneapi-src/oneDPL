@@ -33,6 +33,7 @@
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
 #endif // _ONEDPL_BACKEND_SYCL
+#include "support/utils.h"
 
 int main() {
 
@@ -96,8 +97,10 @@ int main() {
         return 1;
     }
 
+
 #else
-    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
+    TestUtils::skip();
+
 #endif // _ONEDPL_BACKEND_SYCL
 
     std::cout << "Test PASSED" << std::endl;

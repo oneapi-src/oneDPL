@@ -62,6 +62,9 @@ main()
     EXPECT_EQ_N(expected1, data1, max_n, "wrong effect from exclusive_scan with init, sycl ranges");
     EXPECT_EQ_N(expected2, data2, max_n, "wrong effect from exclusive_scan with init andbinary operation, sycl ranges");
 
+#else
+    TestUtils::skip();
+
 #endif //_ENABLE_RANGES_TESTING
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

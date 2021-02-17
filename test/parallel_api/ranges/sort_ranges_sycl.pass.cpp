@@ -53,6 +53,10 @@ main()
 
     bool res2 = ::std::is_sorted(data2, data2 + max_n, ::std::greater<int>());
     EXPECT_TRUE(res2, "wrong effect from 'sort with comparator' with sycl ranges");
+
+#else
+    TestUtils::skip();
+
 #endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;
