@@ -147,6 +147,10 @@ int32_t main() {
         test_ignore_copy(n);
         test_multi_transform_copy(n);
     }
+
+#else
+    TestUtils::skip();
+
 #endif
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;

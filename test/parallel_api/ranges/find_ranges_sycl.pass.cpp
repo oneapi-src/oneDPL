@@ -58,6 +58,9 @@ main()
     EXPECT_TRUE(res2 == idx_val, "wrong effect from 'find_if' with sycl ranges");
     EXPECT_TRUE(res3 == idx_val, "wrong effect from 'find_if_not' with sycl ranges");
 
+#else
+    TestUtils::skip();
+
 #endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;

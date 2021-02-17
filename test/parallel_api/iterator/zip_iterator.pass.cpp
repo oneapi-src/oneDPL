@@ -639,6 +639,9 @@ main()
     PRINT_DEBUG("test_counting_zip_transform");
     test2buffers<int32_t, test_counting_zip_transform>();
 #endif
+#else
+    skip();
+
 #endif
     ::std::cout << done() << ::std::endl;
     return 0;

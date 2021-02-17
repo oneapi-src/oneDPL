@@ -69,6 +69,10 @@ int main() {
     auto red_val = ::std::reduce(policy, buf_begin, buf_end, 1);
     EXPECT_TRUE(red_val == 2001, "wrong return value from reduce");
 #endif // __SYCL_UNNAMED_LAMBDA__
+
+#else
+    skip();
+
 #endif // _ONEDPL_BACKEND_SYCL
     ::std::cout << done() << ::std::endl;
     return 0;
