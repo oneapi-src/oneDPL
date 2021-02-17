@@ -514,13 +514,18 @@ struct __scan
 
             // 1. reduce
             auto __k = 1;
+            // TODO: use adjacent work items for better SIMD utilization
+            // Consider the example with the mask of work items performing reduction:
+            // iter    now         proposed
+            // 1:      10101010    11110000
+            // 2:      10001000    11000000
+            // 3:      10000000    10000000
             do
             {
                 __item.barrier(sycl::access::fence_space::local_space);
-                if (__local_id % (2 * __k) == 0 && __local_id + __k < __wgroup_size && __adjusted_global_id + __k < __n)
+                if (__adjusted_global_id < __n && __local_id % (2 * __k) == (2 * __k) - 1)
                 {
-                    __local_acc[__local_id + 2 * __k - 1] =
-                        __bin_op(__local_acc[__local_id + __k - 1], __local_acc[__local_id + 2 * __k - 1]);
+                    __local_acc[__local_id] = __bin_op(__local_acc[__local_id - __k], __local_acc[__local_id]);
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
@@ -531,7 +536,8 @@ struct __scan
             __k = 2;
             do
             {
-                auto __shifted_local_id = __local_id - __local_id % __k - 1;
+                // use signed type to avoid overflowing
+                ::std::int32_t __shifted_local_id = __local_id - __local_id % __k - 1;
                 if (__shifted_local_id >= 0 && __adjusted_global_id < __n && __local_id % (2 * __k) >= __k &&
                     __local_id % (2 * __k) < 2 * __k - 1)
                 {
