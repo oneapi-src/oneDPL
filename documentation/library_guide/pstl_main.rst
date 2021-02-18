@@ -56,3 +56,10 @@ To use Parallel STL with the DPC++ execution policies, you must have the followi
 
   * C++ compiler with support for SYCL 2020
 
+.. _pstl:
+
+.. toctree::
+   :maxdepth: 1
+
+   pstl/dpcpp_policies_usage
+   pstl/macros

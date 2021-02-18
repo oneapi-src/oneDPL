@@ -30,9 +30,9 @@ if (FIND_GXX_EXE)
     execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
 endif()
 
-option(ONEDPL_USE_UNNAMED_LAMBDA "Pass -fsycl-unnamed-lambda compile option" OFF)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
+option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
@@ -69,6 +69,29 @@ endif()
 string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
 string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
+
+if (ONEDPL_ENABLE_SIMD)
+    # TODO: remove skipping of Intel® oneAPI DPC++ Compiler once it can handle such options.
+    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
+        foreach(_simd_flag -fiopenmp-simd /Qiopenmp-simd -fopenmp-simd -qopenmp-simd /Qopenmp-simd -openmp:experimental -openmp-simd)
+            string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
+            check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
+            if (${FLAG_DISPLAY_NAME}_option)
+                target_compile_options(oneDPL INTERFACE ${_simd_flag})
+                set(_simd_enabled_flag ${_simd_flag})
+                break()
+            endif()
+        endforeach()
+    endif()
+
+    if (_simd_enabled_flag)
+        message(STATUS "oneDPL: OpenMP SIMD is enabled by passing '${_simd_enabled_flag}' to compiler")
+    else()
+        message(STATUS "oneDPL: no effect from enabled ONEDPL_ENABLE_SIMD; unsupported for current compiler")
+    endif()
+else()
+    message(STATUS "oneDPL: ONEDPL_ENABLE_SIMD is OFF, corresponding compiler flag is not used")
+endif()
 
 if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
@@ -147,9 +170,17 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
         # DPC++ specific compiler options
         target_compile_options(oneDPL INTERFACE
-            $<$<BOOL:${ONEDPL_USE_UNNAMED_LAMBDA}>:-fsycl-unnamed-lambda>
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             )
+        if (DEFINED ONEDPL_USE_UNNAMED_LAMBDA)
+            if(ONEDPL_USE_UNNAMED_LAMBDA)
+                message(STATUS "Use unnamed lambdas")
+                target_compile_options(oneDPL INTERFACE -fsycl-unnamed-lambda)
+            else()
+                message(STATUS "Don't use unnamed lambdas")
+                target_compile_options(oneDPL INTERFACE -fno-sycl-unnamed-lambda)
+            endif()
+        endif()
 
         # DPC++ specific macro
         target_compile_definitions(oneDPL INTERFACE
