@@ -523,7 +523,7 @@ struct __scan
             do
             {
                 __item.barrier(sycl::access::fence_space::local_space);
-                if (__adjusted_global_id < __n && __local_id % (2 * __k) == (2 * __k) - 1)
+                if (__adjusted_global_id < __n && __local_id % (2 * __k) == 2 * __k - 1)
                 {
                     __local_acc[__local_id] = __bin_op(__local_acc[__local_id - __k], __local_acc[__local_id]);
                 }
