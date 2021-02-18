@@ -517,9 +517,9 @@ struct __scan
             // TODO: use adjacent work items for better SIMD utilization
             // Consider the example with the mask of work items performing reduction:
             // iter    now         proposed
-            // 1:      10101010    11110000
-            // 2:      10001000    11000000
-            // 3:      10000000    10000000
+            // 1:      01010101    11110000
+            // 2:      00010001    11000000
+            // 3:      00000001    10000000
             do
             {
                 __item.barrier(sycl::access::fence_space::local_space);
