@@ -54,14 +54,10 @@ main()
     EXPECT_TRUE(res1 == idx, "wrong effect from 'is_sorted_until' with sycl ranges");
     EXPECT_TRUE(res2 == idx, "wrong effect from 'is_sorted_until' with comparator, sycl ranges");
 
-<<<<<<< HEAD
-#endif //_ENABLE_RANGES_TESTING
-=======
 #else
     TestUtils::skip();
 
-#endif //_ONEDPL_USE_RANGES
->>>>>>> Added test skip invokes
+#endif //_ENABLE_RANGES_TESTING
 
     ::std::cout << TestUtils::done() << ::std::endl;
     return 0;
