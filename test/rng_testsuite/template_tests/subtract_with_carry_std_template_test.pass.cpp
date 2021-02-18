@@ -383,7 +383,6 @@ int main() {
 
 #endif // #if defined(_ONEDPL_RNG_DETAILED_TESTING_)
 
-
 #else
     TestUtils::skip();
 

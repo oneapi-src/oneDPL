@@ -450,7 +450,6 @@ int main() {
         return 1;
     }
 
-
 #else
     TestUtils::skip();
 
