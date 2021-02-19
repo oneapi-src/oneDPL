@@ -162,10 +162,10 @@ void test_explicit_move(InputIterator i, InputIterator j) {
 struct test_zip_iterator {
     template <typename T1, typename T2>
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
-        using zip_iterator_ty= typename oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())>;
+        using zip_iterator_ty = typename oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())>;
 
-        static_assert(::std::is_default_constructible<zip_iterator_ty>::value,"Zip_iterator is not default constructible");
-        static_assert(::std::is_assignable<zip_iterator_ty,zip_iterator_ty>::value,"Zip_iterator is not assignable to zip_iterator");
+        static_assert(::std::is_default_constructible<zip_iterator_ty>::value, "Zip_iterator is not default constructible");
+        static_assert(::std::is_assignable<zip_iterator_ty, zip_iterator_ty>::value, "Zip_iterator is not assignable to zip_iterator");
 
         auto b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
         auto e = oneapi::dpl::make_zip_iterator(in1.end(), in2.end());
