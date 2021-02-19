@@ -28,12 +28,12 @@
 //     produces the value 61839128582725
 
 #include <iostream>
+#include "support/utils.h"
 
 #if _ONEDPL_BACKEND_SYCL
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
 #endif // _ONEDPL_BACKEND_SYCL
-#include "support/utils.h"
 
 int main() {
 
