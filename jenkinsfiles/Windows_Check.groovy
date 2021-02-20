@@ -303,9 +303,9 @@ pipeline {
                                                         -DCMAKE_CXX_COMPILER=dpcpp^
                                                         -DONEDPL_BACKEND=dpcpp^
                                                         -DONEDPL_DEVICE_TYPE=GPU ..
-                                                    "%MAKE_PROGRAM%" build-all -v -k 0
-                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
-                                                """, label: "All tests"
+                                                """, label: "Generate"
+                                                bat script: '"%MAKE_PROGRAM%" build-all -v -k 0', label: "Build"
+                                                bat script: 'ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%', label: "All tests"
                                             }
                                         }
                                     }
@@ -340,9 +340,9 @@ pipeline {
                                                         -DCMAKE_CXX_COMPILER=cl^
                                                         -DONEDPL_BACKEND=tbb^
                                                         -DONEDPL_DEVICE_TYPE=HOST ..
-                                                    "%MAKE_PROGRAM%" build-all -v -k 0
-                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
-                                                """, label: "All tests"
+                                                """, label: "Generate"
+                                                bat script: '"%MAKE_PROGRAM%" build-all -v -k 0', label: "Build"
+                                                bat script: 'ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%', label: "All tests"
                                             }
                                         }
                                     }
