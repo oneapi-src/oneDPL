@@ -303,9 +303,17 @@ pipeline {
                                                         -DCMAKE_CXX_COMPILER=dpcpp^
                                                         -DONEDPL_BACKEND=dpcpp^
                                                         -DONEDPL_DEVICE_TYPE=GPU ..
+                                                    EXIT /b %ERRORLEVEL%
                                                 """, label: "Generate"
-                                                bat script: '"%MAKE_PROGRAM%" build-all -v -k 0', label: "Build"
-                                                bat script: 'ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%', label: "All tests"
+                                                bat script: """
+                                                    set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
+                                                    "%MAKE_PROGRAM%" build-all -v -k 0
+                                                    EXIT /b %ERRORLEVEL%
+                                                """, label: "Build"
+                                                bat script: """
+                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
+                                                    EXIT /b %ERRORLEVEL%
+                                                """, label: "All tests"
                                             }
                                         }
                                     }
@@ -340,9 +348,17 @@ pipeline {
                                                         -DCMAKE_CXX_COMPILER=cl^
                                                         -DONEDPL_BACKEND=tbb^
                                                         -DONEDPL_DEVICE_TYPE=HOST ..
+                                                    EXIT /b %ERRORLEVEL%
                                                 """, label: "Generate"
-                                                bat script: '"%MAKE_PROGRAM%" build-all -v -k 0', label: "Build"
-                                                bat script: 'ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%', label: "All tests"
+                                                bat script: """
+                                                    set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
+                                                    "%MAKE_PROGRAM%" build-all -v -k 0
+                                                    EXIT /b %ERRORLEVEL%
+                                                """, label: "Build"
+                                                bat script: """
+                                                    ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
+                                                    EXIT /b %ERRORLEVEL%
+                                                """, label: "All tests"
                                             }
                                         }
                                     }
