@@ -31,6 +31,9 @@
 #define _PSTL_TEST_SHIFT_RIGHT
 #endif
 
+template<typename Name>
+struct USM;
+
 struct test_shift
 {
     template <typename Policy, typename It, typename Algo>
@@ -86,7 +89,7 @@ struct test_shift
             //copying data to USM buffer
             ::std::copy_n(first, m, ptr.get());
 
-            auto het_res = algo(::std::forward<Policy>(exec), ptr.get(), ptr.get() + m, n);
+            auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
             res_idx = het_res - ptr.get();
 
             //3.2 check result
@@ -96,16 +99,6 @@ struct test_shift
     }
 #endif
 };
-
-template <typename T, typename Size, typename Algo>
-void
-test_shift_by_type(Size m, Size n, Algo algo)
-{
-    TestUtils::Sequence<T> orig(m, [](::std::size_t v) -> T { return T(v); }); //fill data
-    TestUtils::Sequence<T> in(m, [](::std::size_t v) -> T { return T(v); }); //fill data
-
-    TestUtils::invoke_on_all_policies<>()(test_shift(), in.begin(), m, orig.begin(), n, algo);
-}
 
 struct shift_left_algo
 {
@@ -188,6 +181,21 @@ struct shift_right_algo
     }
 };
 
+template <typename T, typename Size>
+void
+test_shift_by_type(Size m, Size n)
+{
+    TestUtils::Sequence<T> orig(m, [](::std::size_t v) -> T { return T(v); }); //fill data
+    TestUtils::Sequence<T> in(m, [](::std::size_t v) -> T { return T(v); }); //fill data
+
+#ifdef _PSTL_TEST_SHIFT_LEFT
+    TestUtils::invoke_on_all_policies<0>()(test_shift(), in.begin(), m, orig.begin(), n, shift_left_algo{});
+#endif
+#ifdef _PSTL_TEST_SHIFT_RIGHT
+    TestUtils::invoke_on_all_policies<1>()(test_shift(), in.begin(), m, orig.begin(), n, shift_right_algo{});
+#endif
+}
+
 int
 main()
 {
@@ -195,13 +203,7 @@ main()
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
     {
-       //std::cout << "m: " << m << " n: " << n << std::endl;
-#ifdef _PSTL_TEST_SHIFT_LEFT
-       test_shift_by_type<int32_t>(m, n, shift_left_algo{}); 
-#endif
-#ifdef _PSTL_TEST_SHIFT_RIGHT
-       test_shift_by_type<int32_t>(m, n, shift_right_algo{});
-#endif
+       test_shift_by_type<int32_t>(m, n);
     }
 
     ::std::cout << TestUtils::done() << ::std::endl;

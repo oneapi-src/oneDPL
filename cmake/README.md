@@ -10,9 +10,10 @@ The following variables are provided for oneDPL configuration:
 |------------------------------|--------|-----------------------------------------------------------------------------------------------|---------------|
 | ONEDPL_BACKEND               | STRING | Threading backend; supported values: tbb, dpcpp, dpcpp_only, serial, ...; the default value is defined by compiler: dpcpp for DPC++ and tbb for others | tbb/dpcpp |
 | ONEDPL_DEVICE_TYPE           | STRING | Device type, applicable only for sycl backends; supported values: GPU, CPU, FPGA_HW, FPGA_EMU | GPU           |
-| ONEDPL_USE_UNNAMED_LAMBDA    | BOOL   | Pass `-fsycl-unnamed-lambda` compile option                                                   | OFF           |
+| ONEDPL_USE_UNNAMED_LAMBDA    | BOOL   | Pass `-fsycl-unnamed-lambda`, `-fno-sycl-unnamed-lambda` compile options or nothing           |               |
 | ONEDPL_FPGA_STATIC_REPORT    | BOOL   | Enable the static report generation for the FPGA_HW device type                               | OFF           |
 | ONEDPL_USE_AOT_COMPILATION   | BOOL   | Enable the ahead of time compilation via OpenCL™ Offline Compiler (OCLOC)                     | OFF           |
+| ONEDPL_ENABLE_SIMD           | BOOL   | Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported; the flag is passed to user project compilation string if enabled | ON           |
 | ONEDPL_AOT_ARCH              | STRING | Architecture options for the ahead of time compilation, supported values can be found [here](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html); the default value `*` means compilation for all available options | *             |
 
 Some useful CMake variables ([here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) you can find a full list of CMake variables for the latest version):

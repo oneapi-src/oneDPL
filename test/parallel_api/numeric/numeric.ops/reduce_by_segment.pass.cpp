@@ -18,7 +18,7 @@
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
 
-#include "../../../support/pstl_test_config.h"
+#include "support/pstl_test_config.h"
 
 #include <iostream>
 #include <iomanip>
@@ -152,7 +152,7 @@ void test_with_usm()
     val_head[12] = 0;
 
     // call algorithm
-    auto new_policy = oneapi::dpl::execution::make_device_policy(q);
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_1>(q);
     auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
 
     // check values
@@ -179,7 +179,7 @@ void test_with_usm()
     key_res_head[0] = 9;
     val_res_head[0] = 9;
 
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy(q);
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_2>(q);
     auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);
 
     // check values

@@ -82,8 +82,45 @@ struct explicit_wait_if<true>
     }
 };
 
+// function is needed to wrap kernel name into another class
+template <template <typename> class _NewKernelName, typename _Policy,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
+auto
+make_wrapped_policy(_Policy&& __policy)
+    -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy)))
+{
+    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy));
+}
+
+#if _ONEDPL_FPGA_DEVICE
+template <template <typename> class _NewKernelName, typename _Policy,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
+auto
+make_wrapped_policy(_Policy&& __policy)
+    -> decltype(oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
+                                                         _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy)))
+{
+    return oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
+                                                    _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+        ::std::forward<_Policy>(__policy));
+}
+#endif
+
 namespace __internal
 {
+
+template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
+using _KernelName_t =
+#if __SYCL_UNNAMED_LAMBDA__
+    typename std::conditional<std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value,
+                              _BaseName<_CustomName, _Args...>, _BaseName<_CustomName>>::type;
+#else
+    _BaseName<_CustomName>;
+#endif
+
 #if _ONEDPL_DEBUG_SYCL
 template <typename _Policy>
 inline void
@@ -130,270 +167,6 @@ template <typename Iter> // for pointers to objects on device
 struct is_passed_directly<Iter, typename ::std::enable_if<::std::is_pointer<Iter>::value, void>::type>
     : ::std::true_type
 {
-};
-
-// functor to extract buffer from iterator or create temporary buffer to run on device
-
-template <typename Iterator, typename UnaryFunction>
-struct transform_buffer_wrapper;
-
-// TODO: shifted_buffer can be removed when sub-buffers over sub-buffers will be supported.
-template <typename T, typename StartIdx>
-struct shifted_buffer
-{
-    using container_t = sycl::buffer<T, 1>;
-    using value_type = T;
-    container_t buffer;
-    StartIdx startIdx{};
-
-    shifted_buffer(container_t&& buf) : buffer(::std::move(buf)) {}
-
-    shifted_buffer(const container_t& buf, StartIdx sId) : buffer(buf), startIdx(sId) {}
-};
-
-//------------------------------------------------------------------------
-// functor to get buffer from iterator
-// (or tuple of buffers from zip_iterator)
-//------------------------------------------------------------------------
-struct get_buffer
-{
-    // for heterogeneous iterator
-    template <typename Iter>
-    typename ::std::enable_if<is_hetero_iterator<Iter>::value,
-                              shifted_buffer<typename ::std::iterator_traits<Iter>::value_type,
-                                             typename ::std::iterator_traits<Iter>::difference_type>>::type
-    operator()(Iter it, Iter)
-    {
-        return {it.get_buffer(), it - oneapi::dpl::begin(it.get_buffer())};
-    }
-
-    // for counting_iterator
-    // To not multiply buffers without necessity it was decided to return counting_iterator
-    // Counting_iterator already contains idx as dereferenced value. So idx should be 0
-    template <typename T>
-    oneapi::dpl::counting_iterator<T>
-    operator()(oneapi::dpl::counting_iterator<T> it, oneapi::dpl::counting_iterator<T>)
-    {
-        return it;
-    }
-    // for zip_iterator
-    template <typename... Iters>
-    auto
-    operator()(oneapi::dpl::zip_iterator<Iters...> it, oneapi::dpl::zip_iterator<Iters...> it2)
-        -> decltype(oneapi::dpl::__internal::map_tuple(*this, it.base(), it2.base()))
-    {
-        return oneapi::dpl::__internal::map_tuple(*this, it.base(), it2.base());
-    }
-
-    // for transform_iterator
-    template <typename Iterator, typename UnaryFunction>
-    transform_buffer_wrapper<Iterator, UnaryFunction>
-    operator()(oneapi::dpl::transform_iterator<Iterator, UnaryFunction> it1,
-               oneapi::dpl::transform_iterator<Iterator, UnaryFunction> it2)
-    {
-        return {operator()(it1.base(), it2.base()), it1.functor()};
-    }
-
-    // the function is needed to create buffer over iterators depending on const or non-const iterators
-    // for non-const iterators
-    template <typename Iter>
-    typename ::std::enable_if<!oneapi::dpl::__internal::is_const_iterator<Iter>::value,
-                              sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
-    get_buffer_from_iters(Iter first, Iter last)
-    {
-        auto temp_buf = sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>(first, last);
-        temp_buf.set_final_data(first);
-        return temp_buf;
-    }
-
-    // for const iterators
-    template <typename Iter>
-    typename ::std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value,
-                              sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>>::type
-    get_buffer_from_iters(Iter first, Iter last)
-    {
-        return sycl::buffer<typename ::std::iterator_traits<Iter>::value_type, 1>(first, last);
-    }
-
-    // for host iterator
-    template <typename Iter>
-    typename ::std::enable_if<!is_hetero_iterator<Iter>::value && !is_passed_directly<Iter>::value,
-                              shifted_buffer<typename ::std::iterator_traits<Iter>::value_type,
-                                             typename ::std::iterator_traits<Iter>::difference_type>>::type
-    operator()(Iter first, Iter last)
-    {
-        using T = typename ::std::iterator_traits<Iter>::value_type;
-
-        if (first == last)
-        {
-            //If the sequence is empty we return a dummy buffer
-            return {sycl::buffer<T, 1>(sycl::range<1>(1)), typename ::std::iterator_traits<Iter>::difference_type{}};
-        }
-        else
-        {
-            return {get_buffer_from_iters(first, last), typename ::std::iterator_traits<Iter>::difference_type{}};
-        }
-    }
-
-    // for raw pointers and direct pass objects
-    template <typename Iter>
-    typename ::std::enable_if<is_passed_directly<Iter>::value, Iter>::type
-    operator()(Iter first, Iter)
-    {
-        return first;
-    }
-
-    template <typename Iter>
-    typename ::std::enable_if<is_passed_directly<Iter>::value, const Iter>::type
-    operator()(const Iter first, const Iter) const
-    {
-        return first;
-    }
-};
-
-template <typename Iterator>
-using iterator_buffer_type =
-    decltype(::std::declval<get_buffer>()(::std::declval<Iterator>(), ::std::declval<Iterator>()));
-
-template <typename Iterator, typename UnaryFunction>
-struct transform_buffer_wrapper
-{
-    iterator_buffer_type<Iterator> iterator_buffer;
-    UnaryFunction functor;
-};
-
-// get_access_mode
-template <typename Iter, typename Void = void>
-struct get_access_mode
-{
-    static constexpr auto mode = access_mode::read_write;
-};
-
-template <typename Iter> // for any const iterators
-struct get_access_mode<Iter,
-                       typename ::std::enable_if<oneapi::dpl::__internal::is_const_iterator<Iter>::value, void>::type>
-{
-
-    static constexpr auto mode = access_mode::read;
-};
-
-template <typename Iter> // for heterogeneous and non-const iterators
-struct get_access_mode<
-    Iter, typename ::std::enable_if<
-              is_hetero_iterator<Iter>::value && !oneapi::dpl::__internal::is_const_iterator<Iter>::value, void>::type>
-{
-
-    static constexpr auto mode = Iter::mode;
-};
-template <typename... Iters> // for zip_iterators
-struct get_access_mode<oneapi::dpl::zip_iterator<Iters...>>
-{
-    static constexpr auto mode = ::std::make_tuple(get_access_mode<Iters>::mode...);
-};
-
-// TODO: for counting_iterator
-
-struct ApplyFunc
-{
-    template <typename Func, typename... Elem>
-    auto
-    operator()(Func func_i, Elem... elem_i) -> decltype(func_i(elem_i...)) const
-    {
-        return func_i(elem_i...);
-    }
-};
-
-//------------------------------------------------------------------------
-// functor to get accessor from buffer
-// (or to get tuple of accessors from tuple of buffers)
-//------------------------------------------------------------------------
-template <typename Iterator, typename UnaryFunction>
-struct transform_accessor_wrapper;
-
-template <typename BaseIter>
-struct get_access
-{
-  private:
-    sycl::handler& cgh;
-
-  public:
-    get_access(sycl::handler& cgh_) : cgh(cgh_) {}
-    // for common buffers
-    template <typename T, typename StartIdx, typename LocalIter = BaseIter>
-    sycl::accessor<T, 1, get_access_mode<LocalIter>::mode, sycl::access::target::global_buffer>
-    operator()(shifted_buffer<T, StartIdx> buf)
-    {
-        //::std::cout << (unsigned int) get_access_mode<BaseIter>::mode << ::std::endl;
-        return buf.buffer.template get_access<get_access_mode<BaseIter>::mode>(cgh, buf.buffer.get_range(),
-                                                                               buf.startIdx);
-    }
-    // for counting_iterator
-    template <typename T>
-    oneapi::dpl::counting_iterator<T>
-    operator()(oneapi::dpl::counting_iterator<T> it)
-    {
-        return it;
-    }
-
-    // for transform_iterator
-    template <typename Iterator, typename UnaryFunction>
-    transform_accessor_wrapper<Iterator, UnaryFunction>
-    operator()(const transform_buffer_wrapper<Iterator, UnaryFunction>& buf)
-    {
-        return {get_access<Iterator>(cgh)(buf.iterator_buffer), buf.functor};
-    }
-
-    // for raw pointers and direct pass objects
-    template <typename Iter>
-    typename ::std::enable_if<is_passed_directly<Iter>::value, Iter>::type
-    operator()(Iter first)
-    {
-        return first;
-    }
-
-    template <typename Iter>
-    typename ::std::enable_if<is_passed_directly<Iter>::value, const Iter>::type
-    operator()(const Iter first) const
-    {
-        return first;
-    }
-};
-
-template <typename... BaseIters>
-struct get_access<oneapi::dpl::zip_iterator<BaseIters...>>
-{
-  private:
-    sycl::handler& cgh;
-
-  public:
-    get_access(sycl::handler& cgh_) : cgh(cgh_) {}
-    // for tuple of buffers
-    template <typename... Buffers, typename... StartIdx>
-    auto
-    operator()(oneapi::dpl::__internal::tuple<Buffers...> buf) -> decltype(oneapi::dpl::__internal::map_tuple(
-        ApplyFunc(), oneapi::dpl::__internal::tuple<get_access<BaseIters>...>{get_access<BaseIters>(cgh)...}, buf))
-    {
-        return oneapi::dpl::__internal::map_tuple(
-            ApplyFunc(), oneapi::dpl::__internal::tuple<get_access<BaseIters>...>{get_access<BaseIters>(cgh)...}, buf);
-    }
-};
-
-template <typename Iterator>
-using iterator_accessor_type =
-    decltype(::std::declval<get_access<Iterator>>()(::std::declval<iterator_buffer_type<Iterator>>()));
-
-template <typename Iterator, typename UnaryFunction>
-struct transform_accessor_wrapper
-{
-    iterator_accessor_type<Iterator> iterator_accessor;
-    UnaryFunction functor;
-
-    template <typename ID>
-    typename ::std::iterator_traits<oneapi::dpl::transform_iterator<Iterator, UnaryFunction>>::reference
-    operator[](ID id) const
-    {
-        return functor(iterator_accessor[id]);
-    }
 };
 
 //-----------------------------------------------------------------------
@@ -475,30 +248,6 @@ struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
     get() -> decltype(oneapi::dpl::begin(__container)) const
     {
         return oneapi::dpl::begin(__container);
-    }
-
-    __container_t
-    get_buffer() const
-    {
-        return __container;
-    }
-};
-
-// impl for shifted_buffer
-template <typename _ExecutionPolicy, typename _T, typename _StartIdx>
-struct __buffer<_ExecutionPolicy, _T, __internal::shifted_buffer<_T, _StartIdx>>
-{
-  private:
-    using __exec_policy_t = __decay_t<_ExecutionPolicy>;
-    using __container_t = __internal::shifted_buffer<_T, _StartIdx>;
-    using __buf_t = typename __container_t::container_t;
-
-    __container_t __container;
-
-  public:
-    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements)
-        : __container{__buf_t{sycl::range<1>(__n_elements)}}
-    {
     }
 
     __container_t

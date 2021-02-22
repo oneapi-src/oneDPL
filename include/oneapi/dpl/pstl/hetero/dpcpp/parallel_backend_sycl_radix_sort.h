@@ -55,6 +55,9 @@ class __radix_sort_reorder_kernel : public __kernel_name_base<__radix_sort_reord
 {
 };
 
+template <typename _Name>
+class __odd_iteration;
+
 //------------------------------------------------------------------------
 // radix sort: ordered traits for a given size and integral/float flag
 //------------------------------------------------------------------------
@@ -562,30 +565,28 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
                                 _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf&& __tmp_buf,
                                 sycl::event __dependency_event)
 {
-    using _KernelName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __in_range_t = __decay_t<_InRange>;
-    using __out_range_t = __decay_t<_OutRange>;
-    using __tmp_buf_t = __decay_t<_TmpBuf>;
-    using __count_kernel_name = __radix_sort_count_kernel<__in_range_t, __tmp_buf_t, _KernelName>;
-    using __scan_kernel_name_1 = __radix_sort_scan_kernel_1<__tmp_buf_t, _KernelName>;
-    using __scan_kernel_name_2 = __radix_sort_scan_kernel_2<__tmp_buf_t, _KernelName>;
-    using __reorder_kernel_name = __radix_sort_reorder_kernel<__in_range_t, __out_range_t, ::std::size_t, _KernelName>;
-#else
-    using __count_kernel_name = __radix_sort_count_kernel<_KernelName>;
-    using __scan_kernel_name_1 = __radix_sort_scan_kernel_1<_KernelName>;
-    using __scan_kernel_name_2 = __radix_sort_scan_kernel_2<_KernelName>;
-    using __reorder_kernel_name = __radix_sort_reorder_kernel<_KernelName>;
-#endif
+    using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
+    using _RadixCountKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__radix_sort_count_kernel, _CustomName,
+                                                                     __decay_t<_InRange>, __decay_t<_TmpBuf>>;
+    using _RadixLocalScanKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__radix_sort_scan_kernel_1, _CustomName,
+                                                                     __decay_t<_TmpBuf>>;
+    using _RadixGlobalScanKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__radix_sort_scan_kernel_2, _CustomName,
+                                                                     __decay_t<_TmpBuf>>;
+    using _RadixReorderKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__radix_sort_reorder_kernel, _CustomName,
+                                                                     __decay_t<_InRange>, __decay_t<_OutRange>>;
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     ::std::size_t __block_size = __max_sg_size;
     ::std::size_t __reorder_sg_size = __max_sg_size;
 #if _ONEDPL_COMPILE_KERNEL
-    auto __count_kernel = __count_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    auto __scan_kernel_1 = __scan_kernel_name_1::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    auto __reorder_kernel = __reorder_kernel_name::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __count_kernel = _RadixCountKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __scan_kernel_1 = _RadixLocalScanKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __reorder_kernel = _RadixReorderKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
@@ -596,7 +597,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         __block_size = __radix_states;
 
     // 1. Count Phase
-    sycl::event __count_event = __radix_sort_count_submit<__count_kernel_name, __radix_bits, __is_comp_asc>(
+    sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_comp_asc>(
         __exec, __segments, __block_size, __radix_iter, __in_rng, __tmp_buf, __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
@@ -605,11 +606,11 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     );
 
     // 2. Scan Phase
-    sycl::event __scan_event = __radix_sort_scan_submit<__scan_kernel_name_1, __scan_kernel_name_2, __radix_bits>(
+    sycl::event __scan_event = __radix_sort_scan_submit<_RadixLocalScanKernel, _RadixGlobalScanKernel, __radix_bits>(
         __exec, __scan_wg_size, __segments, __tmp_buf, __count_event);
 
     // 3. Reorder Phase
-    sycl::event __reorder_event = __radix_sort_reorder_submit<__reorder_kernel_name, __radix_bits, __is_comp_asc>(
+    sycl::event __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc>(
         __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, __in_rng, __out_rng, __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
@@ -662,10 +663,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
-                __exec, __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf, __iteration_event);
-        else //swap __in_rng and__out_rng
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf,
+                __iteration_event);
+        else //swap __in_rng and __out_rng
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
-                __exec, __segments, __radix_iter, __out_rng, __in_rng, __tmp_buf, __iteration_event);
+                make_wrapped_policy<__odd_iteration>(::std::forward<_ExecutionPolicy>(__exec)), __segments,
+                __radix_iter, __out_rng, __in_rng, __tmp_buf, __iteration_event);
 
         // TODO: since reassign to __iteration_event does not work, we have to make explicit wait on the event
         explicit_wait_if<::std::is_pointer<decltype(__in_rng.begin())>::value>{}(__iteration_event);

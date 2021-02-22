@@ -3786,7 +3786,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _F
 
         return __par_backend::__parallel_reduce(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-            /*identity*/ ::std::make_pair(__last, __first - 1),
+            /*identity*/ ::std::make_pair(__last, __last),
             [=, &__comp](_ForwardIterator __begin, _ForwardIterator __end, _Result __init) -> _Result {
                 const _Result __subresult = __internal::__brick_minmax_element(__begin, __end, __comp, __is_vector);
                 if (__init.first == __last) // = identity
