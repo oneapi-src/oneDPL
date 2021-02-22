@@ -66,8 +66,9 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, o
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _Events&&... __dependencies)
 {
+    using __T1 = typename ::std::iterator_traits<_ForwardIt1>::value_type;
     return transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init,
-                                  ::std::plus<>(), ::std::multiplies<>(), ::std::forward<_Events>(__dependencies)...);
+                                  ::std::plus<_T>(), ::std::multiplies<__T1>(), ::std::forward<_Events>(__dependencies)...);
 }
 
 // [async.sort]
