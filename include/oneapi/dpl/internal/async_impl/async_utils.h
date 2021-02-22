@@ -26,8 +26,6 @@ namespace dpl
 namespace __internal
 {
 
-using sycl::event;
-
 template <typename _T>
 struct async_value_base
 {
@@ -106,14 +104,17 @@ class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_al
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>
 using __enable_if_device_execution_policy_single_no_default = typename ::std::enable_if<
     oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
-        !::std::is_convertible_v<_Op1, event> && (true && ... && ::std::is_convertible_v<_Events, event>),
+        !::std::is_convertible<_Op1, sycl::event>::value &&
+        oneapi::dpl::__internal::__is_convertible_to_event<
+            _Events...>::value, //(true && ... && ::std::is_convertible_v<_Events, event>),
     _T>::type;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename _Op2, typename... _Events>
 using __enable_if_device_execution_policy_double_no_default = typename ::std::enable_if<
     oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
-        !::std::is_convertible_v<_Op1, event> && !::std::is_convertible_v<_Op2, event> &&
-        (true && ... && ::std::is_convertible_v<_Events, event>),
+        !::std::is_convertible<_Op1, sycl::event>::value && !::std::is_convertible<_Op2, sycl::event>::value &&
+        oneapi::dpl::__internal::__is_convertible_to_event<
+            _Events...>::value, //(true && ... && ::std::is_convertible_v<_Events, event>),
     _T>::type;
 
 } // namespace __internal

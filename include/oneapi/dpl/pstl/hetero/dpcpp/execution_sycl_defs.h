@@ -280,11 +280,26 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
     using type = _T;
 };
 
+// Extension: check if parameter pack is convertible to events
+template <bool...>
+struct __is_true_helper;
+
+template <bool... _Ts>
+using __is_all_true = ::std::is_same<__is_true_helper<_Ts..., true>, __is_true_helper<true, _Ts...>>;
+
+template <class... _Ts>
+using __is_convertible_to_event =
+    __is_all_true<::std::is_convertible<typename ::std::decay<_Ts>::type, sycl::event>::value...>;
+
+template <typename _T, typename... _Events>
+using __enable_if_convertible_to_events =
+    typename ::std::enable_if<oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value, _T>::type;
+
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T, typename... _Events>
 using __enable_if_device_execution_policy = typename ::std::enable_if<
     oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
-        (true && ... && ::std::is_convertible_v<_Events, sycl::event>),
+        oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value,
     _T>::type;
 
 template <typename _ExecPolicy, typename _T>

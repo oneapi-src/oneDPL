@@ -29,7 +29,7 @@ namespace experimental
 {
 
 template <typename... _Ts>
-typename ::std::enable_if<(true && ... && ::std::is_convertible_v<_Ts, sycl::event>), void>::type
+oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
 wait_for_all(_Ts&&... __events);
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class... _Events>
