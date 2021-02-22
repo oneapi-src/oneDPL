@@ -28,8 +28,6 @@
 #    endif // __has_include(<tbb/version.h>)
 #endif     // __cplusplus >= 201703L
 
-//#include "oneapi/dpl/pstl/onedpl_config.h"
-
 #if !_ONEDPL_ASYNC_FORWARD_DECLARED
 // If not declared, pull in forward declarations
 #    include "oneapi/dpl/internal/async_extension_defs.h"
