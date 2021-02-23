@@ -73,20 +73,20 @@ copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterato
 }
 
 // [async.sort]
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class... _Events>
+template <class _ExecutionPolicy, class _Iterator, class _Compare, class... _Events>
 oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<
     _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>, _Compare, _Events...>
-sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
-           _Events&&... __dependencies)
+sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp, _Events&&... __dependencies)
 {
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     if (__last - __first < 2)
         return oneapi::dpl::__par_backend_hetero::__future<void>(sycl::event{});
-    auto ret_val = __par_backend_hetero::__parallel_stable_sort(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp);
-    return ret_val;
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+                                                        __comp);
 }
 
 // [async.for_each]
