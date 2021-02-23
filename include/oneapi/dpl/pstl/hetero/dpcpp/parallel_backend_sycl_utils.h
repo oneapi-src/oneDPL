@@ -112,11 +112,24 @@ make_wrapped_policy(_Policy&& __policy)
 namespace __internal
 {
 
+// extract the deepest kernel name when we have a policy wrapper that might hide the default name
+template <typename _CustomName>
+struct _HasDefaultName
+{
+    static constexpr bool value = std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value;
+};
+
+template <template <typename...> class _ExternalName, typename _InternalName>
+struct _HasDefaultName<_ExternalName<_InternalName>>
+{
+    static constexpr bool value = _HasDefaultName<_InternalName>::value;
+};
+
 template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
 using _KernelName_t =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename std::conditional<std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value,
-                              _BaseName<_CustomName, _Args...>, _BaseName<_CustomName>>::type;
+    typename std::conditional<_HasDefaultName<_CustomName>::value, _BaseName<_CustomName, _Args...>,
+                              _BaseName<_CustomName>>::type;
 #else
     _BaseName<_CustomName>;
 #endif
