@@ -17,7 +17,9 @@
 #ifndef _ONEDPL_ASYNC_UTILS_H
 #define _ONEDPL_ASYNC_UTILS_H
 
-#include <CL/sycl.hpp>
+#if _ONEDPL_BACKEND_SYCL
+#    include <CL/sycl.hpp>
+#endif
 
 namespace oneapi
 {
@@ -56,10 +58,10 @@ class __future : public __par_backend_hetero::__future_base
     _T __init;
 
   public:
-    __future(_T __i) : __par_backend_hetero::__future_base(sycl::event{}), __init(__i) {}
+    __future(_T __i) : __par_backend_hetero::__future_base(), __init(__i) {}
 
-    template <typename _Op, typename _Buf>
-    __future(sycl::event __e, _Buf __b, _Op __o, size_t __offset) : __par_backend_hetero::__future_base(__e)
+    template <typename _Event, typename _Op, typename _Buf>
+    __future(_Event __e, _Buf __b, _Op __o, size_t __offset) : __par_backend_hetero::__future_base(__e)
     {
         __ret_val = ::std::unique_ptr<async_value<_T, _Buf, _Op>>(new async_value<_T, _Buf, _Op>(__b, __o, __offset));
     }
@@ -76,6 +78,7 @@ class __future : public __par_backend_hetero::__future_base
     }
 };
 
+#if _ONEDPL_BACKEND_SYCL
 // Specialization for sycl_iterator
 template <typename _T>
 class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>>
@@ -100,21 +103,20 @@ class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_al
         return __data;
     }
 };
+#endif
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>
 using __enable_if_device_execution_policy_single_no_default = typename ::std::enable_if<
     oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
         !::std::is_convertible<_Op1, sycl::event>::value &&
-        oneapi::dpl::__internal::__is_convertible_to_event<
-            _Events...>::value, //(true && ... && ::std::is_convertible_v<_Events, event>),
+        oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value,
     _T>::type;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename _Op2, typename... _Events>
 using __enable_if_device_execution_policy_double_no_default = typename ::std::enable_if<
     oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
         !::std::is_convertible<_Op1, sycl::event>::value && !::std::is_convertible<_Op2, sycl::event>::value &&
-        oneapi::dpl::__internal::__is_convertible_to_event<
-            _Events...>::value, //(true && ... && ::std::is_convertible_v<_Events, event>),
+        oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value,
     _T>::type;
 
 } // namespace __internal

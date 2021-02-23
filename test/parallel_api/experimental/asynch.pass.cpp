@@ -14,9 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "oneapi/dpl/execution"
-#if TEST_SYCL_PRESENT
-#   include "oneapi/dpl/async"
-#endif
+#include "oneapi/dpl/async"
 #include "oneapi/dpl/iterator"
 
 #include "support/pstl_test_config.h"
