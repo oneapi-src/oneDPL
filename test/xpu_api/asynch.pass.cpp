@@ -40,36 +40,40 @@ test_with_buffers()
 {
     const int n = 100;
     {
-        sycl::queue q;
+        //sycl::queue q;
         sycl::buffer<int> x{n};
         sycl::buffer<int> y{n};
 
-        auto my_policy = oneapi::dpl::execution::make_device_policy(q);
+        //auto my_policy = oneapi::dpl::execution::make_device_policy(q);
+        auto my_policy = oneapi::dpl::execution::make_device_policy<class Copy1>(oneapi::dpl::execution::dpcpp_default);
         auto res_1a = oneapi::dpl::experimental::copy_async(my_policy, oneapi::dpl::counting_iterator<int>(0),
                                                             oneapi::dpl::counting_iterator<int>(n),
                                                             oneapi::dpl::begin(x)); // x = [0..n]
-        auto res_1b = oneapi::dpl::experimental::fill_async(my_policy, oneapi::dpl::begin(y), oneapi::dpl::end(y),
+        auto my_policy1 = oneapi::dpl::execution::make_device_policy<class Fill1>(my_policy);
+        auto res_1b = oneapi::dpl::experimental::fill_async(my_policy1, oneapi::dpl::begin(y), oneapi::dpl::end(y),
                                                             7); // y = [7..7]
-
+        auto my_policy2 = oneapi::dpl::execution::make_device_policy<class ForEach1>(my_policy);
         auto res_2a = oneapi::dpl::experimental::for_each_async(
-            my_policy, oneapi::dpl::begin(x), oneapi::dpl::end(x), [](int& e) { ++e; }, res_1a); // x = [1..n]
+            my_policy2, oneapi::dpl::begin(x), oneapi::dpl::end(x), [](int& e) { ++e; }, res_1a); // x = [1..n]
+        auto my_policy3 = oneapi::dpl::execution::make_device_policy<class Transform1>(my_policy);
         auto res_2b = oneapi::dpl::experimental::transform_async(
-            my_policy, oneapi::dpl::begin(y), oneapi::dpl::end(y), oneapi::dpl::begin(y),
+            my_policy3, oneapi::dpl::begin(y), oneapi::dpl::end(y), oneapi::dpl::begin(y),
             [](const int& e) { return e / 2; },
             res_1b); // y = [3..3]
 
         sycl::buffer<int> z{n}; //std::vector<int> z(n);
-        auto res_3 = oneapi::dpl::experimental::transform_async(my_policy, oneapi::dpl::begin(x), oneapi::dpl::end(x),
+        auto my_policy4 = oneapi::dpl::execution::make_device_policy<class Transform2>(my_policy);
+        auto res_3 = oneapi::dpl::experimental::transform_async(my_policy4, oneapi::dpl::begin(x), oneapi::dpl::end(x),
                                                                 oneapi::dpl::begin(y), oneapi::dpl::begin(z),
                                                                 std::plus<int>(), res_2a, res_2b); // z = [4..n+3]
-
-        auto alpha = oneapi::dpl::experimental::reduce_async(my_policy, oneapi::dpl::begin(x), oneapi::dpl::end(x), 0,
+        auto my_policy5 = oneapi::dpl::execution::make_device_policy<class Reduce1>(my_policy);
+        auto alpha = oneapi::dpl::experimental::reduce_async(my_policy5, oneapi::dpl::begin(x), oneapi::dpl::end(x), 0,
                                                              std::plus<int>(),
                                                              res_2a)
                          .get(); // alpha = n*(n+1)/2
-
+        auto my_policy6 = oneapi::dpl::execution::make_device_policy<class Reduce2>(my_policy);
         auto beta =
-            oneapi::dpl::experimental::transform_reduce_async(my_policy, oneapi::dpl::begin(z), oneapi::dpl::end(z), 0,
+            oneapi::dpl::experimental::transform_reduce_async(my_policy6, oneapi::dpl::begin(z), oneapi::dpl::end(z), 0,
                                                               std::plus<int>(), [=](int e) { return alpha * e; })
                 .get();
 
@@ -84,7 +88,6 @@ test_with_usm()
     const int n = 13;
 
     // ASYNC TEST USING USM //
-
     {
         // Allocate space for data using USM.
         uint64_t* data1 =
@@ -126,6 +129,9 @@ test_with_usm()
 
         // check values
         ASSERT_EQUAL(res2, 96);
+
+        sycl::free(data1, q);
+        sycl::free(data2, q);
     }
 }
 #endif
