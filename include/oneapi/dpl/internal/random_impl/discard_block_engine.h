@@ -82,25 +82,40 @@ class discard_block_engine
         if (!__num_to_skip)
             return;
 
-        for (; __num_to_skip > 0; --__num_to_skip)
-            generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
+        if(__num_to_skip < (used_block - n_))
+        {
+            n_ += __num_to_skip;
+            engine_.discard(__num_to_skip);
+        }
+        else
+        {
+            unsigned long long __n_skip = __num_to_skip + static_cast<unsigned long long>((__num_to_skip + n_) / used_block) * static_cast<unsigned long long>(block_size - used_block);
+            // Check the oveflow case
+            if(__n_skip >= __num_to_skip)
+            {
+                n_ = (__num_to_skip - (used_block - n_)) % used_block;
+                engine_.discard(__n_skip);
+            }
+            else
+            {
+                for(; __num_to_skip > 0; __num_to_skip--)
+                    operator()();
+            }
+        }
     }
 
     // operator () returns bits of engine recurrence
     result_type
     operator()()
     {
-        result_type res = generate_internal<internal::type_traits_t<result_type>::num_elems>();
-
-        return res;
+        return generate_internal<internal::type_traits_t<result_type>::num_elems>();
     }
 
     // operator () overload for result portion generation
     result_type
     operator()(unsigned int __randoms_num)
     {
-        result_type res = generate_internal<internal::type_traits_t<result_type>::num_elems>(__randoms_num);
-        return res;
+        return generate_internal<internal::type_traits_t<result_type>::num_elems>(__randoms_num);
     }
 
     // Property function
@@ -154,11 +169,18 @@ class discard_block_engine
     generate_internal()
     {
         result_type __res;
-        for (int __i = 0; __i < _N; ++__i)
+        if(_N < (used_block - n_))
         {
-            __res[__i] = generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
+             __res = engine_();
+             n_ += _N;
         }
-
+        else
+        {
+            for (unsigned int __i = 0; __i < _N; ++__i)
+            {
+                __res[__i] = generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
+            }
+        }
         return __res;
     }
 
@@ -166,13 +188,19 @@ class discard_block_engine
     typename ::std::enable_if<(_N > 0), result_type>::type
     generate_internal(unsigned int __randoms_num)
     {
-        result_type __res;
+        result_type __part_vec;
+
+        if (__randoms_num < 1)
+            return __part_vec;
+        else if (__randoms_num >= _N)
+            return operator()();
+
         for (unsigned int __i = 0; __i < __randoms_num; ++__i)
         {
-            __res[__i] = generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
+            __part_vec[__i] = generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
         }
 
-        return __res;
+        return __part_vec;
     }
 
     _Engine engine_;

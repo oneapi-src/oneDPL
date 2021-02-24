@@ -75,9 +75,9 @@ class linear_congruential_engine
         // Skipping sequence
         if (__num_to_skip == 0)
             return;
-        constexpr bool flag = (increment == 0) && (modulus < ::std::numeric_limits<::std::uint32_t>::max()) &&
+        constexpr bool __flag = (increment == 0) && (modulus < ::std::numeric_limits<::std::uint32_t>::max()) &&
                               (multiplier < ::std::numeric_limits<::std::uint32_t>::max());
-        skip_seq<internal::type_traits_t<result_type>::num_elems, flag>(__num_to_skip);
+        skip_seq<internal::type_traits_t<result_type>::num_elems, __flag>(__num_to_skip);
     }
 
     // operator () returns bits of engine recurrence
@@ -143,7 +143,7 @@ class linear_congruential_engine
 
         state_[0] = mod_scalar(state_[0]);
 
-        for (int __i = 1u; __i < _N; __i++)
+        for (unsigned int __i = 1u; __i < _N; ++__i)
             state_[__i] = mod_scalar(state_[__i - 1u]);
     }
 
@@ -154,9 +154,7 @@ class linear_congruential_engine
         ::std::uint64_t __a2;
         ::std::uint64_t __mod = static_cast<::std::uint64_t>(modulus);
         ::std::uint64_t __a = static_cast<::std::uint64_t>(multiplier);
-        scalar_type __r;
-
-        __r = 1;
+        scalar_type __r = 1;
 
         do
         {
@@ -242,14 +240,16 @@ class linear_congruential_engine
     result_portion_internal(unsigned int __randoms_num)
     {
         result_type __part_vec;
+
         if (__randoms_num < 1)
             return __part_vec;
+        else if (__randoms_num >= _N)
+            return operator()();
 
-        unsigned int __num_to_gen = (__randoms_num > _N) ? _N : __randoms_num;
-        for (unsigned int __i = 0; __i < __num_to_gen; ++__i)
+        for (unsigned int __i = 0; __i < __randoms_num; ++__i)
             __part_vec[__i] = state_[__i];
 
-        discard(__num_to_gen);
+        discard(__randoms_num);
         return __part_vec;
     }
 

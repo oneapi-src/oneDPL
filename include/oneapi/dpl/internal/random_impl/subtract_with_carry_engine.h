@@ -84,18 +84,14 @@ class subtract_with_carry_engine
     result_type
     operator()()
     {
-        result_type res = generate_internal<internal::type_traits_t<result_type>::num_elems>();
-
-        return res;
+        return generate_internal<internal::type_traits_t<result_type>::num_elems>();
     }
 
     // operator () overload for result portion generation
     result_type
     operator()(unsigned int __randoms_num)
     {
-        result_type __res = generate_internal<internal::type_traits_t<result_type>::num_elems>(__randoms_num);
-
-        return __res;
+        return result_portion_internal<internal::type_traits_t<result_type>::num_elems>(__randoms_num);
     }
 
   private:
@@ -142,12 +138,14 @@ class subtract_with_carry_engine
         }
         else
         {
-            x_[i_] = max() - x_[__id_2] - c_ + x_[__id_1] + 1u;
+            x_[__id] = max() - x_[__id_2] - c_ + x_[__id_1] + 1u;
             c_ = 1;
         }
+
         i_++;
         if (i_ >= long_lag)
             i_ = 0;
+
         return x_[__id];
     };
 
@@ -171,17 +169,24 @@ class subtract_with_carry_engine
         return __res;
     }
 
+    // result_portion implementation
     template <int _N>
     typename ::std::enable_if<(_N > 0), result_type>::type
-    generate_internal(unsigned int __randoms_num)
+    result_portion_internal(unsigned int __randoms_num)
     {
-        result_type __res;
+        result_type __part_vec;
+
+        if (__randoms_num < 1)
+            return __part_vec;
+        else if (__randoms_num >= _N)
+            return operator()();
+
         for (unsigned int __i = 0; __i < __randoms_num; ++__i)
         {
-            __res[__i] = generate_internal_scalar();
+            __part_vec[__i] = generate_internal_scalar();
         }
 
-        return __res;
+        return __part_vec;
     }
 
     scalar_type x_[long_lag];

@@ -113,14 +113,7 @@ class uniform_int_distribution
     result_type
     operator()(_Engine& __engine, const param_type& __params, unsigned int __randoms_num)
     {
-        result_type __part_vec;
-        if (__randoms_num < 1)
-            return __part_vec;
-
-        unsigned int __portion = (__randoms_num > size_of_type_) ? size_of_type_ : __randoms_num;
-
-        __part_vec = result_portion_internal<size_of_type_, _Engine>(__engine, __params, __portion);
-        return __part_vec;
+        return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __randoms_num);
     }
 
   private:
@@ -150,7 +143,11 @@ class uniform_int_distribution
             __engine, ::std::pair<double, double>(static_cast<double>(__params.first),
                                                   static_cast<double>(__params.second) + 1.0));
 
-        return __res.template convert<scalar_type, sycl::rounding_mode::rte>();
+        result_type __res_ret;
+        for(unsigned int __i = 0; __i < _Ndistr; ++__i)
+            __res_ret[__i] = static_cast<scalar_type> (__res[__i]);
+
+        return __res_ret;
     }
 
     template <int _Ndistr, class _Engine>
@@ -169,13 +166,22 @@ class uniform_int_distribution
     typename ::std::enable_if<(_Ndistr != 0), result_type>::type
     result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
+        result_type __part_vec;
+        if (__N < 1)
+            return __part_vec;
+        else if(__N >= _Ndistr)
+            return operator()(__engine);
+
         RealType __res =
             uniform_real_distribution_(__engine,
                                        ::std::pair<double, double>(static_cast<double>(__params.first),
                                                                    static_cast<double>(__params.second) + 1.0),
                                        __N);
 
-        return __res.template convert<scalar_type, sycl::rounding_mode::rte>();
+        for(unsigned int __i = 0; __i < __N; ++__i)
+            __part_vec[__i] = static_cast<scalar_type> (__res[__i]);
+
+        return __part_vec;
     }
 };
 
