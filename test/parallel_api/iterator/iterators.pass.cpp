@@ -162,9 +162,10 @@ void test_explicit_move(InputIterator i, InputIterator j) {
 struct test_zip_iterator {
     template <typename T1, typename T2>
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
-        //test that zip_iterator is default constructible
+        //runtime call to check default constructor and increase code coverage
         oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> b;
 
+        //runtime call to check copy assignable operator and increase code coverage
         b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
         auto e = oneapi::dpl::make_zip_iterator(in1.end(), in2.end());
 
