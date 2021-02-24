@@ -386,6 +386,7 @@ class __future_base
     sycl::event __my_event;
 
   public:
+    __future_base() : __my_event(sycl::event{}) {}
     __future_base(sycl::event __e) : __my_event(__e) {}
     void
     wait()
