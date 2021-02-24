@@ -85,9 +85,11 @@ void
 test_with_usm()
 {
     cl::sycl::queue q;
-    const int n = 13;
+    const int n = 1024;
+    const int n_small = 13;
 
     // ASYNC TEST USING USM //
+    // TODO: Extend tests by checking true async behavior in more detail
     {
         // Allocate space for data using USM.
         uint64_t* data1 =
@@ -95,15 +97,12 @@ test_with_usm()
         uint64_t* data2 =
             static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
 
-        //T data1[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
-        //T data2[n1] = { 2, 3, 4, 5, 2, 2, 4, 4, 2, 2, 4, 4, 0 };
-
         // Initialize data
         for (int i = 0; i != n - 1; ++i)
         {
             data1[i] = i % 4 + 1;
-            data2[i] = i % 4 + 2;
-            if (i > 3)
+            data2[i] = data1[i] + 1;
+            if (i > 3 && i != n - 2)
             {
                 ++i;
                 data1[i] = data1[i - 1];
@@ -113,22 +112,27 @@ test_with_usm()
         data1[n - 1] = 0;
         data2[n - 1] = 0;
 
+        // compute reference values
+        const uint64_t ref1 = std::inner_product(data2, data2 + n, data1, 0);
+        const uint64_t ref2 = std::reduce(data1, data1 + n_small);
+
         // call first algorithm
-        auto new_policy = oneapi::dpl::execution::make_device_policy<class async1>(q);
-        auto fut1 = oneapi::dpl::experimental::reduce_async(new_policy, data1, data1 + n);
-        auto res1 = fut1.get();
+        auto new_policy1 = oneapi::dpl::execution::make_device_policy<class async1>(q);
+        auto fut1 = oneapi::dpl::experimental::transform_reduce_async(
+            new_policy1, data2, data2 + n, data1, 0, std::plus<uint64_t>(), std::multiplies<uint64_t>());
 
-        // check values
-        ASSERT_EQUAL(res1, 26);
-
-        // call second algorithm
+        // call second algorithm and wait for result
         auto new_policy2 = oneapi::dpl::execution::make_device_policy<class async2>(q);
-        auto res2 = oneapi::dpl::experimental::transform_reduce_async(
-                        new_policy2, data2, data2 + n, data1, 0, std::plus<uint64_t>(), std::multiplies<uint64_t>())
-                        .get();
+        auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1, data1 + n_small).get();
+
+        // call third algorithm that has to wait for first to complete
+        auto new_policy3 = oneapi::dpl::execution::make_device_policy<class async3>(q);
+        oneapi::dpl::experimental::sort_async(new_policy3, data2, data2 + n, fut1);
 
         // check values
-        ASSERT_EQUAL(res2, 96);
+        auto res1 = fut1.get();
+        ASSERT_EQUAL(res1, ref1);
+        ASSERT_EQUAL(res2, ref2);
 
         sycl::free(data1, q);
         sycl::free(data2, q);
