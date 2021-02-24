@@ -228,7 +228,7 @@ class normal_distribution
 
     // Specialization of the vector generation with size = [1; 3]
     template <unsigned int __N, class _Engine>
-    typename ::std::enable_if<(__N <= 3) , result_type>::type
+    typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type __params)
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
@@ -236,7 +236,7 @@ class normal_distribution
 
     // Specialization of the vector generation with size = [4; 8; 16]
     template <unsigned int __N, class _Engine>
-    typename ::std::enable_if<(__N > 3) , result_type>::type
+    typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type __params)
     {
         uniform_result_type __u;
@@ -247,15 +247,16 @@ class normal_distribution
         sycl::vec<scalar_type, __vec_size> __sin, __cos;
         sycl::vec<scalar_type, __vec_size> __u1_transformed;
 
-        __u = uniform_real_distribution_(
-            __engine, param_type(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)), __N);
+        __u = uniform_real_distribution_(__engine,
+                                         param_type(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)), __N);
 
         sycl::vec<scalar_type, __vec_size> __u1 = __u.even();
         sycl::vec<scalar_type, __vec_size> __u2 = __u.odd();
 
         // Calculate sycl::log with callback
-        __u1_transformed = select(sycl::log(__u1), sycl::vec<scalar_type, __vec_size>{callback<scalar_type>()},
-            sycl::isequal(__u1, sycl::vec<scalar_type, __vec_size>{static_cast<scalar_type>(0.0)}));
+        __u1_transformed =
+            select(sycl::log(__u1), sycl::vec<scalar_type, __vec_size>{callback<scalar_type>()},
+                   sycl::isequal(__u1, sycl::vec<scalar_type, __vec_size>{static_cast<scalar_type>(0.0)}));
 
         // Get sincos
         __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
@@ -263,8 +264,8 @@ class normal_distribution
         if (!flag_)
         {
             __u1_transformed = sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed);
-            __res.even() = __u1_transformed  * __sin *__stddev + __mean;
-            __res.odd() = __u1_transformed * __cos *__stddev + __mean;
+            __res.even() = __u1_transformed * __sin * __stddev + __mean;
+            __res.odd() = __u1_transformed * __cos * __stddev + __mean;
 
             // Flag is still false as code-branch for 4/8/16 vector sizes
         }
@@ -273,23 +274,28 @@ class normal_distribution
             __res[0] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
                                             sycl::cos(pi2<scalar_type>() * saved_u2_));
 
-            for(int __i = 0, __j = 0; __i < __N; __i+=2, __j++) // to check
+            for (int __i = 0, __j = 0; __i < __N; __i += 2, __j++) // to check
             {
-                __res[__i + 1] =  (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __sin[__j]) * __stddev + __mean;
-                __res[__i + 2] =  (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __cos[__j]) * __stddev + __mean;
+                __res[__i + 1] =
+                    (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __sin[__j]) * __stddev +
+                    __mean;
+                __res[__i + 2] =
+                    (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __cos[__j]) * __stddev +
+                    __mean;
             }
 
-            __res[__N - 1] = (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__vec_size - 1] ) * __sin[__vec_size - 1]) *__stddev + __mean;
+            __res[__N - 1] = (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__vec_size - 1]) *
+                              __sin[__vec_size - 1]) *
+                                 __stddev +
+                             __mean;
 
             saved_ln_ = __u1_transformed[__vec_size - 1];
-            saved_u2_ =  __u2[__vec_size - 1];
+            saved_u2_ = __u2[__vec_size - 1];
 
             // Flag is still true as code-branch for 4/8/16 vector sizes
         }
         return __res;
-
     }
-
 
     // Implementation for the N vector's elements generation
     template <class _Engine>
@@ -317,10 +323,8 @@ class normal_distribution
                 __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
 
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
-                __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                  __sin);
-                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                      __cos);
+                __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __sin);
+                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __cos);
             }
             if (__tail)
             {
@@ -354,10 +358,8 @@ class normal_distribution
                 __u1 = __u[__i - 1];
                 __u2 = __u[__i];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
-                __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                  __sin);
-                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                      __cos);
+                __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __sin);
+                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __cos);
             }
             if (__tail)
             {

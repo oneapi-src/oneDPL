@@ -144,8 +144,8 @@ class uniform_int_distribution
                                                   static_cast<double>(__params.second) + 1.0));
 
         result_type __res_ret;
-        for(unsigned int __i = 0; __i < _Ndistr; ++__i)
-            __res_ret[__i] = static_cast<scalar_type> (__res[__i]);
+        for (unsigned int __i = 0; __i < _Ndistr; ++__i)
+            __res_ret[__i] = static_cast<scalar_type>(__res[__i]);
 
         return __res_ret;
     }
@@ -169,7 +169,7 @@ class uniform_int_distribution
         result_type __part_vec;
         if (__N < 1)
             return __part_vec;
-        else if(__N >= _Ndistr)
+        else if (__N >= _Ndistr)
             return operator()(__engine);
 
         RealType __res =
@@ -178,8 +178,8 @@ class uniform_int_distribution
                                                                    static_cast<double>(__params.second) + 1.0),
                                        __N);
 
-        for(unsigned int __i = 0; __i < __N; ++__i)
-            __part_vec[__i] = static_cast<scalar_type> (__res[__i]);
+        for (unsigned int __i = 0; __i < __N; ++__i)
+            __part_vec[__i] = static_cast<scalar_type>(__res[__i]);
 
         return __part_vec;
     }

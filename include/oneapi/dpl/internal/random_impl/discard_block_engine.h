@@ -82,23 +82,25 @@ class discard_block_engine
         if (!__num_to_skip)
             return;
 
-        if(__num_to_skip < (used_block - n_))
+        if (__num_to_skip < (used_block - n_))
         {
             n_ += __num_to_skip;
             engine_.discard(__num_to_skip);
         }
         else
         {
-            unsigned long long __n_skip = __num_to_skip + static_cast<unsigned long long>((__num_to_skip + n_) / used_block) * static_cast<unsigned long long>(block_size - used_block);
+            unsigned long long __n_skip =
+                __num_to_skip + static_cast<unsigned long long>((__num_to_skip + n_) / used_block) *
+                                    static_cast<unsigned long long>(block_size - used_block);
             // Check the oveflow case
-            if(__n_skip >= __num_to_skip)
+            if (__n_skip >= __num_to_skip)
             {
                 n_ = (__num_to_skip - (used_block - n_)) % used_block;
                 engine_.discard(__n_skip);
             }
             else
             {
-                for(; __num_to_skip > 0; __num_to_skip--)
+                for (; __num_to_skip > 0; __num_to_skip--)
                     operator()();
             }
         }
@@ -169,10 +171,10 @@ class discard_block_engine
     generate_internal()
     {
         result_type __res;
-        if(_N < (used_block - n_))
+        if (_N < (used_block - n_))
         {
-             __res = engine_();
-             n_ += _N;
+            __res = engine_();
+            n_ += _N;
         }
         else
         {

@@ -99,7 +99,7 @@ class uniform_real_distribution
     operator()(_Engine& __engine, const param_type& __params)
     {
         return generate<size_of_type_, internal::type_traits_t<typename _Engine::result_type>::num_elems, _Engine>(
-                __engine, __params);
+            __engine, __params);
     }
 
     template <class _Engine>
@@ -114,7 +114,7 @@ class uniform_real_distribution
     operator()(_Engine& __engine, const param_type& __params, unsigned int __randoms_num)
     {
         return result_portion_internal<size_of_type_, internal::type_traits_t<typename _Engine::result_type>::num_elems,
-                                    _Engine>(__engine, __params, __randoms_num);
+                                       _Engine>(__engine, __params, __randoms_num);
     }
 
   private:
@@ -138,7 +138,7 @@ class uniform_real_distribution
         result_type __res;
 
         for (unsigned int __i = 0; __i < _Ndistr; ++__i)
-            __res[__i] = static_cast<scalar_type> (__engine_output[__i]);
+            __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
 
         __res = ((__res - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
                     (__params.second - __params.first) +
@@ -251,7 +251,8 @@ class uniform_real_distribution
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
             __res[__i] =
                 ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) + __params.first;
+                    (__params.second - __params.first) +
+                __params.first;
         }
 
         return __res;

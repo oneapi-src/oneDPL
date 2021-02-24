@@ -76,7 +76,7 @@ class linear_congruential_engine
         if (__num_to_skip == 0)
             return;
         constexpr bool __flag = (increment == 0) && (modulus < ::std::numeric_limits<::std::uint32_t>::max()) &&
-                              (multiplier < ::std::numeric_limits<::std::uint32_t>::max());
+                                (multiplier < ::std::numeric_limits<::std::uint32_t>::max());
         skip_seq<internal::type_traits_t<result_type>::num_elems, __flag>(__num_to_skip);
     }
 
