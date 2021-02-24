@@ -282,7 +282,9 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 
 // Extension: check if parameter pack is convertible to events
 template <bool...>
-struct __is_true_helper;
+struct __is_true_helper
+{
+};
 
 template <bool... _Ts>
 using __is_all_true = ::std::is_same<__is_true_helper<_Ts..., true>, __is_true_helper<true, _Ts...>>;
