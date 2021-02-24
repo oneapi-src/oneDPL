@@ -35,8 +35,8 @@ static_assert(_PSTL_VERSION_PATCH == 0, "");
 #endif
 
 static_assert(ONEDPL_VERSION_MAJOR == 2021, "");
-static_assert(ONEDPL_VERSION_MINOR == 1, "");
-static_assert(ONEDPL_VERSION_PATCH == 1, "");
+static_assert(ONEDPL_VERSION_MINOR == 2, "");
+static_assert(ONEDPL_VERSION_PATCH == 0, "");
 
 int main() {
     ::std::cout << TestUtils::done() << ::std::endl;
