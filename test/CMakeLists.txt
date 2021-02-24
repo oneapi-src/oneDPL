@@ -33,10 +33,8 @@ macro(onedpl_add_test test_source_file)
 
     # oneDPL test harness may initialize a C++ iterator using iterator with different type
     # that may break code when using icpc with -O3 flag on Linux
-    if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-        if (CMAKE_CXX_COMPILER_ID STREQUAL Intel)
-            target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
-        endif()
+    if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL Intel)
+        target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
     endif()
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
