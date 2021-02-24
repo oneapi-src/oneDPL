@@ -56,6 +56,7 @@ add_library(oneDPL INTERFACE)
 
 if (CMAKE_BUILD_TYPE)
     message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
+    string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
 else()
     message(STATUS "Build type is not set")
 endif()
@@ -73,8 +74,11 @@ string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 # oneDPL test harness may initialize a C++ iterator using iterator with different type
 # that may break code when using icpc with -O3 optimizations on Linux
 if (UNIX)
-    if (CMAKE_CXX_COMPILER STREQUAL "icpc" AND CMAKE_BUILD_TYPE STREQUAL "Release")
-        target_compile_options(oneDPL INTERFACE -fno-strict-aliasing)
+    if (CMAKE_CXX_COMPILER MATCHES ".*icpc")
+        if (CMAKE_BUILD_TYPE STREQUAL "release")
+            message(STATUS "Strict-alising optimization has been explicitly turned off")
+            target_compile_options(oneDPL INTERFACE -fno-strict-aliasing)
+        endif()
     endif()
 endif()
 
