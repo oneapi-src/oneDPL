@@ -32,7 +32,7 @@ macro(onedpl_add_test test_source_file)
     endif()
 
     # oneDPL test harness may initialize a C++ iterator using iterator with different type
-    # that may break code when using icpc with -O3 flag on Linux
+    # that may break code when using Intel(R) C++ Compiler Classic with -O3 flag on Linux
     if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL Intel)
         target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
     endif()
