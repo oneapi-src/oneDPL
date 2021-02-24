@@ -30,6 +30,15 @@ macro(onedpl_add_test test_source_file)
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)
     endif()
+
+    # oneDPL test harness may initialize a C++ iterator using iterator with different type
+    # that may break code when using icpc with -O3 flag on Linux
+    if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+        if (CMAKE_CXX_COMPILER_ID STREQUAL Intel)
+            target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
+        endif()
+    endif()
+
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
