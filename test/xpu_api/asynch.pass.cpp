@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <numeric>
 
 #if TEST_SYCL_PRESENT
 #    include <CL/sycl.hpp>
@@ -114,7 +115,7 @@ test_with_usm()
 
         // compute reference values
         const uint64_t ref1 = std::inner_product(data2, data2 + n, data1, 0);
-        const uint64_t ref2 = std::reduce(data1, data1 + n_small);
+        const uint64_t ref2 = std::accumulate(data1, data1 + n_small, 0);
 
         // call first algorithm
         auto new_policy1 = oneapi::dpl::execution::make_device_policy<class async1>(q);
