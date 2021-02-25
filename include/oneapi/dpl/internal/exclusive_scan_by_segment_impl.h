@@ -29,6 +29,12 @@ namespace dpl
 {
 namespace internal
 {
+
+template <typename Name>
+class ExclusiveScan1;
+template <typename Name>
+class ExclusiveScan2;
+
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
           typename BinaryPredicate, typename Operator>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
@@ -67,7 +73,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     temp[0] = init;
 
-    typename internal::rebind_policy<policy_type, class ExclusiveScan1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, ExclusiveScan1<policy_type>>::type policy1(policy);
 
     // TODO : add stencil form of replace_copy_if to oneDPL if the
     // transform call here is difficult to understand and maintain.
@@ -78,7 +84,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     replace_copy_if(policy1, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1, ::std::negate<FlagType>(), init);
 #endif
 
-    typename internal::rebind_policy<policy_type, class ExclusiveScan2>::type policy2(policy);
+    typename internal::rebind_policy<policy_type, ExclusiveScan2<policy_type>>::type policy2(policy);
 
     // scan key-flag tuples
     inclusive_scan(policy2, make_zip_iterator(_temp.get(), _flags.get()),
@@ -133,7 +139,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         temp[0] = init;
     }
 
-    typename internal::rebind_policy<policy_type, class ExclusiveScan1>::type policy1(policy);
+    typename internal::rebind_policy<policy_type, ExclusiveScan1<policy_type>>::type policy1(policy);
 
     // TODO : add stencil form of replace_copy_if to oneDPL if the
     // transform call here is difficult to understand and maintain.
@@ -144,7 +150,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     replace_copy_if(policy1, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1, ::std::negate<FlagType>(), init);
 #    endif
 
-    typename internal::rebind_policy<policy_type, class ExclusiveScan2>::type policy2(policy);
+    typename internal::rebind_policy<policy_type, ExclusiveScan2<policy_type>>::type policy2(policy);
 
     // scan key-flag tuples
     transform_inclusive_scan(policy2, make_zip_iterator(_temp.get(), _flags.get()),

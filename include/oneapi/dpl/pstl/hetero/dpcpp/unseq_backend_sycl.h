@@ -452,7 +452,7 @@ struct __global_scan_functor
         constexpr auto __shift = _Inclusive{} ? 0 : 1;
         auto __item_idx = __item.get_linear_id();
         // skip the first group scanned locally
-        if (__item_idx >= __size_per_wg && __item_idx < __n)
+        if (__item_idx >= __size_per_wg && __item_idx + __shift < __n)
         {
             auto __wg_sums_idx = __item_idx / __size_per_wg - 1;
             // an initial value preceeds the first group for the exclusive scan
@@ -484,21 +484,21 @@ struct __scan
                     _InitType __init = __scan_no_init<typename _InitType::__value_type>{}) const
     {
         using _Tp = typename _InitType::__value_type;
-        auto __group_id = __item.get_group(0);
-        auto __global_id = __item.get_global_id(0);
-        auto __local_id = __item.get_local_id(0);
-        auto __use_init = __scan_init_processing<_Tp>{};
+        ::std::size_t __group_id = __item.get_group(0);
+        ::std::size_t __global_id = __item.get_global_id(0);
+        ::std::size_t __local_id = __item.get_local_id(0);
+        __scan_init_processing<_Tp> __use_init{};
 
-        auto __shift = 0;
+        ::std::size_t __shift = 0;
         __internal::__invoke_if_not(_Inclusive{}, [&]() {
             __shift = 1;
             if (__global_id == 0)
                 __use_init(__init, __out_acc[__global_id]);
         });
 
-        auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
+        ::std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
-        for (auto __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
+        for (_ItersPerWG __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
             if (__adjusted_global_id < __n)
             {
@@ -513,14 +513,19 @@ struct __scan
                 __use_init(__init, __local_acc[__global_id], __bin_op);
 
             // 1. reduce
-            auto __k = 1;
+            ::std::size_t __k = 1;
+            // TODO: use adjacent work items for better SIMD utilization
+            // Consider the example with the mask of work items performing reduction:
+            // iter    now         proposed
+            // 1:      01010101    11110000
+            // 2:      00010001    11000000
+            // 3:      00000001    10000000
             do
             {
                 __item.barrier(sycl::access::fence_space::local_space);
-                if (__local_id % (2 * __k) == 0 && __local_id + __k < __wgroup_size && __adjusted_global_id + __k < __n)
+                if (__adjusted_global_id < __n && __local_id % (2 * __k) == 2 * __k - 1)
                 {
-                    __local_acc[__local_id + 2 * __k - 1] =
-                        __bin_op(__local_acc[__local_id + __k - 1], __local_acc[__local_id + 2 * __k - 1]);
+                    __local_acc[__local_id] = __bin_op(__local_acc[__local_id - __k], __local_acc[__local_id]);
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
@@ -531,7 +536,8 @@ struct __scan
             __k = 2;
             do
             {
-                auto __shifted_local_id = __local_id - __local_id % __k - 1;
+                // use signed type to avoid overflowing
+                ::std::int32_t __shifted_local_id = __local_id - __local_id % __k - 1;
                 if (__shifted_local_id >= 0 && __adjusted_global_id < __n && __local_id % (2 * __k) >= __k &&
                     __local_id % (2 * __k) < 2 * __k - 1)
                 {
@@ -543,7 +549,6 @@ struct __scan
             __local_acc[__local_id] = __partial_sums;
             __item.barrier(sycl::access::fence_space::local_space);
             __adder = __local_acc[__wgroup_size - 1];
-            __item.barrier(sycl::access::fence_space::local_space);
 
             if (__adjusted_global_id + __shift < __n)
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
@@ -627,7 +632,6 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
                 __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc);
             else
                 __local_acc[__local_id] = _Tp{0}; // for plus only
-            __item.barrier(sycl::access::fence_space::local_space);
 
             // the result of __unary_op must be convertible to _Tp
             _Tp __old_value = __unary_op(__local_id, __local_acc);
@@ -635,13 +639,11 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
                 __old_value = __bin_op(__adder, __old_value);
             else if (__adjusted_global_id == 0)
                 __use_init(__init, __old_value, __bin_op);
-            __item.barrier(sycl::access::fence_space::local_space);
 
             __local_acc[__local_id] = sycl::ONEAPI::inclusive_scan(__item.get_group(), __old_value, __bin_op);
             __item.barrier(sycl::access::fence_space::local_space);
 
             __adder = __local_acc[__wgroup_size - 1];
-            __item.barrier(sycl::access::fence_space::local_space);
 
             if (__adjusted_global_id + __shift < __n)
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
