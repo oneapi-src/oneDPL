@@ -159,7 +159,7 @@ test_with_plus(T init, T trash, Convert convert)
     }
 
 #if _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE
-    unsigned long n = 100000000;
+    unsigned long n = 70000000;
     Sequence<T> in(n, convert);
     Sequence<T> expected(in);
     Sequence<T> out(n, [&](int32_t) { return trash; });
