@@ -30,7 +30,6 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
 # -- Project information -----------------------------------------------------
 
 project = 'oneAPI Libraries Documentation'
@@ -40,17 +39,9 @@ author = 'Intel'
 # The full version, including alpha/beta/rc tags
 release = '1.0'
 
-rst_prolog = """
-.. |full_name| replace::  oneAPI Libraries
-.. |short_name| replace:: oneAPI
-.. |product| replace:: prod
-.. |namespace| replace:: namespace
-.. |reg| unicode:: U+000AE
-.. |copy| unicode:: U+000A9
-.. |base_tk| replace:: Intel\ |reg|\  oneAPI Base Toolkit
-.. |dpcpp| replace:: Intel\ |reg|\  oneAPI DPC++ Compiler
+rst_epilog = """
+.. include:: /variables.txt
 """
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -59,15 +50,13 @@ rst_prolog = """
 # ones.
 extensions = [
     'sphinx-prompt', 
-    'sphinx_substitution_extensions', 
-    #'sphinx.ext.extlinks', 
-    #'sphinx_tabs.tabs'
+    'sphinx_substitution_extensions',
+    'sphinx2dita'
 	]
 
 docbundle_settings = {
     'csv_dir':'csv_dir'
 }
-
 
 # The master toctree document.
 master_doc = 'index'
@@ -112,12 +101,7 @@ html_show_sourcelink = False
 # html_theme = 'otc_tcs_sphinx_theme'
 # html_theme_path = ['_themes']
 
-import sys
-import os
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
-on_rtd = os.environ.get('READTHEDOCS', None) == 'False'
-
-import sphinx_rtd_theme
+# import sphinx_rtd_theme
 html_theme = 'sphinx_book_theme'
 #html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 #if on_rtd:
@@ -133,3 +117,42 @@ html_theme_options = {
     # 'display_version': True,  # Display the docs version
     #'navigation_depth': 4  # Depth of the headers shown in the navigation bar
 }
+
+# -- DITA for AEM ------------------------------------------------------------
+
+ditaxml_flat_map_to_title=True
+ditaxml_make_flat=True
+
+ditaxml_topic_meta={}
+ditaxml_topic_meta["audience"]="guid:etm-7775758175444e1289d59d63457bb00d"
+ditaxml_topic_meta["content type"]="User Guide"
+ditaxml_topic_meta["description"]="For developers wanting to use the Intel® oneAPI DPC++ Library"
+ditaxml_topic_meta["document title"]="Intel® oneAPI DPC++ Library Guide"
+ditaxml_topic_meta["download url"]=""
+ditaxml_topic_meta["entitlement"]=""
+ditaxml_topic_meta["entitlementtype"]=""
+ditaxml_topic_meta["IDZ custom tags"]="guid:etm-86f5321aa04d4781ae1c3a9b1f8b8a49"
+ditaxml_topic_meta["keywords"]="None"
+ditaxml_topic_meta["language"]="en"
+ditaxml_topic_meta["location"]="us"
+ditaxml_topic_meta["menu"]="/content/data/globalelements/US/en/sub-navigation/idz/idz-oneAPI"
+ditaxml_topic_meta["noindexfollowarchive"]="true"
+ditaxml_topic_meta["operating system"]="guid:etm-d23b81f1319b4f0bb8ec859bcc84e2b9,guid:etm-cf0ee1fba3374ceea048ddac3e923cab"
+ditaxml_topic_meta["primaryOwner"]="Stern, Alexandra M (lexi.stern@intel.com)"
+ditaxml_topic_meta["programidentifier"]="idz"
+ditaxml_topic_meta["programming language"]="guid:etm-e759606e77ad42549ba71c380d6d61e2"
+ditaxml_topic_meta["published date"]="03/26/2021"
+ditaxml_topic_meta["resourcetypeTag"]="guid:etm-15865f41343146919f486177b8dbb3f3"
+ditaxml_topic_meta["secondary contenttype"]="guid:etm-74fc3401b6764c42ad8255f4feb9bd9e"
+ditaxml_topic_meta["security classification"]="Public Content"
+ditaxml_topic_meta["shortDescription"]="User guide for users of the Intel® oneAPI DPC++ Library."
+ditaxml_topic_meta["shortTitle"]="Intel® oneAPI DPC++ Library Guide"
+ditaxml_topic_meta["software"]="guid:etm-4c7a4593bba04ee2940ff6a1bc1bc95a,guid:etm-c307701b7daf4566a9fcefe4572de81f"
+ditaxml_topic_meta["technology"]="guid:etm-6b088d69d83243a0aa3b986645a7e74b"
+
+ditaxml_prod_info={}
+ditaxml_prod_info["prodname"]="oneAPI"
+ditaxml_prod_info["version"]="2021.2"
+
+ditaxml_data_about={}
+ditaxml_data_about["intelswd_aliasprefix"]={"datatype":"webAttr","value":"oneapi-dpcpp-library-guide"}

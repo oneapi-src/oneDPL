@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include <oneapi/dpl/numeric>
 
@@ -62,8 +62,7 @@ main()
 
     EXPECT_EQ_N(expected1, data1, max_n, "wrong effect from transform_inclusive_scan, sycl ranges");
     EXPECT_EQ_N(expected2, data2, max_n, "wrong effect from transform_inclusive_scan with init, sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

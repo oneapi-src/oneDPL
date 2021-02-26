@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 // Tests for copy_if and remove_copy_if
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -55,7 +55,7 @@ struct run_copy_if
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
                out_last
 #endif
                , OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
@@ -68,7 +68,7 @@ struct run_copy_if
         // Run copy_if
         auto i = copy_if(first, last, expected_first, pred);
         auto k = copy_if(exec, first, last, out_first, pred);
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         EXPECT_EQ_N(expected_first, out_first, n, "wrong copy_if effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -111,7 +111,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
                out_last
 #endif
                , OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
@@ -124,7 +124,7 @@ template <typename InputIterator, typename OutputIterator, typename OutputIterat
         // Run remove_copy_if
         auto i = remove_copy_if(first, last, expected_first, [=](const T& x) { return !pred(x); });
         auto k = remove_copy_if(exec, first, last, out_first, [=](const T& x) { return !pred(x); });
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         EXPECT_EQ_N(expected_first, out_first, n, "wrong remove_copy_if effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -147,7 +147,7 @@ test(T trash, Predicate pred, Convert convert, bool check_weakness = true)
     // Try sequences of various lengths.
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         // count is number of output elements, plus a handful
         // more for sake of detecting buffer overruns.
         size_t count = GuardSize;
@@ -156,7 +156,7 @@ test(T trash, Predicate pred, Convert convert, bool check_weakness = true)
 #endif
         Sequence<T> in(n, [&](size_t k) -> T {
             T val = convert(n ^ k);
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
             count += pred(val) ? 1 : 0;
 #endif
             return val;
@@ -219,12 +219,12 @@ main()
     test<float64_t>(-666.0, [](const float64_t& x) { return x * x <= 1024; },
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test<int16_t>(-666, [](const int16_t& x) { return x != 42; },
                   [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? int16_t(j + 1) : 42; });
-#endif // _ONEDPL_FPGA_DEVICE
+#endif // ONEDPL_FPGA_DEVICE
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
 #endif
     test<int32_t>(-666, [](const int32_t&) { return true; }, [](size_t j) { return j; }, false);
@@ -237,6 +237,5 @@ main()
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

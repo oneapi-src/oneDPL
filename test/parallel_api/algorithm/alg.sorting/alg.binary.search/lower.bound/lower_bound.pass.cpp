@@ -19,18 +19,15 @@
 
 #include <iostream>
 
-#include "support/pstl_test_config.h"
-
-#if TEST_SYCL_PRESENT
-#include <CL/sycl.hpp>
-#endif
+#include "support/test_config.h"
+#include "support/utils.h"
 
 void test_on_host()
 {
     int key[10] = {0, 2, 2, 2, 3, 3, 3, 3, 6, 6};
     int val[5] = {0, 2, 4, 7, 6};
     int res[5];
-  
+
      // call algorithm
      oneapi::dpl::lower_bound(oneapi::dpl::execution::par, std::begin(key), std::end(key), std::begin(val), std::end(val), std::begin(res), std::less<int>());
 
@@ -40,6 +37,9 @@ void test_on_host()
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+#include <CL/sycl.hpp>
+
 void test_on_device()
 {
     bool correctness_flag =true;
@@ -48,18 +48,18 @@ void test_on_device()
     cl::sycl::buffer<uint64_t, 1> _key_buf{ cl::sycl::range<1>(10) };
     cl::sycl::buffer<uint64_t, 1> _val_buf{ cl::sycl::range<1>(5) };
     cl::sycl::buffer<uint64_t, 1> _res_buf{ cl::sycl::range<1>(5) };
-    { 
+    {
         auto key_buf = _key_buf.template get_access<cl::sycl::access::mode::read_write>();
 	auto val_buf = _val_buf.template get_access<cl::sycl::access::mode::read_write>();
 	auto res_buf = _res_buf.template get_access<cl::sycl::access::mode::read_write>();
-     
+
 	// Initialize data
 	key_buf[0] = 0; key_buf[1] = 2; key_buf[2] = 2; key_buf[3] = 2; key_buf[4] = 3;
 	key_buf[5] = 3; key_buf[6] = 3; key_buf[7] = 3; key_buf[8] = 6; key_buf[9] = 6;
-	
+
 	val_buf[0] = 0; val_buf[1] = 2; val_buf[2] = 4; val_buf[3] = 7; val_buf[4] = 6;
     }
-    
+
     // create sycl iterators
     auto key_beg = oneapi::dpl::begin(_key_buf);
     auto key_end = oneapi::dpl::end(_key_buf);
@@ -69,9 +69,9 @@ void test_on_device()
 
     // call algorithm
     oneapi::dpl::lower_bound(oneapi::dpl::execution::dpcpp_default, key_beg, key_end, val_beg , val_end, res_beg);
-    
+
     auto res = _res_buf.template get_access<cl::sycl::access::mode::read>();
-    
+
     //check data
     if((res[0] != 0) || (res[1] != 1) || (res[2] != 8) || (res[3] != 10) || (res[4] != 8 ))
         correctness_flag = false;
@@ -81,7 +81,7 @@ void test_on_device()
     cl::sycl::buffer<uint64_t, 1> _res_buf_2{ cl::sycl::range<1>(5) };
     {
         auto key_buf_2 = _key_buf_2.template get_access<cl::sycl::access::mode::read_write>();
-	
+
 	// Initialize data
 	key_buf_2[0] = 0; key_buf_2[1] = 2;
     }
@@ -90,7 +90,7 @@ void test_on_device()
     auto key_beg_2 = oneapi::dpl::begin(_key_buf_2);
     auto key_end_2 = oneapi::dpl::end(_key_buf_2);
     auto res_beg_2 = oneapi::dpl::begin(_res_buf_2);
-    
+
     // create named policy from existing one
     auto new_policy = oneapi::dpl::execution::make_device_policy<class LowerBound>(oneapi::dpl::execution::dpcpp_default);
 
@@ -113,7 +113,7 @@ int main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test_on_device();
 #endif
-    test_on_host();    
-    std::cout << "done" << std::endl;
-    return 0;
+    test_on_host();
+
+    return TestUtils::done();
 }

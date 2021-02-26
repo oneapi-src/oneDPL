@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include <oneapi/dpl/numeric>
 
@@ -47,8 +47,13 @@ main()
         auto view = ranges::all_view<int, sycl::access::mode::read>(A);
         auto view_res = ranges::all_view<int, sycl::access::mode::write>(B);
 
-        ranges::transform_exclusive_scan(TestUtils::default_dpcpp_policy, view, view_res, 100, ::std::plus<int>(), lambda);
-        ranges::transform_exclusive_scan(TestUtils::default_dpcpp_policy, A, C, 100, ::std::plus<int>(), lambda);
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        ranges::transform_exclusive_scan(exec1, view, view_res, 100, ::std::plus<int>(), lambda);
+        ranges::transform_exclusive_scan(exec2, A, C, 100, ::std::plus<int>(), lambda);
     }
 
     //check result
@@ -59,6 +64,6 @@ main()
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from transform_exclusive_scan with init, sycl buffers");
 
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

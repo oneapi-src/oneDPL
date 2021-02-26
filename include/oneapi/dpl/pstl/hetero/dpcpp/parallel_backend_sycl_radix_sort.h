@@ -190,6 +190,16 @@ __get_roundedup_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __
     return (__number - 1) / __divisor + 1;
 }
 
+template <typename _T>
+inline _T
+__get_rounded_down_power2(_T __x)
+{
+    _T __val = 1;
+    while (__x >= 2 * __val)
+        __val <<= 1;
+    return __val;
+}
+
 //------------------------------------------------------------------------
 // radix sort: bit pattern functions
 //------------------------------------------------------------------------
@@ -300,11 +310,6 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 
     // radix states used for an array storing bucket state counters
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
-
-    // correct __block_size according to local memory limit
-    const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _CountT>(
-        ::std::forward<_ExecutionPolicy>(__exec), __block_size * __radix_states);
-    __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
 
     const auto __val_buf_size = __val_rng.size();
     // iteration space info
@@ -535,8 +540,9 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             __self_item.get_sub_group(), __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
 
                         __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
-                        ::std::uint32_t __sg_total_offset = sycl::ONEAPI::reduce(
-                            __self_item.get_sub_group(), __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
+                        // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
+                        ::std::uint32_t __sg_total_offset = sycl::ONEAPI::broadcast(
+                            __self_item.get_sub_group(), __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
                         __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                     }
@@ -558,7 +564,7 @@ template <::std::uint32_t __radix_bits, bool __is_comp_asc, typename _ExecutionP
           typename _OutRange, typename _TmpBuf>
 sycl::event
 __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter,
-                                _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf&& __tmp_buf,
+                                _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf,
                                 sycl::event __dependency_event)
 {
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
@@ -581,20 +587,28 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     ::std::size_t __reorder_sg_size = __max_sg_size;
 #if _ONEDPL_COMPILE_KERNEL
     auto __count_kernel = _RadixCountKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    auto __scan_kernel_1 = _RadixLocalScanKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __reorder_kernel = _RadixReorderKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
 #endif
-    // TODO: block size mustn't be less than number of states now. Check how to get rid of that restriction.
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+
+    // correct __block_size according to local memory limit in count phase
+    const auto __max_allocation_size =
+        oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, typename __decay_t<_TmpBuf>::value_type>(
+            ::std::forward<_ExecutionPolicy>(__exec), __block_size * __radix_states);
+    __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
+
+    // TODO: block size must be power of 2 and more than number of states. Check how to get rid of that restriction.
+    __block_size = __get_rounded_down_power2(__block_size);
     if (__block_size < __radix_states)
         __block_size = __radix_states;
 
     // 1. Count Phase
     sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_comp_asc>(
-        __exec, __segments, __block_size, __radix_iter, __in_rng, __tmp_buf, __dependency_event
+        ::std::forward<_ExecutionPolicy>(__exec), __segments, __block_size, __radix_iter,
+        ::std::forward<_InRange>(__in_rng), __tmp_buf, __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
         __count_kernel
@@ -603,11 +617,12 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     // 2. Scan Phase
     sycl::event __scan_event = __radix_sort_scan_submit<_RadixLocalScanKernel, _RadixGlobalScanKernel, __radix_bits>(
-        __exec, __scan_wg_size, __segments, __tmp_buf, __count_event);
+        ::std::forward<_ExecutionPolicy>(__exec), __scan_wg_size, __segments, __tmp_buf, __count_event);
 
     // 3. Reorder Phase
     sycl::event __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc>(
-        __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, __in_rng, __out_rng, __tmp_buf, __scan_event
+        ::std::forward<_ExecutionPolicy>(__exec), __segments, __block_size, __reorder_sg_size, __radix_iter,
+        ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
         __reorder_kernel
@@ -659,12 +674,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
-                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf,
-                __iteration_event);
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, ::std::forward<_Range>(__in_rng),
+                __out_rng, __tmp_buf, __iteration_event);
         else //swap __in_rng and __out_rng
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
                 make_wrapped_policy<__odd_iteration>(::std::forward<_ExecutionPolicy>(__exec)), __segments,
-                __radix_iter, __out_rng, __in_rng, __tmp_buf, __iteration_event);
+                __radix_iter, __out_rng, ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
 
         // TODO: since reassign to __iteration_event does not work, we have to make explicit wait on the event
         explicit_wait_if<::std::is_pointer<decltype(__in_rng.begin())>::value>{}(__iteration_event);

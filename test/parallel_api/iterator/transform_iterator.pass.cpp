@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -23,7 +23,7 @@
 
 #include <tuple>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 
 template <typename Iterator>
 class test_copy {
@@ -137,10 +137,10 @@ void test_multi_transform_copy(size_t buffer_size) {
     TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_sycl_source_begin, tr3_sycl_source_end, sycl_result_begin);
 }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int32_t main() {
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
     size_t max_n = 10000;
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
         test_simple_copy(n);
@@ -148,6 +148,6 @@ int32_t main() {
         test_multi_transform_copy(n);
     }
 #endif
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

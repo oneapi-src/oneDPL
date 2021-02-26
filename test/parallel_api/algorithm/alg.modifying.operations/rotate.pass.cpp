@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -155,12 +155,11 @@ int
 main()
 {
     test<int32_t>();
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<wrapper<float64_t>>();
     test<MemoryChecker>();
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from rotate: number of ctor and dtor calls is not equal");
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

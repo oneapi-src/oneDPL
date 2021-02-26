@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -37,7 +37,7 @@ struct copy_int
     copy_int&
     operator=(const copy_int& other)
     {
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         if (&other == this)
             copied_times++;
         else
@@ -180,6 +180,5 @@ main()
     test_algo_basic_single<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

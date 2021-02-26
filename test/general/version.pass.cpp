@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
@@ -39,6 +39,6 @@ static_assert(ONEDPL_VERSION_MINOR == 2, "");
 static_assert(ONEDPL_VERSION_PATCH == 0, "");
 
 int main() {
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done();
 }

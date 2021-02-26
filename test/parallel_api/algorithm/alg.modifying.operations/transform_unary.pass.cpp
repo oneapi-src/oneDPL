@@ -15,7 +15,7 @@
 
 // Tests for transform
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -67,7 +67,7 @@ test()
         const auto flip = Complement<Tin, Tout>(1);
 
         invoke_on_all_policies<0>()(test_one_policy<Tin, Tout>(), in.begin(), in.end(), out.begin(), out.end(), flip);
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<1>()(test_one_policy<Tin, Tout>(), in.cbegin(), in.cend(), out.begin(), out.end(),
                                     flip);
 #endif
@@ -97,6 +97,5 @@ main()
     //test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
     test_algo_basic_double<int64_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

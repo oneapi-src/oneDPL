@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -39,8 +39,14 @@ main()
 
     {
         sycl::buffer<int> A(data, sycl::range<1>(max_n));
-        for_each(TestUtils::default_dpcpp_policy, all_view<int, sycl::access::mode::read_write>(A), lambda1);
-        for_each(TestUtils::default_dpcpp_policy, A, lambda1); //check with passing sycl::buffer directly
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        for_each(exec1, all_view<int, sycl::access::mode::read_write>(A), lambda1);
+        for_each(exec2, A, lambda1); //check with passing sycl::buffer directly
     }
 
     //check result
@@ -49,6 +55,6 @@ main()
 
     EXPECT_EQ_N(expected, data, max_n, "wrong effect from for_each with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

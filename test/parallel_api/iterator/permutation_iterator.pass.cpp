@@ -17,15 +17,16 @@
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/iterator>
+#include "support/utils.h"
 
 #include <iostream>
 #include <chrono>
 #include <cmath>
 #include <vector>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
-#if TEST_SYCL_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -234,6 +235,6 @@ int main(int argc, char** argv) {
         evaluate(policy, policy2, ref_begin, ref_end, perm_begin, std::string("GPU Cyclic"));
     }
 #endif
-    std::cout << "done" << std::endl;
-    return 0;
+
+    return TestUtils::done();
 }

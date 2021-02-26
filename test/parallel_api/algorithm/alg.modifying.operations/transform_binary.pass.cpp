@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -114,7 +114,7 @@ main()
     test<int32_t, int32_t, int32_t>(TheOperation<int32_t, int32_t, int32_t>(1));
     test<float32_t, float32_t, float32_t>(TheOperation<float32_t, float32_t, float32_t>(1.5));
     //non-const operator()
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<int32_t, float32_t, float32_t>(non_const(TheOperation<int32_t, float32_t, float32_t>(1.5)));
     test<int64_t, float64_t, float32_t>(non_const(TheOperation<int64_t, float64_t, float32_t>(1.5)));
 #endif
@@ -125,6 +125,5 @@ main()
 
     test_algo_basic_double<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

@@ -21,11 +21,11 @@
 
 #include <iterator>
 #include <CL/sycl.hpp>
-#if _ONEDPL_FPGA_DEVICE
+#if ONEDPL_FPGA_DEVICE
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
 
-#include "pstl_test_config.h"
+#include "test_config.h"
 
 #include _PSTL_TEST_HEADER(iterator)
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
@@ -86,7 +86,7 @@ namespace TestUtils
         return oneapi::dpl::execution::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
     }
 
-#if _ONEDPL_FPGA_DEVICE
+#if ONEDPL_FPGA_DEVICE
     template <typename _NewKernelName, typename _Policy,
               oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
     auto
@@ -141,7 +141,7 @@ namespace TestUtils
             // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
             using kernel_name = unique_kernel_name<Op, CallNumber>;
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
-#if _ONEDPL_FPGA_DEVICE
+#if ONEDPL_FPGA_DEVICE
                 oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(my_queue), op, ::std::forward<T>(rest)...);
 #else
                 oneapi::dpl::execution::make_device_policy<kernel_name>(my_queue), op, ::std::forward<T>(rest)...);

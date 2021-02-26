@@ -16,7 +16,7 @@
 #ifndef __iterator_utils_H
 #define __iterator_utils_H
 
-#include "pstl_test_config.h"
+#include "test_config.h"
 
 // File contains common utilities for testing with different types of iterators
 namespace TestUtils

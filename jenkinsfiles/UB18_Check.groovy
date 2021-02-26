@@ -197,26 +197,31 @@ pipeline {
 
                 stage('Setting_Env') {
                     steps {
-                        script {
-                            try {
-                                sh script: """
-                                    bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
-                                    if [ ! -f ./envs_tobe_loaded.txt ]; then
-                                        echo "Environment file not generated."
-                                        exit -1
-                                    fi
-                                """, label: "Generate environment vars"
-                            }
-                            catch (e) {
-                                build_ok = false
-                                fail_stage = fail_stage + "    " + "Setting_Env"
-                                sh script: "exit -1", label: "Set failure"
+                        timeout(time: 20) {
+                            script {
+                                try {
+                                    retry(2) {
+                                        sh script: """
+                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
+                                            if [ ! -f ./envs_tobe_loaded.txt ]; then
+                                                echo "Environment file not generated."
+                                                exit -1
+                                            fi
+                                        """, label: "Generate environment vars"
+                                    }
+
+                                }
+                                catch (e) {
+                                    build_ok = false
+                                    fail_stage = fail_stage + "    " + "Setting_Env"
+                                    sh script: "exit -1", label: "Set failure"
+                                }
                             }
                         }
                     }
                 }
 
-                stage('Tests_dpcpp_cpu_cxx_17') {
+                stage('Tests_dpcpp_cpu_cxx_14') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -225,7 +230,7 @@ pipeline {
                                         withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
                                                 rm -rf *
-                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
+                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=14 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 build-all -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
 
@@ -239,7 +244,7 @@ pipeline {
                                         sh script: """
                                             exit -1
                                         """
-                                       
+
                                     }
                                 }
                             }
@@ -270,7 +275,7 @@ pipeline {
                                         sh script: """
                                             exit -1
                                         """
-                                       
+
                                     }
                                 }
                             }

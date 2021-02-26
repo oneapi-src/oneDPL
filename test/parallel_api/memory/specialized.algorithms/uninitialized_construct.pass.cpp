@@ -16,7 +16,7 @@
 // Tests for uninitialized_default_consruct, uninitialized_default_consruct_n,
 //           uninitialized_value_consruct,   uninitialized_value_consruct_n
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(memory)
@@ -166,7 +166,7 @@ test_uninit_construct_by_type()
     ::std::size_t N = 100000;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         ::std::unique_ptr<T[]> p(new T[n]);
         auto p_begin = p.get();
 #else
@@ -198,7 +198,7 @@ int
 main()
 {
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
     test_uninit_construct_by_type<Wrapper<int32_t>>();
     test_uninit_construct_by_type<Wrapper<::std::vector<::std::string>>>();
@@ -208,6 +208,5 @@ main()
     test_uninit_construct_by_type<int8_t>();
     test_uninit_construct_by_type<float64_t>();
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

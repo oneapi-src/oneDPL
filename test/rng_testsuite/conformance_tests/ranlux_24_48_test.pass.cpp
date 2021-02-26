@@ -27,16 +27,17 @@
 //     The 10000th consecutive invocation of a default-constructed object of type ranlux48
 //     produces the value 249142670248501
 
+#include "support/utils.h"
 #include <iostream>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 int main() {
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     // Reference values
     uint_fast32_t ranlux24_ref_sample = 9901578;
@@ -95,10 +96,7 @@ int main() {
         return 1;
     }
 
-#else
-    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    std::cout << "Test PASSED" << std::endl;
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
 }

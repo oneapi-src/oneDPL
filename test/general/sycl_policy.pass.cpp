@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -23,11 +23,10 @@
 #include <iostream>
 #include <vector>
 
-#if _ONEDPL_BACKEND_SYCL
-#include <CL/sycl.hpp>
-#endif
+#if TEST_DPCPP_BACKEND_PRESENT
 
-#if _ONEDPL_BACKEND_SYCL
+#include <CL/sycl.hpp>
+
 template<typename Policy>
 void test_policy_instance(const Policy& policy)
 {
@@ -51,7 +50,7 @@ void test_policy_instance(const Policy& policy)
 int32_t
 main()
 {
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
     PRINT_DEBUG("Test Policy(queue(default_selector))");
     test_policy_instance(
         oneapi::dpl::execution::make_device_policy<class Kernel_2>(sycl::queue{TestUtils::default_selector}));
@@ -66,7 +65,6 @@ main()
         sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
 #endif
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
 

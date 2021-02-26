@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -73,9 +73,7 @@ main()
 
     EXPECT_TRUE(res_minmax1.first == idx_val && res_minmax1.second == idx_max, "wrong effect from 'minmax_element', sycl ranges");
     EXPECT_TRUE(res_minmax2.first == idx_val && res_minmax2.second == idx_max, "wrong effect from 'minmax_element' with predicate, sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

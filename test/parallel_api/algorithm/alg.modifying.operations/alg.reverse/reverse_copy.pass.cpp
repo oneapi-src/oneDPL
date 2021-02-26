@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -105,6 +105,5 @@ main()
     test<float64_t, int64_t>();
     test<wrapper<float64_t>, wrapper<float64_t>>();
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

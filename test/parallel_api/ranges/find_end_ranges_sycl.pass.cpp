@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -45,15 +45,19 @@ main()
 
         auto view_a = all_view(A);
         auto view_b = all_view(B);
-        res = find_end(TestUtils::default_dpcpp_policy, view_a, view_b);
-        res = find_end(TestUtils::default_dpcpp_policy, A, B); //check passing sycl buffer directly
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        res = find_end(exec1, view_a, view_b);
+        res = find_end(exec2, A, B); //check passing sycl buffer directly
     }
 
     //check result
     EXPECT_TRUE(res == idx, "wrong effect from 'find_end' with sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

@@ -17,9 +17,10 @@
 //
 // Test of normal_distribution - comparison with std::
 
+#include "support/utils.h"
 #include <iostream>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #include <CL/sycl.hpp>
 #include <random>
 #include <limits>
@@ -27,13 +28,13 @@
 #include <math.h>
 
 // Engine parameters
-#define a 40014u
-#define c 200u
-#define m 2147483563u
-#define seed 777
+constexpr auto a = 40014u;
+constexpr auto c = 200u;
+constexpr auto m = 2147483563u;
+constexpr auto seed = 777;
 
 // Consts
-#define eps 0.01
+constexpr auto eps = 0.01;
 const double pi = std::acos(-1);
 
 template<typename ScalarUintType, typename ScalarRealType>
@@ -215,6 +216,72 @@ int test_portion(oneapi::dpl::internal::element_type_t<RealType> mean, oneapi::d
 }
 
 template<class RealType, class UIntType>
+int test_flag(oneapi::dpl::internal::element_type_t<RealType> mean, oneapi::dpl::internal::element_type_t<RealType> stddev, int nsamples) {
+
+    sycl::queue queue(sycl::default_selector{});
+
+    // memory allocation
+    std::vector<oneapi::dpl::internal::element_type_t<RealType>> std_samples(nsamples);
+    std::vector<oneapi::dpl::internal::element_type_t<RealType>> dpstd_samples(nsamples);
+
+    constexpr int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0 ? 1 : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
+    constexpr int num_to_skip = (num_elems + 1) % 2 ? (num_elems + 2) : (num_elems + 1);
+
+    // dpstd generation
+    {
+        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> dpstd_buffer(dpstd_samples.data(), nsamples);
+
+        queue.submit([&](sycl::handler &cgh) {
+            auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+            cgh.parallel_for<>(sycl::range<1>(nsamples / (num_elems + 1)),
+                    [=](sycl::item<1> idx) {
+
+                unsigned long long offset = idx.get_linear_id() * num_to_skip;
+                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::normal_distribution<RealType> distr(mean, stddev);
+
+                // Generate the first element
+                auto res_1 = distr(engine, 1);
+
+                // Generate the rest elements
+                auto res = distr(engine);
+
+                dpstd_acc[idx * (num_elems + 1)] = res_1[0];
+                for(int i = 0; i < num_elems; ++i)
+                    dpstd_acc[idx * (num_elems + 1) + i + 1] = res[i];
+            });
+        });
+        queue.wait();
+    }
+
+    // std generation
+    generate_std<oneapi::dpl::internal::element_type_t<UIntType>, oneapi::dpl::internal::element_type_t<RealType>>
+        (num_elems + 1, nsamples, mean, stddev, std_samples);
+
+    // comparison
+    int err = 0;
+    for(int i = 0; i < nsamples; ++i) {
+        if (abs(std_samples[i] - dpstd_samples[i]) > eps) {
+            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
+            err++;
+        }
+    }
+
+    // statistics check
+    err += statistics_check(nsamples, mean, stddev, dpstd_samples);
+
+    if(err) {
+        std::cout << "\tFailed" << std::endl;
+    }
+    else {
+        std::cout << "\tPassed" << std::endl;
+    }
+
+    return err;
+}
+
+template<class RealType, class UIntType>
 int tests_set(int nsamples) {
     constexpr int nparams = 2;
 
@@ -254,11 +321,25 @@ int tests_set_portion(std::int32_t nsamples, unsigned int part) {
     return 0;
 }
 
-#endif // _ONEDPL_BACKEND_SYCL
+template<class RealType, class UIntType>
+int tests_set_flag(int nsamples) {
+
+    int err;
+    // Test for all non-zero parameters
+    std::cout << "normal_distribution test<type>, mean = " << 0.0 << ", stddev = " << 1.0 <<
+    ", nsamples = " << nsamples << ", flag = true, vec_size = " << oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
+    err = test_flag<RealType, UIntType>(0.0, 1.0, nsamples);
+    if (err)
+        return 1;
+
+    return 0;
+}
+
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 int main() {
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     constexpr int nsamples = 100;
     int err;
@@ -269,10 +350,7 @@ int main() {
     std::cout << "--------------------------------------------------------" << std::endl;
     err = tests_set<float, std::uint32_t>(nsamples);
     err += tests_set<float, sycl::vec<std::uint32_t, 16>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing double and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -281,10 +359,7 @@ int main() {
     std::cout << "---------------------------------------------------------" << std::endl;
     err = tests_set<double, std::uint32_t>(nsamples);
     err += tests_set<double, sycl::vec<std::uint32_t, 16>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing sycl::vec<float, 1> and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -297,10 +372,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 1>, std::uint32_t>(100, 2);
     err += tests_set_portion<sycl::vec<float, 1>, sycl::vec<std::uint32_t, 16>>(160, 1);
     err += tests_set_portion<sycl::vec<float, 1>, sycl::vec<std::uint32_t, 16>>(100, 2);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing sycl::vec<float, 3> and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -313,10 +385,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 3>, std::uint32_t>(99, 4);
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<std::uint32_t, 16>>(99, 1);
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<std::uint32_t, 16>>(99, 4);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing sycl::vec<float, 8> and std::uint32_t / sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
@@ -330,10 +399,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 16>>(160, 1);
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 16>>(160, 4);
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 16>>(160, 9);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing sycl::vec<float, 16> and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -348,15 +414,22 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(160, 1);
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(140, 7);
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(160, 16);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
-#else
-    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
-#endif // _ONEDPL_BACKEND_SYCL
 
-    std::cout << "Test PASSED" << std::endl;
-    return 0;
+    // testing flag = true case
+    std::cout << "----------------------------------------------------------------------" << std::endl;
+    std::cout << "Float vector sizes = [1, 2, 3, 4, 8, 16], flag = true" << std::endl;
+    std::cout << "----------------------------------------------------------------------" << std::endl;
+    err = tests_set_flag<sycl::vec<float, 1>, sycl::vec<std::uint32_t, 1>>(160);
+    err = tests_set_flag<sycl::vec<float, 2>, sycl::vec<std::uint32_t, 2>>(99);
+    err = tests_set_flag<sycl::vec<float, 3>, sycl::vec<std::uint32_t, 3>>(160);
+    err = tests_set_flag<sycl::vec<float, 4>, sycl::vec<std::uint32_t, 4>>(100);
+    err = tests_set_flag<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 8>>(99);
+    err = tests_set_flag<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(170);
+    EXPECT_TRUE(!err, "Test FAILED");
+
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
 }

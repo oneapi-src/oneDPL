@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -24,7 +24,7 @@
 
 using namespace TestUtils;
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
 static ::std::atomic<int32_t> count_val;
 static ::std::atomic<int32_t> count_comp;
 
@@ -61,59 +61,80 @@ struct test_brick_partial_sort
     typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
                             void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
-               Compare compare)
+               InputIterator tmp_first, InputIterator tmp_last, Compare compare)
     {
-
-        typedef typename ::std::iterator_traits<InputIterator>::value_type T;
-
-        // The rand()%(2*n+1) encourages generation of some duplicates.
-        ::std::srand(42);
         const ::std::size_t n = last - first;
-        for (::std::size_t k = 0; k < n; ++k)
-        {
-            first[k] = T(rand() % (2 * n + 1));
-        }
-        ::std::copy(first, last, exp_first);
+        ::std::copy_n(first, n, exp_first);
+        ::std::copy_n(first, n, tmp_first);
 
         for (::std::size_t p = 0; p < n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
         {
-            auto m1 = first + p;
+            auto m1 = tmp_first + p;
             auto m2 = exp_first + p;
 
             ::std::partial_sort(exp_first, m2, exp_last, compare);
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
             count_comp = 0;
 #endif
-            ::std::partial_sort(exec, first, m1, last, compare);
-            EXPECT_EQ_N(exp_first, first, p, "wrong effect from partial_sort");
+            ::std::partial_sort(exec, tmp_first, m1, tmp_last, compare);
+            EXPECT_EQ_N(exp_first, tmp_first, p, "wrong effect from partial_sort with predicate");
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
             //checking upper bound number of comparisons; O(p*(last-first)log(middle-first)); where p - number of threads;
-            if (m1 - first > 1)
+            if (m1 - tmp_first > 1)
             {
-                auto complex = ::std::ceil(n * ::std::log(float32_t(m1 - first)));
-#if defined(_ONEDPL_PAR_BACKEND_TBB)
+                auto complex = ::std::ceil(n * ::std::log(float32_t(m1 - tmp_first)));
+#if TEST_TBB_BACKEND_PRESENT
                 auto p = tbb::this_task_arena::max_concurrency();
 #else
                 auto p = 1;
 #endif
 
-#ifdef _DEBUG
+#if PSTL_USE_DEBUG
                 if (count_comp > complex * p)
                 {
                     ::std::cout << "complexity exceeded" << ::std::endl;
                 }
 #endif
             }
-#endif // !_ONEDPL_BACKEND_SYCL
+#endif // !TEST_DPCPP_BACKEND_PRESENT
         }
     }
 
     template <typename Policy, typename InputIterator, typename Compare>
     typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
                             void>::type
-    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */, InputIterator /* exp_last */,
-               Compare /* compare */)
+    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
+               InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */, Compare /* compare */)
+    {
+    }
+
+    template <typename Policy, typename InputIterator>
+    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
+                              can_use_default_less_operator<Type>::value, void>::type
+    operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
+               InputIterator tmp_first, InputIterator tmp_last)
+    {
+        const ::std::size_t n = last - first;
+        ::std::copy_n(first, n, exp_first);
+        ::std::copy_n(first, n, tmp_first);
+
+        for (::std::size_t p = 0; p < n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
+        {
+            auto m1 = tmp_first + p;
+            auto m2 = exp_first + p;
+
+            ::std::partial_sort(exp_first, m2, exp_last);
+            ::std::partial_sort(exec, tmp_first, m1, tmp_last);
+            EXPECT_EQ_N(exp_first, tmp_first, p, "wrong effect from partial_sort without predicate");
+        }
+    }
+
+    template <typename Policy, typename InputIterator>
+    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
+                              !can_use_default_less_operator<Type>::value, void>::type
+    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
+               InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */)
     {
     }
 };
@@ -122,14 +143,20 @@ template <typename T, typename Compare>
 void
 test_partial_sort(Compare compare)
 {
-
     const ::std::size_t n_max = 100000;
-    Sequence<T> in(n_max);
+
+    ::std::srand(42);
+    // The rand()%(2*k+1) encourages generation of some duplicates.
+    Sequence<T> in(n_max, [](::std::size_t k){ return T(rand() % (2 * k + 1)); });
     Sequence<T> exp(n_max);
+    Sequence<T> tmp(n_max);
+
     for (::std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        invoke_on_all_policies<0>()(test_brick_partial_sort<T>(), in.begin(), in.begin() + n, exp.begin(),
-                                    exp.begin() + n, compare);
+        invoke_on_all_policies<0>()(test_brick_partial_sort<T>(), in.begin(), in.begin() + n,
+                                    exp.begin(), exp.begin() + n, tmp.begin(), tmp.begin() + n, compare);
+        invoke_on_all_policies<1>()(test_brick_partial_sort<T>(), in.begin(), in.begin() + n,
+                                    exp.begin(), exp.begin() + n, tmp.begin(), tmp.begin() + n);
     }
 }
 
@@ -148,7 +175,7 @@ int
 main()
 {
 // Disable the test for SYCL as it relies on global atomic for counting number of comparisons
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     count_val = 0;
 
     test_partial_sort<Num<float32_t>>([](Num<float32_t> x, Num<float32_t> y) { return x < y; });
@@ -161,6 +188,5 @@ main()
 
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

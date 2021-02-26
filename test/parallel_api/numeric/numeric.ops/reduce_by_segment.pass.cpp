@@ -18,14 +18,11 @@
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
+#include "support/utils.h"
 
 #include <iostream>
 #include <iomanip>
-
-#if TEST_SYCL_PRESENT
-#include <CL/sycl.hpp>
-#endif
 
 template<typename _T1, typename _T2>
 void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
@@ -34,6 +31,8 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#include <CL/sycl.hpp>
+
 void test_with_buffers()
 {
     // create buffers
@@ -220,6 +219,6 @@ int main() {
     test_with_usm();
 #endif
     test_on_host();
-    std::cout << "done" << std::endl;
-    return 0;
+
+    return TestUtils::done();
 }

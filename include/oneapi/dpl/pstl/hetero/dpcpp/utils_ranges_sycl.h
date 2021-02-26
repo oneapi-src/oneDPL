@@ -102,7 +102,7 @@ struct all_view_fn
 
 namespace views
 {
-_ONEDPL_CONSTEXPR_VAR all_view_fn all;
+_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read_write> all;
 _ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read> all_read;
 _ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::write> all_write;
 } // namespace views
@@ -161,10 +161,10 @@ struct __get_first_range_type
 };
 
 template <typename _Range, typename... _Ranges>
-constexpr _Range
-__get_first_range(_Range&& __rng, _Ranges&&...)
+constexpr auto
+__get_first_range_size(const _Range& __rng, const _Ranges&...) -> decltype(__rng.size())
 {
-    return __rng;
+    return __rng.size();
 }
 
 template <typename _Cgh>
