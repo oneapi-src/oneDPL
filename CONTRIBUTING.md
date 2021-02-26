@@ -1,28 +1,3 @@
->>>
-
-**CONTRIBUTING**
-
-Tell would-be contributors what you would like them to do and how to do it. At
-minimum, the following guidance is recommended:
-
-- Code contributions: Do you want PRs or patches submitted to a mailing list?
-- Bug reporting: Logged as GitHub issue or some other format?
-- Use of "Signed-off-by". This is recommended by the OSPDT, but is ultimately a
-  BU + BU legal decision to adopt.
-
-Contribution guidance can be short or long. Additional guidance might include:
-- Coding conventions/patch formats for a good contribution
-- Commit message style
-- Testing
-- Code of conduct
-
-Consider [configuring issue and PR templates](https://docs.github.com/en/free-pro-team@latest/github/building-a-strong-community/using-templates-to-encourage-useful-issues-and-pull-requests)
-to promote minimum levels of information quality.
-
-Refer to the CONTRIBUTING example below.
-
->>>
-
 # How to contribute
 We welcome community contributions to oneAPI DPC++ Library (oneDPL). You can:
 
