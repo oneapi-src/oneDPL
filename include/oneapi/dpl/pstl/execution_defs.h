@@ -215,7 +215,7 @@ using __difference_t = decltype(__check_size<_R>(0));
 
 template <typename _R>
 auto
-__check_subscript(int) -> decltype(::std::declval<_R&>()[0]);
+__check_subscript(int) -> typename ::std::decay<decltype(::std::declval<_R&>()[0])>::type;
 
 template <typename _R>
 auto
