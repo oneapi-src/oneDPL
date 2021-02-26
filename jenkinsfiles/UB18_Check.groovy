@@ -197,20 +197,25 @@ pipeline {
 
                 stage('Setting_Env') {
                     steps {
-                        script {
-                            try {
-                                sh script: """
-                                    bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
-                                    if [ ! -f ./envs_tobe_loaded.txt ]; then
-                                        echo "Environment file not generated."
-                                        exit -1
-                                    fi
-                                """, label: "Generate environment vars"
-                            }
-                            catch (e) {
-                                build_ok = false
-                                fail_stage = fail_stage + "    " + "Setting_Env"
-                                sh script: "exit -1", label: "Set failure"
+                        timeout(time: 20) {
+                            script {
+                                try {
+                                    retry(2) {
+                                        sh script: """
+                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
+                                            if [ ! -f ./envs_tobe_loaded.txt ]; then
+                                                echo "Environment file not generated."
+                                                exit -1
+                                            fi
+                                        """, label: "Generate environment vars"
+                                    }
+
+                                }
+                                catch (e) {
+                                    build_ok = false
+                                    fail_stage = fail_stage + "    " + "Setting_Env"
+                                    sh script: "exit -1", label: "Set failure"
+                                }
                             }
                         }
                     }
@@ -239,6 +244,14 @@ pipeline {
                                         sh script: """
                                             exit -1
                                         """
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                                        
                                     }
                                 }
@@ -270,7 +283,7 @@ pipeline {
                                         sh script: """
                                             exit -1
                                         """
-                                       
+
                                     }
                                 }
                             }
