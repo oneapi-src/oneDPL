@@ -207,7 +207,7 @@ auto
 __check_size(int) -> decltype(::std::declval<_R&>().size());
 
 template <typename _R>
-auto 
+auto
 __check_size(...) -> decltype(::std::declval<_R&>().get_count());
 
 template <typename _R>
