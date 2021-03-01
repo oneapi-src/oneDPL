@@ -104,17 +104,17 @@ class uniform_real_distribution
 
     template <class _Engine>
     result_type
-    operator()(_Engine& __engine, unsigned int __randoms_num)
+    operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(a_, b_), __randoms_num);
+        return operator()<_Engine>(__engine, param_type(a_, b_), __random_nums);
     }
 
     template <class _Engine>
     result_type
-    operator()(_Engine& __engine, const param_type& __params, unsigned int __randoms_num)
+    operator()(_Engine& __engine, const param_type& __params, unsigned int __random_nums)
     {
         return result_portion_internal<size_of_type_, internal::type_traits_t<typename _Engine::result_type>::num_elems,
-                                       _Engine>(__engine, __params, __randoms_num);
+                                       _Engine>(__engine, __params, __random_nums);
     }
 
   private:
@@ -137,7 +137,7 @@ class uniform_real_distribution
         auto __engine_output = __engine();
         result_type __res;
 
-        for (unsigned int __i = 0; __i < _Ndistr; ++__i)
+        for (int __i = 0; __i < _Ndistr; ++__i)
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
 
         __res = ((__res - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
@@ -165,7 +165,7 @@ class uniform_real_distribution
     {
         auto __engine_output = __engine(_Ndistr);
         result_type __res;
-        for (unsigned int __i = 0; __i < _Ndistr; ++__i)
+        for (int __i = 0; __i < _Ndistr; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
             __res[__i] =
@@ -193,7 +193,7 @@ class uniform_real_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         sycl::vec<scalar_type, _Ndistr> __res;
-        unsigned int __i;
+        int __i;
         constexpr int __tail_size = _Ndistr % _Negnine;
         for (__i = 0; __i < _Ndistr; __i += _Negnine)
         {
@@ -228,7 +228,7 @@ class uniform_real_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         sycl::vec<scalar_type, _Ndistr> __res;
-        for (unsigned int __i = 0; __i < _Ndistr; ++__i)
+        for (int __i = 0; __i < _Ndistr; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine());
             __res[__i] =
@@ -246,7 +246,7 @@ class uniform_real_distribution
     {
         auto __engine_output = __engine(__N);
         result_type __res;
-        for (unsigned int __i = 0; __i < __N; ++__i)
+        for (int __i = 0; __i < __N; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
             __res[__i] =
@@ -263,7 +263,7 @@ class uniform_real_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        unsigned int __i;
+        int __i;
 
         if (_Negnine >= __N)
         {
@@ -318,7 +318,7 @@ class uniform_real_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        for (unsigned int __i = 0; __i < __N; ++__i)
+        for (int __i = 0; __i < __N; ++__i)
         {
             __res[__i] = static_cast<scalar_type>(__engine());
             __res[__i] =
@@ -336,7 +336,7 @@ class uniform_real_distribution
     result_portion_internal(_Engine& __engine, const param_type __params, unsigned int __N)
     {
         result_type __part_vec;
-        if (__N < 1)
+        if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
             return operator()(__engine);

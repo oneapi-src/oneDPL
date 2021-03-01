@@ -115,9 +115,9 @@ class discard_block_engine
 
     // operator () overload for result portion generation
     result_type
-    operator()(unsigned int __randoms_num)
+    operator()(unsigned int __random_nums)
     {
-        return generate_internal<internal::type_traits_t<result_type>::num_elems>(__randoms_num);
+        return generate_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
     }
 
     // Property function
@@ -178,7 +178,7 @@ class discard_block_engine
         }
         else
         {
-            for (unsigned int __i = 0; __i < _N; ++__i)
+            for (int __i = 0; __i < _N; ++__i)
             {
                 __res[__i] = generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
             }
@@ -188,16 +188,14 @@ class discard_block_engine
 
     template <int _N>
     typename ::std::enable_if<(_N > 0), result_type>::type
-    generate_internal(unsigned int __randoms_num)
+    generate_internal(unsigned int __random_nums)
     {
-        result_type __part_vec;
-
-        if (__randoms_num < 1)
-            return __part_vec;
-        else if (__randoms_num >= _N)
+        if (__random_nums >= _N)
             return operator()();
 
-        for (unsigned int __i = 0; __i < __randoms_num; ++__i)
+        result_type __part_vec;
+
+        for (unsigned int __i = 0; __i < __random_nums; ++__i)
         {
             __part_vec[__i] = generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
         }

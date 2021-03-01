@@ -94,9 +94,9 @@ class linear_congruential_engine
 
     // operator () overload for result portion generation
     result_type
-    operator()(unsigned int __randoms_num)
+    operator()(unsigned int __random_nums)
     {
-        return result_portion_internal<internal::type_traits_t<result_type>::num_elems>(__randoms_num);
+        return result_portion_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
     }
 
   private:
@@ -143,7 +143,7 @@ class linear_congruential_engine
 
         state_[0] = mod_scalar(state_[0]);
 
-        for (unsigned int __i = 1u; __i < _N; ++__i)
+        for (int __i = 1u; __i < _N; ++__i)
             state_[__i] = mod_scalar(state_[__i - 1u]);
     }
 
@@ -180,7 +180,7 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N == 0) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        for (unsigned long long __i = 0; __i < __num_to_skip; ++__i)
+        for (; __num_to_skip > 0; __num_to_skip--)
             state_ = mod_scalar(state_);
     }
 
@@ -188,7 +188,7 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N == 1) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        for (unsigned long long __i = 0; __i < __num_to_skip; ++__i)
+        for (; __num_to_skip > 0; __num_to_skip--)
             state_[0] = mod_scalar(state_[0]);
     }
 
@@ -196,11 +196,11 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N > 1) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        for (unsigned long long __i = 0; __i < __num_to_skip; ++__i)
+        for (; __num_to_skip > 0; __num_to_skip--)
         {
-            for (int __j = 0; __j < (_N - 1); ++__j)
+            for (int __i = 0; __i < (_N - 1); ++__i)
             {
-                state_[__j] = state_[__j + 1];
+                state_[__i] = state_[__i + 1];
             }
             state_[_N - 1] = mod_scalar(state_[_N - 2]);
         }
@@ -230,26 +230,24 @@ class linear_congruential_engine
     {
         ::std::uint64_t __mod = modulus, __inc = increment;
         ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        for (unsigned int __i = 0; __i < _N; ++__i)
+        for (int __i = 0; __i < _N; ++__i)
             state_[__i] = static_cast<scalar_type>(((__mult * static_cast<::std::uint64_t>(state_[__i])) % __mod));
     }
 
     // result_portion implementation
     template <int _N>
     typename ::std::enable_if<(_N > 0), result_type>::type
-    result_portion_internal(unsigned int __randoms_num)
+    result_portion_internal(unsigned int __random_nums)
     {
         result_type __part_vec;
 
-        if (__randoms_num < 1)
-            return __part_vec;
-        else if (__randoms_num >= _N)
+        if (__random_nums >= _N)
             return operator()();
 
-        for (unsigned int __i = 0; __i < __randoms_num; ++__i)
+        for (unsigned int __i = 0; __i < __random_nums; ++__i)
             __part_vec[__i] = state_[__i];
 
-        discard(__randoms_num);
+        discard(__random_nums);
         return __part_vec;
     }
 

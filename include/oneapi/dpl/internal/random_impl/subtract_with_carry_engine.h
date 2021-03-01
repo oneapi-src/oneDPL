@@ -89,9 +89,9 @@ class subtract_with_carry_engine
 
     // operator () overload for result portion generation
     result_type
-    operator()(unsigned int __randoms_num)
+    operator()(unsigned int __random_nums)
     {
-        return result_portion_internal<internal::type_traits_t<result_type>::num_elems>(__randoms_num);
+        return result_portion_internal<internal::type_traits_t<result_type>::num_elems>(__random_nums);
     }
 
   private:
@@ -172,16 +172,14 @@ class subtract_with_carry_engine
     // result_portion implementation
     template <int _N>
     typename ::std::enable_if<(_N > 0), result_type>::type
-    result_portion_internal(unsigned int __randoms_num)
+    result_portion_internal(unsigned int __random_nums)
     {
         result_type __part_vec;
 
-        if (__randoms_num < 1)
-            return __part_vec;
-        else if (__randoms_num >= _N)
+        if (__random_nums >= _N)
             return operator()();
 
-        for (unsigned int __i = 0; __i < __randoms_num; ++__i)
+        for (unsigned int __i = 0; __i < __random_nums; ++__i)
         {
             __part_vec[__i] = generate_internal_scalar();
         }

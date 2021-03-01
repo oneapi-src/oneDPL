@@ -104,16 +104,16 @@ class uniform_int_distribution
     // Generation by portion
     template <class _Engine>
     result_type
-    operator()(_Engine& __engine, unsigned int __randoms_num)
+    operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(a_, b_), __randoms_num);
+        return operator()<_Engine>(__engine, param_type(a_, b_), __random_nums);
     }
 
     template <class _Engine>
     result_type
-    operator()(_Engine& __engine, const param_type& __params, unsigned int __randoms_num)
+    operator()(_Engine& __engine, const param_type& __params, unsigned int __random_nums)
     {
-        return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __randoms_num);
+        return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
   private:
@@ -144,7 +144,7 @@ class uniform_int_distribution
                                                   static_cast<double>(__params.second) + 1.0));
 
         result_type __res_ret;
-        for (unsigned int __i = 0; __i < _Ndistr; ++__i)
+        for (int __i = 0; __i < _Ndistr; ++__i)
             __res_ret[__i] = static_cast<scalar_type>(__res[__i]);
 
         return __res_ret;
@@ -167,7 +167,7 @@ class uniform_int_distribution
     result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __part_vec;
-        if (__N < 1)
+        if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
             return operator()(__engine);

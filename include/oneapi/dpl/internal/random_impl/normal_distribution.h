@@ -118,16 +118,16 @@ class normal_distribution
 
     template <class _Engine>
     result_type
-    operator()(_Engine& __engine, unsigned int __randoms_num)
+    operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(mean_, stddev_), __randoms_num);
+        return operator()<_Engine>(__engine, param_type(mean_, stddev_), __random_nums);
     }
 
     template <class _Engine>
     result_type
-    operator()(_Engine& __engine, const param_type& __params, unsigned int __randoms_num)
+    operator()(_Engine& __engine, const param_type& __params, unsigned int __random_nums)
     {
-        return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __randoms_num);
+        return result_portion_internal<size_of_type_, _Engine>(__engine, __params, __random_nums);
     }
 
   private:
@@ -227,7 +227,7 @@ class normal_distribution
     }
 
     // Specialization of the vector generation with size = [1; 3]
-    template <unsigned int __N, class _Engine>
+    template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type __params)
     {
@@ -235,7 +235,7 @@ class normal_distribution
     }
 
     // Specialization of the vector generation with size = [4; 8; 16]
-    template <unsigned int __N, class _Engine>
+    template <int __N, class _Engine>
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type __params)
     {
@@ -383,7 +383,7 @@ class normal_distribution
     result_portion_internal(_Engine& __engine, const param_type __params, unsigned int __N)
     {
         result_type __part_vec;
-        if (__N < 1)
+        if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
             return operator()(__engine);
