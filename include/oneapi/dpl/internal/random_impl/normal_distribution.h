@@ -274,7 +274,7 @@ class normal_distribution
             __res[0] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
                                             sycl::cos(pi2<scalar_type>() * saved_u2_));
 
-            for (int __i = 0, __j = 0; __i < __N; __i += 2, __j++) // to check
+            for (int __i = 0, __j = 0; __i < __N; __i += 2, ++__j)
             {
                 __res[__i + 1] =
                     (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __sin[__j]) * __stddev +
