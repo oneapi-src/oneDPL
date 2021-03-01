@@ -294,6 +294,27 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
     return return_value(result, __rng.size(), __is__or_semantic);
 }
 
+template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+__pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicate)
+{
+    if (__rng.size() == 0)
+        return 0;
+
+    using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
+
+    auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
+    auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
+            __identity_reduce_fn, __identity_init_fn},
+        __identity_reduce_fn,
+        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
+        ::std::forward<_Range>(__rng));
+}
+
 //------------------------------------------------------------------------
 // merge
 //------------------------------------------------------------------------
