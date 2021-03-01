@@ -100,7 +100,7 @@ class discard_block_engine
             }
             else
             {
-                for (; __num_to_skip > 0; __num_to_skip--)
+                for (; __num_to_skip > 0; --__num_to_skip)
                     operator()();
             }
         }

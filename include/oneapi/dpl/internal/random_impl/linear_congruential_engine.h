@@ -180,7 +180,7 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N == 0) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        for (; __num_to_skip > 0; __num_to_skip--)
+        for (; __num_to_skip > 0; --__num_to_skip)
             state_ = mod_scalar(state_);
     }
 
@@ -188,7 +188,7 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N == 1) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        for (; __num_to_skip > 0; __num_to_skip--)
+        for (; __num_to_skip > 0; --__num_to_skip)
             state_[0] = mod_scalar(state_[0]);
     }
 
@@ -196,7 +196,7 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N > 1) && (_FLAG == false)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        for (; __num_to_skip > 0; __num_to_skip--)
+        for (; __num_to_skip > 0; --__num_to_skip)
         {
             for (int __i = 0; __i < (_N - 1); ++__i)
             {
