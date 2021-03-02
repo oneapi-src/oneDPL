@@ -14,18 +14,18 @@
 //===----------------------------------------------------------------------===//
 
 #include "oneapi/dpl/execution"
-#include "oneapi/dpl/async"
 #include "oneapi/dpl/iterator"
 
 #include "support/pstl_test_config.h"
 
+#if TEST_SYCL_PRESENT
+#   include "oneapi/dpl/async"
+#   include <CL/sycl.hpp>
+#endif
+
 #include <iostream>
 #include <iomanip>
 #include <numeric>
-
-#if TEST_SYCL_PRESENT
-#    include <CL/sycl.hpp>
-#endif
 
 template <typename _T1, typename _T2>
 void
