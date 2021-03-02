@@ -16,9 +16,9 @@
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/iterator"
 
-#include "support/pstl_test_config.h"
+#include "support/utils.h"
 
-#if TEST_SYCL_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 #   include "oneapi/dpl/async"
 #   include <CL/sycl.hpp>
 #endif
@@ -77,8 +77,8 @@ test_with_buffers()
             oneapi::dpl::experimental::transform_reduce_async(my_policy6, oneapi::dpl::begin(z), oneapi::dpl::end(z), 0,
                                                               std::plus<int>(), [=](int e) { return alpha * e; })
                 .get();
-
-        ASSERT_EQUAL(beta, (n * (n + 1) / 2) * ((n + 3) * (n + 4) / 2 - 6));
+        const int expected1 = (n * (n + 1) / 2) * ((n + 3) * (n + 4) / 2 - 6);
+        EXPECT_TRUE(beta == expected1, "wrong effect from async test with sycl buffer");
     }
 }
 
@@ -132,8 +132,8 @@ test_with_usm()
 
         // check values
         auto res1 = fut1.get();
-        ASSERT_EQUAL(res1, ref1);
-        ASSERT_EQUAL(res2, ref2);
+        EXPECT_TRUE(res1 == ref1, "wrong effect from async transform reduce with usm");
+        EXPECT_TRUE(res2 == ref2, "wrong effect from async reduce with usm");
 
         sycl::free(data1, q);
         sycl::free(data2, q);
