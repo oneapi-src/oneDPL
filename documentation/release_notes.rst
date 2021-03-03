@@ -22,14 +22,13 @@ Changes to Existing Features
 - Improved performance of the ``sort`` and ``stable_sort`` algorithms when using Radix sort.
 - Improved performance of the linear_congruential_engine RNG engine (including ``minstd_rand``, ``minstd_rand0``, ``minstd_rand_vec``,
  ``minstd_rand0_vec`` predefined engines).
-- Improved performance for the following algorithms: ``count``, ``count_if``, ``is_partitioned``,
+- Improved performance of the following algorithms: ``count``, ``count_if``, ``is_partitioned``,
  ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``reduce``, ``transform_reduce``.
 
 Fixed Issues
 ------------
 - Fixed runtime errors on CPU building with the -O0 option for the following algorithms: ``find_end``, ``search``, ``search_n``.
-- Erased unused parameters names in most of functions which were producing warnings.
-  In most of cases this parameters were needed for function overloading.
+- Removed unused parameters names in most of the functions that were producing warnings. In most cases the parameters were needed for function overloading.
 
 Known Issues and Limitations
 -----------------------------
