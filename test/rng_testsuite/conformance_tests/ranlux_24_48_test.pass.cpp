@@ -27,8 +27,10 @@
 //     The 10000th consecutive invocation of a default-constructed object of type ranlux48
 //     produces the value 249142670248501
 
-#include <iostream>
+#include <oneapi/dpl/execution>
+#include "support/pstl_test_config.h"
 #include "support/utils.h"
+#include <iostream>
 
 #if _ONEDPL_BACKEND_SYCL
 #include "common_for_conformance_tests.hpp"
