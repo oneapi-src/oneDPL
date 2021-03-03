@@ -17,8 +17,6 @@
 //
 // Test of discard_block_engine - comparison with std::
 
-#include <oneapi/dpl/execution>
-#include "support/pstl_test_config.h"
 #include "support/utils.h"
 #include <iostream>
 

@@ -16,6 +16,10 @@
 // File contains common utilities that tests rely on
 
 // Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
+#include "pstl_test_config.h"
+
+#include _PSTL_TEST_HEADER(execution)
+
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>
@@ -26,9 +30,6 @@
 #include <sstream>
 #include <vector>
 
-#include "pstl_test_config.h"
-
-#include _PSTL_TEST_HEADER(execution)
 #include "iterator_utils.h"
 
 #if _ONEDPL_BACKEND_SYCL
