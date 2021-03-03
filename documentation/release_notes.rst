@@ -20,10 +20,8 @@ New Features
 Changes to Existing Features
 -----------------------------
 - Improved performance of the ``sort`` and ``stable_sort`` algorithms when using Radix sort.
-- Improved performance of the linear_congruential_engine RNG engine (including ``minstd_rand``, ``minstd_rand0``, ``minstd_rand_vec``,
- ``minstd_rand0_vec`` predefined engines).
-- Improved performance of the following algorithms: ``count``, ``count_if``, ``is_partitioned``,
- ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``reduce``, ``transform_reduce``.
+- Improved performance of the linear_congruential_engine RNG engine (including ``minstd_rand``, ``minstd_rand0``, ``minstd_rand_vec``, ``minstd_rand0_vec`` predefined engines).
+- Improved performance of the following algorithms: ``count``, ``count_if``, ``is_partitioned``, ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``reduce``, ``transform_reduce``.
 
 Fixed Issues
 ------------
