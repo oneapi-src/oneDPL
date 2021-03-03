@@ -27,8 +27,6 @@
 //     The 10000th consecutive invocation of a default-constructed object of type minstd_rand
 //     produces the value 399268537
 
-#include <oneapi/dpl/execution>
-#include "support/pstl_test_config.h"
 #include "support/utils.h"
 #include <iostream>
 

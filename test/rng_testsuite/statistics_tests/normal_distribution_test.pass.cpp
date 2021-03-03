@@ -17,8 +17,6 @@
 //
 // Test of normal_distribution - comparison with std::
 
-#include <oneapi/dpl/execution>
-#include "support/pstl_test_config.h"
 #include "support/utils.h"
 #include <iostream>
 

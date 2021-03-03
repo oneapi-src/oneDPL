@@ -18,8 +18,6 @@
 // Test of uniform_real_distribution - comparison with std::
 // Note not all types can be compared with std:: implementation is different
 
-#include <oneapi/dpl/execution>
-#include "support/pstl_test_config.h"
 #include "support/utils.h"
 #include <iostream>
 
