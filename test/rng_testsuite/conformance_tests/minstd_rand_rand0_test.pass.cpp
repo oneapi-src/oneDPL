@@ -100,7 +100,7 @@ int main() {
     }
 
 #else
-    //TestUtils::skip();
+    TestUtils::skip();
 
 #endif // _ONEDPL_BACKEND_SYCL
 

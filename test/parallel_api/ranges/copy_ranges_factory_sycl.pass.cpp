@@ -52,7 +52,7 @@ main()
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from copy with factory and sycl ranges");
 #else
-    skip();
+    TestUtils::skip();
 
 #endif //_ENABLE_RANGES_TESTING
     ::std::cout << TestUtils::done() << ::std::endl;
