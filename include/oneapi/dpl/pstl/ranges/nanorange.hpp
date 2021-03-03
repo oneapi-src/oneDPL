@@ -19359,12 +19359,44 @@ struct transform_view_fn
     }
 };
 
+struct generate_view_fn
+{
+    template <typename G, typename Bound = unreachable_sentinel_t>
+    constexpr auto
+    operator()(G&& g, Bound size) const
+    {
+        return transform_view{iota_view{0, size}, [&g](auto) { return g(); }};
+    }
+};
+
+struct fill_view_fn
+{
+    template <typename E, typename T>
+    constexpr auto
+    operator()(E&& e, T&& value) const
+    {
+        return transform_view{::std::forward<E>(e), [&value](auto) { return value; }};
+    }
+
+    template <typename T>
+    constexpr auto
+    operator()(T&& value) const
+    {
+        return detail::rao_proxy{[&value](auto&& r) mutable
+                                 {
+                                     return transform_view{::std::forward<decltype(r)>(r), [&value](auto) { return value; }};
+                                 }};
+    }
+};
+
 } // namespace detail
 
 namespace views
 {
 
 NANO_INLINE_VAR(nano::detail::transform_view_fn, transform)
+NANO_INLINE_VAR(nano::detail::generate_view_fn, generate)
+NANO_INLINE_VAR(nano::detail::fill_view_fn, fill)
 }
 
 NANO_END_NAMESPACE
