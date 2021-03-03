@@ -51,6 +51,8 @@ using nano::views::iota;
 using nano::views::reverse;
 using nano::views::take;
 using nano::views::transform;
+using nano::views::generate;
+using nano::views::fill;
 } // namespace views
 
 } // namespace ranges
