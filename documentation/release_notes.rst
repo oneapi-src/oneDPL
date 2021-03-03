@@ -8,6 +8,55 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2021.2
+=============
+
+New Features
+------------
+-  Added support of parallel, vector and DPC++ execution policies for the following algorithms: ``shift_left``, ``shift_right``.
+-  Added the Range-based versions of the following algorithms: ``sort``, ``stable_sort``, ``merge``.
+-  Added the ``ONEDPL_USE_PREDEFINED_POLICIES`` macro that can disable predefined policies objects and make functions without arguments if needed.
+
+Changes to Existing Features
+-----------------------------
+- Improved performance of the ``sort`` and ``stable_sort`` algorithms when using Radix sort.
+- Improved performance of the linear_congruential_engine RNG engine (including ``minstd_rand``, ``minstd_rand0``, ``minstd_rand_vec``,
+ ``minstd_rand0_vec`` predefined engines).
+- Improved performance for the following algorithms: ``count``, ``count_if``, ``is_partitioned``,
+ ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``reduce``, ``transform_reduce``.
+
+Fixed Issues
+------------
+- Fixed runtime errors on CPU building with the -O0 option for the following algorithms: ``find_end``, ``search``, ``search_n``.
+- Erased unused parameters names in most of functions which were producing warnings.
+  In most of cases this parameters were needed for function overloading.
+
+Known Issues and Limitations
+-----------------------------
+- ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with par and par_unseq policies
+  when using GCC 10 and building a program in debug mode.
+- Some algorithms may hang when a program is built in debug mode, executed on GPU devices and large number of elements is to be processed.
+- The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
+  compilation errors (caused by oneTBB API changes).
+  To overcome these issues, include oneDPL header files before the standard C++ header files,
+  or disable parallel algorithms support in the standard library. For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+- The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
+  with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
+  ``oneapi::dpl`` namespace, or create a namespace alias.
+- The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
+- The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
+  or Clang 7 (or higher).
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects
+  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
+- ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
+  use ``std::array::operator[]`` instead.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
+  (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
+  for double precision.
+
 New in 2021.1 Gold
 ===================
 
@@ -34,7 +83,7 @@ Known Issues and Limitations
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort [#fnote1]_ in debug mode on oneAPI CPU devices.
+  when using Radix sort [#fnote1]_ in debug mode on CPU devices.
 - The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
 - The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
   or Clang 7 (or higher).
