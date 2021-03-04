@@ -102,7 +102,7 @@ struct all_view_fn
 
 namespace views
 {
-_ONEDPL_CONSTEXPR_VAR all_view_fn all;
+_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read_write> all;
 _ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read> all_read;
 _ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::write> all_write;
 } // namespace views
