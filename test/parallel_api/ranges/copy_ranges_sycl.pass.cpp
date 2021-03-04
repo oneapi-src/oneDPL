@@ -40,13 +40,15 @@ main()
     {
         sycl::buffer<int> A(data, sycl::range<1>(max_n));
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
+        sycl::buffer<int> C(max_n);
 
         auto sv = all_view(A);
 
         auto view = views::reverse(sv) | views::transform(lambda1);
 
         auto range_res = all_view<int, sycl::access::mode::write>(B);
-        copy(TestUtils::default_dpcpp_policy, view, range_res);
+        copy(TestUtils::default_dpcpp_policy, view, C); //check passing a buffer for writting
+        copy(TestUtils::default_dpcpp_policy, C, range_res); //check passing a buffer for reading
     }
 
     //check result

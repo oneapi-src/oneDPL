@@ -35,18 +35,20 @@ main()
     const int n_val = 3;
     const int idx = 4;
     const int val = data[idx];
-    int res = -1;
+    int res1 = -1, res2 = -1;
 
     using namespace oneapi::dpl::experimental::ranges;
     {
         sycl::buffer<int> A(data, sycl::range<1>(count));
 
         auto view_a = all_view(A);
-        res = search_n(TestUtils::default_dpcpp_policy, view_a, n_val, val, [](auto a, auto b) { return a == b; });
+        res1 = search_n(TestUtils::default_dpcpp_policy, view_a, n_val, val, [](auto a, auto b) { return a == b; });
+        res2 = search_n(TestUtils::default_dpcpp_policy, A, n_val, val, [](auto a, auto b) { return a == b; });
     }
 
     //check result
-    EXPECT_TRUE(res == idx, "wrong effect from 'search_n' with sycl ranges");
+    EXPECT_TRUE(res1 == idx, "wrong effect from 'search_n' with sycl ranges");
+    EXPECT_TRUE(res2 == idx, "wrong effect from 'search_n' with sycl buffer");
 
 #endif //_ENABLE_RANGES_TESTING
 
