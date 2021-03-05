@@ -51,7 +51,6 @@ main()
     //check result
     EXPECT_TRUE(res1, "wrong effect from 'is_sorted' with sycl ranges (sorted)");
     EXPECT_TRUE(!res2, "wrong effect from 'is_sorted' with sycl ranges (unsorted)");
-
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

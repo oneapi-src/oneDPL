@@ -48,7 +48,6 @@ main()
     ::std::transform(data, data + max_n, expected, lambda1);
 
     EXPECT_EQ_N(expected, data, max_n, "wrong effect from for_each with sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

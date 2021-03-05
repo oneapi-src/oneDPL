@@ -50,10 +50,6 @@ main()
 
     //check result
     EXPECT_TRUE(res == idx, "wrong effect from 'find_first_of' with sycl ranges");
-
-#else
-    TestUtils::skip();
-
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

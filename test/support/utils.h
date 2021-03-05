@@ -29,7 +29,6 @@
 #include <memory>
 #include <sstream>
 #include <vector>
-#include <string>
 
 #include "iterator_utils.h"
 
@@ -806,13 +805,6 @@ done(bool is_passed = true)
         ::std::cout <<"Skipped\n";
         return _SKIP_RETURN_CODE;
     }
-}
-
-void
-skip()
-{
-    ::std::cout <<"skipped\n";
-    exit(77);
 }
 
 // test_algo_basic_* functions are used to execute

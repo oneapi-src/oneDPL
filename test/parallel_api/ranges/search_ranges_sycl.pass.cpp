@@ -57,10 +57,6 @@ main()
     //check result
     EXPECT_TRUE(res1 == idx, "wrong effect from 'search' with sycl ranges");
     EXPECT_TRUE(res2 == idx, "wrong effect from 'search' with predicate, sycl ranges");
-
-#else
-    TestUtils::skip();
-
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

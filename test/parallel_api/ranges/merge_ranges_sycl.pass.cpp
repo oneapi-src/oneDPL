@@ -63,7 +63,6 @@ main()
     res2 &= ::std::includes(out2, out2 + out_n, in1, in1 + in_n, ::std::less<T>());
     res2 &= ::std::includes(out2, out2 + out_n, in2, in2 + in_n, ::std::less<T>());
     EXPECT_TRUE(res2, "wrong effect from 'merge' with sycl ranges with predicate");
-
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

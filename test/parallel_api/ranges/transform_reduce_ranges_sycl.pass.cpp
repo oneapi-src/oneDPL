@@ -60,7 +60,6 @@ main()
     EXPECT_TRUE(res1 == expected1, "wrong effect from transform_reduce1 with sycl ranges");
     EXPECT_TRUE(res2 == expected2, "wrong effect from transform_reduce2 with sycl ranges");
     EXPECT_TRUE(res3 == expected3, "wrong effect from transform_reduce3 with sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);
