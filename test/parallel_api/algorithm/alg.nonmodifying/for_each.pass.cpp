@@ -143,6 +143,5 @@ main()
     test_algo_basic_single<int64_t>(run_for_rnd_fw<test_non_const_for_each_n>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

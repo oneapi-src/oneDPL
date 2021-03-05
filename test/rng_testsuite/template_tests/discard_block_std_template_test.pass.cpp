@@ -272,11 +272,7 @@ int main() {
         return 1;
     }
 
-#else
-    TestUtils::skip();
-
 #endif // _ONEDPL_BACKEND_SYCL
 
-    std::cout << "Test PASSED" << std::endl;
-    return 0;
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }

@@ -74,10 +74,7 @@ int main() {
     EXPECT_TRUE(red_val == 2001, "wrong return value from reduce");
 #endif // __SYCL_UNNAMED_LAMBDA__
 
-#else
-    skip();
-
 #endif // _ONEDPL_BACKEND_SYCL
-    ::std::cout << done() << ::std::endl;
-    return 0;
+
+    return done(_ONEDPL_BACKEND_SYCL);
 }

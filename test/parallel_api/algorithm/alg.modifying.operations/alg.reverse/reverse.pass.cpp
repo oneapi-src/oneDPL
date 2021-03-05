@@ -103,6 +103,5 @@ main()
     test<float64_t>();
     test<wrapper<float64_t>>();
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

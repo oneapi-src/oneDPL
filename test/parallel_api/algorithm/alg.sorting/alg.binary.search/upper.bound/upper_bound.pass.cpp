@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include "support/pstl_test_config.h"
+#include "support/utils.h"
 
 #if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>
@@ -111,5 +112,6 @@ int main()
     test_on_device();
 #endif
     test_on_host();
-    std::cout << "done" << std::endl;
+
+    return TestUtils::done();
 }

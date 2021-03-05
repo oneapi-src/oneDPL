@@ -117,6 +117,6 @@ main()
 
     // Short forms are just facade for long forms, so just test with a single type.
     test_short_forms();
-    ::std::cout << done() << ::std::endl;
-    return 0;
+
+    return done();
 }

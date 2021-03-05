@@ -336,6 +336,6 @@ int main(int argc, char** argv) {
 		}
 	}
 #endif
-    std::cout << "done" << std::endl;
-    return 0;
+
+    return done();
 }

@@ -154,6 +154,5 @@ int main() {
 #endif
     test_on_host();
 
-    std::cout << "done" << std::endl;
-    return 0;
+    return done();
 }

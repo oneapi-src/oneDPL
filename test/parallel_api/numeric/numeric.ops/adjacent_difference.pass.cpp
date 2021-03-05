@@ -172,6 +172,5 @@ main()
         [](const wrapper<int64_t>& a, const wrapper<int64_t>& b) { return a - b; });
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

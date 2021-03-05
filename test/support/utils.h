@@ -29,8 +29,11 @@
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <string>
 
 #include "iterator_utils.h"
+
+#define _SKIP_RETURN_CODE 77
 
 #if _ONEDPL_BACKEND_SYCL
 #include "utils_sycl.h"
@@ -793,21 +796,16 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
     return init;
 }
 
-static const char*
-done()
+int
+done(bool is_passed = true)
 {
-#if _PSTL_TEST_SUCCESSFUL_KEYWORD
-    return "done";
-#else
-    return "passed";
-#endif
-}
-
-void
-skip()
-{
-    ::std::cout <<"skipped\n";
-    exit(77);
+    if(is_passed){
+        ::std::cout <<"Passed\n";
+        return 0;
+    }else{
+        ::std::cout <<"Skipped\n";
+        return _SKIP_RETURN_CODE;
+    }
 }
 
 // test_algo_basic_* functions are used to execute

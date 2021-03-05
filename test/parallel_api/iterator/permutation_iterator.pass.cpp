@@ -234,6 +234,6 @@ int main(int argc, char** argv) {
         evaluate(policy, policy2, ref_begin, ref_end, perm_begin, std::string("GPU Cyclic"));
     }
 #endif
-    std::cout << "done" << std::endl;
-    return 0;
+
+    return done();
 }

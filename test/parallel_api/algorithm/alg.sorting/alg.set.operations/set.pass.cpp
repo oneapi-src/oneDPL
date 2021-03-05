@@ -305,7 +305,5 @@ main()
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_union<int32_t>>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-
-    return 0;
+    return done();
 }

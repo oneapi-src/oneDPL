@@ -220,6 +220,6 @@ int main() {
     test_with_usm();
 #endif
     test_on_host();
-    std::cout << "done" << std::endl;
-    return 0;
+
+    return done();
 }

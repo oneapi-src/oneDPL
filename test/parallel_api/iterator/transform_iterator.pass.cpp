@@ -152,6 +152,6 @@ int32_t main() {
     TestUtils::skip();
 
 #endif
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return done();
 }

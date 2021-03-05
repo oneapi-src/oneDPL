@@ -281,6 +281,5 @@ main()
     test_with_plus<float64_t>(0.0, -666.0, [](uint32_t k) { return float64_t((k % 991 + 1) ^ (k % 997 + 2)); });
     test_with_plus<int32_t>(0.0, -666.0, [](uint32_t k) { return int32_t((k % 991 + 1) ^ (k % 997 + 2)); });
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

@@ -110,6 +110,5 @@ main()
                  [](int32_t j) { return ((j + 1) % 3 & 2) != 0 ? Number(2001, OddTag()) : Number(j, OddTag()); });
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

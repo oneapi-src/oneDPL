@@ -51,11 +51,7 @@ main()
     //check result
     EXPECT_TRUE(res == idx, "wrong effect from 'find_end' with sycl ranges");
 
-#else
-    TestUtils::skip();
-
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

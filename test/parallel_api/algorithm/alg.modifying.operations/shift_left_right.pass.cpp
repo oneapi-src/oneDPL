@@ -206,6 +206,5 @@ main()
        test_shift_by_type<int32_t>(m, n);
     }
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done();
 }

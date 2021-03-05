@@ -109,7 +109,5 @@ main()
         test_fill_by_type<float64_t>(n);
     }
 
-    ::std::cout << done() << ::std::endl;
-
-    return 0;
+    return done();
 }

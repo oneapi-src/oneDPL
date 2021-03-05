@@ -55,10 +55,8 @@ main()
     ::std::transform(data, data + max_n, expected, lambda1);
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from copy with sycl ranges");
-#else
-    TestUtils::skip();
 
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

@@ -125,6 +125,5 @@ main()
 
     test_algo_basic_double<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

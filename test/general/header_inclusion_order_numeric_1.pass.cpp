@@ -23,6 +23,6 @@
 int
 main()
 {
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done();
 }

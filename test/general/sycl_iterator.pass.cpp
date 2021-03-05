@@ -3331,9 +3331,7 @@ main()
     test3buffers<int32_t, test_set_intersection>();
     PRINT_DEBUG("test_merge");
     test3buffers<int32_t, test_merge>(2);
-#else
-    skip();
 #endif
-    ::std::cout << done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }

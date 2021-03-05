@@ -134,6 +134,5 @@ main()
     test_algo_basic_single<int16_t>(run_for_rnd_fw<test_non_const_generate_n<int16_t>>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }
