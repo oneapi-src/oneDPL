@@ -796,10 +796,14 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
 }
 
 int
-done(bool is_passed = true)
+done(int is_done = 1)
 {
-    if(is_passed){
-        ::std::cout <<"Passed\n";
+    if(is_done == 1){
+#if _PSTL_TEST_SUCCESSFUL_KEYWORD
+        ::std::cout << "done\n";
+#else
+        ::std::cout << "passed\n";
+#endif
         return 0;
     }else{
         ::std::cout <<"Skipped\n";
