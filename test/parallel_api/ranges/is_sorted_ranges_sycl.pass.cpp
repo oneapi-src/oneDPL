@@ -45,7 +45,7 @@ main()
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         res1 = is_sorted(exec, all_view(A));
-        res2 = is_sorted(make_new_policy<new_kernel_name<Policy, 0>>(exec), all_view(B));
+        res2 = is_sorted(make_new_policy<new_kernel_name<Policy, 0>>(exec), B);
     }
 
     //check result

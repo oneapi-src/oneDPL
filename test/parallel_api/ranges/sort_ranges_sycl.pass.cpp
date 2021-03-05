@@ -42,7 +42,7 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        sort(exec, all_view<int, sycl::access::mode::read_write>(A));
+        sort(exec, A); //check passing sycl buffer directly
         sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), all_view<int, sycl::access::mode::read_write>(B),
             ::std::greater<int>());
     }
