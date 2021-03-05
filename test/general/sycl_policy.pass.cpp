@@ -64,7 +64,6 @@ main()
     PRINT_DEBUG("Test Policy(ordered_queue(default_selector))");
     test_policy_instance(oneapi::dpl::execution::make_device_policy<class Kernel_5>(
         sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
-
 #endif
 
     return TestUtils::done(_ONEDPL_BACKEND_SYCL);

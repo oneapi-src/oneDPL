@@ -40,6 +40,10 @@ main()
 
     //check access
     EXPECT_TRUE(::std::get<0>(z[2]) == 'g', "wrong effect with zip_view");
+
+#else
+    TestUtils::skip();
+
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

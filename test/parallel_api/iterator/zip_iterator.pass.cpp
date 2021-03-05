@@ -640,5 +640,6 @@ main()
     test2buffers<int32_t, test_counting_zip_transform>();
 #endif
 
+#endif
     return done(_MACRO_ONEDPL_BACKEND_SYCL);
 }

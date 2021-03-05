@@ -808,6 +808,13 @@ done(bool is_passed = true)
     }
 }
 
+void
+skip()
+{
+    ::std::cout <<"skipped\n";
+    exit(77);
+}
+
 // test_algo_basic_* functions are used to execute
 // f on a very basic sequence of elements of type T.
 

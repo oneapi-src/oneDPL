@@ -35,7 +35,6 @@ int main() {
 #if _ONEDPL_BACKEND_SYCL
     CheckTuple<int>();
     CheckTuple<int, long, float>();
-
 #endif
 
     return TestUtils::done(_ONEDPL_BACKEND_SYCL);

@@ -54,6 +54,9 @@ main()
     EXPECT_TRUE(res1 == idx, "wrong effect from 'is_sorted_until' with sycl ranges");
     EXPECT_TRUE(res2 == idx, "wrong effect from 'is_sorted_until' with comparator, sycl ranges");
 
+#else
+    TestUtils::skip();
+
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);
