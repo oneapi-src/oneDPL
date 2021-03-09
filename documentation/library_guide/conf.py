@@ -59,7 +59,8 @@ rst_prolog = """
 # ones.
 extensions = [
     'sphinx-prompt', 
-    'sphinx_substitution_extensions', 
+    'sphinx_substitution_extensions',
+    'sphinx2dita'
     #'sphinx.ext.extlinks', 
     #'sphinx_tabs.tabs'
 	]
@@ -133,3 +134,39 @@ html_theme_options = {
     # 'display_version': True,  # Display the docs version
     #'navigation_depth': 4  # Depth of the headers shown in the navigation bar
 }
+
+
+# -- DITA for AEM ------------------------------------------------------------
+
+ditaxml_make_flat=True
+
+ditaxml_topic_meta={}
+ditaxml_topic_meta["audience"]="emtaudience:business/btssbusinesstechnologysolutionspecialist/softwaredeveloper"
+ditaxml_topic_meta["content type"]="Short Title"
+ditaxml_topic_meta["description"]="Prerequisites and installation instructions"
+ditaxml_topic_meta["document title"]="Your cool project title"
+ditaxml_topic_meta["download url"]=""
+ditaxml_topic_meta["IDZ custom tags"]="idzcustomtags:productdocumentation"
+ditaxml_topic_meta["keywords"]="None"
+ditaxml_topic_meta["language"]="en"
+ditaxml_topic_meta["location"]="us"
+ditaxml_topic_meta["menu"]="/content/data/globalelements/US/en/sub-navigation/idz/idz-spcltools"
+ditaxml_topic_meta["operating system"]=""
+ditaxml_topic_meta["programming language"]=""
+ditaxml_topic_meta["software"]=""
+ditaxml_topic_meta["primaryOwner"]="Name, Your (your.name@intel.com)"
+ditaxml_topic_meta["programidentifier"]="idz"
+ditaxml_topic_meta["published date"]="10/05/2020"
+ditaxml_topic_meta["resourcetypeTag"]="emtcontenttype:document"
+ditaxml_topic_meta["secondary contenttype"]="emtcontenttype:document/guide/developerguide/developergettingstartedguide"
+ditaxml_topic_meta["security classification"]="Intel Confidential"
+ditaxml_topic_meta["shortDescription"]="Installation instructions"
+ditaxml_topic_meta["shortTitle"]="Your cool project title"
+ditaxml_topic_meta["entitlement"]="intel_usr,iot_tcc"
+ditaxml_topic_meta["entitlementtype"]="any"
+ditaxml_topic_meta["noindexfollowarchive"]="true"
+ditaxml_prod_info={}
+ditaxml_prod_info["prodname"]=""
+ditaxml_prod_info["version"]="0.11"
+ditaxml_data_about={}
+ditaxml_data_about["intelswd_aliasprefix"]={"datatype":"webAttr","value":"get-started-with-intel-time-coordinated-computing-tools-0-11"}

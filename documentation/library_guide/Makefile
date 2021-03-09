@@ -33,3 +33,8 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+ditaxml:
+	$(SPHINXBUILD) -b ditaxml $(ALLSPHINXOPTS) $(BUILDDIR)/ditaxml
+	@echo
+	@echo "Build finished. The ditaxml files are in $(BUILDDIR)/ditaxml."
