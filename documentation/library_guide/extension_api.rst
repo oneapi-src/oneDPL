@@ -270,8 +270,8 @@ to be called on both host and device.
 The following algorithms are available to use with the ranges:
 
 ``for_each``, ``copy``, ``transform``, ``find``, ``find_if``, ``find_if_not``, ``find_end``, ``find_first_of``, ``search``, ``is_sorted``,
-``is_sorted_until``, ``reduce``, ``transform_reduce``, ``min_element``, ``max_element``, ``minmax_element``,
-``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
+``is_sorted_until``, ``reduce``, ``transform_reduce``, ``min_element``, ``max_element``, ``merge``, ``minmax_element``,
+``exclusive_scan``, ``inclusive_scan``, ``sort``, ``stable_sort``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
 
 The signature example of the range-based algorithms looks like:
 
