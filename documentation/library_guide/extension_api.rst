@@ -348,7 +348,7 @@ If the returned object is the result of an algorithm with device policy, it can 
 
 Utility functions:
 
-* ``wait_for_all(…)``: wait for an arbitrary number of ``sycl::event`` to become ready.
+* ``wait_for_all(…)``: wait for an arbitrary number of objects that are convertible into ``sycl::event`` to become ready.
 
 
 Example of Async API usage
@@ -365,15 +365,14 @@ Example of Async API usage
         {
             /* Build and compute a simple dependency chain: Fill buffer -> Transform -> Reduce */
             sycl::buffer<int> a{10};
+ 
+            auto fut1 = dpl::experimental::fill_async(dpl::execution::dpcpp_default, 
+                                                      dpl::begin(a),dpl::end(a),7);
             
-            auto my_policy = dpl::execution::dpcpp_default;
-            
-            auto fut1 = dpl::experimental::fill_async(my_policy,dpl::begin(a),dpl::end(a),7);
-            
-            auto fut2 = dpl::experimental::transform_async(my_policy,
+            auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
                                                            dpl::begin(a),dpl::end(a),dpl::begin(a),
                                                            [&](const int& x){return x + 1; },fut1);
-            auto ret_val = dpl::experimental::reduce_async(my_policy,
+            auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
                                                            dpl::begin(a),dpl::end(a),fut1,fut2).get();
         }
         return 0;
