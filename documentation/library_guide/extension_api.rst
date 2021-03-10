@@ -333,7 +333,7 @@ The following async algorithms are currently supported:
 * ``sort_async``
 
 All interfaces listed above are a subset of C++17 STL algorithms
-with adding a suffix ``_async`` to the corresponding name (e.g. ``reduce``, ``sort``, ... ). The behavior and signatures are overlapping with the C++17 STL algorithm with the following changes:
+with the suffix ``_async`` added to the corresponding name (e.g. ``reduce``, ``sort``, ... ). The behavior and signatures are overlapping with the C++17 STL algorithm with the following changes:
 
 * Do not block the execution.
 * Take an arbitrary number of events (including 0) as last arguments to allow expressing input dependencies.
