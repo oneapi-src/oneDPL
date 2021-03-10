@@ -19371,21 +19371,11 @@ struct generate_view_fn
 
 struct fill_view_fn
 {
-    template <typename E, typename T>
+    template <typename T, typename Bound = unreachable_sentinel_t>
     constexpr auto
-    operator()(E&& e, T&& value) const
+    operator()(T&& value, Bound size) const
     {
-        return transform_view{::std::forward<E>(e), [&value](auto) { return value; }};
-    }
-
-    template <typename T>
-    constexpr auto
-    operator()(T&& value) const
-    {
-        return detail::rao_proxy{[&value](auto&& r) mutable
-                                 {
-                                     return transform_view{::std::forward<decltype(r)>(r), [&value](auto) { return value; }};
-                                 }};
+        return transform_view{iota_view{0, size}, [&value](auto) { return value; }};
     }
 };
 
