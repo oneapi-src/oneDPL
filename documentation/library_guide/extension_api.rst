@@ -313,3 +313,56 @@ Example of Range-based API usage
 
         copy(oneapi::dpl::execution::dpcpp_default, view, range_res);
     }
+
+Async API
+--------------------------
+
+Functions as defined in the STL algorithm or numeric headers are traditionally blocking. oneDPL extends the functionality of C++17 parallel algorithm by asynchronous algorithm with non-blocking behavior. This experimental feature enables expressing concurrent control flow by building dependency chains and interleaving algorithm calls, as well as interoperability with SYCL kernels. The following subset of C++17 STL algorithms are currently supported as async variants:
+
+* ``reduce``
+* ``transform_reduce``
+* ``sort``
+* ``fill``
+* ``copy``
+* ``for_each``
+* ``transform``
+
+The current Implementation for async algorithm is limited to device execution policy (DPCPP backend).
+
+Algorithm names have added a suffix ``_async`` to the corresponding STL algorithm name. Signatures are overlapping with the C++17 STL algorithm with the following exceptions:
+
+* An arbitrary number of events can be passed to async algorithms as last arguments to allow expressing input dependencies.
+
+The type of the object returned from asynchronous algorithm is undefined. Future-like, the following functions are present:
+
+* ``get()``: returns the result
+* ``wait()``: wait for the result to become available
+
+If the returned object is the result of an algorithm with device policy, it can be converted into a ``sycl::event``. Lifetime of any resources the algorithm allocates (e.g. temporary storage) is bound to the lifetime of the returned object.
+
+Utility functions:
+
+* ``wait_for_all(…)``: wait for an arbitrary number of events to become ready.
+
+
+Example of Async API usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: cpp
+
+#include <oneapi/dpl/execution>
+#include <oneapi/dpl/async>
+#include <CL/sycl.hpp>
+int main() {
+  using namespace oneapi;
+  {
+    /* Build and compute a simple dependency chain: Fill buffer -> Transform -> Reduce */
+    sycl::buffer<int> a{10};
+    auto my_policy = dpl::execution::dpcpp_default;
+    auto fut1 = dpl::experimental::fill_async(my_policy,dpl::begin(a),dpl::end(a),7);
+    auto fut2 = dpl::experimental::transform_async(my_policy,dpl::begin(a),dpl::end(a),dpl::begin(a),[&](const int& x){return x + 1; },fut1);
+    auto ret_val = dpl::experimental::transform_reduce_async(my_policy,dpl::begin(a),dpl::end(a),fut1,fut2).get();
+  }
+  return 0;
+}
+
