@@ -350,19 +350,20 @@ Example of Async API usage
 
 .. code:: cpp
 
-#include <oneapi/dpl/execution>
-#include <oneapi/dpl/async>
-#include <CL/sycl.hpp>
-int main() {
-  using namespace oneapi;
-  {
-    /* Build and compute a simple dependency chain: Fill buffer -> Transform -> Reduce */
-    sycl::buffer<int> a{10};
-    auto my_policy = dpl::execution::dpcpp_default;
-    auto fut1 = dpl::experimental::fill_async(my_policy,dpl::begin(a),dpl::end(a),7);
-    auto fut2 = dpl::experimental::transform_async(my_policy,dpl::begin(a),dpl::end(a),dpl::begin(a),[&](const int& x){return x + 1; },fut1);
-    auto ret_val = dpl::experimental::transform_reduce_async(my_policy,dpl::begin(a),dpl::end(a),fut1,fut2).get();
-  }
-  return 0;
-}
+    #include <oneapi/dpl/execution>
+    #include <oneapi/dpl/async>
+    #include <CL/sycl.hpp>
+    
+    int main() {
+        using namespace oneapi;
+        {
+            /* Build and compute a simple dependency chain: Fill buffer -> Transform -> Reduce */
+            sycl::buffer<int> a{10};
+            auto my_policy = dpl::execution::dpcpp_default;
+            auto fut1 = dpl::experimental::fill_async(my_policy,dpl::begin(a),dpl::end(a),7);
+            auto fut2 = dpl::experimental::transform_async(my_policy,dpl::begin(a),dpl::end(a),dpl::begin(a),[&](const int& x){return x + 1; },fut1);
+            auto ret_val = dpl::experimental::transform_reduce_async(my_policy,dpl::begin(a),dpl::end(a),fut1,fut2).get();
+        }
+        return 0;
+    }
 
