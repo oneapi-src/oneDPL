@@ -235,7 +235,7 @@ std::array                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
 std::ratio                        Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
-std::complex                      Tested                Tested
+std::complex                      Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
 std::assert                       Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
@@ -316,14 +316,23 @@ std::nextafter                    Tested     Tested     Tested
 std::fdim                         Tested     Tested     Tested
 --------------------------------- ---------- ---------- ----------
 std::optional                     Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::iota                         Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::accumulate                   Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::partial_sum                  Tested     Tested     Tested
+--------------------------------- ---------- ---------- ----------
+std::inner_product                Tested     Tested     Tested
 ================================= ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
 
 ================================= =============================================
-libstdc++(GNU)                    Provided with GCC*-7.5.0
+libstdc++(GNU)                    Provided with GCC*-7.5.0, GCC*-9.3.0
 --------------------------------- ---------------------------------------------
 libc++(LLVM)                      Provided with Clang*-11.0
 --------------------------------- ---------------------------------------------
-MSVC Standard C++ Library         Provided with Microsoft Visual Studio* 2017
+MSVC Standard C++ Library         Provided with Microsoft Visual Studio* 2017,
+                                  Visual Studio* 2019
 ================================= =============================================
