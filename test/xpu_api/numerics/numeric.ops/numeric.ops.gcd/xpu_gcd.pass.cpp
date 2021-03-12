@@ -28,8 +28,8 @@ test0(int in1, int in2, int out)
 {
     auto value1 = static_cast<Input1>(in1);
     auto value2 = static_cast<Input2>(in2);
-    static_assert(oneapi::dpl::is_same_v<Output, decltype(oneapi::dpl::gcd(value1, value2))>, "");
-    static_assert(oneapi::dpl::is_same_v<Output, decltype(oneapi::dpl::gcd(value2, value1))>, "");
+    static_assert(oneapi::dpl::is_same<Output, decltype(oneapi::dpl::gcd(value1, value2))>::value, "");
+    static_assert(oneapi::dpl::is_same<Output, decltype(oneapi::dpl::gcd(value2, value1))>::value, "");
     return (static_cast<Output>(out) == oneapi::dpl::gcd(value1, value2));
 }
 

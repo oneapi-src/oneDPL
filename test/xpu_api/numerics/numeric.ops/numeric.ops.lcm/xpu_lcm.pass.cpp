@@ -22,8 +22,8 @@
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
 constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
 
-using oneapi::dpl::is_same_v;
 using oneapi::dpl::lcm;
+using oneapi::dpl::is_same;
 
 template <typename Input1, typename Input2, typename Output>
 bool
@@ -31,8 +31,8 @@ test0(int in1, int in2, int out)
 {
     auto value1 = static_cast<Input1>(in1);
     auto value2 = static_cast<Input2>(in2);
-    static_assert(is_same_v<Output, decltype(lcm(value1, value2))>, "");
-    static_assert(is_same_v<Output, decltype(lcm(value2, value1))>, "");
+    static_assert(is_same<Output, decltype(lcm(value1, value2))>::value, "");
+    static_assert(is_same<Output, decltype(lcm(value2, value1))>::value, "");
     return static_cast<Output>(out) == lcm(value1, value2);
 }
 
