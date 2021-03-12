@@ -27,7 +27,7 @@ Changes to Existing Features
 
 Fixed Issues
 ------------
-- Fixed runtime errors on CPU building with the -O0 option for the following algorithms: ``find_end``, ``search``, ``search_n``.
+- Fixed runtime errors occurring with``find_end``, ``search``, ``search_n`` algorithms when a program is built with -O0 option and executed on CPU devices.
 - Fixed the majority of unused parameter warnings.
 
 Known Issues and Limitations
