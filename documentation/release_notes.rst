@@ -28,7 +28,7 @@ Changes to Existing Features
 Fixed Issues
 ------------
 - Fixed runtime errors on CPU building with the -O0 option for the following algorithms: ``find_end``, ``search``, ``search_n``.
-- Removed unused parameters names in most of the functions that were producing warnings. In most cases the parameters were needed for function overloading.
+- Fixed the majority of unused parameter warnings.
 
 Known Issues and Limitations
 -----------------------------
