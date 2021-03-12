@@ -34,7 +34,7 @@ Known Issues and Limitations
 -----------------------------
 - ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with ``unseq`` and ``par_unseq`` policies
   when using GCC 10 and building a program in debug mode.
-- Some algorithms may hang when a program is built in debug mode, executed on GPU devices and large number of elements is to be processed.
+- Some algorithms may hang when a program is built with -O0 option, executed on GPU devices and large number of elements is to be processed.
 - The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   To overcome these issues, include oneDPL header files before the standard C++ header files,
