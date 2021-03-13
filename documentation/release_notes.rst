@@ -82,7 +82,7 @@ Known Issues and Limitations
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort [#fnote1]_ in debug mode on CPU devices.
+  when a program uses Radix sort [#fnote1]_, is built with -O0 option and executed on CPU devices.
 - The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
 - The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
   or Clang 7 (or higher).
