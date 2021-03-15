@@ -66,6 +66,7 @@
 #define TEST_DPCPP_BACKEND_PRESENT TEST_SYCL_PRESENT && _ONEDPL_BACKEND_SYCL
 
 // Check for C++ standard and standard library for the use of ranges API
+#if !defined(_ENABLE_RANGES_TESTING)
 #define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (__cplusplus >= 201703L && _ONEDPL_BACKEND_SYCL)
 #if defined(_GLIBCXX_RELEASE)
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
@@ -74,5 +75,6 @@
 #else
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY)
 #endif
+#endif //!defined(_ENABLE_RANGES_TESTING)
 
 #endif /* _PSTL_TEST_config_H */
