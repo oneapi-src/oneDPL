@@ -47,12 +47,12 @@ using oneapi::dpl::__ranges::views::all_read;
 using oneapi::dpl::__ranges::views::all_write;
 
 using nano::views::drop;
+using nano::views::fill;
+using nano::views::generate;
 using nano::views::iota;
 using nano::views::reverse;
 using nano::views::take;
 using nano::views::transform;
-using nano::views::generate;
-using nano::views::fill;
 } // namespace views
 
 } // namespace ranges

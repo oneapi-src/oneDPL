@@ -644,8 +644,9 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        __par_backend_hetero::make_wrapped_policy<__or_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, __parallel_or_tag{}, __buf.all_view());
+        __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------

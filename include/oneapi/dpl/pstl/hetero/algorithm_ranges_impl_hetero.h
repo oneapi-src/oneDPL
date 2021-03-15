@@ -295,7 +295,8 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
 }
 
 template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range>>
 __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicate)
 {
     if (__rng.size() == 0)
