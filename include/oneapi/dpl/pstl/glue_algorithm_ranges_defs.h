@@ -105,6 +105,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Tp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 count(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value);
 
+template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+count_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred);
+
 // [alg.search]
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>

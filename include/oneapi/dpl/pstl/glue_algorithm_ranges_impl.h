@@ -168,12 +168,20 @@ adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng)
 
 // [alg.count]
 
+template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+count_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
+{
+    return oneapi::dpl::__internal::__ranges::__pattern_count(::std::forward<_ExecutionPolicy>(__exec),
+                                                              views::all_read(::std::forward<_Range>(__rng)), __pred);
+}
+
 template <typename _ExecutionPolicy, typename _Range, typename _Tp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 count(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value)
 {
-    return oneapi::dpl::__internal::__ranges::__pattern_count(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
+    return count_if(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
         oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
             __value));
 }
