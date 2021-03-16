@@ -199,6 +199,12 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
 
+// [alg.move]
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
+
 // [alg.merge]
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
