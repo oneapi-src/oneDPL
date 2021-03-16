@@ -52,8 +52,11 @@ extensions = [
     'sphinx-prompt', 
     'sphinx_substitution_extensions',
     'sphinx2dita'
+<<<<<<< HEAD
     #'sphinx.ext.extlinks', 
     #'sphinx_tabs.tabs'
+=======
+>>>>>>> b3a1794 (Project setup for AEM publication (#156))
 	]
 
 docbundle_settings = {
@@ -103,11 +106,14 @@ html_show_sourcelink = False
 # html_theme = 'otc_tcs_sphinx_theme'
 # html_theme_path = ['_themes']
 
+<<<<<<< HEAD
 # import sys
 # import os
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
 # on_rtd = os.environ.get('READTHEDOCS', None) == 'False'
 
+=======
+>>>>>>> b3a1794 (Project setup for AEM publication (#156))
 # import sphinx_rtd_theme
 html_theme = 'sphinx_book_theme'
 #html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
@@ -125,7 +131,10 @@ html_theme_options = {
     #'navigation_depth': 4  # Depth of the headers shown in the navigation bar
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b3a1794 (Project setup for AEM publication (#156))
 # -- DITA for AEM ------------------------------------------------------------
 
 ditaxml_flat_map_to_title=True
@@ -149,7 +158,11 @@ ditaxml_topic_meta["operating system"]="guid:etm-d23b81f1319b4f0bb8ec859bcc84e2b
 ditaxml_topic_meta["primaryOwner"]="Stern, Alexandra M (lexi.stern@intel.com)"
 ditaxml_topic_meta["programidentifier"]="idz"
 ditaxml_topic_meta["programming language"]="guid:etm-e759606e77ad42549ba71c380d6d61e2"
+<<<<<<< HEAD
 ditaxml_topic_meta["published date"]="04/26/2021"
+=======
+ditaxml_topic_meta["published date"]="03/26/2021"
+>>>>>>> b3a1794 (Project setup for AEM publication (#156))
 ditaxml_topic_meta["resourcetypeTag"]="guid:etm-15865f41343146919f486177b8dbb3f3"
 ditaxml_topic_meta["secondary contenttype"]="guid:etm-74fc3401b6764c42ad8255f4feb9bd9e"
 ditaxml_topic_meta["security classification"]="Public Content"
