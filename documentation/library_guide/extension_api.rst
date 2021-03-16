@@ -318,7 +318,7 @@ Async API
 --------------------------
 
 Functions defined in the STL ``<algorithm>`` or ``<numeric>`` headers are traditionally blocking. oneDPL extends the functionality of 
-C++17 parallel algorithms by providing an asynchronous algorithm with non-blocking behavior.
+C++17 parallel algorithms by providing asynchronous algorithms with non-blocking behavior.
 This experimental feature enables you to express a concurrent control flow by building dependency chains and interleaving algorithm calls and interoperability with DPC++ and SYCL kernels. 
 
 The current implementation for async algorithms is limited to DPC++ Execution Policies.
