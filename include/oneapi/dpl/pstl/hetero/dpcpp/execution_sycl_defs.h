@@ -19,6 +19,7 @@
 #include <CL/sycl.hpp>
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
+#include "../../iterator_defs.h"
 #if _ONEDPL_FPGA_DEVICE
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
@@ -311,6 +312,17 @@ using __enable_if_hetero_execution_policy = typename ::std::enable_if<
 template <typename _ExecPolicy, typename _T>
 using __enable_if_fpga_execution_policy = typename ::std::enable_if<
     oneapi::dpl::__internal::__is_fpga_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
+
+struct __offload_tag
+{
+};
+
+template <class... _IteratorTypes, typename... _PolicyParams>
+typename ::std::enable_if<__is_random_access_iterator<_IteratorTypes...>::value, __offload_tag>::type
+__select_backend(const execution::device_policy<_PolicyParams...>&, _IteratorTypes&&...)
+{
+    return {};
+}
 
 //-----------------------------------------------------------------------------
 // Device run-time information helpers
