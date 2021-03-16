@@ -334,8 +334,8 @@ The following async algorithms are currently supported:
 * ``transform_reduce_async``
 * ``sort_async``
 
-All the interfaces listed above are a subset of C++17 STL algorithms
-where the suffix ``_async`` is added to the corresponding name (for example: ``reduce``, ``sort``, etc. ).
+All the interfaces listed above are a subset of C++17 STL algorithms,
+where the suffix ``_async`` is added to the corresponding name (for example: ``reduce``, ``sort``, etc.).
 The behavior and signatures are overlapping with the C++17 STL algorithm with the following changes:
 
 * Do not block the execution.
