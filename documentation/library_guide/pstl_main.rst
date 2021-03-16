@@ -49,17 +49,18 @@ C++11 is the minimal version of the C++ standard, which oneDPL requires. That me
 requires at least a C++11 compiler. Some uses of the library may require a higher version of C++.
 To use Parallel STL with the C++ standard policies, you must have the following software installed:
 
-  * C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
-  * oneAPI Threading Building Blocks (oneTBB) or Threading Building Blocks (TBB) 2019 and later
+* C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
+* oneAPI Threading Building Blocks (oneTBB) or Threading Building Blocks (TBB) 2019 and later
 
 To use Parallel STL with the DPC++ execution policies, you must have the following software installed:
 
-  * C++ compiler with support for SYCL 2020
+* C++ compiler with support for SYCL* 2020
 
 .. _pstl:
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
    pstl/dpcpp_policies_usage
    pstl/macros

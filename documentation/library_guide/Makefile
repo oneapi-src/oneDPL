@@ -1,5 +1,4 @@
 # Minimal makefile for Sphinx documentation
-#
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
@@ -35,14 +34,7 @@ html:
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
 ditaxml:
-<<<<<<< HEAD
-	pip3 install --upgrade --force-reinstall git+https://gitlab.devtools.intel.com/document-publishing/sphinx2dita#egg=sphinx2dita 
-	$(SPHINXBUILD) -b ditaxml $(ALLSPHINXOPTS) $(BUILDDIR)/ditaxml
-	@echo
-	@echo "Build finished. The ditaxml files are in $(BUILDDIR)/ditaxml."
-=======
 	pip3 install --upgrade --force-reinstall git+https://gitlab.devtools.intel.com/document-publishing/sphinx2dita#egg=sphinx2dita
 	$(SPHINXBUILD) -b ditaxml $(ALLSPHINXOPTS) $(BUILDDIR)/ditaxml
 	@echo
 	@echo "Build finished. The ditaxml files are in $(BUILDDIR)/ditaxml."
->>>>>>> b3a1794 (Project setup for AEM publication (#156))
