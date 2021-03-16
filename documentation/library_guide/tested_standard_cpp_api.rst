@@ -321,9 +321,10 @@ C++ Standard API                     libstdc++  libc++     MSVC
 These tests were done for the following versions of the standard C++ library:
 
 ================================= =============================================
-libstdc++(GNU)                    Provided with GCC*-7.5.0
+libstdc++(GNU)                    Provided with GCC*-7.5.0, GCC*-9.3.0
 --------------------------------- ---------------------------------------------
 libc++(LLVM)                      Provided with Clang*-11.0
 --------------------------------- ---------------------------------------------
-MSVC Standard C++ Library         Provided with Microsoft Visual Studio* 2017
+MSVC Standard C++ Library         Provided with Microsoft Visual Studio* 2017,
+                                  Visual Studio* 2019
 ================================= =============================================
