@@ -285,8 +285,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Tp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 replace(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __old_value, const _Tp& __new_value)
 {
-    replace_if(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(__old_value), 
+    replace_if(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
+            __old_value),
         __new_value);
 }
 
@@ -373,15 +375,30 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __p)
 {
     return oneapi::dpl::__internal::__ranges::__pattern_equal(::std::forward<_ExecutionPolicy>(__exec),
-        views::all_read(::std::forward<_Range1>(__rng1)), views::all_read(::std::forward<_Range2>(__rng2)), __p);
+                                                              views::all_read(::std::forward<_Range1>(__rng1)),
+                                                              views::all_read(::std::forward<_Range2>(__rng2)), __p);
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
-    return equal(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-        oneapi::dpl::__internal::__pstl_equal());
+    return equal(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
+                 ::std::forward<_Range2>(__rng2), oneapi::dpl::__internal::__pstl_equal());
+}
+
+// [alg.move]
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
+{
+    using _DecayedExecutionPolicy = typename ::std::decay<_ExecutionPolicy>::type;
+
+    oneapi::dpl::__internal::__ranges::__pattern_walk2(
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        views::all_write(::std::forward<_Range2>(__rng2)),
+        oneapi::dpl::__internal::__brick_move<_DecayedExecutionPolicy>{});
 }
 
 // [alg.merge]
