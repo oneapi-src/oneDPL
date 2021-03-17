@@ -108,44 +108,44 @@ do_test()
         std::cout << "fail" << std::endl;
 }
 
-class KernelTest1;
-class KernelTest2;
-class KernelTest3;
-class KernelTest4;
-class KernelTest5;
-class KernelTest6;
-class KernelTest7;
-class KernelTest8;
-class KernelTest9;
-class KernelTest10;
-class KernelTest11;
-class KernelTest12;
-class KernelTest13;
-class KernelTest14;
-class KernelTest15;
-class KernelTest16;
-class KernelTest17;
+class SignedChar2;
+class Short2;
+class Int2;
+class Long2;
+class LongLong2;
+class Int8t2;
+class Int16t2;
+class Int32t2;
+class Int64t2;
+class SignedCharAndInt;
+class IntAndSignedChar;
+class ShortAndInt;
+class IntAndShort;
+class IntAndLong;
+class LongAndInt;
+class IntAndLongLong;
+class LongLongAndInt;
 
 int
 main()
 {
-    do_test<KernelTest1, signed char>();
-    do_test<KernelTest2, short>();
-    do_test<KernelTest3, int>();
-    do_test<KernelTest4, long>();
-    do_test<KernelTest5, long long>();
-    do_test<KernelTest6, std::int8_t>();
-    do_test<KernelTest7, std::int16_t>();
-    do_test<KernelTest8, std::int32_t>();
-    do_test<KernelTest9, std::int64_t>();
-    do_test<KernelTest10, signed char, int>();
-    do_test<KernelTest11, int, signed char>();
-    do_test<KernelTest12, short, int>();
-    do_test<KernelTest13, int, short>();
-    do_test<KernelTest14, int, long>();
-    do_test<KernelTest15, long, int>();
-    do_test<KernelTest16, int, long long>();
-    do_test<KernelTest17, long long, int>();
+    do_test<SignedChar2, signed char>();
+    do_test<Short2, short>();
+    do_test<Int2, int>();
+    do_test<Long2, long>();
+    do_test<LongLong2, long long>();
+    do_test<Int8t2, std::int8_t>();
+    do_test<Int16t2, std::int16_t>();
+    do_test<Int32t2, std::int32_t>();
+    do_test<Int64t2, std::int64_t>();
+    do_test<SignedCharAndInt, signed char, int>();
+    do_test<IntAndSignedChar, int, signed char>();
+    do_test<ShortAndInt, short, int>();
+    do_test<IntAndShort, int, short>();
+    do_test<IntAndLong, int, long>();
+    do_test<LongAndInt, long, int>();
+    do_test<IntAndLongLong, int, long long>();
+    do_test<LongLongAndInt, long long, int>();
 
     std::cout << "done" << std::endl;
 
