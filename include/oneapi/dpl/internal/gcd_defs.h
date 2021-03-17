@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef DPCPP_GCD_DEFS_H_
-#define DPCPP_GCD_DEFS_H_
+#ifndef _ONEDPL_GCD_DEFS_H_
+#define _ONEDPL_GCD_DEFS_H_
 
 #include <type_traits>
 

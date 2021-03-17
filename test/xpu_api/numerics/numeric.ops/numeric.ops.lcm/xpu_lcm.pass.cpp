@@ -13,17 +13,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
-#include <CL/sycl.hpp>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <iostream>
+#include <CL/sycl.hpp>
 
-using oneapi::dpl::lcm;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+
 using oneapi::dpl::is_same;
+using oneapi::dpl::lcm;
 
 template <typename Input1, typename Input2, typename Output>
 bool
@@ -40,13 +40,13 @@ template <typename KernelTest, typename Input1, typename Input2 = Input1>
 void
 do_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     bool res = true;
-    cl::sycl::range<1> numOfItems1{1};
+    sycl::range<1> numOfItems1{1};
 
     {
-        cl::sycl::buffer<bool, 1> buffer1(&res, numOfItems1);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<bool, 1> buffer1(&res, numOfItems1);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto out = buffer1.get_access<sycl_write>(cgh);
             cgh.single_task<KernelTest>([=]() {
                 constexpr struct
@@ -94,7 +94,7 @@ do_test()
                         out[0] &= test0<U1, S2, Output>(TC.x, -TC.y, TC.expect);
                     }
                 }
-                { //  LWG#2837
+                {
                     auto res1 = oneapi::dpl::lcm(static_cast<std::int64_t>(1234), INT32_MIN);
                     out[0] &= (res1 == 1324997410816LL);
                 }

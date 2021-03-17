@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef DPSTD_GCD
-#define DPSTD_GCD
+#ifndef _ONEDPL_GCD
+#define _ONEDPL_GCD
 
 #include <limits>
 #include "gcd_defs.h"
