@@ -1,16 +1,14 @@
 Tested Standard C++ APIs
 ########################
 
-Contains the Tested Standard C++ APIs for oneAPI DPC++ Library (oneDPL).
-
-The basic functionality for a number of C++ standard APIs has been tested for use in DPC++ kernels.
+The basic functionality for a number of C++ standard APIs has been tested for use in |dpcpp_long| kernels.
 These APIs can be employed in device kernels similarly to how they are employed in code for a typical CPU-based platform.
-The Tested Standard C++ APIs are added to namespace ``oneapi::dpl``, corresponding headers have been added in the oneDPL package.
+The Tested Standard C++ APIs are added to namespace ``oneapi::dpl``, corresponding headers have been added in the |onedpl_long| package.
 In order to use these APIs via the namespace ``oneapi::dpl``, the headers in ``<oneapi/dpl/...>`` must be included.
 Currently, Tested Standard C++ APIs can be used in two ways:
 
 #. Via the namespace ``std::`` and standard headers (for example: ``<utility>...``)
-#. Via the namespace ``oneapi::dpl`` and oneDPL headers (for example: ``<oneapi/dpl/utility>...``)
+#. Via the namespace ``oneapi::dpl`` and |onedpl_short| headers (for example: ``<oneapi/dpl/utility>...``)
 
 Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL* device code:
 

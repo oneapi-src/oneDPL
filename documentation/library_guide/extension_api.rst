@@ -136,7 +136,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
 
 * ``transform_iterator``
 
-  The``transform_iterator`` is an iterator defined over another iterator whose dereferenced value is the result
+  The ``transform_iterator`` is an iterator defined over another iterator whose dereferenced value is the result
   of a function applied to the corresponding element of the original iterator.  Both the type of the original
   iterator and the unary function applied during dereference operations are required template parameters of
   the ``transform_iterator`` class. The constructor of the ``transform_iterator`` receives both the original
@@ -193,7 +193,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   it returns.
 
   The example provided for ``discard_iterator`` demonstrates ``zip_iterator`` use in defining stencil
-  algorithms. The ``zip_iterator`` is also useful in defining "by key" algorithms where input iterators
+  algorithms. The ``zip_iterator`` is also useful in defining by key algorithms where input iterators
   representing keys and values are processed as key-value pairs. The example below demonstrates a stable sort
   by key where only the keys are compared but both keys and values are swapped::
 
@@ -221,14 +221,14 @@ Range-based API
 
 C++20 indroduces the Ranges library. C++20 standard splits ranges into two categories: factories and adaptors.
 A range factory doesn't have underlying data. An element is generated on success by an index or by dereferencing an iterator.
-A range adaptor, from the DPC++ library perspective, is an utility that transforms base range, or another adapted range into 
+A range adaptor, from the |onedpl_long| perspective, is an utility that transforms base range, or another adapted range into 
 a view with custom behavior.
 
-The DPC++ library supports ``iota_view`` range factory.
+|onedpl_short| supports ``iota_view`` range factory.
 
 ``sycl::buffer`` wrapped with ``all_view`` can be used as the range.
 
-The DPC++ library considers the supported factories and ``all_view`` as base ranges.
+The |onedpl_short| considers the supported factories and ``all_view`` as base ranges.
 The range adaptors may be combined into a pipeline with a ``base`` range at the beginning. For example::
 
     cl::sycl::buffer<int> buf(data, cl::sycl::range<1>(10));
@@ -251,7 +251,7 @@ The signature example of the range-based algorithms looks like::
 
 where ``source`` is used instead of two iterators to represent the input and ``destination`` represents the output.
 
-These algorithms are declared in ``oneapi::dpl::experimental::ranges`` namespace and implemented only for DPC++ policies.
+These algorithms are declared in ``oneapi::dpl::experimental::ranges`` namespace and implemented only for |dpcpp_long| policies.
 In order to make these algorithm available the ``<oneapi/dpl/ranges>`` header should be included.
 Use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
 
@@ -287,10 +287,13 @@ Example of Range-based API Usage
 Async API
 --------------------------
 
-Functions defined in the STL ``<algorithm>`` or ``<numeric>`` headers are traditionally blocking. oneDPL extends the functionality of C++17 parallel algorithms by providing asynchronous algorithm with non-blocking behavior. This experimental feature enables expressing concurrent control flow by building dependency chains and interleaving algorithm calls, as well as interoperability with SYCL kernels. 
+The functions defined in the STL ``<algorithm>`` or ``<numeric>`` headers are traditionally blocking. |onedpl_short| extends the
+functionality of C++17 parallel algorithms by providing asynchronous algorithms with non-blocking behavior.
+This experimental feature enables you to express a concurrent control flow by building dependency chains and interleaving algorithm calls
+and interoperability with |dpcpp_short| and SYCL* kernels. 
 
-The current implementation for async algorithms is limited to DPC++ Execution Policies.
-All functionality described below is available in ``oneapi::dpl::experimental`` namespace.
+The current implementation for async algorithms is limited to |dpcpp_short| Execution Policies.
+All the functionality described below is available in the ``oneapi::dpl::experimental`` namespace.
 
 The following async algorithms are currently supported:
 
