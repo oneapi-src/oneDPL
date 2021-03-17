@@ -1,5 +1,5 @@
 Parallel STL Usage
-###################
+##################
 
 Follow these steps to add Parallel STL to your application:
 
@@ -12,20 +12,20 @@ Follow these steps to add Parallel STL to your application:
    * ``#include <oneapi/dpl/memory>``
 
    For better coexistence with the C++ standard library,
-   include oneDPL header files before the standard C++ header files.
+   include |onedpl_long| header files before the standard C++ header files.
 
-#. Pass a oneDPL execution policy object, defined in the ``oneapi::dpl::execution``
+#. Pass a |onedpl_short| execution policy object, defined in the ``oneapi::dpl::execution``
    namespace, to a parallel algorithm.
 #. Use the C++ Standard Execution Policies:
 
-   * Compile the code with options that enable OpenMP vectorization pragmas.
-   * Link with the oneTBB or TBB dynamic library for parallelism.
-#. Use the DPC++ Execution Policies:
+   * Compile the code with options that enable OpenMP* vectorization pragmas.
+   * Link with the |onetbb_long| or |tbb_long| dynamic library for parallelism.
+#. Use the |dpcpp_long| Execution Policies:
 
    * Compile the code with options that enable support for SYCL* 2020.
 
 Use the C++ Standard Execution Policies
-****************************************
+=======================================
 
 Example:
 
@@ -42,12 +42,12 @@ Example:
       return 0;
   }
 
-Use the DPC++ Execution Policies
-*********************************
+Use the |dpcpp_short| Execution Policies
+========================================
 
-The Data Parallel C++ (DPC++) execution policy specifies where a parallel algorithm runs.
+The |dpcpp_short| execution policy specifies where a parallel algorithm runs.
 It encapsulates a SYCL* device or queue, and
-allows you to set an optional kernel name. DPC++ execution policies can be used with all
+allows you to set an optional kernel name. |dpcpp_short| execution policies can be used with all
 standard C++ algorithms that support execution policies.
 
 To use the policy, create a policy object by providing a class type for a unique kernel name
@@ -59,7 +59,7 @@ as a template argument, and one of the following constructor arguments:
 * An existing policy object with a different kernel name
 
 Providing a kernel name for a policy is optional if the used compiler supports implicit
-names for SYCL kernel functions. The Intel® oneAPI DPC++/C++ Compiler supports it by default;
+names for SYCL kernel functions. The |dpcpp_cpp| supports it by default;
 for other compilers it may need to be enabled with compilation options such as
 ``-fsycl-unnamed-lambda``. Refer to your compiler documentation for more information.
 
@@ -73,10 +73,10 @@ kernel names (see above) for compilation.
 The ``make_device_policy`` function templates simplify ``device_policy`` creation.
 
 Usage Examples
-===============
+==============
 
-Code examples below assume ``using namespace oneapi::dpl::execution;``
-and ``using namespace sycl;`` directive when refer to policy classes and functions:
+The code examples below assume you are ``using namespace oneapi::dpl::execution;``
+and ``using namespace sycl;`` directives when refering to policy classes and functions:
 
 .. code::
 
@@ -104,9 +104,9 @@ and ``using namespace sycl;`` directive when refer to policy classes and functio
   std::for_each(policy_e, …);
 
 Use the FPGA Policy
-====================
+===================
 
-The ``fpga_policy`` class is a DPC++ policy tailored to achieve
+The ``fpga_policy`` class is a |dpcpp_short| policy tailored to achieve
 better performance of parallel algorithms on FPGA hardware devices.
 
 Use the policy when you run the application on a FPGA hardware device or FPGA emulation device:
@@ -136,16 +136,16 @@ Use it to create customized policy objects, or pass directly when invoking an al
 :Note: Specifying unroll factor for a policy enables loop unrolling in the implementation of
   algorithms. Default value is 1.
   To find out how to choose a better value, you can refer to the `unroll Pragma
-  <https://software.intel.com/en-us/oneapi-fpga-optimization-guide-unroll-pragma>`_
+  <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/fpga-optimization-flags-attributes-pragmas-and-extensions/loop-directives/unroll-pragma.html>`_
   and `Loops Analysis
-  <https://software.intel.com/en-us/oneapi-fpga-optimization-guide-loops-analysis>`_ chapters of
+  <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/analyze-your-design/analyze-the-fpga-early-image/review-the-report-html-file/loops-analysis.html>`_ chapters of
   the `Intel® oneAPI DPC++ FPGA Optimization Guide
-  <https://software.intel.com/en-us/oneapi-fpga-optimization-guide>`_.
+  <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top.html>`_.
 
 The ``make_fpga_policy`` function templates simplify ``fpga_policy`` creation.
 
 FPGA Policy Usage Examples
-===========================
+==========================
 
 The code below assumes ``using namespace oneapi::dpl::execution;`` for policies and
 ``using namespace sycl;`` for queues and device selectors:
@@ -158,16 +158,16 @@ The code below assumes ``using namespace oneapi::dpl::execution;`` for policies 
   auto fpga_policy_c = make_fpga_policy<unroll_factor, class FPGAPolicyC>();
 
 Pass Data to Algorithms
-========================
+=======================
 
-You can use one of the following ways to pass data to an algorithm executed with a DPC++ policy:
+You can use one of the following ways to pass data to an algorithm executed with a |dpcpp_short| policy:
 
 * ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
 * Unified shared memory (USM) pointers and ``std::vector`` with USM allocators
 * Iterators of host-side ``std::vector``
 
 Use oneapi::dpl::begin and oneapi::dpl::end Functions
-------------------------------------------------------
+-----------------------------------------------------
 
 ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` are special helper functions that
 allow you to pass SYCL buffers to parallel algorithms. These functions accept
@@ -199,7 +199,8 @@ Example:
   }
 
 Use Unified Shared Memory
---------------------------------
+-------------------------
+
 The following examples demonstrate two ways to use the parallel algorithms with USM:
 
 * USM pointers
@@ -244,8 +245,9 @@ Alternatively, use ``std::vector`` with a USM allocator:
   }
 
 Use Host-Side ``std::vector``
-------------------------------
-oneDPL parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
+-----------------------------
+
+|onedpl_short| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
 example below.
 In this case, a temporary SYCL buffer is created and the data is copied to this buffer.
 After processing of the temporary buffer on a device is complete, the data is copied back
@@ -265,56 +267,56 @@ Example:
     return 0;
   }
 
-Error Handling with DPC++ Execution Policies
-=============================================
+Error Handling with |dpcpp_short| Execution Policies
+====================================================
 
-The DPC++ error handling model supports two types of errors. In cases of synchronous errors
-DPC++ host runtime libraries throw exceptions, while asynchronous errors may only
-be processed in a user-supplied error handler associated with a DPC++ queue.
+The |dpcpp_short| error handling model supports two types of errors. In cases of synchronous errors
+|dpcpp_short| host runtime libraries throw exceptions, while asynchronous errors may only
+be processed in a user-supplied error handler associated with a |dpcpp_short| queue.
 
-For algorithms executed with DPC++ policies, handling all errors, synchronous or asynchronous, is a
+For algorithms executed with |dpcpp_short| policies, handling all errors, synchronous or asynchronous, is a
 responsibility of the caller. Specifically:
 
 * No exceptions are thrown explicitly by algorithms.
-* Exceptions thrown by runtime libraries at the host CPU, including DPC++ synchronous exceptions,
+* Exceptions thrown by runtime libraries at the host CPU, including |dpcpp_short| synchronous exceptions,
   are passed through to the caller.
-* DPC++ asynchronous errors are not handled.
+* |dpcpp_short| asynchronous errors are not handled.
 
-In order to process DPC++ asynchronous errors, the queue associated with a DPC++ policy must be
+In order to process |dpcpp_short| asynchronous errors, the queue associated with a |dpcpp_short| policy must be
 created with an error handler object. The predefined policy objects (``dpcpp_default`` etc.) have
 no error handlers; do not use those if you need to process asynchronous errors.
 
 Restrictions
-=============
+============
 
-When used with DPC++ execution policies, oneDPL algorithms apply the same restrictions as DPC++
-does (see the DPC++ specification and the SYCL specification for details), such as:
+When used with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as |dpcpp_short|
+does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
 
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
 * Passing data types, which are not trivially constructible, is only allowed in USM,
   but not in buffers or host-allocated containers.
 
 Known Limitations
-==================
+=================
 
 For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms result of
 unary operation should be convertible to the type of the initial value if one is provided,
 otherwise to the type of values in the processed data sequence
 (``std::iterator_traits<IteratorType>::value_type``).
 
-Build Your Code with oneDPL
-============================
+Build Your Code with |onedpl_short|
+===================================
 
-Use these steps to build your code with oneDPL:
+Use these steps to build your code with |onedpl_short|:
 
-#. To build with the Intel® oneAPI DPC++/C++ Complier, see the `Get Started with the Intel® oneAPI DPC++/C++ Compiler
+#. To build with the |dpcpp_cpp|, see the `Get Started with the Intel® oneAPI DPC++/C++ Compiler
    <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
    for details.
-#. Set the environment for oneDPL and oneTBB.
+#. Set the environment for |onedpl_short| and |onetbb_short|.
 #. To avoid naming device policy objects explicitly, add the ``–fsycl-unnamed-lambda`` option.
 
 Below is an example of a command line used to compile code that contains
-oneDPL parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):
+|onedpl_short| parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):
 
 .. code::
 
