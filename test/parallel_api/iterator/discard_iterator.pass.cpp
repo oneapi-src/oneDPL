@@ -17,6 +17,7 @@
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/iterator>
+#include "support/utils.h"
 
 #include <iostream>
 #include <chrono>
@@ -337,5 +338,5 @@ int main(int argc, char** argv) {
 	}
 #endif
 
-    return done();
+    return TestUtils::done();
 }

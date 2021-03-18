@@ -149,5 +149,5 @@ int32_t main() {
     }
 #endif
 
-    return done(_ONEDPL_BACKEND_SYCL);
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }

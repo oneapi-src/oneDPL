@@ -18,6 +18,8 @@
 #include <oneapi/dpl/iterator>
 #include <oneapi/dpl/functional>
 
+#include "support/utils.h"
+
 #include <iostream>
 #include <tuple>
 

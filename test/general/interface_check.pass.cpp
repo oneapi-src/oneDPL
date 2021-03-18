@@ -18,6 +18,8 @@
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/iterator>
+#include "support/utils.h"
+
 #include <algorithm>
 #include <functional>
 #include <iterator>

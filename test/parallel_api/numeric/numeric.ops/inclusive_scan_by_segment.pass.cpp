@@ -154,5 +154,5 @@ int main() {
 #endif
     test_on_host();
 
-    return done();
+    return TestUtils::done();
 }
