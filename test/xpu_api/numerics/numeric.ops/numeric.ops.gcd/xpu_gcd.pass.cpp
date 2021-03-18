@@ -22,6 +22,9 @@
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
+template <typename T1, typename T2>
+class KernelName;
+
 template <typename Input1, typename Input2, typename Output>
 bool
 test0(int in1, int in2, int out)
@@ -33,7 +36,7 @@ test0(int in1, int in2, int out)
     return (static_cast<Output>(out) == oneapi::dpl::gcd(value1, value2));
 }
 
-template <typename KernelTest, typename Input1, typename Input2 = Input1>
+template <typename Input1, typename Input2 = Input1>
 void
 do_test()
 {
@@ -45,7 +48,7 @@ do_test()
         sycl::buffer<bool, 1> buffer1(&res, numOfItems1);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto out = buffer1.get_access<sycl_write>(cgh);
-            cgh.single_task<KernelTest>([=]() {
+            cgh.single_task<KernelName<Input1, Input2>>([=]() {
                 using S1 = oneapi::dpl::make_signed_t<Input1>;
                 using S2 = oneapi::dpl::make_signed_t<Input2>;
                 using U1 = oneapi::dpl::make_unsigned_t<Input1>;
@@ -105,44 +108,26 @@ do_test()
         std::cout << "fail\n";
 }
 
-class SignedChar2;
-class Short2;
-class Int2;
-class Long2;
-class LongLong2;
-class Int8t2;
-class Int16t2;
-class Int32t2;
-class Int64t2;
-class SignedCharAndInt;
-class IntAndSignedChar;
-class ShortAndInt;
-class IntAndShort;
-class IntAndLong;
-class LongAndInt;
-class IntAndLongLong;
-class LongLongAndInt;
-
 int
 main()
 {
-    do_test<SignedChar2, signed char>();
-    do_test<Short2, short>();
-    do_test<Int2, int>();
-    do_test<Long2, long>();
-    do_test<LongLong2, long long>();
-    do_test<Int8t2, std::int8_t>();
-    do_test<Int16t2, std::int16_t>();
-    do_test<Int32t2, std::int32_t>();
-    do_test<Int64t2, std::int64_t>();
-    do_test<SignedCharAndInt, signed char, int>();
-    do_test<IntAndSignedChar, int, signed char>();
-    do_test<ShortAndInt, short, int>();
-    do_test<IntAndShort, int, short>();
-    do_test<IntAndLong, int, long>();
-    do_test<LongAndInt, long, int>();
-    do_test<IntAndLongLong, int, long long>();
-    do_test<LongLongAndInt, long long, int>();
+    do_test<signed char>();
+    do_test<short>();
+    do_test<int>();
+    do_test<long>();
+    do_test<long long>();
+    do_test<std::int8_t>();
+    do_test<std::int16_t>();
+    do_test<std::int32_t>();
+    do_test<std::int64_t>();
+    do_test<signed char, int>();
+    do_test<int, signed char>();
+    do_test<short, int>();
+    do_test<int, short>();
+    do_test<int, long>();
+    do_test<long, int>();
+    do_test<int, long long>();
+    do_test<long long, int>();
 
     std::cout << "done\n";
 
