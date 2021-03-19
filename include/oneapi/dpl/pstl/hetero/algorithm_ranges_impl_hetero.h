@@ -369,7 +369,7 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
 {
     using _ValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
 
-    if (__rng.size() < 2)
+    if (__rng.size() == 0)
         return __rng.size();
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
