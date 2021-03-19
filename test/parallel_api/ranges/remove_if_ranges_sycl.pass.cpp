@@ -36,13 +36,12 @@ main()
     auto lambda1 = [](T val) -> bool { return val % 2 == 0; };
     auto lambda2 = [](T val) -> bool { return val % 3 == 0; };
     ::std::vector<T> data = {2, 5, 2, 4, 2, 0, 6, -7, 7, 3};
-    const int max_n = data.size();
 
     ::std::vector<T> in(data);
     ::std::vector<T>::difference_type in_end_n;
     using namespace oneapi::dpl::experimental::ranges;
     {
-        sycl::buffer<T> A(in.data(), sycl::range<1>(max_n));
+        sycl::buffer<T> A(in.data(), sycl::range<1>(in.size()));
 
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(exec);
