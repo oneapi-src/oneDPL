@@ -185,6 +185,26 @@ transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3
         [__op](auto x, auto y, auto& z) { z = __op(x, y); });
 }
 
+// [alg.remove]
+
+template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred)
+{
+    return oneapi::dpl::__internal::__ranges::__pattern_remove_if(::std::forward<_ExecutionPolicy>(__exec),
+                                                                  views::all(::std::forward<_Range>(__rng)), __pred);
+}
+
+template <typename _ExecutionPolicy, typename _Range, typename _Tp>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+remove(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value)
+{
+    return remove_if(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
+            __value));
+}
+
 // [alg.sort]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
