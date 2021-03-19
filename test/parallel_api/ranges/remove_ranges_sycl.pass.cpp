@@ -27,9 +27,6 @@
 #include <iostream>
 #include <iterator>
 
-template<typename T>
-class print_t;
-
 int32_t
 main()
 {
