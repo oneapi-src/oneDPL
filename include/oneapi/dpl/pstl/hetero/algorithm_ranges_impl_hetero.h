@@ -304,6 +304,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
 __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _CreateMaskOp __create_mask_op,
                     _CopyByMaskOp __copy_by_mask_op)
 {
+    if (__rng1.size() == 0)
+        return __rng1.size();
+
     using _SizeType = decltype(__rng1.size());
     using _ReduceOp = ::std::plus<_SizeType>;
     using _Assigner = unseq_backend::__scan_assigner;
@@ -311,9 +314,6 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
     using _MaskAssigner = unseq_backend::__mask_assigner<1>;
     using _InitType = unseq_backend::__scan_no_init<_SizeType>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-
-    if (__rng1.size() == 0)
-        return __rng1.size();
 
     _Assigner __assign_op;
     _ReduceOp __reduce_op;
@@ -367,10 +367,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range>>
 __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
-    using _ValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
-
     if (__rng.size() == 0)
         return __rng.size();
+
+    using _ValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
