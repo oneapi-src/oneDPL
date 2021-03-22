@@ -44,7 +44,7 @@ main()
         auto view = views::all(A);
                                        
         res1 = equal(TestUtils::default_dpcpp_policy, view, B);
-        res2 = equal(TestUtils::default_dpcpp_policy, C, view);
+        res2 = equal(TestUtils::default_dpcpp_policy, C, view, ::std::equal_to<>{});
     }
 
     //check result
