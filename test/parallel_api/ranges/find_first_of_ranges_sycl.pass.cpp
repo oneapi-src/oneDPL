@@ -45,8 +45,14 @@ main()
 
         auto view_a = all_view(A);
         auto view_b = all_view(B);
-        res = find_first_of(TestUtils::default_dpcpp_policy, view_a, view_b);
-        res = find_first_of(TestUtils::default_dpcpp_policy, A, B); //check passing sycl buffer directly
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        res = find_first_of(exec1, view_a, view_b);
+        res = find_first_of(exec2, A, B); //check passing sycl buffer directly
     }
 
     //check result

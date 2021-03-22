@@ -44,10 +44,15 @@ main()
         sycl::buffer<int> C(data3, sycl::range<1>(max_n));
 
         auto view = iota_view(0, max_n) | views::transform(lambda1);
-
         auto range_res = all_view<int, sycl::access::mode::write>(B);
-        transform(TestUtils::default_dpcpp_policy, view, range_res, lambda2);
-        transform(TestUtils::default_dpcpp_policy, view, C, lambda2); //check passing sycl buffer
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        transform(exec1, view, range_res, lambda2);
+        transform(exec2, view, C, lambda2); //check passing sycl buffer
     }
 
     //check result
