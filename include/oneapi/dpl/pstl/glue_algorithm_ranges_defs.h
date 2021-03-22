@@ -107,6 +107,16 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _BinaryOperation __op);
 
+// [alg.remove]
+
+template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred);
+
+template <typename _ExecutionPolicy, typename _Range, typename _Tp>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+remove(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value);
+
 // [alg.sort]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>

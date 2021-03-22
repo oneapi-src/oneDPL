@@ -347,6 +347,25 @@ struct __scan_init_processing
     }
 };
 
+// create mask
+template <typename _Pred, typename _Tp>
+struct __create_mask
+{
+    _Pred __pred;
+
+    template <typename _Idx, typename _Input>
+    _Tp
+    operator()(const _Idx __idx, const _Input& __input) const
+    {
+        using ::std::get;
+        // 1. apply __pred
+        auto __temp = __pred(get<0>(__input[__idx]));
+        // 2. initialize mask
+        get<1>(__input[__idx]) = __temp;
+        return _Tp(__temp);
+    }
+};
+
 // functors for scan
 template <typename _BinaryOp, typename _Inclusive, ::std::size_t N>
 struct __copy_by_mask
