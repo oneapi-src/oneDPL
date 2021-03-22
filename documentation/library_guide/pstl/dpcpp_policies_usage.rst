@@ -7,9 +7,9 @@ Follow these steps to add Parallel STL to your application:
    Then include one or more of the following header files, depending on the algorithms you
    intend to use:
 
-   * ``#include <oneapi/dpl/algorithm>``
-   * ``#include <oneapi/dpl/numeric>``
-   * ``#include <oneapi/dpl/memory>``
+   #. ``#include <oneapi/dpl/algorithm>``
+   #. ``#include <oneapi/dpl/numeric>``
+   #. ``#include <oneapi/dpl/memory>``
 
    For better coexistence with the C++ standard library,
    include |onedpl_long| header files before the standard C++ header files.
@@ -18,11 +18,12 @@ Follow these steps to add Parallel STL to your application:
    namespace, to a parallel algorithm.
 #. Use the C++ Standard Execution Policies:
 
-   * Compile the code with options that enable OpenMP* vectorization pragmas.
-   * Link with the |onetbb_long| or |tbb_long| dynamic library for parallelism.
+   #. Compile the code with options that enable OpenMP* vectorization pragmas.
+   #. Link with the |onetbb_long| or |tbb_long| dynamic library for parallelism.
+
 #. Use the |dpcpp_long| Execution Policies:
 
-   * Compile the code with options that enable support for SYCL* 2020.
+   #. Compile the code with options that enable support for SYCL* 2020.
 
 Use the C++ Standard Execution Policies
 =======================================
@@ -118,10 +119,10 @@ Use the policy when you run the application on a FPGA hardware device or FPGA em
    a class type for a unique kernel name as template arguments (both optional), and one of the
    following constructor arguments:
 
-   * A SYCL queue constructed for the `FPGA Selector
-     <https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/IntelFPGA/FPGASelector.md>`_
-     (the behavior is undefined with any other queue).
-   * An existing FPGA policy object with a different kernel name and/or unroll factor.
+   #. A SYCL queue constructed for the
+      `FPGA Selector <https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/IntelFPGA/FPGASelector.md>`_
+      (the behavior is undefined with any other queue).
+   #. An existing FPGA policy object with a different kernel name and/or unroll factor.
 
 #. Pass the created policy object to a parallel algorithm.
 
@@ -133,14 +134,14 @@ if the ``ONEDPL_FPGA_EMULATOR`` is defined.
 the ``fpga_policy`` class created with a default unroll factor and a default kernel name.
 Use it to create customized policy objects, or pass directly when invoking an algorithm.
 
-:Note: Specifying unroll factor for a policy enables loop unrolling in the implementation of
-  algorithms. Default value is 1.
-  To find out how to choose a better value, you can refer to the `unroll Pragma
-  <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/fpga-optimization-flags-attributes-pragmas-and-extensions/loop-directives/unroll-pragma.html>`_
-  and `Loops Analysis
-  <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/analyze-your-design/analyze-the-fpga-early-image/review-the-report-html-file/loops-analysis.html>`_ chapters of
-  the `Intel® oneAPI DPC++ FPGA Optimization Guide
-  <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top.html>`_.
+.. Note::
+
+   Specifying unroll factor for a policy enables loop unrolling in the implementation of
+   algorithms. Default value is 1.
+   To find out how to choose a better value, you can refer to the `unroll Pragma <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/fpga-optimization-flags-attributes-pragmas-and-extensions/loop-directives/unroll-pragma.html>`_
+   and `Loops Analysis <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/analyze-your-design/analyze-the-fpga-early-image/review-the-report-html-file/loops-analysis.html>`_ chapters of
+   the `Intel® oneAPI DPC++ FPGA Optimization Guide
+   <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top.html>`_.
 
 The ``make_fpga_policy`` function templates simplify ``fpga_policy`` creation.
 
