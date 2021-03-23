@@ -161,10 +161,10 @@ struct __get_first_range_type
 };
 
 template <typename _Range, typename... _Ranges>
-constexpr _Range
-__get_first_range(_Range&& __rng, _Ranges&&...)
+auto
+__get_first_range_size(_Range&& __rng, _Ranges&&...)
 {
-    return __rng;
+    return __rng.size();
 }
 
 template <typename _Cgh>

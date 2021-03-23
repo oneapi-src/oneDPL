@@ -35,7 +35,7 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, o
 __parallel_transform_reduce_async(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce,
                                   _Ranges&&... __rngs)
 {
-    auto __n = __get_first_range(__rngs...).size();
+    auto __n = __get_first_range_size(__rngs...);
     assert(__n > 0);
 
     using _Size = decltype(__n);
