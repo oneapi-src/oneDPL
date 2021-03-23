@@ -162,7 +162,7 @@ struct __get_first_range_type
 
 template <typename _Range, typename... _Ranges>
 auto
-__get_first_range_size(_Range&& __rng, _Ranges&&...)
+__get_first_range_size(_Range&& __rng, _Ranges&&...) -> decltype(__rng.size())
 {
     return __rng.size();
 }
