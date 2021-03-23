@@ -27,6 +27,7 @@
 //     The 10000th consecutive invocation of a default-constructed object of type minstd_rand
 //     produces the value 399268537
 
+#include "support/utils.h"
 #include <iostream>
 
 #if _ONEDPL_BACKEND_SYCL
@@ -96,10 +97,7 @@ int main() {
         return 1;
     }
 
-#else
-    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
 #endif // _ONEDPL_BACKEND_SYCL
 
-    std::cout << "Test PASSED" << std::endl;
-    return 0;
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }

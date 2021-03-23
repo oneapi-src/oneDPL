@@ -135,6 +135,5 @@ main()
     test<int32_t>();
     test<float32_t>();
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

@@ -53,6 +53,5 @@ main()
     EXPECT_TRUE(!res2, "wrong effect from 'is_sorted' with sycl ranges (unsorted)");
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

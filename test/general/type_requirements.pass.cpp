@@ -36,6 +36,6 @@ int main() {
     CheckTuple<int>();
     CheckTuple<int, long, float>();
 #endif
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }

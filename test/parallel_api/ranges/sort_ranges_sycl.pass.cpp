@@ -55,6 +55,5 @@ main()
     EXPECT_TRUE(res2, "wrong effect from 'sort with comparator' with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

@@ -148,6 +148,6 @@ int32_t main() {
         test_multi_transform_copy(n);
     }
 #endif
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }

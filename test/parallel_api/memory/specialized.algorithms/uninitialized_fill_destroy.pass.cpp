@@ -214,7 +214,6 @@ main()
     test_uninitialized_fill_destroy_by_type<Wrapper<::std::string>>();
     test_uninitialized_fill_destroy_by_type<Wrapper<int8_t*>>();
 #endif
-    ::std::cout << done() << ::std::endl;
 
-    return 0;
+    return done();
 }

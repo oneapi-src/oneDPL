@@ -17,6 +17,7 @@
 //
 // Test of linear_congruential_engine - comparison with std::
 
+#include "support/utils.h"
 #include <iostream>
 
 #if _ONEDPL_BACKEND_SYCL
@@ -391,10 +392,7 @@ int main() {
 
 #endif // #if defined(_ONEDPL_RNG_DETAILED_TESTING)
 
-#else
-    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
 #endif // _ONEDPL_BACKEND_SYCL
 
-    std::cout << "Test PASSED" << std::endl;
-    return 0;
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }

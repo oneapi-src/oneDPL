@@ -237,6 +237,5 @@ main()
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

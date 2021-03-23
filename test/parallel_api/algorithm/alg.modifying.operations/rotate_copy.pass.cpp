@@ -132,6 +132,5 @@ main()
     test<wrapper<float64_t>, wrapper<float64_t>>();
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

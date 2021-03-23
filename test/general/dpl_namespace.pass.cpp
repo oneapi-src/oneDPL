@@ -18,6 +18,8 @@
 #include <oneapi/dpl/iterator>
 #include <oneapi/dpl/functional>
 
+#include "support/utils.h"
+
 #include <iostream>
 #include <tuple>
 
@@ -64,9 +66,7 @@ int main()
         std::cout << "done" << std::endl;
     }
 
-#else
-    std::cout << "done" << std::endl;
 #endif
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

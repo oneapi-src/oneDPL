@@ -640,6 +640,5 @@ main()
     test2buffers<int32_t, test_counting_zip_transform>();
 #endif
 #endif
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done(_ONEDPL_BACKEND_SYCL);
 }

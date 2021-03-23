@@ -84,6 +84,6 @@ main()
     test<float32_t>(-0.0, [](int32_t j) { return j & 1 ? 0.0 : -0.0; }, // hit
                     [](int32_t j) { return j == 0 ? ~j : j; });         // miss
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+
+    return done();
 }

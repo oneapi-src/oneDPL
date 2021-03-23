@@ -171,6 +171,6 @@ main()
     test<Wrapper<float64_t>>(Wrapper<float64_t>(-666.0), [](int32_t j) { return Wrapper<float64_t>(j); });
     test<Number>(Number(42, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
 #endif
-    ::std::cout << done() << ::std::endl;
-    return 0;
+
+    return done();
 }

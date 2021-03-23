@@ -39,6 +39,6 @@ static_assert(ONEDPL_VERSION_MINOR == 2, "");
 static_assert(ONEDPL_VERSION_PATCH == 0, "");
 
 int main() {
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done();
 }

@@ -155,6 +155,5 @@ main()
         [](::std::size_t) -> MyClass { return MyClass(rand() % 1000); });
 
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

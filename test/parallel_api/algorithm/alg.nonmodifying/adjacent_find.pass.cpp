@@ -150,6 +150,5 @@ main()
     test_adjacent_find_by_type<float64_t>();
     test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

@@ -16,6 +16,10 @@
 // File contains common utilities that tests rely on
 
 // Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
+#include "pstl_test_config.h"
+
+#include _PSTL_TEST_HEADER(execution)
+
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>
@@ -26,10 +30,9 @@
 #include <sstream>
 #include <vector>
 
-#include "pstl_test_config.h"
-
-#include _PSTL_TEST_HEADER(execution)
 #include "iterator_utils.h"
+
+#define _SKIP_RETURN_CODE 77
 
 #if _ONEDPL_BACKEND_SYCL
 #include "utils_sycl.h"
@@ -792,14 +795,23 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
     return init;
 }
 
-static const char*
-done()
+int
+done(int is_done = 1)
 {
+    if(is_done)
+    {
 #if _PSTL_TEST_SUCCESSFUL_KEYWORD
-    return "done";
+        ::std::cout << "done\n";
 #else
-    return "passed";
+        ::std::cout << "passed\n";
 #endif
+        return 0;
+    }
+    else
+    {
+        ::std::cout <<"Skipped\n";
+        return _SKIP_RETURN_CODE;
+    }
 }
 
 // test_algo_basic_* functions are used to execute

@@ -66,7 +66,6 @@ main()
         sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
 #endif
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }
 

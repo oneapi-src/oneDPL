@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include "support/pstl_test_config.h"
+#include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
@@ -117,6 +118,6 @@ int main()
     test_on_device();
 #endif
     test_on_host();
-    std::cout << "done" << std::endl;
-    return 0;
+
+    return TestUtils::done();
 }

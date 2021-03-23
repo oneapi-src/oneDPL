@@ -17,6 +17,7 @@
 //
 // Test of subtract_with_carry_engine - comparison with std::
 
+#include "support/utils.h"
 #include <iostream>
 
 #if _ONEDPL_BACKEND_SYCL
@@ -379,13 +380,9 @@ int main() {
         std::cout << "Test FAILED" << std::endl;
         return 1;
     }
-
 #endif // #if defined(_ONEDPL_RNG_DETAILED_TESTING_)
 
-#else
-    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
 #endif // _ONEDPL_BACKEND_SYCL
 
-    std::cout << "Test PASSED" << std::endl;
-    return 0;
+    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
 }
