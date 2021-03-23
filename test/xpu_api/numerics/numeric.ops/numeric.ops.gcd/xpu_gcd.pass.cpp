@@ -58,54 +58,50 @@ do_test()
                     int x;
                     int y;
                     int expect;
-                } Cases[] = {{0, 0, 0}, {1, 0, 1}, {0, 1, 1},   {1, 1, 1},
+                } cases[] = {{0, 0, 0}, {1, 0, 1}, {0, 1, 1},   {1, 1, 1},
                              {2, 3, 1}, {2, 4, 2}, {36, 17, 1}, {36, 18, 18}};
-                for (auto TC : Cases)
+                for (auto tc : cases)
                 {
                     { // Test with two signed types
                         using Output = oneapi::dpl::common_type_t<S1, S2>;
-                        out[0] &= test0<S1, S2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S1, S2, Output>(-TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S1, S2, Output>(TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S1, S2, Output>(-TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(-TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(-TC.x, -TC.y, TC.expect);
+                        out[0] &= test0<S1, S2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S1, S2, Output>(-tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S1, S2, Output>(tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S1, S2, Output>(-tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(-tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(-tc.x, -tc.y, tc.expect);
                     }
 
                     { // test with two unsigned types
                         using Output = oneapi::dpl::common_type_t<U1, U2>;
-                        out[0] &= test0<U1, U2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U2, U1, Output>(TC.x, TC.y, TC.expect);
+                        out[0] &= test0<U1, U2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U2, U1, Output>(tc.x, tc.y, tc.expect);
                     }
                     { // Test with mixed signs
                         using Output = oneapi::dpl::common_type_t<S1, U2>;
-                        out[0] &= test0<S1, U2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U2, S1, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U2, S1, Output>(TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S1, U2, Output>(-TC.x, TC.y, TC.expect);
+                        out[0] &= test0<S1, U2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U2, S1, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U2, S1, Output>(tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S1, U2, Output>(-tc.x, tc.y, tc.expect);
                     }
                     { // Test with mixed signs
                         using Output = oneapi::dpl::common_type_t<S2, U1>;
-                        out[0] &= test0<S2, U1, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U1, S2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U1, S2, Output>(TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S2, U1, Output>(-TC.x, TC.y, TC.expect);
+                        out[0] &= test0<S2, U1, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U1, S2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U1, S2, Output>(tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S2, U1, Output>(-tc.x, tc.y, tc.expect);
                     }
-                }
-                {
-                    auto res = oneapi::dpl::gcd(static_cast<std::int64_t>(1234), INT32_MIN);
-                    out[0] &= (res == 2);
                 }
             });
         });
     }
 
     if (res)
-        std::cout << "pass\n";
+        std::cout << "pass" << std::endl;
     else
-        std::cout << "fail\n";
+        std::cout << "fail" << std::endl;
 }
 
 int

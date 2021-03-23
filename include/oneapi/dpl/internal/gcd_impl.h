@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-#ifndef _ONEDPL_GCD
-#define _ONEDPL_GCD
+#ifndef _ONEDPL_GCD_IMPL
+#define _ONEDPL_GCD_IMPL
 
 #include <limits>
-#include "gcd_defs.h"
+#include <type_traits>
 
 namespace oneapi
 {
@@ -27,32 +27,30 @@ namespace dpl
 
 namespace internal
 {
-template <typename _Result, typename _Source, bool _IsSigned = ::std::is_signed<_Source>::value>
-struct __ct_abs;
-
 template <typename _Result, typename _Source>
-struct __ct_abs<_Result, _Source, true>
+_Result
+__abs_impl(_Source __t, ::std::true_type)
 {
-    constexpr _Result
-    operator()(_Source __t) const noexcept
-    {
-        if (__t >= 0)
-            return __t;
-        if (__t == ::std::numeric_limits<_Source>::min())
-            return -static_cast<_Result>(__t);
-        return -__t;
-    }
-};
-
-template <typename _Result, typename _Source>
-struct __ct_abs<_Result, _Source, false>
-{
-    constexpr _Result
-    operator()(_Source __t) const noexcept
-    {
+    if (__t >= 0)
         return __t;
-    }
+    if (__t == ::std::numeric_limits<_Source>::min())
+        return -static_cast<_Result>(__t);
+    return -__t;
 };
+
+template <typename _Result, typename _Source>
+_Result
+__abs_impl(_Source __t, ::std::false_type)
+{
+    return __t;
+};
+
+template <typename _Result, typename _Source>
+constexpr _Result
+__get_abs(_Source __t)
+{
+    return __abs_impl<_Result>(__t, ::std::is_signed<_Source>{});
+}
 
 } // namespace internal
 
@@ -64,14 +62,12 @@ gcd(_Mn __m, _Nn __n)
 {
     static_assert((::std::is_integral<_Mn>::value && ::std::is_integral<_Nn>::value),
                   "Arguments to gcd must be integer types");
-    static_assert((!::std::is_same<typename ::std::remove_cv<_Mn>::type, bool>::value),
-                  "First argument to gcd cannot be bool");
-    static_assert((!::std::is_same<typename ::std::remove_cv<_Nn>::type, bool>::value),
-                  "Second argument to gcd cannot be bool");
+    static_assert((!::std::is_same<::std::remove_cv_t<_Mn>, bool>::value), "First argument to gcd cannot be bool");
+    static_assert((!::std::is_same<::std::remove_cv_t<_Nn>, bool>::value), "Second argument to gcd cannot be bool");
     using _Rp = ::std::common_type_t<_Mn, _Nn>;
     using _Wp = ::std::make_unsigned_t<_Rp>;
-    _Wp __m1 = static_cast<_Wp>(oneapi::dpl::internal::__ct_abs<_Rp, _Mn>()(__m));
-    _Wp __n1 = static_cast<_Wp>(oneapi::dpl::internal::__ct_abs<_Rp, _Nn>()(__n));
+    _Wp __m1 = static_cast<_Wp>(oneapi::dpl::internal::__get_abs<_Rp>(__m));
+    _Wp __n1 = static_cast<_Wp>(oneapi::dpl::internal::__get_abs<_Rp>(__n));
 
     while (__n1 != 0)
     {
@@ -88,16 +84,14 @@ constexpr ::std::common_type_t<_Mn, _Nn>
 lcm(_Mn __m, _Nn __n)
 {
     static_assert((::std::is_integral<_Mn>::value && ::std::is_integral<_Nn>::value),
-                  "Arguments to gcd must be integer types");
-    static_assert((!::std::is_same<typename ::std::remove_cv<_Mn>::type, bool>::value),
-                  "First argument to gcd cannot be bool");
-    static_assert((!::std::is_same<typename ::std::remove_cv<_Nn>::type, bool>::value),
-                  "Second argument to gcd cannot be bool");
+                  "Arguments to lcm must be integer types");
+    static_assert((!::std::is_same<::std::remove_cv_t<_Mn>, bool>::value), "First argument to lcm cannot be bool");
+    static_assert((!::std::is_same<::std::remove_cv_t<_Nn>, bool>::value), "Second argument to lcm cannot be bool");
     if (__m == 0 || __n == 0)
         return 0;
     using _Rp = ::std::common_type_t<_Mn, _Nn>;
-    _Rp __val1 = oneapi::dpl::internal::__ct_abs<_Rp, _Mn>()(__m) / gcd(__m, __n);
-    _Rp __val2 = oneapi::dpl::internal::__ct_abs<_Rp, _Nn>()(__n);
+    _Rp __val1 = oneapi::dpl::internal::__get_abs<_Rp>(__m) / gcd(__m, __n);
+    _Rp __val2 = oneapi::dpl::internal::__get_abs<_Rp>(__n);
     return __val1 * __val2;
 }
 #endif

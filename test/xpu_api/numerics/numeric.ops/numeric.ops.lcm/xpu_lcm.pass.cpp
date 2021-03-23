@@ -57,44 +57,44 @@ do_test()
                     int x;
                     int y;
                     int expect;
-                } Cases[] = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0},   {1, 1, 1},
+                } cases[] = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0},   {1, 1, 1},
                              {2, 3, 6}, {2, 4, 4}, {3, 17, 51}, {36, 18, 36}};
                 using S1 = oneapi::dpl::make_signed_t<Input1>;
                 using S2 = oneapi::dpl::make_signed_t<Input2>;
                 using U1 = oneapi::dpl::make_unsigned_t<Input1>;
                 using U2 = oneapi::dpl::make_unsigned_t<Input2>;
-                for (auto TC : Cases)
+                for (auto tc : cases)
                 {
                     { // Test with two signed types
                         using Output = oneapi::dpl::common_type_t<S1, S2>;
-                        out[0] &= test0<S1, S2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S1, S2, Output>(-TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S1, S2, Output>(TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S1, S2, Output>(-TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(-TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(TC.x, -TC.y, TC.expect);
-                        out[0] &= test0<S2, S1, Output>(-TC.x, -TC.y, TC.expect);
+                        out[0] &= test0<S1, S2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S1, S2, Output>(-tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S1, S2, Output>(tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S1, S2, Output>(-tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(-tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(tc.x, -tc.y, tc.expect);
+                        out[0] &= test0<S2, S1, Output>(-tc.x, -tc.y, tc.expect);
                     }
 
                     { // test with two unsigned types
                         using Output = oneapi::dpl::common_type_t<U1, U2>;
-                        out[0] &= test0<U1, U2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U2, U1, Output>(TC.x, TC.y, TC.expect);
+                        out[0] &= test0<U1, U2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U2, U1, Output>(tc.x, tc.y, tc.expect);
                     }
                     { // Test with mixed signs
                         using Output = oneapi::dpl::common_type_t<S1, U2>;
-                        out[0] &= test0<S1, U2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U2, S1, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S1, U2, Output>(-TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U2, S1, Output>(TC.x, -TC.y, TC.expect);
+                        out[0] &= test0<S1, U2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U2, S1, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S1, U2, Output>(-tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U2, S1, Output>(tc.x, -tc.y, tc.expect);
                     }
                     { // Test with mixed signs
                         using Output = oneapi::dpl::common_type_t<S2, U1>;
-                        out[0] &= test0<S2, U1, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U1, S2, Output>(TC.x, TC.y, TC.expect);
-                        out[0] &= test0<S2, U1, Output>(-TC.x, TC.y, TC.expect);
-                        out[0] &= test0<U1, S2, Output>(TC.x, -TC.y, TC.expect);
+                        out[0] &= test0<S2, U1, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U1, S2, Output>(tc.x, tc.y, tc.expect);
+                        out[0] &= test0<S2, U1, Output>(-tc.x, tc.y, tc.expect);
+                        out[0] &= test0<U1, S2, Output>(tc.x, -tc.y, tc.expect);
                     }
                 }
                 {
