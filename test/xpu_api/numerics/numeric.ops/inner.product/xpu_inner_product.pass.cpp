@@ -14,10 +14,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <CL/sycl.hpp>
-#include <iostream>
 #include <oneapi/dpl/numeric>
 
+#include <CL/sycl.hpp>
+#include <iostream>
 #include "support/test_iterators.h"
 
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
@@ -31,7 +31,10 @@ ASSERT_EQUAL(_T1&& X, _T2&& Y)
         std::cout << "CHECK CORRECTNESS (STL WITH SYCL): fail (" << X << "," << Y << ")" << std::endl;
 }
 
-template <class Iter1, class Iter2, class Test>
+template <typename T1, typename T2>
+class KernelName;
+
+template <class Iter1, class Iter2>
 void
 test()
 {
@@ -50,7 +53,7 @@ test()
             auto in1 = buffer1.get_access<sycl_read>(cgh);
             auto in2 = buffer2.get_access<sycl_read>(cgh);
             auto out = buffer3.get_access<sycl_write>(cgh);
-            cgh.single_task<Test>([=]() {
+            cgh.single_task<KernelName<Iter1, Iter2>>([=]() {
                 out[0] = oneapi::dpl::inner_product(Iter1(&in1[0]), Iter1(&in1[0]), Iter2(&in2[0]), 0);
                 out[1] = oneapi::dpl::inner_product(Iter1(&in1[0]), Iter1(&in1[0]), Iter2(&in2[0]), 10);
                 out[2] = oneapi::dpl::inner_product(Iter1(&in1[0]), Iter1(&in1[0] + 1), Iter2(&in2[0]), 0);
@@ -68,81 +71,42 @@ test()
         ASSERT_EQUAL(ref[i], output[i]);
     }
 }
-class KernelTest1;
-class KernelTest2;
-class KernelTest3;
-class KernelTest4;
-class KernelTest5;
-class KernelTest6;
-class KernelTest7;
-class KernelTest8;
-class KernelTest9;
-class KernelTest10;
-class KernelTest11;
-class KernelTest12;
-class KernelTest13;
-class KernelTest14;
-class KernelTest15;
-class KernelTest16;
-class KernelTest17;
-class KernelTest18;
-class KernelTest19;
-class KernelTest20;
-class KernelTest21;
-class KernelTest22;
-class KernelTest23;
-class KernelTest24;
-class KernelTest25;
 
 int
 main()
 {
-#if 0
-  test<input_iterator<const int *>, input_iterator<const int *>, KernelTest1>();
-  test<input_iterator<const int *>, forward_iterator<const int *>,
-       KernelTest2>();
-  test<input_iterator<const int *>, bidirectional_iterator<const int *>,
-       KernelTest3>();
-  test<input_iterator<const int *>, random_access_iterator<const int *>,
-       KernelTest4>();
-  test<input_iterator<const int *>, const int *, KernelTest5>();
+    test<input_iterator<const int*>, input_iterator<const int*>>();
+    test<input_iterator<const int*>, forward_iterator<const int*>>();
+    test<input_iterator<const int*>, bidirectional_iterator<const int*>>();
+    test<input_iterator<const int*>, random_access_iterator<const int*>>();
+    test<input_iterator<const int*>, const int*>();
 
-  test<forward_iterator<const int *>, input_iterator<const int *>,
-       KernelTest6>();
-  test<forward_iterator<const int *>, forward_iterator<const int *>,
-       KernelTest7>();
-  test<forward_iterator<const int *>, bidirectional_iterator<const int *>,
-       KernelTest8>();
-  test<forward_iterator<const int *>, random_access_iterator<const int *>,
-       KernelTest9>();
-  test<forward_iterator<const int *>, const int *, KernelTest10>();
+#if !PSTL_USE_DEBUG
+    test<forward_iterator<const int*>, input_iterator<const int*>>();
+    test<forward_iterator<const int*>, forward_iterator<const int*>>();
+    test<forward_iterator<const int*>, bidirectional_iterator<const int*>>();
+    test<forward_iterator<const int*>, random_access_iterator<const int*>>();
+    test<forward_iterator<const int*>, const int*>();
 
-  test<bidirectional_iterator<const int *>, input_iterator<const int *>,
-       KernelTest11>();
-  test<bidirectional_iterator<const int *>, forward_iterator<const int *>,
-       KernelTest12>();
-  test<bidirectional_iterator<const int *>, bidirectional_iterator<const int *>,
-       KernelTest13>();
-  test<bidirectional_iterator<const int *>, random_access_iterator<const int *>,
-       KernelTest14>();
-  test<bidirectional_iterator<const int *>, const int *, KernelTest15>();
+    test<bidirectional_iterator<const int*>, input_iterator<const int*>>();
+    test<bidirectional_iterator<const int*>, forward_iterator<const int*>>();
+    test<bidirectional_iterator<const int*>, bidirectional_iterator<const int*>>();
+    test<bidirectional_iterator<const int*>, random_access_iterator<const int*>>();
+    test<bidirectional_iterator<const int*>, const int*>();
 
-  test<random_access_iterator<const int *>, input_iterator<const int *>,
-       KernelTest16>();
-  test<random_access_iterator<const int *>, forward_iterator<const int *>,
-       KernelTest17>();
-  test<random_access_iterator<const int *>, bidirectional_iterator<const int *>,
-       KernelTest18>();
-  test<random_access_iterator<const int *>, random_access_iterator<const int *>,
-       KernelTest19>();
-  test<random_access_iterator<const int *>, const int *, KernelTest20>();
+    test<random_access_iterator<const int*>, input_iterator<const int*>>();
+    test<random_access_iterator<const int*>, forward_iterator<const int*>>();
+    test<random_access_iterator<const int*>, bidirectional_iterator<const int*>>();
+    test<random_access_iterator<const int*>, random_access_iterator<const int*>>();
+    test<random_access_iterator<const int*>, const int*>();
 
-  test<const int *, input_iterator<const int *>, KernelTest21>();
-  test<const int *, forward_iterator<const int *>, KernelTest22>();
-  test<const int *, bidirectional_iterator<const int *>, KernelTest23>();
-  test<const int *, random_access_iterator<const int *>, KernelTest24>();
-  test<const int *, const int *, KernelTest25>();
+    test<const int*, input_iterator<const int*>>();
+    test<const int*, forward_iterator<const int*>>();
+    test<const int*, bidirectional_iterator<const int*>>();
+    test<const int*, random_access_iterator<const int*>>();
+    test<const int*, const int*>();
 #endif
+
     std::cout << "done" << std::endl;
     return 0;
 }
