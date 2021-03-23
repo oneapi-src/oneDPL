@@ -1,0 +1,10 @@
+Parallel STL. Dot_product sample
+
+License Information Follows
+---------------------------
+* msvs/*.*
+* *.*
+
+Copyright 2017-2020 Intel Corporation
+
+* license: http://software.intel.com/en-us/articles/intel-sample-source-code-license-agreement/
