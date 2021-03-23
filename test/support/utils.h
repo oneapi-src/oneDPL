@@ -798,7 +798,7 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
 int
 done(int is_done = 1)
 {
-    if(is_done == 1)
+    if(is_done)
     {
 #if _PSTL_TEST_SUCCESSFUL_KEYWORD
         ::std::cout << "done\n";
