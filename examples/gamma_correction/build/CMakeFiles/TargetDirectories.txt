@@ -1,6 +1,0 @@
-/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/gamma_correction/build/CMakeFiles/rebuild_cache.dir
-/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/gamma_correction/build/CMakeFiles/edit_cache.dir
-/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/gamma_correction/build/src/CMakeFiles/edit_cache.dir
-/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/gamma_correction/build/src/CMakeFiles/rebuild_cache.dir
-/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/gamma_correction/build/src/CMakeFiles/gamma_correction.dir
-/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/gamma_correction/build/src/CMakeFiles/run.dir
