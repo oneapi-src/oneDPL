@@ -72,7 +72,46 @@ is_equal(const T& x, const T& y)
 }
 
 template <typename Type>
-struct test_one_policy
+struct test_without_compare
+{
+    // nth_element works only with random access iterators
+    template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2>
+    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value &&
+                              can_use_default_less_operator<Type>::value, void>::type
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
+               Generator1 generator1, Generator2 generator2)
+    {
+        using T = typename ::std::iterator_traits<Iterator1>::value_type;
+        const Iterator1 mid1 = ::std::next(first1, m);
+        const Iterator1 mid2 = ::std::next(first2, m);
+
+        std::cout << "test_without_compare" << std::endl;
+
+        fill_data(first1, mid1, generator1);
+        fill_data(mid1, last1, generator2);
+        fill_data(first2, mid2, generator1);
+        fill_data(mid2, last2, generator2);
+        ::std::nth_element(first1, mid1, last1);
+        ::std::nth_element(exec, first2, mid2, last2);
+        if (m > 0 && m < n)
+        {
+            EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element without predicate");
+        }
+        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [](T& x, T& y) { return y < x; }) == mid2,
+                    "wrong effect from nth_element without predicate");
+    }
+
+    template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2>
+    typename ::std::enable_if<!is_same_iterator_category<Iterator1, ::std::random_access_iterator_tag>::value ||
+                              !can_use_default_less_operator<Type>::value, void>::type
+    operator()(Policy&& /* exec */, Iterator1 /* first1 */, Iterator1 /* last1 */, Iterator1 /* first2 */, Iterator1 /* last2 */, Size /* n */, Size /* m */,
+               Generator1 /* generator1 */, Generator2 /* generator2 */)
+    {
+    }
+};
+
+template <typename Type>
+struct test_with_compare
 {
     // nth_element works only with random access iterators
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2,
@@ -109,6 +148,22 @@ struct test_one_policy
     }
 };
 
+template <::std::size_t FirstCallNumber, ::std::size_t SecondCallNumber>
+struct test_multiple_intefaces
+{
+    template<typename Iterator1, typename Size, typename Generator1, typename Generator2, typename Compare>
+    void
+    operator()(Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
+               Generator1 generator1, Generator2 generator2, Compare comp)
+    {
+        using Type = typename ::std::iterator_traits<Iterator1>::value_type;
+        invoke_on_all_policies<FirstCallNumber>()(test_with_compare<Type>(), first1, last1, first2, last2, n, m,
+                                                  generator1, generator2, comp);
+        invoke_on_all_policies<SecondCallNumber>()(test_without_compare<Type>(), first1, last1, first2, last2, n, m,
+                                                   generator1, generator2);
+    }
+};
+
 template <typename T, typename Generator1, typename Generator2, typename Compare>
 void
 test_by_type(Generator1 generator1, Generator2 generator2, Compare comp)
@@ -122,17 +177,17 @@ test_by_type(Generator1 generator1, Generator2 generator2, Compare comp)
     for (size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         m = 0;
-        invoke_on_all_policies<0>()(test_one_policy<T>(), exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n,
-                                    n, m, generator1, generator2, comp);
+        test_multiple_intefaces<0, 1>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
+                                        generator1, generator2, comp);
         m = n / 7;
-        invoke_on_all_policies<1>()(test_one_policy<T>(), exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n,
-                                    n, m, generator1, generator2, comp);
+        test_multiple_intefaces<2, 3>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
+                                        generator1, generator2, comp);
         m = 3 * n / 5;
-        invoke_on_all_policies<2>()(test_one_policy<T>(), exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n,
-                                    n, m, generator1, generator2, comp);
+        test_multiple_intefaces<4, 5>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
+                                        generator1, generator2, comp);
     }
-    invoke_on_all_policies<3>()(test_one_policy<T>(), exp.begin(), exp.begin() + max_size, in1.begin(),
-                                in1.begin() + max_size, max_size, max_size, generator1, generator2, comp);
+    test_multiple_intefaces<6, 7>()(exp.begin(), exp.begin() + max_size, in1.begin(), in1.begin() + max_size,
+                                    max_size, max_size, generator1, generator2, comp);
 }
 
 template <typename T>
