@@ -1,1 +1,0 @@
-/mnt/tbbusers/tbbtest/tools/linux/oneapi_compiler/nightly_20210216/build/linux_prod/compiler/linux/bin/dpcpp  -DBUILD_FOR_HOST -O2 -g -DNDEBUG  -rdynamic CMakeFiles/gamma_correction.dir/main.cpp.o  -o gamma_correction -ltbb 
