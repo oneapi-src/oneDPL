@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/src/main.cpp
+oneapi/dpl/algorithm
+-
+oneapi/dpl/numeric
+-
+oneapi/dpl/execution
+-
+oneapi/dpl/iterator
+-
+chrono
+-
+vector
+-
+fstream
+-
+utils.h
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/src/utils.h
+
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/src/utils.h
+random
+-
+string
+-
+iostream
+-
+

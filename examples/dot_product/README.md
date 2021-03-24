@@ -2,12 +2,12 @@
 
 This example contains the oneDPL-based implementation of dot product based on `std::transform_reduce`.
 
-| Optimized for                   | Description                                                                                                                          |
-|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| OS                              | Linux* Ubuntu* 18.04                                                                                                                 |
-| Hardware                        | Skylake or newer                                                                                                           |
-| Software                        | Intel&reg; oneAPI DPC++/C++ Compiler; Intel&reg; oneAPI DPC++ Library (oneDPL); Intel&reg; oneAPI Threading Building Blocks (oneTBB) |
-| Time to complete                | At most 5 minutes                                                                                                                    |
+| Optimized for                   | Description                                                                                    |
+|---------------------------------|------------------------------------------------------------------------------------------------|
+| OS                              | Linux* Ubuntu* 18.04                                                                           |
+| Hardware                        | Skylake or newer                                                                               |
+| Software                        | Intel&reg; oneAPI DPC++ Library (oneDPL); Intel&reg; oneAPI Threading Building Blocks (oneTBB) |
+| Time to complete                | At most 1 minute                                                                               |
 
 ## License
 

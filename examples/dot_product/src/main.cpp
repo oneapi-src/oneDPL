@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     //the dot product calculation
     double res = std::transform_reduce(oneapi::dpl::execution::par_unseq, v1.cbegin(), v1.cend(), v2.cbegin(), .0);
 
-    std::cout << "success" << res << std::endl;
+    std::cout << "success" << std::endl;
     std::cout << "The dot product is: " << res << std::endl;
 
     return 0;
