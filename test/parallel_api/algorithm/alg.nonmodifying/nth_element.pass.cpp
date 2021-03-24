@@ -149,7 +149,7 @@ struct test_with_compare
 };
 
 template <::std::size_t FirstCallNumber, ::std::size_t SecondCallNumber>
-struct test_multiple_intefaces
+struct test_multiple_interfaces
 {
     template<typename Iterator1, typename Size, typename Generator1, typename Generator2, typename Compare>
     void
@@ -177,16 +177,16 @@ test_by_type(Generator1 generator1, Generator2 generator2, Compare comp)
     for (size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         m = 0;
-        test_multiple_intefaces<0, 1>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
+        test_multiple_interfaces<0, 1>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
                                         generator1, generator2, comp);
         m = n / 7;
-        test_multiple_intefaces<2, 3>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
+        test_multiple_interfaces<2, 3>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
                                         generator1, generator2, comp);
         m = 3 * n / 5;
-        test_multiple_intefaces<4, 5>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
+        test_multiple_interfaces<4, 5>()(exp.begin(), exp.begin() + n, in1.begin(), in1.begin() + n, n, m,
                                         generator1, generator2, comp);
     }
-    test_multiple_intefaces<6, 7>()(exp.begin(), exp.begin() + max_size, in1.begin(), in1.begin() + max_size,
+    test_multiple_interfaces<6, 7>()(exp.begin(), exp.begin() + max_size, in1.begin(), in1.begin() + max_size,
                                     max_size, max_size, generator1, generator2, comp);
 }
 
