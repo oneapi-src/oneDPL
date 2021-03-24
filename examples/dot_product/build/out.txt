@@ -1,0 +1,37 @@
+-- Default CMAKE_BUILD_TYPE not set using Release with Debug Info
+-- The CXX compiler identification is GNU 7.5.0
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build
+/usr/bin/cmake -H/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product -B/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build --check-build-system CMakeFiles/Makefile.cmake 0
+/usr/bin/cmake -E cmake_progress_start /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/CMakeFiles /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/CMakeFiles/progress.marks
+make -f CMakeFiles/Makefile2 all
+make[1]: Entering directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build'
+make -f src/CMakeFiles/stable_sort_by_key.dir/build.make src/CMakeFiles/stable_sort_by_key.dir/depend
+make[2]: Entering directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build'
+cd /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/src /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src/CMakeFiles/stable_sort_by_key.dir/DependInfo.cmake --color=
+Dependee "/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src/CMakeFiles/stable_sort_by_key.dir/DependInfo.cmake" is newer than depender "/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src/CMakeFiles/stable_sort_by_key.dir/depend.internal".
+Dependee "/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src/CMakeFiles/stable_sort_by_key.dir/depend.internal".
+Scanning dependencies of target stable_sort_by_key
+make[2]: Leaving directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build'
+make -f src/CMakeFiles/stable_sort_by_key.dir/build.make src/CMakeFiles/stable_sort_by_key.dir/build
+make[2]: Entering directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build'
+[ 50%] Building CXX object src/CMakeFiles/stable_sort_by_key.dir/main.cpp.o
+cd /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src && /usr/bin/c++    -O2 -g -DNDEBUG   -o CMakeFiles/stable_sort_by_key.dir/main.cpp.o -c /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/src/main.cpp
+[100%] Linking CXX executable stable_sort_by_key
+cd /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/src && /usr/bin/cmake -E cmake_link_script CMakeFiles/stable_sort_by_key.dir/link.txt --verbose=1
+/usr/bin/c++  -O2 -g -DNDEBUG  -rdynamic CMakeFiles/stable_sort_by_key.dir/main.cpp.o  -o stable_sort_by_key -ltbb 
+make[2]: Leaving directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build'
+[100%] Built target stable_sort_by_key
+make[1]: Leaving directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build'
+/usr/bin/cmake -E cmake_progress_start /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/dot_product/build/CMakeFiles 0
+Scanning dependencies of target run
+success2.50225e+06
+The dot product is: 2.50225e+06
+Built target run

@@ -1,0 +1,36 @@
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build
+/usr/bin/cmake -H/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull -B/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build --check-build-system CMakeFiles/Makefile.cmake 0
+/usr/bin/cmake -E cmake_progress_start /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/CMakeFiles /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/CMakeFiles/progress.marks
+make -f CMakeFiles/Makefile2 all
+make[1]: Entering directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build'
+make -f src/CMakeFiles/stable_sort_by_key.dir/build.make src/CMakeFiles/stable_sort_by_key.dir/depend
+make[2]: Entering directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build'
+cd /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/src /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/src /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/src/CMakeFiles/stable_sort_by_key.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build'
+make -f src/CMakeFiles/stable_sort_by_key.dir/build.make src/CMakeFiles/stable_sort_by_key.dir/build
+make[2]: Entering directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build'
+[ 50%] Building CXX object src/CMakeFiles/stable_sort_by_key.dir/main.cpp.o
+cd /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/src && /usr/bin/c++    -O2 -g -DNDEBUG   -o CMakeFiles/stable_sort_by_key.dir/main.cpp.o -c /nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/src/main.cpp
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/src/main.cpp:8:10: fatal error: oneapi/dpl/algorithm: No such file or directory
+ #include <oneapi/dpl/algorithm>
+          ^~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+src/CMakeFiles/stable_sort_by_key.dir/build.make:62: recipe for target 'src/CMakeFiles/stable_sort_by_key.dir/main.cpp.o' failed
+make[2]: *** [src/CMakeFiles/stable_sort_by_key.dir/main.cpp.o] Error 1
+make[2]: Leaving directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build'
+CMakeFiles/Makefile2:86: recipe for target 'src/CMakeFiles/stable_sort_by_key.dir/all' failed
+make[1]: *** [src/CMakeFiles/stable_sort_by_key.dir/all] Error 2
+make[1]: Leaving directory '/mnt/tbbusers/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build'
+Makefile:83: recipe for target 'all' failed
+make: *** [all] Error 2
+/bin/sh: ./stable_sort_by_key: No such file or directory
+src/CMakeFiles/run.dir/build.make:57: recipe for target 'src/CMakeFiles/run' failed
+make[3]: *** [src/CMakeFiles/run] Error 127
+CMakeFiles/Makefile2:123: recipe for target 'src/CMakeFiles/run.dir/all' failed
+make[2]: *** [src/CMakeFiles/run.dir/all] Error 2
+CMakeFiles/Makefile2:130: recipe for target 'src/CMakeFiles/run.dir/rule' failed
+make[1]: *** [src/CMakeFiles/run.dir/rule] Error 2
+Makefile:131: recipe for target 'run' failed
+make: *** [run] Error 2

@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     if (fout.is_open()) {
         for (auto p : hull)
             fout << p << std::endl;
-        std::cout << "success" << res << std::endl;
+        std::cout << "success" << std::endl;
         std::cout << "The convex hull has been stored to a file " << output_file << std::endl;
     }
     else {

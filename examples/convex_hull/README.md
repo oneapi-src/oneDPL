@@ -16,13 +16,12 @@ Each of the algorithms use `oneapi::dpl::par_unseq` policy. In order to get effe
 By default problem size was set as 5 000 000 points. With point set with less than 500 000 points par_unseq policy could be inefficient.
 Correctness of the convex hull is checked by `std::any_of` algorithm using `counting iterator`.
 
-
-| Optimized for                   | Description                                                                                                                          |
-|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| OS                              | Linux* Ubuntu* 18.04                                                                                                                 |
-| Hardware                        | Skylake or newer                                                                                                           |
-| Software                        | Intel&reg; oneAPI DPC++/C++ Compiler; Intel&reg; oneAPI DPC++ Library (oneDPL); Intel&reg; oneAPI Threading Building Blocks (oneTBB) |
-| Time to complete                | At most 5 minutes                                                                                                                    |
+| Optimized for                   | Description                                                                                    |
+|---------------------------------|------------------------------------------------------------------------------------------------|
+| OS                              | Linux* Ubuntu* 18.04                                                                           |
+| Hardware                        | Skylake or newer                                                                               |
+| Software                        | Intel&reg; oneAPI DPC++ Library (oneDPL); Intel&reg; oneAPI Threading Building Blocks (oneTBB) |
+| Time to complete                | At most 1 minute                                                                               |
 
 ## License
 

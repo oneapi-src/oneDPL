@@ -1,0 +1,6 @@
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/CMakeFiles/rebuild_cache.dir
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/CMakeFiles/edit_cache.dir
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/src/CMakeFiles/rebuild_cache.dir
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/src/CMakeFiles/edit_cache.dir
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/src/CMakeFiles/stable_sort_by_key.dir
+/nfs/site/home/andreyfe/work/repos/GITHUB/oneDPL/examples/convex_hull/build/src/CMakeFiles/run.dir
