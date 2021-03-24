@@ -417,6 +417,12 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::random_access_iterator_tag iterator_category;
 
+    transform_iterator() : __my_it_(_Iter()), __my_unary_func_(_UnaryFunc())
+    {
+        static_assert((::std::is_same<typename ::std::iterator_traits<_Iter>::iterator_category,
+                                      ::std::random_access_iterator_tag>::value),
+                      "Random access iterator required.");
+    } 
     transform_iterator(_Iter __it, _UnaryFunc __unary_func) : __my_it_(__it), __my_unary_func_(__unary_func)
     {
         static_assert((::std::is_same<typename ::std::iterator_traits<_Iter>::iterator_category,

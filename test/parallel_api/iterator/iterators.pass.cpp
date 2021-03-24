@@ -239,7 +239,11 @@ struct test_transform_iterator {
         test_transform_effect(in1.begin(),  in1.end(),  in2.begin());
         test_transform_effect(in1.cbegin(), in1.cend(), in2.begin());
 
-        auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), [](T2& x) { return x + 1; });
+        auto new_functor = [](T2& x) { return x + 1; };
+        auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), new_functor);
+        EXPECT_TRUE(new_transform_iterator.base() == in2.begin(), "wrong result from transform_iterator::base");
+        EXPECT_TRUE(new_transform_iterator.functor()(*(in2.begin())) == new_functor(*(in2.begin()),
+            "wrong result from transform_iterator::functor");
         test_random_iterator(new_transform_iterator);
     }
 };
