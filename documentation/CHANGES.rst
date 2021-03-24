@@ -427,4 +427,6 @@ Known Issues and Limitations
 
 `*` Other names and brands may be claimed as the property of others.
 
+.. [#fnote1] The sorting algorithms in oneDPL use Radix sort for arithmetic data types compared with
+   ``std::less`` or ``std::greater``, otherwise Merge sort.
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
