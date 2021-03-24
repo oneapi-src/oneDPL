@@ -16,6 +16,7 @@
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/type_traits>
 
+#include <cassert>
 #include <iostream>
 #include <CL/sycl.hpp>
 
@@ -98,10 +99,7 @@ do_test()
         });
     }
 
-    if (res)
-        std::cout << "pass" << std::endl;
-    else
-        std::cout << "fail" << std::endl;
+    assert(res);
 }
 
 int
