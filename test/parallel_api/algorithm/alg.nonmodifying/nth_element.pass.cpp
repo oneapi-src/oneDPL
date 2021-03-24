@@ -81,11 +81,8 @@ struct test_without_compare
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2)
     {
-        using T = typename ::std::iterator_traits<Iterator1>::value_type;
         const Iterator1 mid1 = ::std::next(first1, m);
         const Iterator1 mid2 = ::std::next(first2, m);
-
-        std::cout << "test_without_compare" << std::endl;
 
         fill_data(first1, mid1, generator1);
         fill_data(mid1, last1, generator2);
@@ -97,7 +94,7 @@ struct test_without_compare
         {
             EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element without predicate");
         }
-        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [](T& x, T& y) { return y < x; }) == mid2,
+        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [](Type& x, Type& y) { return y < x; }) == mid2,
                     "wrong effect from nth_element without predicate");
     }
 
@@ -120,8 +117,6 @@ struct test_with_compare
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
-
-        using T = typename ::std::iterator_traits<Iterator1>::value_type;
         const Iterator1 mid1 = ::std::next(first1, m);
         const Iterator1 mid2 = ::std::next(first2, m);
 
@@ -135,7 +130,7 @@ struct test_with_compare
         {
             EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element with predicate");
         }
-        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [comp](T& x, T& y) { return comp(y, x); }) == mid2,
+        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [comp](Type& x, Type& y) { return comp(y, x); }) == mid2,
                     "wrong effect from nth_element with predicate");
     }
 
