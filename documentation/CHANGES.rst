@@ -429,4 +429,5 @@ Known Issues and Limitations
 
 .. [#fnote1] The sorting algorithms in oneDPL use Radix sort for arithmetic data types compared with
    ``std::less`` or ``std::greater``, otherwise Merge sort.
+.. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
