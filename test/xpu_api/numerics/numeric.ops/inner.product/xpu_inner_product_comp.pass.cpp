@@ -92,6 +92,7 @@ main()
     test<input_iterator<const int*>, const int*>();
 
 #if !PSTL_USE_DEBUG
+    // Turned out these test cases in debug mode since they consume too much time
     test<forward_iterator<const int*>, input_iterator<const int*>>();
     test<forward_iterator<const int*>, forward_iterator<const int*>>();
     test<forward_iterator<const int*>, bidirectional_iterator<const int*>>();
