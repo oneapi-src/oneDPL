@@ -16,7 +16,7 @@ It does so by creating a fractal image in memory and performs gamma correction o
 
 |Original image | After applying gamma correction |
 |---|---|
-|<img src="images/original.jpg">|<img src="images/gamma.jpg">|
+|<img src="images/original.bmp">|<img src="images/gamma.bmp">|
 
 A device policy is created and passed to the `std::for_each` Parallel STL algorithm.
 This example demonstrates how to use Parallel STL algorithms, Parallel STL is a component of Intel&reg; oneAPI DPC++ library (oneDPL).
