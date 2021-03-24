@@ -41,9 +41,12 @@ main()
         sycl::buffer<int> A(data1, sycl::range<1>(max_n));
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
 
+        auto exec1 = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec1);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec1);
                                        
-        res1 = any_of(TestUtils::default_dpcpp_policy, views::all(A), lambda);
-        res2 = all_of(TestUtils::default_dpcpp_policy, B, lambda);
+        res1 = any_of(exec1, views::all(A), lambda);
+        res2 = all_of(exec2, B, lambda);
     }
 
     EXPECT_TRUE(res1, "wrong result from any_of with sycl ranges");

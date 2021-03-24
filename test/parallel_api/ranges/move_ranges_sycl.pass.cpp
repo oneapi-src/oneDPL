@@ -47,8 +47,14 @@ main()
         auto view = views::reverse(sv) | views::transform(lambda1);
 
         auto range_res = all_view<int, sycl::access::mode::write>(B);
-        move(TestUtils::default_dpcpp_policy, view, C); //check passing a buffer for writting
-        move(TestUtils::default_dpcpp_policy, C, range_res); //check passing a buffer for reading
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        move(exec1, view, C); //check passing a buffer for writting
+        move(exec2, C, range_res); //check passing a buffer for reading
     }
 
     //check result

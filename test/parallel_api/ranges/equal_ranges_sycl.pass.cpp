@@ -42,9 +42,14 @@ main()
         sycl::buffer<int> C(data3, sycl::range<1>(max_n));
 
         auto view = views::all(A);
-                                       
-        res1 = equal(TestUtils::default_dpcpp_policy, view, B);
-        res2 = equal(TestUtils::default_dpcpp_policy, C, view, ::std::equal_to<>{});
+                          
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+             
+        res1 = equal(exec1, view, B);
+        res2 = equal(exec2, C, view, ::std::equal_to<>{});
     }
 
     //check result

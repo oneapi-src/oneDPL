@@ -40,9 +40,14 @@ main()
         sycl::buffer<int> A(data, sycl::range<1>(max_n));
 
         auto view = views::all(A);
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
                                        
-        res1 = count_if(TestUtils::default_dpcpp_policy, view, lambda);
-        res2 = count(TestUtils::default_dpcpp_policy, A, -1);
+        res1 = count_if(exec1, view, lambda);
+        res2 = count(exec2, A, -1);
     }
 
     EXPECT_TRUE(res1 == 4, "wrong result from count_if with sycl ranges");
