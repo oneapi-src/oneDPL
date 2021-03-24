@@ -67,7 +67,7 @@ Changes to Existing Features
 Fixed Issues
 -------------
 - Fixed compilation errors of oneDPL parallel algorithms when using "-sycl-std=2020" compiler switch.
-- Fixed the segmentation fault issue on oneAPI CPU devices in the ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms.
+- Fixed the segmentation fault issue on CPU devices in the ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms.
 - Fixed the failures of the ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms when using Radix sort with 32-bit ``float`` data type.
 - Fixed compilation issues that occurred using libstdc++9 or newer.
 - Got rid of unused variables. 
@@ -82,7 +82,7 @@ Known Issues and Limitations
   with some compilers including GCC 7 and earlier. Instead of this directive, use fully qualified
   names or namespace aliases.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort in debug mode on oneAPI CPU devices.
+  when using Radix sort in debug mode on CPU devices.
 - Some algorithms with a DPC++ policy may fail on CPU or on FPGA emulator.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
 - When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects whose type meets DPC++ requirements for use in kernels
@@ -112,8 +112,7 @@ Changes to Existing Features
 
 Fixed Issues
 -------------
-- Fixed the failures of the ``sort``, ``stable_sort`` algorithms when using Radix sort on oneAPI
-  CPU devices.
+- Fixed the failures of the ``sort``, ``stable_sort`` algorithms when using Radix sort on CPU devices.
 
 Known Issues and Limitations
 ----------------------------
@@ -124,7 +123,7 @@ Known Issues and Limitations
   with some compilers including GCC 7 and earlier. Instead of this directive, use fully qualified
   names or namespace aliases.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort in debug mode on oneAPI CPU devices.
+  when using Radix sort in debug mode on CPU devices.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms may produce incorrect result
   when using Radix sort with 32-bit ``float`` data type.
 - Some algorithms with a DPC++ policy may fail on CPU or on FPGA emulator.
@@ -177,7 +176,7 @@ Known Issues and Limitations
 - The ``sort``, ``stable_sort``, ``partial_sort``, ``partial_sort_copy`` algorithms
   may work incorrectly on CPU device.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort in debug mode on oneAPI CPU devices.
+  when using Radix sort in debug mode on CPU devices.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms may produce incorrect result
   when using Radix sort with 32-bit ``float`` data type.
 - Some algorithms with a DPC++ policy may fail on CPU or on FPGA emulator.
