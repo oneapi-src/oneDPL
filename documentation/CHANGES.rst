@@ -82,7 +82,7 @@ Known Issues and Limitations
   with some compilers including GCC 7 and earlier. Instead of this directive, use fully qualified
   names or namespace aliases.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort in debug mode on CPU devices.
+  when a program uses Radix sort [#fnote1]_, is built with -O0 option and executed on CPU devices.
 - Some algorithms with a DPC++ policy may fail on CPU or on FPGA emulator.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
 - When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects whose type meets DPC++ requirements for use in kernels
@@ -123,7 +123,7 @@ Known Issues and Limitations
   with some compilers including GCC 7 and earlier. Instead of this directive, use fully qualified
   names or namespace aliases.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort in debug mode on CPU devices.
+  when a program uses Radix sort [#fnote1]_, is built with -O0 option and executed on CPU devices.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms may produce incorrect result
   when using Radix sort with 32-bit ``float`` data type.
 - Some algorithms with a DPC++ policy may fail on CPU or on FPGA emulator.
@@ -176,7 +176,7 @@ Known Issues and Limitations
 - The ``sort``, ``stable_sort``, ``partial_sort``, ``partial_sort_copy`` algorithms
   may work incorrectly on CPU device.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms are prone to ``CL_BUILD_PROGRAM_FAILURE``
-  when using Radix sort in debug mode on CPU devices.
+  when a program uses Radix sort [#fnote1]_, is built with -O0 option and executed on CPU devices.
 - The ``partial_sort_copy``, ``sort`` and ``stable_sort`` algorithms may produce incorrect result
   when using Radix sort with 32-bit ``float`` data type.
 - Some algorithms with a DPC++ policy may fail on CPU or on FPGA emulator.
