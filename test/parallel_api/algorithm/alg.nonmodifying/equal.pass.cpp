@@ -22,8 +22,6 @@
 
 using namespace TestUtils;
 
-#define CPP14_ENABLED 0
-
 struct UserType
 {
     size_t key;
@@ -104,24 +102,16 @@ struct test_with_4_iters
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, bool is_true_equal)
     {
-        auto actual = ::std::equal(exec, first1, last1, first2, last2);
-        EXPECT_TRUE(is_true_equal == actual, "result for equal (4 iterators, without predicate) for random-access iterator, bool");
-#if CPP14_ENABLED
-        auto expected = ::std::equal(first1, last1, first2, last2);
-        EXPECT_EQ(expected, actual, "result for equal (4 iterators, without predicate) for random-access iterator, checking against ::std::equal()");
-#endif
+        auto is_equal = ::std::equal(exec, first1, last1, first2, last2);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (4 iterators, without predicate) for random-access iterator, bool");
     }
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Compare>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Compare comp, bool is_true_equal)
     {
-        auto actual = ::std::equal(exec, first1, last1, first2, last2, comp);
-        EXPECT_TRUE(is_true_equal == actual, "result for equal (4 iterators, with predicate) for random-access iterator, bool");
-#if CPP14_ENABLED
-        auto expected = ::std::equal(first1, last1, first2, last2, comp);
-        EXPECT_EQ(expected, actual, "result for equal (4 iterators, with predicate) for random-access iterator, checking against ::std::equal()");
-#endif
+        auto is_equal = ::std::equal(exec, first1, last1, first2, last2, comp);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (4 iterators, with predicate) for random-access iterator, bool");
     }
 };
 
@@ -132,20 +122,16 @@ struct test_with_3_iters
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, bool is_true_equal)
     {
-        auto expected = ::std::equal(first1, last1, first2);
-        auto actual = ::std::equal(exec, first1, last1, first2);
-        EXPECT_EQ(expected, actual, "result for equal (3 iterators, without predicate) for random-access iterator, checking against ::std::equal()");
-        EXPECT_TRUE(is_true_equal == actual, "result for equal (3 iterators, without predicate) for random-access iterator, bool");
+        auto is_equal = ::std::equal(exec, first1, last1, first2);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (3 iterators, without predicate) for random-access iterator, bool");
     }
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Compare>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Compare comp, bool is_true_equal)
     {
-        auto expected = ::std::equal(first1, last1, first2, comp);
-        auto actual = ::std::equal(exec, first1, last1, first2, comp);
-        EXPECT_EQ(expected, actual, "result for equal (3 iterators, with predicate) for random-access iterator, checking against ::std::equal()");
-        EXPECT_TRUE(is_true_equal == actual, "result for equal (3 iterators, with predicate) for random-access iterator, bool");
+        auto is_equal = ::std::equal(exec, first1, last1, first2, comp);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (3 iterators, with predicate) for random-access iterator, bool");
     }
 };
 
@@ -165,7 +151,7 @@ test(size_t bits, Compare comp)
         invoke_on_all_policies<1>()(test_with_3_iters<T>(), in.cbegin(), in.cbegin() + n, inCopy.cbegin(), true);
         invoke_on_all_policies<2>()(test_with_4_iters<T>(), in.begin(), in.begin() + n, inCopy.begin(), inCopy.begin() + n, comp, true);
 
-        // // testing bool !equal()
+        // testing bool !equal()
         T original = inCopy[0];
         inCopy[0] = !original;
         invoke_on_all_policies<3>()(test_with_4_iters<T>(), in.begin(), in.begin() + n, inCopy.begin(), inCopy.begin() + n, false);
