@@ -9,12 +9,11 @@
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/iterator>
 
-#include <iomanip>
-#include <iostream>
-
 #if !BUILD_FOR_HOST
 #include <CL/sycl.hpp>
 #endif
+#include <iomanip>
+#include <iostream>
 
 #include "utils.hpp"
 

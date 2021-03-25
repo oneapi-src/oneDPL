@@ -4,131 +4,122 @@
 // SPDX-License-Identifier: MIT
 // =============================================================
 
-//
-// Abstract:
-//
-// Example demonstrates scalar and vector random number generation
+// oneDPL headers should be included before standard headers
+#include <oneapi/dpl/random>
 
+#include <CL/sycl.hpp>
 #include <iostream>
 #include <vector>
 
-#include <CL/sycl.hpp>
-
-#include <oneapi/dpl/random>
-
 std::uint32_t seed = 777;
 
-template<typename RealType>
+template <typename RealType>
 void scalar_example(sycl::queue& queue, std::vector<RealType>& x) {
+  {
+    sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
 
-    {
-        sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
+    queue.submit([&](sycl::handler& cgh) {
+      auto x_acc = x_buffer.template get_access<sycl::access::mode::write>(cgh);
 
-        queue.submit([&] (sycl::handler &cgh) {
+      cgh.parallel_for(sycl::range<1>(x.size()), [=](sycl::item<1> idx) {
+        unsigned long long offset = idx.get_linear_id();
 
-            auto x_acc =
-                x_buffer.template get_access<sycl::access::mode::write>(cgh);
+        // Create minstd_rand engine
+        oneapi::dpl::minstd_rand engine(seed, offset);
 
-            cgh.parallel_for(sycl::range<1>(x.size()),
-                    [=](sycl::item<1> idx) {
-                unsigned long long offset = idx.get_linear_id();
+        // Create float uniform_real_distribution distribution with a = 0, b = 1
+        oneapi::dpl::uniform_real_distribution<float> distr;
 
-                // Create minstd_rand engine
-                oneapi::dpl::minstd_rand engine(seed, offset);
+        // Generate float random number
+        auto res = distr(engine);
 
-                // Create float uniform_real_distribution distribution with a = 0, b = 1
-                oneapi::dpl::uniform_real_distribution<float> distr;
+        // Store results to x_acc
+        x_acc[idx] = res;
+      });
+    });
+  }
 
-                // Generate float random number
-                auto res = distr(engine);
+  std::cout << "\nsuccess for scalar generation" << std::endl;
+  std::cout << "First 5 samples of minstd_rand with scalar generation"
+            << std::endl;
+  for (int i = 0; i < 5; i++) {
+    std::cout << x.begin()[i] << std::endl;
+  }
 
-                // Store results to x_acc
-                x_acc[idx] = res;
-            });
-        });
-    }
-
-    std::cout << "\nsuccess for scalar generation" << std::endl;
-    std::cout<< "First 5 samples of minstd_rand with scalar generation" << std::endl;
-    for(int i = 0; i < 5; i++) {
-        std::cout << x.begin()[i] << std::endl;
-    }
-
-    std::cout<< "\nLast 5 samples of minstd_rand with scalar generation" << std::endl;
-    for(int i = 0; i < 5; i++) {
-        std::cout << x.rbegin()[i] << std::endl;
-    }
+  std::cout << "\nLast 5 samples of minstd_rand with scalar generation"
+            << std::endl;
+  for (int i = 0; i < 5; i++) {
+    std::cout << x.rbegin()[i] << std::endl;
+  }
 }
 
-template<int VecSize, typename RealType>
+template <int VecSize, typename RealType>
 void vector_example(sycl::queue& queue, std::vector<RealType>& x) {
+  {
+    sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
 
-    {
-        sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
+    queue.submit([&](sycl::handler& cgh) {
+      auto x_acc = x_buffer.template get_access<sycl::access::mode::write>(cgh);
 
-        queue.submit([&] (sycl::handler &cgh) {
+      cgh.parallel_for<class generate_kernel>(
+          sycl::range<1>(x.size() / VecSize), [=](sycl::item<1> idx) {
+            unsigned long long offset = idx.get_linear_id() * VecSize;
 
-            auto x_acc =
-               x_buffer.template get_access<sycl::access::mode::write>(cgh);
+            // Create minstd_rand engine
+            oneapi::dpl::minstd_rand_vec<VecSize> engine(seed);
+            engine.discard(offset);
 
-            cgh.parallel_for<class generate_kernel>(sycl::range<1>(x.size()/VecSize),
-                    [=](sycl::item<1> idx) {
+            // Create float uniform_real_distribution distribution
+            oneapi::dpl::uniform_real_distribution<sycl::vec<float, VecSize>>
+                distr;
 
-                unsigned long long offset = idx.get_linear_id() * VecSize;
+            // Generate sycl::vec<float, VecSize> of random numbers
+            auto res = distr(engine);
 
-                // Create minstd_rand engine
-                oneapi::dpl::minstd_rand_vec<VecSize> engine(seed);
-                engine.discard(offset);
+            // Store results from res to VecSize * offset position of x_acc
+            res.store(idx.get_linear_id(), x_acc.get_pointer());
+          });
+    });
+  }
 
-                // Create float uniform_real_distribution distribution
-                oneapi::dpl::uniform_real_distribution<sycl::vec<float, VecSize>> distr;
+  std::cout << "\nsuccess for vector generation" << std::endl;
+  std::cout << "First 5 samples of minstd_rand with vector generation"
+            << std::endl;
+  for (int i = 0; i < 5; i++) {
+    std::cout << x.begin()[i] << std::endl;
+  }
 
-                // Generate sycl::vec<float, VecSize> of random numbers
-                auto res = distr(engine);
-
-                // Store results from res to VecSize * offset position of x_acc
-                res.store(idx.get_linear_id(), x_acc.get_pointer());
-            });
-        });
-    }
-
-    std::cout << "\nsuccess for vector generation" << std::endl;
-    std::cout<< "First 5 samples of minstd_rand with vector generation" << std::endl;
-    for(int i = 0; i < 5; i++) {
-        std::cout << x.begin()[i] << std::endl;
-    }
-
-    std::cout<< "\nLast 5 samples of minstd_rand with vector generation" << std::endl;
-    for(int i = 0; i < 5; i++) {
-        std::cout << x.rbegin()[i] << std::endl;
-    }
+  std::cout << "\nLast 5 samples of minstd_rand with vector generation"
+            << std::endl;
+  for (int i = 0; i < 5; i++) {
+    std::cout << x.rbegin()[i] << std::endl;
+  }
 }
 
 int main() {
+  auto async_handler = [](sycl::exception_list ex_list) {
+    for (auto& ex : ex_list) {
+      try {
+        std::rethrow_exception(ex);
+      } catch (sycl::exception& ex) {
+        std::cerr << ex.what() << std::endl;
+        std::exit(1);
+      }
+    }
+  };
 
-    auto async_handler = [](sycl::exception_list ex_list) {
-        for (auto& ex : ex_list) {
-            try {
-                std::rethrow_exception(ex);
-            } catch (sycl::exception& ex) {
-                std::cerr << ex.what() << std::endl;
-                std::exit(1);
-            }
-        }
-    };
+  sycl::queue queue(sycl::default_selector{}, async_handler);
 
-    sycl::queue queue(sycl::default_selector{}, async_handler);
+  std::int64_t nsamples = 100;
+  constexpr int vec_size = 4;
 
-    std::int64_t nsamples = 100;
-    constexpr int vec_size = 4;
+  std::vector<float> x(nsamples);
 
-    std::vector<float> x(nsamples);
+  // Scalar random number generation
+  scalar_example(queue, x);
 
-    // Scalar random number generation
-    scalar_example(queue, x);
+  // Vector random number generation
+  vector_example<vec_size>(queue, x);
 
-    // Vector random number generation
-    vector_example<vec_size>(queue, x);
-
-    return 0;
+  return 0;
 }
