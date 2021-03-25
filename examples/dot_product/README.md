@@ -18,7 +18,9 @@ This example is licensed under MIT license.
 ### On a Linux* System
 Perform the following steps:
 
-1. Build the program using the following `cmake` commands.
+1. Source oneDPL and oneTBB
+
+2. Build the program using the following `cmake` commands.
 ```
     $ mkdir build
     $ cd build
@@ -26,17 +28,17 @@ Perform the following steps:
     $ make
 ```
 
-2. Run the program:
+3. Run the program:
 ```
     $ make run
 ```
 
-3. Clean the program using:
+4. Clean the program using:
 ```
     $ make clean
 ```
 
-## Running the Sample
+## Running the Program
 ### Example of Output
 
 ```
