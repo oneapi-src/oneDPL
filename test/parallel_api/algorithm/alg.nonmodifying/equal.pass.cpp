@@ -175,6 +175,7 @@ test(size_t bits, Compare comp)
     }
     // check different sized sequences
     invoke_on_all_policies<6>()(test_with_4_iters<T>(), in.begin(), in.begin() + max_size - 1, inCopy.begin(), inCopy.begin() + max_size, false);
+    invoke_on_all_policies<7>()(test_with_4_iters<T>(), in.cbegin(), in.cbegin() + max_size, inCopy.cbegin(), inCopy.cbegin() + max_size - 1, comp, false);
 }
 
 template <typename T>
