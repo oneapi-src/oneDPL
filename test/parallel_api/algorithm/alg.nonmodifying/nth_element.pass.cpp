@@ -89,7 +89,7 @@ struct test_without_compare
         fill_data(first2, mid2, generator1);
         fill_data(mid2, last2, generator2);
         ::std::nth_element(first1, mid1, last1);
-        ::std::nth_element(exec, first2, mid2, last2);
+        ::std::nth_element(::std::forward<Policy>(exec), first2, mid2, last2);
         if (m > 0 && m < n)
         {
             EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element without predicate");
@@ -125,7 +125,7 @@ struct test_with_compare
         fill_data(first2, mid2, generator1);
         fill_data(mid2, last2, generator2);
         ::std::nth_element(first1, mid1, last1, comp);
-        ::std::nth_element(exec, first2, mid2, last2, comp);
+        ::std::nth_element(::std::forward<Policy>(exec), first2, mid2, last2, comp);
         if (m > 0 && m < n)
         {
             EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element with predicate");
