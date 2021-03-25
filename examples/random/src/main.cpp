@@ -48,7 +48,8 @@ void scalar_example(sycl::queue& queue, std::vector<RealType>& x) {
         });
     }
 
-    std::cout<< "\nFirst 5 samples of minstd_rand with scalar generation" << std::endl;
+    std::cout << "\nsuccess for scalar generation" << std::endl;
+    std::cout<< "First 5 samples of minstd_rand with scalar generation" << std::endl;
     for(int i = 0; i < 5; i++) {
         std::cout << x.begin()[i] << std::endl;
     }
@@ -91,7 +92,8 @@ void vector_example(sycl::queue& queue, std::vector<RealType>& x) {
         });
     }
 
-    std::cout<< "\nFirst 5 samples of minstd_rand with vector generation" << std::endl;
+    std::cout << "\nsuccess for vector generation" << std::endl;
+    std::cout<< "First 5 samples of minstd_rand with vector generation" << std::endl;
     for(int i = 0; i < 5; i++) {
         std::cout << x.begin()[i] << std::endl;
     }

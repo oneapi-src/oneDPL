@@ -1,43 +1,74 @@
-# Random number generator sample
+# Random number generator
 
-This example demonstrates how to use scalar and vector random number generation.
+This example demonstrates how to use scalar and vector random number generation using oneDPL.
 
-The computations are performed using Intel® oneAPI DPC++ library (oneDPL).
-
-| Optimized for                   | Description                                                                        |
-|---------------------------------|------------------------------------------------------------------------------------|
-| OS                              | Linux Ubuntu 18.04                                                                 |
-| Hardware                        | Skylake with GEN9 or newer                                                         |
-| Software                        | Intel® oneAPI DPC++ Compiler (beta)                                                |
-| What you will learn             | How to use random number generators functionality that is a part of DPC++ Library  |
-| Time to complete                | At most 5 minutes                                                                  |
+| Optimized for                   | Description                                                                    |
+|---------------------------------|--------------------------------------------------------------------------------|
+| OS                              | Linux* Ubuntu* 18.04                                                           |
+| Hardware                        | Skylake with GEN9 or newer                                                     |
+| Software                        | Intel&reg; oneAPI DPC++/C++ Compiler; Intel&reg; oneAPI DPC++ Library (oneDPL) |
+| Time to complete                | At most 1 minute                                                               |
 
 ## License
 
 These code samples are licensed under MIT license.
 
-## How to build
+## Building the 'Random' Program for CPU and GPU
 
-```bash
-# To this point you should have
-# - Data Parallel C++ Library installed and
-# - environment variables set up to use it
+### On a Linux* System
+Perform the following steps:
 
-mkdir build && cd build  # execute in this directory
+1. Source Intel&reg; oneAPI DPC++/C++ Compiler and oneDPL
 
+2. Build the program using the following `cmake` commands.
+```
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
 ```
 
-### Linux
-
-```bash
-CXX=dpcpp cmake ..
-cmake --build .  # or "make"
-cmake --build . --target run  # or "make run"
+3. Run the program:
+```
+    $ make run
 ```
 
-### Windows
+4. Clean the program using:
+```
+    $ make clean
+```
 
-```bash
-cmake -G "MinGW Makefiles" -DCMAKE_MAKE_PROGRAM=gmake -DCMAKE_CXX_COMPILER=dpcpp-cl ..
-cmake --build .  # or "gmake"
-cmake --build . --target run  # or "gmake run"
+## Running the Program
+### Example of Output
+
+```
+success for scalar generation
+First 5 samples of minstd_rand with scalar generation
+0.0174654
+0.070213
+0.250974
+0.781962
+0.10158
+
+Last 5 samples of minstd_rand with scalar generation
+0.496244
+0.560782
+0.537788
+0.978197
+0.163866
+
+success for vector generation
+First 5 samples of minstd_rand with vector generation
+0.0174654
+0.070213
+0.250974
+0.781962
+0.10158
+
+Last 5 samples of minstd_rand with vector generation
+0.496244
+0.560782
+0.537788
+0.978197
+0.163866
+```
