@@ -104,20 +104,24 @@ struct test_with_4_iters
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, bool is_true_equal)
     {
-        auto expected = ::std::equal(first1, last1, first2, last2);
         auto actual = ::std::equal(exec, first1, last1, first2, last2);
-        EXPECT_EQ(expected, actual, "result for equal (4 iterators, without predicate) for random-access iterator, checking against ::std::equal()");
         EXPECT_TRUE(is_true_equal == actual, "result for equal (4 iterators, without predicate) for random-access iterator, bool");
+#if CPP14_ENABLED
+        auto expected = ::std::equal(first1, last1, first2, last2);
+        EXPECT_EQ(expected, actual, "result for equal (4 iterators, without predicate) for random-access iterator, checking against ::std::equal()");
+#endif
     }
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Compare>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Compare comp, bool is_true_equal)
     {
-        auto expected = ::std::equal(first1, last1, first2, last2, comp);
         auto actual = ::std::equal(exec, first1, last1, first2, last2, comp);
-        EXPECT_EQ(expected, actual, "result for equal (4 iterators, with predicate) for random-access iterator, checking against ::std::equal()");
         EXPECT_TRUE(is_true_equal == actual, "result for equal (4 iterators, with predicate) for random-access iterator, bool");
+#if CPP14_ENABLED
+        auto expected = ::std::equal(first1, last1, first2, last2, comp);
+        EXPECT_EQ(expected, actual, "result for equal (4 iterators, with predicate) for random-access iterator, checking against ::std::equal()");
+#endif
     }
 };
 
