@@ -40,7 +40,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 any_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
     return oneapi::dpl::__internal::__ranges::__pattern_any_of(::std::forward<_ExecutionPolicy>(__exec),
-                                                               views::all(::std::forward<_Range>(__rng)), __pred);
+                                                               views::all_read(::std::forward<_Range>(__rng)), __pred);
 }
 
 // [alg.all_of]
