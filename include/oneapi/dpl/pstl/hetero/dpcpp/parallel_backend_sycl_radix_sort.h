@@ -611,7 +611,6 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         ::std::forward<_ExecutionPolicy>(__exec), __scan_wg_size, __segments, ::std::forward<_TmpBuf>(__tmp_buf),
         __count_event);
 
-    std::cout << "__reorder_sg_size: " << __reorder_sg_size << std::endl;
     // 3. Reorder Phase
     sycl::event __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc>(
         ::std::forward<_ExecutionPolicy>(__exec), __segments, __block_size, __reorder_sg_size, __radix_iter,
