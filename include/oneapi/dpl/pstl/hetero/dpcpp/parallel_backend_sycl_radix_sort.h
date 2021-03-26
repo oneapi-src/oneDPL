@@ -667,8 +667,8 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
-                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
-                ::std::forward<_Range>(__in_rng), __out_rng, __tmp_buf, __iteration_event);
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, ::std::forward<_Range>(__in_rng),
+                __out_rng, __tmp_buf, __iteration_event);
         else //swap __in_rng and __out_rng
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>(
                 make_wrapped_policy<__odd_iteration>(::std::forward<_ExecutionPolicy>(__exec)), __segments,
