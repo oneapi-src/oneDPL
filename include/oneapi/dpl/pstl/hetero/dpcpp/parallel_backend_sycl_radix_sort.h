@@ -18,6 +18,7 @@
 
 #include <CL/sycl.hpp>
 #include <climits>
+#include <cmath>
 
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
@@ -301,11 +302,6 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
     // radix states used for an array storing bucket state counters
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
 
-    // correct __block_size according to local memory limit
-    const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _CountT>(
-        ::std::forward<_ExecutionPolicy>(__exec), __block_size * __radix_states);
-    __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
-
     const auto __val_buf_size = __val_rng.size();
     // iteration space info
     const ::std::size_t __blocks_total = __get_roundedup_div(__val_buf_size, __block_size);
@@ -577,24 +573,33 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    ::std::size_t __block_size = __max_sg_size;
     ::std::size_t __reorder_sg_size = __max_sg_size;
+    ::std::size_t __block_size = __max_sg_size;
 #if _ONEDPL_COMPILE_KERNEL
     auto __count_kernel = _RadixCountKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    auto __scan_kernel_1 = _RadixLocalScanKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __reorder_kernel = _RadixReorderKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
 #endif
-    // TODO: block size mustn't be less than number of states now. Check how to get rid of that restriction.
+
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+
+    // correct __block_size according to local memory limit in count phase
+    const auto __max_allocation_size =
+        oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, typename __decay_t<_TmpBuf>::value_type>(
+            ::std::forward<_ExecutionPolicy>(__exec), __block_size * __radix_states);
+    __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
+
+    // TODO: block size must be power of 2 and more than number of states. Check how to get rid of that restriction.
+    __block_size = ::std::pow(2, static_cast<::std::size_t>(::std::log2(__block_size)));
     if (__block_size < __radix_states)
         __block_size = __radix_states;
 
     // 1. Count Phase
     sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_comp_asc>(
-        __exec, __segments, __block_size, __radix_iter, __in_rng, __tmp_buf, __dependency_event
+        ::std::forward<_ExecutionPolicy>(__exec), __segments, __block_size, __radix_iter,
+        ::std::forward<_InRange>(__in_rng), ::std::forward<_TmpBuf>(__tmp_buf), __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
         __count_kernel
@@ -603,11 +608,15 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     // 2. Scan Phase
     sycl::event __scan_event = __radix_sort_scan_submit<_RadixLocalScanKernel, _RadixGlobalScanKernel, __radix_bits>(
-        __exec, __scan_wg_size, __segments, __tmp_buf, __count_event);
+        ::std::forward<_ExecutionPolicy>(__exec), __scan_wg_size, __segments, ::std::forward<_TmpBuf>(__tmp_buf),
+        __count_event);
 
+    std::cout << "__reorder_sg_size: " << __reorder_sg_size << std::endl;
     // 3. Reorder Phase
     sycl::event __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc>(
-        __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, __in_rng, __out_rng, __tmp_buf, __scan_event
+        ::std::forward<_ExecutionPolicy>(__exec), __segments, __block_size, __reorder_sg_size, __radix_iter,
+        ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), ::std::forward<_TmpBuf>(__tmp_buf),
+        __scan_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
         __reorder_kernel
