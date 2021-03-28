@@ -93,7 +93,7 @@ struct test_3_iters_default_ops
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
                T init)
     {
-        auto expectedB = ::std::inner_product(first1, last1, first2, init);
+        auto expectedB = ::std::inner_product(first1, last1, first2, init, ::std::plus<T>(), ::std::multiplies<T>());
         T resRA = ::std::transform_reduce(exec, first1, last1, first2, init);
         CheckResults(expectedB, resRA, ::std::string("wrong result with tranform_reduce (3 iterators, default predicates)"));
     }
