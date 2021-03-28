@@ -88,14 +88,13 @@ CheckResults(const float32_t& /* expected */, const float32_t& /* in */, const :
 template <typename Type>
 struct test_3_iters_default_ops
 {
-    template <typename Policy, typename InputIterator1, typename InputIterator2, typename T, typename BinaryOperation1,
-              typename BinaryOperation2>
+    template <typename Policy, typename InputIterator1, typename InputIterator2, typename T>
     void
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
-               T init, BinaryOperation1 opB1, BinaryOperation2 opB2)
+               T init)
     {
-        auto expectedB = ::std::inner_product(first1, last1, first2, init, opB1, opB2);
-        T resRA = ::std::transform_reduce(exec, first1, last1, first2, init, opB1, opB2);
+        auto expectedB = ::std::inner_product(first1, last1, first2, init);
+        T resRA = ::std::transform_reduce(exec, first1, last1, first2, init);
         CheckResults(expectedB, resRA, ::std::string("wrong result with tranform_reduce (3 iterators, default predicates)"));
     }
 };
@@ -144,7 +143,7 @@ test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, 
         invoke_on_all_policies<1>()(test_2_iters<T>(), in1.begin(), in1.begin() + n, init, opB1, opU);
 #if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<2>()(test_3_iters_default_ops<T>(), in1.begin(), in1.begin() + n,
-                                    in2.begin(), in2.begin() + n, init, opB1, opB2);
+                                    in2.begin(), in2.begin() + n, init);
 
         invoke_on_all_policies<3>()(test_3_iters_custom_ops<T>(), in1.cbegin(), in1.cbegin() + n,
                                     in2.cbegin(), in2.cbegin() + n, init, opB1, opB2);
