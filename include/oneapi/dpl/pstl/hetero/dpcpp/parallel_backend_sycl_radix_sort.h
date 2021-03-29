@@ -18,7 +18,6 @@
 
 #include <CL/sycl.hpp>
 #include <climits>
-#include <cmath>
 
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
@@ -189,6 +188,16 @@ inline auto
 __get_roundedup_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
 {
     return (__number - 1) / __divisor + 1;
+}
+
+template <typename _T>
+inline _T
+__get_rounded_down_power2(_T __x)
+{
+    _T __val = 1;
+    while(__x >= 2 * __val)
+        __val <<= 1;
+    return __val;
 }
 
 //------------------------------------------------------------------------
@@ -592,7 +601,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
 
     // TODO: block size must be power of 2 and more than number of states. Check how to get rid of that restriction.
-    __block_size = ::std::pow(2, static_cast<::std::size_t>(::std::log2(__block_size)));
+    __block_size = __get_rounded_down_power2(__block_size);
     if (__block_size < __radix_states)
         __block_size = __radix_states;
 
