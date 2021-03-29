@@ -195,7 +195,7 @@ inline _T
 __get_rounded_down_power2(_T __x)
 {
     _T __val = 1;
-    while(__x >= 2 * __val)
+    while (__x >= 2 * __val)
         __val <<= 1;
     return __val;
 }
@@ -582,8 +582,8 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    ::std::size_t __reorder_sg_size = __max_sg_size;
     ::std::size_t __block_size = __max_sg_size;
+    ::std::size_t __reorder_sg_size = __max_sg_size;
 #if _ONEDPL_COMPILE_KERNEL
     auto __count_kernel = _RadixCountKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     auto __reorder_kernel = _RadixReorderKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
