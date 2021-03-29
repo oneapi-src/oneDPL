@@ -38,16 +38,16 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
 void test_with_buffers()
 {
     // create buffers
-    cl::sycl::buffer<uint64_t, 1> key_buf{ cl::sycl::range<1>(13) };
-    cl::sycl::buffer<uint64_t, 1> val_buf{ cl::sycl::range<1>(13) };
-    cl::sycl::buffer<uint64_t, 1> key_res_buf{ cl::sycl::range<1>(13) };
-    cl::sycl::buffer<uint64_t, 1> val_res_buf{ cl::sycl::range<1>(13) };
+    sycl::buffer<uint64_t, 1> key_buf{ sycl::range<1>(13) };
+    sycl::buffer<uint64_t, 1> val_buf{ sycl::range<1>(13) };
+    sycl::buffer<uint64_t, 1> key_res_buf{ sycl::range<1>(13) };
+    sycl::buffer<uint64_t, 1> val_res_buf{ sycl::range<1>(13) };
 
     {
-        auto keys    = key_buf.template get_access<cl::sycl::access::mode::read_write>();
-        auto vals    = val_buf.template get_access<cl::sycl::access::mode::read_write>();
-        auto keys_res    = key_res_buf.template get_access<cl::sycl::access::mode::read_write>();
-        auto vals_res    = val_res_buf.template get_access<cl::sycl::access::mode::read_write>();
+        auto keys    = key_buf.template get_access<sycl::access::mode::read_write>();
+        auto vals    = val_buf.template get_access<sycl::access::mode::read_write>();
+        auto keys_res    = key_res_buf.template get_access<sycl::access::mode::read_write>();
+        auto vals_res    = val_res_buf.template get_access<sycl::access::mode::read_write>();
 
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
         //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
@@ -89,8 +89,8 @@ void test_with_buffers()
 
     {
         // check values
-        auto keys_res    = key_res_buf.template get_access<cl::sycl::access::mode::read_write>();
-        auto vals_res    = val_res_buf.template get_access<cl::sycl::access::mode::read_write>();
+        auto keys_res    = key_res_buf.template get_access<sycl::access::mode::read_write>();
+        auto vals_res    = val_res_buf.template get_access<sycl::access::mode::read_write>();
         int n = std::distance(key_res_beg, res1.first);
         for (auto i = 0; i != n; ++i) {
             if (i < 4) {
@@ -120,14 +120,14 @@ void test_with_buffers()
 
 void test_with_usm()
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     int n = 13;
 
     // Allocate space for data using USM.
-    uint64_t* key_head = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* val_head = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* key_res_head = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* val_res_head = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* key_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* key_res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
 
     //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
     //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
@@ -188,6 +188,12 @@ void test_with_usm()
     ASSERT_EQUAL(n, 1);
     ASSERT_EQUAL(key_res_head[0], 1);
     ASSERT_EQUAL(val_res_head[0], 1);
+
+    // Deallocate memory
+    sycl::free(key_head, q);
+    sycl::free(val_head, q);
+    sycl::free(key_res_head, q);
+    sycl::free(val_res_head, q);
 }
 #endif
 

@@ -37,14 +37,14 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
 void test_with_buffers()
 {
     // create a buffer, being responsible for moving data around and counting dependencies
-    cl::sycl::buffer<uint64_t, 1> _key_buf{ cl::sycl::range<1>(10) };
-    cl::sycl::buffer<uint64_t, 1> _val_buf{ cl::sycl::range<1>(10) };
-    cl::sycl::buffer<uint64_t, 1> _res_buf{ cl::sycl::range<1>(10) };
+    sycl::buffer<uint64_t, 1> _key_buf{ sycl::range<1>(10) };
+    sycl::buffer<uint64_t, 1> _val_buf{ sycl::range<1>(10) };
+    sycl::buffer<uint64_t, 1> _res_buf{ sycl::range<1>(10) };
 
     {
-    auto key_buf = _key_buf.template get_access<cl::sycl::access::mode::read_write>();
-    auto val_buf = _val_buf.template get_access<cl::sycl::access::mode::read_write>();
-    auto res_buf = _res_buf.template get_access<cl::sycl::access::mode::read_write>();
+    auto key_buf = _key_buf.template get_access<sycl::access::mode::read_write>();
+    auto val_buf = _val_buf.template get_access<sycl::access::mode::read_write>();
+    auto res_buf = _res_buf.template get_access<sycl::access::mode::read_write>();
 
     // Initialize data
     key_buf[0] = 0; key_buf[1] = 0; key_buf[2] = 0; key_buf[3] = 1; key_buf[4] = 1;
@@ -69,9 +69,9 @@ void test_with_buffers()
         std::equal_to<uint64_t>(), std::plus<uint64_t>());
 
     // check values
-    auto key_acc = _key_buf.get_access<cl::sycl::access::mode::read>();
-    auto val_acc = _val_buf.get_access<cl::sycl::access::mode::read>();
-    auto res_acc = _res_buf.get_access<cl::sycl::access::mode::read>();
+    auto key_acc = _key_buf.get_access<sycl::access::mode::read>();
+    auto val_acc = _val_buf.get_access<sycl::access::mode::read>();
+    auto res_acc = _res_buf.get_access<sycl::access::mode::read>();
     uint64_t check_value;
     for (int i = 0; i != 10; ++i) {
         if (i == 0 || key_acc[i] != key_acc[i-1])
@@ -84,13 +84,13 @@ void test_with_buffers()
 
 void test_with_usm()
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     const int n = 10;
 
     // Allocate space for data using USM.
-    uint64_t* key_head = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* val_head = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* res_head = static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* key_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
 
     // Initialize data
     key_head[0] = 0; key_head[1] = 0; key_head[2] = 0; key_head[3] = 1; key_head[4] = 1;
@@ -124,6 +124,11 @@ void test_with_usm()
 
     // check values
     ASSERT_EQUAL(1, res_head[0]);
+
+    // Deallocate memory
+    sycl::free(key_head, q);
+    sycl::free(val_head, q);
+    sycl::free(res_head, q);
 }
 #endif
 
