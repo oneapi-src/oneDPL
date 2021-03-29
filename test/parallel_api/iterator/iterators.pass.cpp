@@ -41,6 +41,8 @@ void test_random_iterator(const RandomIt& it) {
         (void) typename RandomIt::iterator_category{};
     }
 
+    RandomIt _it; //Check that RandomIt is default constructible
+
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
     EXPECT_TRUE(  it != it + 1,  "!= returned false negative");
@@ -231,6 +233,14 @@ void test_transform_effect(VecIt1 first1, VecIt1 last1, VecIt2 first2) {
         }
 }
 
+class transform_functor {
+    public:
+        template<typename T>
+        T operator()(T& x) const {
+            return x+1;
+        }
+};
+
 struct test_transform_iterator {
     template <typename T1, typename T2>
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
@@ -239,10 +249,13 @@ struct test_transform_iterator {
         test_transform_effect(in1.begin(),  in1.end(),  in2.begin());
         test_transform_effect(in1.cbegin(), in1.cend(), in2.begin());
 
-        auto new_functor = [](T2& x) { return x + 1; };
+        transform_functor new_functor;
+        oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it1(in1.begin());
+        oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
+
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), new_functor);
         EXPECT_TRUE(new_transform_iterator.base() == in2.begin(), "wrong result from transform_iterator::base");
-        EXPECT_TRUE(new_transform_iterator.functor()(*(in2.begin())) == new_functor(*(in2.begin()),
+        EXPECT_TRUE(new_transform_iterator.functor()(*(in2.begin())) == new_functor(*(in2.begin())),
             "wrong result from transform_iterator::functor");
         test_random_iterator(new_transform_iterator);
     }
