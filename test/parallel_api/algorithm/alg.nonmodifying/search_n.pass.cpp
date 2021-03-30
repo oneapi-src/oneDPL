@@ -74,7 +74,7 @@ test()
                                             ::std::equal_to<T>());
                 invoke_on_all_policies<1>()(test_search_n_predicate<T>(), in.begin(), in.begin() + n1, n2, value,
                                             ::std::equal_to<T>());
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<2>()(test_search_n<T>(), in.cbegin(), in.cbegin() + n1, n2, value,
                                             ::std::equal_to<T>());
                 invoke_on_all_policies<3>()(test_search_n_predicate<T>(), in.cbegin(), in.cbegin() + n1, n2, value,
@@ -100,7 +100,7 @@ int
 main()
 {
     test<int32_t>();
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test<uint16_t>();
 #endif
     test<float64_t>();

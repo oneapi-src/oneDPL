@@ -105,7 +105,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED
         invoke_on_all_policies<0>()(test_is_sorted<T>(), in.begin(), in.end());
         invoke_on_all_policies<1>()(test_is_sorted_predicate<T>(), in.begin(), in.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<4>()(test_is_sorted<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<5>()(test_is_sorted_predicate<T>(), in.cbegin(), in.cend());
 #    endif
@@ -114,7 +114,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
         invoke_on_all_policies<2>()(test_is_sorted_until<T>(), in.begin(), in.end());
         invoke_on_all_policies<3>()(test_is_sorted_until_predicate<T>(), in.begin(), in.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<6>()(test_is_sorted_until<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<7>()(test_is_sorted_until_predicate<T>(), in.cbegin(), in.cend());
 #    endif
@@ -124,7 +124,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED
         invoke_on_all_policies<8>()(test_is_sorted<T>(), in.begin(), in.end());
         invoke_on_all_policies<9>()(test_is_sorted_predicate<T>(), in.begin(), in.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<12>()(test_is_sorted<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<13>()(test_is_sorted_predicate<T>(), in.cbegin(), in.cend());
 #    endif
@@ -133,7 +133,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
         invoke_on_all_policies<10>()(test_is_sorted_until<T>(), in.begin(), in.end());
         invoke_on_all_policies<11>()(test_is_sorted_until_predicate<T>(), in.begin(), in.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<14>()(test_is_sorted_until<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<15>()(test_is_sorted_until_predicate<T>(), in.cbegin(), in.cend());
 #    endif
@@ -143,7 +143,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED
         invoke_on_all_policies<16>()(test_is_sorted<T>(), in.begin(), in.end());
         invoke_on_all_policies<17>()(test_is_sorted_predicate<T>(), in.begin(), in.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<20>()(test_is_sorted<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<21>()(test_is_sorted_predicate<T>(), in.cbegin(), in.cend());
 #    endif
@@ -152,7 +152,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
         invoke_on_all_policies<18>()(test_is_sorted_until<T>(), in.begin(), in.end());
         invoke_on_all_policies<19>()(test_is_sorted_until_predicate<T>(), in.begin(), in.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<22>()(test_is_sorted_until<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<23>()(test_is_sorted_until_predicate<T>(), in.cbegin(), in.cend());
 #    endif
@@ -164,7 +164,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED
     invoke_on_all_policies<24>()(test_is_sorted<T>(), in0.begin(), in0.end());
     invoke_on_all_policies<25>()(test_is_sorted_predicate<T>(), in0.begin(), in0.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
     invoke_on_all_policies<28>()(test_is_sorted<T>(), in0.cbegin(), in0.cend());
     invoke_on_all_policies<29>()(test_is_sorted_predicate<T>(), in0.cbegin(), in0.cend());
 #    endif
@@ -173,7 +173,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
     invoke_on_all_policies<26>()(test_is_sorted_until<T>(), in0.begin(), in0.end());
     invoke_on_all_policies<27>()(test_is_sorted_until_predicate<T>(), in0.begin(), in0.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
     invoke_on_all_policies<30>()(test_is_sorted_until<T>(), in0.cbegin(), in0.cend());
     invoke_on_all_policies<31>()(test_is_sorted_until_predicate<T>(), in0.cbegin(), in0.cend());
 #    endif
@@ -184,7 +184,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED
     invoke_on_all_policies<32>()(test_is_sorted<T>(), in1.begin(), in1.end());
     invoke_on_all_policies<33>()(test_is_sorted_predicate<T>(), in1.begin(), in1.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
     invoke_on_all_policies<36>()(test_is_sorted<T>(), in1.cbegin(), in1.cend());
     invoke_on_all_policies<37>()(test_is_sorted_predicate<T>(), in1.cbegin(), in1.cend());
 #    endif
@@ -193,7 +193,7 @@ test_is_sorted_by_type()
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
     invoke_on_all_policies<34>()(test_is_sorted_until<T>(), in1.begin(), in1.end());
     invoke_on_all_policies<35>()(test_is_sorted_until_predicate<T>(), in1.begin(), in1.end());
-#    if !_ONEDPL_FPGA_DEVICE
+#    if !ONEDPL_FPGA_DEVICE
     invoke_on_all_policies<38>()(test_is_sorted_until<T>(), in1.cbegin(), in1.cend());
     invoke_on_all_policies<39>()(test_is_sorted_until_predicate<T>(), in1.cbegin(), in1.cend());
 #    endif
@@ -226,7 +226,7 @@ int
 main()
 {
     test_is_sorted_by_type<int32_t>();
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test_is_sorted_by_type<float64_t>();
 #endif
 

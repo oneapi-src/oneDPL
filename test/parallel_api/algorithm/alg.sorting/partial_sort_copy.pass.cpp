@@ -118,7 +118,7 @@ test_partial_sort_copy(Compare compare)
     T trash = T(-666);
     for (; n1 < n_max; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         // If both sequences are equal
         n2 = n1;
         invoke_on_all_policies<0>()(
@@ -132,7 +132,7 @@ test_partial_sort_copy(Compare compare)
             test_one_policy<T>(out.begin(), out.begin() + n2, exp.begin(), exp.begin() + n2),
                                               in.begin(), in.begin() + n1, n1, n2, trash, compare);
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         // If first sequence is less than second
         n2 = 2 * n1;
         invoke_on_all_policies<2>()(
@@ -141,7 +141,7 @@ test_partial_sort_copy(Compare compare)
 #endif
     }
     // Test partial_sort_copy without predicate
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     n1 = n_max;
     n2 = 2 * n1;
     invoke_on_all_policies<3>()(
@@ -166,7 +166,7 @@ struct test_non_const
 int
 main()
 {
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test_partial_sort_copy<Num<float32_t>>([](Num<float32_t> x, Num<float32_t> y) { return x < y; });
     test_algo_basic_double<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 #endif

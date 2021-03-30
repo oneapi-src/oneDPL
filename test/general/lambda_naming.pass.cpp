@@ -22,7 +22,7 @@
 
 #include "support/utils.h"
 
-#if TEST_SYCL_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 #    include <CL/sycl.hpp>
 #endif
 
@@ -51,7 +51,7 @@ int main() {
     ::std::sort(policy, buf_begin, buf_end);
     ::std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     sycl::buffer<float> out_buf_2{ sycl::range<1>(n) };
     auto buf_out_begin_2 = oneapi::dpl::begin(out_buf_2);
     ::std::copy(policy, buf_begin, buf_end, buf_out_begin_2);
@@ -65,7 +65,7 @@ int main() {
     EXPECT_TRUE(!is_equal, "wrong return value from equal");
     auto does_1_exist = ::std::find(policy, buf_begin, buf_end, 1);
     EXPECT_TRUE(does_1_exist - buf_begin == 1000, "wrong return value from find");
-#endif // !_ONEDPL_FPGA_DEVICE
+#endif // !ONEDPL_FPGA_DEVICE
 
 #else
     // ::std::for_each(policy, buf_begin, buf_end, [](int& x) { x++; }); // It's not allowed. Policy with different name is needed

@@ -26,7 +26,7 @@
 
 #include "support/test_config.h"
 
-#if TEST_SYCL_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -93,7 +93,7 @@ void evaluate(Policy&& policy, Iterator ref_begin, Iterator ref_end,
         ref_times.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count());
 
         typename oneapi::dpl::internal::rebind_policy<policy_type, class DiscardEval>::type new_policy(policy);
-        
+
         start = clock::now();
         std::transform(std::move(new_policy), ref_begin, ref_end, dev_null, oneapi::dpl::identity{});
         stop = clock::now();
@@ -213,9 +213,9 @@ int main(int argc, char** argv) {
         cl::sycl::buffer<uint64_t, 1> mask_buf{ cl::sycl::range<1>(n) };
         cl::sycl::buffer<uint64_t, 1> src_buf{ cl::sycl::range<1>(n) };
         cl::sycl::buffer<uint64_t, 1> dst_buf{ cl::sycl::range<1>(n) };
-    
+
         auto policy = oneapi::dpl::execution::make_device_policy<class GPUCopyIf>(oneapi::dpl::execution::dpcpp_default);
-        
+
         {
             auto stencil = mask_buf.template get_access<cl::sycl::access::mode::write>();
             auto src = src_buf.template get_access<cl::sycl::access::mode::write>();
@@ -264,7 +264,7 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
         }
 #endif
-        
+
     }
 
 	{

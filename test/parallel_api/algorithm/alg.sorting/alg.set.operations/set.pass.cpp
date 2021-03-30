@@ -275,7 +275,7 @@ int
 main()
 {
     using data_t =
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         float64_t;
 #else
         int32_t;

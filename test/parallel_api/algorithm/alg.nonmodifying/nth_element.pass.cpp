@@ -185,7 +185,7 @@ struct test_non_const
 int
 main()
 {
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, ::std::less<int32_t>());
     test_by_type<int32_t>([](int32_t) { return 0; }, [](int32_t) { return 0; }, ::std::less<int32_t>());
 #endif

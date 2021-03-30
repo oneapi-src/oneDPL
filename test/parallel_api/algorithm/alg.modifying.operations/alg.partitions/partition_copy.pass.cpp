@@ -108,7 +108,7 @@ main()
     test<int16_t>([](const int32_t value) { return value % 2 == 0; });
     test<int32_t>([](const int32_t) { return true; });
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test<float64_t>([](const float64_t value) { return value > 2 << 6; });
 #endif
 

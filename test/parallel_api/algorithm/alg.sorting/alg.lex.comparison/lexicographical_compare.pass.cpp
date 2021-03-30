@@ -173,7 +173,7 @@ main()
 {
     test<uint16_t, float64_t>(::std::less<float64_t>());
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test<float32_t, int32_t>(::std::greater<float32_t>());
 #if !_PSTL_ICC_18_TEST_EARLY_EXIT_AVX_RELEASE_BROKEN
     test<float64_t, int32_t>([](const float64_t x, const int32_t y) { return x * x < y * y; });

@@ -74,7 +74,7 @@ test_by_type(Generator1 generator1, Generator2 generator2, Compare comp)
         invoke_on_all_policies<1>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
                                generator1, generator2, comp);
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         m = 2 * n / 3;
         invoke_on_all_policies<2>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
                                generator1, generator2, comp);
@@ -127,7 +127,7 @@ struct test_non_const
 int
 main()
 {
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test_by_type<float64_t>([](int32_t i) { return -2 * i; }, [](int32_t i) { return -(2 * i + 1); },
                             [](const float64_t x, const float64_t y) { return x > y; });
 #endif

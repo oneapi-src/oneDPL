@@ -321,7 +321,7 @@ main()
                                [](size_t k, size_t val) { return ParanoidKey(k, val, OddTag()); });
 #endif
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         test_sort<float32_t>([](float32_t x, float32_t y) { return x < y; },
                              [](size_t, size_t val) { return float32_t(val); });
 #endif
@@ -330,7 +330,7 @@ main()
             [](size_t, size_t val) { return int32_t(val); });
     }
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
 #endif
 

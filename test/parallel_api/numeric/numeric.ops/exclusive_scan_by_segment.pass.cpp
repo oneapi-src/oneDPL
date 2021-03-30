@@ -23,10 +23,6 @@
 #include <iostream>
 #include <iomanip>
 
-#if TEST_SYCL_PRESENT
-#include <CL/sycl.hpp>
-#endif
-
 template<typename _T1, typename _T2>
 void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
     if(X!=Y)
@@ -34,6 +30,8 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#include <CL/sycl.hpp>
+
 void test_with_buffers()
 {
     // create a buffer, being responsible for moving data around and counting dependencies

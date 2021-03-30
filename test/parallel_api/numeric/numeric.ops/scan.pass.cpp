@@ -158,7 +158,7 @@ test_with_plus(T init, T trash, Convert convert)
 #endif
     }
 
-#if TEST_DPCPP_BACKEND_PRESENT && !_ONEDPL_FPGA_DEVICE
+#if TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
     // testing of large number of items may take too much time in debug mode
     unsigned long n =
 #if PSTL_USE_DEBUG
@@ -178,7 +178,7 @@ test_with_plus(T init, T trash, Convert convert)
     invoke_on_all_hetero_policies<5>()(test_exclusive_scan_with_plus<T>(), in.begin(), in.end(), out.begin(),
                                 out.end(), expected.begin(), expected.end(), in.size(), init, trash);
 #endif
-#endif // TEST_DPCPP_BACKEND_PRESENT && !_ONEDPL_FPGA_DEVICE
+#endif // TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
 }
 
 template <typename Type>

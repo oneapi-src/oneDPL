@@ -627,7 +627,7 @@ main()
 #endif
 // sorting with zip iterator does not meet limits of RAM usage on FPGA.
 // TODO: try to investigate and reduce RAM consumption
-#if defined(_PSTL_TEST_STABLE_SORT) && !_ONEDPL_FPGA_DEVICE
+#if defined(_PSTL_TEST_STABLE_SORT) && !ONEDPL_FPGA_DEVICE
     PRINT_DEBUG("test_stable_sort");
     test2buffers<int32_t, test_stable_sort>();
 #endif

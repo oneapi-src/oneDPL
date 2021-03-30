@@ -192,7 +192,7 @@ main()
 
     test<float64_t>(float64_t(42), ::std::equal_to<float64_t>(),
                     [](int32_t j) { return float64_t(5 * j / 23 ^ (j / 7)); });
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test<float32_t>(float32_t(42), [](float32_t, float32_t) { return false; },
                     [](int32_t j) { return float32_t(j); }, false);
 #endif
