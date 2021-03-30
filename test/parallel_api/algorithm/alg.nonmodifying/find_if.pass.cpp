@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 // Tests for find_if and find_if_not
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -119,7 +119,7 @@ struct test_non_const_find_if_not
 int
 main()
 {
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     // Note that the "hit" and "miss" functions here avoid overflow issues.
     test<Number>(IsMultiple(5, OddTag()), [](int32_t j) { return Number(j - j % 5, OddTag()); }, // hit
                  [](int32_t j) { return Number(j % 5 == 0 ? j ^ 1 : j, OddTag()); });            // miss

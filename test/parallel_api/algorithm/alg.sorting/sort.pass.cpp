@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -52,7 +52,7 @@ static uint32_t LastIndex;
 
 //! Keeping Equal() static and a friend of ParanoidKey class (C++, paragraphs 3.5/7.1.1)
 class ParanoidKey;
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
 static bool
 Equal(const ParanoidKey& x, const ParanoidKey& y);
 #endif
@@ -160,7 +160,7 @@ class KeyCompare
 };
 
 // Equal is equality comparison used for checking result of sort against expected result.
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
 static bool
 Equal(const ParanoidKey& x, const ParanoidKey& y)
 {
@@ -315,7 +315,7 @@ main()
     {
         Stable = kind != 0;
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         // ParanoidKey has atomic increment in ctors. It's not allowed in kernel
         test_sort<ParanoidKey>(KeyCompare(OddTag()),
                                [](size_t k, size_t val) { return ParanoidKey(k, val, OddTag()); });

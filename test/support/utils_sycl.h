@@ -25,7 +25,7 @@
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
 
-#include "pstl_test_config.h"
+#include "test_config.h"
 
 #include _PSTL_TEST_HEADER(iterator)
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"

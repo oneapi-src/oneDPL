@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -22,7 +22,7 @@
 
 #include "support/utils.h"
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_SYCL_PRESENT
 #    include <CL/sycl.hpp>
 #endif
 
@@ -30,7 +30,7 @@ using namespace TestUtils;
 
 // This is the simple test for compilation only, to check if lambda naming works correctly
 int main() {
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
     const int n = 1000;
     sycl::buffer<int> buf{ sycl::range<1>(n) };
     sycl::buffer<int> out_buf{ sycl::range<1>(n) };
@@ -73,7 +73,7 @@ int main() {
     auto red_val = ::std::reduce(policy, buf_begin, buf_end, 1);
     EXPECT_TRUE(red_val == 2001, "wrong return value from reduce");
 #endif // __SYCL_UNNAMED_LAMBDA__
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return done(_ONEDPL_BACKEND_SYCL);
+    return done(TEST_DPCPP_BACKEND_PRESENT);
 }

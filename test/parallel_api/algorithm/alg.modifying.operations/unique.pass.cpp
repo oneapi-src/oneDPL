@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 // Test for unique
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -126,7 +126,7 @@ main()
                     [](const float64_t& val1, const float64_t& val2) { return val1 != val2; });
 #endif
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<LocalWrapper<uint32_t>>([](size_t j) { return LocalWrapper<uint32_t>(j); },
                                  [](const LocalWrapper<uint32_t>& val1, const LocalWrapper<uint32_t>& val2) {
                                      return val1.my_val != val2.my_val;

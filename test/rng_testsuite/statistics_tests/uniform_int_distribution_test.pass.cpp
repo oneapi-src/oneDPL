@@ -21,7 +21,7 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>
@@ -236,11 +236,11 @@ int tests_set_portion(int nsamples, unsigned int part) {
     return 0;
 }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int main() {
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 
     constexpr int nsamples = 100;
     int err;
@@ -312,7 +312,7 @@ int main() {
         return 1;
     }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -186,7 +186,7 @@ main()
     test_mismatch_by_type<float64_t>();
 #endif
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test_mismatch_by_type<Wrapper<int32_t>>();
 #endif
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());

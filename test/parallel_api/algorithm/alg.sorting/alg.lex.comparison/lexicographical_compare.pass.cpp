@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -180,7 +180,7 @@ main()
 #endif
 #endif
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<LocalWrapper<int32_t>, LocalWrapper<int32_t>>(
         [](const LocalWrapper<int32_t>& x, const LocalWrapper<int32_t>& y) { return x < y; });
 

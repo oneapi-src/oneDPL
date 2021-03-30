@@ -19,7 +19,7 @@
 
 #include <iostream>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 #include "support/utils.h"
 
 #if TEST_SYCL_PRESENT

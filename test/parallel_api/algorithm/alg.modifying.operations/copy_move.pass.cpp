@@ -15,7 +15,7 @@
 
 // Tests for copy, move and copy_n
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -166,7 +166,7 @@ main()
     test<int32_t>(-666, [](size_t j) { return int32_t(j); });
     test<float64_t>(-666.0, [](size_t j) { return float64_t(j); });
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     /*TODO: copy support of a class with no default constructor*/
     test<Wrapper<float64_t>>(Wrapper<float64_t>(-666.0), [](int32_t j) { return Wrapper<float64_t>(j); });
     test<Number>(Number(42, OddTag()), [](int32_t j) { return Number(j, OddTag()); });

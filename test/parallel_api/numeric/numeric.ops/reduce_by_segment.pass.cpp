@@ -18,7 +18,7 @@
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 #include "support/utils.h"
 
 #include <iostream>

@@ -23,7 +23,7 @@
 #include <iostream>
 #include <tuple>
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_SYCL_PRESENT
 #   include <CL/sycl.hpp>
 #endif
 

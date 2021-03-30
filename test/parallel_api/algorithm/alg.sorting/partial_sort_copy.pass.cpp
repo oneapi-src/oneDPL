@@ -15,7 +15,7 @@
 
 // Tests for partial_sort_copy
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -172,7 +172,7 @@ main()
 #endif
     test_partial_sort_copy<int32_t>([](int32_t x, int32_t y) { return x > y; });
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test_partial_sort_copy<MemoryChecker>(
         [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() < val2.value(); });
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from partial_sort_copy: number of ctor and dtor calls is not equal");

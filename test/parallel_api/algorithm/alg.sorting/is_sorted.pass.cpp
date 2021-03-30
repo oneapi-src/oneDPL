@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -230,7 +230,7 @@ main()
     test_is_sorted_by_type<float64_t>();
 #endif
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test_is_sorted_by_type<Wrapper<int32_t>>();
 #endif
 #ifdef _PSTL_TEST_IS_SORTED

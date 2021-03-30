@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 // Tests for unique_copy
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -49,7 +49,7 @@ struct run_unique_copy
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
                out_last
 #endif
                , OutputIterator2 expected_first, OutputIterator2 /* expected_last */,
@@ -62,7 +62,7 @@ struct run_unique_copy
         // Run unique_copy
         auto i = unique_copy(first, last, expected_first);
         auto k = unique_copy(exec, first, last, out_first);
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         EXPECT_EQ_N(expected_first, out_first, n, "wrong unique_copy effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -108,7 +108,7 @@ struct run_unique_copy_predicate
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
                out_last
 #endif
                , OutputIterator2 expected_first, OutputIterator2 /* expected_last */, Size n,
@@ -121,7 +121,7 @@ struct run_unique_copy_predicate
         // Run unique_copy with predicate
         auto i = unique_copy(first, last, expected_first, pred);
         auto k = unique_copy(exec, first, last, out_first, pred);
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         EXPECT_EQ_N(expected_first, out_first, n, "wrong unique_copy with predicate effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -149,7 +149,7 @@ test(T trash, BinaryPredicate pred, Convert convert, bool check_weakness = true)
         // more for sake of detecting buffer overruns.
         Sequence<T> in(n, [&](size_t k) -> T { return convert(k ^ n); });
         using namespace std;
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         size_t count = GuardSize;
         for (size_t k = 0; k < in.size(); ++k)
             count += k == 0 || !pred(in[k], in[k - 1]) ? 1 : 0;
@@ -185,7 +185,7 @@ struct test_non_const
 int
 main()
 {
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Number(42, OddTag()), ::std::equal_to<Number>(),
                  [](int32_t j) { return Number(3 * j / 13 ^ (j & 8), OddTag()); });
 #endif

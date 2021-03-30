@@ -13,11 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 
 #include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
 
@@ -32,10 +32,10 @@ void CheckTuple() {
 #include "support/utils.h"
 
 int main() {
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
     CheckTuple<int>();
     CheckTuple<int, long, float>();
 #endif
 
-    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

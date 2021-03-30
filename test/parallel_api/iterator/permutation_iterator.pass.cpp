@@ -24,7 +24,7 @@
 #include <cmath>
 #include <vector>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if TEST_SYCL_PRESENT
 #include <CL/sycl.hpp>

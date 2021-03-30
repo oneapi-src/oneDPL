@@ -15,7 +15,7 @@
 
 // Tests for uninitialized_copy, uninitialized_copy_n, uninitialized_move, uninitialized_move_n
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(memory)
@@ -171,7 +171,7 @@ test_uninitialized_copy_move_by_type()
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> in(n, [=](size_t k) -> T { return T(k); });
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         ::std::unique_ptr<T[]> p(new T[n]);
         auto out_begin = p.get();
 #else
@@ -210,7 +210,7 @@ main()
     test_uninitialized_copy_move_by_type<int16_t>();
     test_uninitialized_copy_move_by_type<float64_t>();
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
     test_uninitialized_copy_move_by_type<Wrapper<int8_t>>();
 #endif
