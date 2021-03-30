@@ -252,7 +252,7 @@ struct test_transform_iterator {
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it1(in1.begin());
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
 
-        auto test_lambda = [](int& x){ return x+1; };
+        auto test_lambda = [](T2& x){ return x+1; };
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);
         EXPECT_TRUE(new_transform_iterator.base() == in2.begin(), "wrong result from transform_iterator::base");
         static_assert(::std::is_same<decltype(new_transform_iterator.functor()),decltype(test_lambda)>::value,
