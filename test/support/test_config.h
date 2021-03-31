@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_TEST_config_H
-#define _PSTL_TEST_config_H
+#ifndef _TEST_config_H
+#define _TEST_config_H
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
@@ -72,4 +72,4 @@
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY)
 #endif
 
-#endif /* _PSTL_TEST_config_H */
+#endif /* _TEST_config_H */
