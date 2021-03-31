@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
@@ -129,7 +129,7 @@ test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, 
                                     in2.begin() + n, init, opB1, opB2);
         invoke_on_all_policies<1>()(test_short_transform_reduce<T>(), in1.begin(), in1.begin() + n, in2.begin(),
                                     in2.begin() + n, init, opB1, opU);
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<2>()(test_long_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),
                                     in2.cbegin() + n, init, opB1, opB2);
         invoke_on_all_policies<3>()(test_short_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),

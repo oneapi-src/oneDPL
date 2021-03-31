@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -108,7 +108,7 @@ test(const ::std::size_t bits)
                                             sub.begin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<1>()(test_find_end_predicate<T>(), in.begin(), in.begin() + n1, sub.begin(),
                                             sub.begin() + n2, ::std::equal_to<T>());
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<2>()(test_find_end<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
                                             sub.cbegin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<3>()(test_find_end_predicate<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
@@ -120,7 +120,7 @@ test(const ::std::size_t bits)
                                             sub.begin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<5>()(test_search_predicate<T>(), in.begin(), in.begin() + n1, sub.begin(),
                                             sub.begin() + n2, ::std::equal_to<T>());
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<6>()(test_search<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
                                             sub.cbegin() + n2, ::std::equal_to<T>());
                 invoke_on_all_policies<7>()(test_search_predicate<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),

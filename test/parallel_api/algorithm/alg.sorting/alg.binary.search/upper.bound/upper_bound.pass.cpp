@@ -19,19 +19,15 @@
 
 #include <iostream>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 #include "support/utils.h"
-
-#if TEST_SYCL_PRESENT
-#include <CL/sycl.hpp>
-#endif
 
 void test_on_host()
 {
     int key[10] = {0, 2, 2, 2, 3, 3, 3, 3, 6, 6};
     int val[5] = {0, 2, 4, 7, 8};
     int res[5];
-  
+
      // call algorithm
      oneapi::dpl::upper_bound(oneapi::dpl::execution::par, std::begin(key), std::end(key), std::begin(val), std::end(val), std::begin(res), std::less<int>());
 
@@ -41,6 +37,9 @@ void test_on_host()
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+#include <CL/sycl.hpp>
+
 void test_on_device()
 {
      bool correctness_flag = true;
@@ -49,17 +48,17 @@ void test_on_device()
      cl::sycl::buffer<uint64_t, 1> _key_buf{ cl::sycl::range<1>(10) };
      cl::sycl::buffer<uint64_t, 1> _val_buf{ cl::sycl::range<1>(5) };
      cl::sycl::buffer<uint64_t, 1> _res_buf{ cl::sycl::range<1>(5) };
-     { 
+     {
          auto key_buf = _key_buf.template get_access<cl::sycl::access::mode::read_write>();
 	 auto val_buf = _val_buf.template get_access<cl::sycl::access::mode::read_write>();
-	 
+
 	 // Initialize data
 	 key_buf[0] = 0; key_buf[1] = 2; key_buf[2] = 2; key_buf[3] = 2; key_buf[4] = 3;
 	 key_buf[5] = 3; key_buf[6] = 3; key_buf[7] = 3; key_buf[8] = 6; key_buf[9] = 6;
-	 
+
 	 val_buf[0] = 0; val_buf[1] = 2; val_buf[2] = 4; val_buf[3] = 7; val_buf[4] = 8;
      }
-   
+
      // create sycl iterators
      auto key_beg = oneapi::dpl::begin(_key_buf);
      auto key_end = oneapi::dpl::end(_key_buf);
@@ -69,12 +68,12 @@ void test_on_device()
 
      // create named policy from existing one
      auto new_policy = oneapi::dpl::execution::make_device_policy<class upperBound>(oneapi::dpl::execution::dpcpp_default);
-     
+
      // call algorithm
      oneapi::dpl::upper_bound(new_policy, key_beg, key_end, val_beg , val_end, res_beg, std::less<int>());
-     
+
      auto res = _res_buf.template get_access<cl::sycl::access::mode::read>();
-     
+
      //check data
      if((res[0] != 1) || (res[1] != 4) && (res[2] != 8) && (res[3] != 10) && (res[4] != 10 ))
          correctness_flag = false;

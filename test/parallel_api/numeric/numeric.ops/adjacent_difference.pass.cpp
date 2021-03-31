@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
@@ -167,7 +167,7 @@ main()
     test<uint8_t, uint32_t>([](uint32_t a, uint32_t b) { return a - b; });
     test<int32_t, int64_t>([](int64_t a, int64_t b) { return a / (b + 1); });
     test<int64_t, float32_t>([](float32_t a, float32_t b) { return (a + b) / 2; });
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<wrapper<int32_t>, wrapper<int64_t>>(
         [](const wrapper<int64_t>& a, const wrapper<int64_t>& b) { return a - b; });
 #endif

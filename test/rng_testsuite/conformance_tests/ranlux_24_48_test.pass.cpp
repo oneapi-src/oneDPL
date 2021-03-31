@@ -30,14 +30,14 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int main() {
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 
     // Reference values
     uint_fast32_t ranlux24_ref_sample = 9901578;
@@ -96,7 +96,7 @@ int main() {
         return 1;
     }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

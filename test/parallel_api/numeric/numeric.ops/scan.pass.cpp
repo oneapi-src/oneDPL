@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
@@ -158,7 +158,7 @@ test_with_plus(T init, T trash, Convert convert)
 #endif
     }
 
-#if _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE
+#if TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
     // testing of large number of items may take too much time in debug mode
     unsigned long n =
 #if PSTL_USE_DEBUG
@@ -178,7 +178,7 @@ test_with_plus(T init, T trash, Convert convert)
     invoke_on_all_hetero_policies<5>()(test_exclusive_scan_with_plus<T>(), in.begin(), in.end(), out.begin(),
                                 out.end(), expected.begin(), expected.end(), in.size(), init, trash);
 #endif
-#endif // _ONEDPL_BACKEND_SYCL && !_ONEDPL_FPGA_DEVICE
+#endif // TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
 }
 
 template <typename Type>
@@ -269,7 +269,7 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     // Test with highly restricted type and associative but not commutative operation
     test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
                                                             Matrix2x2<int32_t>(-666, 666));

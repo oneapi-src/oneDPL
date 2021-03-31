@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -128,7 +128,7 @@ main()
     test<int32_t, int8_t>();
     test<uint16_t, float32_t>();
     test<float64_t, int64_t>();
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<wrapper<float64_t>, wrapper<float64_t>>();
 #endif
 

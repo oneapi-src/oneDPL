@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
@@ -191,7 +191,7 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
                                     binary_op, trash);
         invoke_on_all_policies<2>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected2.begin(), expected2.end(), in.size(), unary_op, init, binary_op, trash);
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<3>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
@@ -205,7 +205,7 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         check_and_reset(expected1.begin(), out.begin(), out.size(), trash);
         invoke_on_all_policies<5>()(test_transform_exclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected1.begin(), expected1.end(), in.size(), unary_op, init, binary_op, trash);
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
         invoke_on_all_policies<6>()(test_transform_exclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected1.begin(), expected1.end(), in.size(), unary_op, init,
                                     binary_op, trash);
@@ -255,7 +255,7 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>([](const Matrix2x2<int32_t> x) { return x; },
                                                         Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
                                                         Matrix2x2<int32_t>(-666, 666));

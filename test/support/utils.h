@@ -16,7 +16,7 @@
 // File contains common utilities that tests rely on
 
 // Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
-#include "pstl_test_config.h"
+#include "test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
@@ -34,7 +34,7 @@
 
 #define _SKIP_RETURN_CODE 77
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 #include "utils_sycl.h"
 #endif
 
@@ -648,7 +648,7 @@ struct invoke_on_all_policies
     {
 
         invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
         invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
 #endif
 

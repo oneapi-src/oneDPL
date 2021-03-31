@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 // Tests for stable_partition and partition_copy
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -108,11 +108,11 @@ main()
     test<int16_t>([](const int32_t value) { return value % 2 == 0; });
     test<int32_t>([](const int32_t) { return true; });
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test<float64_t>([](const float64_t value) { return value > 2 << 6; });
 #endif
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<Wrapper<float64_t>>([](const Wrapper<float64_t>& value) -> bool { return value.get_my_field() != nullptr; });
 #endif
 

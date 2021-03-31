@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -185,7 +185,7 @@ struct test_non_const
 int
 main()
 {
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
     test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, ::std::less<int32_t>());
     test_by_type<int32_t>([](int32_t) { return 0; }, [](int32_t) { return 0; }, ::std::less<int32_t>());
 #endif
@@ -193,7 +193,7 @@ main()
     test_by_type<float64_t>([](int32_t i) { return -2 * i; }, [](int32_t i) { return -(2 * i + 1); },
                             [](const float64_t x, const float64_t y) { return x > y; });
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test_by_type<DataType<float32_t>>(
         [](int32_t i) { return DataType<float32_t>(2 * i + 1); }, [](int32_t i) { return DataType<float32_t>(2 * i); },
         [](const DataType<float32_t>& x, const DataType<float32_t>& y) { return x.get_val() < y.get_val(); });
