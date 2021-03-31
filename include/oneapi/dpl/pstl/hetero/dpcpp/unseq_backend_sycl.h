@@ -509,9 +509,7 @@ struct __scan
         __scan_init_processing<_Tp> __use_init{};
 
         ::std::size_t __shift = 0;
-        __internal::__invoke_if_not(_Inclusive{}, [&]() {
-            __shift = 1;
-        });
+        __internal::__invoke_if_not(_Inclusive{}, [&]() { __shift = 1; });
 
         ::std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
@@ -577,7 +575,6 @@ struct __scan
             if (__global_id == 0)
                 __use_init(__init, __out_acc[__global_id]);
         });
-
 
         if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
             __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
