@@ -19,7 +19,6 @@
 #include _PSTL_TEST_HEADER(numeric)
 
 #include "support/utils.h"
-#include <string>
 
 using namespace TestUtils;
 
@@ -72,15 +71,15 @@ class MyClass
 
 template <typename T>
 void
-CheckResults(const T& expected, const T& in, const ::std::string& msg)
+CheckResults(const T& expected, const T& in, const char* msg)
 {
-    EXPECT_TRUE(Equal(expected, in), msg.c_str());
+    EXPECT_TRUE(Equal(expected, in), msg);
 }
 
 // We need to check correctness only for "int" (for example) except cases
 // if we have "floating-point type"-specialization
 void
-CheckResults(const float32_t& /* expected */, const float32_t& /* in */, const ::std::string& /* msg */)
+CheckResults(const float32_t& /* expected */, const float32_t& /* in */, const char* /* msg */)
 {
 }
 
@@ -93,9 +92,9 @@ struct test_3_iters_default_ops
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
                T init)
     {
-        auto expectedB = ::std::inner_product(first1, last1, first2, init, ::std::plus<T>(), ::std::multiplies<T>());
+        auto expectedB = ::std::inner_product(first1, last1, first2, init);
         T resRA = ::std::transform_reduce(exec, first1, last1, first2, init);
-        CheckResults(expectedB, resRA, ::std::string("wrong result with tranform_reduce (3 iterators, default predicates)"));
+        CheckResults(expectedB, resRA, "wrong result with tranform_reduce (3 iterators, default predicates)");
     }
 };
 
@@ -110,7 +109,7 @@ struct test_3_iters_custom_ops
     {
         auto expectedB = ::std::inner_product(first1, last1, first2, init, opB1, opB2);
         T resRA = ::std::transform_reduce(exec, first1, last1, first2, init, opB1, opB2);
-        CheckResults(expectedB, resRA, ::std::string("wrong result with tranform_reduce (3 iterators, custom predicates)"));
+        CheckResults(expectedB, resRA, "wrong result with tranform_reduce (3 iterators, custom predicates)");
     }
 };
 
@@ -124,7 +123,7 @@ struct test_2_iters
     {
         auto expectedU = transform_reduce_serial(first1, last1, init, opB, opU);
         T resRA = ::std::transform_reduce(exec, first1, last1, init, opB, opU);
-        CheckResults(expectedU, resRA, ::std::string("wrong result with tranform_reduce (2 iterators)"));
+        CheckResults(expectedU, resRA, "wrong result with tranform_reduce (2 iterators)");
     }
 };
 
