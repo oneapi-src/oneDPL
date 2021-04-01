@@ -71,21 +71,35 @@ class MyClass
 
 template <typename T>
 void
-CheckResults(const T& expected, const T& in)
+CheckResults(const T& expected, const T& in, const char* msg)
 {
-    EXPECT_TRUE(Equal(expected, in), "wrong result of transform_reduce");
+    EXPECT_TRUE(Equal(expected, in), msg);
 }
 
 // We need to check correctness only for "int" (for example) except cases
 // if we have "floating-point type"-specialization
 void
-CheckResults(const float32_t& /* expected */, const float32_t& /* in */)
+CheckResults(const float32_t& /* expected */, const float32_t& /* in */, const char* /* msg */)
 {
 }
 
 // Test for different types and operations with different iterators
 template <typename Type>
-struct test_long_transform_reduce
+struct test_3_iters_default_ops
+{
+    template <typename Policy, typename InputIterator1, typename InputIterator2, typename T>
+    void
+    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
+               T init)
+    {
+        auto expectedB = ::std::inner_product(first1, last1, first2, init);
+        T resRA = ::std::transform_reduce(exec, first1, last1, first2, init);
+        CheckResults(expectedB, resRA, "wrong result with tranform_reduce (3 iterators, default predicates)");
+    }
+};
+
+template <typename Type>
+struct test_3_iters_custom_ops
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename T, typename BinaryOperation1,
               typename BinaryOperation2>
@@ -95,22 +109,21 @@ struct test_long_transform_reduce
     {
         auto expectedB = ::std::inner_product(first1, last1, first2, init, opB1, opB2);
         T resRA = ::std::transform_reduce(exec, first1, last1, first2, init, opB1, opB2);
-        CheckResults(expectedB, resRA);
+        CheckResults(expectedB, resRA, "wrong result with tranform_reduce (3 iterators, custom predicates)");
     }
 };
 
 template  <typename Type>
-struct test_short_transform_reduce
+struct test_2_iters
 {
-    template <typename Policy, typename InputIterator1, typename InputIterator2, typename T, typename BinaryOperation,
+    template <typename Policy, typename InputIterator1, typename T, typename BinaryOperation,
               typename UnaryOp>
     void
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 /* first2 */, InputIterator2 /* last2 */,
-               T init, BinaryOperation opB, UnaryOp opU)
+    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, T init, BinaryOperation opB, UnaryOp opU)
     {
         auto expectedU = transform_reduce_serial(first1, last1, init, opB, opU);
         T resRA = ::std::transform_reduce(exec, first1, last1, init, opB, opU);
-        CheckResults(expectedU, resRA);
+        CheckResults(expectedU, resRA, "wrong result with tranform_reduce (2 iterators)");
     }
 };
 
@@ -118,22 +131,22 @@ template <typename T, typename BinaryOperation1, typename BinaryOperation2, type
 void
 test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, Initializer initObj)
 {
-
     ::std::size_t maxSize = 100000;
     Sequence<T> in1(maxSize, initObj);
     Sequence<T> in2(maxSize, initObj);
 
     for (::std::size_t n = 0; n < maxSize; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
-        invoke_on_all_policies<0>()(test_long_transform_reduce<T>(), in1.begin(), in1.begin() + n, in2.begin(),
-                                    in2.begin() + n, init, opB1, opB2);
-        invoke_on_all_policies<1>()(test_short_transform_reduce<T>(), in1.begin(), in1.begin() + n, in2.begin(),
-                                    in2.begin() + n, init, opB1, opU);
+        invoke_on_all_policies<0>()(test_3_iters_custom_ops<T>(), in1.begin(), in1.begin() + n,
+                                    in2.begin(), in2.begin() + n, init, opB1, opB2);
+        invoke_on_all_policies<1>()(test_2_iters<T>(), in1.begin(), in1.begin() + n, init, opB1, opU);
 #if !ONEDPL_FPGA_DEVICE
-        invoke_on_all_policies<2>()(test_long_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),
-                                    in2.cbegin() + n, init, opB1, opB2);
-        invoke_on_all_policies<3>()(test_short_transform_reduce<T>(), in1.cbegin(), in1.cbegin() + n, in2.cbegin(),
-                                    in2.cbegin() + n, init, opB1, opU);
+        invoke_on_all_policies<2>()(test_3_iters_default_ops<T>(), in1.begin(), in1.begin() + n,
+                                    in2.begin(), in2.begin() + n, init);
+
+        invoke_on_all_policies<3>()(test_3_iters_custom_ops<T>(), in1.cbegin(), in1.cbegin() + n,
+                                    in2.cbegin(), in2.cbegin() + n, init, opB1, opB2);
+        invoke_on_all_policies<4>()(test_2_iters<T>(), in1.cbegin(), in1.cbegin() + n, init, opB1, opU);
 #endif
     }
 }
@@ -153,7 +166,6 @@ main()
     test_by_type<MyClass>(MyClass(), ::std::plus<MyClass>(), ::std::multiplies<MyClass>(),
         [](const MyClass& x) { return MyClass(-x.my_field); },
         [](::std::size_t) -> MyClass { return MyClass(rand() % 1000); });
-
 
     return done();
 }
