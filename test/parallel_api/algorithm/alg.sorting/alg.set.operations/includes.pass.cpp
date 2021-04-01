@@ -47,7 +47,29 @@ struct Num
 };
 
 template <typename T>
-struct test_one_policy
+struct test_without_compare
+{
+    template <typename Policy, typename InputIterator1, typename InputIterator2>
+    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value &&
+                              can_use_default_less_operator<T>::value, void>::type
+    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
+    {
+        auto expect_res = ::std::includes(first1, last1, first2, last2);
+        auto res = ::std::includes(exec, first1, last1, first2, last2);
+
+        EXPECT_TRUE(expect_res == res, "wrong result for includes without predicate");
+    }
+
+    template <typename Policy, typename InputIterator1, typename InputIterator2>
+    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value ||
+                              !can_use_default_less_operator<T>::value, void>::type
+    operator()(Policy&& /* exec */, InputIterator1 /* first1 */, InputIterator1 /* last1 */, InputIterator2 /* first2 */, InputIterator2 /* last2 */)
+    {
+    }
+};
+
+template <typename T>
+struct test_with_compare
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
@@ -58,7 +80,7 @@ struct test_one_policy
         auto expect_res = ::std::includes(first1, last1, first2, last2, comp);
         auto res = ::std::includes(exec, first1, last1, first2, last2, comp);
 
-        EXPECT_TRUE(expect_res == res, "wrong result for includes");
+        EXPECT_TRUE(expect_res == res, "wrong result for includes with predicate");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
@@ -73,28 +95,32 @@ template <typename T1, typename T2, typename Compare>
 void
 test_includes(Compare compare)
 {
-
+    ::std::srand(42);
     const ::std::size_t n_max = 1000000;
 
-    // The rand()%(2*n+1) encourages generation of some duplicates.
-    ::std::srand(42);
+    Sequence<T1> in1(n_max, [](::std::size_t k) { return rand() % (2 * k + 1); });
+    Sequence<T2> in2(n_max, [](::std::size_t k) { return rand() % (k + 1); });
+
+    Sequence<T1> in3(n_max, [](::std::size_t k) { return rand() % (k + 1); });
+    Sequence<T2> in4(n_max, [](::std::size_t k) { return rand() % (k/2 + 1); });
+
+    //prepare the input ranges: 1-2 for testing with compare, 3-4 for testing without compare
+    ::std::sort(in1.begin(), in1.end(), compare);
+    ::std::sort(in2.begin(), in2.end(), compare);
+    ::std::sort(in3.begin(), in3.end());
+    ::std::sort(in4.begin(), in4.end());
 
     for (::std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         for (::std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
         {
-            //prepare the input ranges
-            Sequence<T1> in1(n, [](::std::size_t k) { return rand() % (2 * k + 1); });
-            Sequence<T2> in2(m, [](::std::size_t k) { return rand() % (k + 1); });
-
-            ::std::sort(in1.begin(), in1.end(), compare);
-            ::std::sort(in2.begin(), in2.end(), compare);
-
-            invoke_on_all_policies<0>()(test_one_policy<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                        compare);
+            invoke_on_all_policies<0>()(test_with_compare<T1>(), in1.begin(), in1.begin() + n, in2.cbegin(),
+                                        in2.cbegin() + m, compare);
+            invoke_on_all_policies<1>()(test_without_compare<T1>(), in3.begin(), in3.begin() + n, in4.begin(),
+                                        in4.begin() + m);
             //test w/ non constant predicate
             if (n < 5 && m < 5)
-                invoke_on_all_host_policies()(test_one_policy<T1>(), in1.begin(), in1.end(), in2.cbegin(),
+                invoke_on_all_host_policies()(test_with_compare<T1>(), in1.begin(), in1.end(), in2.cbegin(),
                                               in2.cend(), non_const(compare));
         }
     }
@@ -103,8 +129,7 @@ test_includes(Compare compare)
 int
 main()
 {
-
-    test_includes<float64_t, float64_t>(oneapi::dpl::__internal::__pstl_less());
+    test_includes<float64_t, float64_t>([](const float64_t x, const float64_t y){ return x > y; });
 #if !TEST_DPCPP_BACKEND_PRESENT
     test_includes<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; });
 #endif
