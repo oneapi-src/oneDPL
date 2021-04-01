@@ -19359,6 +19359,14 @@ struct transform_view_fn
     }
 };
 
+} // namespace detail
+
+namespace views
+{
+
+NANO_INLINE_VAR(nano::detail::transform_view_fn, transform)
+}
+
 NANO_END_NAMESPACE
 
 #    endif
