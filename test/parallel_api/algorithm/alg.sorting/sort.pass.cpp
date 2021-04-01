@@ -25,6 +25,12 @@
 #define _PSTL_TEST_STABLE_SORT
 #endif
 
+// Testing with and without predicate may be usefull due to different implementations, e.g. merge-sort and radix-sort
+#if !defined(_PSTL_TEST_WITH_PREDICATE) && !defined(_PSTL_TEST_WITHOUT_PREDICATE)
+#define _PSTL_TEST_WITH_PREDICATE
+#define _PSTL_TEST_WITHOUT_PREDICATE
+#endif
+
 using namespace TestUtils;
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -194,7 +200,7 @@ struct test_sort_with_compare
         for (size_t i = 0; i < n; ++i, ++expected_first, ++tmp_first)
         {
             // Check that expected[i] is equal to tmp[i]
-            EXPECT_TRUE(Equal(*expected_first, *tmp_first), "bad sort without predicate");
+            EXPECT_TRUE(Equal(*expected_first, *tmp_first), "wrong result from sort without predicate");
         }
         int32_t count1 = KeyCount;
         EXPECT_EQ(count0, count1, "key cleanup error");
@@ -234,7 +240,7 @@ struct test_sort_without_compare
         for (size_t i = 0; i < n; ++i, ++expected_first, ++tmp_first)
         {
             // Check that expected[i] is equal to tmp[i]
-            EXPECT_TRUE(Equal(*expected_first, *tmp_first), "bad sort with predicate");
+            EXPECT_TRUE(Equal(*expected_first, *tmp_first), "wrong result from sort with predicate");
         }
         int32_t count1 = KeyCount;
         EXPECT_EQ(count0, count1, "key cleanup error");
@@ -260,10 +266,14 @@ test_sort(Compare compare, Convert convert)
         Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
         Sequence<T> expected(in);
         Sequence<T> tmp(in);
+#ifdef _PSTL_TEST_WITHOUT_PREDICATE
         invoke_on_all_policies<0>()(test_sort_without_compare<T>(), tmp.begin(), tmp.end(), expected.begin(),
                                     expected.end(), in.begin(), in.end(), in.size());
+#endif
+#ifdef _PSTL_TEST_WITH_PREDICATE
         invoke_on_all_policies<1>()(test_sort_with_compare<T>(), tmp.begin(), tmp.end(), expected.begin(),
                                     expected.end(), in.begin(), in.end(), in.size(), compare);
+#endif
     }
 }
 
