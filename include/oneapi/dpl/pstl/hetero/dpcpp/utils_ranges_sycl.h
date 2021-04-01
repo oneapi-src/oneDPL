@@ -97,6 +97,7 @@ struct all_view_fn
     operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
     {
         return ::std::forward<_R>(__r);
+        //TODO: return ::std::ranges::views::all(::std::forward<_R>(__r));
     }
 };
 

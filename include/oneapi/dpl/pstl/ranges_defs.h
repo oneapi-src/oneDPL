@@ -17,6 +17,7 @@
 #define _ONEDPL_RANGES_DEFS_H
 
 #include "ranges/nanorange.hpp"
+#include "ranges/nanorange_ext.h"
 
 namespace oneapi
 {
