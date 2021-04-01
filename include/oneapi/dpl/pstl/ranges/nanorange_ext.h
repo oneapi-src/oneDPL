@@ -31,7 +31,7 @@ class offset_iterator
 
     offset_iterator() = default;
     offset_iterator(const offset_iterator&) = default;
-    constexpr reverse_iterator&
+    constexpr offset_iterator&
     operator=(const offset_iterator&) = default;
 
     explicit offset_iterator(I it, difference_type n, difference_type offset, I b) : current_(it), beg_(b), n_(n), offset_(offset)
