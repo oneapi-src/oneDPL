@@ -28,11 +28,11 @@
 #include <oneapi/dpl/random>
 
 // Engine parameters
-#define a 40014u
-#define c 200u
-#define m 2147483563u
-#define seed 777
-#define eps 0.00001
+constexpr auto a = 40014u;
+constexpr auto c = 200u;
+constexpr auto m = 2147483563u;
+constexpr auto seed = 777;
+constexpr auto eps = 0.00001;
 
 template<class RealType, class UIntType>
 int test(oneapi::dpl::internal::element_type_t<RealType> left, oneapi::dpl::internal::element_type_t<RealType> right, int nsamples) {

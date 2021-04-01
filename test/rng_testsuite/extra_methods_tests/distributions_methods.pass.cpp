@@ -26,8 +26,8 @@
 #    include <CL/sycl.hpp>
 #    include <oneapi/dpl/random>
 
-const auto SEED = 777;
-const auto N_GEN = 1000;
+constexpr auto SEED = 777;
+constexpr auto N_GEN = 1000;
 
 template <typename T>
 using Element_type = typename oneapi::dpl::internal::type_traits_t<T>::element_type;

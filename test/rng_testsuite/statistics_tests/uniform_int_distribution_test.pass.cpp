@@ -28,11 +28,11 @@
 #include <oneapi/dpl/random>
 
 // Engine parameters
-#define a 40014u
-#define c 200u
-#define m 2147483647u
-#define seed 777
-#define eps 1
+constexpr auto a = 40014u;
+constexpr auto c = 200u;
+constexpr auto m = 2147483647u;
+constexpr auto seed = 777;
+constexpr auto eps = 1;
 
 template<typename IntType>
 std::int32_t statistics_check(int nsamples, IntType left, IntType right,

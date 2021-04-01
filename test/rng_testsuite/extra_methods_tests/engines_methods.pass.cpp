@@ -25,20 +25,20 @@
 #    include <CL/sycl.hpp>
 #    include <oneapi/dpl/random>
 
-const auto SEED = 777;
-const auto N_GEN = 960;
-const auto MINSTD_A = 48271;
-const auto MINSTD_C = 0;
-const auto MINSTD_M = 2147483647;
-const auto MINSTD_MIN = 1;
-const auto MINSTD_MAX = 2147483646;
-const auto RANLUX24_BASE_W = 24;
-const auto RANLUX24_BASE_S = 10;
-const auto RANLUX24_BASE_R = 24;
-const auto RANLUX24_BASE_MIN = 0;
-const auto RANLUX24_BASE_MAX = 16777215;
-const auto RANLUX24_P = 223;
-const auto RANLUX24_R = 23;
+constexpr auto SEED = 777;
+constexpr auto N_GEN = 960;
+constexpr auto MINSTD_A = 48271;
+constexpr auto MINSTD_C = 0;
+constexpr auto MINSTD_M = 2147483647;
+constexpr auto MINSTD_MIN = 1;
+constexpr auto MINSTD_MAX = 2147483646;
+constexpr auto RANLUX24_BASE_W = 24;
+constexpr auto RANLUX24_BASE_S = 10;
+constexpr auto RANLUX24_BASE_R = 24;
+constexpr auto RANLUX24_BASE_MIN = 0;
+constexpr auto RANLUX24_BASE_MAX = 16777215;
+constexpr auto RANLUX24_P = 223;
+constexpr auto RANLUX24_R = 23;
 
 std::int32_t
 check_params(oneapi::dpl::minstd_rand& engine)

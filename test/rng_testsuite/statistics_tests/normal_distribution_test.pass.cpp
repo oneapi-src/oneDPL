@@ -28,13 +28,13 @@
 #include <math.h>
 
 // Engine parameters
-#define a 40014u
-#define c 200u
-#define m 2147483563u
-#define seed 777
+constexpr auto a = 40014u;
+constexpr auto c = 200u;
+constexpr auto m = 2147483563u;
+constexpr auto seed = 777;
 
 // Consts
-#define eps 0.01
+constexpr auto eps = 0.01;
 const double pi = std::acos(-1);
 
 template<typename ScalarUintType, typename ScalarRealType>
