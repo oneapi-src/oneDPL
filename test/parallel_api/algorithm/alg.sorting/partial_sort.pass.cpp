@@ -77,18 +77,18 @@ struct test_without_compare
             auto m2 = exp_first + p;
 
             ::std::partial_sort(exp_first, m2, exp_last);
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
             count_comp = 0;
 #endif
             ::std::partial_sort(exec, first, m1, last);
             EXPECT_EQ_N(exp_first, first, p, "wrong effect from partial_sort without predicate");
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
             //checking upper bound number of comparisons; O(p*(last-first)log(middle-first)); where p - number of threads;
             if (m1 - first > 1)
             {
                 auto complex = ::std::ceil(n * ::std::log(float32_t(m1 - first)));
-#if defined(_ONEDPL_PAR_BACKEND_TBB)
+#if TEST_TBB_BACKEND_PRESENT
                 auto p = tbb::this_task_arena::max_concurrency();
 #else
                 auto p = 1;
@@ -101,7 +101,7 @@ struct test_without_compare
                 }
 #endif
             }
-#endif // !_ONEDPL_BACKEND_SYCL
+#endif // !TEST_DPCPP_BACKEND_PRESENT
         }
     }
 
@@ -148,7 +148,7 @@ struct test_with_compare
             if (m1 - first > 1)
             {
                 auto complex = ::std::ceil(n * ::std::log(float32_t(m1 - first)));
-#if defined(_ONEDPL_PAR_BACKEND_TBB)
+#if TEST_TBB_BACKEND_PRESENT
                 auto p = tbb::this_task_arena::max_concurrency();
 #else
                 auto p = 1;
@@ -178,7 +178,6 @@ template <typename T, typename Compare>
 void
 test_partial_sort(Compare compare)
 {
-
     const ::std::size_t n_max = 100000;
     Sequence<T> in(n_max);
     Sequence<T> exp(n_max);
@@ -186,6 +185,8 @@ test_partial_sort(Compare compare)
     {
         invoke_on_all_policies<0>()(test_with_compare<T>(), in.begin(), in.begin() + n, exp.begin(),
                                     exp.begin() + n, compare);
+        invoke_on_all_policies<1>()(test_without_compare<T>(), in.begin(), in.begin() + n, exp.begin(),
+                                    exp.begin() + n);
     }
 }
 

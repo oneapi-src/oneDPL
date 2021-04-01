@@ -62,6 +62,9 @@
 #define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
+// Enable test when the TBB backend is available
+#define TEST_TBB_BACKEND_PRESENT (!defined(ONEDPL_USE_TBB_BACKEND) || ONEDPL_USE_TBB_BACKEND != 0)
+
 // Check for C++ standard and standard library for the use of ranges API
 #define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (__cplusplus >= 201703L && TEST_DPCPP_BACKEND_PRESENT)
 #if defined(_GLIBCXX_RELEASE)
