@@ -350,10 +350,7 @@ int main() {
     std::cout << "--------------------------------------------------------" << std::endl;
     err = tests_set<float, std::uint32_t>(nsamples);
     err += tests_set<float, sycl::vec<std::uint32_t, 16>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing double and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -362,10 +359,7 @@ int main() {
     std::cout << "---------------------------------------------------------" << std::endl;
     err = tests_set<double, std::uint32_t>(nsamples);
     err += tests_set<double, sycl::vec<std::uint32_t, 16>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing sycl::vec<float, 1> and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -378,10 +372,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 1>, std::uint32_t>(100, 2);
     err += tests_set_portion<sycl::vec<float, 1>, sycl::vec<std::uint32_t, 16>>(160, 1);
     err += tests_set_portion<sycl::vec<float, 1>, sycl::vec<std::uint32_t, 16>>(100, 2);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing sycl::vec<float, 3> and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -394,10 +385,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 3>, std::uint32_t>(99, 4);
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<std::uint32_t, 16>>(99, 1);
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<std::uint32_t, 16>>(99, 4);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing sycl::vec<float, 8> and std::uint32_t / sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
@@ -411,10 +399,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 16>>(160, 1);
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 16>>(160, 4);
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 16>>(160, 9);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing sycl::vec<float, 16> and std::uint32_t / sycl::vec<std::uint32_t, 16>
@@ -429,10 +414,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(160, 1);
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(140, 7);
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(160, 16);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 
     // testing flag = true case
@@ -445,10 +427,7 @@ int main() {
     err = tests_set_flag<sycl::vec<float, 4>, sycl::vec<std::uint32_t, 4>>(100);
     err = tests_set_flag<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 8>>(99);
     err = tests_set_flag<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(170);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

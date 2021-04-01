@@ -213,7 +213,6 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
 
     std::int32_t err = 0;
-    std::int32_t global_err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "linear_congruential_engine<48271, 0, 2147483647>" << std::endl;
@@ -225,10 +224,7 @@ main()
     err += test<oneapi::dpl::minstd_rand_vec<4>>();
     err += test<oneapi::dpl::minstd_rand_vec<8>>();
     err += test<oneapi::dpl::minstd_rand_vec<16>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "subtract_with_carry_engine<24, 10, 24>" << std::endl;
@@ -240,10 +236,7 @@ main()
     err += test<oneapi::dpl::ranlux24_base_vec<4>>();
     err += test<oneapi::dpl::ranlux24_base_vec<8>>();
     err += test<oneapi::dpl::ranlux24_base_vec<16>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "discard_block_engine<ranlux24_base, 223, 23>" << std::endl;
@@ -255,14 +248,7 @@ main()
     err += test<oneapi::dpl::ranlux24_vec<4>>();
     err += test<oneapi::dpl::ranlux24_vec<8>>();
     err += test<oneapi::dpl::ranlux24_vec<16>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-
-    if (global_err)
-    {
-        return 1;
-    }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

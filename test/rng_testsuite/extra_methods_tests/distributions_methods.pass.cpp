@@ -151,7 +151,6 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
 
     std::int32_t err = 0;
-    std::int32_t global_err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_int_distribution<std::int32_t>" << std::endl;
@@ -163,10 +162,7 @@ main()
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 4>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 8>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 16>>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_int_distribution<std::uint32_t>" << std::endl;
@@ -178,10 +174,7 @@ main()
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 4>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 8>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 16>>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_real_distribution<float>" << std::endl;
@@ -193,10 +186,7 @@ main()
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 4>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 8>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_real_distribution<double>" << std::endl;
@@ -208,10 +198,7 @@ main()
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 4>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 8>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 16>>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "normal_distribution<float>" << std::endl;
@@ -223,10 +210,7 @@ main()
     err += test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "normal_distribution<double>" << std::endl;
@@ -238,15 +222,7 @@ main()
     err += test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>>();
-
     EXPECT_TRUE(!err, "Test FAILED");
-    global_err += err;
-    err = 0;
-
-    if (global_err)
-    {
-        return 1;
-    }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
