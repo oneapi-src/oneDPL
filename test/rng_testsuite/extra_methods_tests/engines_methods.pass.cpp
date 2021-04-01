@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- engines_methods.hpp ----------------------             -------------===//
+//===-- engines_methods.pass.cpp ------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -18,66 +18,79 @@
 // Testing of different engines' methods
 
 #include "support/utils.h"
-#include <iostream>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
+#    include <iostream>
 #    include <vector>
 #    include <CL/sycl.hpp>
 #    include <oneapi/dpl/random>
 
-#    define SEED 777
-#    define N_GEN 960
-#    define MINSTD_A 48271
-#    define MINSTD_C 0
-#    define MINSTD_M 2147483647
-#    define MINSTD_MIN 1
-#    define MINSTD_MAX 2147483646
-#    define RANLUX24_BASE_W 24
-#    define RANLUX24_BASE_S 10
-#    define RANLUX24_BASE_R 24
-#    define RANLUX24_BASE_MIN 0
-#    define RANLUX24_BASE_MAX 16777215
-#    define RANLUX24_P 223
-#    define RANLUX24_R 23
+const auto SEED = 777;
+const auto N_GEN = 960;
+const auto MINSTD_A = 48271;
+const auto MINSTD_C = 0;
+const auto MINSTD_M = 2147483647;
+const auto MINSTD_MIN = 1;
+const auto MINSTD_MAX = 2147483646;
+const auto RANLUX24_BASE_W = 24;
+const auto RANLUX24_BASE_S = 10;
+const auto RANLUX24_BASE_R = 24;
+const auto RANLUX24_BASE_MIN = 0;
+const auto RANLUX24_BASE_MAX = 16777215;
+const auto RANLUX24_P = 223;
+const auto RANLUX24_R = 23;
 
-template <class Engine, int N>
 std::int32_t
-check_params(Engine& engine)
+check_params(oneapi::dpl::minstd_rand& engine)
 {
-    if constexpr (std::is_same<Engine, oneapi::dpl::minstd_rand>::value)
-    {
-        return ((oneapi::dpl::minstd_rand::multiplier != MINSTD_A) ||
-                (oneapi::dpl::minstd_rand::increment != MINSTD_C) || (oneapi::dpl::minstd_rand::modulus != MINSTD_M) ||
-                (engine.min() != MINSTD_MIN) || (engine.max() != MINSTD_MAX));
-    }
-    if constexpr (std::is_same<Engine, oneapi::dpl::minstd_rand_vec<N>>::value)
-    {
-        return ((oneapi::dpl::minstd_rand_vec<N>::multiplier != MINSTD_A) ||
-                (oneapi::dpl::minstd_rand_vec<N>::increment != MINSTD_C) ||
-                (oneapi::dpl::minstd_rand_vec<N>::modulus != MINSTD_M) || (engine.min() != MINSTD_MIN) ||
-                (engine.max() != MINSTD_MAX));
-    }
-    if constexpr (std::is_same<Engine, oneapi::dpl::ranlux24_base>::value)
-    {
-        return ((oneapi::dpl::ranlux24_base::word_size != RANLUX24_BASE_W) ||
-                (oneapi::dpl::ranlux24_base::short_lag != RANLUX24_BASE_S) ||
-                (oneapi::dpl::ranlux24_base::long_lag != RANLUX24_BASE_R) || (engine.min() != RANLUX24_BASE_MIN) ||
-                (engine.max() != RANLUX24_BASE_MAX));
-    }
-    if constexpr (std::is_same<Engine, oneapi::dpl::ranlux24_base_vec<N>>::value)
-    {
-        return ((oneapi::dpl::ranlux24_base_vec<N>::word_size != RANLUX24_BASE_W) ||
-                (oneapi::dpl::ranlux24_base_vec<N>::short_lag != RANLUX24_BASE_S) ||
-                (oneapi::dpl::ranlux24_base_vec<N>::long_lag != RANLUX24_BASE_R) ||
-                (engine.min() != RANLUX24_BASE_MIN) || (engine.max() != RANLUX24_BASE_MAX));
-    }
-    if constexpr (std::is_same<Engine, oneapi::dpl::ranlux24>::value)
-    {
-        return ((oneapi::dpl::ranlux24::block_size != RANLUX24_P) ||
-                (oneapi::dpl::ranlux24::used_block != RANLUX24_R) || (engine.min() != RANLUX24_BASE_MIN) ||
-                (engine.max() != RANLUX24_BASE_MAX));
-    }
-    return 0;
+    return ((oneapi::dpl::minstd_rand::multiplier != MINSTD_A) || (oneapi::dpl::minstd_rand::increment != MINSTD_C) ||
+            (oneapi::dpl::minstd_rand::modulus != MINSTD_M) || (engine.min() != MINSTD_MIN) ||
+            (engine.max() != MINSTD_MAX));
+}
+
+template <int N>
+std::int32_t
+check_params(oneapi::dpl::minstd_rand_vec<N>& engine)
+{
+    return ((oneapi::dpl::minstd_rand_vec<N>::multiplier != MINSTD_A) ||
+            (oneapi::dpl::minstd_rand_vec<N>::increment != MINSTD_C) ||
+            (oneapi::dpl::minstd_rand_vec<N>::modulus != MINSTD_M) || (engine.min() != MINSTD_MIN) ||
+            (engine.max() != MINSTD_MAX));
+}
+
+std::int32_t
+check_params(oneapi::dpl::ranlux24_base& engine)
+{
+    return ((oneapi::dpl::ranlux24_base::word_size != RANLUX24_BASE_W) ||
+            (oneapi::dpl::ranlux24_base::short_lag != RANLUX24_BASE_S) ||
+            (oneapi::dpl::ranlux24_base::long_lag != RANLUX24_BASE_R) || (engine.min() != RANLUX24_BASE_MIN) ||
+            (engine.max() != RANLUX24_BASE_MAX));
+}
+
+template <int N>
+std::int32_t
+check_params(oneapi::dpl::ranlux24_base_vec<N>& engine)
+{
+    return ((oneapi::dpl::ranlux24_base_vec<N>::word_size != RANLUX24_BASE_W) ||
+            (oneapi::dpl::ranlux24_base_vec<N>::short_lag != RANLUX24_BASE_S) ||
+            (oneapi::dpl::ranlux24_base_vec<N>::long_lag != RANLUX24_BASE_R) || (engine.min() != RANLUX24_BASE_MIN) ||
+            (engine.max() != RANLUX24_BASE_MAX));
+}
+
+std::int32_t
+check_params(oneapi::dpl::ranlux24& engine)
+{
+    return ((oneapi::dpl::ranlux24::block_size != RANLUX24_P) || (oneapi::dpl::ranlux24::used_block != RANLUX24_R) ||
+            (engine.min() != RANLUX24_BASE_MIN) || (engine.max() != RANLUX24_BASE_MAX));
+}
+
+template <int N>
+std::int32_t
+check_params(oneapi::dpl::ranlux24_vec<N>& engine)
+{
+    return ((oneapi::dpl::ranlux24_vec<N>::block_size != RANLUX24_P) ||
+            (oneapi::dpl::ranlux24_vec<N>::used_block != RANLUX24_R) || (engine.min() != RANLUX24_BASE_MIN) ||
+            (engine.max() != RANLUX24_BASE_MAX));
 }
 
 template <class Engine>
@@ -113,7 +126,7 @@ test()
 
     // Random number generation
     {
-        sycl::buffer<std::int32_t, 1> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+        sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
 
         try
         {
@@ -185,19 +198,19 @@ test()
 
         queue.wait_and_throw();
         Engine engine;
-        sum += check_params<Engine, num_elems>(engine);
+        sum += check_params(engine);
     }
 
     return sum;
 }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 
     std::int32_t err = 0;
     std::int32_t global_err = 0;
@@ -212,10 +225,8 @@ main()
     err += test<oneapi::dpl::minstd_rand_vec<4>>();
     err += test<oneapi::dpl::minstd_rand_vec<8>>();
     err += test<oneapi::dpl::minstd_rand_vec<16>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -229,10 +240,8 @@ main()
     err += test<oneapi::dpl::ranlux24_base_vec<4>>();
     err += test<oneapi::dpl::ranlux24_base_vec<8>>();
     err += test<oneapi::dpl::ranlux24_base_vec<16>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -246,10 +255,8 @@ main()
     err += test<oneapi::dpl::ranlux24_vec<4>>();
     err += test<oneapi::dpl::ranlux24_vec<8>>();
     err += test<oneapi::dpl::ranlux24_vec<16>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
 
     if (global_err)
@@ -257,7 +264,7 @@ main()
         return 1;
     }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

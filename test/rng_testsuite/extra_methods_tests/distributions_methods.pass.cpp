@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- engines_methods.hpp ----------------------             -------------===//
+//===-- distributions_methods.pass.cpp -------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -18,22 +18,23 @@
 // Testing of different distributions' methods
 
 #include "support/utils.h"
-#include <iostream>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
+#    include <iostream>
 #    include <cmath>
 #    include <vector>
 #    include <CL/sycl.hpp>
 #    include <oneapi/dpl/random>
 
-#    define SEED 777
-#    define N_GEN 1000
+const auto SEED = 777;
+const auto N_GEN = 1000;
+
+template <typename T>
+using Element_type = typename oneapi::dpl::internal::type_traits_t<T>::element_type;
 
 template <class T>
 std::int32_t
-check_params(oneapi::dpl::uniform_int_distribution<T>& distr,
-             typename oneapi::dpl::internal::type_traits_t<T>::element_type a,
-             typename oneapi::dpl::internal::type_traits_t<T>::element_type b)
+check_params(oneapi::dpl::uniform_int_distribution<T>& distr, Element_type<T> a, Element_type<T> b)
 {
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
@@ -41,9 +42,7 @@ check_params(oneapi::dpl::uniform_int_distribution<T>& distr,
 
 template <class T>
 std::int32_t
-check_params(oneapi::dpl::uniform_real_distribution<T>& distr,
-             typename oneapi::dpl::internal::type_traits_t<T>::element_type a,
-             typename oneapi::dpl::internal::type_traits_t<T>::element_type b)
+check_params(oneapi::dpl::uniform_real_distribution<T>& distr, Element_type<T> a, Element_type<T> b)
 {
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
@@ -51,9 +50,7 @@ check_params(oneapi::dpl::uniform_real_distribution<T>& distr,
 
 template <class T>
 std::int32_t
-check_params(oneapi::dpl::normal_distribution<T>& distr,
-             typename oneapi::dpl::internal::type_traits_t<T>::element_type mean,
-             typename oneapi::dpl::internal::type_traits_t<T>::element_type stddev)
+check_params(oneapi::dpl::normal_distribution<T>& distr, Element_type<T> mean, Element_type<T> stddev)
 {
     return ((distr.mean() != mean) || (distr.stddev() != stddev) || std::isinf(distr.min()) ||
             std::isinf(distr.max()) || (distr.param().first != mean) || (distr.param().second != stddev));
@@ -87,7 +84,7 @@ test()
     int sum = 0;
 
     // Memory allocation
-    std::vector<std::int32_t> dpstd_res(N_GEN);
+    std::vector<typename Distr::scalar_type> dpstd_res(N_GEN);
     constexpr std::int32_t num_elems =
         oneapi::dpl::internal::type_traits_t<typename Distr::result_type>::num_elems == 0
             ? 1
@@ -95,7 +92,7 @@ test()
 
     // Random number generation
     {
-        sycl::buffer<std::int32_t, 1> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+        sycl::buffer<typename Distr::scalar_type> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
 
         try
         {
@@ -145,13 +142,13 @@ test()
     return sum;
 }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 
     std::int32_t err = 0;
     std::int32_t global_err = 0;
@@ -166,10 +163,8 @@ main()
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 4>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 8>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 16>>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -183,10 +178,8 @@ main()
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 4>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 8>>>();
     err += test<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 16>>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -200,10 +193,8 @@ main()
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 4>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 8>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -217,10 +208,8 @@ main()
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 4>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 8>>>();
     err += test<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 16>>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -234,10 +223,8 @@ main()
     err += test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -251,10 +238,8 @@ main()
     err += test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>>();
     err += test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>>();
-    if (err)
-    {
-        std::cout << "Test FAILED" << std::endl;
-    }
+
+    EXPECT_TRUE(!err, "Test FAILED");
     global_err += err;
     err = 0;
 
@@ -263,7 +248,7 @@ main()
         return 1;
     }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(_ONEDPL_BACKEND_SYCL);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
