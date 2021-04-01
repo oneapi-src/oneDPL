@@ -271,8 +271,6 @@ struct fill_view_fn
 
 namespace views
 {
-
-NANO_INLINE_VAR(nano::detail::transform_view_fn, transform)
 NANO_INLINE_VAR(nano::detail::generate_view_fn, generate)
 NANO_INLINE_VAR(nano::detail::fill_view_fn, fill)
 }
