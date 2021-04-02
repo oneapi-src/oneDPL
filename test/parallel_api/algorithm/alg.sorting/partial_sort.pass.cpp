@@ -55,66 +55,7 @@ struct Num
 #endif
 
 template <typename Type>
-struct test_without_compare
-{
-    template <typename Policy, typename InputIterator>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
-                              can_use_default_less_operator<Type>::value, void>::type
-    operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last)
-    {
-        // The rand()%(2*n+1) encourages generation of some duplicates.
-        ::std::srand(42);
-        const ::std::size_t n = last - first;
-        for (::std::size_t k = 0; k < n; ++k)
-        {
-            first[k] = Type(rand() % (2 * n + 1));
-        }
-        ::std::copy(first, last, exp_first);
-
-        for (::std::size_t p = 0; p < n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
-        {
-            auto m1 = first + p;
-            auto m2 = exp_first + p;
-
-            ::std::partial_sort(exp_first, m2, exp_last);
-#if !TEST_DPCPP_BACKEND_PRESENT
-            count_comp = 0;
-#endif
-            ::std::partial_sort(exec, first, m1, last);
-            EXPECT_EQ_N(exp_first, first, p, "wrong effect from partial_sort without predicate");
-
-#if !TEST_DPCPP_BACKEND_PRESENT
-            //checking upper bound number of comparisons; O(p*(last-first)log(middle-first)); where p - number of threads;
-            if (m1 - first > 1)
-            {
-                auto complex = ::std::ceil(n * ::std::log(float32_t(m1 - first)));
-#if TEST_TBB_BACKEND_PRESENT
-                auto p = tbb::this_task_arena::max_concurrency();
-#else
-                auto p = 1;
-#endif
-
-#ifdef PSTL_USE_DEBUG
-                if (count_comp > complex * p)
-                {
-                    ::std::cout << "complexity exceeded" << ::std::endl;
-                }
-#endif
-            }
-#endif // !TEST_DPCPP_BACKEND_PRESENT
-        }
-    }
-
-    template <typename Policy, typename InputIterator>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
-                              !can_use_default_less_operator<Type>::value, void>::type
-    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */, InputIterator /* exp_last */)
-    {
-    }
-};
-
-template <typename Type>
-struct test_with_compare
+struct test_brick_partial_sort
 {
     template <typename Policy, typename InputIterator, typename Compare>
     typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
@@ -122,15 +63,7 @@ struct test_with_compare
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                Compare compare)
     {
-        // The rand()%(2*n+1) encourages generation of some duplicates.
-        ::std::srand(42);
         const ::std::size_t n = last - first;
-        for (::std::size_t k = 0; k < n; ++k)
-        {
-            first[k] = Type(rand() % (2 * n + 1));
-        }
-        ::std::copy(first, last, exp_first);
-
         for (::std::size_t p = 0; p < n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
         {
             auto m1 = first + p;
@@ -154,7 +87,7 @@ struct test_with_compare
                 auto p = 1;
 #endif
 
-#ifdef PSTL_USE_DEBUG
+#if PSTL_USE_DEBUG
                 if (count_comp > complex * p)
                 {
                     ::std::cout << "complexity exceeded" << ::std::endl;
@@ -172,6 +105,30 @@ struct test_with_compare
                Compare /* compare */)
     {
     }
+
+    template <typename Policy, typename InputIterator>
+    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
+                              can_use_default_less_operator<Type>::value, void>::type
+    operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last)
+    {
+        const ::std::size_t n = last - first;
+        for (::std::size_t p = 0; p < n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
+        {
+            auto m1 = first + p;
+            auto m2 = exp_first + p;
+
+            ::std::partial_sort(exp_first, m2, exp_last);
+            ::std::partial_sort(exec, first, m1, last);
+            EXPECT_EQ_N(exp_first, first, p, "wrong effect from partial_sort without predicate");
+        }
+    }
+
+    template <typename Policy, typename InputIterator>
+    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
+                              !can_use_default_less_operator<Type>::value, void>::type
+    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */, InputIterator /* exp_last */)
+    {
+    }
 };
 
 template <typename T, typename Compare>
@@ -179,13 +136,20 @@ void
 test_partial_sort(Compare compare)
 {
     const ::std::size_t n_max = 100000;
-    Sequence<T> in(n_max);
-    Sequence<T> exp(n_max);
+
+    ::std::srand(42);
+    // The rand()%(2*k+1) encourages generation of some duplicates.
+    Sequence<T> in(n_max, [](::std::size_t k){ return T(rand() % (2 * k + 1)); });
+
     for (::std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        invoke_on_all_policies<0>()(test_with_compare<T>(), in.begin(), in.begin() + n, exp.begin(),
+        Sequence<T> in_tmp(n);
+        ::std::copy(in.begin(), in.begin() + n, in_tmp.begin());
+        Sequence<T> exp(in_tmp);
+
+        invoke_on_all_policies<0>()(test_brick_partial_sort<T>(), in_tmp.begin(), in_tmp.begin() + n, exp.begin(),
                                     exp.begin() + n, compare);
-        invoke_on_all_policies<1>()(test_without_compare<T>(), in.begin(), in.begin() + n, exp.begin(),
+        invoke_on_all_policies<1>()(test_brick_partial_sort<T>(), in_tmp.begin(), in_tmp.begin() + n, exp.begin(),
                                     exp.begin() + n);
     }
 }
