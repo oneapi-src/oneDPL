@@ -247,6 +247,9 @@ namespace views
 NANO_INLINE_VAR(nano::detail::rotate_view_fn, rotate)
 }
 
+namespace detail
+{
+
 struct generate_view_fn
 {
     template <typename G, typename Bound = unreachable_sentinel_t>
@@ -276,7 +279,5 @@ NANO_INLINE_VAR(nano::detail::fill_view_fn, fill)
 }
 
 NANO_END_NAMESPACE
-
-#    endif
 
 #endif //_ONEDPL_NANO_RANGES_EXT_H
