@@ -227,19 +227,11 @@ pipeline {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
-                                    bat script: """
-                                            md oneAPI-samples
-                                            xcopy D:\\netbatch\\iusers\\oneDPL_CI\\oneAPI-samples .\\oneAPI-samples /E /Q /H
-                                            cd oneAPI-samples
-                                            git pull origin master
-
-                                        """, label: "Prepare oneAPI-samples"
-
                                     try {
                                         withEnv(oneapi_env) {
                                             bat script: """
                                                 d:
-                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\gamma-correction\\src
+                                                cd ${env.WORKSPACE}\\src\\examples\\gamma_correction\\src
                                                 echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
                                                 dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
                                             """, label: "Gamma_return_value Test Step"
@@ -258,15 +250,91 @@ pipeline {
                                         withEnv(oneapi_env) {
                                             bat script: """
                                                 d:
-                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\stable_sort_by_key\\src
+                                                cd ${env.WORKSPACE}\\src\\examples\\stable_sort_by_key\\src
                                                 echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
                                                 dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
-                                            """, label: "Stable_sort_by_key Test Step"
+                                            """, label: "Stable_sort_return_value Test Step"
                                         }
                                     }
                                     catch(e) {
                                         build_ok = false
                                         fail_stage = fail_stage + "    " + "Check_Samples_stable_sort_by_key"
+                                        echo "Exception is" + e.toString()
+                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                            bat 'exit 1'
+                                        }
+                                    }
+
+                                    try {
+                                        withEnv(oneapi_env) {
+                                            bat script: """
+                                                d:
+                                                cd ${env.WORKSPACE}\\src\\examples\\convex_hull\\src
+                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
+                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
+                                            """, label: "Convex_hull_return_value Test Step"
+                                        }
+                                    }
+                                    catch(e) {
+                                        build_ok = false
+                                        fail_stage = fail_stage + "    " + "Check_Samples_convex_hull"
+                                        echo "Exception is" + e.toString()
+                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                            bat 'exit 1'
+                                        }
+                                    }
+
+                                    try {
+                                        withEnv(oneapi_env) {
+                                            bat script: """
+                                                d:
+                                                cd ${env.WORKSPACE}\\src\\examples\\dot_product\\src
+                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
+                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
+                                            """, label: "Dot_product_return_value Test Step"
+                                        }
+                                    }
+                                    catch(e) {
+                                        build_ok = false
+                                        fail_stage = fail_stage + "    " + "Check_Samples_dot_product"
+                                        echo "Exception is" + e.toString()
+                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                            bat 'exit 1'
+                                        }
+                                    }
+
+                                    try {
+                                        withEnv(oneapi_env) {
+                                            bat script: """
+                                                d:
+                                                cd ${env.WORKSPACE}\\src\\examples\\histogram\\src
+                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
+                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
+                                            """, label: "Histogram_return_value Test Step"
+                                        }
+                                    }
+                                    catch(e) {
+                                        build_ok = false
+                                        fail_stage = fail_stage + "    " + "Check_Samples_histogram"
+                                        echo "Exception is" + e.toString()
+                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                            bat 'exit 1'
+                                        }
+                                    }
+
+                                    try {
+                                        withEnv(oneapi_env) {
+                                            bat script: """
+                                                d:
+                                                cd ${env.WORKSPACE}\\src\\examples\\random\\src
+                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
+                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
+                                            """, label: "Random_return_value Test Step"
+                                        }
+                                    }
+                                    catch(e) {
+                                        build_ok = false
+                                        fail_stage = fail_stage + "    " + "Check_Samples_random"
                                         echo "Exception is" + e.toString()
                                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                             bat 'exit 1'

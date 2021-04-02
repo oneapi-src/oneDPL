@@ -175,13 +175,6 @@ pipeline {
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
                                     sh script: "cd ./src; git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}", label: "Set Git Config"
                                     sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}", label: "Checkout Commit"
-                                    if (fileExists('./oneAPI-samples')) {
-                                        sh script: 'rm -rf oneAPI-samples', label: "Remove oneAPI-samples Folder"
-
-                                    }
-
-                                    sh script: 'cp -rf /export/users/oneDPL_CI/oneAPI-samples ./', label: "Copy oneAPI-samples Folder"
-                                    sh script: 'cd ./oneAPI-samples; git pull origin master', label: "Git Pull oneAPI-samples Folder"
                                 }
                             }
                             catch (e) {
@@ -287,7 +280,7 @@ pipeline {
                                     withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
                                         def gamma_return_value = sh(
                                                 script: """
-                                                        cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
+                                                        cd ./src/examples/gamma_correction/
                                                         mkdir build
                                                         cd build/
                                                         cmake ..
@@ -297,7 +290,7 @@ pipeline {
                                                 returnStatus: true, label: "gamma_return_value Step")
                                         def stable_sort_return_value = sh(
                                                 script: """
-                                                        cd oneAPI-samples/Libraries/oneDPL/stable_sort_by_key/
+                                                        cd ./src/examples/stable_sort_by_key
                                                         mkdir build
                                                         cd build/
                                                         cmake ..
@@ -305,9 +298,74 @@ pipeline {
                                                         make run
                                                         exit \$?""",
                                                 returnStatus: true, label: "stable_sort_return_value Step")
+                                        def convex_hull_return_value = sh(
+                                                script: """
+                                                        cd ./src/examples/convex_hull
+                                                        mkdir build
+                                                        cd build/
+                                                        cmake ..
+                                                        make
+                                                        make run
+                                                        exit \$?""",
+                                                returnStatus: true, label: "convex_hull_return_value Step")
+                                        def dot_product_return_value = sh(
+                                                script: """
+                                                        cd ./src/examples/dot_product
+                                                        mkdir build
+                                                        cd build/
+                                                        cmake ..
+                                                        make
+                                                        make run
+                                                        exit \$?""",
+                                                returnStatus: true, label: "dot_product_return_value Step")
+                                        def histogram_return_value = sh(
+                                                script: """
+                                                        cd ./src/examples/histogram
+                                                        mkdir build
+                                                        cd build/
+                                                        cmake ..
+                                                        make
+                                                        make run
+                                                        exit \$?""",
+                                                returnStatus: true, label: "histogram_return_value Step")
+                                        def random_return_value = sh(
+                                                script: """
+                                                        cd ./src/examples/random
+                                                        mkdir build
+                                                        cd build/
+                                                        cmake ..
+                                                        make
+                                                        make run
+                                                        exit \$?""",
+                                                returnStatus: true, label: "random_return_value Step")
 
-                                        if (gamma_return_value != 0 || stable_sort_return_value !=0) {
-                                            echo "gamma-correction or stable_sort_by_key check failed. Please check log to fix the issue."
+                                        def test_pass_status = true
+                                        if (gamma_return_value != 0) {
+                                            echo "gamma-correction check failed."
+                                            test_pass_status = false
+                                        }
+                                        if (stable_sort_return_value != 0) {
+                                            echo "stable_sor_by_key check failed."
+                                            test_pass_status = false
+                                        }
+                                        if (convex_hull_return_value != 0) {
+                                            echo "convex_hull check failed."
+                                            test_pass_status = false
+                                        }
+                                        if (dot_product_return_value != 0) {
+                                            echo "dot_product check failed."
+                                            test_pass_status = false
+                                        }
+                                        if (histogram_return_value != 0) {
+                                            echo "histogram check failed."
+                                            test_pass_status = false
+                                        }
+                                        if (random_return_value != 0) {
+                                            echo "random check failed."
+                                            test_pass_status = false
+                                        }
+                                        if (test_pass_status != true) {
+                                            echo "Some checks failed. Please check log to fix the issue."
                                             sh script: "exit -1", label: "Set failure"
                                         }
                                     }
