@@ -19,7 +19,7 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 #    include <iostream>
 #    include <cmath>
 #    include <vector>
@@ -142,13 +142,13 @@ test()
     return sum;
 }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
 int
 main()
 {
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     std::int32_t err = 0;
 
@@ -224,7 +224,7 @@ main()
     err += test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>>();
     EXPECT_TRUE(!err, "Test FAILED");
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

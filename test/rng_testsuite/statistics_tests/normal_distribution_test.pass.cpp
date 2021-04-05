@@ -20,7 +20,7 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 #include <CL/sycl.hpp>
 #include <random>
 #include <limits>
@@ -335,11 +335,11 @@ int tests_set_flag(int nsamples) {
     return 0;
 }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
 int main() {
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     constexpr int nsamples = 100;
     int err;
@@ -429,7 +429,7 @@ int main() {
     err = tests_set_flag<sycl::vec<float, 16>, sycl::vec<std::uint32_t, 16>>(170);
     EXPECT_TRUE(!err, "Test FAILED");
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

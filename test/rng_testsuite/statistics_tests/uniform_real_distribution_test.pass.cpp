@@ -21,7 +21,7 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>
@@ -192,11 +192,11 @@ int tests_set_portion(int nsamples, unsigned int part) {
     return 0;
 }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
 int main() {
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     constexpr int nsamples = 100;
     int err;
@@ -261,7 +261,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<uint32_t, 16>>(99, 4);
     EXPECT_TRUE(!err, "Test FAILED");
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

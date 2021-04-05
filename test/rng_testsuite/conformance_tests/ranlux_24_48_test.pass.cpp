@@ -30,14 +30,14 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 #include "common_for_conformance_tests.hpp"
 #include <oneapi/dpl/random>
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
 int main() {
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     // Reference values
     uint_fast32_t ranlux24_ref_sample = 9901578;
@@ -96,7 +96,7 @@ int main() {
         return 1;
     }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
