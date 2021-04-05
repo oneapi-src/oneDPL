@@ -31,88 +31,20 @@ inline namespace v1
 // 2.4, Sequential execution policy
 class sequenced_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::false_type
-    __allow_unsequenced()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_vector()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_parallel()
-    {
-        return ::std::false_type{};
-    }
 };
 
 // 2.5, Parallel execution policy
 class parallel_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::false_type
-    __allow_unsequenced()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_vector()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
 };
 
 // 2.6, Parallel+Vector execution policy
 class parallel_unsequenced_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
 };
 
 class unsequenced_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_parallel()
-    {
-        return ::std::false_type{};
-    }
 };
 
 // 2.8, Execution policy objects
@@ -181,15 +113,6 @@ struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : 
 template <class _ExecPolicy, class _T>
 using __enable_if_execution_policy = typename ::std::enable_if<
     oneapi::dpl::execution::is_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
-
-template <class _ExecPolicy, class _T>
-using __enable_if_host_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
-
-template <class _ExecPolicy, const bool __condition, class _T>
-using __enable_if_host_execution_policy_conditional = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value && __condition,
-    _T>::type;
 
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl

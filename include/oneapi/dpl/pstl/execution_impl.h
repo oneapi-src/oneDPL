@@ -29,34 +29,6 @@ namespace dpl
 namespace __internal
 {
 
-/* predicate */
-
-template <typename _Tp>
-::std::false_type __lazy_and(_Tp, ::std::false_type)
-{
-    return ::std::false_type{};
-}
-
-template <typename _Tp>
-inline _Tp
-__lazy_and(_Tp __a, ::std::true_type)
-{
-    return __a;
-}
-
-template <typename _Tp>
-::std::true_type __lazy_or(_Tp, ::std::true_type)
-{
-    return ::std::true_type{};
-}
-
-template <typename _Tp>
-inline _Tp
-__lazy_or(_Tp __a, ::std::false_type)
-{
-    return __a;
-}
-
 /* policy */
 template <typename Policy>
 struct __policy_traits
@@ -96,10 +68,6 @@ struct __policy_traits<oneapi::dpl::execution::parallel_unsequenced_policy>
 };
 
 template <typename _ExecutionPolicy>
-using __collector_t =
-    typename __internal::__policy_traits<typename ::std::decay<_ExecutionPolicy>::type>::__collector_type;
-
-template <typename _ExecutionPolicy>
 using __allow_vector =
     typename __internal::__policy_traits<typename ::std::decay<_ExecutionPolicy>::type>::__allow_vector;
 
@@ -110,26 +78,6 @@ using __allow_unsequenced =
 template <typename _ExecutionPolicy>
 using __allow_parallel =
     typename __internal::__policy_traits<typename ::std::decay<_ExecutionPolicy>::type>::__allow_parallel;
-
-template <typename _ExecutionPolicy, typename... _IteratorTypes>
-auto
-__is_vectorization_preferred(_ExecutionPolicy& __exec)
-    -> decltype(__internal::__lazy_and(__exec.__allow_vector(),
-                                       typename __internal::__is_random_access_iterator<_IteratorTypes...>::type()))
-{
-    return __internal::__lazy_and(__exec.__allow_vector(),
-                                  typename __internal::__is_random_access_iterator<_IteratorTypes...>::type());
-}
-
-template <typename _ExecutionPolicy, typename... _IteratorTypes>
-auto
-__is_parallelization_preferred(_ExecutionPolicy& __exec)
-    -> decltype(__internal::__lazy_and(__exec.__allow_parallel(),
-                                       typename __internal::__is_random_access_iterator<_IteratorTypes...>::type()))
-{
-    return __internal::__lazy_and(__exec.__allow_parallel(),
-                                  typename __internal::__is_random_access_iterator<_IteratorTypes...>::type());
-}
 
 //------------------------------------------------------------------------
 // backend selector with tags

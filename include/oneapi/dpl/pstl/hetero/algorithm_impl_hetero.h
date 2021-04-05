@@ -36,24 +36,6 @@ namespace __internal
 // walk1
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
-                /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
-{
-    auto __n = __last - __first;
-    if (__n <= 0)
-        return;
-
-    auto __keep =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
-    auto __buf = __keep(__first, __last);
-
-    oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-                                                      __n, __buf.all_view())
-        .wait();
-}
-
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 void
 __pattern_walk1(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
