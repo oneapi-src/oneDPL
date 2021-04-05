@@ -266,7 +266,7 @@ struct fill_view_fn
     constexpr auto
     operator()(const T& value, Bound size) const
     {
-        return transform_view{iota_view{0, size}, [&value](auto) { return value; }};
+        return transform_view{iota_view{0, size}, [value](auto) { return value; }};
     }
 };
 
