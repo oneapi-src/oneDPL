@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <numeric>
 #include <type_traits>
+#include <forward_list>
 
 using namespace TestUtils;
 
@@ -251,6 +252,13 @@ struct test_transform_iterator {
         transform_functor new_functor;
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it1(in1.begin());
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
+
+        ::std::forward_list<int> f_list{1,2,3,4,5,6};
+        oneapi::dpl::transform_iterator list_it1(f_list.begin(),new_functor);
+        oneapi::dpl::transform_iterator list_it2(f_list.end(),new_functor);
+        int sum=0;
+        ::std::for_each(list_it1,list_it2,[&sum](auto  x){sum+=x;});
+        EXPECT_TRUE(sum==27,"wrong result from for_each with forward_iterator wrapped with transform_iterator");
 
         auto test_lambda = [](T2& x){ return x+1; };
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);
