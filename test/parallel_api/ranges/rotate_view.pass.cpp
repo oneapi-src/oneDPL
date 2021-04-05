@@ -42,8 +42,8 @@ main()
     //check result
     ::std::rotate_copy(data, data + rotate_val, data + max_n, expected);
 
-    EXPECT_EQ_N(view1.begin(), expected, max_n, "wrong result from rotate adapter, a pipe call");
-    EXPECT_EQ_N(view2.begin(), expected, max_n, "wrong result from rotate adapter, a single CPO call");
+    EXPECT_EQ_N(view1.begin(), expected, max_n, "wrong result from rotate view, a pipe call");
+    EXPECT_EQ_N(view2.begin(), expected, max_n, "wrong result from rotate view, a single CPO call");
 
 #endif //_ENABLE_RANGES_TESTING
     ::std::cout << TestUtils::done() << ::std::endl;
