@@ -415,7 +415,7 @@ class transform_iterator
     typedef decltype(__my_unary_func_(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
     typedef typename ::std::remove_reference<reference>::type value_type;
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
-    typedef typename ::std::random_access_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
     transform_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc())
         : __my_it_(__it), __my_unary_func_(__unary_func)
@@ -494,7 +494,7 @@ class transform_iterator
     bool
     operator==(const transform_iterator& __it) const
     {
-        return *this - __it == 0;
+        return __my_it_ == __it.__my_it_;
     }
     bool
     operator!=(const transform_iterator& __it) const
