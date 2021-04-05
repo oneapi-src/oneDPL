@@ -420,9 +420,6 @@ class transform_iterator
     transform_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc())
         : __my_it_(__it), __my_unary_func_(__unary_func)
     {
-        static_assert((::std::is_same<typename ::std::iterator_traits<_Iter>::iterator_category,
-                                      ::std::random_access_iterator_tag>::value),
-                      "Random access iterator required.");
     }
     transform_iterator(const transform_iterator& __input) = default;
     transform_iterator&
