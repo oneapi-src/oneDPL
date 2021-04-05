@@ -48,7 +48,7 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... 
 oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    auto __n = __get_first_range_size(__rngs...);
+    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
