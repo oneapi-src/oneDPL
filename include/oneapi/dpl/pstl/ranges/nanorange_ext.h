@@ -34,27 +34,23 @@ class offset_iterator
     constexpr offset_iterator&
     operator=(const offset_iterator&) = default;
 
-    explicit offset_iterator(I it, difference_type n, difference_type offset, I b) : current_(it), beg_(b), n_(n), offset_(offset)
+    explicit offset_iterator(I it, difference_type n, difference_type offset, I b)
+        : current_(it), beg_(b), n_(n), offset_(offset)
     {
         assert(it >= b);
         assert(it < b + n);
     }
 
-private:
-    constexpr difference_type offset_position() const
+  private:
+    constexpr difference_type
+    offset_position() const
     {
-        return current_ - beg_ + offset_; 
+        return current_ - beg_ + offset_;
     }
 
-public:
-    constexpr reference operator*() const 
-    {
-        return *(beg_ + offset_position() % n_);
-    }
-    constexpr reference operator[](difference_type __i) const
-    {
-        return *(*this + __i); 
-    }
+  public:
+    constexpr reference operator*() const { return *(beg_ + offset_position() % n_); }
+    constexpr reference operator[](difference_type __i) const { return *(*this + __i); }
     constexpr difference_type
     operator-(const offset_iterator& __it) const
     {
@@ -172,7 +168,8 @@ struct rotate_view : view_interface<rotate_view<V>>
 
     template <typename R,
               ::std::enable_if_t<input_range<R> && viewable_range<R> && constructible_from<V, all_view<R>>, int> = 0>
-    constexpr rotate_view(R&& r, range_difference_t<V> offset) : base_(views::all(::std::forward<R>(r))), offset_(offset)
+    constexpr rotate_view(R&& r, range_difference_t<V> offset)
+        : base_(views::all(::std::forward<R>(r))), offset_(offset)
     {
     }
 
@@ -189,26 +186,14 @@ struct rotate_view : view_interface<rotate_view<V>>
     }
 
     constexpr auto
-    begin() const
-    {
-        return offset_iterator(ranges::begin(base()), base().size(), offset_, ranges::begin(base()));
-    }
-
-    constexpr auto
     end()
-    {
-        return begin() + base().size();
-    }
-
-    constexpr auto
-    end() const
     {
         return begin() + base().size();
     }
 };
 
 template <typename R>
-rotate_view(R&&)->rotate_view<all_view<R>>;
+rotate_view(R &&)->rotate_view<all_view<R>>;
 
 } // namespace rotate_view_
 
@@ -231,9 +216,9 @@ struct rotate_view_fn
     operator()(D offset) const
     {
         return detail::rao_proxy{[offset](auto&& r) mutable
-#        ifndef NANO_MSVC_LAMBDA_PIPE_WORKAROUND
+#ifndef NANO_MSVC_LAMBDA_PIPE_WORKAROUND
                                  -> decltype(rotate_view{::std::forward<decltype(r)>(r), offset})
-#        endif
+#endif
                                  {
                                      return rotate_view{::std::forward<decltype(r)>(r), offset};
                                  }};
@@ -276,7 +261,7 @@ namespace views
 {
 NANO_INLINE_VAR(nano::detail::generate_view_fn, generate)
 NANO_INLINE_VAR(nano::detail::fill_view_fn, fill)
-}
+} // namespace views
 
 NANO_END_NAMESPACE
 
