@@ -43,6 +43,10 @@ main()
         ranges::copy(TestUtils::default_dpcpp_policy, view, A);
     }
 
+    //check aasigment
+    view[4] = -1;
+    expected[4] = -1;
+
     EXPECT_EQ_N(view.begin(), expected, max_n, "wrong result from rotate view on a device");
 
 #endif //_ENABLE_RANGES_TESTING

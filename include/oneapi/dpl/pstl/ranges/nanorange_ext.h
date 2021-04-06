@@ -180,13 +180,13 @@ struct rotate_view : view_interface<rotate_view<V>>
     }
 
     constexpr auto
-    begin()
+    begin() const
     {
         return offset_iterator(ranges::begin(base()), base().size(), offset_, ranges::begin(base()));
     }
 
     constexpr auto
-    end()
+    end() const
     {
         return begin() + base().size();
     }

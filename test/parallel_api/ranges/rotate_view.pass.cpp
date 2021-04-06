@@ -42,6 +42,10 @@ main()
     //check result
     ::std::rotate_copy(data, data + rotate_val, data + max_n, expected);
 
+    //check aasigment
+    view1[0] = -1;
+    expected[0] = -1;
+
     EXPECT_EQ_N(view1.begin(), expected, max_n, "wrong result from rotate view, a pipe call");
     EXPECT_EQ_N(view2.begin(), expected, max_n, "wrong result from rotate view, a single CPO call");
 
