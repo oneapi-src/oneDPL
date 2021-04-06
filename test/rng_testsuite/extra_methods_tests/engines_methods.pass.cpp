@@ -137,7 +137,7 @@ public:
                     auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
                     cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
-                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        unsigned long long offset = idx.get_linear_id();
                         Engine engine0(SEED);
                         Engine engine1;
                         engine1.seed(SEED);
@@ -228,7 +228,7 @@ public:
                     auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
                     cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
-                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        unsigned long long offset = idx.get_linear_id();
                         oneapi::dpl::ranlux24_vec<N> engine0(SEED);
                         oneapi::dpl::ranlux24_vec<N> engine1;
                         engine1.seed(SEED);
@@ -321,7 +321,7 @@ public:
                     auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
                     cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
-                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        unsigned long long offset = idx.get_linear_id();
                         Engine engine0(SEED);
                         Engine engine1;
                         engine1.seed(SEED);
@@ -411,7 +411,7 @@ public:
                     auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
                     cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
-                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        unsigned long long offset = idx.get_linear_id();
                         oneapi::dpl::ranlux24 engine0(SEED);
                         oneapi::dpl::ranlux24 engine1;
                         engine1.seed(SEED);
