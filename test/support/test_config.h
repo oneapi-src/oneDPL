@@ -62,6 +62,12 @@
 #define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
+#ifdef __SYCL_UNNAMED_LAMBDA__
+#define TEST_UNNAMED_LAMBDAS 1
+#else
+#define TEST_UNNAMED_LAMBDAS 0
+#endif
+
 // Check for C++ standard and standard library for the use of ranges API
 #define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (__cplusplus >= 201703L && TEST_DPCPP_BACKEND_PRESENT)
 #if defined(_GLIBCXX_RELEASE)

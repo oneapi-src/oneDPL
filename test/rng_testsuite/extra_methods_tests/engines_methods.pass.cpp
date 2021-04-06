@@ -19,7 +19,7 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #    include <iostream>
 #    include <vector>
 #    include <CL/sycl.hpp>
@@ -328,16 +328,7 @@ public:
                         engine0.discard(offset);
                         engine1.discard(offset);
                         typename Engine::result_type res0;
-                        if constexpr (std::is_same<Engine, oneapi::dpl::ranlux24>::value)
-                        {
-                            Engine engine(engine1);
-                            auto eng = engine.base();
-                            res0 = engine();
-                        }
-                        else
-                        {
-                            res0 = engine0();
-                        }
+                        res0 = engine0();
                         typename Engine::result_type res1 = engine1();
                         if (res0 != res1)
                         {
@@ -427,16 +418,9 @@ public:
                         engine0.discard(offset);
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24::result_type res0;
-                        if constexpr (std::is_same<oneapi::dpl::ranlux24, oneapi::dpl::ranlux24>::value)
-                        {
-                            oneapi::dpl::ranlux24 engine(engine1);
-                            auto eng = engine.base();
-                            res0 = engine();
-                        }
-                        else
-                        {
-                            res0 = engine0();
-                        }
+                        oneapi::dpl::ranlux24 engine(engine1);
+                        auto eng = engine.base();
+                        res0 = engine();
                         typename oneapi::dpl::ranlux24::result_type res1 = engine1();
                         if (res0 != res1)
                         {
@@ -475,13 +459,13 @@ public:
     }
 };
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 int
 main()
 {
 
-#if TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     std::int32_t err = 0;
 
@@ -521,7 +505,7 @@ main()
     err += test_vec<oneapi::dpl::ranlux24_vec<16>>{}.run();
     EXPECT_TRUE(!err, "Test FAILED");
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    return TestUtils::done();
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
 }
