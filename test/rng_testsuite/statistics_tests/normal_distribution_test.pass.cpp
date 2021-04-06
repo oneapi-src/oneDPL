@@ -431,5 +431,5 @@ int main() {
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__);
+    return TestUtils::done();
 }
