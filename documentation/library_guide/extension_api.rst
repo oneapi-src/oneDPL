@@ -305,8 +305,9 @@ The following async algorithms are currently supported:
 * ``transform_reduce_async``
 * ``sort_async``
 
-All interfaces listed above are a subset of C++17 STL algorithms
-with the suffix ``_async`` added to the corresponding name (e.g. ``reduce``, ``sort``, ... ). The behavior and signatures are overlapping with the C++17 STL algorithm with the following changes:
+All the interfaces listed above are a subset of C++17 STL algorithms,
+where the suffix ``_async``is added to the corresponding name (for example: ``reduce``, ``sort``, etc. ).
+The behavior and signatures are overlapping with the C++17 STL algorithm with the following changes:
 
 * Do not block the execution.
 * Take an arbitrary number of events (including 0) as last arguments to allow expressing input dependencies.
@@ -317,14 +318,15 @@ The type of the future-like object returned from asynchronous algorithm is unspe
 * ``get()``: returns the result.
 * ``wait()``: wait for the result to become available.
 
-If the returned object is the result of an algorithm with device policy, it can be converted into a ``sycl::event``. Lifetime of any resources the algorithm allocates (e.g. temporary storage) is bound to the lifetime of the returned object.
+If the returned object is the result of an algorithm with device policy, it can be converted into a ``sycl::event``.
+Lifetime of any resources the algorithm allocates (for example: temporary storage) is bound to the lifetime of the returned object.
 
 Utility functions:
 
 * ``wait_for_all(…)``: wait for an arbitrary number of objects that are convertible into ``sycl::event`` to become ready.
 
 
-Example of Async API usage
+Example of Async API Usage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: cpp
