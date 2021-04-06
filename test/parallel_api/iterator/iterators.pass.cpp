@@ -237,7 +237,7 @@ void test_transform_effect(VecIt1 first1, VecIt1 last1, VecIt2 first2) {
 struct transform_functor {
     template<typename T>
     T operator()(T& x) const {
-        return x+1;
+        return x + 1;
     }
 };
 
@@ -256,9 +256,9 @@ struct test_transform_iterator {
         ::std::forward_list<int> f_list{1, 2, 3, 4, 5, 6};
         oneapi::dpl::transform_iterator<decltype(f_list.begin()), transform_functor> list_it1(f_list.begin(), new_functor);
         oneapi::dpl::transform_iterator<decltype(f_list.begin()), transform_functor> list_it2(f_list.end(), new_functor);
-        int sum=0;
+        int sum = 0;
         ::std::for_each(list_it1, list_it2, [&sum](int  x){ sum += x; });
-        EXPECT_TRUE(sum==27, "wrong result from for_each with forward_iterator wrapped with transform_iterator");
+        EXPECT_TRUE(sum == 27, "wrong result from for_each with forward_iterator wrapped with transform_iterator");
 
         auto test_lambda = [](T2& x){ return x + 1; };
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);
