@@ -94,67 +94,58 @@ check_params(oneapi::dpl::ranlux24_vec<N>& engine)
 }
 
 template <class Engine>
-bool
-test()
+class
+test_vec
 {
-    using result_type = typename Engine::scalar_type;
+public:
+    bool run()
+    {
+        using result_type = typename Engine::scalar_type;
 
-    // Catch asynchronous exceptions
-    auto exception_handler = [](sycl::exception_list exceptions) {
-        for (std::exception_ptr const& e : exceptions)
+        // Catch asynchronous exceptions
+        auto exception_handler = [](sycl::exception_list exceptions) {
+            for (std::exception_ptr const& e : exceptions)
+            {
+                try
+                {
+                    std::rethrow_exception(e);
+                }
+                catch (sycl::exception const& e)
+                {
+                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
+                }
+            }
+        };
+
+        sycl::queue queue(sycl::default_selector{}, exception_handler);
+        int sum = 0;
+
+        // Memory allocation
+        std::vector<std::int32_t> dpstd_res(N_GEN);
+        constexpr std::int32_t num_elems =
+            oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems == 0
+                ? 1
+                : oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems;
+
+        // Random number generation
         {
+            sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+
             try
             {
-                std::rethrow_exception(e);
-            }
-            catch (sycl::exception const& e)
-            {
-                std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
-            }
-        }
-    };
+                queue.submit([&](sycl::handler& cgh) {
+                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
-    sycl::queue queue(sycl::default_selector{}, exception_handler);
-    int sum = 0;
-
-    // Memory allocation
-    std::vector<std::int32_t> dpstd_res(N_GEN);
-    constexpr std::int32_t num_elems =
-        oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems == 0
-            ? 1
-            : oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems;
-
-    // Random number generation
-    {
-        sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
-
-        try
-        {
-            queue.submit([&](sycl::handler& cgh) {
-                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
-
-                cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
-                    unsigned long long offset = idx.get_linear_id() * num_elems;
-                    Engine engine0(SEED);
-                    Engine engine1;
-                    engine1.seed(SEED);
-                    engine0.discard(offset);
-                    engine1.discard(offset);
-                    typename Engine::result_type res0;
-                    if constexpr (std::is_same<Engine, oneapi::dpl::ranlux24>::value)
-                    {
-                        Engine engine(engine1);
-                        auto eng = engine.base();
-                        res0 = engine();
-                    }
-                    else
-                    {
+                    cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
+                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        Engine engine0(SEED);
+                        Engine engine1;
+                        engine1.seed(SEED);
+                        engine0.discard(offset);
+                        engine1.discard(offset);
+                        typename Engine::result_type res0;
                         res0 = engine0();
-                    }
-                    typename Engine::result_type res1 = engine1();
-                    if constexpr ((num_elems > 1) || (std::is_same<typename Engine::result_type,
-                                                                   sycl::vec<typename Engine::scalar_type, 1>>::value))
-                    {
+                        typename Engine::result_type res1 = engine1();
                         std::int32_t is_inequal = 0;
                         for (std::int32_t i = 0; i < num_elems; ++i)
                         {
@@ -164,9 +155,190 @@ test()
                             }
                         }
                         dpstd_acc[offset] = is_inequal;
-                    }
-                    else
-                    {
+                    });
+                });
+                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                for (int i = 0; i < N_GEN; ++i)
+                {
+                    sum += dpstd_acc[i];
+                }
+                if (sum)
+                {
+                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                }
+            }
+            catch (sycl::exception const& e)
+            {
+                std::cout << "\t\tSYCL exception during generation\n"
+                          << e.what() << std::endl
+                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                return 1;
+            }
+
+            queue.wait_and_throw();
+            Engine engine;
+            sum += check_params(engine);
+        }
+
+        return sum;
+    }
+};
+
+template <int N>
+class
+test_vec<oneapi::dpl::ranlux24_vec<N>>
+{
+public:
+    bool run()
+    {
+        using result_type = typename oneapi::dpl::ranlux24_vec<N>::scalar_type;
+
+        // Catch asynchronous exceptions
+        auto exception_handler = [](sycl::exception_list exceptions) {
+            for (std::exception_ptr const& e : exceptions)
+            {
+                try
+                {
+                    std::rethrow_exception(e);
+                }
+                catch (sycl::exception const& e)
+                {
+                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
+                }
+            }
+        };
+
+        sycl::queue queue(sycl::default_selector{}, exception_handler);
+        int sum = 0;
+
+        // Memory allocation
+        std::vector<std::int32_t> dpstd_res(N_GEN);
+        constexpr std::int32_t num_elems =
+            oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24_vec<N>::result_type>::num_elems == 0
+                ? 1
+                : oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24_vec<N>::result_type>::num_elems;
+
+        // Random number generation
+        {
+            sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+
+            try
+            {
+                queue.submit([&](sycl::handler& cgh) {
+                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+                    cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
+                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        oneapi::dpl::ranlux24_vec<N> engine0(SEED);
+                        oneapi::dpl::ranlux24_vec<N> engine1;
+                        engine1.seed(SEED);
+                        engine0.discard(offset);
+                        engine1.discard(offset);
+                        typename oneapi::dpl::ranlux24_vec<N>::result_type res0;
+                        oneapi::dpl::ranlux24_vec<N> engine(engine1);
+                        auto eng = engine.base();
+                        res0 = engine();
+                        typename oneapi::dpl::ranlux24_vec<N>::result_type res1 = engine1();
+                        std::int32_t is_inequal = 0;
+                        for (std::int32_t i = 0; i < num_elems; ++i)
+                        {
+                            if (res0[i] != res1[i])
+                            {
+                                is_inequal = 1;
+                            }
+                        }
+                        dpstd_acc[offset] = is_inequal;
+                    });
+                });
+                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                for (int i = 0; i < N_GEN; ++i)
+                {
+                    sum += dpstd_acc[i];
+                }
+                if (sum)
+                {
+                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                }
+            }
+            catch (sycl::exception const& e)
+            {
+                std::cout << "\t\tSYCL exception during generation\n"
+                          << e.what() << std::endl
+                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                return 1;
+            }
+
+            queue.wait_and_throw();
+            oneapi::dpl::ranlux24_vec<N> engine;
+            sum += check_params(engine);
+        }
+
+        return sum;
+    }
+};
+
+template <class Engine>
+class
+test
+{
+public:
+    bool run()
+    {
+        using result_type = typename Engine::scalar_type;
+
+        // Catch asynchronous exceptions
+        auto exception_handler = [](sycl::exception_list exceptions) {
+            for (std::exception_ptr const& e : exceptions)
+            {
+                try
+                {
+                    std::rethrow_exception(e);
+                }
+                catch (sycl::exception const& e)
+                {
+                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
+                }
+            }
+        };
+
+        sycl::queue queue(sycl::default_selector{}, exception_handler);
+        int sum = 0;
+
+        // Memory allocation
+        std::vector<std::int32_t> dpstd_res(N_GEN);
+        constexpr std::int32_t num_elems =
+            oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems == 0
+                ? 1
+                : oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems;
+
+        // Random number generation
+        {
+            sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+
+            try
+            {
+                queue.submit([&](sycl::handler& cgh) {
+                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+                    cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
+                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        Engine engine0(SEED);
+                        Engine engine1;
+                        engine1.seed(SEED);
+                        engine0.discard(offset);
+                        engine1.discard(offset);
+                        typename Engine::result_type res0;
+                        if constexpr (std::is_same<Engine, oneapi::dpl::ranlux24>::value)
+                        {
+                            Engine engine(engine1);
+                            auto eng = engine.base();
+                            res0 = engine();
+                        }
+                        else
+                        {
+                            res0 = engine0();
+                        }
+                        typename Engine::result_type res1 = engine1();
                         if (res0 != res1)
                         {
                             dpstd_acc[offset] = 1;
@@ -175,34 +347,133 @@ test()
                         {
                             dpstd_acc[offset] = 0;
                         }
-                    }
+                    });
                 });
-            });
-            auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
-            for (int i = 0; i < N_GEN; ++i)
-            {
-                sum += dpstd_acc[i];
+                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                for (int i = 0; i < N_GEN; ++i)
+                {
+                    sum += dpstd_acc[i];
+                }
+                if (sum)
+                {
+                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                }
             }
-            if (sum)
+            catch (sycl::exception const& e)
             {
-                std::cout << "Error occured in " << sum << " elements" << std::endl;
+                std::cout << "\t\tSYCL exception during generation\n"
+                          << e.what() << std::endl
+                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                return 1;
             }
-        }
-        catch (sycl::exception const& e)
-        {
-            std::cout << "\t\tSYCL exception during generation\n"
-                      << e.what() << std::endl
-                      << "OpenCL status: " << e.get_cl_code() << std::endl;
-            return 1;
+
+            queue.wait_and_throw();
+            Engine engine;
+            sum += check_params(engine);
         }
 
-        queue.wait_and_throw();
-        Engine engine;
-        sum += check_params(engine);
+        return sum;
     }
+};
 
-    return sum;
-}
+template <>
+class
+test<oneapi::dpl::ranlux24>
+{
+public:
+    bool run()
+    {
+        using result_type = typename oneapi::dpl::ranlux24::scalar_type;
+
+        // Catch asynchronous exceptions
+        auto exception_handler = [](sycl::exception_list exceptions) {
+            for (std::exception_ptr const& e : exceptions)
+            {
+                try
+                {
+                    std::rethrow_exception(e);
+                }
+                catch (sycl::exception const& e)
+                {
+                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
+                }
+            }
+        };
+
+        sycl::queue queue(sycl::default_selector{}, exception_handler);
+        int sum = 0;
+
+        // Memory allocation
+        std::vector<std::int32_t> dpstd_res(N_GEN);
+        constexpr std::int32_t num_elems =
+            oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24::result_type>::num_elems == 0
+                ? 1
+                : oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24::result_type>::num_elems;
+
+        // Random number generation
+        {
+            sycl::buffer<std::int32_t> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+
+            try
+            {
+                queue.submit([&](sycl::handler& cgh) {
+                    auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+                    cgh.parallel_for<>(sycl::range<1>(N_GEN), [=](sycl::item<1> idx) {
+                        unsigned long long offset = idx.get_linear_id() * num_elems;
+                        oneapi::dpl::ranlux24 engine0(SEED);
+                        oneapi::dpl::ranlux24 engine1;
+                        engine1.seed(SEED);
+                        engine0.discard(offset);
+                        engine1.discard(offset);
+                        typename oneapi::dpl::ranlux24::result_type res0;
+                        if constexpr (std::is_same<oneapi::dpl::ranlux24, oneapi::dpl::ranlux24>::value)
+                        {
+                            oneapi::dpl::ranlux24 engine(engine1);
+                            auto eng = engine.base();
+                            res0 = engine();
+                        }
+                        else
+                        {
+                            res0 = engine0();
+                        }
+                        typename oneapi::dpl::ranlux24::result_type res1 = engine1();
+                        if (res0 != res1)
+                        {
+                            dpstd_acc[offset] = 1;
+                        }
+                        else
+                        {
+                            dpstd_acc[offset] = 0;
+                        }
+                    });
+                });
+                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                for (int i = 0; i < N_GEN; ++i)
+                {
+                    sum += dpstd_acc[i];
+                }
+                if (sum)
+                {
+                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                }
+            }
+            catch (sycl::exception const& e)
+            {
+                std::cout << "\t\tSYCL exception during generation\n"
+                          << e.what() << std::endl
+                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                return 1;
+            }
+
+            queue.wait_and_throw();
+            oneapi::dpl::ranlux24 engine;
+            sum += check_params(engine);
+        }
+
+        return sum;
+    }
+};
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
 
@@ -217,37 +488,37 @@ main()
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "linear_congruential_engine<48271, 0, 2147483647>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::minstd_rand>();
-    err += test<oneapi::dpl::minstd_rand_vec<1>>();
-    err += test<oneapi::dpl::minstd_rand_vec<2>>();
-    err += test<oneapi::dpl::minstd_rand_vec<3>>();
-    err += test<oneapi::dpl::minstd_rand_vec<4>>();
-    err += test<oneapi::dpl::minstd_rand_vec<8>>();
-    err += test<oneapi::dpl::minstd_rand_vec<16>>();
+    err += test<oneapi::dpl::minstd_rand>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<1>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<2>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<3>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<4>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<8>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<16>>{}.run();
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "subtract_with_carry_engine<24, 10, 24>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::ranlux24_base>();
-    err += test<oneapi::dpl::ranlux24_base_vec<1>>();
-    err += test<oneapi::dpl::ranlux24_base_vec<2>>();
-    err += test<oneapi::dpl::ranlux24_base_vec<3>>();
-    err += test<oneapi::dpl::ranlux24_base_vec<4>>();
-    err += test<oneapi::dpl::ranlux24_base_vec<8>>();
-    err += test<oneapi::dpl::ranlux24_base_vec<16>>();
+    err += test<oneapi::dpl::ranlux24_base>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<1>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<2>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<3>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<4>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<8>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<16>>{}.run();
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "discard_block_engine<ranlux24_base, 223, 23>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::ranlux24>();
-    err += test<oneapi::dpl::ranlux24_vec<1>>();
-    err += test<oneapi::dpl::ranlux24_vec<2>>();
-    err += test<oneapi::dpl::ranlux24_vec<3>>();
-    err += test<oneapi::dpl::ranlux24_vec<4>>();
-    err += test<oneapi::dpl::ranlux24_vec<8>>();
-    err += test<oneapi::dpl::ranlux24_vec<16>>();
+    err += test<oneapi::dpl::ranlux24>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<1>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<2>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<3>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<4>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<8>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<16>>{}.run();
     EXPECT_TRUE(!err, "Test FAILED");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && __SYCL_UNNAMED_LAMBDA__
