@@ -104,7 +104,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 // transform_scan
 //------------------------------------------------------------------------
 
-template <typename _IsSync = ::std::true_type, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
           typename _UnaryOperation, typename _InitType, typename _BinaryOperation, typename _Inclusive>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
 __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
@@ -129,7 +129,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result, __result + __n);
 
-    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+    oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __binary_op, __init,
         // local scan
         unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
@@ -140,8 +140,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
                               _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__scan_no_init<_Type>>{
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op});
-    oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__res]() { __res.wait(); });
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op}).wait();
 
     return __result + __n;
 }
