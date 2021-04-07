@@ -68,4 +68,5 @@ using oneapi::dpl::transform_inclusive_scan;
 using oneapi::dpl::transform_reduce;
 } // namespace std
 
+#include "oneapi/dpl/internal/serial_numeric_impl.h"
 #endif /* _ONEDPL_NUMERIC */
