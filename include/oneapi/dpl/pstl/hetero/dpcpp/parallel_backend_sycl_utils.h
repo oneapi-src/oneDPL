@@ -398,9 +398,28 @@ class __future_base
     operator sycl::event() const { return __my_event; }
 };
 
-template <typename T>
+template <typename _T>
 class __future : public __future_base
 {
+    ::std::size_t __offset;
+    sycl::buffer<_T> __data;
+    ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmps;
+
+  public:
+    template <typename... _Ts>
+    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b, _Ts... __t)
+        : __par_backend_hetero::__future_base(__e), __data(__b), __offset(__o)
+    {
+        if (sizeof...(_Ts) != 0)
+            __tmps = ::std::unique_ptr<__lifetime_keeper<_Ts...>>(new __lifetime_keeper<_Ts...>(__t...));
+    }
+
+    _T
+    get()
+    {
+        this->wait();
+        return __data.template get_access<access_mode::read>()[__offset];
+    }
 };
 
 template <>

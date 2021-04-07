@@ -366,8 +366,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<
-    _ExecutionPolicy, ::std::pair<oneapi::dpl::__internal::__difference_t<_Range2>, typename _InitType::__value_type>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             __future<typename _InitType::__value_type>>
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
@@ -456,7 +456,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     }
 
     // 3. Final scan for whole range
-    __exec.queue().submit([&](sycl::handler& __cgh) {
+    auto __final_event = __exec.queue().submit([&](sycl::handler& __cgh) {
         __cgh.depends_on(__submit_event);
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
@@ -465,9 +465,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         });
     });
 
-    //point of syncronization (on host access)
-    auto __last_scaned_value = __wg_sums.template get_access<access_mode::read>()[__n_groups - 1];
-    return ::std::make_pair(__n, __last_scaned_value);
+    return __future<typename _InitType::__value_type>(__final_event, __n_groups - 1, __wg_sums);
 }
 
 //------------------------------------------------------------------------
