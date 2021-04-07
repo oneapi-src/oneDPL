@@ -947,7 +947,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
         // global scan
         __copy_by_mask_op);
 
-    return ::std::make_pair(__output_first + __res.first, __res.second);
+    return ::std::make_pair(__output_first + __n, __res.get());
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Predicate>
@@ -1774,7 +1774,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
                                                                   __get_data_op},
             // global scan
             __copy_by_mask_op)
-            .second;
+            .get();
 
     return __result + __result_size;
 }
