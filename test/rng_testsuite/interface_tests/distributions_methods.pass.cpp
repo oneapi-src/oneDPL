@@ -37,7 +37,7 @@ std::int32_t
 check_params(oneapi::dpl::uniform_int_distribution<T>& distr)
 {
     Element_type<T> a = static_cast<Element_type<T>>(0);
-    Element_type<T> b = static_cast<Element_type<T>>(1);
+    Element_type<T> b = std::numeric_limits<Element_type<T>>::max();
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
 }
@@ -130,8 +130,7 @@ test_vec()
 
         queue.wait_and_throw();
         Distr distr;
-        // 0 and 1 are default parameters for uniform_int, uniform_real and normal distributions
-        check_params(distr);
+        sum += check_params(distr);
     }
 
     return sum;
@@ -205,8 +204,7 @@ test()
 
         queue.wait_and_throw();
         Distr distr;
-        // 0 and 1 are default parameters for uniform_int, uniform_real and normal distributions
-        check_params(distr);
+        sum += check_params(distr);
     }
 
     return sum;
