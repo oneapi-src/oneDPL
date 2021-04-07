@@ -22,8 +22,7 @@ namespace oneapi
 {
 namespace dpl
 {
-//namespace serial {
-
+#if __cplusplus > 201402L
 template <class _InputIterator, class _Tp, class _BinaryOp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init, _BinaryOp __b)
@@ -46,7 +45,8 @@ reduce(_InputIterator __first, _InputIterator __last)
 {
     return reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
-// } // namespace serial
+#endif
+
 } // namespace dpl
 } // namespace oneapi
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
