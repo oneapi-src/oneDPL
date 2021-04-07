@@ -112,7 +112,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
     _NoAssign __no_assign_op;
     _NoOpFunctor __get_data_op;
 
-    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+    oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
         __binary_op, __init,
         // local scan
@@ -124,8 +124,9 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
                               _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__scan_no_init<_Type>>{
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op});
-    return __res.first;
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op})
+        .wait();
+    return __rng.size();
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _Type,
