@@ -58,8 +58,8 @@ check_params(oneapi::dpl::normal_distribution<T>& distr)
 {
     Element_type<T> mean = static_cast<Element_type<T>>(0);
     Element_type<T> stddev = static_cast<Element_type<T>>(1);
-    return ((distr.mean() != mean) || (distr.stddev() != stddev) || std::isinf(distr.min()) ||
-            std::isinf(distr.max()) || (distr.param().first != mean) || (distr.param().second != stddev));
+    return ((distr.mean() != mean) || (distr.stddev() != stddev) || !std::isinf(distr.min()) ||
+            !std::isinf(distr.max()) || (distr.param().first != mean) || (distr.param().second != stddev));
 }
 
 template <class Distr>
