@@ -35,14 +35,14 @@ template <class _InputIterator, class _Tp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init)
 {
-    return reduce(__first, __last, [](const _Tp& lhs, const _Tp& rhs) { return lhs + rhs; });
+    return oneapi::dpl::reduce(__first, __last, __init, [](const _Tp& lhs, const _Tp& rhs) { return lhs + rhs; });
 }
 
 template <class _InputIterator>
 typename ::std::iterator_traits<_InputIterator>::value_type
 reduce(_InputIterator __first, _InputIterator __last)
 {
-    return reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
+    return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
 
 } // namespace dpl
