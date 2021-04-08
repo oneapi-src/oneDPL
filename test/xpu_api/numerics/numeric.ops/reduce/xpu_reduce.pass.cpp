@@ -40,13 +40,14 @@ template <class Iter>
 void
 test(sycl::queue& deviceQueue)
 {
+    using VT = typename std::iterator_traits<Iter>::value_type;
     int input[] = {1, 2, 3, 4, 5, 6};
-    int output[4];
-    int ref[4] = {0, 1, 3, 21};
+    int output[20];
+    int ref[21] = {0, 1, 3, 21, 0, 1, 1, 3, 3, 6, 21, 25, 0, 1, 1, 2, 3, 6, 21, 2880, 27};
     sycl::range<1> numOfItems{6};
     {
         sycl::buffer<int, 1> buffer1(input, sycl::range<1>{6});
-        sycl::buffer<int, 1> buffer2(output, sycl::range<1>{4});
+        sycl::buffer<int, 1> buffer2(output, sycl::range<1>{21});
         deviceQueue.submit(
             [&](sycl::handler& cgh)
             {
@@ -59,11 +60,30 @@ test(sycl::queue& deviceQueue)
                         out[1] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 1));
                         out[2] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 2));
                         out[3] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 6));
+
+                        out[4] = dpl::reduce(Iter(&in[0]), Iter(&in[0]), 0);
+                        out[5] = dpl::reduce(Iter(&in[0]), Iter(&in[0]), 1);
+                        out[6] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 1), 0);
+                        out[7] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 1), 2);
+                        out[8] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 2), 0);
+                        out[9] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 2), 3);
+                        out[10] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 6), 0);
+                        out[11] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 6), 4);
+
+                        out[12] = dpl::reduce(Iter(&in[0]), Iter(&in[0]), 0, std::plus<>());
+                        out[13] = dpl::reduce(Iter(&in[0]), Iter(&in[0]), 1, std::multiplies<>());
+                        out[14] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 1), 0, std::plus<>());
+                        out[15] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 1), 2, std::multiplies<>());
+                        out[16] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 2), 0, std::plus<>());
+                        out[17] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 2), 3, std::multiplies<>());
+                        out[18] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 6), 0, std::plus<>());
+                        out[19] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 6), 4, std::multiplies<>());
+                        out[20] = dpl::reduce(Iter(&in[0]), Iter(&in[0] + 6), 0, [](VT x, VT y) { return x + y + 1; });
                     });
             });
     }
 
-    for (size_t idx = 0; idx < 4; ++idx)
+    for (size_t idx = 0; idx < 21; ++idx)
     {
         ASSERT_EQUAL(ref[idx], output[idx]);
     }
