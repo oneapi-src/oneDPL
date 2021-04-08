@@ -58,8 +58,10 @@ check_params(oneapi::dpl::normal_distribution<T>& distr)
 {
     Element_type<T> mean = static_cast<Element_type<T>>(0);
     Element_type<T> stddev = static_cast<Element_type<T>>(1);
-    return ((distr.mean() != mean) || (distr.stddev() != stddev) || !std::isinf(distr.min()) ||
-            !std::isinf(distr.max()) || (distr.param().first != mean) || (distr.param().second != stddev));
+    return ((distr.mean() != mean) || (distr.stddev() != stddev) ||
+            (distr.min() > -std::numeric_limits<Element_type<T>>::max()) ||
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) ||
+            (distr.param().first != mean) || (distr.param().second != stddev));
 }
 
 template <class Distr>
@@ -278,6 +280,7 @@ main()
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>>();
+    std::cout << "err = " << err << std::endl;
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
