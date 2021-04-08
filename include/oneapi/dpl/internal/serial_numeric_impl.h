@@ -22,7 +22,8 @@ namespace oneapi
 {
 namespace dpl
 {
-#if __cplusplus < 201703L
+// libstdc++7 and libstdc++8 doesn't include reduce;
+#if (__cplusplus < 201703L) || (_GLIBCXX_RELEASE < 9)
 template <class _InputIterator, class _Tp, class _BinaryOp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init, _BinaryOp __b)
@@ -48,7 +49,6 @@ reduce(_InputIterator __first, _InputIterator __last)
 #else
 using ::std::reduce;
 #endif
-
 } // namespace dpl
 } // namespace oneapi
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
