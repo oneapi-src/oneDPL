@@ -64,7 +64,12 @@ def githubStatus = new GithubStatus(
         BUILD_URL: env.RUN_DISPLAY_URL
 )
 
-
+def runExample(String test_name) {
+    def result = sh(
+        script: "cd ./src/examples/" + test_name + "/ && mkdir build && cd build/ && cmake .. && make && make run && exit \$?",
+        returnStatus: true, label: test_name + "_return_value Step")
+    return result
+}
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
@@ -278,66 +283,12 @@ pipeline {
                             script {
                                 try {
                                     withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
-                                        def gamma_return_value = sh(
-                                                script: """
-                                                        cd ./src/examples/gamma_correction/
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "gamma_return_value Step")
-                                        def stable_sort_return_value = sh(
-                                                script: """
-                                                        cd ./src/examples/stable_sort_by_key
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "stable_sort_return_value Step")
-                                        def convex_hull_return_value = sh(
-                                                script: """
-                                                        cd ./src/examples/convex_hull
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "convex_hull_return_value Step")
-                                        def dot_product_return_value = sh(
-                                                script: """
-                                                        cd ./src/examples/dot_product
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "dot_product_return_value Step")
-                                        def histogram_return_value = sh(
-                                                script: """
-                                                        cd ./src/examples/histogram
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "histogram_return_value Step")
-                                        def random_return_value = sh(
-                                                script: """
-                                                        cd ./src/examples/random
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "random_return_value Step")
+                                        def gamma_return_value = runExample("gamma_correction")
+                                        def stable_sort_return_value = runExample("stable_sort_by_key")
+                                        def convex_hull_return_value = runExample("convex_hull")
+                                        def dot_product_return_value = runExample("dot_product")
+                                        def histogram_return_value = runExample("histogram")
+                                        def random_return_value = runExample("random")
 
                                         def test_pass_status = true
                                         if (gamma_return_value != 0) {
