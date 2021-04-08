@@ -96,11 +96,17 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
             __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
                 new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
+    __future(_Tp __d) : __par_backend_hetero::__future_base(sycl::event{}), __data(__d) {}
     _T
     get()
     {
         this->wait();
         return __data;
+    }
+    __future(__par_backend_hetero::__future<_T>&& __o, size_t __d)
+        : __par_backend_hetero::__future_base(::std::move(__o.__my_event)),
+          __data(oneapi::dpl::begin(::std::move(__o.__data)) + __d)
+    {
     }
 };
 #endif
