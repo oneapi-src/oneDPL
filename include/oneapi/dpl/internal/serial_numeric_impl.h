@@ -17,7 +17,6 @@
 #ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #include <iterator>
-#include <numeric>
 namespace oneapi
 {
 namespace dpl
@@ -47,6 +46,7 @@ reduce(_InputIterator __first, _InputIterator __last)
     return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
 #else
+#include <numeric>
 using ::std::reduce;
 #endif
 } // namespace dpl
