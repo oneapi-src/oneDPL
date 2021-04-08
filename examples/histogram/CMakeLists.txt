@@ -1,8 +1,4 @@
-cmake_minimum_required (VERSION 3.5)
-project(histogram LANGUAGES CXX)
-
 set(CMAKE_CXX_COMPILER "dpcpp")
-
 # Set default build type to RelWithDebInfo if not specified
 if (NOT CMAKE_BUILD_TYPE)
     message (STATUS "Default CMAKE_BUILD_TYPE not set using Release")
@@ -11,11 +7,6 @@ if (NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif()
 
-add_executable (histogram src/main.cpp)
-
-add_custom_target (run
-        COMMAND ./histogram
-        WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
-)
-
-
+cmake_minimum_required (VERSION 3.0)
+project(histogram LANGUAGES CXX)
+add_subdirectory (src)

@@ -1,7 +1,3 @@
-if (NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 14)
-endif()
-
 # Add an executable target from source files
 add_executable(${PROJECT_NAME} main.cpp)
 
