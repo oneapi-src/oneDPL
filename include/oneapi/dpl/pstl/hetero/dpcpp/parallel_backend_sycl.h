@@ -361,12 +361,12 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
 }
 
 //------------------------------------------------------------------------
-// parallel_transform_scan - sync pattern
+// parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
-                                                             __future<typename _InitType::__value_type>>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>>
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
@@ -464,7 +464,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         });
     });
 
-    return __future<typename _InitType::__value_type>(__final_event, __n_groups - 1, __wg_sums);
+    return oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>(__final_event, __n_groups - 1,
+                                                                                         __wg_sums);
 }
 
 //------------------------------------------------------------------------
