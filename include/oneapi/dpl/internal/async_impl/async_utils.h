@@ -85,6 +85,7 @@ class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_al
     : public __par_backend_hetero::__future_base
 {
     using _Tp = sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>;
+    friend class __par_backend_hetero::__future<_T>;
     _Tp __data;
     ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmp;
 
@@ -96,11 +97,17 @@ class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_al
             __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
                 new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
+    __future(_Tp __d) : __par_backend_hetero::__future_base(sycl::event{}), __data(__d) {}
     _Tp
     get()
     {
         this->wait();
         return __data;
+    }
+    __future(__par_backend_hetero::__future<_T>&& __o, size_t __d)
+        : __par_backend_hetero::__future_base(::std::move(__o.__my_event)),
+          __data(oneapi::dpl::begin(::std::move(__o.__data)) + __d)
+    {
     }
 };
 #endif

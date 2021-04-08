@@ -194,6 +194,78 @@ __pattern_fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     return ret_val;
 }
 
+//------------------------------------------------------------------------
+// transform_scan
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
+          typename _InitType, typename _BinaryOperation, typename _Inclusive>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Iterator2>>
+__pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
+                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+{
+    if (__first == __last)
+        return oneapi::dpl::__internal::__future<_Iterator2>(__result);
+
+    using _Type = typename _InitType::__value_type;
+    using _Assigner = unseq_backend::__scan_assigner;
+    using _NoAssign = unseq_backend::__scan_no_assign;
+    using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
+    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+
+    _Assigner __assign_op;
+    _NoAssign __no_assign_op;
+    _NoOpFunctor __get_data_op;
+
+    auto __n = __last - __first;
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf1 = __keep1(__first, __last);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
+    auto __buf2 = __keep2(__result, __result + __n);
+
+    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __binary_op, __init,
+        // local scan
+        unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
+                              _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
+                                                       __get_data_op},
+        // scan between groups
+        unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__scan_no_init<_Type>>{
+            __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+        // global scan
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op});
+    return oneapi::dpl::__internal::__future<_Iterator2>(::std::move(__res), __n);
+}
+
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation, typename _Type,
+          typename _BinaryOperation, typename _Inclusive>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Iterator2>>
+__pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
+                         _UnaryOperation __unary_op, _Type __init, _BinaryOperation __binary_op, _Inclusive)
+{
+    using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
+    using _InitType = unseq_backend::__scan_init<_RepackedType>;
+
+    return __pattern_transform_scan_base_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+                                         __unary_op, _InitType{__init}, __binary_op, _Inclusive{});
+}
+
+// scan without initial element
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
+          typename _BinaryOperation, typename _Inclusive>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_Iterator2>>
+__pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
+                         _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive)
+{
+    using _Type = typename ::std::iterator_traits<_Iterator1>::value_type;
+    using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
+    using _InitType = unseq_backend::__scan_no_init<_RepackedType>;
+
+    return __pattern_transform_scan_base_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+                                         __unary_op, _InitType{}, __binary_op, _Inclusive{});
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
