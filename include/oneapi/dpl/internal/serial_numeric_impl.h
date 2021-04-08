@@ -22,7 +22,6 @@ namespace oneapi
 {
 namespace dpl
 {
-#if __cplusplus > 201402L
 template <class _InputIterator, class _Tp, class _BinaryOp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init, _BinaryOp __b)
@@ -36,7 +35,7 @@ template <class _InputIterator, class _Tp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init)
 {
-    return reduce(__first, __last, ::std::plus<>());
+    return reduce(__first, __last, [](const _Tp& lhs, const _Tp& rhs) { return lhs + rhs; });
 }
 
 template <class _InputIterator>
@@ -45,7 +44,6 @@ reduce(_InputIterator __first, _InputIterator __last)
 {
     return reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
-#endif
 
 } // namespace dpl
 } // namespace oneapi
