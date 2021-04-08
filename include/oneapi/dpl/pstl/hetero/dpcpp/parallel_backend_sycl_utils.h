@@ -400,14 +400,14 @@ struct __future_base
 template <typename _T>
 class __future : public __future_base
 {
-    ::std::size_t __offset;
+    ::std::size_t __result_idx;
     sycl::buffer<_T> __data;
     ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmps;
 
   public:
     template <typename... _Ts>
     __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b, _Ts... __t)
-        : __par_backend_hetero::__future_base(__e), __data(__b), __offset(__o)
+        : __par_backend_hetero::__future_base(__e), __data(__b), __result_idx(__o)
     {
         if (sizeof...(_Ts) != 0)
             __tmps = ::std::unique_ptr<__lifetime_keeper<_Ts...>>(new __lifetime_keeper<_Ts...>(__t...));
@@ -417,7 +417,7 @@ class __future : public __future_base
     get()
     {
         this->wait();
-        return __data.template get_access<access_mode::read>()[__offset];
+        return __data.template get_access<access_mode::read>()[__result_idx];
     }
     template<class _Tp> friend class oneapi::dpl::__internal::__future;
 };
