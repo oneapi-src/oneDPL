@@ -419,7 +419,8 @@ class __future : public __future_base
         this->wait();
         return __data.template get_access<access_mode::read>()[__result_idx];
     }
-    template<class _Tp> friend class oneapi::dpl::__internal::__future;
+    template <class _Tp>
+    friend class oneapi::dpl::__internal::__future;
 };
 
 template <>
