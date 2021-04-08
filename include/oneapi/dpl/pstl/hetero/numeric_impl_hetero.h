@@ -104,8 +104,8 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 // transform_scan
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
-          typename _UnaryOperation, typename _InitType, typename _BinaryOperation, typename _Inclusive>
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
+          typename _InitType, typename _BinaryOperation, typename _Inclusive>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
 __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
                               _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
@@ -140,7 +140,8 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
                               _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__scan_no_init<_Type>>{
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op}).wait();
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op})
+        .wait();
 
     return __result + __n;
 }
