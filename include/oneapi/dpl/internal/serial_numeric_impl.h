@@ -46,7 +46,7 @@ reduce(_InputIterator __first, _InputIterator __last)
     return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
 #else
-#include <numeric>
+#    include <numeric>
 using ::std::reduce;
 #endif
 } // namespace dpl
