@@ -605,6 +605,9 @@ struct __next_to_last
     }
 };
 
+template <typename _T>
+class __future;
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
