@@ -263,12 +263,13 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 }
 
 //------------------------------------------------------------------------
-// parallel_transform_reduce - sync pattern
+// parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
 
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
           typename _Rp, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Tp>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__par_backend_hetero::__future<_Tp>>
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
     auto __n = __get_first_range(__rngs...).size();
@@ -358,7 +359,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
         __n_items = __n_groups;
         __n_groups = (__n_items - 1) / __work_group_size + 1;
     } while (__n_items > 1);
-    return __temp.template get_access<access_mode::read_write>()[__offset_2];
+    return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
 }
 
 //------------------------------------------------------------------------
