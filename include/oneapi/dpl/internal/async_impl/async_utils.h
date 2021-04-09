@@ -76,6 +76,14 @@ class __future : public __par_backend_hetero::__future_base
         this->wait();
         return __ret_val->data(__init);
     }
+    template <typename _Op>
+    __future(__par_backend_hetero::__future<_T> __o, _T __i, _Op __op)
+        : __par_backend_hetero::__future_base(__o.__my_event), __init(__i)
+    {
+        using _Buf = decltype(__o.__data);
+        __ret_val = ::std::unique_ptr<async_value<_T, _Buf, _Op>>(
+            new async_value<_T, _Buf, _Op>(__o.__data, __op, __o.__result_idx));
+    }
 };
 
 #if _ONEDPL_BACKEND_SYCL
