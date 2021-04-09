@@ -24,7 +24,7 @@
 #include <CL/sycl.hpp>
 #include <random>
 
-#define REF_SAMPLE_ID 9999
+constexpr auto REF_SAMPLE_ID = 9999;
 
 template<class Engine, int NGenSamples, int NElemsInResultType>
 typename Engine::scalar_type test() {

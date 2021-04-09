@@ -20,7 +20,7 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>
@@ -173,11 +173,11 @@ int tests_set_portion(int nsamples, unsigned int part) {
     return 0;
 }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 int main() {
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     constexpr int nsamples = 100;
     int err;
@@ -188,10 +188,7 @@ int main() {
     std::cout << "-------------------------------------------" << std::endl;
     err = tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::minstd_rand0, 100, 10>,
         std::discard_block_engine<std::minstd_rand0, 100, 10>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base, 30, 5>
     std::cout << "------------------------------------------" << std::endl;
@@ -199,10 +196,7 @@ int main() {
     std::cout << "------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base, 30, 5>,
         std::discard_block_engine<std::ranlux24_base, 30, 5>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux48_base, 100, 100>
     std::cout << "---------------------------------------------" << std::endl;
@@ -210,10 +204,7 @@ int main() {
     std::cout << "---------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux48_base, 100, 100>,
         std::discard_block_engine<std::ranlux48_base, 100, 100>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<1>, 70, 69>
     std::cout << "--------------------------------------------------" << std::endl;
@@ -223,10 +214,7 @@ int main() {
         std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<1>, 70, 69>,
         std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 1);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<3>, 70, 69>
     std::cout << "--------------------------------------------------" << std::endl;
@@ -236,10 +224,7 @@ int main() {
         std::discard_block_engine<std::ranlux24_base, 70, 69>>(99);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<3>, 70, 69>,
         std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 2);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<16>, 70, 69>
     std::cout << "---------------------------------------------------" << std::endl;
@@ -267,12 +252,9 @@ int main() {
         std::discard_block_engine<std::ranlux24_base, 70, 69>>(160, 16);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
         std::discard_block_engine<std::ranlux24_base, 70, 69>>(160, 17);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
 }
