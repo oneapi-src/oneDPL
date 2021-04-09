@@ -78,6 +78,9 @@ test_with_buffers()
                                                               std::plus<int>(), [=](int e) { return alpha * e; })
                 .get();
 
+        auto my_policy7 = oneapi::dpl::execution::make_device_policy<class Scan>(my_policy);
+        auto gamma = oneapi::dpl::experimental::transform_inclusive_scan_async(my_policy6, oneapi::dpl::begin(x), oneapi::dpl::end(x),oneapi::dpl::begin(y), std::plus<int>(), [](auto x) { return x * 10; }, 0).get();
+
         ASSERT_EQUAL(beta, (n * (n + 1) / 2) * ((n + 3) * (n + 4) / 2 - 6));
     }
 }
