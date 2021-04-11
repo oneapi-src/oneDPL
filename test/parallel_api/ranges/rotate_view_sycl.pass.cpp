@@ -36,18 +36,17 @@ main()
     int rotate_val = 6;
 
     using namespace oneapi::dpl::experimental;
-
-    auto view = nano::ranges::views::all(data) | ranges::views::rotate(rotate_val);
     {
-        sycl::buffer<int> A(expected, sycl::range<1>(max_n));
-        ranges::copy(TestUtils::default_dpcpp_policy, view, A);
+        sycl::buffer<int> A(data, sycl::range<1>(max_n));
+        sycl::buffer<int> B(expected, sycl::range<1>(max_n));
+        ranges::copy(TestUtils::default_dpcpp_policy, 
+                     ranges::views::all_read(A) | ranges::views::rotate(rotate_val), ranges::views::all_write(B));
     }
 
-    //check aasigment
-    view[4] = -1;
-    expected[4] = -1;
+    //check result
+    ::std::rotate(data, data + rotate_val, data + max_n);
 
-    EXPECT_EQ_N(view.begin(), expected, max_n, "wrong result from rotate view on a device");
+    EXPECT_EQ_N(data, expected, max_n, "wrong result from rotate view on a device");
 
 #endif //_ENABLE_RANGES_TESTING
     ::std::cout << TestUtils::done() << ::std::endl;
