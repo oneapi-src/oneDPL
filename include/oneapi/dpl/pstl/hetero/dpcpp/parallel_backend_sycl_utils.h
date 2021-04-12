@@ -395,6 +395,13 @@ class __future_base
         __my_event.wait();
 #endif
     }
+    void
+    wait_and_throw()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __my_event.wait_and_throw();
+#endif
+    }
     operator sycl::event() const { return __my_event; }
 };
 
@@ -418,7 +425,7 @@ class __future<void> : public __future_base
     void
     get()
     {
-        this->wait();
+        this->wait_and_throw();
     }
 };
 

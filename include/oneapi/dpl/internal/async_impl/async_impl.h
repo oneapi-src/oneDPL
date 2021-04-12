@@ -34,7 +34,7 @@ template <typename... _Ts>
 oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
 wait_for_all(_Ts&&... __events)
 {
-    ::std::initializer_list<int> i = {0, (__events.wait(), 0)...};
+    ::std::initializer_list<int> i = {0, (__events.wait_and_throw(), 0)...};
     (void)i;
 }
 

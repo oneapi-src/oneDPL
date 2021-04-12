@@ -73,7 +73,7 @@ class __future : public __par_backend_hetero::__future_base
     _T
     get()
     {
-        this->wait();
+        this->wait_and_throw();
         return __ret_val->data(__init);
     }
 };
@@ -99,7 +99,7 @@ class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_al
     _Tp
     get()
     {
-        this->wait();
+        this->wait_and_throw();
         return __data;
     }
 };
