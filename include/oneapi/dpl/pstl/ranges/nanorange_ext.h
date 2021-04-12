@@ -188,7 +188,7 @@ struct rotate_view : view_interface<rotate_view<V>>
     constexpr auto
     size() const
     {
-        return ranges::size(base_);
+        return base_.size();
     }
 
     constexpr bool
