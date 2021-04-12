@@ -126,7 +126,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
         // global scan
         unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op})
         .wait();
-    return __rng.size();
+    return __rng1.size();
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _Type,

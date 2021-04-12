@@ -416,7 +416,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
             __buf.all_view())
             .get();
 
-    return __first + __ret_idx;
+    return __first + ::std::get<0>(__ret_idx);
 }
 
 // TODO:
