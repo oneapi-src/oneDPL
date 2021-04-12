@@ -392,13 +392,6 @@ class __future_base
     wait()
     {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait();
-#endif
-    }
-    void
-    wait_and_throw()
-    {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
         __my_event.wait_and_throw();
 #endif
     }
@@ -425,7 +418,7 @@ class __future<void> : public __future_base
     void
     get()
     {
-        this->wait_and_throw();
+        this->wait();
     }
 };
 

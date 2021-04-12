@@ -45,7 +45,7 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
         oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
                                                           __rng.size(), ::std::forward<_Range>(__rng))
-            .wait_and_throw();
+            .wait();
 }
 
 //------------------------------------------------------------------------
@@ -60,7 +60,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
             __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
-            .wait_and_throw();
+            .wait();
 }
 
 //------------------------------------------------------------------------
@@ -76,7 +76,7 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
             ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
             __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
             ::std::forward<_Range3>(__rng3))
-            .wait_and_throw();
+            .wait();
 }
 
 //------------------------------------------------------------------------
@@ -419,7 +419,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
         __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec),
                                                ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
                                                ::std::forward<_Range3>(__rng3), __comp)
-            .wait_and_throw();
+            .wait();
     }
 
     return __n;
@@ -436,7 +436,7 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
     if (__rng.size() >= 2)
         __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec),
                                                      ::std::forward<_Range>(__rng), __comp)
-            .wait_and_throw();
+            .wait();
 }
 
 //------------------------------------------------------------------------

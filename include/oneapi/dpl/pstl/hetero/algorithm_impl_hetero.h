@@ -51,7 +51,7 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
                                                       __n, __buf.all_view())
-        .wait_and_throw();
+        .wait();
 }
 
 //------------------------------------------------------------------------
@@ -96,7 +96,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf1.all_view(), __buf2.all_view());
-    oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait_and_throw(); });
+    oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
 
     return __first2 + __n;
 }
@@ -155,7 +155,7 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
                                                       unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
                                                       __buf1.all_view(), __buf2.all_view(), __buf3.all_view())
-        .wait_and_throw();
+        .wait();
 
     return __first3 + __n;
 }
@@ -1241,7 +1241,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
 
         __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                __buf2.all_view(), __buf3.all_view(), __comp)
-            .wait_and_throw();
+            .wait();
     }
     return __d_first + __n;
 }
@@ -1294,7 +1294,7 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
     auto __buf = __keep(__first, __last);
 
     __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
-        .wait_and_throw();
+        .wait();
 }
 
 //------------------------------------------------------------------------
@@ -1312,7 +1312,7 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     auto __buf = __keep(__first, __last);
 
     __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
-        .wait_and_throw();
+        .wait();
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
@@ -1473,7 +1473,7 @@ __pattern_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator _
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__mid),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp)
-        .wait_and_throw();
+        .wait();
 }
 
 //------------------------------------------------------------------------
@@ -1602,7 +1602,7 @@ __pattern_reverse(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::__reverse_functor<typename ::std::iterator_traits<_Iterator>::difference_type>{__n}, __n / 2,
         __buf.all_view())
-        .wait_and_throw();
+        .wait();
 }
 
 //------------------------------------------------------------------------
@@ -1627,7 +1627,7 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::__reverse_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{__n},
         __n, __buf1.all_view(), __buf2.all_view())
-        .wait_and_throw();
+        .wait();
 
     return __result + __n;
 }
@@ -1674,7 +1674,7 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_f
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n,
                                                       __temp_rng, __buf.all_view())
-        .wait_and_throw();
+        .wait();
 
     return __first + (__last - __new_first);
 }
@@ -1706,7 +1706,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
         unseq_backend::__rotate_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{__n,
                                                                                                                __shift},
         __n, __buf1.all_view(), __buf2.all_view())
-        .wait_and_throw();
+        .wait();
 
     return __result + __n;
 }
@@ -2000,7 +2000,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Range __rng, oneapi::dpl::__int
 
         oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __size_res,
                                                           __src, __dst)
-            .wait_and_throw();
+            .wait();
     }
     else //2. n < size/2; 'n' parallel copying
     {
@@ -2009,7 +2009,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Range __rng, oneapi::dpl::__int
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__shift_left_right>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __brick, __n, __rng)
-            .wait_and_throw();
+            .wait();
     }
 
     return __size_res;

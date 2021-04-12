@@ -233,7 +233,7 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
 
             oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, _Function{__fn}, __n, __buf1.all_view(),
                                                               __buf2.all_view())
-                .wait_and_throw();
+                .wait();
 
             return __d_last;
         });
