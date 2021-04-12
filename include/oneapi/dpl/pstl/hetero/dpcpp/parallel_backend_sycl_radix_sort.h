@@ -540,8 +540,9 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             __self_item.get_sub_group(), __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
 
                         __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
-                        ::std::uint32_t __sg_total_offset = sycl::ONEAPI::reduce(
-                            __self_item.get_sub_group(), __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
+                        // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
+                        ::std::uint32_t __sg_total_offset = sycl::ONEAPI::broadcast(
+                            __self_item.get_sub_group(), __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
                         __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                     }
