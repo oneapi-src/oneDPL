@@ -201,7 +201,7 @@ struct rotate_view : view_interface<rotate_view<V>>
 };
 
 template <typename R>
-rotate_view(R&&) -> rotate_view<all_view<R>>;
+rotate_view(R &&)->rotate_view<all_view<R>>;
 
 } // namespace rotate_view_
 
