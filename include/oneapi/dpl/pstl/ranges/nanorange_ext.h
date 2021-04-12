@@ -55,6 +55,8 @@ class offset_iterator
     operator+=(difference_type __forward)
     {
         current_ += __forward;
+        assert(current_ >= beg_ && current_ < beg_ + n_);
+
         return *this;
     }
     constexpr offset_iterator&
@@ -199,7 +201,7 @@ struct rotate_view : view_interface<rotate_view<V>>
 };
 
 template <typename R>
-rotate_view(R &&)->rotate_view<all_view<R>>;
+rotate_view(R&&) -> rotate_view<all_view<R>>;
 
 } // namespace rotate_view_
 
