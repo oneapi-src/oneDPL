@@ -87,7 +87,7 @@ using tuplewrapper = oneapi::dpl::__internal::tuple<typename oneapi::dpl::__inte
 
 // __internal::make_tuple
 template <typename... T>
-constexpr tuple<T...>
+constexpr oneapi::dpl::__internal::tuple<T...>
 make_tuple(T... args)
 {
     return oneapi::dpl::__internal::tuple<T...>{args...};
@@ -106,12 +106,13 @@ template <::std::size_t N, typename T>
 struct tuple_element;
 
 template <::std::size_t N, typename T, typename... Rest>
-struct tuple_element<N, tuple<T, Rest...>> : tuple_element<N - 1, tuple<Rest...>>
+struct tuple_element<N, oneapi::dpl::__internal::tuple<T, Rest...>>
+    : tuple_element<N - 1, oneapi::dpl::__internal::tuple<Rest...>>
 {
 };
 
 template <typename T, typename... Rest>
-struct tuple_element<0, tuple<T, Rest...>>
+struct tuple_element<0, oneapi::dpl::__internal::tuple<T, Rest...>>
 {
     using type = T;
 };
@@ -344,19 +345,19 @@ struct tuple<T1, T...>
     }
 
     friend bool
-    operator==(const tuple& __lhs, const tuple& __rhs)
+    operator==(const oneapi::dpl::__internal::tuple& __lhs, const oneapi::dpl::__internal::tuple& __rhs)
     {
         return __lhs.holder.value == __rhs.holder.value && __lhs.next == __rhs.next;
     }
     friend bool
-    operator!=(const tuple& __lhs, const tuple& __rhs)
+    operator!=(const oneapi::dpl::__internal::tuple& __lhs, const oneapi::dpl::__internal::tuple& __rhs)
     {
         return !(__lhs == __rhs);
     }
 
     template <typename U1, typename... U, ::std::size_t... _Ip>
     static ::std::tuple<U1, U...>
-    to_std_tuple(const tuple<U1, U...>& __t, oneapi::dpl::__internal::__index_sequence<_Ip...>)
+    to_std_tuple(const oneapi::dpl::__internal::tuple<U1, U...>& __t, oneapi::dpl::__internal::__index_sequence<_Ip...>)
     {
         return ::std::tuple<U1, U...>(oneapi::dpl::__internal::get_impl<_Ip>()(__t)...);
     }
@@ -383,20 +384,20 @@ struct tuple<>
         return *this;
     }
     friend bool
-    operator==(const tuple& /*__lhs*/, const tuple& /*__rhs*/)
+    operator==(const oneapi::dpl::__internal::tuple& /*__lhs*/, const oneapi::dpl::__internal::tuple& /*__rhs*/)
     {
         return true;
     }
 };
 
 inline void
-swap(tuple<>& /*__x*/, tuple<>& /*__y*/)
+swap(oneapi::dpl::__internal::tuple<>& /*__x*/, oneapi::dpl::__internal::tuple<>& /*__y*/)
 {
 }
 
 template <typename... _T>
 void
-swap(tuple<_T...>& __x, tuple<_T...>& __y)
+swap(oneapi::dpl::__internal::tuple<_T...>& __x, oneapi::dpl::__internal::tuple<_T...>& __y)
 {
     using ::std::swap;
     swap(__x.holder.value, __y.holder.value);
@@ -405,7 +406,7 @@ swap(tuple<_T...>& __x, tuple<_T...>& __y)
 
 template <typename... _T>
 void
-swap(tuple<_T...>&& __x, tuple<_T...>&& __y)
+swap(oneapi::dpl::__internal::tuple<_T...>&& __x, oneapi::dpl::__internal::tuple<_T...>&& __y)
 {
     using ::std::swap;
     swap(__x.holder.value, __y.holder.value);
