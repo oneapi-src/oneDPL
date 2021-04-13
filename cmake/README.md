@@ -10,7 +10,7 @@ The following variables are provided for oneDPL configuration:
 |------------------------------|--------|-----------------------------------------------------------------------------------------------|---------------|
 | ONEDPL_BACKEND               | STRING | Threading backend; supported values: tbb, dpcpp, dpcpp_only, serial, ...; the default value is defined by compiler: dpcpp for DPC++ and tbb for others | tbb/dpcpp |
 | ONEDPL_DEVICE_TYPE           | STRING | Device type, applicable only for DPC++ backends; supported values: GPU, CPU, FPGA_HW, FPGA_EMU | GPU           |
-| ONEDPL_DEVICE_BACKEND        | STRING | Device backend type, applicable only for oneDPL DPC++ backends; supported values: * (any device backend), opencl, level_zero. | *            |
+| ONEDPL_DEVICE_BACKEND        | STRING | Device backend type, applicable only for oneDPL DPC++ backends; supported values: opencl, level_zero. | Any(*) |
 | ONEDPL_USE_UNNAMED_LAMBDA    | BOOL   | Pass `-fsycl-unnamed-lambda`, `-fno-sycl-unnamed-lambda` compile options or nothing           |               |
 | ONEDPL_FPGA_STATIC_REPORT    | BOOL   | Enable the static report generation for the FPGA_HW device type                               | OFF           |
 | ONEDPL_USE_AOT_COMPILATION   | BOOL   | Enable the ahead of time compilation via OpenCL™ Offline Compiler (OCLOC)                     | OFF           |
