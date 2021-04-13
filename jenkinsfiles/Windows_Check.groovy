@@ -69,12 +69,14 @@ def shell(String command, String label_string = "Bat Command") {
     return bat(returnStdout: true, script: "sh -x -c \"${command}\"", label: label_string).trim()
 }
 
-def runExample(String test_name) {
+build_ok = true
+fail_stage = ""
+user_in_github_group = false
+
+def runExample(String test_name, List oneapi_env) {
     try {
         withEnv(oneapi_env) {
-            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe" &&
-               && dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
-            ", label: test_name + "_value Test Step"
+            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && echo "+"Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe && dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe", label: test_name + " Test Step"
         }
     }
     catch(e) {
@@ -87,9 +89,6 @@ def runExample(String test_name) {
     }
 }
 
-build_ok = true
-fail_stage = ""
-user_in_github_group = false
 
 pipeline {
 
@@ -244,12 +243,12 @@ pipeline {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
-                                    runExample("gamma_correction")
-                                    runExample("stable_sort_by_key")
-                                    runExample("convex_hull")
-                                    runExample("dot_product")
-                                    runExample("histogram")
-                                    runExample("random")
+                                    runExample("gamma_correction", oneapi_env)
+                                    runExample("stable_sort_by_key", oneapi_env)
+                                    runExample("convex_hull", oneapi_env)
+                                    runExample("dot_product", oneapi_env)
+                                    runExample("histogram", oneapi_env)
+                                    runExample("random", oneapi_env)
                                 }
                                 catch(e) {
                                     build_ok = false

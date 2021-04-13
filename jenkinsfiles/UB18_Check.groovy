@@ -67,8 +67,14 @@ def githubStatus = new GithubStatus(
 def runExample(String test_name) {
     def result = sh(
         script: "cd ./src/examples/" + test_name + "/ && mkdir build && cd build/ && cmake .. && make && make run && exit \$?",
-        returnStatus: true, label: test_name + "_return_value Step")
-    return result
+        returnStatus: true, label: test_name + "_test Step")
+    if (result != 0) {
+        echo test_name + " check failed."
+        return false
+    }
+    else {
+        return true
+    }
 }
 
 build_ok = true
@@ -287,38 +293,14 @@ pipeline {
                             script {
                                 try {
                                     withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
-                                        def gamma_return_value = runExample("gamma_correction")
-                                        def stable_sort_return_value = runExample("stable_sort_by_key")
-                                        def convex_hull_return_value = runExample("convex_hull")
-                                        def dot_product_return_value = runExample("dot_product")
-                                        def histogram_return_value = runExample("histogram")
-                                        def random_return_value = runExample("random")
-
                                         def test_pass_status = true
-                                        if (gamma_return_value != 0) {
-                                            echo "gamma-correction check failed."
-                                            test_pass_status = false
-                                        }
-                                        if (stable_sort_return_value != 0) {
-                                            echo "stable_sor_by_key check failed."
-                                            test_pass_status = false
-                                        }
-                                        if (convex_hull_return_value != 0) {
-                                            echo "convex_hull check failed."
-                                            test_pass_status = false
-                                        }
-                                        if (dot_product_return_value != 0) {
-                                            echo "dot_product check failed."
-                                            test_pass_status = false
-                                        }
-                                        if (histogram_return_value != 0) {
-                                            echo "histogram check failed."
-                                            test_pass_status = false
-                                        }
-                                        if (random_return_value != 0) {
-                                            echo "random check failed."
-                                            test_pass_status = false
-                                        }
+                                        test_pass_status = runExample("gamma_correction")
+                                        test_pass_status = runExample("stable_sort_by_key")
+                                        test_pass_status = runExample("convex_hull")
+                                        test_pass_status = runExample("dot_product")
+                                        test_pass_status = runExample("histogram")
+                                        test_pass_status = runExample("random")
+
                                         if (test_pass_status != true) {
                                             echo "Some checks failed. Please check log to fix the issue."
                                             sh script: "exit -1", label: "Set failure"
