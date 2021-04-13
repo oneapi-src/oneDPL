@@ -55,8 +55,6 @@ class offset_iterator
     operator+=(difference_type __forward)
     {
         current_ += __forward;
-        assert(current_ >= beg_ && current_ < beg_ + n_);
-
         return *this;
     }
     constexpr offset_iterator&
