@@ -258,6 +258,7 @@ struct test_transform_iterator {
         oneapi::dpl::transform_iterator<decltype(f_list.begin()), transform_functor> list_it2(f_list.end(), new_functor);
         int sum = 0;
         ::std::for_each(list_it1, list_it2, [&sum](int  x){ sum += x; });
+        ::std::cout << sum <<::std::endl;
         EXPECT_TRUE(sum == 27, "wrong result from for_each with forward_iterator wrapped with transform_iterator");
 
         auto test_lambda = [](T2& x){ return x + 1; };
