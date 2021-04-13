@@ -345,12 +345,12 @@ struct tuple<T1, T...>
     }
 
     friend bool
-    operator==(const oneapi::dpl::__internal::tuple& __lhs, const oneapi::dpl::__internal::tuple& __rhs)
+    operator==(const tuple& __lhs, const tuple& __rhs)
     {
         return __lhs.holder.value == __rhs.holder.value && __lhs.next == __rhs.next;
     }
     friend bool
-    operator!=(const oneapi::dpl::__internal::tuple& __lhs, const oneapi::dpl::__internal::tuple& __rhs)
+    operator!=(const tuple& __lhs, const tuple& __rhs)
     {
         return !(__lhs == __rhs);
     }
@@ -384,7 +384,7 @@ struct tuple<>
         return *this;
     }
     friend bool
-    operator==(const oneapi::dpl::__internal::tuple& /*__lhs*/, const oneapi::dpl::__internal::tuple& /*__rhs*/)
+    operator==(const tuple& /*__lhs*/, const tuple& /*__rhs*/)
     {
         return true;
     }
