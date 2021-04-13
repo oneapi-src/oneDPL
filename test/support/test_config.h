@@ -72,6 +72,7 @@
 #define TEST_TBB_BACKEND_PRESENT (!defined(ONEDPL_USE_TBB_BACKEND) || ONEDPL_USE_TBB_BACKEND != 0)
 
 // Check for C++ standard and standard library for the use of ranges API
+#if !defined(_ENABLE_RANGES_TESTING)
 #define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (__cplusplus >= 201703L && TEST_DPCPP_BACKEND_PRESENT)
 #if defined(_GLIBCXX_RELEASE)
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
@@ -80,5 +81,6 @@
 #else
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY)
 #endif
+#endif //!defined(_ENABLE_RANGES_TESTING)
 
 #endif /* _TEST_config_H */
