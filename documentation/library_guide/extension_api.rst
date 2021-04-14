@@ -140,6 +140,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   of a function applied to the corresponding element of the original iterator.  Both the type of the original
   iterator and the unary function applied during dereference operations are required template parameters of
   the ``transform_iterator`` class. There are three ways to call the constructor of the ``transform_iterator`` class:
+
   * Call it without arguments, in this way it calls the default constructors of the base iterator class
   and the unary functor class ``transform_iterator()``.
 
