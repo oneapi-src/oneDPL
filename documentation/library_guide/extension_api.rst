@@ -242,8 +242,8 @@ The following algorithms are available to use with the ranges:
 
 ``all_of``, ``any_of``, ``copy``, ``count``, ``count_if``, ``equal``, ``exclusive_scan``, ``find``, ``find_if``, ``find_if_not``, ``find_end``,
 ``find_first_of``, ``for_each``, ``inclusive_scan``, ``is_sorted``, ``is_sorted_until``, ``min_element``, ``max_element``, ``merge``,
-``minmax_element``, ``move``, ``reduce``, ``remove``, ``remove_if``, ``replace``, ``search``, ``sort``, ``stable_sort``, ``transform``,
-``transform_reduce``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
+``minmax_element``, ``move``, ``reduce``, ``remove``, ``remove_if``, ``replace``, ``replace_if``, ``search``, ``sort``, ``stable_sort``,
+``transform``, ``transform_reduce``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
 
 The signature example of the range-based algorithms looks like::
 
@@ -259,11 +259,11 @@ Use of the range-based API requires C++17 and the C++ standard libraries coming 
 The following views are declared in the ``oneapi::dpl::experimental::ranges`` namespace. Only those are allowed to use as ranges
 for range-based algorithms.
 
+* ``all_view``: A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements.
+* ``guard_view``: A custom utility - represents a view of USM data range defined by a two USM pointers.
 * ``iota_view``: A range factory - generates a sequence of N elements which starts from an initial value and ends by final N-1.
 * ``generate``:  A range factory - generates a sequence of N elements, where each is produced by a given functional genrator.
 * ``fill ``: A range factory - generates a sequence of N elements, where each is equal a given value.
-* ``all_view``: A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements.
-* ``guard_view``: A custom utility - represents a view of USM data range defined by a two USM pointers.
 * ``zip_view``: A custom range adapter - produces one ``zip_view`` from other several views.
 * ``transform_view``: A range adapter - represents a view of a underlying sequence after applying a transformation to each element.
 * ``reverse_view``: A range adapter - produces a reversed sequence of elements provided by another view.
