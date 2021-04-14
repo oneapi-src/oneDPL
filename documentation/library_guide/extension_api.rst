@@ -139,8 +139,12 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   The ``transform_iterator`` is an iterator defined over another iterator whose dereferenced value is the result
   of a function applied to the corresponding element of the original iterator.  Both the type of the original
   iterator and the unary function applied during dereference operations are required template parameters of
-  the ``transform_iterator`` class. The constructor of the ``transform_iterator`` receives both the original
-  iterator and an instance of the unary transform operation as well.
+  the ``transform_iterator`` class. There are three ways to call the constructor of the ``transform_iterator`` class:
+    1) Call it without arguments, in this way it calls the default constructors of the base iterator class
+    and the unary functor class.
+    2) Call it passing a base iterator as the argument, in this way the constructor calls default constructor
+    of the unary functor class.
+    3) Call it passing two arguments: a base iterator and a unary functor.
 
   To simplify the construction of the iterator ``oneapi::dpl::make_transform_iterator`` is provided. The
   function receives the original iterator and transform operation instance as arguments, and constructs the
