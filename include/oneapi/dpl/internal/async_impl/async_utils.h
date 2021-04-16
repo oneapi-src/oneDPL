@@ -104,7 +104,7 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
             __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
                 new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
-    __future(_Tp __d) : __par_backend_hetero::__future_base(sycl::event{}), __data(__d) {}
+    __future(_T __d) : __par_backend_hetero::__future_base(sycl::event{}), __data(__d) {}
     _T
     get()
     {
