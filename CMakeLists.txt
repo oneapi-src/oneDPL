@@ -162,7 +162,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         # check device backend
         if (ONEDPL_DEVICE_BACKEND AND ONEDPL_DEVICE_BACKEND MATCHES "^(opencl|level_zero)$")
             message(STATUS "Compilation using ${ONEDPL_DEVICE_BACKEND} device backend")
-        elseif(ONEDPL_DEVICE_BACKEND)
+        elseif (DEFINED ONEDPL_DEVICE_BACKEND)
             message(FATAL_ERROR "Unsupported device backend: ${ONEDPL_DEVICE_BACKEND}.\n"
                 "Select one of the following device backends: opencl or level_zero")
         else()
