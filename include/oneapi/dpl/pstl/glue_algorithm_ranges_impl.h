@@ -55,6 +55,15 @@ all_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
             __pred));
 }
 
+// [alg.none_of]
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+none_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
+{
+    return !any_of(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng));
+}
+
 // [alg.foreach]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Function>
@@ -135,6 +144,26 @@ find_first_of(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
     return find_first_of(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
                          ::std::forward<_Range2>(__rng2), oneapi::dpl::__internal::__pstl_equal());
+}
+
+// [alg.adjacent_find]
+
+template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
+{
+    return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
+        __pred, oneapi::dpl::__internal::__first_semantic());
+}
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng)
+{
+    using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
+    return adjacent_find(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                         ::std::equal_to<_ValueType>());
 }
 
 // [alg.count]

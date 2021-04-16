@@ -39,6 +39,12 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 all_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred);
 
+// [alg.none_of]
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+none_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred);
+
 // [alg.foreach]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Function>
@@ -82,6 +88,16 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 find_first_of(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
+
+// [alg.adjacent_find]
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng);
+
+template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred);
 
 // [alg.count]
 
