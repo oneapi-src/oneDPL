@@ -484,13 +484,16 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
         return __comp(get<1>(__b), get<1>(__a)) ? __b : __a;
     };
 
-    auto __ret_idx = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
-            __identity_reduce_fn, __identity_init_fn},
-        __identity_reduce_fn,
-        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
-        ::std::forward<_Range>(__rng));
+    auto __ret_idx =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
+                                          decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
+            __identity_reduce_fn,
+            unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
+                __identity_reduce_fn},
+            ::std::forward<_Range>(__rng))
+            .get();
 
     using ::std::get;
     return get<0>(__ret_idx);
@@ -517,14 +520,17 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
 
     auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
 
-    _ReduceValueType __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>, decltype(__identity_init_fn)>{
-            __identity_reduce_fn<_Compare>{__comp}, __identity_init_fn},
-        __identity_reduce_fn<_Compare>{__comp},
-        unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
-            __identity_reduce_fn<_Compare>{__comp}},
-        ::std::forward<_Range>(__rng));
+    _ReduceValueType __ret =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>,
+                                          decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
+                                                                        __identity_init_fn},
+            __identity_reduce_fn<_Compare>{__comp},
+            unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
+                __identity_reduce_fn<_Compare>{__comp}},
+            ::std::forward<_Range>(__rng))
+            .get();
 
     using ::std::get;
     return ::std::make_pair(get<0>(__ret), get<1>(__ret));
