@@ -13,8 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/pstl_test_config.h"
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/type_traits>
+
+#include "support/utils.h"
 
 #include <cassert>
 #include <iostream>
@@ -112,6 +115,9 @@ do_test()
 int
 main()
 {
+#if defined(_WIN32)
+    std::cout << TestUtils::done(0) << ::std::endl;
+#else
     do_test<signed char>();
     do_test<short>();
     do_test<int>();
@@ -131,6 +137,7 @@ main()
     do_test<long long, int>();
 
     std::cout << "done" << std::endl;
+#endif
 
     return 0;
 }
