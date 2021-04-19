@@ -396,7 +396,7 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
     if (__rng.size() == 0)
         return __rng.size();
 
-    using _ValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
+    using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
@@ -410,6 +410,44 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
                                                        oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
 
     return __copy_last_id;
+}
+
+//------------------------------------------------------------------------
+// unique_copy
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
+__pattern_unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred);
+{
+    using _It1DifferenceType = oneapi::dpl::__internal::__difference_t<_Range1>;
+    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+    __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
+        __not_pred<_BinaryPredicate>{__pred}};
+
+    return __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng),
+        ::std::forward<_Range2>(__result), __create_mask_op, __copy_by_mask_op);
+}
+
+//------------------------------------------------------------------------
+// unique
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
+__pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred);
+{
+    if (__rng.size() == 0)
+        return __rng.size();
+
+    using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
+
+    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
+    auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
+    __pattern_unique_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), res_rng, __pred);
+
+    return __pattern_walk2(::std::forward<_ExecutionPolicy>(__exec)), res_rng, ::std::forward<_Range>(__rng), 
+        __brick_copy<_ExecutionPolicy>{});
 }
 
 //------------------------------------------------------------------------

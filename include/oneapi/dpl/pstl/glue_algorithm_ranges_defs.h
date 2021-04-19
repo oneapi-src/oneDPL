@@ -166,6 +166,36 @@ template <typename _ExecutionPolicy, typename _Range, typename _Tp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 remove(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value);
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
+remove_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred);
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Tp>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
+remove_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, const _Tp& __value);
+
+// [alg.unique]
+
+template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range>>
+unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred);
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range>>
+unique(_ExecutionPolicy&& __exec, _Range&& __rng);
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range2>>
+unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred);
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range2>>
+unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result);
+
 // [alg.replace]
 
 template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate, typename _Tp>

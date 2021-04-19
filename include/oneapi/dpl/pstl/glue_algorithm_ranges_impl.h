@@ -308,7 +308,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
 remove_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred)
 {
-    return copy_if(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), ::std::forward<_Range>(__result),
+    return copy_if(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng), ::std::forward<_Range2>(__result),
         oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Predicate>>(__pred));
 }
 
@@ -319,6 +319,44 @@ remove_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, cons
     return copy_if(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), ::std::forward<_Range>(__result),
         oneapi::dpl::__internal::__not_equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
         __value));
+}
+
+// [alg.unique]
+
+template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range>>
+unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
+{
+    return oneapi::dpl::__internal::__pattern_unique(
+        ::std::forward<_ExecutionPolicy>(__exec), views::all(::std::forward<_Range>(__rng)), __pred);
+}
+
+template <typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range>>
+unique(_ExecutionPolicy&& __exec, _Range&& __rng)
+{
+    return unique(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+        oneapi::dpl::__internal::__pstl_equal());
+}
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range2>>
+unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred)
+{
+    return oneapi::dpl::__internal::__pattern_unique_copy(
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)), views::all_write(::std::forward<_Range2>(__result)), __pred);
+}
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::__internal::__difference_t<_Range2>>
+unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
+{
+    return unique_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng),
+        ::std::forward<_Range2>(__result), oneapi::dpl::__internal::__pstl_equal());
 }
 
 // [alg.replace]
