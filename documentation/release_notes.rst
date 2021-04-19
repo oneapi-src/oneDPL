@@ -14,7 +14,11 @@ New in 2021.3
 New Features
 ------------
 -  Added the Range-based versions of the following algorithms: ``all_of``, ``any_of``, ``count``, ``count_if``, ``equal``, ``move``, ``remove``, ``remove_if``, ``replace``, ``replace_if``.
--  Added the following utility ranges (viewes): ``generate``, ``fill``, ``rotate``. 
+-  Added the following utility ranges (viewes): ``generate``, ``fill``, ``rotate``.
+-  Added two constructors to ``transform_iterator``: ``transform_iterator()`` and ``transform_iterator(iter)``. It allows ``transform_iterator`` to forward random access iterator. 
+
+Changes to Existing Features
+-----------------------------
 -  Improved performance of the discard_block_engine (including ``ranlux24``, ``ranlux48``, ``ranlux24_vec``, ``ranlux48_vec`` predefined engines) and normal_distribution RNG functionality.
 
 Fixed Issues
