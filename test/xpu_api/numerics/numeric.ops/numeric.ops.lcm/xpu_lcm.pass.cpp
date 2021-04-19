@@ -115,6 +115,7 @@ do_test()
 int
 main()
 {
+// TODO: remove the macro guard once L0 backend fixes the issue
 #if defined(_WIN32)
     std::cout << TestUtils::done(0) << ::std::endl;
 #else
