@@ -253,7 +253,7 @@ The signature example of the range-based algorithms looks like::
 where ``source`` is used instead of two iterators to represent the input and ``destination`` represents the output.
 
 These algorithms are declared in ``oneapi::dpl::experimental::ranges`` namespace and implemented only for |dpcpp_long| policies.
-In order to make these algorithm available the ``<oneapi/dpl/ranges>`` header should be included.
+In order to make these algorithm available the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
 Use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
 
 The following views are declared in the ``oneapi::dpl::experimental::ranges`` namespace. Only those are allowed to use as ranges
