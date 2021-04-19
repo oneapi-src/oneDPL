@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- pstl_test_config.h ------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _PSTL_TEST_config_H
-#define _PSTL_TEST_config_H
+#ifndef _TEST_config_H
+#define _TEST_config_H
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
@@ -55,18 +55,25 @@
 
 #define _PSTL_SYCL_TEST_USM 1
 
-// Enable when compiler supports SYCL
-#if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-#define TEST_SYCL_PRESENT 1
+// Enable test when the DPC++ backend is available
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
+#define TEST_DPCPP_BACKEND_PRESENT 1
 #else
-#define TEST_SYCL_PRESENT 0
+#define TEST_DPCPP_BACKEND_PRESENT 0
 #endif
 
-// Enable test when the DPC++ backend is available
-#define TEST_DPCPP_BACKEND_PRESENT TEST_SYCL_PRESENT && _ONEDPL_BACKEND_SYCL
+#ifdef __SYCL_UNNAMED_LAMBDA__
+#define TEST_UNNAMED_LAMBDAS 1
+#else
+#define TEST_UNNAMED_LAMBDAS 0
+#endif
+
+// Enable test when the TBB backend is available
+#define TEST_TBB_BACKEND_PRESENT (!defined(ONEDPL_USE_TBB_BACKEND) || ONEDPL_USE_TBB_BACKEND != 0)
 
 // Check for C++ standard and standard library for the use of ranges API
-#define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (__cplusplus >= 201703L && _ONEDPL_BACKEND_SYCL)
+#if !defined(_ENABLE_RANGES_TESTING)
+#define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (__cplusplus >= 201703L && TEST_DPCPP_BACKEND_PRESENT)
 #if defined(_GLIBCXX_RELEASE)
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
 #elif defined(_LIBCPP_VERSION)
@@ -74,5 +81,6 @@
 #else
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY)
 #endif
+#endif //!defined(_ENABLE_RANGES_TESTING)
 
-#endif /* _PSTL_TEST_config_H */
+#endif /* _TEST_config_H */

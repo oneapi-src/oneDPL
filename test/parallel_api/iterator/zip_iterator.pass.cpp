@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -56,7 +56,7 @@
 using namespace TestUtils;
 
 //This macro is required for the tests to work correctly in CI with tbb-backend.
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 #include "support/utils_sycl.h"
 
 // just a temporary include and NoOp functor to check
@@ -588,7 +588,7 @@ struct test_counting_zip_transform
 int32_t
 main()
 {
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT
 #if defined(_PSTL_TEST_FOR_EACH)
     PRINT_DEBUG("test_for_each");
     test1buffer<int32_t, test_for_each>();
@@ -627,7 +627,7 @@ main()
 #endif
 // sorting with zip iterator does not meet limits of RAM usage on FPGA.
 // TODO: try to investigate and reduce RAM consumption
-#if defined(_PSTL_TEST_STABLE_SORT) && !_ONEDPL_FPGA_DEVICE
+#if defined(_PSTL_TEST_STABLE_SORT) && !ONEDPL_FPGA_DEVICE
     PRINT_DEBUG("test_stable_sort");
     test2buffers<int32_t, test_stable_sort>();
 #endif
@@ -640,6 +640,5 @@ main()
     test2buffers<int32_t, test_counting_zip_transform>();
 #endif
 #endif
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done(TEST_DPCPP_BACKEND_PRESENT);
 }

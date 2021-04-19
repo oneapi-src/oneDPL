@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 // Tests for find
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -75,7 +75,7 @@ int
 main()
 {
     // Note that the "hit" and "miss" functions here avoid overflow issues.
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Weird(42, OddTag()), [](int32_t j) { return Number(42, OddTag()); }, // hit
                  [](int32_t j) { return Number(j == 42 ? 0 : j, OddTag()); });        // miss
 #endif
@@ -84,6 +84,6 @@ main()
     test<float32_t>(-0.0, [](int32_t j) { return j & 1 ? 0.0 : -0.0; }, // hit
                     [](int32_t j) { return j == 0 ? ~j : j; });         // miss
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+
+    return done();
 }

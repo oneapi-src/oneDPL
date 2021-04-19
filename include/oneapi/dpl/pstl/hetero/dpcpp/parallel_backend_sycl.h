@@ -242,13 +242,12 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... 
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    assert(__get_first_range(::std::forward<_Ranges>(__rngs)...).size() > 0);
+    assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_for_kernel, _CustomName,
                                                                                     _Fp, _Ranges...>;
-
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
     auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
         //get an access to data under SYCL buffer:
@@ -272,7 +271,7 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__par_backend_hetero::__future<_Tp>>
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
-    auto __n = __get_first_range(__rngs...).size();
+    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
 
     using _Size = decltype(__n);
@@ -558,7 +557,7 @@ struct __early_exit_find_or
         using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
         using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
-        auto __n = oneapi::dpl::__ranges::__get_first_range(__rngs...).size();
+        auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
         using _Size = decltype(__n);
 
         ::std::size_t __shift = 8;
@@ -622,7 +621,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                                                                                        _CustomName, _Brick, _Ranges...>;
 
     auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
-    auto __rng_n = oneapi::dpl::__ranges::__get_first_range(::std::forward<_Ranges>(__rngs)...).size();
+    auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
 
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));

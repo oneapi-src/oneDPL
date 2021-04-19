@@ -391,7 +391,7 @@ struct __future_base
     wait()
     {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait();
+        __my_event.wait_and_throw();
 #endif
     }
     operator sycl::event() const { return __my_event; }

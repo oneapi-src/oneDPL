@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -134,6 +134,5 @@ main()
     test_algo_basic_single<int16_t>(run_for_rnd_fw<test_non_const_generate_n<int16_t>>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

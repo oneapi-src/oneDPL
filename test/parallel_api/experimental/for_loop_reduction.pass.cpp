@@ -201,6 +201,5 @@ main()
 
     test_predef();
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

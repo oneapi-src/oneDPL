@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -50,16 +50,14 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        res1 = search(exec, view_a, view_b);
-        res2 = search(make_new_policy<new_kernel_name<Policy, 0>>(exec), view_a, view_b, [](auto a, auto b) { return a == b; });
+        res1 = search(exec, A, view_b);
+        res2 = search(make_new_policy<new_kernel_name<Policy, 0>>(exec), view_a, B, [](auto a, auto b) { return a == b; });
     }
 
     //check result
     EXPECT_TRUE(res1 == idx, "wrong effect from 'search' with sycl ranges");
     EXPECT_TRUE(res2 == idx, "wrong effect from 'search' with predicate, sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -109,7 +109,5 @@ main()
         test_fill_by_type<float64_t>(n);
     }
 
-    ::std::cout << done() << ::std::endl;
-
-    return 0;
+    return done();
 }

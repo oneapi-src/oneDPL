@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -43,7 +43,7 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        res1 = reduce(exec, view);
+        res1 = reduce(exec, A);
         res2 = reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, 100);
         res3 = reduce(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, 100, ::std::plus<int>());
     }
@@ -57,6 +57,6 @@ main()
     EXPECT_TRUE(res2 == expected2, "wrong effect from reduce with init, sycl ranges");
     EXPECT_TRUE(res3 == expected3, "wrong effect from reduce with init and binary operation, sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

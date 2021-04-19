@@ -647,10 +647,13 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
 
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
 
-    return __par_backend_hetero::__parallel_or(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__pred});
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+        __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
 }
 
 //------------------------------------------------------------------------
@@ -900,38 +903,6 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __
 // copy_if
 //------------------------------------------------------------------------
 
-// create mask
-template <typename _Pred, typename _Tp>
-struct __create_mask
-{
-    _Pred __pred;
-
-    template <typename _Idx, typename _Input>
-    _Tp
-    operator()(const _Idx __idx, const _Input& __input) const
-    {
-        using ::std::get;
-        // 1. apply __pred
-        auto __temp = __pred(get<0>(__input[__idx]));
-        // 2. initialize mask
-        get<1>(__input[__idx]) = __temp;
-        return _Tp(__temp);
-    }
-};
-
-// get mask without predicate application
-template <typename _Tp, const int N>
-struct __get_mask
-{
-    template <typename _Idx, typename _Input>
-    _Tp
-    operator()(const _Idx __idx, const _Input& __input) const
-    {
-        using ::std::get;
-        return _Tp(get<N>(__input[__idx]));
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator1, typename _IteratorOrTuple, typename _CreateMaskOp,
           typename _CopyByMaskOp>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<
@@ -993,7 +964,7 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __la
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     using _ReduceOp = ::std::plus<_It1DifferenceType>;
 
-    __create_mask<_Predicate, _It1DifferenceType> __create_mask_op{__pred};
+    unseq_backend::__create_mask<_Predicate, _It1DifferenceType> __create_mask_op{__pred};
     unseq_backend::__copy_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
 
     auto __result = __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
@@ -1018,7 +989,7 @@ __pattern_partition_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterato
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     using _ReduceOp = ::std::plus<_It1DifferenceType>;
 
-    __create_mask<_UnaryPredicate, _It1DifferenceType> __create_mask_op{__pred};
+    unseq_backend::__create_mask<_UnaryPredicate, _It1DifferenceType> __create_mask_op{__pred};
     unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type> __copy_by_mask_op{_ReduceOp{}};
 
     auto __result = __pattern_scan_copy(

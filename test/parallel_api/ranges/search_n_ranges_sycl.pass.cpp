@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -35,21 +35,28 @@ main()
     const int n_val = 3;
     const int idx = 4;
     const int val = data[idx];
-    int res = -1;
+    int res1 = -1, res2 = -1;
 
     using namespace oneapi::dpl::experimental::ranges;
     {
         sycl::buffer<int> A(data, sycl::range<1>(count));
 
         auto view_a = all_view(A);
-        res = search_n(TestUtils::default_dpcpp_policy, view_a, n_val, val, [](auto a, auto b) { return a == b; });
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        res1 = search_n(exec1, view_a, n_val, val, [](auto a, auto b) { return a == b; });
+        res2 = search_n(exec2, A, n_val, val, [](auto a, auto b) { return a == b; });
     }
 
     //check result
-    EXPECT_TRUE(res == idx, "wrong effect from 'search_n' with sycl ranges");
+    EXPECT_TRUE(res1 == idx, "wrong effect from 'search_n' with sycl ranges");
+    EXPECT_TRUE(res2 == idx, "wrong effect from 'search_n' with sycl buffer");
 
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

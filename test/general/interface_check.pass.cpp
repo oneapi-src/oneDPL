@@ -18,13 +18,15 @@
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/iterator>
+#include "support/utils.h"
+
 #include <algorithm>
 #include <functional>
 #include <iterator>
 #include <vector>
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
-#if TEST_SYCL_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
@@ -58,5 +60,6 @@ int main()
 #endif
     auto z = make_zip_iterator(counting_iterator<int>(), discard_iterator());
     std::get<1>(z[0]) = oneapi::dpl::identity()(*counting_iterator<int>());
-    return 0;
+
+    return TestUtils::done();
 }

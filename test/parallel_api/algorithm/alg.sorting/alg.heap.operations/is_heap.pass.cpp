@@ -15,7 +15,7 @@
 
 // Tests for is_heap, is_heap_until
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -226,6 +226,5 @@ main()
     test_algo_basic_single<int32_t>(run_for_rnd<test_non_const_is_heap_until<int32_t>>());
 #endif
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

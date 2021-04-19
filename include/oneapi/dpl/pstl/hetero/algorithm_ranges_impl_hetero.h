@@ -294,6 +294,120 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
     return return_value(result, __rng.size(), __is__or_semantic);
 }
 
+template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range>>
+__pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicate)
+{
+    if (__rng.size() == 0)
+        return 0;
+
+    using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
+
+    auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
+    auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
+            __identity_reduce_fn, __identity_init_fn},
+        __identity_reduce_fn,
+        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
+        ::std::forward<_Range>(__rng));
+}
+
+//------------------------------------------------------------------------
+// copy_if
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _CreateMaskOp, typename _CopyByMaskOp>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range1>>
+__pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _CreateMaskOp __create_mask_op,
+                    _CopyByMaskOp __copy_by_mask_op)
+{
+    if (__rng1.size() == 0)
+        return __rng1.size();
+
+    using _SizeType = decltype(__rng1.size());
+    using _ReduceOp = ::std::plus<_SizeType>;
+    using _Assigner = unseq_backend::__scan_assigner;
+    using _NoAssign = unseq_backend::__scan_no_assign;
+    using _MaskAssigner = unseq_backend::__mask_assigner<1>;
+    using _InitType = unseq_backend::__scan_no_init<_SizeType>;
+    using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+
+    _Assigner __assign_op;
+    _ReduceOp __reduce_op;
+    _DataAcc __get_data_op;
+    _MaskAssigner __add_mask_op;
+
+    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec,
+                                                                                                  __rng1.size());
+
+    auto __res = __par_backend_hetero::__parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::__ranges::zip_view(
+            __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
+                        __mask_buf.get_buffer())),
+        __rng2, __reduce_op, _InitType{},
+        // local scan
+        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
+                              _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
+                                                                       __add_mask_op, __create_mask_op},
+        // scan between groups
+        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
+                              _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
+                                                              __get_data_op},
+        // global scan
+        __copy_by_mask_op);
+
+    return __res.second;
+}
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range2>>
+__pattern_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Predicate __pred)
+{
+    using _SizeType = decltype(__rng1.size());
+    using _ReduceOp = ::std::plus<_SizeType>;
+
+    unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
+    unseq_backend::__copy_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+
+    return __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
+                               ::std::forward<_Range2>(__rng2), __create_mask_op, __copy_by_mask_op);
+}
+
+//------------------------------------------------------------------------
+// remove_if
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range>>
+__pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
+{
+    if (__rng.size() == 0)
+        return __rng.size();
+
+    using _ValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
+
+    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
+    auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
+
+    auto __copy_last_id = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                                            __copy_rng, __not_pred<_Predicate>{__pred});
+    auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
+
+    oneapi::dpl::__internal::__ranges::__pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __copy_rng_truncated,
+                                                       ::std::forward<_Range>(__rng),
+                                                       oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+
+    return __copy_last_id;
+}
+
 //------------------------------------------------------------------------
 // merge
 //------------------------------------------------------------------------
