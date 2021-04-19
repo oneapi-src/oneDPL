@@ -261,7 +261,7 @@ for range-based algorithms.
 
 * ``all_view``: A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements.
 * ``guard_view``: A custom utility - represents a view of USM data range defined by a two USM pointers.
-* ``iota_view``: A range factory - generates a sequence of N elements which starts from an initial value and ends by final N-1.
+* ``iota_view``: A range factory - generates a sequence of N elements, which starts from an initial value and ends by final N-1.
 * ``generate``:  A range factory - generates a sequence of N elements, where each is produced by a given functional genrator.
 * ``fill ``: A range factory - generates a sequence of N elements, where each is equal a given value.
 * ``zip_view``: A custom range adapter - produces one ``zip_view`` from other several views.
