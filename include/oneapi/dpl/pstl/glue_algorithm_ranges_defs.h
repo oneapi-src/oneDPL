@@ -135,6 +135,17 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __result);
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
+copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
+        _Predicate __pred);
+
+// [alg.swap]
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
+swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
+
 // [alg.transform]
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation>
