@@ -14,8 +14,7 @@ New in 2021.3
 New Features
 ------------
 -  Added the Range-based versions of the following algorithms: ``all_of``, ``any_of``, ``count``, ``count_if``, ``equal``, ``move``, ``remove``, ``remove_if``, ``replace``, ``replace_if``. Added the following utility viewes: ``generate``, ``fill``, ``rotate``. 
--  Improved performance of the discard_block_engine (including ``ranlux24``, ``ranlux48``,
-``ranlux24_vec``, ``ranlux48_vec`` predefined engines) and normal_distribution RNG functionality.
+-  Improved performance of the discard_block_engine (including ``ranlux24``, ``ranlux48``, ``ranlux24_vec``, ``ranlux48_vec`` predefined engines) and normal_distribution RNG functionality.
 
 Fixed Issues
 ------------
