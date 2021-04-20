@@ -744,7 +744,8 @@ struct __reverse_functor
     void
     operator()(const _Idx __idx, _Accessor& __acc) const
     {
-        ::std::swap(__acc[__idx], __acc[__size - __idx - 1]);
+        using ::std::swap;
+        swap(__acc[__idx], __acc[__size - __idx - 1]);
     }
 };
 
