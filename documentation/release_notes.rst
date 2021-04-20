@@ -15,18 +15,20 @@ New Features
 ------------
 -  Added the Range-based versions of the following algorithms: ``all_of``, ``any_of``, ``count``, ``count_if``, ``equal``, ``move``, ``remove``, ``remove_if``, ``replace``, ``replace_if``.
 -  Added the following utility ranges (viewes): ``generate``, ``fill``, ``rotate``.
--  Added two constructors to ``transform_iterator``: ``transform_iterator()`` and ``transform_iterator(iter)``. It allows ``transform_iterator`` to forward random access iterator. 
 
 Changes to Existing Features
 -----------------------------
--  Improved performance of the discard_block_engine (including ``ranlux24``, ``ranlux48``, ``ranlux24_vec``, ``ranlux48_vec`` predefined engines) and normal_distribution RNG functionality.
+-  Improved performance of the ``discard_block_engine`` (including ``ranlux24``, ``ranlux48``, ``ranlux24_vec``, ``ranlux48_vec`` predefined engines) and ``normal_distribution`` RNG functionality.
+- Added two constructors to ``transform_iterator``: ``transform_iterator()`` and ``transform_iterator(iter)``.
+- ``transform_iterator`` meets the requirements of forward iterators instead of random-access iterator requirements.
 
 Fixed Issues
 ------------
--  Fixed parallel execution of ``swap`` algorithm with following C++ standard execution policies: ``unseq``, ``par``.
+-  Fixed parallel execution of ``swap_ranges`` algorithm with following C++ standard execution policies: ``unseq``, ``par``.
 -  Fixed the issue of scan-based algorithms, which caused memory corruption and double memory free operation on CPU devices in debug mode.
 -  Fixed an incorrect result error in ``exclusive_scan`` algorithm that occurred when the input and ouput iterator ranges overlapped.
-- Fixed error propagation for async runtime exceptions by consistently calling ``sycl::event::wait_and_throw`` internally
+-  Fixed error propagation for async runtime exceptions by consistently calling ``sycl::event::wait_and_throw`` internally.
+-  Fixed ``-Wreturn-std-move`` warning.
 
 Known Issues and Limitations
 -----------------------------
