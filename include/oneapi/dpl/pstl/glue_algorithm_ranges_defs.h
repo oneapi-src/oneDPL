@@ -41,7 +41,7 @@ all_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred);
 
 // [alg.none_of]
 
-template <typename _ExecutionPolicy, typename _Range>
+template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 none_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred);
 
@@ -136,14 +136,15 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __result);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
-copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
-        _Predicate __pred);
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
+copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred);
 
 // [alg.swap]
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
 swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
 
 // [alg.transform]
@@ -167,33 +168,33 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::
 remove(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
 remove_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
 remove_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, const _Tp& __value);
 
 // [alg.unique]
 
 template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-oneapi::dpl::__internal::__difference_t<_Range>>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred);
 
 template <typename _ExecutionPolicy, typename _Range>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-oneapi::dpl::__internal::__difference_t<_Range>>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 unique(_ExecutionPolicy&& __exec, _Range&& __rng);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-oneapi::dpl::__internal::__difference_t<_Range2>>
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
 unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-oneapi::dpl::__internal::__difference_t<_Range2>>
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
 unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result);
 
 // [alg.replace]
@@ -207,13 +208,16 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 replace(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __old_value, const _Tp& __new_value);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryPredicate, typename _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
 replace_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _UnaryPredicate __pred,
-    const _Tp& __new_value);
+                const _Tp& __new_value);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range2>>
-replace_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, const _Tp& __old_value, const _Tp& __new_value);
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
+replace_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, const _Tp& __old_value,
+             const _Tp& __new_value);
 
 // [alg.sort]
 
