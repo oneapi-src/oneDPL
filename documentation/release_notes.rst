@@ -26,7 +26,7 @@ Fixed Issues
 ------------
 -  Fixed parallel execution of ``swap_ranges`` algorithm with following C++ standard execution policies: ``unseq``, ``par``.
 -  Fixed the issue of scan-based algorithms, which caused memory corruption and double memory free operation on CPU devices in debug mode.
--  Fixed an incorrect result error in ``exclusive_scan`` algorithm that occurred when the input and ouput iterator ranges overlapped.
+-  Fixed incorrect behavior in the ``exclusive_scan`` algorithm that occurred when the input and ouput iterator ranges overlapped.
 -  Fixed error propagation for async runtime exceptions by consistently calling ``sycl::event::wait_and_throw`` internally.
 -  Fixed ``-Wreturn-std-move`` warning.
 
