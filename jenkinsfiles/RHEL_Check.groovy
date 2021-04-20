@@ -68,6 +68,8 @@ def runExample(String test_name, String cmake_flags = "") {
     def result = sh(
         script: "cd ./src/examples/" + test_name + "/ && mkdir build && cd build/ && cmake " + cmake_flags + " .. && make && make run && exit \$?",
         returnStatus: true, label: test_name + "_test Step")
+    sh(
+        script: "rm -r ./src/examples/" + test_name + "/build")
     if (result != 0) {
         echo test_name + " check failed."
         return false
@@ -289,11 +291,17 @@ pipeline {
                             script {
                                 try {
                                     withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
-                                        String[] examples = ["gamma_correction","stable_sort_by_key","convex_hull","dot_product","histogram","random"]
+                                        String[] examples_dpcpp = ["gamma_correction","stable_sort_by_key","convex_hull","dot_product","histogram","random"]
+                                        String[] examples_cpp = ["convex_hull","dot_product"]
                                         def test_pass_status = true
-                                        for (String example : examples) {
+                                        for (String example : examples_dpcpp) {
                                             test_pass_status = test_pass_status && runExample(example,"-DCMAKE_CXX_COMPILER=dpcpp")
                                         }
+                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
+                                        for (String example : examples_cpp) {
+                                            test_pass_status = test_pass_status && runExample(example,"-DCMAKE_CXX_COMPILER=c++")
+                                        }
+                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=gcc -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
 
                                         if (test_pass_status != true) {
                                             echo "Some checks failed. Please check log to fix the issue."
