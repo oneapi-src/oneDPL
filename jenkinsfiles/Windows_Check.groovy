@@ -73,10 +73,10 @@ build_ok = true
 fail_stage = ""
 user_in_github_group = false
 
-def runExample(String test_name, List oneapi_env) {
+def runExample(String test_name, String compiler, String compile_options, List oneapi_env) {
     try {
         withEnv(oneapi_env) {
-            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && echo \"Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe\" && dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe", label: test_name + " Test Step"
+            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && echo \"Build&Test command: " + compiler + " " + compile_options + "/W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe\" && " + compiler + " " + compile_options + " /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe", label: test_name + " Test Step"
         }
     }
     catch(e) {
@@ -243,12 +243,16 @@ pipeline {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
-                                    runExample("gamma_correction", oneapi_env)
-                                    runExample("stable_sort_by_key", oneapi_env)
-                                    runExample("convex_hull", oneapi_env)
-                                    runExample("dot_product", oneapi_env)
-                                    runExample("histogram", oneapi_env)
-                                    runExample("random", oneapi_env)
+                                    String[] examples_dpcpp = ["gamma_correction","stable_sort_by_key","convex_hull","dot_product","histogram","random"]
+                                    String[] examples_cpp = ["convex_hull","dot_product"]
+                                    for (String example : examples_dpcpp) {
+                                        runExample(example, "dpcpp", "", oneapi_env)
+                                    }
+                                    runExample("gamma_correction", "dpcpp", "-DBUILD_FOR_HOST", oneapi_env)
+                                    for (String example : examples_cpp) {
+                                        runExample(example, "cl", "", oneapi_env)
+                                    }
+                                    runExample("gamma_correction", "cl", "-DBUILD_FOR_HOST", oneapi_env)
                                 }
                                 catch(e) {
                                     build_ok = false
