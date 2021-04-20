@@ -61,7 +61,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 none_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
-    return !any_of(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng));
+    return !any_of(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __pred);
 }
 
 // [alg.foreach]
