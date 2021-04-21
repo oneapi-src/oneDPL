@@ -14,7 +14,7 @@
 #include <fstream>
 #include <vector>
 
-#include "utils.hpp"
+#include "utils.h"
 
 typedef util::point<double> point_t;
 typedef std::vector<point_t> pointVec_t;
