@@ -234,6 +234,7 @@ void test_transform_effect(VecIt1 first1, VecIt1 last1, VecIt2 first2) {
         }
 }
 
+//We need this functor to run fill algorithm with transform iterators. Operator() should return lvalue reference.
 struct ref_transform_functor {
     template<typename T>
     T& operator()(T& x) const {
@@ -241,6 +242,7 @@ struct ref_transform_functor {
     }
 };
 
+//We need this functor to pass operator* test for transform iterator
 struct transform_functor {
     template<typename T>
     T operator()(T& x) const {
@@ -262,14 +264,11 @@ struct test_transform_iterator {
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
 
         ::std::forward_list<int> f_list{1, 2, 3, 4, 5, 6};
-        oneapi::dpl::transform_iterator<decltype(f_list.begin()), ref_transform_functor> list_it1(f_list.begin(), ref_functor);
-        oneapi::dpl::transform_iterator<decltype(f_list.begin()), ref_transform_functor> list_it2(f_list.end(), ref_functor);
+        auto list_it1 = oneapi::dpl::make_transform_iterator(f_list.begin(), ref_functor);
+        auto list_it2 = oneapi::dpl::make_transform_iterator(f_list.end(), ref_functor);
         ::std::fill(list_it1, list_it2, 7);
-        bool fill_status = true;
-        for(auto x : f_list) {
-            fill_status = (x == 7);
-        }
-        EXPECT_TRUE(fill_status, "wrong result from fill with forward_iterator wrapped with transform_iterator");
+        EXPECT_TRUE(::std::all_of(f_list.begin(), f_list.end(), [](int x){ return x == 7; }), 
+            "wrong result from fill with forward_iterator wrapped with transform_iterator");
 
         auto test_lambda = [](T2& x){ return x + 1; };
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);
