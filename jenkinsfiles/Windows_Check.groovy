@@ -76,7 +76,10 @@ user_in_github_group = false
 def runExample(String test_name, String compiler, String compile_options, List oneapi_env) {
     try {
         withEnv(oneapi_env) {
-            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && echo \"Build&Test command: " + compiler + " " + compile_options + "/W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe\" && " + compiler + " " + compile_options + " /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe", label: test_name + " Test Step"
+            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && \
+            echo \"Build&Test command: " + compiler + " " + compile_options + "/W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe\"\
+             && " + compiler + " " + compile_options + " /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe",
+             label: test_name + " Test Step"
         }
     }
     catch(e) {
