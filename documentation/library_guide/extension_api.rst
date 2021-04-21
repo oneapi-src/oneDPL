@@ -240,9 +240,10 @@ to be called on both host and device.
 
 The following algorithms are available to use with the ranges:
 
-``for_each``, ``copy``, ``transform``, ``find``, ``find_if``, ``find_if_not``, ``find_end``, ``find_first_of``, ``search``, ``is_sorted``,
-``is_sorted_until``, ``reduce``, ``transform_reduce``, ``min_element``, ``max_element``, ``merge``, ``minmax_element``,
-``exclusive_scan``, ``inclusive_scan``, ``sort``, ``stable_sort``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
+``all_of``, ``any_of``, ``copy``, ``count``, ``count_if``, ``equal``, ``exclusive_scan``, ``find``, ``find_if``, ``find_if_not``, ``find_end``,
+``find_first_of``, ``for_each``, ``inclusive_scan``, ``is_sorted``, ``is_sorted_until``, ``min_element``, ``max_element``, ``merge``,
+``minmax_element``, ``move``, ``reduce``, ``remove``, ``remove_if``, ``replace``, ``replace_if``, ``search``, ``sort``, ``stable_sort``,
+``transform``, ``transform_reduce``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
 
 The signature example of the range-based algorithms looks like::
 
@@ -252,20 +253,23 @@ The signature example of the range-based algorithms looks like::
 where ``source`` is used instead of two iterators to represent the input and ``destination`` represents the output.
 
 These algorithms are declared in ``oneapi::dpl::experimental::ranges`` namespace and implemented only for |dpcpp_long| policies.
-In order to make these algorithm available the ``<oneapi/dpl/ranges>`` header should be included.
+In order to make these algorithm available the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
 Use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
 
-The following viewable ranges are declared in ``oneapi::dpl::experimental::ranges`` namespace. Only those are allowed to use as ranges
+The following views are declared in the ``oneapi::dpl::experimental::ranges`` namespace. Only those are allowed to use as ranges
 for range-based algorithms.
 
-* ``iota_view``: A range factory - generates a sequence of N elements which starts from an initial value and ends by final N-1.
 * ``all_view``: A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements.
 * ``guard_view``: A custom utility - represents a view of USM data range defined by a two USM pointers.
+* ``iota_view``: A range factory - generates a sequence of N elements, which starts from an initial value and ends by final N-1.
+* ``generate``:  A range factory - generates a sequence of N elements, where each is produced by a given functional genrator.
+* ``fill ``: A range factory - generates a sequence of N elements, where each is equal a given value.
 * ``zip_view``: A custom range adapter - produces one ``zip_view`` from other several views.
 * ``transform_view``: A range adapter - represents a view of a underlying sequence after applying a transformation to each element.
 * ``reverse_view``: A range adapter - produces a reversed sequence of elements provided by another view.
 * ``take_view``: A range adapter - produces a view of the first N elements from another view.
 * ``drop_view``: A range adapter - produces a view excluding the first N elements from another view.
+* ``rotate``: A range adapter - produces a left rotated sequence of elements provided by another view.
 
 Example of Range-based API Usage
 --------------------------------
