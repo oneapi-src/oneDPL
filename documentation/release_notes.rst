@@ -13,8 +13,8 @@ New in 2021.3
 
 New Features
 ------------
--  Added the Range-based versions of the following algorithms: ``all_of``, ``any_of``, ``count``, ``count_if``, ``equal``, ``move``, ``remove``, ``remove_if``, ``replace``, ``replace_if``.
--  Added the following utility ranges (viewes): ``generate``, ``fill``, ``rotate``.
+-  Added the range-based versions of the following algorithms: ``all_of``, ``any_of``, ``count``, ``count_if``, ``equal``, ``move``, ``remove``, ``remove_if``, ``replace``, ``replace_if``.
+-  Added the following utility ranges (views): ``generate``, ``fill``, ``rotate``.
 
 Changes to Existing Features
 -----------------------------
@@ -62,7 +62,7 @@ New in 2021.2
 New Features
 ------------
 -  Added support of parallel, vector and DPC++ execution policies for the following algorithms: ``shift_left``, ``shift_right``.
--  Added the Range-based versions of the following algorithms: ``sort``, ``stable_sort``, ``merge``.
+-  Added the range-based versions of the following algorithms: ``sort``, ``stable_sort``, ``merge``.
 -  Added non-blocking versions of the following algorithms: ``copy``, ``fill``, ``for_each``, ``reduce``, ``sort``, ``transform``, ``transform_reduce``. These algorithms are declared in ``oneapi::dpl::experimental`` namespace with suffix _async and implemented only for DPC++ policies. In order to make these algorithms available the ``<oneapi/dpl/async>`` header should be included. Use of the non-blocking API requires C++11.
 -  Utility function ``wait_for_all`` enables waiting for completion of an arbitrary number of events.
 -  Added the ``ONEDPL_USE_PREDEFINED_POLICIES`` macro, which enables predefined policy objects and ``make_device_policy``, ``make_fpga_policy`` functions without arguments. It is turned on by default.
