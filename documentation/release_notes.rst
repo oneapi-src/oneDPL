@@ -13,18 +13,20 @@ New in 2021.3
 
 New Features
 ------------
--  Added the range-based versions of the following algorithms: ``all_of``, ``any_of``, ``count``, ``count_if``, ``equal``, ``move``, ``remove``, ``remove_if``, ``replace``, ``replace_if``.
+-  Added the range-based versions of the following algorithms: ``all_of``, ``any_of``, ``count``,
+   ``count_if``, ``equal``, ``move``, ``remove``, ``remove_if``, ``replace``, ``replace_if``.
 -  Added the following utility ranges (views): ``generate``, ``fill``, ``rotate``.
 
 Changes to Existing Features
 -----------------------------
--  Improved performance of the ``discard_block_engine`` (including ``ranlux24``, ``ranlux48``, ``ranlux24_vec``, ``ranlux48_vec`` predefined engines) and ``normal_distribution`` RNG functionality.
+-  Improved performance of the ``discard_block_engine`` (including ``ranlux24``, ``ranlux48``,
+   ``ranlux24_vec``, ``ranlux48_vec`` predefined engines) and ``normal_distribution``.
 - Added two constructors to ``transform_iterator``: ``transform_iterator()`` and ``transform_iterator(iter)``.
 - ``transform_iterator`` meets the requirements of forward iterators instead of random-access iterator requirements.
 
 Fixed Issues
 ------------
--  Fixed parallel execution of ``swap_ranges`` algorithm with following C++ standard execution policies: ``unseq``, ``par``.
+-  Fixed execution of ``swap_ranges`` algorithm with ``unseq``, ``par`` execution policies.
 -  Fixed the issue of scan-based algorithms, which caused memory corruption and double memory free operation on CPU devices with -O0 and -g options.
 -  Fixed incorrect behavior in the ``exclusive_scan`` algorithm that occurred when the input and ouput iterator ranges overlapped.
 -  Fixed error propagation for async runtime exceptions by consistently calling ``sycl::event::wait_and_throw`` internally.
@@ -38,7 +40,8 @@ Known Issues and Limitations
 - The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   To overcome these issues, include oneDPL header files before the standard C++ header files,
-  or disable parallel algorithms support in the standard library. For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+  or disable parallel algorithms support in the standard library.
+  For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
 - The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias.
@@ -63,14 +66,20 @@ New Features
 ------------
 -  Added support of parallel, vector and DPC++ execution policies for the following algorithms: ``shift_left``, ``shift_right``.
 -  Added the range-based versions of the following algorithms: ``sort``, ``stable_sort``, ``merge``.
--  Added non-blocking versions of the following algorithms: ``copy``, ``fill``, ``for_each``, ``reduce``, ``sort``, ``transform``, ``transform_reduce``. These algorithms are declared in ``oneapi::dpl::experimental`` namespace with suffix _async and implemented only for DPC++ policies. In order to make these algorithms available the ``<oneapi/dpl/async>`` header should be included. Use of the non-blocking API requires C++11.
+-  Added non-blocking versions of the following algorithms: ``copy``, ``fill``, ``for_each``, ``reduce``, ``sort``, ``transform``, ``transform_reduce``.
+   These algorithms are declared in ``oneapi::dpl::experimental`` namespace with suffix _async and implemented only for DPC++ policies.
+   In order to make these algorithms available the ``<oneapi/dpl/async>`` header should be included. Use of the non-blocking API requires C++11.
 -  Utility function ``wait_for_all`` enables waiting for completion of an arbitrary number of events.
--  Added the ``ONEDPL_USE_PREDEFINED_POLICIES`` macro, which enables predefined policy objects and ``make_device_policy``, ``make_fpga_policy`` functions without arguments. It is turned on by default.
+-  Added the ``ONEDPL_USE_PREDEFINED_POLICIES`` macro, which enables predefined policy objects and
+   ``make_device_policy``, ``make_fpga_policy`` functions without arguments. It is turned on by default.
 
 Changes to Existing Features
 -----------------------------
-- Improved performance of the following algorithms: ``count``, ``count_if``, ``is_partitioned``, ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``reduce``, ``transform_reduce``, and ``sort``, ``stable_sort`` when using Radix sort [#fnote1]_.
-- Improved performance of the linear_congruential_engine RNG engine (including ``minstd_rand``, ``minstd_rand0``, ``minstd_rand_vec``, ``minstd_rand0_vec`` predefined engines).
+- Improved performance of the following algorithms: ``count``, ``count_if``, ``is_partitioned``,
+  ``lexicographical_compare``, ``max_element``, ``min_element``,  ``minmax_element``, ``reduce``, ``transform_reduce``,
+  and ``sort``, ``stable_sort`` when using Radix sort [#fnote1]_.
+- Improved performance of the linear_congruential_engine RNG engine (including ``minstd_rand``, ``minstd_rand0``,
+  ``minstd_rand_vec``, ``minstd_rand0_vec`` predefined engines).
 
 Fixed Issues
 ------------
@@ -85,7 +94,8 @@ Known Issues and Limitations
 - The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   To overcome these issues, include oneDPL header files before the standard C++ header files,
-  or disable parallel algorithms support in the standard library. For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+  or disable parallel algorithms support in the standard library.
+  For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
 - The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias.
@@ -124,7 +134,8 @@ Known Issues and Limitations
 - The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   To overcome these issues, include oneDPL header files before the standard C++ header files,
-  or disable parallel algorithms support in the standard library. For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+  or disable parallel algorithms support in the standard library.
+  For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
 - The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias.
