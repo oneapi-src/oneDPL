@@ -234,6 +234,15 @@ void test_transform_effect(VecIt1 first1, VecIt1 last1, VecIt2 first2) {
         }
 }
 
+//We need this functor to run fill algorithm with transform iterators. Operator() should return lvalue reference.
+struct ref_transform_functor {
+    template<typename T>
+    T& operator()(T& x) const {
+        return x += 1;
+    }
+};
+
+//We need this functor to pass operator* test for transform iterator
 struct transform_functor {
     template<typename T>
     T operator()(T& x) const {
@@ -250,15 +259,16 @@ struct test_transform_iterator {
         test_transform_effect(in1.cbegin(), in1.cend(), in2.begin());
 
         transform_functor new_functor;
+        ref_transform_functor ref_functor;
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it1(in1.begin());
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
 
         ::std::forward_list<int> f_list{1, 2, 3, 4, 5, 6};
-        oneapi::dpl::transform_iterator<decltype(f_list.begin()), transform_functor> list_it1(f_list.begin(), new_functor);
-        oneapi::dpl::transform_iterator<decltype(f_list.begin()), transform_functor> list_it2(f_list.end(), new_functor);
-        int sum = 0;
-        ::std::for_each(list_it1, list_it2, [&sum](int x){ sum += x; });
-        EXPECT_TRUE(sum == 27, "wrong result from for_each with forward_iterator wrapped with transform_iterator");
+        auto list_it1 = oneapi::dpl::make_transform_iterator(f_list.begin(), ref_functor);
+        auto list_it2 = oneapi::dpl::make_transform_iterator(f_list.end(), ref_functor);
+        ::std::fill(list_it1, list_it2, 7);
+        EXPECT_TRUE(::std::all_of(f_list.begin(), f_list.end(), [](int x){ return x == 7; }), 
+            "wrong result from fill with forward_iterator wrapped with transform_iterator");
 
         auto test_lambda = [](T2& x){ return x + 1; };
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);

@@ -122,6 +122,8 @@ using ::std::common_type_t;
 using ::std::conditional_t;
 using ::std::decay_t;
 using ::std::enable_if_t;
+using ::std::make_signed_t;
+using ::std::make_unsigned_t;
 using ::std::remove_all_extents_t;
 using ::std::remove_const_t;
 using ::std::remove_cv_t;

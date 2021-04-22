@@ -51,6 +51,7 @@ class async_value : public async_value_base<_T>
     }
 };
 
+
 template <typename _T, class _Enable /*= void*/>
 class __future : public __par_backend_hetero::__future_base
 {
