@@ -36,9 +36,10 @@ class all_view
 {
     using return_t = typename ::std::conditional<AccMode == sycl::access::mode::read, const _T, _T>::type;
     using diff_type = typename ::std::iterator_traits<_T*>::difference_type;
-    using accessor_t = sycl::accessor<_T, 1, AccMode,
-        host_tag ? sycl::access::target::host_buffer : sycl::access::target::global_buffer,
-        host_tag ? sycl::access::placeholder::false_t : sycl::access::placeholder::true_t>;
+    using accessor_t =
+        sycl::accessor<_T, 1, AccMode,
+                       host_tag ? sycl::access::target::host_buffer : sycl::access::target::global_buffer,
+                       host_tag ? sycl::access::placeholder::false_t : sycl::access::placeholder::true_t>;
 
   public:
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
