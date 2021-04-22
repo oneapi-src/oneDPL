@@ -130,7 +130,7 @@ class subtract_with_carry_engine
         scalar_type __new_c = c_ == 0 ? __xs < __xr : __xs != 0 ? __xs <= __xr : 1;
         x_[i_] = __xr = (__xs - __xr - c_) & max();
         c_ = __new_c;
-        i_ = (i_ + 1) % long_lag; 
+        i_ = (i_ + 1) % long_lag;
         return __xr;
     };
 
