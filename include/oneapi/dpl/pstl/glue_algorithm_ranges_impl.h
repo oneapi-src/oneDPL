@@ -240,7 +240,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range2>>
 copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred)
 {
-    return oneapi::dpl::__internal::__pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec),
+    return oneapi::dpl::__internal::__ranges::__pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec),
                                                       views::all_read(::std::forward<_Range1>(__rng)),
                                                       views::all_write(::std::forward<_Range2>(__result)), __pred);
 }
