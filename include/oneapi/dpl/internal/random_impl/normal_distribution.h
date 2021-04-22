@@ -28,13 +28,13 @@ namespace internal
 {
 
 static const dp_union_t gaussian_dp_table[2]{
-    0x54442D18, 0x401921FB, // Pi * 2
-    0x446D71C3, 0xC0874385, // ln(0.494065e-323) = -744.440072
+    {0x54442D18, 0x401921FB}, // Pi * 2
+    {0x446D71C3, 0xC0874385}, // ln(0.494065e-323) = -744.440072
 };
 
 static const sp_union_t gaussian_sp_table[2]{
-    0x40C90FDB, // Pi * 2
-    0xC2CE8ED0, // ln(0.14012984e-44) = -103.278929
+    {0x40C90FDB}, // Pi * 2
+    {0xC2CE8ED0}, // ln(0.14012984e-44) = -103.278929
 };
 
 } // namespace internal
