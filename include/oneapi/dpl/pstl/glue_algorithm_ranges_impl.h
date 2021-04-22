@@ -249,20 +249,20 @@ copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predica
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
+                                                      oneapi::dpl::__internal::__difference_t<_Range1>>
 swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
-    assert(__rng1.size() == __rng2.size());
-
     using _ReferenceType1 = oneapi::dpl::__internal::__value_t<_Range1>&;
     using _ReferenceType2 = oneapi::dpl::__internal::__value_t<_Range1>&;
 
-    return oneapi::dpl::__internal::__ranges::__pattern_walk2(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all(::std::forward<_Range1>(__rng1)),
-        views::all(::std::forward<_Range2>(__rng2)), [](_ReferenceType1 __x, _ReferenceType2 __y) {
+    auto __v1 = views::all(::std::forward<_Range1>(__rng1));
+    auto __v2 = views::all(::std::forward<_Range2>(__rng2));
+    oneapi::dpl::__internal::__ranges::__pattern_walk2(
+        ::std::forward<_ExecutionPolicy>(__exec), __v1, __v2, [](_ReferenceType1 __x, _ReferenceType2 __y) {
             using ::std::swap;
             swap(__x, __y);
         });
+    return __v1.size();
 }
 
 // [alg.transform]

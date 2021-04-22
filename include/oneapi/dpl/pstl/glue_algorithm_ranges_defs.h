@@ -144,7 +144,7 @@ copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predica
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
+                                                      oneapi::dpl::__internal::__difference_t<_Range1>>
 swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
 
 // [alg.transform]
