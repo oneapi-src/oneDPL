@@ -51,7 +51,7 @@ class async_value : public async_value_base<_T>
     }
 };
 
-template <typename _T>
+template <typename _T, class _Enable = void>
 class __future : public __par_backend_hetero::__future_base
 {
     ::std::unique_ptr<async_value_base<_T>> __ret_val;
@@ -79,24 +79,24 @@ class __future : public __par_backend_hetero::__future_base
 };
 
 #if _ONEDPL_BACKEND_SYCL
-// Specialization for sycl_iterator
+// Specialization for hetero iterator and usm pointer
 template <typename _T>
-class __future<sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>>
+class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_hetero_iterator<_T>::value ||
+                                           __par_backend_hetero::__internal::is_passed_directly<_T>::value>::type>
     : public __par_backend_hetero::__future_base
 {
-    using _Tp = sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>;
-    _Tp __data;
+    _T __data;
     ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmp;
 
   public:
     template <typename... _Ts>
-    __future(sycl::event __e, _Tp __d, _Ts... __t) : __par_backend_hetero::__future_base(__e), __data(__d)
+    __future(sycl::event __e, _T __d, _Ts... __t) : __par_backend_hetero::__future_base(__e), __data(__d)
     {
         if (sizeof...(_Ts) != 0)
             __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
                 new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
-    _Tp
+    _T
     get()
     {
         this->wait();
