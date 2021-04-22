@@ -17,17 +17,7 @@
 #ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
-#if __cplusplus < 201703L
-#    define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL 1
-#else
-// std::reduce is not available in libstdc++7, libstdc++8
-#    if __GLIBC__ && (_GLIBCXX_RELEASE < 9)
-#        define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL 1
-#    endif
-#endif
-
-#ifdef _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
-#    include <iterator>
+#include <iterator>
 namespace oneapi
 {
 namespace dpl
@@ -56,14 +46,4 @@ reduce(_InputIterator __first, _InputIterator __last)
 }
 } // namespace dpl
 } // namespace oneapi
-#else
-#    include <numeric>
-namespace oneapi
-{
-namespace dpl
-{
-using ::std::reduce;
-} // namespace dpl
-} // namespace oneapi
-#endif
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */

@@ -31,7 +31,6 @@
 // ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
 #include <numeric>
 #include "oneapi/dpl/pstl/onedpl_config.h"
-#include "oneapi/dpl/internal/serial_numeric_impl.h"
 
 #if !_ONEDPL_NUMERIC_FORWARD_DECLARED
 // If not declared, pull in forward declarations
@@ -69,4 +68,5 @@ using oneapi::dpl::transform_inclusive_scan;
 using oneapi::dpl::transform_reduce;
 } // namespace std
 
+#include "oneapi/dpl/internal/serial_numeric_impl.h"
 #endif /* _ONEDPL_NUMERIC */
