@@ -31,13 +31,14 @@ namespace __ranges
 {
 
 //A SYCL range over SYCL buffer
-template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read>
+template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read, const bool host_tag = false>
 class all_view
 {
     using return_t = typename ::std::conditional<AccMode == sycl::access::mode::read, const _T, _T>::type;
-    using accessor_t =
-        sycl::accessor<_T, 1, AccMode, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>;
     using diff_type = typename ::std::iterator_traits<_T*>::difference_type;
+    using accessor_t = sycl::accessor<_T, 1, AccMode,
+        host_tag ? sycl::access::target::host_buffer : sycl::access::target::global_buffer,
+        host_tag ? sycl::access::placeholder::false_t : sycl::access::placeholder::true_t>;
 
   public:
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
@@ -75,21 +76,21 @@ class all_view
     require_access(sycl::handler& cgh)
     {
         cgh.require(m_acc);
-    } //non-standard method
+    }
 
   private:
     accessor_t m_acc;
 };
 
-template <sycl::access::mode AccMode = sycl::access::mode::read_write>
+template <const bool host_tag, sycl::access::mode AccMode = sycl::access::mode::read_write>
 struct all_view_fn
 {
     template <typename _T>
-    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
+    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode, host_tag>
     operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
                typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
     {
-        return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf, __offset, __n);
+        return oneapi::dpl::__ranges::all_view<_T, AccMode, host_tag>(__buf, __offset, __n);
     }
 
     template <typename _R>
@@ -102,9 +103,11 @@ struct all_view_fn
 
 namespace views
 {
-_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read_write> all;
-_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read> all_read;
-_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::write> all_write;
+_ONEDPL_CONSTEXPR_VAR all_view_fn</*is host*/ false, sycl::access::mode::read_write> all;
+_ONEDPL_CONSTEXPR_VAR all_view_fn</*is host*/ false, sycl::access::mode::read> all_read;
+_ONEDPL_CONSTEXPR_VAR all_view_fn</*is host*/ false, sycl::access::mode::write> all_write;
+
+_ONEDPL_CONSTEXPR_VAR all_view_fn</*is host*/ true, sycl::access::mode::read_write> host_all;
 } // namespace views
 
 //all_view traits
