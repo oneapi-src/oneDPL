@@ -59,11 +59,15 @@ class Sequence;
 #define EXPECT_FALSE(condition, message) ::TestUtils::expect(false, condition, __FILE__, __LINE__, message)
 
 // Check that expected and actual are equal and have the same type.
-#define EXPECT_EQ(expected, actual, message) ::TestUtils::expect_equal(expected, actual, __FILE__, __LINE__, message)
+#define EXPECT_EQ(expected, actual, message) ::TestUtils::expect_equal_val(expected, actual, __FILE__, __LINE__, message)
 
 // Check that sequences started with expected and actual and have had size n are equal and have the same type.
 #define EXPECT_EQ_N(expected, actual, n, message)                                                                      \
     ::TestUtils::expect_equal(expected, actual, n, __FILE__, __LINE__, message)
+
+// Check the expected and actual ranges are equal.
+#define EXPECT_EQ_RANGES(expected, actual, message)                                                                      \
+    ::TestUtils::expect_equal(expected, actual, __FILE__, __LINE__, message)
 
 // Issue error message from outstr, adding a newline.
 // Real purpose of this routine is to have a place to hang a breakpoint.
@@ -90,7 +94,7 @@ expect(bool expected, bool condition, const char* file, int32_t line, const char
 // Function must be able to detect const differences between expected and actual.
 template <typename T>
 void
-expect_equal(T& expected, T& actual, const char* file, int32_t line, const char* message)
+expect_equal_val(T& expected, T& actual, const char* file, int32_t line, const char* message)
 {
     if (!(expected == actual))
     {
@@ -101,9 +105,9 @@ expect_equal(T& expected, T& actual, const char* file, int32_t line, const char*
     }
 }
 
-template <typename T>
+template <typename R1, typename R2>
 void
-expect_equal(Sequence<T>& expected, Sequence<T>& actual, const char* file, int32_t line, const char* message)
+expect_equal(const R1& expected, const R2& actual, const char* file, int32_t line, const char* message)
 {
     size_t n = expected.size();
     size_t m = actual.size();
