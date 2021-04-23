@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/type_traits>
 
@@ -42,9 +41,8 @@ test0(int in1, int in2, int out)
 
 template <typename Input1, typename Input2 = Input1>
 void
-do_test()
+do_test(sycl::queue& deviceQueue)
 {
-    sycl::queue deviceQueue;
     bool res = true;
     sycl::range<1> numOfItems1{1};
 
@@ -108,27 +106,29 @@ do_test()
 int
 main()
 {
+    sycl::queue deviceQueue;
+
 // TODO: remove the macro guard once L0 backend fixes the issue
 #if defined(_WIN32)
     std::cout << TestUtils::done(0) << ::std::endl;
 #else
-    do_test<signed char>();
-    do_test<short>();
-    do_test<int>();
-    do_test<long>();
-    do_test<long long>();
-    do_test<std::int8_t>();
-    do_test<std::int16_t>();
-    do_test<std::int32_t>();
-    do_test<std::int64_t>();
-    do_test<signed char, int>();
-    do_test<int, signed char>();
-    do_test<short, int>();
-    do_test<int, short>();
-    do_test<int, long>();
-    do_test<long, int>();
-    do_test<int, long long>();
-    do_test<long long, int>();
+    do_test<signed char>(deviceQueue);
+    do_test<short>(deviceQueue);
+    do_test<int>(deviceQueue);
+    do_test<long>(deviceQueue);
+    do_test<long long>(deviceQueue);
+    do_test<std::int8_t>(deviceQueue);
+    do_test<std::int16_t>(deviceQueue);
+    do_test<std::int32_t>(deviceQueue);
+    do_test<std::int64_t>(deviceQueue);
+    do_test<signed char, int>(deviceQueue);
+    do_test<int, signed char>(deviceQueue);
+    do_test<short, int>(deviceQueue);
+    do_test<int, short>(deviceQueue);
+    do_test<int, long>(deviceQueue);
+    do_test<long, int>(deviceQueue);
+    do_test<int, long long>(deviceQueue);
+    do_test<long long, int>(deviceQueue);
 
     std::cout << "done\n";
 #endif
