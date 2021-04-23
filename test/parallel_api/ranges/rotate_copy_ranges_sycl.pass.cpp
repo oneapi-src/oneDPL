@@ -37,13 +37,12 @@ main()
 
     sycl::buffer<int> A(max_n);
 
-    //views::iota(0, max_n) | views::rotate(rotate_val)
     auto src = views::iota(0, max_n);
     auto res = rotate_copy(TestUtils::default_dpcpp_policy, src, rotate_val, A);
 
     //check result
     EXPECT_TRUE(res == max_n, "wrong result from rotate_copy");
-//    EXPECT_EQ_N(views::host_all(A), src, "wrong effect from rotate_copy");
+    EXPECT_EQ_RANGES(views::host_all(A), src | views::rotate(rotate_val), "wrong effect from rotate_copy");
 
 #endif //_ENABLE_RANGES_TESTING
     return TestUtils::done(_ENABLE_RANGES_TESTING);
