@@ -246,10 +246,39 @@ to be called on both host and device.
 
 The following algorithms are available to use with the ranges:
 
-``all_of``, ``any_of``, ``copy``, ``count``, ``count_if``, ``equal``, ``exclusive_scan``, ``find``, ``find_if``, ``find_if_not``, ``find_end``,
-``find_first_of``, ``for_each``, ``inclusive_scan``, ``is_sorted``, ``is_sorted_until``, ``min_element``, ``max_element``, ``merge``,
-``minmax_element``, ``move``, ``reduce``, ``remove``, ``remove_if``, ``replace``, ``replace_if``, ``search``, ``sort``, ``stable_sort``,
-``transform``, ``transform_reduce``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
+* ``all_of``
+* ``any_of``
+* ``copy``
+* ``count``
+* ``count_if``
+* ``equal``
+* ``exclusive_scan``
+* ``find``
+* ``find_if``
+* ``find_if_not``
+* ``find_end``
+* ``find_first_of``
+* ``for_each``
+* ``inclusive_scan``
+* ``is_sorted``
+* ``is_sorted_until``
+* ``min_element``
+* ``max_element``
+* ``merge``
+* ``minmax_element``
+* ``move``
+* ``reduce``
+* ``remove``
+* ``remove_if``
+* ``replace``
+* ``replace_if``
+* ``search``
+* ``sort``
+* ``stable_sort``
+* ``transform``
+* ``transform_reduce``
+* ``transform_exclusive_scan``
+* ``transform_inclusive_scan``
 
 The signature example of the range-based algorithms looks like::
 
