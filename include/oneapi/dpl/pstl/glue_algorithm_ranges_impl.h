@@ -371,10 +371,10 @@ template <typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 reverse(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
-    auto __n = __rng.size();
-    auto __n_2 = __n / 2;
-
     auto __v = views::all(::std::forward<_Range>(__rng));
+
+    auto __n = __v.size();
+    auto __n_2 = __n / 2;
 
     auto __r1 = __v | views::take(__n) | views::reverse;
     auto __r2 = __v | views::drop(__n - __n_2) | views::reverse;
@@ -387,9 +387,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 reverse_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
 {
-    copy(views::all_read(::std::forward<_Range1>(__rng)) | views::reverse, ::std::forward<_Range2>(__result));
+    auto __src = views::all_read(::std::forward<_Range1>(__rng));
 
-    return __rng.size();
+    copy(::std::forward<_ExecutionPolicy>(__exec), __src | views::reverse, ::std::forward<_Range2>(__result));
+
+    return __src.size();
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
@@ -398,10 +400,12 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 rotate_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, oneapi::dpl::__internal::__difference_t<_Range1> __rotate_value,
             _Range2&& __result)
 {
-    copy(views::all_read(::std::forward<_Range1>(__rng)) | views::rotate(__rotate_value),
+   auto __src = views::all_read(::std::forward<_Range1>(__rng));
+
+    copy(::std::forward<_ExecutionPolicy>(__exec), __src | views::rotate(__rotate_value),
          ::std::forward<_Range2>(__result));
 
-    return __rotate_value;
+    return __src.size();
 }
 
 // [alg.replace]

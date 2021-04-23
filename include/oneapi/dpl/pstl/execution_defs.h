@@ -211,7 +211,7 @@ auto
 __check_size(...) -> decltype(::std::declval<_R&>().get_count());
 
 template <typename _R>
-using __difference_t = decltype(__check_size<_R>(0));
+using __difference_t = typename ::std::make_signed<decltype(__check_size<_R>(0))>::type;
 
 template <typename _R>
 auto

@@ -210,7 +210,7 @@ reverse_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      oneapi::dpl::__internal::__difference_t<_Range2>>
+                                                      oneapi::dpl::__internal::__difference_t<_Range1>>
 rotate_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, oneapi::dpl::__internal::__difference_t<_Range1> __rotate_value,
             _Range2&& __result);
 
