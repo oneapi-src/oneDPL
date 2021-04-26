@@ -34,6 +34,10 @@ Fixed Issues
 
 Known Issues and Limitations
 -----------------------------
+- No new issues in this release. 
+
+Existing Issues
+^^^^^^^^^^^^^^^^
 - ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with vector execution policies
   when building a program with GCC 10 and using -O0 option.
 - Some algorithms may hang when a program is built with -O0 option, executed on GPU devices and large number of elements is to be processed.
