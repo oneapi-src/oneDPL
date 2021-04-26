@@ -296,12 +296,10 @@ test_matrix(Out init, BinaryOp binary_op, Out trash)
 int
 main()
 {
-#if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !TEST_DPCPP_BACKEND_PRESENT
+#if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN && !TEST_DPCPP_BACKEND_PRESENT && !_PSTL_GCC_TEST_UNSEQ_SCAN_DEBUG_BROKEN
     // Test with highly restricted type and associative but not commutative operation
     test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
                                                             Matrix2x2<int32_t>(-666, 666));
-#endif
 #endif
 
     // Since the implicit "+" forms of the scan delegate to the generic forms,
