@@ -42,7 +42,7 @@ main()
 
     //check result
     EXPECT_TRUE(res == max_n, "wrong result from rotate_copy");
-    EXPECT_EQ_RANGES(views::host_all(A), src | views::rotate(rotate_val), "wrong effect from rotate_copy");
+    EXPECT_EQ_RANGES(src | views::rotate(rotate_val), views::host_all(A), "wrong effect from rotate_copy");
 
 #endif //_ENABLE_RANGES_TESTING
     return TestUtils::done(_ENABLE_RANGES_TESTING);

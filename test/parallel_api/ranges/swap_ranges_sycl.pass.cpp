@@ -49,10 +49,9 @@ main()
     //check result
     auto expected1 = views::iota(0, max_n) | views::reverse;
     auto expected2 = views::iota(0, max_n);
-    EXPECT_EQ_N(data1, expected1.begin(), max_n, "wrong result from swap");
-    EXPECT_EQ_N(data2, expected2.begin(), max_n, "wrong result from swap");
+    EXPECT_EQ_N(expected1.begin(), data1, max_n, "wrong result from swap");
+    EXPECT_EQ_N(expected2.begin(), data2, max_n, "wrong result from swap");
 
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

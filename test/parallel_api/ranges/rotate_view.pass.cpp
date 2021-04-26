@@ -46,10 +46,9 @@ main()
     view1[0] = -1;
     expected[0] = -1;
 
-    EXPECT_EQ_N(view1.begin(), expected, max_n, "wrong result from rotate view, a pipe call");
-    EXPECT_EQ_N(view2.begin(), expected, max_n, "wrong result from rotate view, a single CPO call");
+    EXPECT_EQ_N(expected, view1.begin(), max_n, "wrong result from rotate view, a pipe call");
+    EXPECT_EQ_N(expected, view2.begin(), max_n, "wrong result from rotate view, a single CPO call");
 
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }
