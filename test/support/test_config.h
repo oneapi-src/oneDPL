@@ -52,9 +52,6 @@
     (__i386__ && (__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900))
 // VC14 uninitialized_fill with no policy has broken implementation
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN (_MSC_VER == 1900)
-// GCC10 (Debug mode) produce wrong result using vectorization
-#define _PSTL_GCC_TEST_UNSEQ_SCAN_DEBUG_BROKEN                                                                      \
-    (_GLIBCXX_RELEASE == 10 && PSTL_USE_DEBUG && __cplusplus >= 201703L)
 
 #define _PSTL_SYCL_TEST_USM 1
 
