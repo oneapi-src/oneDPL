@@ -446,10 +446,12 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __p
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
-    __pattern_unique_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), res_rng, __pred);
+    auto res =
+        __pattern_unique_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), res_rng, __pred);
 
-    return __pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), res_rng, ::std::forward<_Range>(__rng),
-                           __brick_copy<_ExecutionPolicy>{});
+    __pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), res_rng, ::std::forward<_Range>(__rng),
+                    __brick_copy<_ExecutionPolicy>{});
+    return res;
 }
 
 //------------------------------------------------------------------------
