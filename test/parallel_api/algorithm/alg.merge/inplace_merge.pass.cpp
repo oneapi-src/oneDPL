@@ -60,13 +60,6 @@ struct test_one_policy
 
         ::std::inplace_merge(first1, mid1, last1);
         ::std::inplace_merge(exec, first2, mid2, last2);
-        // if(n==6){
-        //     for(int i = 0;i<n;i++){
-        //         ::std::cout << *(::std::next(first1, i)) <<" "<<*(::std::next(first2, i))<<"\n";
-        //     }
-        //     ::std::cout <<"\n"<<m<<"\n";
-
-        // }
         EXPECT_EQ_N(first1, first2, n, "wrong effect from inplace_merge without predicate");
     }
 
@@ -192,7 +185,6 @@ main()
                             [](const float64_t x, const float64_t y) { return x > y; });
 #endif
 
-    test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, ::std::less<int32_t>());
     test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
