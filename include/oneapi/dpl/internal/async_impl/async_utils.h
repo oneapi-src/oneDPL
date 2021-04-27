@@ -93,9 +93,7 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
                                            __par_backend_hetero::__internal::is_passed_directly<_T>::value>::type>
     : public __par_backend_hetero::__future_base
 {
-    using _Tp = sycl_iterator<sycl::access::mode::read_write, _T, sycl::buffer_allocator>;
-    friend class __par_backend_hetero::__future<_T>;
-    _Tp __data;
+    _T __data;
     ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmp;
 
   public:
@@ -106,14 +104,14 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
             __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
                 new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
-    __future(_Tp __d) : __par_backend_hetero::__future_base(sycl::event{}), __data(__d) {}
-    _Tp
+    __future(_T __d) : __par_backend_hetero::__future_base(sycl::event{}), __data(__d) {}
+    _T
     get()
     {
         this->wait();
         return __data;
     }
-    __future(__par_backend_hetero::__future<_T>&& __o, size_t __d)
+    __future(__par_backend_hetero::__future<typename ::std::iterator_traits<_T>::value_type>&& __o, size_t __d)
         : __par_backend_hetero::__future_base(::std::move(__o.__my_event)),
           __data(oneapi::dpl::begin(::std::move(__o.__data)) + __d)
     {
