@@ -51,18 +51,47 @@ int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    PRINT_DEBUG("Test Policy(queue(default_selector))");
-    test_policy_instance(
-        oneapi::dpl::execution::make_device_policy<class Kernel_2>(sycl::queue{TestUtils::default_selector}));
-    PRINT_DEBUG("Test Policy(default_selector)");
-    test_policy_instance(
-        oneapi::dpl::execution::make_device_policy<class Kernel_3>(TestUtils::default_selector));
-    PRINT_DEBUG("Test Policy(device(default_selector))");
-    test_policy_instance(
-        oneapi::dpl::execution::make_device_policy<class Kernel_4>(sycl::device{TestUtils::default_selector}));
-    PRINT_DEBUG("Test Policy(ordered_queue(default_selector))");
-    test_policy_instance(oneapi::dpl::execution::make_device_policy<class Kernel_5>(
-        sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
+    using namespace oneapi::dpl::execution;
+    auto q = sycl::queue{TestUtils::default_selector};
+
+    test_policy_instance(dpcpp_default);
+
+    // make_device_policy
+    test_policy_instance(make_device_policy<class Kernel_11>(q));
+    test_policy_instance(make_device_policy<class Kernel_12>(TestUtils::default_selector));
+    test_policy_instance(make_device_policy<class Kernel_13>(sycl::device{TestUtils::default_selector}));
+    test_policy_instance(make_device_policy<class Kernel_14>(sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
+    test_policy_instance(make_device_policy<class Kernel_15>(dpcpp_default));
+    test_policy_instance(make_device_policy<class Kernel_16>());
+
+    // device_policy
+    EXPECT_TRUE(device_policy<class Kernel_1>(q).queue() == q, "wrong result for queue()");
+    test_policy_instance(device_policy<class Kernel_21>(q));
+    test_policy_instance(device_policy<class Kernel_22>(sycl::device{TestUtils::default_selector}));
+    test_policy_instance(device_policy<class Kernel_23>(dpcpp_default));
+    test_policy_instance(device_policy<class Kernel_24>(sycl::queue(dpcpp_default))); // conversion to sycl::queue
+    test_policy_instance(device_policy<>{});
+    class Kernel_25;
+    EXPECT_TRUE((std::is_same<device_policy<Kernel_25>::kernel_name, Kernel_25>::value), "wrong result for kernel_name");
+
+#if ONEDPL_FPGA_DEVICE
+    test_policy_instance(dpcpp_fpga);
+
+    // make_fpga_policy
+    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 1, class Kernel_31>(sycl::queue{TestUtils::default_selector}));
+    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 2, class Kernel_32>(sycl::device{TestUtils::default_selector}));
+    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 4, class Kernel_33>(dpcpp_fpga));
+    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 8, class Kernel_34>());
+    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 16, class Kernel_35>(sycl::queue{TestUtils::default_selector}));
+
+    // fpga_policy
+    test_policy_instance(fpga_policy</*unroll_factor =*/ 1, class Kernel_41>(sycl::queue{TestUtils::default_selector}));
+    test_policy_instance(fpga_policy</*unroll_factor =*/ 2, class Kernel_42>(sycl::device{TestUtils::default_selector}));
+    test_policy_instance(fpga_policy</*unroll_factor =*/ 4, class Kernel_43>(dpcpp_fpga));
+    test_policy_instance(fpga_policy</*unroll_factor =*/ 8, class Kernel_44>{});
+    EXPECT_TRUE((fpga_policy</*unroll_factor =*/ 8, class Kernel_45>::unroll_factor == 8), "wrong unroll_factor");
+#endif
+
 #endif
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
