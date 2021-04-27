@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if  !defined(_PSTL_TEST_UNITIALIZED_FILL) && !defined(_PSTL_TEST_UNITIALIZED_FILL_N) &&\
      !defined(_PSTL_TEST_UNITIALIZED_DESTROY) && !defined(_PSTL_TEST_UNITIALIZED_DESTROY_N)
@@ -172,7 +172,7 @@ test_uninitialized_fill_destroy_by_type()
     ::std::size_t N = 100000;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         ::std::unique_ptr<T[]> p(new T[n]);
         auto p_begin = p.get();
 #else
@@ -188,7 +188,7 @@ test_uninitialized_fill_destroy_by_type()
         invoke_on_all_policies<>()(test_uninitialized_fill_n<T>(), p_begin, p_end, T(), n,
                                    ::std::is_trivial<T>());
 #endif
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
         // SYCL kernel cannot call through a function pointer
 #ifdef _PSTL_TEST_UNITIALIZED_DESTROY
         invoke_on_all_policies<>()(test_destroy<T>(), p_begin, p_end, T(), n,
@@ -209,12 +209,11 @@ main()
     test_uninitialized_fill_destroy_by_type<int32_t>();
     test_uninitialized_fill_destroy_by_type<float64_t>();
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
     test_uninitialized_fill_destroy_by_type<Wrapper<::std::string>>();
     test_uninitialized_fill_destroy_by_type<Wrapper<int8_t*>>();
 #endif
-    ::std::cout << done() << ::std::endl;
 
-    return 0;
+    return done();
 }

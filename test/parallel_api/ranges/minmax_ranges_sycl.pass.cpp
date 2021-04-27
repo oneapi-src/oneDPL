@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -51,15 +51,15 @@ main()
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         //min element
-        res1 = min_element(exec, view);
+        res1 = min_element(exec, A);
         res2 = min_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, ::std::less<int>());
         res3 = min_element(make_new_policy<new_kernel_name<Policy, 1>>(exec), view | views::take(1));
 
         //max_element
-        res4 = max_element(make_new_policy<new_kernel_name<Policy, 2>>(exec), view);
+        res4 = max_element(make_new_policy<new_kernel_name<Policy, 2>>(exec), A);
         res5 = max_element(make_new_policy<new_kernel_name<Policy, 3>>(exec), view, ::std::less<int>());
 
-        res_minmax1 = minmax_element(make_new_policy<new_kernel_name<Policy, 4>>(exec), view);
+        res_minmax1 = minmax_element(make_new_policy<new_kernel_name<Policy, 4>>(exec), A);
         res_minmax2 = minmax_element(make_new_policy<new_kernel_name<Policy, 5>>(exec), view, ::std::less<int>());
     }
 
@@ -73,9 +73,7 @@ main()
 
     EXPECT_TRUE(res_minmax1.first == idx_val && res_minmax1.second == idx_max, "wrong effect from 'minmax_element', sycl ranges");
     EXPECT_TRUE(res_minmax2.first == idx_val && res_minmax2.second == idx_max, "wrong effect from 'minmax_element' with predicate, sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

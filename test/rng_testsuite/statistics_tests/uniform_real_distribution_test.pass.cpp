@@ -18,20 +18,21 @@
 // Test of uniform_real_distribution - comparison with std::
 // Note not all types can be compared with std:: implementation is different
 
+#include "support/utils.h"
 #include <iostream>
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #include <vector>
 #include <CL/sycl.hpp>
 #include <random>
 #include <oneapi/dpl/random>
 
 // Engine parameters
-#define a 40014u
-#define c 200u
-#define m 2147483563u
-#define seed 777
-#define eps 0.00001
+constexpr auto a = 40014u;
+constexpr auto c = 200u;
+constexpr auto m = 2147483563u;
+constexpr auto seed = 777;
+constexpr auto eps = 0.00001;
 
 template<class RealType, class UIntType>
 int test(oneapi::dpl::internal::element_type_t<RealType> left, oneapi::dpl::internal::element_type_t<RealType> right, int nsamples) {
@@ -191,11 +192,11 @@ int tests_set_portion(int nsamples, unsigned int part) {
     return 0;
 }
 
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 int main() {
 
-#if _ONEDPL_BACKEND_SYCL
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     constexpr int nsamples = 100;
     int err;
@@ -206,10 +207,7 @@ int main() {
     std::cout << "-----------------------------" << std::endl;
     err = tests_set<float, std::uint32_t>(nsamples);
     err += tests_set<float, sycl::vec<std::uint32_t, 16>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing float and std::uint64_t
     std::cout << "-----------------------------" << std::endl;
@@ -217,10 +215,7 @@ int main() {
     std::cout << "-----------------------------" << std::endl;
     err = tests_set<float, std::uint64_t>(nsamples);
     err += tests_set<float, sycl::vec<std::uint64_t, 16>>(nsamples);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing sycl::vec<float, 16> and std::uint32_t
     std::cout << "----------------------------------------" << std::endl;
@@ -231,10 +226,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 16>, std::uint32_t>(100, 5);
     err += tests_set_portion<sycl::vec<float, 16>, std::uint32_t>(160, 16);
     err += tests_set_portion<sycl::vec<float, 16>, std::uint32_t>(160, 17);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing sycl::vec<float, 16> and sycl::vec<uint32_t, 16>
     std::cout << "--------------------------------------------------" << std::endl;
@@ -245,10 +237,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<uint32_t, 16>>(100, 5);
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<uint32_t, 16>>(160, 16);
     err += tests_set_portion<sycl::vec<float, 16>, sycl::vec<uint32_t, 16>>(160, 17);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing sycl::vec<float, 8> and sycl::vec<uint32_t, 16>
     std::cout << "-------------------------------------------------" << std::endl;
@@ -259,10 +248,7 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<uint32_t, 16>>(99, 3);
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<uint32_t, 16>>(80, 8);
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<uint32_t, 16>>(80, 9);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
     // testing sycl::vec<float, 3> and sycl::vec<uint32_t, 16>
     std::cout << "-------------------------------------------------" << std::endl;
@@ -273,15 +259,9 @@ int main() {
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<uint32_t, 16>>(100, 2);
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<uint32_t, 16>>(99, 3);
     err += tests_set_portion<sycl::vec<float, 3>, sycl::vec<uint32_t, 16>>(99, 4);
-    if(err) {
-        std::cout << "Test FAILED" << std::endl;
-        return 1;
-    }
+    EXPECT_TRUE(!err, "Test FAILED");
 
-#else
-    std::cout << "\tTest is skipped for non-SYCL backend" << std::endl;
-#endif // _ONEDPL_BACKEND_SYCL
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    std::cout << "Test PASSED" << std::endl;
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
 }

@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
@@ -21,8 +21,6 @@
 #include "support/utils.h"
 
 using namespace TestUtils;
-
-#define CPP14_ENABLED 0
 
 struct UserType
 {
@@ -98,49 +96,72 @@ struct UserType
 };
 
 template <typename T>
-struct test_one_policy
+struct test_with_4_iters
+{
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
+    void
+    operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, bool is_true_equal)
+    {
+        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2, last2);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (4 iterators, without predicate) for random-access iterator, bool");
+    }
+
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Compare>
+    void
+    operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Compare comp, bool is_true_equal)
+    {
+        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2, last2, comp);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (4 iterators, with predicate) for random-access iterator, bool");
+    }
+};
+
+template <typename T>
+struct test_with_3_iters
 {
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, bool is_true_equal)
     {
-        using namespace std;
+        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (3 iterators, without predicate) for random-access iterator, bool");
+    }
 
-        auto expected = equal(first1, last1, first2);
-        auto actual = equal(exec, first1, last1, first2);
-        EXPECT_EQ(expected, actual, "result for equal for random-access iterator, checking against ::std::equal()");
-
-        // testing bool
-        EXPECT_TRUE(is_true_equal == actual, "result for equal for random-access iterator, bool");
-
-//add C++14 equal symantics tests
-//add more cases for inCopy size less than in
-#if CPP14_ENABLED
-        auto actualr14 = ::std::equal(in.cbegin(), in.cend(), inCopy.cbegin(), inCopy.cend());
-        EXPECT_EQ(expected, actualr14, "result for equal for random-access iterator");
-#endif
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Compare>
+    void
+    operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Compare comp, bool is_true_equal)
+    {
+        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2, comp);
+        EXPECT_TRUE(is_true_equal == is_equal, "result for equal (3 iterators, with predicate) for random-access iterator, bool");
     }
 };
 
-template <typename T>
+template <typename T, typename Compare>
 void
-test(size_t bits)
+test(size_t bits, Compare comp)
 {
-    for (size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    constexpr ::std::size_t max_size = 100000;
+
+    // Sequence of odd values
+    Sequence<T> in(max_size, [bits](size_t k) { return T(2 * HashBits(k, bits - 1) ^ 1); });
+    Sequence<T> inCopy(in);
+
+    for (size_t n = 1; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-
-        // Sequence of odd values
-        Sequence<T> in(n, [bits](size_t k) { return T(2 * HashBits(k, bits - 1) ^ 1); });
-        Sequence<T> inCopy(in);
-
-        invoke_on_all_policies<0>()(test_one_policy<T>(), in.begin(), in.end(), inCopy.begin(), true);
-        invoke_on_all_policies<1>()(test_one_policy<T>(), in.cbegin(), in.cend(), inCopy.cbegin(), true);
+        invoke_on_all_policies<0>()(test_with_3_iters<T>(), in.begin(), in.begin() + n, inCopy.begin(), comp, true);
+        invoke_on_all_policies<1>()(test_with_3_iters<T>(), in.cbegin(), in.cbegin() + n, inCopy.cbegin(), true);
+        invoke_on_all_policies<2>()(test_with_4_iters<T>(), in.begin(), in.begin() + n, inCopy.begin(), inCopy.begin() + n, comp, true);
 
         // testing bool !equal()
-        inCopy[0] = !inCopy[0];
-        invoke_on_all_policies<2>()(test_one_policy<T>(), in.begin(), in.end(), inCopy.begin(), false);
-        invoke_on_all_policies<3>()(test_one_policy<T>(), in.cbegin(), in.cend(), inCopy.cbegin(), false);
+        T original = inCopy[0];
+        inCopy[0] = !original;
+        invoke_on_all_policies<3>()(test_with_4_iters<T>(), in.begin(), in.begin() + n, inCopy.begin(), inCopy.begin() + n, false);
+        invoke_on_all_policies<4>()(test_with_4_iters<T>(), in.cbegin(), in.cbegin() + n, inCopy.cbegin(), inCopy.cbegin() + n, comp, false);
+        invoke_on_all_policies<5>()(test_with_3_iters<T>(), in.cbegin(), in.cbegin() + n, inCopy.cbegin(), false);
+        inCopy[0] = original;
     }
+    // check different sized sequences
+    invoke_on_all_policies<6>()(test_with_4_iters<T>(), in.begin(), in.begin() + max_size - 1, inCopy.begin(), inCopy.begin() + max_size, false);
+    invoke_on_all_policies<7>()(test_with_4_iters<T>(), in.cbegin(), in.cbegin() + max_size, inCopy.cbegin(), inCopy.cbegin() + max_size - 1, comp, false);
 }
 
 template <typename T>
@@ -150,21 +171,20 @@ struct test_non_const
     void
     operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
     {
-        equal(exec, first_iter, first_iter, second_iter, second_iter, non_const(::std::equal_to<T>()));
+        equal(::std::forward<Policy>(exec), first_iter, first_iter, second_iter, second_iter, non_const(::std::equal_to<T>()));
     }
 };
 
 int
 main()
 {
+    test<int32_t>(8 * sizeof(int32_t),   [](const int32_t& a, const int32_t& b)     { return a == b; });
+    test<uint16_t>(8 * sizeof(uint16_t), [](const uint16_t& a, const uint16_t& b)   { return a == b; });
+    test<float64_t>(53,                  [](const float64_t& a, const float64_t& b) { return a == b; });
+    test<bool>(1,                        [](const bool& a, const bool& b)           { return a == b; });
+    test<UserType>(256,                  [](const UserType& a, const UserType& b)   { return a == b; });
 
-    test<int32_t>(8 * sizeof(int32_t));
-    test<uint16_t>(8 * sizeof(uint16_t));
-    test<float64_t>(53);
-    test<bool>(1);
-    test<UserType>(256);
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 
-    ::std::cout << done() << ::std::endl;
-    return 0;
+    return done();
 }

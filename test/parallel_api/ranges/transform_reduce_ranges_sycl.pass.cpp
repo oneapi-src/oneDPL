@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -45,8 +45,8 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        res1 = oneapi::dpl::experimental::ranges::transform_reduce(exec, view, view, 0);
-        res2 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, view, 0, ::std::plus<int>(), ::std::multiplies<int>());
+        res1 = oneapi::dpl::experimental::ranges::transform_reduce(exec, A, view, 0);
+        res2 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, A, 0, ::std::plus<int>(), ::std::multiplies<int>());
         res3 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, 0, ::std::plus<int>(), lambda1);
     }
 
@@ -61,6 +61,6 @@ main()
     EXPECT_TRUE(res2 == expected2, "wrong effect from transform_reduce2 with sycl ranges");
     EXPECT_TRUE(res3 == expected3, "wrong effect from transform_reduce3 with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

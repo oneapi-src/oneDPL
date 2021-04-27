@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -47,15 +47,13 @@ main()
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         res1 = is_sorted_until(exec, view);
-        res2 = is_sorted_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, [](auto a, auto b) { return a < b; });
+        res2 = is_sorted_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), A, [](auto a, auto b) { return a < b; });
     }
 
     //check result
     EXPECT_TRUE(res1 == idx, "wrong effect from 'is_sorted_until' with sycl ranges");
     EXPECT_TRUE(res2 == idx, "wrong effect from 'is_sorted_until' with comparator, sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

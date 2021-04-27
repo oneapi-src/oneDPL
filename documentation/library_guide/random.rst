@@ -1,19 +1,17 @@
 Random Number Generators
 ########################
 
-An introduction to random number generation usage in the oneAPI DPC++ Library (oneDPL).
-
-oneDPL offers support of random number generation, including:
+|onedpl_long| offers support of random number generation, including:
 
 - Random number engines, which generate unsigned integer sequences of random numbers.
-- Random number distributions (example: ``uniform_real_distribution``), which convert the output of
+- Random number distributions (example: ``uniform_real_distribution``), which converts the output of
   random number engines into various statistical distributions.
 
 Random Number Engines
 ---------------------
 
 Random number engines use seed data as an entropy source to generate pseudo-random numbers. 
-oneDPL provides several class templates for customized engines, they are defined in the header
+|onedpl_short| provides several class templates for customized engines, they are defined in the header
 ``<oneapi/dpl/random>``.
 
 ============================== =========================================================================================================
@@ -25,7 +23,7 @@ Engine                         Description
 ============================== =========================================================================================================
 
 Predefined Random Number Engines
------------------------------------
+--------------------------------
 
 Predefined random number engines are instantiations of random number engines class templates. 
 The types below are are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
@@ -76,10 +74,10 @@ Distribution                   Description
 ``normal_distribution``        Produces real values according to the Normal (Gaussian) distribution
 ============================== =========================================================================================================
 
-Usage Model of oneDPL Random Number Generation Functionality
-------------------------------------------------------------
+Usage Model of |onedpl_short| Random Number Generation Functionality
+--------------------------------------------------------------------
 
-Random number generation is available for DPC++ device-side and host-side code. Example:
+Random number generation is available for |dpcpp_long| device-side and host-side code. Example:
 
 .. code:: cpp
 

@@ -605,7 +605,7 @@ struct __next_to_last
     }
 };
 
-template <typename _T>
+template <typename _T, class _Enable = void>
 class __future;
 
 } // namespace __internal

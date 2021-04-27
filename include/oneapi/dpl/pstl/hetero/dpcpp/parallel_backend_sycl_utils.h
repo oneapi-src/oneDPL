@@ -391,7 +391,7 @@ struct __future_base
     wait()
     {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait();
+        __my_event.wait_and_throw();
 #endif
     }
     operator sycl::event() const { return __my_event; }
@@ -419,7 +419,7 @@ class __future : public __future_base
         this->wait();
         return __data.template get_access<access_mode::read>()[__result_idx];
     }
-    template <class _Tp>
+    template <class _Tp, class _Enable>
     friend class oneapi::dpl::__internal::__future;
 };
 

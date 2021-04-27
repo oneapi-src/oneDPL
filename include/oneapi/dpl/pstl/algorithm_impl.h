@@ -3991,10 +3991,10 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterato
           class _IsParallel>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-               _ForwardIterator2 __first2, _Function __f, _IsVector __is_vector, _IsParallel)
+               _ForwardIterator2 __first2, _Function __f, _IsVector __is_vector, _IsParallel __is_parallel)
 {
     return __pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f, __is_vector,
-                           __is_vector);
+                           __is_parallel);
 }
 
 //------------------------------------------------------------------------

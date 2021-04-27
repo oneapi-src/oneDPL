@@ -72,5 +72,5 @@ ifeq ($(device_type), FPGA_EMULATOR)
     DEVICE_COMPILE_FLAGS += $(KEY)DONEDPL_FPGA_EMULATOR
 endif
 ifeq ($(ranges_api), 1)
-    CPLUS_FLAGS += $(KEY)D_ONEDPL_USE_RANGES=1
+    CPLUS_FLAGS += $(KEY)D_ENABLE_RANGES_TESTING=1
 endif

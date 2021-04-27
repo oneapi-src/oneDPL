@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
@@ -108,7 +108,7 @@ main()
     test_long_form(42, ::std::plus<int32_t>(), [](int32_t x) { return x; });
     test_long_form(42.0, ::std::plus<float64_t>(), [](float64_t x) { return x; });
 
-#if !_ONEDPL_BACKEND_SYCL
+#if !TEST_DPCPP_BACKEND_PRESENT
     // Test for strict types
     // Creation of temporary buffer from const iterators requires default ctor of Number
     // TODO: fix it
@@ -117,6 +117,6 @@ main()
 
     // Short forms are just facade for long forms, so just test with a single type.
     test_short_forms();
-    ::std::cout << done() << ::std::endl;
-    return 0;
+
+    return done();
 }

@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include <oneapi/dpl/numeric>
 
@@ -52,8 +52,8 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        ranges::inclusive_scan(exec, view, view_res1);
-        ranges::inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, view_res2, ::std::plus<int>());
+        ranges::inclusive_scan(exec, A, view_res1);
+        ranges::inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, ::std::plus<int>());
         ranges::inclusive_scan(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, view_res3, ::std::plus<int>(), 100);
     }
 
@@ -66,8 +66,7 @@ main()
     EXPECT_EQ_N(expected1, data1, max_n, "wrong effect from inclusive_scan with sycl ranges");
     EXPECT_EQ_N(expected2, data2, max_n, "wrong effect from inclusive_scan with binary operation, sycl ranges");
     EXPECT_EQ_N(expected3, data3, max_n, "wrong effect from inclusive_scan with binary operation and init, sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

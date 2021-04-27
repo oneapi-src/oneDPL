@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #include <oneapi/dpl/numeric>
 
@@ -47,13 +47,12 @@ main()
 
         auto view = ranges::all_view<int, sycl::access::mode::read>(A);
         auto view_res1 = ranges::all_view<int, sycl::access::mode::write>(B1);
-        auto view_res2 = ranges::all_view<int, sycl::access::mode::write>(B2);
 
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        ranges::transform_inclusive_scan(exec, view, view_res1, ::std::plus<int>(), lambda);
-        ranges::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, view_res2, ::std::plus<int>(), lambda, init);
+        ranges::transform_inclusive_scan(exec, A, view_res1, ::std::plus<int>(), lambda);
+        ranges::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, ::std::plus<int>(), lambda, init);
     }
 
     //check result
@@ -63,8 +62,7 @@ main()
 
     EXPECT_EQ_N(expected1, data1, max_n, "wrong effect from transform_inclusive_scan, sycl ranges");
     EXPECT_EQ_N(expected2, data2, max_n, "wrong effect from transform_inclusive_scan with init, sycl ranges");
-
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

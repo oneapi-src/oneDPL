@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -40,13 +40,19 @@ main()
     {
         sycl::buffer<int> A(data, sycl::range<1>(max_n));
         sycl::buffer<int> B(data2, sycl::range<1>(max_n));
+        sycl::buffer<int> C(max_n);
 
         auto sv = all_view(A);
-
         auto view = views::reverse(sv) | views::transform(lambda1);
-
         auto range_res = all_view<int, sycl::access::mode::write>(B);
-        copy(TestUtils::default_dpcpp_policy, view, range_res);
+
+        auto exec = TestUtils::default_dpcpp_policy;
+        using Policy = decltype(exec);
+        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
+        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
+
+        copy(exec1, view, C); //check passing a buffer for writting
+        copy(exec2, C, range_res); //check passing a buffer for reading
     }
 
     //check result
@@ -56,6 +62,6 @@ main()
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from copy with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

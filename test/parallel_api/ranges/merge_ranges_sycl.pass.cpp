@@ -15,7 +15,7 @@
 
 #include <oneapi/dpl/execution>
 
-#include "support/pstl_test_config.h"
+#include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
@@ -50,7 +50,7 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
 
         merge(exec, all_view(A), all_view(B), all_view<T, sycl::access::mode::write>(D));
-        merge(oneapi::dpl::execution::make_device_policy<class merge_2>(exec), all_view(A), all_view(B), all_view<T, sycl::access::mode::write>(E), ::std::less<T>());
+        merge(oneapi::dpl::execution::make_device_policy<class merge_2>(exec), A, B, E, ::std::less<T>()); //check passing sycl buffers directly
     }
 
     //check result
@@ -65,6 +65,5 @@ main()
     EXPECT_TRUE(res2, "wrong effect from 'merge' with sycl ranges with predicate");
 #endif //_ENABLE_RANGES_TESTING
 
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }
