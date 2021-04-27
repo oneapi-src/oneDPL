@@ -133,6 +133,13 @@ expect_equal(const R1& expected, const R2& actual, const char* file, int32_t lin
     }
 }
 
+template <typename T>
+void
+expect_equal_val(Sequence<T>& expected, Sequence<T>& actual, const char* file, int32_t line, const char* message)
+{
+    expect_equal(expected, actual, file, line, message);
+}
+
 template <typename Iterator1, typename Iterator2, typename Size>
 void
 expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const char* file, int32_t line,
@@ -368,7 +375,7 @@ class Sequence
         return m_storage.data();
     }
     typename ::std::vector<T>::reference operator[](size_t j) { return m_storage[j]; }
-    const T& operator[](size_t j) const { return m_storage[j]; }
+    typename ::std::vector<T>::const_reference operator[](size_t j) const { return m_storage[j]; }
 
     // Fill with given value
     void
