@@ -209,6 +209,7 @@ int main() {
     err += tests_set<std::uint64_t>(nsamples);
     EXPECT_TRUE(!err, "Test FAILED");
 
+#if TEST_LONG_RUN
     // testing sycl::vec<std::uint32_t, 1>
     std::cout << "-----------------------------" << std::endl;
     std::cout << "sycl::vec<std::uint32_t, 1>" << std::endl;
@@ -273,8 +274,6 @@ int main() {
     err += tests_set_portion<sycl::vec<std::uint32_t, 16>>(160, 17);
     EXPECT_TRUE(!err, "Test FAILED");
 
-#if defined(_ONEDPL_RNG_DETAILED_TESTING_)
-
     // testing sycl::vec<std::uint64_t, 1>
     std::cout << "-----------------------------" << std::endl;
     std::cout << "sycl::vec<std::uint64_t, 1>" << std::endl;
@@ -338,7 +337,7 @@ int main() {
     err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(160, 16);
     err += tests_set_portion<sycl::vec<std::uint64_t, 16>>(160, 17);
     EXPECT_TRUE(!err, "Test FAILED");
-#endif // #if defined(_ONEDPL_RNG_DETAILED_TESTING_)
+#endif // TEST_LONG_RUN
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
