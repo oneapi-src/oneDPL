@@ -39,9 +39,6 @@
 // ICC 19 has encountered an unexpected problem: Segmentation violation signal raised
 #define _PSTL_ICC_19_TEST_IS_PARTITIONED_RELEASE_BROKEN                                                               \
     (!PSTL_USE_DEBUG && (__linux__ || __APPLE__) && __INTEL_COMPILER == 1900)
-// ICC 19 has encountered an unexpected problem: Segmentation violation signal raised
-#define _PSTL_ICL_19_VC14_VC141_TEST_SCAN_RELEASE_BROKEN                                                              \
-    (__INTEL_COMPILER == 1900 && _MSC_VER >= 1900 && _MSC_VER <= 1910)
 // ICC 19 generates wrong result with UDS on Windows
 #define _PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN (__INTEL_COMPILER == 1900 && _MSC_VER && !_DEBUG)
 // ICC 18,19 generate wrong result
