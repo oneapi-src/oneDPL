@@ -33,33 +33,6 @@ constexpr auto c = 200u;
 constexpr auto m = 2147483563u;
 constexpr auto seed = 777;
 
-// Consts
-constexpr auto eps = 0.01;
-const double pi = std::acos(-1);
-
-template<typename ScalarUintType, typename ScalarRealType>
-void generate_std(int num_elems, int nsamples,
-    ScalarRealType mean, ScalarRealType stddev, std::vector<ScalarRealType>& std_samples) {
-    std::linear_congruential_engine<ScalarUintType, a, c, m> std_engine(seed);
-    std::uniform_real_distribution<float> std_distr(0.0, 1.0);
-
-    for(int i = 0; i < nsamples; i += num_elems) {
-        for(int j = 0; j < num_elems; j += 2) {
-            float u1 = std_distr(std_engine);
-            float u2 = std_distr(std_engine);
-            float ln = std::log(u1);
-
-            std_samples[i + j] = mean + stddev * (std::sqrt(-2.0 * ln) *
-                    std::sin(2.0 * pi * u2));
-            if(((j + 1) < num_elems) && (i + j + 1 < nsamples)) {
-                std_samples[i + j + 1] = mean + stddev * (std::sqrt(-2.0 * ln) *
-                    std::cos(2.0 * pi * u2));
-            }
-        }
-    }
-
-}
-
 template<typename ScalarRealType>
 int statistics_check(int nsamples, ScalarRealType mean, ScalarRealType stddev,
     const std::vector<ScalarRealType>& dpstd_samples) {
@@ -127,21 +100,8 @@ int test(oneapi::dpl::internal::element_type_t<RealType> mean, oneapi::dpl::inte
         queue.wait();
     }
 
-    // std generation
-    generate_std<oneapi::dpl::internal::element_type_t<UIntType>, oneapi::dpl::internal::element_type_t<RealType>>
-        (num_elems, nsamples, mean, stddev, std_samples);
-
-    // comparison
-    int err = 0;
-    for(int i = 0; i < nsamples; ++i) {
-        if (abs(std_samples[i] - dpstd_samples[i]) > eps) {
-            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
-            err++;
-        }
-    }
-
     // statistics check
-    err += statistics_check(nsamples, mean, stddev, dpstd_samples);
+    int err = statistics_check(nsamples, mean, stddev, dpstd_samples);
 
     if(err) {
         std::cout << "\tFailed" << std::endl;
@@ -188,22 +148,8 @@ int test_portion(oneapi::dpl::internal::element_type_t<RealType> mean, oneapi::d
         queue.wait_and_throw();
     }
 
-    // std generation
-    generate_std<oneapi::dpl::internal::element_type_t<UIntType>, oneapi::dpl::internal::element_type_t<RealType>>
-        (n_elems, nsamples, mean, stddev, std_samples);
-
-    // comparison
-    int err = 0;
-    for(int i = 0; i < nsamples; ++i) {
-        if(abs(std_samples[i] - dpstd_samples[i]) > eps) {
-            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
-            err++;
-        }
-    }
-
-
     // statistics check
-    err += statistics_check(nsamples, mean, stddev, dpstd_samples);
+    int err = statistics_check(nsamples, mean, stddev, dpstd_samples);
 
     if(err) {
         std::cout << "\tFailed" << std::endl;
@@ -254,22 +200,8 @@ int test_flag(oneapi::dpl::internal::element_type_t<RealType> mean, oneapi::dpl:
         });
         queue.wait();
     }
-
-    // std generation
-    generate_std<oneapi::dpl::internal::element_type_t<UIntType>, oneapi::dpl::internal::element_type_t<RealType>>
-        (num_elems + 1, nsamples, mean, stddev, std_samples);
-
-    // comparison
-    int err = 0;
-    for(int i = 0; i < nsamples; ++i) {
-        if (abs(std_samples[i] - dpstd_samples[i]) > eps) {
-            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
-            err++;
-        }
-    }
-
     // statistics check
-    err += statistics_check(nsamples, mean, stddev, dpstd_samples);
+    int err = statistics_check(nsamples, mean, stddev, dpstd_samples);
 
     if(err) {
         std::cout << "\tFailed" << std::endl;

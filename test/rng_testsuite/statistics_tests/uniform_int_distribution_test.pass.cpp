@@ -103,24 +103,8 @@ int test(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dpl::inter
         queue.wait();
     }
 
-    // std generation
-    std::linear_congruential_engine<std::uint32_t, a, c, m> std_engine(seed);
-    std::uniform_real_distribution<float> std_distr(static_cast<float>(left), static_cast<float>(right + 1));
-
-    for(int i = 0; i < nsamples; ++i)
-        std_samples[i] = static_cast<std::int32_t>(std_distr(std_engine));
-
-    // comparison
-    int err = 0;
-    for(int i = 0; i < nsamples; ++i) {
-        if(abs(std_samples[i] - dpstd_samples[i]) > eps) {
-            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
-            err++;
-        }
-    }
-
     // statistics check
-    err+=statistics_check(nsamples, left, right, dpstd_samples);
+    int err = statistics_check(nsamples, left, right, dpstd_samples);
 
     if(err) {
         std::cout << "\tFailed" << std::endl;
@@ -166,24 +150,8 @@ int test_portion(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dp
         queue.wait_and_throw();
     }
 
-    // std generation
-    std::linear_congruential_engine<oneapi::dpl::internal::element_type_t<UIntType>, a, c, m> std_engine(seed);
-    std::uniform_real_distribution<float> std_distr(static_cast<float>(left), static_cast<float>(right + 1));
-
-    for(int i = 0; i < nsamples; ++i)
-        std_samples[i] = static_cast<std::int32_t>(std_distr(std_engine));
-
-    // comparison
-    int err = 0;
-    for(int i = 0; i < nsamples; ++i) {
-        if(abs(std_samples[i] - dpstd_samples[i]) > eps) {
-            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
-            err++;
-        }
-    }
-
     // statistics check
-    err+=statistics_check(nsamples, left, right, dpstd_samples);
+    int err = statistics_check(nsamples, left, right, dpstd_samples);
 
     if(err) {
         std::cout << "\tFailed" << std::endl;

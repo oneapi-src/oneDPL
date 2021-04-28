@@ -34,6 +34,41 @@ constexpr auto m = 2147483563u;
 constexpr auto seed = 777;
 constexpr auto eps = 0.00001;
 
+template<typename RealType>
+std::int32_t statistics_check(int nsamples, RealType left, RealType right,
+    const std::vector<RealType>& dpstd_samples)
+{
+    // theoretical moments
+    double tM = (right + left) / 2.0;
+    double tD = ((right - left) * (right - left)) / 12.0;
+    double tQ = ((right - left) * (right - left) * (right - left) * (right - left)) / 80.0;
+
+    // sample moments
+    double sum = 0.0;
+    double sum2 = 0.0;
+    for(std::int32_t i = 0; i < nsamples; i++) {
+        sum += static_cast<double>(dpstd_samples[i]);
+        sum2 += static_cast<double>(dpstd_samples[i] * dpstd_samples[i]);
+    }
+    double sM = sum / nsamples;
+    double sD = sum2 / nsamples -  sM * sM;
+
+    // comparison of theoretical and sample moments
+    double tD2 = tD * tD;
+    double s = ( (tQ - tD2) / nsamples) - (2 * (tQ - 2.0 * tD2) / (nsamples * nsamples)) +
+        ((tQ - 3.0 * tD2) / (nsamples * nsamples * nsamples));
+
+    double DeltaM = (tM - sM) / sqrt(tD / nsamples);
+    double DeltaD = (tD - sD) / sqrt(s);
+
+    if(fabs(DeltaM) > 3.0 || fabs(DeltaD) > 3.0) {
+        std::cout << "Error: sample moments (mean= " << sM << ", variance= " << sD << ") disagree with theory (mean=" << tM << ", variance= " << tD << "). ";
+        return 1;
+    }
+
+    return 0;
+}
+
 template<class RealType, class UIntType>
 int test(oneapi::dpl::internal::element_type_t<RealType> left, oneapi::dpl::internal::element_type_t<RealType> right, int nsamples) {
 
@@ -65,21 +100,8 @@ int test(oneapi::dpl::internal::element_type_t<RealType> left, oneapi::dpl::inte
         queue.wait();
     }
 
-    // std generation
-    std::linear_congruential_engine<oneapi::dpl::internal::element_type_t<UIntType>, a, c, m> std_engine(seed);
-    std::uniform_real_distribution<oneapi::dpl::internal::element_type_t <RealType>> std_distr(left, right);
-
-    for(int i = 0; i < nsamples; ++i)
-        std_samples[i] = std_distr(std_engine);
-
-    // comparison
-    int err = 0;
-    for(int i = 0; i < nsamples; ++i) {
-        if(fabs(std_samples[i] - dpstd_samples[i]) > eps) {
-            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
-            err++;
-        }
-    }
+    // statistics check
+    int err = statistics_check(nsamples, left, right, dpstd_samples);
 
     if(err) {
         std::cout << "\tFailed" << std::endl;
@@ -125,22 +147,8 @@ int test_portion(oneapi::dpl::internal::element_type_t<RealType> left, oneapi::d
         queue.wait_and_throw();
     }
 
-    // std generation
-    std::linear_congruential_engine<oneapi::dpl::internal::element_type_t<UIntType>, a, c, m> std_engine(seed);
-    std::uniform_real_distribution<oneapi::dpl::internal::element_type_t <RealType>> std_distr(left, right);
-
-    for(int i = 0; i < nsamples; ++i) {
-        std_samples[i] = std_distr(std_engine);
-    }
-
-    // comparison
-    int err = 0;
-    for(int i = 0; i < nsamples; ++i) {
-        if (fabs(std_samples[i] - dpstd_samples[i]) > eps) {
-            std::cout << "\nError: std_sample[" << i << "] = " << std_samples[i] << ", dpstd_samples[" << i << "] = " << dpstd_samples[i];
-            err++;
-        }
-    }
+    // statistics check
+    int err = statistics_check(nsamples, left, right, dpstd_samples);
 
     if(err) {
         std::cout << "\tFailed" << std::endl;
