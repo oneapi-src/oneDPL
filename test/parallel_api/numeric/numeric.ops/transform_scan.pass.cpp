@@ -232,14 +232,16 @@ test_matrix(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         invoke_on_all_policies<7>()(test_transform_inclusive_scan_init<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
-        invoke_on_all_policies<8>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
-                                     expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
-        invoke_on_all_policies<9>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<8>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
+#if !TEST_GCC10_TRANSFORM_INCLUSIVE_SCAN_BROKEN
+        invoke_on_all_policies<9>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
+                                     expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
         invoke_on_all_policies<10>()(test_transform_inclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                      out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                      trash);
+#endif
 #endif
 #ifdef _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
         invoke_on_all_policies<11>()(test_transform_exclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),

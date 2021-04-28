@@ -52,6 +52,8 @@
     (__i386__ && (__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900))
 // VC14 uninitialized_fill with no policy has broken implementation
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN (_MSC_VER == 1900)
+// GCC10 produces wrong answer calling tranform_inclusive_scan using vectorized polices
+#define TEST_GCC10_TRANSFORM_INCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 
 #define _PSTL_SYCL_TEST_USM 1
 
