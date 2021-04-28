@@ -16,18 +16,27 @@
 #ifndef __ONEDPL_functional
 #define __ONEDPL_functional
 
-#include <functional>
+// Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
+#if __cplusplus >= 201703L
+#    if __has_include(<tbb/version.h>)
+#        ifndef PSTL_USE_PARALLEL_POLICIES
+#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#        endif
+#        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        endif
+#    endif // __has_include(<tbb/version.h>)
+#endif     // __cplusplus >= 201703L
 
+#include <functional>
+#include "oneapi/dpl/pstl/onedpl_config.h"
+#include "oneapi/dpl/internal/binary_function_impl.h"
 #include "oneapi/dpl/utility"
 
 namespace oneapi
 {
 namespace dpl
 {
-#if __cplusplus < 201703L
-using ::std::binary_function;
-using ::std::unary_function;
-#endif
 using ::std::binary_negate;
 using ::std::bind;
 using ::std::bit_and;
@@ -94,4 +103,4 @@ struct minimum
 
 namespace dpl = oneapi::dpl;
 
-#endif /* __DPSTD_functional */
+#endif /* _ONEDPL_FUNCTIONAL */
