@@ -65,7 +65,9 @@ struct Num
 
 template<typename InputIterator1, typename InputIterator2>
 auto
-init(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
+init(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) ->
+::std::pair<Sequence<typename ::std::iterator_traits<InputIterator1>::value_type>,
+            Sequence<typename ::std::iterator_traits<InputIterator1>::value_type>>
 {
     using T1 = typename ::std::iterator_traits<InputIterator1>::value_type;
 
