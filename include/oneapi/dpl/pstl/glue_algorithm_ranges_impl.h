@@ -253,7 +253,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
     using _ReferenceType1 = oneapi::dpl::__internal::__value_t<_Range1>&;
-    using _ReferenceType2 = oneapi::dpl::__internal::__value_t<_Range1>&;
+    using _ReferenceType2 = oneapi::dpl::__internal::__value_t<_Range2>&;
 
     auto __v1 = views::all(::std::forward<_Range1>(__rng1));
     auto __v2 = views::all(::std::forward<_Range2>(__rng2));
@@ -372,13 +372,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 reverse(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
     auto __v = views::all(::std::forward<_Range>(__rng));
-
     auto __n = __v.size();
     auto __n_2 = __n / 2;
 
     auto __r1 = __v | views::take(__n_2);
     auto __r2 = __v | views::reverse | views::take(__n_2);
-
     swap_ranges(::std::forward<_ExecutionPolicy>(__exec), __r1, __r2);
 }
 
@@ -388,9 +386,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 reverse_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
 {
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
-
     copy(::std::forward<_ExecutionPolicy>(__exec), __src | views::reverse, ::std::forward<_Range2>(__result));
-
     return __src.size();
 }
 
@@ -401,10 +397,8 @@ rotate_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, oneapi::dpl::__internal:
             _Range2&& __result)
 {
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
-
     copy(::std::forward<_ExecutionPolicy>(__exec), __src | views::rotate(__rotate_value),
          ::std::forward<_Range2>(__result));
-
     return __src.size();
 }
 
