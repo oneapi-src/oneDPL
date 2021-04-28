@@ -57,6 +57,8 @@ using nano::views::reverse;
 using nano::views::rotate;
 using nano::views::take;
 using nano::views::transform;
+
+using nano::subrange;
 } // namespace views
 
 } // namespace ranges
