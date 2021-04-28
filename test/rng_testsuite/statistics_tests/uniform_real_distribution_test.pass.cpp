@@ -417,7 +417,6 @@ int main() {
     std::cout << "---------------------------------------------------------" << std::endl;
     std::cout << "double, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------" << std::endl;
-    std::cout << "before failure" << std::endl;
     err = tests_set<double, std::uint32_t>(nsamples);
 #if TEST_LONG_RUN
     err += tests_set<double, sycl::vec<std::uint32_t, 16>>(nsamples);
@@ -427,9 +426,7 @@ int main() {
     err += tests_set<double, sycl::vec<std::uint32_t, 2>>(nsamples);
     err += tests_set<double, sycl::vec<std::uint32_t, 1>>(nsamples);
 #endif // TEST_LONG_RUN
-    std::cout << "err = " << err << std::endl;
     EXPECT_TRUE(!err, "Test FAILED");
-    std::cout << "after failure" << std::endl;
 
     // testing sycl::vec<double, 1> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
