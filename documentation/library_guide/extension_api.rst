@@ -269,7 +269,7 @@ for range-based algorithms.
 * ``guard_view``: A custom utility - represents a view of USM data range defined by a two USM pointers.
 * ``iota_view``: A range factory - generates a sequence of N elements, which starts from an initial value and ends by final N-1.
 * ``generate``:  A range factory - generates a sequence of N elements, where each is produced by a given functional genrator.
-* ``fill ``: A range factory - generates a sequence of N elements, where each is equal a given value.
+* ``fill``: A range factory - generates a sequence of N elements, where each is equal a given value.
 * ``zip_view``: A custom range adapter - produces one ``zip_view`` from other several views.
 * ``transform_view``: A range adapter - represents a view of a underlying sequence after applying a transformation to each element.
 * ``reverse_view``: A range adapter - produces a reversed sequence of elements provided by another view.
