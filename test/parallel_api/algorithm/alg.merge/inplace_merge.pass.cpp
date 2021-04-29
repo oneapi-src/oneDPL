@@ -88,9 +88,10 @@ test_by_type(Generator1 generator1, Generator2 generator2, bool comp_flag, Compa
     Sequence<T> exp(max_size, [](size_t v) { return T(v); });
     size_t m;
 
-    if(comp_flag)
+    
+    for (size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        for (size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        if(comp_flag)
         {
             m = 0;
             invoke_on_all_policies<0>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
@@ -102,12 +103,9 @@ test_by_type(Generator1 generator1, Generator2 generator2, bool comp_flag, Compa
             m = 2 * n / 3;
             invoke_on_all_policies<2>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
                                    generator1, generator2, comp);
-#endif
+#endif 
         }
-    }
-    else
-    {
-        for (size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        else
         {
             m = 0;
             invoke_on_all_policies<3>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
