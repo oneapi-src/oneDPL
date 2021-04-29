@@ -382,6 +382,9 @@ main()
 #endif
 
     test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less(),false);
+#if !ONEDPL_FPGA_DEVICE
+    test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less(),true);
+#endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test_set<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; }, true);
