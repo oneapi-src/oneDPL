@@ -285,43 +285,37 @@ test_set(Compare compare, bool comp_flag)
 
             ::std::sort(in1.begin(), in1.end(), compare);
             ::std::sort(in2.begin(), in2.end(), compare);
+
+#ifdef _PSTL_TEST_SET_UNION
             if(comp_flag)
-            {
-#ifdef _PSTL_TEST_SET_UNION
-                     invoke_on_all_policies<0>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                                 compare);
-#endif
-
-#ifdef _PSTL_TEST_SET_INTERSECTION
-                     invoke_on_all_policies<1>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                                 compare);
-#endif
-#ifdef _PSTL_TEST_SET_DIFFERENCE
-                     invoke_on_all_policies<2>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                                 compare);
-#endif
-#ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-                     invoke_on_all_policies<3>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
-                                                 in2.cend(), compare);
-#endif
-            }
+                invoke_on_all_policies<0>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
+                                            compare);
             else
-            {
-#ifdef _PSTL_TEST_SET_UNION
-                    invoke_on_all_policies<4>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
+                invoke_on_all_policies<4>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
 #endif
 
 #ifdef _PSTL_TEST_SET_INTERSECTION
-                    invoke_on_all_policies<5>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
+            if(comp_flag)
+                invoke_on_all_policies<1>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
+                                            compare);
+            else
+                invoke_on_all_policies<5>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
 #endif
 #ifdef _PSTL_TEST_SET_DIFFERENCE
-                    invoke_on_all_policies<6>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
+            if(comp_flag)
+                invoke_on_all_policies<2>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
+                                            compare);
+            else
+                invoke_on_all_policies<6>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
 #endif
 #ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-                    invoke_on_all_policies<7>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
+            if(comp_flag)
+                invoke_on_all_policies<3>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
+                                            in2.cend(), compare);
+            else
+                invoke_on_all_policies<7>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
                                                 in2.cend());
 #endif
-            }
         }
     }
 }
