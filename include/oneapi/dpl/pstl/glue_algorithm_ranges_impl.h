@@ -434,8 +434,7 @@ replace_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, 
 {
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
     oneapi::dpl::__internal::__ranges::__pattern_walk2(
-        ::std::forward<_ExecutionPolicy>(__exec), __src,
-        views::all_write(::std::forward<_Range2>(__result)),
+        ::std::forward<_ExecutionPolicy>(__exec), __src, views::all_write(::std::forward<_Range2>(__result)),
         oneapi::dpl::__internal::__replace_copy_functor<
             oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>,
             typename ::std::conditional<

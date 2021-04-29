@@ -65,7 +65,7 @@ struct walk_n
 
     template <typename _ItemId, typename... _Ranges>
     auto
-    operator()(const _ItemId __idx, _Ranges&&... __rngs) const -> decltype(__f(__rngs[__idx]...))
+    operator()(const _ItemId __idx, _Ranges&&... __rngs) const // -> decltype(__f(__rngs[__idx]...))
     {
         return __f(__rngs[__idx]...);
     }
