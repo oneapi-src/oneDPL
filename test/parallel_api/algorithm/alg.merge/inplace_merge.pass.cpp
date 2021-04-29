@@ -91,34 +91,29 @@ test_by_type(Generator1 generator1, Generator2 generator2, bool comp_flag, Compa
     
     for (size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
+        m = 0;
         if(comp_flag)
-        {
-            m = 0;
             invoke_on_all_policies<0>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
                                    generator1, generator2, comp);
-            m = n / 3;
+        else
             invoke_on_all_policies<1>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
-                                   generator1, generator2, comp);
-#if !ONEDPL_FPGA_DEVICE
-            m = 2 * n / 3;
+                               generator1, generator2);
+        m = n / 3;
+        if(comp_flag)
             invoke_on_all_policies<2>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
                                    generator1, generator2, comp);
-#endif 
-        }
         else
-        {
-            m = 0;
             invoke_on_all_policies<3>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
-                                   generator1, generator2);
-            m = n / 3;
-            invoke_on_all_policies<4>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
-                                   generator1, generator2);
+                               generator1, generator2);
 #if !ONEDPL_FPGA_DEVICE
-            m = 2 * n / 3;
+        m = 2 * n / 3;
+        if(comp_flag)
+            invoke_on_all_policies<4>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
+                                   generator1, generator2, comp);
+        else
             invoke_on_all_policies<5>()(test_one_policy<T>(), in1.begin(), in1.begin() + n, exp.begin(), exp.begin() + n, n, m,
-                                   generator1, generator2);
+                               generator1, generator2);
 #endif
-        }
     }
 }
 
