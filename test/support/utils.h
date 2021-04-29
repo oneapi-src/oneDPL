@@ -575,7 +575,7 @@ template <typename T>
 struct Matrix2x2
 {
     T a00, a01, a10, a11;
-    Matrix2x2() = default;
+    Matrix2x2() : a00(1), a01(0), a10(0), a11(1) {}
     Matrix2x2(T x, T y) : a00(0), a01(x), a10(x), a11(y) {}
 };
 

@@ -285,10 +285,12 @@ test_matrix(Out init, BinaryOp binary_op, Out trash)
 #endif
 
 #ifdef _PSTL_TEST_EXCLUSIVE_SCAN
+#if !TEST_GCC10_EXCLUSIVE_SCAN_BROKEN
         invoke_on_all_policies<8>()(test_exclusive_scan_with_binary_op<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
         invoke_on_all_policies<9>()(test_exclusive_scan_with_binary_op<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
+#endif
 #endif
     }
 }
