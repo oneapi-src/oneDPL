@@ -15,8 +15,6 @@
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/type_traits>
 
-#include "support/utils.h"
-
 #include <cassert>
 #include <iostream>
 #include <CL/sycl.hpp>
@@ -24,7 +22,6 @@
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
-#if __cplusplus >= 201703L
 struct IsOdd : public oneapi::dpl::unary_function<int, bool>
 {
     bool
@@ -74,18 +71,13 @@ kernel_test(sycl::queue& deviceQueue)
     }
     assert(ret);
 }
-#endif
 
 int
 main()
 {
 
-#if __cplusplus >= 201703L
     sycl::queue deviceQueue;
     kernel_test(deviceQueue);
     std::cout << "done" << std::endl;
-#else
-    std::cout << TestUtils::done(0) << ::std::endl;
-#endif
     return 0;
 }
