@@ -5,9 +5,9 @@
 .. |dpcpp_short| replace:: DPC++
 .. |hpc_tk| replace:: Intel® oneAPI HPC Toolkit (HPC Kit)
 .. |hpc_tk_short| replace:: HPC Kit
-.. |onedpl_long| replace:: Intel® oneAPI DPC++ Library (oneDPL)
+.. |onedpl_long| replace:: oneAPI DPC++ Library (oneDPL)
 .. |onedpl_short| replace:: oneDPL
-.. |onetbb_long| replace:: Intel® oneAPI Threading Building Blocks (oneTBB)
+.. |onetbb_long| replace:: oneAPI Threading Building Blocks (oneTBB)
 .. |onetbb_short| replace:: oneTBB
 .. |tbb_long| replace:: Intel® Threading Building Blocks (Intel® TBB)
 .. |tbb_short| replace:: Intel® TBB
