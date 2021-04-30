@@ -123,6 +123,8 @@ using oneapi::dpl::set_difference;
 using oneapi::dpl::set_intersection;
 using oneapi::dpl::set_symmetric_difference;
 using oneapi::dpl::set_union;
+using oneapi::dpl::shift_left;
+using oneapi::dpl::shift_right;
 using oneapi::dpl::sort;
 using oneapi::dpl::stable_partition;
 using oneapi::dpl::stable_sort;
