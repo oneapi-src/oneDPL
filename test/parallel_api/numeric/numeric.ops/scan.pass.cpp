@@ -285,10 +285,12 @@ test_matrix(Out init, BinaryOp binary_op, Out trash)
 #endif
 
 #ifdef _PSTL_TEST_EXCLUSIVE_SCAN
+#if !TEST_GCC10_EXCLUSIVE_SCAN_BROKEN
         invoke_on_all_policies<8>()(test_exclusive_scan_with_binary_op<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
         invoke_on_all_policies<9>()(test_exclusive_scan_with_binary_op<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
+#endif
 #endif
     }
 }
@@ -297,11 +299,9 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !TEST_DPCPP_BACKEND_PRESENT
     // Test with highly restricted type and associative but not commutative operation
-    test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
+    test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>(),
                                                             Matrix2x2<int32_t>(-666, 666));
-#endif
 #endif
 
     // Since the implicit "+" forms of the scan delegate to the generic forms,
