@@ -25,13 +25,6 @@
 
 #include <iostream>
 
-template<int N>
-auto dcpp_ex()
-{
-    return TestUtils::make_new_policy<TestUtils::new_kernel_name<decltype(TestUtils::default_dpcpp_policy), 
-        N>>(TestUtils::default_dpcpp_policy);
-}
-
 int32_t
 main()
 {
@@ -48,9 +41,14 @@ main()
 
     auto src = views::iota(0, max_n);
 
-    auto res1 = copy_if(dcpp_ex<0>(), src, A, pred);
-    auto res2 = remove_copy_if(dcpp_ex<1>(), src, views::all_write(B), pred);
-    auto res3 = remove_copy(dcpp_ex<2>(), src, views::all_write(C), 0);
+    auto exec1 = TestUtils::default_dpcpp_policy;
+    using Policy = decltype(exec1);
+    auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec1);
+    auto exec3 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec1);
+
+    auto res1 = copy_if(exec1, src, A, pred);
+    auto res2 = remove_copy_if(exec2, src, views::all_write(B), pred);
+    auto res3 = remove_copy(exec3, src, views::all_write(C), 0);
 
     EXPECT_TRUE(res1 == 5, "wrong return result from copy_if with sycl buffer");
     EXPECT_TRUE(res2 == 5, "wrong return result from remove_copy_if with sycl ranges");
