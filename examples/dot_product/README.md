@@ -9,6 +9,10 @@ This example contains the oneDPL-based implementation of dot product based on `s
 | Software                        | Intel&reg; oneAPI DPC++ Library (oneDPL); Intel&reg; oneAPI Threading Building Blocks (oneTBB) |
 | Time to complete                | At most 1 minute                                                                               |
 
+## License
+
+This code example is licensed under [Apache License Version 2.0 with LLVM exceptions](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt). Refer to the "[LICENSE](licensing/LICENSE.txt)" file for the full license text and copyright notice.
+
 ## Building the 'Dot product' Program
 
 ### On a Linux* System

@@ -9,6 +9,10 @@ This example demonstrates how to use scalar and vector random number generation 
 | Software                        | Intel&reg; oneAPI DPC++/C++ Compiler; Intel&reg; oneAPI DPC++ Library (oneDPL) |
 | Time to complete                | At most 1 minute                                                               |
 
+## License
+
+This code example is licensed under [Apache License Version 2.0 with LLVM exceptions](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt). Refer to the "[LICENSE](licensing/LICENSE.txt)" file for the full license text and copyright notice.
+
 ## Building the 'Random' Program for CPU and GPU
 
 ### On a Linux* System

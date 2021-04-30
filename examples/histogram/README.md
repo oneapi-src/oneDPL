@@ -16,6 +16,10 @@ To differentiate between sparse and dense histogram, we make sure that one of th
 
 For the dense histogram all the bins(including the zero-size bins) are stored, whereas for the sparse algorithm only non-zero sized bins are stored.
 
+## License
+
+This code example is licensed under MIT license.
+
 ## Building the histogram program for CPU and GPU
 
 ### On a Linux* System

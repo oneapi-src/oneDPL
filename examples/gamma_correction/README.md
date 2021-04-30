@@ -19,6 +19,10 @@ It does so by creating a fractal image in memory and performs gamma correction o
 |---|---|
 |<img src="images/original.bmp">|<img src="images/gamma.bmp">|
 
+## License
+
+This code example is licensed under MIT license.
+
 ## Building the 'Gamma Correction' Program for CPU and GPU
 
 ### On a Linux* System

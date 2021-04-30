@@ -18,6 +18,10 @@ The example demonstrates how to use `counting_iterator` and `zip_iterator` using
 * `counting_iterator` helps to fill the sequence with the numbers zero through `n` using std::copy.
 * `zip_iterator` provides the ability to iterate over several sequences simultaneously.
 
+## License
+
+This code example is licensed under MIT license.
+
 ## Building the 'Stable sort by key' Program for CPU and GPU
 
 ### On a Linux* System
