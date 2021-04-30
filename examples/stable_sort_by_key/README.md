@@ -2,7 +2,6 @@
 
 Stable sort by key is a sorting operation when sorting of 2 sequences (keys and values) only keys are compared but both keys and values are swapped.
 
-
 | Optimized for                   | Description                                                                    |
 |---------------------------------|--------------------------------------------------------------------------------|
 | OS                              | Linux* Ubuntu* 18.04                                                           |
@@ -18,10 +17,6 @@ It fills two buffers (one of the buffer is filled using `counting_iterator`) and
 The example demonstrates how to use `counting_iterator` and `zip_iterator` using oneDPL.
 * `counting_iterator` helps to fill the sequence with the numbers zero through `n` using std::copy.
 * `zip_iterator` provides the ability to iterate over several sequences simultaneously.
-
-## License
-
-This code example is licensed under MIT license.
 
 ## Building the 'Stable sort by key' Program for CPU and GPU
 

@@ -23,10 +23,6 @@ Correctness of the convex hull is checked by `std::any_of` algorithm using `coun
 | Software                        | Intel&reg; oneAPI DPC++ Library (oneDPL); Intel&reg; oneAPI Threading Building Blocks (oneTBB) |
 | Time to complete                | At most 1 minute                                                                               |
 
-## License
-
-This example is licensed under MIT license.
-
 ## Building the 'Convex hull' Program
 
 ### On a Linux* System

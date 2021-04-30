@@ -5,7 +5,7 @@ endif()
 # Set default build type to RelWithDebInfo if not specified
 if (NOT CMAKE_BUILD_TYPE)
     message (STATUS "Default CMAKE_BUILD_TYPE not set using Release")
-    set (CMAKE_BUILD_TYPE "Release" CACHE
+    set (CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE
         STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel"
         FORCE)
 endif()

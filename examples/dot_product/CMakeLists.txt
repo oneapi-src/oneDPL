@@ -7,5 +7,5 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 cmake_minimum_required (VERSION 3.0)
-project(stable_sort_by_key LANGUAGES CXX)
+project(dot_product LANGUAGES CXX)
 add_subdirectory (src)

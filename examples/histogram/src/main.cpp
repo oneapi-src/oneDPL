@@ -49,7 +49,7 @@ void dense_histogram(std::vector<uint64_t> &input) {
                            oneapi::dpl::end(histogram_new_buf),
                            oneapi::dpl::begin(histogram_new_buf));
 
-  std::cout << "Dense Histogram:\n";
+  std::cout << "success for Dense Histogram:\n";
   {
     sycl::host_accessor histogram_new(histogram_new_buf, sycl::read_only);
     std::cout << "[";
@@ -88,7 +88,7 @@ void sparse_histogram(std::vector<uint64_t> &input) {
       oneapi::dpl::begin(histogram_values_buf),
       oneapi::dpl::begin(histogram_counts_buf));
 
-  std::cout << "Sparse Histogram:\n";
+  std::cout << "success for Sparse Histogram:\n";
   std::cout << "[";
   for (int i = 0; i < num_bins - 1; i++) {
     sycl::host_accessor histogram_value(histogram_values_buf, sycl::read_only);
@@ -111,9 +111,6 @@ int main(void) {
   // which shows the difference between sparse and dense algorithm output
   for (int i = 0; i < N; i++)
     if (input[i] == 4) input[i] = rand() % 3;
-  std::cout << "Input:\n";
-  for (int i = 0; i < N; i++) std::cout << input[i] << " ";
-  std::cout << "\n";
   dense_histogram(input);
   sparse_histogram(input);
   return 0;

@@ -9,10 +9,6 @@ This example contains the oneDPL-based implementation of dot product based on `s
 | Software                        | Intel&reg; oneAPI DPC++ Library (oneDPL); Intel&reg; oneAPI Threading Building Blocks (oneTBB) |
 | Time to complete                | At most 1 minute                                                                               |
 
-## License
-
-This example is licensed under MIT license.
-
 ## Building the 'Dot product' Program
 
 ### On a Linux* System

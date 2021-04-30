@@ -1,5 +1,6 @@
 # Gamma Correction
-Gamma correction is a nonlinear operation used to encode and decode the luminance of each pixel of an image. This example demonstrates use oneDPL to facilitate offload to devices.
+Gamma correction is a nonlinear operation used to encode and decode the luminance of each pixel of an image.
+This example demonstrates how to use oneDPL to facilitate offload to devices.
 
 | Optimized for                   | Description                                                                                                                          |
 |---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
@@ -10,16 +11,13 @@ Gamma correction is a nonlinear operation used to encode and decode the luminanc
 
 ## Purpose
 
-Gamma correction uses nonlinear operations to encode and decode the luminance of each pixel of an image. See https://en.wikipedia.org/wiki/Gamma_correction for more information.
+Gamma correction uses nonlinear operations to encode and decode the luminance of each pixel of an image.
+See https://en.wikipedia.org/wiki/Gamma_correction for more information.
 It does so by creating a fractal image in memory and performs gamma correction on it with `gamma=2`.
 
 |Original image | After applying gamma correction |
 |---|---|
 |<img src="images/original.bmp">|<img src="images/gamma.bmp">|
-
-## License
-
-This code example is licensed under MIT license.
 
 ## Building the 'Gamma Correction' Program for CPU and GPU
 
