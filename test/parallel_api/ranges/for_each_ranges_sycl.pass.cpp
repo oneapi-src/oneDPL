@@ -13,6 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <iostream>
 #include <oneapi/dpl/execution>
 
 #include "support/test_config.h"
@@ -22,8 +23,8 @@
 #endif
 
 #include "support/utils.h"
-
-#include <iostream>
+//async API
+#include <oneapi/dpl/pstl/glue_async_algorithm_impl.h>
 
 int32_t
 main()
@@ -35,7 +36,7 @@ main()
 
     auto lambda1 = [](auto& val) { return val = val * val; };
 
-    using namespace oneapi::dpl::experimental::ranges;
+    using namespace oneapi::dpl::experimental;
 
     {
         sycl::buffer<int> A(data, sycl::range<1>(max_n));
@@ -45,8 +46,15 @@ main()
         auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
 
-        for_each(exec1, all_view<int, sycl::access::mode::read_write>(A), lambda1);
-        for_each(exec2, A, lambda1); //check with passing sycl::buffer directly
+#if 0   //sync API
+        ranges::for_each(exec1, ranges::views::all(A), lambda1);
+        ranges::for_each(exec2, A, lambda1); //check with passing sycl::buffer directly
+
+#else   //async API
+        auto future1 = ranges::for_each_async(exec1, ranges::views::all(A), lambda1);
+        auto future2 = ranges::for_each_async(exec2, A, lambda1, future1); //check with passing sycl::buffer directly
+        future2.wait();
+#endif
     }
 
     //check result

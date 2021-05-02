@@ -236,6 +236,69 @@ class __parallel_sort_copy_back_kernel : public __kernel_name_base<__parallel_so
 // parallel_for - async pattern
 //------------------------------------------------------------------------
 
+template <typename... _Dependencies>
+class __api
+{
+    ::std::tuple<_Dependencies...> __m_dependencies;
+    static constexpr ::std::size_t __n_dependencies = sizeof...(_Dependencies);
+
+    void
+    depends_on_impl(sycl::handler& __cgh) const {}
+
+    template <typename _Event, typename... _Events>
+    void
+    depends_on_impl(sycl::handler& __cgh, _Event&& __event, _Events&&... __rest) const
+    {
+        __cgh.depends_on(__event); // or handler::depends_on(const std::vector<event> &depEvents)
+        depends_on_impl(__cgh, ::std::forward<_Events>(__rest)...);
+    }
+
+    template <::std::size_t... _Ip>
+    void
+    depends_on(sycl::handler& __cgh, oneapi::dpl::__internal::__index_sequence<_Ip...>) const
+    {
+        depends_on_impl(__cgh, ::std::get<_Ip>(__m_dependencies)...);
+    }
+
+    void
+    depends_on(sycl::handler& __cgh) const
+    {
+        depends_on(__cgh, oneapi::dpl::__internal::__make_index_sequence<__n_dependencies>());
+    }
+
+public:
+    explicit __api(_Dependencies&&... __dependencies) : __m_dependencies(__dependencies...) {}
+
+public: //API
+
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
+    __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
+    {
+        assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
+
+        using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+        using _CustomName = typename _Policy::kernel_name;
+        using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_for_kernel, _CustomName,
+                                                                                    _Fp, _Ranges...>;
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        auto __event = __exec.queue().submit([&__rngs..., &__brick, __count, this](sycl::handler& __cgh) {
+            depends_on(__cgh);
+            //get an access to data under SYCL buffer:
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
+            __cgh.parallel_for<_ForKernel>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
+                auto __idx = __item_id.get_linear_id();
+                __brick(__idx, __rngs...);
+            });
+        });
+        return __future<void>(__event);
+    }
+};
+
+template <typename... _Dependencies>
+__api(_Dependencies&&... __dependencies)->__api<_Dependencies...>;
+
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
