@@ -155,6 +155,19 @@ class __reorder_pred
     }
 };
 
+class __pstl_assign
+{
+  public:
+    explicit __pstl_assign() {}
+
+    template <typename _Xp, typename _Yp>
+    void
+    operator()(const _Xp& __x, _Yp& __y) const
+    {
+        __y = __x;
+    }
+};
+
 //! "==" comparison.
 /** Not called "equal" to avoid (possibly unfounded) concerns about accidental invocation via
     argument-dependent name lookup by code expecting to find the usual ::std::equal. */

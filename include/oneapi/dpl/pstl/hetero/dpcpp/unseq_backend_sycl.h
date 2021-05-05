@@ -375,10 +375,11 @@ struct __create_mask
 };
 
 // functors for scan
-template <typename _BinaryOp, typename _Inclusive, ::std::size_t N>
+template <typename _BinaryOp, typename _Assigner, typename _Inclusive, ::std::size_t N>
 struct __copy_by_mask
 {
     _BinaryOp __binary_op;
+    _Assigner __assigner;
 
     template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
               typename _SizePerWg>
@@ -417,7 +418,7 @@ struct __copy_by_mask
                 // NOTE: we only need this explicit conversion when we have internal::tuple and
                 // ::std::tuple as operands, in all the other cases this is not necessary and no conversion
                 // is performed(i.e. __typle_type is the same type as its operand).
-                __out_acc[__out_idx] = static_cast<__tuple_type>(get<0>(__in_acc[__item_idx]));
+                __assigner(static_cast<__tuple_type>(get<0>(__in_acc[__item_idx])), __out_acc[__out_idx]);
         }
     }
 };
@@ -875,6 +876,42 @@ struct __brick_shift_left
             if (__k + __idx < __size)
                 __rng[__k + __i] = ::std::move(__rng[__k + __idx]);
         }
+    }
+};
+
+struct __brick_assign
+{
+    template <typename T1, typename T2>
+    void
+    operator()(const T1& __a, T2&& __b) const
+    {
+        ::std::get<0>(__b) = ::std::get<2>(__a);     //key
+        ::std::get<1>(__b) = ::std::get<0>(__a) + 1; //index
+    }
+};
+
+struct __brick_reduce_idx
+{
+    template <typename _Idx, typename _Values>
+    auto
+    reduce(_Idx __i, _Idx __j, const _Values& __values) const
+    {
+        auto __res = __values[__i];
+        for (++__i; __i < __j; ++__i)
+            __res += __values[__i];
+
+        return __res;
+    }
+
+    template <typename _ItemId, typename _ReduceIdx, typename _Values, typename _OutValues>
+    void
+    operator()(const _ItemId __idx, const _ReduceIdx& __reduce_idx, const _Values& __values,
+               _OutValues& __out_values) const
+    {
+        if (__idx == 0)
+            __out_values[__idx] = reduce((decltype(__reduce_idx[__idx]))0, __reduce_idx[__idx], __values);
+        else
+            __out_values[__idx] = reduce(__reduce_idx[__idx - 1], __reduce_idx[__idx], __values);
     }
 };
 

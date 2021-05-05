@@ -332,6 +332,12 @@ oneapi::dpl::__internal::__enable_if_execution_policy<
     ::std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
 minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng);
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range3>>
+reduce_by_key(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
+              _Range4&& __out_values);
+
 } // namespace ranges
 } // namespace experimental
 } // namespace dpl
