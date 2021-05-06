@@ -185,7 +185,32 @@ pipeline {
                     }
                 }
 
+                stage('Check_code_changes') {
+                    steps {
+                        script {
+                            dir("./src") {
+                                def code_changes = sh(
+                                    script: """
+                                            DOC_STRINGS = $(git diff --name-only main |grep ^documentation)
+                                            STRINGS = $(git diff --name-only origin/main)
+                                            if [[ DOC_STRINGS != STRINGS ]]; then
+                                                exit -1
+                                            fi
+                                            exit 0
+                                            """,
+                                    returnStatus: true, label: "Code_changes")
+                                if (code_changes == 0) {
+                                    code_changed = false
+                                }
+                            }
+                        }
+                    }
+                }
+
                 stage('Setting_Env') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         script {
                             try {
@@ -207,6 +232,9 @@ pipeline {
                 }
 
                 stage('Tests_dpcpp_cpu_cxx_17') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -237,6 +265,9 @@ pipeline {
                 }
 
                 stage('Tests_g++_tbb_cxx_11') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {

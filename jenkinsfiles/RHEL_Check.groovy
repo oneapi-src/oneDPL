@@ -68,6 +68,7 @@ def githubStatus = new GithubStatus(
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+code_changed = true
 
 pipeline {
 
@@ -193,7 +194,32 @@ pipeline {
                     }
                 }
 
+                stage('Check_code_changes') {
+                    steps {
+                        script {
+                            dir("./src") {
+                                def code_changes = sh(
+                                    script: """
+                                            DOC_STRINGS = $(git diff --name-only main |grep ^documentation)
+                                            STRINGS = $(git diff --name-only origin/main)
+                                            if [[ DOC_STRINGS != STRINGS ]]; then
+                                                exit -1
+                                            fi
+                                            exit 0
+                                            """,
+                                    returnStatus: true, label: "Code_changes")
+                                if (code_changes == 0) {
+                                    code_changed = false
+                                }
+                            }
+                        }
+                    }
+                }
+
                 stage('Setting_Env') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         script {
                             try {
@@ -215,6 +241,9 @@ pipeline {
                 }
 
                 stage('Tests_dpcpp_gpu_cxx_17') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -247,6 +276,9 @@ pipeline {
                 }
 
                 stage('Tests_dpcpp_fpga_emu_cxx_17') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -280,6 +312,9 @@ pipeline {
                 }
 
                 stage('Check_Samples') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 1, unit: 'HOURS'){
                             script {
