@@ -68,6 +68,7 @@ def githubStatus = new GithubStatus(
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+code_changed = true
 
 pipeline {
 
