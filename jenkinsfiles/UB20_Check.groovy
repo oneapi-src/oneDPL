@@ -191,14 +191,7 @@ pipeline {
                         script {
                             dir("./src") {
                                 code_changed = sh(
-                                    script: """
-                                            DOC_STRINGS = $(git diff --name-only origin/main |grep ^documentation)
-                                            STRINGS = $(git diff --name-only origin/main)
-                                            if [ ${DOC_STRINGS} != ${STRINGS} ]; then
-                                                exit 1
-                                            fi
-                                            exit 0
-                                            """,
+                                    script: "if [ -n "$(git diff --name-only main | grep -v ^documentation)" ]; then exit 1; else exit 0; fi",
                                     returnStatus: true, label: "Code_changed")
                             }
                         }
