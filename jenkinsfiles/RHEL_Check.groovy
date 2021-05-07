@@ -199,7 +199,7 @@ pipeline {
                         script {
                             dir("./src") {
                                 code_changed = sh(
-                                    script: "if [ -n "$(git diff --name-only main | grep -v ^documentation)" ]; then exit 1; else exit 0; fi",
+                                    script: "if [ -n \"\$(git diff --name-only main | grep -v ^documentation)\" ]; then exit 1; else exit 0; fi",
                                     returnStatus: true, label: "Code_changed")
                             }
                         }
