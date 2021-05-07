@@ -233,6 +233,16 @@ target_include_directories(oneDPL
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
+if (WIN32)
+    set(_onedpl_headers_subdir windows)
+else()
+    set(_onedpl_headers_subdir linux)
+endif()
+
+install(CODE "set(OUTPUT_DIR \"${CMAKE_INSTALL_PREFIX}/lib/cmake/oneDPL\")")
+install(SCRIPT cmake/scripts/generate_config.cmake)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include DESTINATION ${_onedpl_headers_subdir})
+
 ###############################################################################
 # Setup tests
 ###############################################################################
