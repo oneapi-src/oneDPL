@@ -68,7 +68,7 @@ def githubStatus = new GithubStatus(
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
-code_changed = true
+boolean code_changed
 
 pipeline {
 
@@ -198,19 +198,16 @@ pipeline {
                     steps {
                         script {
                             dir("./src") {
-                                def code_changes = sh(
+                                code_changed = sh(
                                     script: """
-                                            DOC_STRINGS = $(git diff --name-only main |grep ^documentation)
+                                            DOC_STRINGS = $(git diff --name-only origin/main |grep ^documentation)
                                             STRINGS = $(git diff --name-only origin/main)
-                                            if [[ DOC_STRINGS != STRINGS ]]; then
-                                                exit -1
+                                            if [ ${DOC_STRINGS} != ${STRINGS} ]; then
+                                                exit 1
                                             fi
                                             exit 0
                                             """,
-                                    returnStatus: true, label: "Code_changes")
-                                if (code_changes == 0) {
-                                    code_changed = false
-                                }
+                                    returnStatus: true, label: "Code_changed")
                             }
                         }
                     }
