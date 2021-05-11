@@ -206,6 +206,7 @@ pipeline {
                             }
                         }
                     }
+                }
 
                 stage('Setting_Env') {
                     when {
