@@ -201,8 +201,8 @@ pipeline {
                         script {
                             dir("./src") {
                                 code_changed = bat(
-                                    script: "git diff --name-only main | findstr /V \"documentation\"",
-                                    returnStatus: true, returnStdout: true, label: "Code_changed")
+                                    script: "git diff --name-only main | findstr /V \"^documentation\"",
+                                    returnStdout: true, label: "Code_changed")
                             }
                         }
                     }
