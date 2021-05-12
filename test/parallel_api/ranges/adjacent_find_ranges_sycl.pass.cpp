@@ -33,7 +33,7 @@ main()
     int data[n] = {5, 6, 7, 3, 4, 5, 6, 7, 8, 9};
 
     const int idx = 5;
-    data[idx] = -1, data[idx+1] = -1;
+    data[idx] = -1, data[idx + 1] = -1;
 
     int res1 = -1, res2 = -1;
     using namespace oneapi::dpl::experimental::ranges;

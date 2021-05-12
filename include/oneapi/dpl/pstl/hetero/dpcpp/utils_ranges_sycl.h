@@ -31,7 +31,7 @@ namespace __ranges
 {
 
 //A SYCL range over SYCL buffer
-template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read, const bool host_tag = false>
+template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read, bool host_tag = false>
 class all_view
 {
     using return_t = typename ::std::conditional<AccMode == sycl::access::mode::read, const _T, _T>::type;
@@ -83,7 +83,7 @@ class all_view
     accessor_t m_acc;
 };
 
-template <const bool host_tag, sycl::access::mode AccMode = sycl::access::mode::read_write>
+template <bool host_tag, sycl::access::mode AccMode = sycl::access::mode::read_write>
 struct all_view_fn
 {
     template <typename _T>

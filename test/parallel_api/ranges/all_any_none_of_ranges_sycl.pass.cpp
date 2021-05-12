@@ -33,7 +33,7 @@ main()
     int data1[max_n]     = {-1, 1, -1, 3, 4, 5, 6, -1, 8, 9};
     int data2[max_n]     = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
 
-    auto lambda = [](auto i) { return i%2 == 0; };
+    auto lambda = [](auto i) { return i % 2 == 0; };
 
     bool res1 = false, res2 = false, res3 = false;
     using namespace oneapi::dpl::experimental::ranges;
