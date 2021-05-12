@@ -31,8 +31,8 @@ main()
 {
 #if _ENABLE_RANGES_TESTING
     constexpr int max_n = 10;
-    const int old_val = -1;
-    const int new_val = 1;
+    constexpr int old_val = -1;
+    constexpr int new_val = 1;
 
     using namespace oneapi::dpl::experimental::ranges;
 

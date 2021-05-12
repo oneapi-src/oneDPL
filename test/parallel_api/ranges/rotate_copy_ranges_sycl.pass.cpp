@@ -31,7 +31,7 @@ main()
 {
 #if _ENABLE_RANGES_TESTING
     constexpr int max_n = 10;
-    int rotate_val = 6;
+    constexpr int rotate_val = 6;
 
     using namespace oneapi::dpl::experimental::ranges;
 
