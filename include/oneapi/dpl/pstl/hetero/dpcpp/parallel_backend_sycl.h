@@ -184,10 +184,15 @@ class __kernel_name_base
     static sycl::kernel
     __compile_kernel(_Exec&& __exec)
     {
+#if SYCL_LANGUAGE_VERSION >= 202001
+        auto __kernel_bundle = sycl::get_kernel_bundle(__exec.queue().get_context());
+        return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
+#else
         sycl::program __program(__exec.queue().get_context());
 
         __program.build_with_kernel_type<_DerivedKernelName>();
         return __program.get_kernel<_DerivedKernelName>();
+#endif
     }
 };
 
