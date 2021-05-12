@@ -50,8 +50,8 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
     auto __buf = __keep(__first, __last);
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
-                                                      unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-                                                      __n, __buf.all_view())
+                                                      unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                      __buf.all_view())
         .wait();
 }
 
