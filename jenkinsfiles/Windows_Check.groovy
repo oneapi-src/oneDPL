@@ -218,7 +218,7 @@ pipeline {
                                 bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
-                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${env.OneAPI_Package_Date}                                    
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${env.OneAPI_Package_Date}
                                      """
 
                                 bat script: """
@@ -364,7 +364,6 @@ pipeline {
                                                     set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
                                                     rd /s /q . 2>nul
                                                     cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
-                                                        -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
                                                         -DCMAKE_CXX_STANDARD=11^
                                                         -DCMAKE_BUILD_TYPE=release^
                                                         -DCMAKE_CXX_COMPILER=cl^
