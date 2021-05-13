@@ -76,7 +76,6 @@ int test(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dpl::inter
     sycl::queue queue(sycl::default_selector{});
 
     // memory allocation
-    std::vector<oneapi::dpl::internal::element_type_t<IntType>> std_samples(nsamples);
     std::vector<oneapi::dpl::internal::element_type_t<IntType>> dpstd_samples(nsamples);
 
     constexpr std::int32_t num_elems = oneapi::dpl::internal::type_traits_t<IntType>::num_elems == 0 ? 1 :
@@ -123,7 +122,6 @@ int test_portion(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dp
     sycl::queue queue(sycl::default_selector{});
 
     // memory allocation
-    std::vector<oneapi::dpl::internal::element_type_t<IntType>> std_samples(nsamples);
     std::vector<oneapi::dpl::internal::element_type_t<IntType>> dpstd_samples(nsamples);
     constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<IntType>::num_elems == 0 ? 1 : oneapi::dpl::internal::type_traits_t<IntType>::num_elems;
     int n_elems = (part >= num_elems) ? num_elems : part;
