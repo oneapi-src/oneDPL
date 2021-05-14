@@ -306,10 +306,6 @@ public:
 
         // Memory allocation
         std::vector<std::int32_t> dpstd_res(N_GEN);
-        constexpr std::int32_t num_elems =
-            oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems == 0
-                ? 1
-                : oneapi::dpl::internal::type_traits_t<typename Engine::result_type>::num_elems;
 
         // Random number generation
         {
@@ -396,10 +392,6 @@ public:
 
         // Memory allocation
         std::vector<std::int32_t> dpstd_res(N_GEN);
-        constexpr std::int32_t num_elems =
-            oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24::result_type>::num_elems == 0
-                ? 1
-                : oneapi::dpl::internal::type_traits_t<typename oneapi::dpl::ranlux24::result_type>::num_elems;
 
         // Random number generation
         {
@@ -473,36 +465,42 @@ main()
     std::cout << "linear_congruential_engine<48271, 0, 2147483647>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::minstd_rand>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<1>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<2>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<3>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<4>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<8>>{}.run();
+#if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::minstd_rand_vec<16>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<8>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<4>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<3>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<2>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<1>>{}.run();
+#endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "subtract_with_carry_engine<24, 10, 24>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::ranlux24_base>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<1>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<2>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<3>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<4>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<8>>{}.run();
+#if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::ranlux24_base_vec<16>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<8>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<4>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<3>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<2>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<1>>{}.run();
+#endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "discard_block_engine<ranlux24_base, 223, 23>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::ranlux24>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<1>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<2>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<3>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<4>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<8>>{}.run();
+#if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::ranlux24_vec<16>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<8>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<4>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<3>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<2>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<1>>{}.run();
+#endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS

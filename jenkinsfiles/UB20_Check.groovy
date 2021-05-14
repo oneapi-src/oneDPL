@@ -67,6 +67,7 @@ def githubStatus = new GithubStatus(
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+boolean code_changed
 
 pipeline {
 
@@ -185,7 +186,22 @@ pipeline {
                     }
                 }
 
+                stage('Check_code_changes') {
+                    steps {
+                        script {
+                            dir("./src") {
+                                code_changed = sh(
+                                    script: "! git diff --name-only main | grep -v ^documentation",
+                                    returnStatus: true, label: "Code_changed")
+                            }
+                        }
+                    }
+                }
+
                 stage('Setting_Env') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         script {
                             try {
@@ -207,6 +223,9 @@ pipeline {
                 }
 
                 stage('Tests_dpcpp_cpu_cxx_17') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -237,6 +256,9 @@ pipeline {
                 }
 
                 stage('Tests_g++_tbb_cxx_11') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {

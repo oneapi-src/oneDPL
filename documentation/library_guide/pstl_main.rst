@@ -17,7 +17,7 @@ implementation of the C++ standard library.
 The implementation supports the |dpcpp_long| execution policies used to run the massive parallel
 computational model for heterogeneous systems. The policies are specified in
 the |onedpl_long| section of the `oneAPI Specification
-<https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html#dpc-execution-policy>`_.
+<https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy>`_.
 
 For any of the implemented algorithms, pass one of the execution policies values as the first
 argument in a call to the algorithm to specify the desired execution policy. The policies have

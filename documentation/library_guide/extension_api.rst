@@ -246,10 +246,39 @@ to be called on both host and device.
 
 The following algorithms are available to use with the ranges:
 
-``all_of``, ``any_of``, ``copy``, ``count``, ``count_if``, ``equal``, ``exclusive_scan``, ``find``, ``find_if``, ``find_if_not``, ``find_end``,
-``find_first_of``, ``for_each``, ``inclusive_scan``, ``is_sorted``, ``is_sorted_until``, ``min_element``, ``max_element``, ``merge``,
-``minmax_element``, ``move``, ``reduce``, ``remove``, ``remove_if``, ``replace``, ``replace_if``, ``search``, ``sort``, ``stable_sort``,
-``transform``, ``transform_reduce``, ``transform_exclusive_scan``, ``transform_inclusive_scan``.
+* ``all_of``
+* ``any_of``
+* ``copy``
+* ``count``
+* ``count_if``
+* ``equal``
+* ``exclusive_scan``
+* ``find``
+* ``find_if``
+* ``find_if_not``
+* ``find_end``
+* ``find_first_of``
+* ``for_each``
+* ``inclusive_scan``
+* ``is_sorted``
+* ``is_sorted_until``
+* ``min_element``
+* ``max_element``
+* ``merge``
+* ``minmax_element``
+* ``move``
+* ``reduce``
+* ``remove``
+* ``remove_if``
+* ``replace``
+* ``replace_if``
+* ``search``
+* ``sort``
+* ``stable_sort``
+* ``transform``
+* ``transform_reduce``
+* ``transform_exclusive_scan``
+* ``transform_inclusive_scan``
 
 The signature example of the range-based algorithms looks like::
 
@@ -265,17 +294,17 @@ Use of the range-based API requires C++17 and the C++ standard libraries coming 
 The following views are declared in the ``oneapi::dpl::experimental::ranges`` namespace. Only those are allowed to use as ranges
 for range-based algorithms.
 
-* ``all_view``: A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements.
-* ``guard_view``: A custom utility - represents a view of USM data range defined by a two USM pointers.
-* ``iota_view``: A range factory - generates a sequence of N elements, which starts from an initial value and ends by final N-1.
-* ``generate``:  A range factory - generates a sequence of N elements, where each is produced by a given functional genrator.
-* ``fill ``: A range factory - generates a sequence of N elements, where each is equal a given value.
-* ``zip_view``: A custom range adapter - produces one ``zip_view`` from other several views.
-* ``transform_view``: A range adapter - represents a view of a underlying sequence after applying a transformation to each element.
-* ``reverse_view``: A range adapter - produces a reversed sequence of elements provided by another view.
-* ``take_view``: A range adapter - produces a view of the first N elements from another view.
-* ``drop_view``: A range adapter - produces a view excluding the first N elements from another view.
-* ``rotate``: A range adapter - produces a left rotated sequence of elements provided by another view.
+* ``all_view`` is a custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements.
+* ``guard_view`` is a custom utility that represents a view of USM data range defined by a two USM pointers.
+* ``iota_view`` is a range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
+* ``generate`` is a range factory that generates a sequence of N elements, where each is produced by a given functional genrator.
+* ``fill`` is a range factory that generates a sequence of N elements, where each is equal a given value.
+* ``zip_view`` is a custom range adapter that produces one ``zip_view`` from other several views.
+* ``transform_view`` is a range adapter that represents a view of a underlying sequence after applying a transformation to each element.
+* ``reverse_view`` is a range adapter that produces a reversed sequence of elements provided by another view.
+* ``take_view`` is a range adapter that produces a view of the first N elements from another view.
+* ``drop_view`` is a range adapter that produces a view excluding the first N elements from another view.
+* ``rotate``: is a range adapter that produces a left rotated sequence of elements provided by another view.
 
 Example of Range-based API Usage
 --------------------------------
@@ -325,15 +354,15 @@ The behavior and signatures are overlapping with the C++17 STL algorithm with th
 
 The type of the future-like object returned from asynchronous algorithm is unspecified. The following member functions are present:
 
-* ``get()``: returns the result.
-* ``wait()``: wait for the result to become available.
+* ``get()`` returns the result.
+* ``wait()`` waits for the result to become available.
 
 If the returned object is the result of an algorithm with device policy, it can be converted into a ``sycl::event``.
 Lifetime of any resources the algorithm allocates (for example: temporary storage) is bound to the lifetime of the returned object.
 
 Utility functions:
 
-* ``wait_for_all(…)``: wait for an arbitrary number of objects that are convertible into ``sycl::event`` to become ready.
+* ``wait_for_all(…)`` waits for an arbitrary number of objects that are convertible into ``sycl::event`` to become ready.
 
 
 Example of Async API Usage

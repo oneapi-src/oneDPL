@@ -1,8 +1,10 @@
-.. |base_tk| replace:: Intel® oneAPI Base Toolkit
+.. |base_tk| replace:: Intel® oneAPI Base Toolkit (Base Kit)
+.. |base_tk_short| replace:: Base Kit
 .. |dpcpp_cpp| replace:: Intel® oneAPI DPC++/C++ Compiler
 .. |dpcpp_long| replace:: Data Parallel C++ (DPC++)
 .. |dpcpp_short| replace:: DPC++
-.. |hpc_tk| replace:: Intel® oneAPI HPC Toolkit
+.. |hpc_tk| replace:: Intel® oneAPI HPC Toolkit (HPC Kit)
+.. |hpc_tk_short| replace:: HPC Kit
 .. |onedpl_long| replace:: oneAPI DPC++ Library (oneDPL)
 .. |onedpl_short| replace:: oneDPL
 .. |onetbb_long| replace:: oneAPI Threading Building Blocks (oneTBB)

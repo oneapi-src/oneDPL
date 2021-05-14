@@ -558,10 +558,8 @@ struct __early_exit_find_or
         using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-        using _Size = decltype(__n);
 
         ::std::size_t __shift = 8;
-        ::std::size_t __global_idx = __item_id.get_global_id(0);
         ::std::size_t __local_idx = __item_id.get_local_id(0);
         ::std::size_t __group_idx = __item_id.get_group(0);
 

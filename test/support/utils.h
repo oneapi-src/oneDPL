@@ -574,43 +574,32 @@ class AssocOp
 template <typename T>
 struct Matrix2x2
 {
-    T a[2][2];
-    Matrix2x2() : a{{1, 0}, {0, 1}} {}
-    Matrix2x2(T x, T y) : a{{0, x}, {x, y}} {}
-    //Explicit definition of a copy constructor and assignment operator to avoid an error for some compilers
-#if !_PSTL_ICL_19_VC14_VC141_TEST_SCAN_RELEASE_BROKEN
-    Matrix2x2(const Matrix2x2& m) : a{{m.a[0][0], m.a[0][1]}, {m.a[1][0], m.a[1][1]}} {}
-    Matrix2x2&
-    operator=(const Matrix2x2& m)
-    {
-        a[0][0] = m.a[0][0], a[0][1] = m.a[0][1], a[1][0] = m.a[1][0], a[1][1] = m.a[1][1];
-        return *this;
-    }
-#endif
+    T a00, a01, a10, a11;
+    Matrix2x2() : a00(1), a01(0), a10(0), a11(1) {}
+    Matrix2x2(T x, T y) : a00(0), a01(x), a10(x), a11(y) {}
 };
 
 template <typename T>
 bool
 operator==(const Matrix2x2<T>& left, const Matrix2x2<T>& right)
 {
-    return left.a[0][0] == right.a[0][0] && left.a[0][1] == right.a[0][1] && left.a[1][0] == right.a[1][0] &&
-           left.a[1][1] == right.a[1][1];
+    return left.a00 == right.a00 && left.a01 == right.a01 && left.a10 == right.a10 && left.a11 == right.a11;
 }
 
 template <typename T>
-Matrix2x2<T>
-multiply_matrix(const Matrix2x2<T>& left, const Matrix2x2<T>& right)
+struct multiply_matrix
 {
-    Matrix2x2<T> result;
-    for (int32_t i = 0; i < 2; ++i)
+    Matrix2x2<T> operator()(const Matrix2x2<T>& left, const Matrix2x2<T>& right) const
     {
-        for (int32_t j = 0; j < 2; ++j)
-        {
-            result.a[i][j] = left.a[i][0] * right.a[0][j] + left.a[i][1] * right.a[1][j];
-        }
+        Matrix2x2<T> result;
+        result.a00 = left.a00 * right.a00 + left.a01 * right.a10;
+        result.a01 = left.a00 * right.a01 + left.a01 * right.a11;
+        result.a10 = left.a10 * right.a00 + left.a11 * right.a10;
+        result.a11 = left.a10 * right.a01 + left.a11 * right.a11;
+
+        return result;
     }
-    return result;
-}
+};
 
 // Check that Intel(R) Threading Building Blocks header files are not used when parallel policies are off
 #if !_ONEDPL_USE_PAR_POLICIES

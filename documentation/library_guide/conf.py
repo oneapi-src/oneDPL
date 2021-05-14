@@ -61,7 +61,6 @@ docbundle_settings = {
 # The master toctree document.
 master_doc = 'index'
 
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -70,13 +69,12 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-## html_theme = 'alabaster'
+
+# html_theme = 'alabaster'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -96,7 +94,6 @@ html_show_sourcelink = False
 #         '_static/style.css',  # override wide tables in RTD theme
 #         ],
 #     }
-
 
 # html_theme = 'otc_tcs_sphinx_theme'
 # html_theme_path = ['_themes']
@@ -126,8 +123,8 @@ ditaxml_make_flat=True
 ditaxml_topic_meta={}
 ditaxml_topic_meta["audience"]="guid:etm-7775758175444e1289d59d63457bb00d"
 ditaxml_topic_meta["content type"]="User Guide"
-ditaxml_topic_meta["description"]="For developers wanting to use the Intel® oneAPI DPC++ Library"
-ditaxml_topic_meta["document title"]="Intel® oneAPI DPC++ Library Guide"
+ditaxml_topic_meta["description"]="For developers wanting to use the Intel® oneAPI DPC++ Library (oneDPL) Guide"
+ditaxml_topic_meta["document title"]="Intel® oneAPI DPC++ Library (oneDPL) Guide"
 ditaxml_topic_meta["download url"]=""
 ditaxml_topic_meta["entitlement"]=""
 ditaxml_topic_meta["entitlementtype"]=""
@@ -141,18 +138,18 @@ ditaxml_topic_meta["operating system"]="guid:etm-d23b81f1319b4f0bb8ec859bcc84e2b
 ditaxml_topic_meta["primaryOwner"]="Stern, Alexandra M (lexi.stern@intel.com)"
 ditaxml_topic_meta["programidentifier"]="idz"
 ditaxml_topic_meta["programming language"]="guid:etm-e759606e77ad42549ba71c380d6d61e2"
-ditaxml_topic_meta["published date"]="03/26/2021"
+ditaxml_topic_meta["published date"]="05/03/2021"
 ditaxml_topic_meta["resourcetypeTag"]="guid:etm-15865f41343146919f486177b8dbb3f3"
 ditaxml_topic_meta["secondary contenttype"]="guid:etm-74fc3401b6764c42ad8255f4feb9bd9e"
 ditaxml_topic_meta["security classification"]="Public Content"
-ditaxml_topic_meta["shortDescription"]="User guide for users of the Intel® oneAPI DPC++ Library."
-ditaxml_topic_meta["shortTitle"]="Intel® oneAPI DPC++ Library Guide"
+ditaxml_topic_meta["shortDescription"]="User guide for users of the Intel® oneAPI DPC++ Library (oneDPL)."
+ditaxml_topic_meta["shortTitle"]="Intel® oneAPI DPC++ Library (oneDPL) Guide"
 ditaxml_topic_meta["software"]="guid:etm-4c7a4593bba04ee2940ff6a1bc1bc95a,guid:etm-c307701b7daf4566a9fcefe4572de81f"
 ditaxml_topic_meta["technology"]="guid:etm-6b088d69d83243a0aa3b986645a7e74b"
 
 ditaxml_prod_info={}
-ditaxml_prod_info["prodname"]="oneAPI"
-ditaxml_prod_info["version"]="2021.2"
+ditaxml_prod_info["prodname"]="oneDPL"
+ditaxml_prod_info["version"]="2021.3"
 
 ditaxml_data_about={}
 ditaxml_data_about["intelswd_aliasprefix"]={"datatype":"webAttr","value":"oneapi-dpcpp-library-guide"}
