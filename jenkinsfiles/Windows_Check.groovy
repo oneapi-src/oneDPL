@@ -75,6 +75,25 @@ fail_stage = ""
 user_in_github_group = false
 boolean code_changed
 
+def runExample(String test_name, String compiler, String compile_options, List oneapi_env) {
+    try {
+        withEnv(oneapi_env) {
+            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && \
+            echo \"Build&Test command: " + compiler + " " + compile_options + "/W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe\"\
+             && " + compiler + " " + compile_options + " /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe",
+             label: test_name + " Test Step"
+        }
+    }
+    catch(e) {
+        build_ok = false
+        fail_stage = fail_stage + "    " + "Check_Samples_" + name
+        echo "Exception is" + e.toString()
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+            bat 'exit 1'
+        }
+    }
+}
+
 pipeline {
 
     agent { label "oneDPL_scheduler" }
@@ -246,51 +265,16 @@ pipeline {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
-                                    bat script: """
-                                            md oneAPI-samples
-                                            xcopy D:\\netbatch\\iusers\\oneDPL_CI\\oneAPI-samples .\\oneAPI-samples /E /Q /H
-                                            cd oneAPI-samples
-                                            git pull origin master
-
-                                        """, label: "Prepare oneAPI-samples"
-
-                                    try {
-                                        withEnv(oneapi_env) {
-                                            bat script: """
-                                                d:
-                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\gamma-correction\\src
-                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
-                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
-                                            """, label: "Gamma_return_value Test Step"
-                                        }
+                                    String[] examples_dpcpp = ["gamma_correction","stable_sort_by_key","convex_hull","dot_product","histogram","random"]
+                                    String[] examples_cpp = ["convex_hull","dot_product"]
+                                    for (String example : examples_dpcpp) {
+                                        runExample(example, "dpcpp", "", oneapi_env)
                                     }
-                                    catch(e) {
-                                        build_ok = false
-                                        fail_stage = fail_stage + "    " + "Check_Samples_gamma-correction"
-                                        echo "Exception is" + e.toString()
-                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                            bat 'exit 1'
-                                        }
+                                    runExample("gamma_correction", "dpcpp", "-DBUILD_FOR_HOST", oneapi_env)
+                                    for (String example : examples_cpp) {
+                                        runExample(example, "cl", "", oneapi_env)
                                     }
-
-                                    try {
-                                        withEnv(oneapi_env) {
-                                            bat script: """
-                                                d:
-                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\stable_sort_by_key\\src
-                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
-                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
-                                            """, label: "Stable_sort_by_key Test Step"
-                                        }
-                                    }
-                                    catch(e) {
-                                        build_ok = false
-                                        fail_stage = fail_stage + "    " + "Check_Samples_stable_sort_by_key"
-                                        echo "Exception is" + e.toString()
-                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                            bat 'exit 1'
-                                        }
-                                    }
+                                    runExample("gamma_correction", "cl", "-DBUILD_FOR_HOST", oneapi_env)
                                 }
                                 catch(e) {
                                     build_ok = false
