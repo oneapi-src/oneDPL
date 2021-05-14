@@ -78,7 +78,7 @@ void test1_with_buffers()
         auto gamma = oneapi::dpl::experimental::transform_inclusive_scan_async(my_policy6, oneapi::dpl::begin(x), oneapi::dpl::end(x),oneapi::dpl::begin(y), std::plus<int>(), [](auto x) { return x * 10; }, 0);
 
         auto my_policy8 = oneapi::dpl::execution::make_device_policy<class Sort>(my_policy);
-        auto delta = oneapi::dpl::experimental::sort_async(my_policy8, oneapi::dpl::begin(y), oneapi::dpl::end(y), std::greater(), gamma);
+        auto delta = oneapi::dpl::experimental::sort_async(my_policy8, oneapi::dpl::begin(y), oneapi::dpl::end(y), std::greater<int>(), gamma);
 
         oneapi::dpl::experimental::wait_for_all(sycl::event{},beta,gamma,delta);
         
