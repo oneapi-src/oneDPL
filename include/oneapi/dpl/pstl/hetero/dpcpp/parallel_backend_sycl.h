@@ -262,12 +262,13 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 }
 
 //------------------------------------------------------------------------
-// parallel_transform_reduce - sync pattern
+// parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
 
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
           typename _Rp, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Tp>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__par_backend_hetero::__future<_Tp>>
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -357,16 +358,16 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
         __n_items = __n_groups;
         __n_groups = (__n_items - 1) / __work_group_size + 1;
     } while (__n_items > 1);
-    return __temp.template get_access<access_mode::read_write>()[__offset_2];
+    return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
 }
 
 //------------------------------------------------------------------------
-// parallel_transform_scan - sync pattern
+// parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
-    _ExecutionPolicy, ::std::pair<oneapi::dpl::__internal::__difference_t<_Range2>, typename _InitType::__value_type>>
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>>
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
@@ -455,7 +456,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     }
 
     // 3. Final scan for whole range
-    __exec.queue().submit([&](sycl::handler& __cgh) {
+    auto __final_event = __exec.queue().submit([&](sycl::handler& __cgh) {
         __cgh.depends_on(__submit_event);
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
@@ -464,9 +465,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         });
     });
 
-    //point of syncronization (on host access)
-    auto __last_scaned_value = __wg_sums.template get_access<access_mode::read>()[__n_groups - 1];
-    return ::std::make_pair(__n, __last_scaned_value);
+    return oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>(__final_event, __n_groups - 1,
+                                                                                         __wg_sums);
 }
 
 //------------------------------------------------------------------------
