@@ -73,6 +73,26 @@ def shell(String command, String label_string = "Bat Command") {
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+boolean code_changed
+
+def runExample(String test_name, String compiler, String compile_options, List oneapi_env) {
+    try {
+        withEnv(oneapi_env) {
+            bat script: "d: && cd ${env.WORKSPACE}\\src\\examples\\" + test_name + "\\src && \
+            echo \"Build&Test command: " + compiler + " " + compile_options + "/W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe\"\
+             && " + compiler + " " + compile_options + " /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe",
+             label: test_name + " Test Step"
+        }
+    }
+    catch(e) {
+        build_ok = false
+        fail_stage = fail_stage + "    " + "Check_Samples_" + name
+        echo "Exception is" + e.toString()
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+            bat 'exit 1'
+        }
+    }
+}
 
 pipeline {
 
@@ -195,14 +215,29 @@ pipeline {
                     }
                 }
 
+                stage('Check_code_changes') {
+                    steps {
+                        script {
+                            dir("./src") {
+                                code_changed = bat(
+                                    script: "git diff --name-only main | findstr /V \"^documentation\"",
+                                    returnStdout: true, label: "Code_changed")
+                            }
+                        }
+                    }
+                }
+
                 stage('Setting_Env') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         script {
                             try {
                                 bat script: """
                                         d:
                                         cd ${env.WORKSPACE}
-                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${env.OneAPI_Package_Date}                                    
+                                        call D:\\netbatch\\iusers\\oneDPL_CI\\get_oneAPI_package.bat ${env.OneAPI_Package_Date}
                                      """
 
                                 bat script: """
@@ -223,55 +258,23 @@ pipeline {
                 }
 
                 stage('Check_Samples') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
-                                    bat script: """
-                                            md oneAPI-samples
-                                            xcopy D:\\netbatch\\iusers\\oneDPL_CI\\oneAPI-samples .\\oneAPI-samples /E /Q /H
-                                            cd oneAPI-samples
-                                            git pull origin master
-
-                                        """, label: "Prepare oneAPI-samples"
-
-                                    try {
-                                        withEnv(oneapi_env) {
-                                            bat script: """
-                                                d:
-                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\gamma-correction\\src
-                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
-                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
-                                            """, label: "Gamma_return_value Test Step"
-                                        }
+                                    String[] examples_dpcpp = ["gamma_correction","stable_sort_by_key","convex_hull","dot_product","histogram","random"]
+                                    String[] examples_cpp = ["convex_hull","dot_product"]
+                                    for (String example : examples_dpcpp) {
+                                        runExample(example, "dpcpp", "", oneapi_env)
                                     }
-                                    catch(e) {
-                                        build_ok = false
-                                        fail_stage = fail_stage + "    " + "Check_Samples_gamma-correction"
-                                        echo "Exception is" + e.toString()
-                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                            bat 'exit 1'
-                                        }
+                                    runExample("gamma_correction", "dpcpp", "-DBUILD_FOR_HOST", oneapi_env)
+                                    for (String example : examples_cpp) {
+                                        runExample(example, "cl", "", oneapi_env)
                                     }
-
-                                    try {
-                                        withEnv(oneapi_env) {
-                                            bat script: """
-                                                d:
-                                                cd ${env.WORKSPACE}\\oneAPI-samples\\Libraries\\oneDPL\\stable_sort_by_key\\src
-                                                echo "Build&Test command: dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /Isrc/include main.cpp -o test.exe && test.exe"
-                                                dpcpp /W0 /nologo /D _UNICODE /D UNICODE /Zi /WX- /EHsc /Fetest.exe /I${env.WORKSPACE}/src/include main.cpp -o test.exe && test.exe
-                                            """, label: "Stable_sort_by_key Test Step"
-                                        }
-                                    }
-                                    catch(e) {
-                                        build_ok = false
-                                        fail_stage = fail_stage + "    " + "Check_Samples_stable_sort_by_key"
-                                        echo "Exception is" + e.toString()
-                                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                            bat 'exit 1'
-                                        }
-                                    }
+                                    runExample("gamma_correction", "cl", "-DBUILD_FOR_HOST", oneapi_env)
                                 }
                                 catch(e) {
                                     build_ok = false
@@ -286,6 +289,9 @@ pipeline {
                 }
 
                 stage('Tests_dpcpp_gpu_cxx_17') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -328,6 +334,9 @@ pipeline {
                 }
 
                 stage('Tests_cl_tbb_cxx_11') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -339,7 +348,6 @@ pipeline {
                                                     set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
                                                     rd /s /q . 2>nul
                                                     cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
-                                                        -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
                                                         -DCMAKE_CXX_STANDARD=11^
                                                         -DCMAKE_BUILD_TYPE=release^
                                                         -DCMAKE_CXX_COMPILER=cl^

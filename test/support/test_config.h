@@ -67,6 +67,11 @@
 #define TEST_UNNAMED_LAMBDAS 0
 #endif
 
+// Enables full scope of testing
+#ifndef TEST_LONG_RUN
+#define TEST_LONG_RUN 0
+#endif
+
 // Enable test when the TBB backend is available
 #define TEST_TBB_BACKEND_PRESENT (!defined(ONEDPL_USE_TBB_BACKEND) || ONEDPL_USE_TBB_BACKEND != 0)
 

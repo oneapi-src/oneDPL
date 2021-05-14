@@ -64,10 +64,25 @@ def githubStatus = new GithubStatus(
         BUILD_URL: env.RUN_DISPLAY_URL
 )
 
+def runExample(String test_name, String cmake_flags = "") {
+    def result = sh(
+        script: "cd ./src/examples/" + test_name + "/ && mkdir build && cd build/ && cmake " + cmake_flags + " .. && make && make run && exit \$?",
+        returnStatus: true, label: test_name + "_test Step")
+    sh(
+        script: "rm -r ./src/examples/" + test_name + "/build")
+    if (result != 0) {
+        echo test_name + " check failed."
+        return false
+    }
+    else {
+        return true
+    }
+}
 
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+boolean code_changed
 
 pipeline {
 
@@ -175,13 +190,6 @@ pipeline {
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
                                     sh script: "cd ./src; git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}", label: "Set Git Config"
                                     sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}", label: "Checkout Commit"
-                                    if (fileExists('./oneAPI-samples')) {
-                                        sh script: 'rm -rf oneAPI-samples', label: "Remove oneAPI-samples Folder"
-
-                                    }
-
-                                    sh script: 'cp -rf /export/users/oneDPL_CI/oneAPI-samples ./', label: "Copy oneAPI-samples Folder"
-                                    sh script: 'cd ./oneAPI-samples; git pull origin master', label: "Git Pull oneAPI-samples Folder"
                                 }
                             }
                             catch (e) {
@@ -193,7 +201,22 @@ pipeline {
                     }
                 }
 
+                stage('Check_code_changes') {
+                    steps {
+                        script {
+                            dir("./src") {
+                                code_changed = sh(
+                                    script: "! git diff --name-only main | grep -v ^documentation",
+                                    returnStatus: true, label: "Code_changed")
+                            }
+                        }
+                    }
+                }
+
                 stage('Setting_Env') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         script {
                             try {
@@ -215,6 +238,9 @@ pipeline {
                 }
 
                 stage('Tests_dpcpp_gpu_cxx_17') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -247,6 +273,9 @@ pipeline {
                 }
 
                 stage('Tests_dpcpp_fpga_emu_cxx_17') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -280,39 +309,31 @@ pipeline {
                 }
 
                 stage('Check_Samples') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 1, unit: 'HOURS'){
                             script {
                                 try {
                                     withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
-                                        def gamma_return_value = sh(
-                                                script: """
-                                                        cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "gamma_return_value Step")
-                                        def stable_sort_return_value = sh(
-                                                script: """
-                                                        cd oneAPI-samples/Libraries/oneDPL/stable_sort_by_key/
-                                                        mkdir build
-                                                        cd build/
-                                                        cmake ..
-                                                        make
-                                                        make run
-                                                        exit \$?""",
-                                                returnStatus: true, label: "stable_sort_return_value Step")
+                                        String[] examples_dpcpp = ["gamma_correction","stable_sort_by_key","convex_hull","dot_product","histogram","random"]
+                                        String[] examples_cpp = ["convex_hull","dot_product"]
+                                        def test_pass_status = true
+                                        for (String example : examples_dpcpp) {
+                                            test_pass_status = test_pass_status && runExample(example,"-DCMAKE_CXX_COMPILER=dpcpp")
+                                        }
+                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
+                                        for (String example : examples_cpp) {
+                                            test_pass_status = test_pass_status && runExample(example,"-DCMAKE_CXX_COMPILER=c++")
+                                        }
+                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
 
-                                        if (gamma_return_value != 0 || stable_sort_return_value !=0) {
-                                            echo "gamma-correction or stable_sort_by_key check failed. Please check log to fix the issue."
+                                        if (test_pass_status != true) {
+                                            echo "Some checks failed. Please check log to fix the issue."
                                             sh script: "exit -1", label: "Set failure"
                                         }
                                     }
-
-
                                 }
                                 catch(e) {
                                     build_ok = false
