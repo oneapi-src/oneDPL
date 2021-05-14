@@ -271,13 +271,13 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     constexpr int nsamples = 100;
-    int err;
+    int err = 0;
 
     // testing float and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "--------------------------------------------------------" << std::endl;
     std::cout << "float, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "--------------------------------------------------------" << std::endl;
-    err = tests_set<float, std::uint32_t>(nsamples);
+    err += tests_set<float, std::uint32_t>(nsamples);
 #if TEST_LONG_RUN
     err += tests_set<float, sycl::vec<std::uint32_t, 16>>(nsamples);
     err += tests_set<float, sycl::vec<std::uint32_t, 8>>(nsamples);

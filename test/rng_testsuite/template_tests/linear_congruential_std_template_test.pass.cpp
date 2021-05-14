@@ -202,13 +202,13 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     constexpr int nsamples = 100;
-    int err;
+    int err = 0;
 
     // testing std::uint32_t
     std::cout << "-----------------------------" << std::endl;
     std::cout << "std::uint32_t Type" << std::endl;
     std::cout << "-----------------------------" << std::endl;
-    err = tests_set<std::uint32_t>(nsamples);
+    err += tests_set<std::uint32_t>(nsamples);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing std::uint64_t
