@@ -381,11 +381,10 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 };
 
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
-class __future_base
+struct __future_base
 {
     sycl::event __my_event;
 
-  public:
     __future_base() : __my_event(sycl::event{}) {}
     __future_base(sycl::event __e) : __my_event(__e) {}
     void
@@ -415,6 +414,8 @@ class __future : public __future_base
     {
         return __data.template get_access<access_mode::read>()[__result_idx];
     }
+    template <class _Tp, class _Enable>
+    friend class oneapi::dpl::__internal::__future;
 };
 
 template <>
