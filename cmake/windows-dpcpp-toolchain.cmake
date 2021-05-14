@@ -12,7 +12,10 @@
 #
 ##===----------------------------------------------------------------------===##
 
-set(CMAKE_CXX_COMPILER "dpcpp")
+if (NOT CMAKE_CXX_COMPILER)
+    set(CMAKE_CXX_COMPILER "dpcpp")
+endif()
+
 include (Platform/Windows-Clang)
-set(CMAKE_LINKER "dpcpp")
+set(CMAKE_LINKER ${CMAKE_CXX_COMPILER})
 set(MSVC TRUE)
