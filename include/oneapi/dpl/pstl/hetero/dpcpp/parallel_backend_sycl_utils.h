@@ -381,10 +381,11 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 };
 
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
-struct __future_base
+class __future_base
 {
     sycl::event __my_event;
 
+  public:
     __future_base() : __my_event(sycl::event{}) {}
     __future_base(sycl::event __e) : __my_event(__e) {}
     void
@@ -402,25 +403,18 @@ class __future : public __future_base
 {
     ::std::size_t __result_idx;
     sycl::buffer<_T> __data;
-    ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmps;
 
   public:
-    template <typename... _Ts>
-    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b, _Ts... __t)
+    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
         : __par_backend_hetero::__future_base(__e), __data(__b), __result_idx(__o)
     {
-        if (sizeof...(_Ts) != 0)
-            __tmps = ::std::unique_ptr<__lifetime_keeper<_Ts...>>(new __lifetime_keeper<_Ts...>(__t...));
     }
 
     _T
     get()
     {
-        this->wait();
         return __data.template get_access<access_mode::read>()[__result_idx];
     }
-    template <class _Tp, class _Enable>
-    friend class oneapi::dpl::__internal::__future;
 };
 
 template <>
