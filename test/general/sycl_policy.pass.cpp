@@ -50,22 +50,25 @@ void test_policy_instance(const Policy& policy)
 int32_t
 main()
 {
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy<oneapi::dpl::execution::sequenced_policy>::value), "wrong result for is_execution_policy<sequenced_policy>");
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy<oneapi::dpl::execution::unsequenced_policy>::value), "wrong result for is_execution_policy<unsequenced_policy>");
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy<oneapi::dpl::execution::parallel_policy>::value), "wrong result for is_execution_policy<parallel_policy>");
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy<oneapi::dpl::execution::parallel_unsequenced_policy>::value), "wrong result for is_execution_policy<parallel_unsequenced_policy>");
+    using namespace oneapi::dpl::execution;
+    static_assert(is_execution_policy<sequenced_policy>::value, "wrong result for is_execution_policy<sequenced_policy>");
+    static_assert(is_execution_policy<unsequenced_policy>::value, "wrong result for is_execution_policy<unsequenced_policy>");
+    static_assert(is_execution_policy<parallel_policy>::value, "wrong result for is_execution_policy<parallel_policy>");
+    static_assert(is_execution_policy<parallel_unsequenced_policy>::value, "wrong result for is_execution_policy<parallel_unsequenced_policy>");
 #if __cplusplus >= 201402
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy_v<oneapi::dpl::execution::sequenced_policy>), "wrong result for is_execution_policy_v<sequenced_policy>");
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy_v<oneapi::dpl::execution::unsequenced_policy>), "wrong result for is_execution_policy_v<unsequenced_policy>");
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy_v<oneapi::dpl::execution::parallel_policy>), "wrong result for is_execution_policy_v<parallel_policy>");
-    EXPECT_TRUE((oneapi::dpl::execution::is_execution_policy_v<oneapi::dpl::execution::parallel_unsequenced_policy>), "wrong result for is_execution_policy_v<parallel_unsequenced_policy>");
+    static_assert(is_execution_policy_v<sequenced_policy>, "wrong result for is_execution_policy_v<sequenced_policy>");
+    static_assert(is_execution_policy_v<unsequenced_policy>, "wrong result for is_execution_policy_v<unsequenced_policy>");
+    static_assert(is_execution_policy_v<parallel_policy>, "wrong result for is_execution_policy_v<parallel_policy>");
+    static_assert(is_execution_policy_v<parallel_unsequenced_policy>, "wrong result for is_execution_policy_v<parallel_unsequenced_policy>");
 #endif //__cplusplus >= 201402
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    using namespace oneapi::dpl::execution;
     auto q = sycl::queue{TestUtils::default_selector};
 
-    EXPECT_TRUE((is_execution_policy<device_policy<class Kernel_0>>::value), "wrong result for is_execution_policy<device_policy>");
+    static_assert(is_execution_policy<device_policy<class Kernel_0>>::value, "wrong result for is_execution_policy<device_policy>");
+#if __cplusplus >= 201402
+    static_assert(is_execution_policy_v<device_policy<class Kernel_0>>, "wrong result for is_execution_policy_v<device_policy>");
+#endif //__cplusplus >= 201402
 
     test_policy_instance(dpcpp_default);
 
@@ -85,10 +88,13 @@ main()
     test_policy_instance(device_policy<class Kernel_24>(sycl::queue(dpcpp_default))); // conversion to sycl::queue
     test_policy_instance(device_policy<>{});
     class Kernel_25;
-    EXPECT_TRUE((std::is_same<device_policy<Kernel_25>::kernel_name, Kernel_25>::value), "wrong result for kernel_name");
+    static_assert(std::is_same<device_policy<Kernel_25>::kernel_name, Kernel_25>::value, "wrong result for kernel_name (device_policy)");
 
 #if ONEDPL_FPGA_DEVICE
-    EXPECT_TRUE((is_execution_policy<fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>::value), "wrong result for is_execution_policy<fpga_policy>");
+    static_assert(is_execution_policy<fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>::value, "wrong result for is_execution_policy<fpga_policy>");
+#if __cplusplus >= 201402
+    static_assert(is_execution_policy_v<fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>, "wrong result for is_execution_policy_v<fpga_policy>");
+#endif //__cplusplus >= 201402
     test_policy_instance(dpcpp_fpga);
 
     // make_fpga_policy
@@ -103,7 +109,8 @@ main()
     test_policy_instance(fpga_policy</*unroll_factor =*/ 2, class Kernel_42>(sycl::device{TestUtils::default_selector}));
     test_policy_instance(fpga_policy</*unroll_factor =*/ 4, class Kernel_43>(dpcpp_fpga));
     test_policy_instance(fpga_policy</*unroll_factor =*/ 8, class Kernel_44>{});
-    EXPECT_TRUE((fpga_policy</*unroll_factor =*/ 8, class Kernel_45>::unroll_factor == 8), "wrong unroll_factor");
+    static_assert(std::is_same<fpga_policy</*unroll_factor =*/ 8, Kernel_25>::kernel_name, Kernel_25>::value, "wrong result for kernel_name (fpga_policy)");
+    static_assert(fpga_policy</*unroll_factor =*/ 16, class Kernel_45>::unroll_factor == 16, "wrong unroll_factor");
 #endif // ONEDPL_FPGA_DEVICE
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
