@@ -111,10 +111,11 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
         this->wait();
         return __data;
     }
-    __future(__par_backend_hetero::__future<typename ::std::iterator_traits<_T>::value_type>&& __o, size_t __d)
-        : __par_backend_hetero::__future_base(::std::move(__o.__my_event)),
-          __data(oneapi::dpl::begin(::std::move(__o.__data)) + __d)
+    __future(__par_backend_hetero::__future<typename ::std::iterator_traits<_T>::value_type>&& __o, _T __d)
+        : __par_backend_hetero::__future_base(::std::move(__o.__my_event)), __data(__d)
     {
+        __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>>(
+            new __par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>(__o.__data));
     }
 };
 #endif

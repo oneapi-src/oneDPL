@@ -231,7 +231,7 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
         unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op});
-    return oneapi::dpl::__internal::__future<_Iterator2>(::std::move(__res), __n);
+    return oneapi::dpl::__internal::__future<_Iterator2>(::std::move(__res), __result + __n);
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation, typename _Type,
