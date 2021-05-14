@@ -330,7 +330,7 @@ pipeline {
                                         for (String example : examples_cpp) {
                                             test_pass_status = test_pass_status && runExample(example,"-DCMAKE_CXX_COMPILER=c++")
                                         }
-                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=gcc -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
+                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
 
                                         if (test_pass_status != true) {
                                             echo "Some checks failed. Please check log to fix the issue."
