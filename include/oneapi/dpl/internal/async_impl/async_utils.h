@@ -76,6 +76,14 @@ class __future : public __par_backend_hetero::__future_base
         this->wait();
         return __ret_val->data(__init);
     }
+    template <typename _Op>
+    __future(__par_backend_hetero::__future<_T> __o, _T __i, _Op __op)
+        : __par_backend_hetero::__future_base(__o.__my_event), __init(__i)
+    {
+        using _Buf = decltype(__o.__data);
+        __ret_val = ::std::unique_ptr<async_value<_T, _Buf, _Op>>(
+            new async_value<_T, _Buf, _Op>(__o.__data, __op, __o.__result_idx));
+    }
 };
 
 #if _ONEDPL_BACKEND_SYCL
@@ -96,11 +104,18 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
             __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
                 new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
     }
+    __future(_T __d) : __par_backend_hetero::__future_base(sycl::event{}), __data(__d) {}
     _T
     get()
     {
         this->wait();
         return __data;
+    }
+    __future(__par_backend_hetero::__future<typename ::std::iterator_traits<_T>::value_type>&& __o, _T __d)
+        : __par_backend_hetero::__future_base(::std::move(__o.__my_event)), __data(__d)
+    {
+        __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>>(
+            new __par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>(__o.__data));
     }
 };
 #endif
