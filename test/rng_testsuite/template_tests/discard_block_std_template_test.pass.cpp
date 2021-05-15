@@ -182,7 +182,7 @@ int main() {
     constexpr int nsamples = 100;
     int err = 0;
 
-    testing discard_block_engine<minstd_rand0, 100, 10>
+    // testing discard_block_engine<minstd_rand0, 100, 10>
     std::cout << "-------------------------------------------" << std::endl;
     std::cout << "discard_block_engine<minstd_rand0, 100, 10>" << std::endl;
     std::cout << "-------------------------------------------" << std::endl;
