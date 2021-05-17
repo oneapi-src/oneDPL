@@ -19,6 +19,13 @@
 
 #include <CL/sycl.hpp>
 
+// Macros to check the new SYCL features
+#if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION)
+#    define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_MAJOR_VERSION >= 5 && __LIBSYCL_MINOR_VERSION >= 2)
+#else
+#    define _ONEDPL_KERNEL_BUNDLE_PRESENT 0
+#endif
+
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
@@ -184,7 +191,7 @@ class __kernel_name_base
     static sycl::kernel
     __compile_kernel(_Exec&& __exec)
     {
-#if SYCL_LANGUAGE_VERSION >= 202001
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
         auto __kernel_bundle = sycl::get_kernel_bundle(__exec.queue().get_context());
         return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
 #else
