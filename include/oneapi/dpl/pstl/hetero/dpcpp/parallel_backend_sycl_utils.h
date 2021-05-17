@@ -398,9 +398,23 @@ class __future_base
     operator sycl::event() const { return __my_event; }
 };
 
-template <typename T>
+template <typename _T>
 class __future : public __future_base
 {
+    ::std::size_t __result_idx;
+    sycl::buffer<_T> __data;
+
+  public:
+    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
+        : __par_backend_hetero::__future_base(__e), __data(__b), __result_idx(__o)
+    {
+    }
+
+    _T
+    get()
+    {
+        return __data.template get_access<access_mode::read>()[__result_idx];
+    }
 };
 
 template <>

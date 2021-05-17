@@ -405,13 +405,16 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    auto __ret_idx = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
-            __identity_reduce_fn, __identity_init_fn},
-        __identity_reduce_fn,
-        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
-        __buf.all_view());
+    auto __ret_idx =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
+                                          decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
+            __identity_reduce_fn,
+            unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
+                __identity_reduce_fn},
+            __buf.all_view())
+            .get();
 
     return __first + ::std::get<0>(__ret_idx);
 }
@@ -491,15 +494,17 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    _ReduceValueType __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                                            /*__grainsize=*/8>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>, decltype(__identity_init_fn)>{
-            __identity_reduce_fn<_Compare>{__comp}, __identity_init_fn},
-        __identity_reduce_fn<_Compare>{__comp},
-        unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
-            __identity_reduce_fn<_Compare>{__comp}},
-        __buf.all_view());
+    auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                                /*__grainsize=*/8>(
+                     ::std::forward<_ExecutionPolicy>(__exec),
+                     unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>,
+                                                   decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
+                                                                                 __identity_init_fn},
+                     __identity_reduce_fn<_Compare>{__comp},
+                     unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
+                         __identity_reduce_fn<_Compare>{__comp}},
+                     __buf.all_view())
+                     .get();
     return ::std::make_pair<_Iterator, _Iterator>(__first + ::std::get<0>(__ret), __first + ::std::get<1>(__ret));
 }
 
@@ -619,12 +624,14 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
-            __identity_reduce_fn, __identity_init_fn},
-        __identity_reduce_fn,
-        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
-        __buf.all_view());
+               ::std::forward<_ExecutionPolicy>(__exec),
+               unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
+                                             decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
+               __identity_reduce_fn,
+               unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
+                   __identity_reduce_fn},
+               __buf.all_view())
+        .get();
 }
 
 //------------------------------------------------------------------------
@@ -947,7 +954,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
         // global scan
         __copy_by_mask_op);
 
-    return ::std::make_pair(__output_first + __res.first, __res.second);
+    return ::std::make_pair(__output_first + __n, __res.get());
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Predicate>
@@ -1140,13 +1147,16 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    _ReduceValueType __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
-            __identity_reduce_fn, __identity_init_fn},
-        __identity_reduce_fn,
-        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
-        __buf.all_view());
+    auto __res =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
+                                          decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
+            __identity_reduce_fn,
+            unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
+                __identity_reduce_fn},
+            __buf.all_view())
+            .get();
 
     return __broken != __identity_reduce_fn(_ReduceValueType{__all_true}, __res);
 }
@@ -1422,13 +1432,16 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __shared_size);
 
-    auto __ret_idx = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
-            __identity_reduce_fn, __identity_init_fn},
-        __identity_reduce_fn,
-        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
-        __buf1.all_view(), __buf2.all_view());
+    auto __ret_idx =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
+                                          decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
+            __identity_reduce_fn,
+            unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
+                __identity_reduce_fn},
+            __buf1.all_view(), __buf2.all_view())
+            .get();
 
     return __ret_idx ? __ret_idx == 1 : (__last1 - __first1) < (__last2 - __first2);
 }
@@ -1774,7 +1787,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
                                                                   __get_data_op},
             // global scan
             __copy_by_mask_op)
-            .second;
+            .get();
 
     return __result + __result_size;
 }
