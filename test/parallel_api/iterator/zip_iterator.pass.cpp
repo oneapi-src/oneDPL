@@ -28,6 +28,7 @@
 #include <cmath>
 
 #if !defined(_PSTL_TEST_FOR_EACH) && \
+    !defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING) && \
     !defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY) && \
     !defined(_PSTL_TEST_TRANSFORM_REDUCE_BINARY) && \
     !defined(_PSTL_TEST_COUNT_IF) && \
@@ -40,6 +41,7 @@
     !defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE) && \
     !defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
 #define _PSTL_TEST_FOR_EACH
+#define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING
 #define _PSTL_TEST_TRANSFORM_REDUCE_UNARY
 #define _PSTL_TEST_TRANSFORM_REDUCE_BINARY
 #define _PSTL_TEST_COUNT_IF
@@ -114,6 +116,34 @@ struct test_for_each
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                       TuplePredicate<decltype(f), 0>{f});
+#if _PSTL_SYCL_TEST_USM
+        exec.queue().wait_and_throw();
+#endif
+        host_first1 = get_host_pointer(first1);
+        EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from for_each(tuple)");
+    }
+};
+
+struct test_for_each_structured_binding
+{
+    template <typename Policy, typename Iterator1, typename Size>
+    void
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
+    {
+        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        auto host_first1 = get_host_pointer(first1);
+
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+        auto value = T1(6);
+        auto f = [](T1& val) { ++val; };
+        ::std::fill(host_first1, host_first1 + n, value);
+
+        ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
+                        [f](auto value) {
+                            auto [x, y] = value;
+                            f(x);
+                        });
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
@@ -592,6 +622,10 @@ main()
 #if defined(_PSTL_TEST_FOR_EACH)
     PRINT_DEBUG("test_for_each");
     test1buffer<int32_t, test_for_each>();
+#endif
+#if defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
+    PRINT_DEBUG("test_for_each_structured_binding");
+    test1buffer<int32_t, test_for_each_structured_binding>();
 #endif
 #if defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY)
     PRINT_DEBUG("test_transform_reduce_unary");
