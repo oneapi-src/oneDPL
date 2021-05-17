@@ -44,33 +44,34 @@ test_with_buffers()
         sycl::buffer<int> x{n};
         sycl::buffer<int> y{n};
 
-        auto my_policy = oneapi::dpl::execution::make_device_policy<class Scan>(oneapi::dpl::execution::dpcpp_default);
+        auto my_policy = oneapi::dpl::execution::make_device_policy<class Copy>(oneapi::dpl::execution::dpcpp_default);
+        auto input = oneapi::dpl::counting_iterator<int>(0);
+        
+        dpl::experimental::copy_async(my_policy, input, input+n, dpl::begin(x)).wait();
+        const auto expected1 = ((n-1)*n)/2;
+        const auto expected2 = expected1-n+1;
 
-        // ()
         auto my_policy1 = oneapi::dpl::execution::make_device_policy<class Scan1>(my_policy);
-        auto res1a = dpl::experimental::transform_inclusive_scan_async(my_policy1, dpl::begin(x), dpl::end(x), dpl::begin(y), std::plus<int>(), [](auto x) { return x * 10; }).get();
-        auto my_policy2 = oneapi::dpl::execution::make_device_policy<class Scan2>(my_policy);
-        auto res1b = dpl::experimental::transform_inclusive_scan_async(my_policy2, dpl::begin(x), dpl::end(x), dpl::begin(y), std::plus<int>(), [](auto x) { return x * 10; }, 0).get();
-
-        // ()
+        auto alpha = dpl::experimental::transform_inclusive_scan_async(my_policy1, dpl::begin(x), dpl::end(x), dpl::begin(y), std::plus<int>(), [](auto x) { return x * 10; });
+        auto result1 = alpha.get().get_buffer().get_access<sycl::access::mode::read>()[n-1]; 
+        EXPECT_TRUE(result1 == expected1 * 10, "wrong effect from async scan test (I) with sycl buffer");
+        
         auto my_policy3 = oneapi::dpl::execution::make_device_policy<class Scan3>(my_policy);
-        auto res2 = dpl::experimental::transform_exclusive_scan_async(my_policy3, dpl::begin(x), dpl::end(x), dpl::begin(y), 0, std::plus<int>(), [](auto x) { return x * 10; });
+        auto beta = dpl::experimental::transform_exclusive_scan_async(my_policy3, dpl::begin(x), dpl::end(x), dpl::begin(y), 0, std::plus<int>(), [](auto x) { return x * 10; });
+        auto result2 = beta.get().get_buffer().get_access<sycl::access::mode::read>()[n-1];
+        EXPECT_TRUE(result2 == expected2 * 10, "wrong effect from async scan test (II) with sycl buffer");
 
-        // ()
         auto my_policy4 = oneapi::dpl::execution::make_device_policy<class Scan4>(my_policy);
-        auto res3a = dpl::experimental::inclusive_scan_async(my_policy4, dpl::begin(x), dpl::end(x), dpl::begin(y));
-        auto my_policy5 = oneapi::dpl::execution::make_device_policy<class Scan5>(my_policy);
-        auto res3b = dpl::experimental::inclusive_scan_async(my_policy5, dpl::begin(x), dpl::end(x), dpl::begin(y), std::plus<int>());
-        auto my_policy6 = oneapi::dpl::execution::make_device_policy<class Scan6>(my_policy);
-        auto res3c = dpl::experimental::inclusive_scan_async(my_policy6, dpl::begin(x), dpl::end(x), dpl::begin(y), std::plus<int>(), 0);
+        auto gamma = dpl::experimental::inclusive_scan_async(my_policy4, dpl::begin(x), dpl::end(x), dpl::begin(y));
+        auto result3 = gamma.get().get_buffer().get_access<sycl::access::mode::read>()[n-1]; 
+        EXPECT_TRUE(result3 == expected1, "wrong effect from async scan test (III) with sycl buffer");
 
-        // ()
         auto my_policy7 = oneapi::dpl::execution::make_device_policy<class Scan7>(my_policy);
-        auto res4a = dpl::experimental::exclusive_scan_async(my_policy7, dpl::begin(x), dpl::end(x), dpl::begin(y), 0);
-        auto my_policy8 = oneapi::dpl::execution::make_device_policy<class Scan8>(my_policy);
-        auto res4b = dpl::experimental::exclusive_scan_async(my_policy8, dpl::begin(x), dpl::end(x), dpl::begin(y), 0, std::plus<int>());
-    
-        // TODO: Add check!    
+        auto delta = dpl::experimental::exclusive_scan_async(my_policy7, dpl::begin(x), dpl::end(x), dpl::begin(y), 0);
+        auto result4 = delta.get().get_buffer().get_access<sycl::access::mode::read>()[n-1];
+        EXPECT_TRUE(result4 == expected2, "wrong effect from async scan test (IV) with sycl buffer");
+
+        oneapi::dpl::experimental::wait_for_all(alpha,beta,gamma,delta);   
     }
 }
 #endif
