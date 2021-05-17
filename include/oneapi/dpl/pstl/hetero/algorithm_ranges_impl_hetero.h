@@ -34,48 +34,18 @@ namespace __ranges
 {
 
 //------------------------------------------------------------------------
-// walk1
+// walk_n
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Function>
+template <typename _ExecutionPolicy, typename _Function, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk1(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
+__pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
-    if (!__rng.empty())
+    auto __min_size = oneapi::dpl::__ranges::__get_min_size(__rngs...);
+    if (__min_size > 0)
         oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-                                                          __rng.size(), ::std::forward<_Range>(__rng))
-            .wait();
-}
-
-//------------------------------------------------------------------------
-// walk2
-//------------------------------------------------------------------------
-
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk2(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Function __f)
-{
-    if (!__rng1.empty() && !__rng2.empty())
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-            __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
-            .wait();
-}
-
-//------------------------------------------------------------------------
-// walk3
-//------------------------------------------------------------------------
-
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk3(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Function __f)
-{
-    if (!__rng1.empty() && !__rng2.empty() && !__rng3.empty())
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-            __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-            ::std::forward<_Range3>(__rng3))
+                                                          __min_size, ::std::forward<_Ranges>(__rngs)...)
             .wait();
 }
 
@@ -405,9 +375,9 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
                                             __copy_rng, __not_pred<_Predicate>{__pred});
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
-    oneapi::dpl::__internal::__ranges::__pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __copy_rng_truncated,
-                                                       ::std::forward<_Range>(__rng),
-                                                       oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
+                                                        oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+                                                        __copy_rng_truncated, ::std::forward<_Range>(__rng));
 
     return __copy_last_id;
 }
@@ -449,8 +419,8 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __p
     auto res =
         __pattern_unique_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), res_rng, __pred);
 
-    __pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), res_rng, ::std::forward<_Range>(__rng),
-                    __brick_copy<_ExecutionPolicy>{});
+    __pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
+                     ::std::forward<_Range>(__rng));
     return res;
 }
 
@@ -472,15 +442,15 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
     {
-        oneapi::dpl::__internal::__ranges::__pattern_walk2(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3),
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3));
     }
     else if (__n2 == 0)
     {
-        oneapi::dpl::__internal::__ranges::__pattern_walk2(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range3>(__rng3),
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::forward<_Range1>(__rng1), ::std::forward<_Range3>(__rng3));
     }
     else
     {
