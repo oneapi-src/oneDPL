@@ -37,15 +37,14 @@ namespace __ranges
 // walk1
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk1(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
+template <typename _ExecutionPolicy, typename _Range, typename _Function,
+          typename = oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>,
+          typename... _Events>
+auto __pattern_walk1(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f, _Events&&... __dependencies)
 {
-    if (!__rng.empty())
-        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
-                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-                                                          __rng.size(), ::std::forward<_Range>(__rng))
-            .wait();
+    return oneapi::dpl::__par_backend_hetero::__api(__dependencies...).__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
+         __rng.size(), ::std::forward<_Range>(__rng));
 }
 
 //------------------------------------------------------------------------
