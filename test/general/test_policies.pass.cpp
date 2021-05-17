@@ -45,7 +45,7 @@ void test_policy_instance(const Policy& policy)
 #endif
     EXPECT_TRUE(::std::all_of(a.begin(), a.end(), [](int i) { return i == -1; }), "wrong result of ::std::fill with policy");
 }
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int32_t
 main()
