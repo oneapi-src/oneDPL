@@ -195,7 +195,7 @@ class uniform_real_distribution
         sycl::vec<scalar_type, _Ndistr> __res;
         int __i;
         constexpr int __tail_size = _Ndistr % _Negnine;
-        for (__i = 0; __i < _Ndistr; __i += _Negnine)
+        for (__i = 0; __i < _Ndistr - __tail_size; __i += _Negnine)
         {
             auto __engine_output = __engine();
             auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
@@ -217,7 +217,7 @@ class uniform_real_distribution
                 ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
                     (__params.second - __params.first) +
                 __params.first;
-            for (int __j = 0; __j < _Negnine; __j++)
+            for (int __j = 0; __j < __tail_size; __j++)
                 __res[__i + __j] = __res_tmp[__j];
         }
         return __res;
