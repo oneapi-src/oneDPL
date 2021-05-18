@@ -41,11 +41,11 @@ template <typename _ExecutionPolicy, typename _Function, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
-    auto __min_size = oneapi::dpl::__ranges::__get_min_size(__rngs...);
-    if (__min_size > 0)
+    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    if (__n > 0)
         oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
-                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-                                                          __min_size, ::std::forward<_Ranges>(__rngs)...)
+                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                          ::std::forward<_Ranges>(__rngs)...)
             .wait();
 }
 

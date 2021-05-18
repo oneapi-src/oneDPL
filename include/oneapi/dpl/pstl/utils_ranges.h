@@ -91,18 +91,6 @@ invoke(const _TupleType& __t, _F __f, oneapi::dpl::__internal::__index_sequence<
     __f(::std::get<_Ip>(__t)...);
 }
 
-template <typename _Range, typename... _Ranges>
-constexpr auto
-__get_min_size(const _Range& __rng, const _Ranges&... rest) -> decltype(__rng.size())
-{
-    constexpr ::std::size_t __num_rest = sizeof...(_Ranges);
-    ::std::integral_constant<bool, __num_rest == 0> __is_one;
-
-    return oneapi::dpl::__internal::__invoke_if_else(
-        __is_one, [&__rng]() { return __rng.size(); },
-        [&]() { return ::std::min(__rng.size(), __get_min_size(rest...)); });
-}
-
 template <typename... _Ranges>
 class zip_view
 {

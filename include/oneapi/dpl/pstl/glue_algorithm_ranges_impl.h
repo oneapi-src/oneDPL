@@ -70,8 +70,8 @@ template <typename _ExecutionPolicy, typename _Range, typename _Function>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 for_each(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
 {
-    oneapi::dpl::__internal::__ranges::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec),
-                                                       views::all(::std::forward<_Range>(__rng)), __f);
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
+                                                        __f views::all(::std::forward<_Range>(__rng)));
 }
 
 // [alg.find]
@@ -230,9 +230,9 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
 {
-    oneapi::dpl::__internal::__ranges::__pattern_walk2(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
-        views::all_write(::std::forward<_Range2>(__result)), oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+        ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+        views::all_read(::std::forward<_Range1>(__rng)), views::all_write(::std::forward<_Range2>(__result)));
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
@@ -255,13 +255,15 @@ swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
     using _ReferenceType1 = oneapi::dpl::__internal::__value_t<_Range1>&;
     using _ReferenceType2 = oneapi::dpl::__internal::__value_t<_Range2>&;
 
-    auto __v1 = views::all(::std::forward<_Range1>(__rng1));
-    auto __v2 = views::all(::std::forward<_Range2>(__rng2));
-    oneapi::dpl::__internal::__ranges::__pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __v1, __v2,
-                                                       [](_ReferenceType1 __x, _ReferenceType2 __y) {
-                                                           using ::std::swap;
-                                                           swap(__x, __y);
-                                                       });
+    auto is_first_size = __rng1.size() <= __rng2.size();
+    auto __v1 = views::all(::std::forward<_Range1>(is_first_size ? __rng1 : __rng2));
+    auto __v2 = views::all(::std::forward<_Range2>(is_first_size ? __rng2 : __rng1));
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
+                                                        [](_ReferenceType1 __x, _ReferenceType2 __y) {
+                                                            using ::std::swap;
+                                                            swap(__x, __y);
+                                                        },
+                                                        __v1, __v2);
     return __v1.size();
 }
 
@@ -271,19 +273,19 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _UnaryOperation __op)
 {
-    oneapi::dpl::__internal::__ranges::__pattern_walk2(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
-        views::all_write(::std::forward<_Range2>(__result)), [__op](auto x, auto& z) { z = __op(x); });
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+        ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto& z) { z = __op(x); },
+        views::all_read(::std::forward<_Range1>(__rng)), views::all_write(::std::forward<_Range2>(__result)));
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _BinaryOperation>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _BinaryOperation __op)
 {
-    oneapi::dpl::__internal::__ranges::__pattern_walk3(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
-        views::all_read(::std::forward<_Range2>(__rng2)), views::all_write(::std::forward<_Range3>(__result)),
-        [__op](auto x, auto y, auto& z) { z = __op(x, y); });
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+        ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto y, auto& z) { z = __op(x, y); },
+        views::all_read(::std::forward<_Range1>(__rng1)), views::all_read(::std::forward<_Range2>(__rng2)),
+        views::all_write(::std::forward<_Range3>(__result)));
 }
 
 // [alg.remove]
@@ -408,11 +410,12 @@ template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate, 
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 replace_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred, const _Tp& __new_value)
 {
-    oneapi::dpl::__internal::__ranges::__pattern_walk1(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all(::std::forward<_Range>(__rng)),
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+        ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__internal::__replace_functor<
             oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>,
-            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>(__new_value, __pred));
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>(__new_value, __pred),
+        views::all(::std::forward<_Range>(__rng)));
 }
 
 template <typename _ExecutionPolicy, typename _Range, typename _Tp>
@@ -433,13 +436,14 @@ replace_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, 
                 const _Tp& __new_value)
 {
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
-    oneapi::dpl::__internal::__ranges::__pattern_walk2(
-        ::std::forward<_ExecutionPolicy>(__exec), __src, views::all_write(::std::forward<_Range2>(__result)),
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+        ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__internal::__replace_copy_functor<
             oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>,
             typename ::std::conditional<
                 oneapi::dpl::__internal::__is_const_callable_object<_UnaryPredicate>::value, _UnaryPredicate,
-                oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>::type>(__new_value, __pred));
+                oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>::type>(__new_value, __pred),
+        __src, views::all_write(::std::forward<_Range2>(__result)));
     return __src.size();
 }
 
@@ -559,10 +563,9 @@ move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
     using _DecayedExecutionPolicy = typename ::std::decay<_ExecutionPolicy>::type;
 
-    oneapi::dpl::__internal::__ranges::__pattern_walk2(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
-        views::all_write(::std::forward<_Range2>(__rng2)),
-        oneapi::dpl::__internal::__brick_move<_DecayedExecutionPolicy>{});
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+        ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_move<_DecayedExecutionPolicy>{},
+        views::all_read(::std::forward<_Range1>(__rng1)), views::all_write(::std::forward<_Range2>(__rng2)));
 }
 
 // [alg.merge]
