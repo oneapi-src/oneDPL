@@ -19,6 +19,7 @@ ifeq ($(os_name), linux)
     ifneq (, $(shell which dpcpp))
         override compiler:=dpcpp
     endif
+    CPLUS_FLAGS += -fopenmp-simd
     ifeq ($(compiler), clang++)
         CPLUS_FLAGS += -fsycl
         DYN_LDFLAGS += -fsycl
@@ -37,6 +38,7 @@ endif
 ifeq ($(os_name), windows)
     DPCPP_OPTIMIZATION_DISABLED_FLAGS=$(KEY)O1 $(KEY)Zi $(KEY)Fd"$*.pdb" $(KEY)DEBUG
     override compiler:=dpcpp
+    CPLUS_FLAGS += -qopenmp-simd
     ifneq ($(stdver),)
         CPLUS_FLAGS += $(QKEY)std:$(stdver)
     endif
