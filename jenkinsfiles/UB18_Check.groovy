@@ -243,7 +243,7 @@ pipeline {
                     }
                 }
 
-                stage('Tests_icpx_cpu_cxx_17') {
+                stage('Tests_icpx_tbb_cxx_17') {
                     when {
                         expression { code_changed }
                     }
