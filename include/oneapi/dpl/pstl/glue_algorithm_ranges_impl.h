@@ -70,8 +70,8 @@ template <typename _ExecutionPolicy, typename _Range, typename _Function>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 for_each(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
 {
-    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
-                                                        __f views::all(::std::forward<_Range>(__rng)));
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f,
+                                                        views::all(::std::forward<_Range>(__rng)));
 }
 
 // [alg.find]
@@ -255,15 +255,17 @@ swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
     using _ReferenceType1 = oneapi::dpl::__internal::__value_t<_Range1>&;
     using _ReferenceType2 = oneapi::dpl::__internal::__value_t<_Range2>&;
 
-    auto is_first_size = __rng1.size() <= __rng2.size();
-    auto __v1 = views::all(::std::forward<_Range1>(is_first_size ? __rng1 : __rng2));
-    auto __v2 = views::all(::std::forward<_Range2>(is_first_size ? __rng2 : __rng1));
-    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
-                                                        [](_ReferenceType1 __x, _ReferenceType2 __y) {
-                                                            using ::std::swap;
-                                                            swap(__x, __y);
-                                                        },
-                                                        __v1, __v2);
+    auto __v1 = views::all(::std::forward<_Range1>(__rng1));
+    auto __v2 = views::all(::std::forward<_Range2>(__rng2));
+    const auto is_first_size = __v1.size() <= __v2.size();
+
+    auto __f = [](_ReferenceType1 __x, _ReferenceType2 __y) { using ::std::swap; swap(__x, __y);};
+
+    if(is_first_size)
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f, __v1, __v2);
+    else
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f, __v2, __v1);
+
     return __v1.size();
 }
 
