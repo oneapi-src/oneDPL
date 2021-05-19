@@ -50,8 +50,8 @@ main()
         auto exec3 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 2>>(exec);
              
         swap_ranges(exec1, views::all(A), B);
-      //  swap_ranges(exec2, B, C);
-//        swap_ranges(exec3, C, D);
+        swap_ranges(exec2, B, C);
+        swap_ranges(exec3, C, D);
     }
 
     //check result
@@ -63,7 +63,7 @@ main()
     auto expected1 = views::iota(0, max_n) | views::reverse;
     EXPECT_EQ_N(expected1.begin(), data1, max_n, "wrong result from swap");
 
-  /*  auto expected2_1 = views::fill(-1, max_n_2);
+    auto expected2_1 = views::fill(-1, max_n_2);
     auto expected2_2 = views::iota(max_n_2, max_n);
     EXPECT_EQ_N(expected2_1.begin(), data2, max_n_2, "wrong result from swap");
     EXPECT_EQ_N(expected2_2.begin(), data2 + max_n_2, max_n_2, "wrong result from swap");
@@ -74,7 +74,7 @@ main()
     auto expected4_1 = views::iota(0, max_n_2);
     auto expected4_2 = expected3;
     EXPECT_EQ_N(expected4_1.begin(), data4, max_n_2, "wrong result from swap");
-    EXPECT_EQ_N(expected4_2.begin(), data4 + max_n_2, max_n_2, "wrong result from swap");*/
+    EXPECT_EQ_N(expected4_2.begin(), data4 + max_n_2, max_n_2, "wrong result from swap");
 
 #endif //_ENABLE_RANGES_TESTING
     return TestUtils::done(_ENABLE_RANGES_TESTING);
