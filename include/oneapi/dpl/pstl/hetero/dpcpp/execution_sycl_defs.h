@@ -32,9 +32,7 @@ namespace execution
 inline namespace __dpl
 {
 
-struct DefaultKernelName
-{
-};
+struct DefaultKernelName;
 
 //We can create device_policy object:
 // 1. from sycl::queue
@@ -84,7 +82,8 @@ class device_policy
 };
 
 #if _ONEDPL_FPGA_DEVICE
-template <unsigned int factor = 1, typename KernelName = DefaultKernelName>
+struct DefaultKernelNameFPGA;
+template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
@@ -167,7 +166,7 @@ make_device_policy(sycl::device d)
     return device_policy<KernelName>(d);
 }
 
-template <typename NewKernelName, typename OldKernelName>
+template <typename NewKernelName, typename OldKernelName = DefaultKernelName>
 device_policy<NewKernelName>
 make_device_policy(const device_policy<OldKernelName>& policy
 #if _ONEDPL_USE_PREDEFINED_POLICIES
@@ -179,22 +178,22 @@ make_device_policy(const device_policy<OldKernelName>& policy
 }
 
 #if _ONEDPL_FPGA_DEVICE
-template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelName>
+template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelNameFPGA>
 fpga_policy<unroll_factor, KernelName>
 make_fpga_policy(sycl::queue q)
 {
     return fpga_policy<unroll_factor, KernelName>(q);
 }
 
-template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelName>
+template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelNameFPGA>
 fpga_policy<unroll_factor, KernelName>
 make_fpga_policy(sycl::device d)
 {
     return fpga_policy<unroll_factor, KernelName>(d);
 }
 
-template <unsigned int new_unroll_factor, typename NewKernelName, unsigned int old_unroll_factor,
-          typename OldKernelName>
+template <unsigned int new_unroll_factor, typename NewKernelName, unsigned int old_unroll_factor = 1,
+          typename OldKernelName = DefaultKernelNameFPGA>
 fpga_policy<new_unroll_factor, NewKernelName>
 make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy
 #    if _ONEDPL_USE_PREDEFINED_POLICIES
