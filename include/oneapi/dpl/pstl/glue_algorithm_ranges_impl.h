@@ -265,11 +265,15 @@ swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
     };
 
     if (is_first_size)
+    {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f, __v1, __v2);
+        return __v1.size();
+    }
     else
+    {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f, __v2, __v1);
-
-    return __v1.size();
+        return __v2.size();
+    }
 }
 
 // [alg.transform]
