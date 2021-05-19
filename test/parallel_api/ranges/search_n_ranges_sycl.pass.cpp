@@ -49,11 +49,11 @@ main()
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
 
         res1 = search_n(exec1, view_a, n_val, val, [](auto a, auto b) { return a == b; });
-        res2 = search_n(exec2, A, n_val, val, [](auto a, auto b) { return a == b; });
+        res2 = search_n(exec2, A, n_val, val);
     }
 
     //check result
-    EXPECT_TRUE(res1 == idx, "wrong effect from 'search_n' with sycl ranges");
+    EXPECT_TRUE(res1 == idx, "wrong effect from 'search_n' sycl ranges, with predicate");
     EXPECT_TRUE(res2 == idx, "wrong effect from 'search_n' with sycl buffer");
 
 #endif //_ENABLE_RANGES_TESTING
