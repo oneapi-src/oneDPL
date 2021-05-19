@@ -306,7 +306,7 @@ pipeline {
                                                         -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
                                                         -DCMAKE_CXX_STANDARD=17^
                                                         -DCMAKE_BUILD_TYPE=release^
-                                                        -DCMAKE_CXX_COMPILER=dpcpp^
+                                                        -DCMAKE_CXX_COMPILER=dpcpp-cl^
                                                         -DONEDPL_BACKEND=dpcpp^
                                                         -DONEDPL_DEVICE_TYPE=GPU ..
                                                 """, label: "Generate"
