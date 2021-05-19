@@ -259,9 +259,12 @@ swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
     auto __v2 = views::all(::std::forward<_Range2>(__rng2));
     const auto is_first_size = __v1.size() <= __v2.size();
 
-    auto __f = [](_ReferenceType1 __x, _ReferenceType2 __y) { using ::std::swap; swap(__x, __y);};
+    auto __f = [](_ReferenceType1 __x, _ReferenceType2 __y) {
+        using ::std::swap;
+        swap(__x, __y);
+    };
 
-    if(is_first_size)
+    if (is_first_size)
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f, __v1, __v2);
     else
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f, __v2, __v1);
