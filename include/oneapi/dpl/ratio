@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 #ifndef __ONEDPL_ratio
 #define __ONEDPL_ratio
+#include "oneapi/dpl/internal/common_config.h"
 #include <utility>
 
 namespace oneapi
