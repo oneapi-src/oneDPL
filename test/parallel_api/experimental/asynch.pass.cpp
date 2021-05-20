@@ -27,14 +27,6 @@
 #include <iomanip>
 #include <numeric>
 
-template <typename _T1, typename _T2>
-void
-ASSERT_EQUAL(_T1&& X, _T2&& Y)
-{
-    if (X != Y)
-        std::cout << "CHECK CORRECTNESS (ASYNC): fail (" << X << "," << Y << ")" << std::endl;
-}
-
 #if TEST_DPCPP_BACKEND_PRESENT
 void test1_with_buffers()
 {
@@ -188,6 +180,5 @@ main()
     test2_with_buffers();
     test_with_usm();
 #endif
-    std::cout << "done" << std::endl;
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
