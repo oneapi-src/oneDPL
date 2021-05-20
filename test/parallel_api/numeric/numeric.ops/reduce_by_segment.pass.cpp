@@ -21,8 +21,6 @@
 #include "support/test_config.h"
 #include "support/utils.h"
 
-#include <iostream>
-#include <iomanip>
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include <CL/sycl.hpp>
