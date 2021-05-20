@@ -286,6 +286,7 @@ pipeline {
                                             sh script: """
                                                 rm -rf *
                                                 export PATH=/usr/bin/:$PATH
+                                                export SYCL_DISABLE_PARALLEL_FOR_RANGE_ROUNDING=1
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=FPGA_EMU -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 ${TESTS} -k || true
                                                 ctest  -R \"^(`echo ${TESTS} | sed 's/ /|/g'`)\$\" --output-on-failure --timeout ${TEST_TIMEOUT}
