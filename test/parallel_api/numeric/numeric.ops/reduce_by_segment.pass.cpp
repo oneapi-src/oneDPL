@@ -265,7 +265,7 @@ test4buffers()
     {
         invoke_on_all_hetero_policies<1>()(test_reduce_by_segment(), keys, keys + n, vals, key_res, val_res, n);
     }
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
