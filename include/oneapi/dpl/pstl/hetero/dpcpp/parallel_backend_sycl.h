@@ -192,7 +192,7 @@ class __kernel_name_base
     __compile_kernel(_Exec&& __exec)
     {
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
-        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::object>(__exec.queue().get_context());
+        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__exec.queue().get_context());
         return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
 #else
         sycl::program __program(__exec.queue().get_context());
