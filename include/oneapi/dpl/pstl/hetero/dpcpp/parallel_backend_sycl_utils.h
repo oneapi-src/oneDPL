@@ -385,7 +385,7 @@ struct __future_base
 {
     sycl::event __my_event;
 
-    __future_base() : __my_event(sycl::event{}) {}
+    __future_base() = default;
     __future_base(sycl::event __e) : __my_event(__e) {}
     void
     wait()
@@ -435,6 +435,8 @@ class __future<void> : public __future_base
     {
         this->wait();
     }
+    template <class _Tp, class _Enable>
+    friend class oneapi::dpl::__internal::__future;
 };
 
 } // namespace __par_backend_hetero

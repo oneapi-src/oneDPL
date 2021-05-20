@@ -67,7 +67,7 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         __buf1.all_view(), __buf2.all_view());
     oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future_obj]() { __future_obj.wait(); });
 
-    return oneapi::dpl::__internal::__future<_ForwardIterator2>(__future_obj, __first2 + __n);
+    return oneapi::dpl::__internal::__future<_ForwardIterator2>(::std::move(__future_obj), __first2 + __n);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
@@ -95,7 +95,7 @@ __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
 
-    return oneapi::dpl::__internal::__future<_ForwardIterator3>(__future_obj, __first3 + __n);
+    return oneapi::dpl::__internal::__future<_ForwardIterator3>(::std::move(__future_obj), __first3 + __n);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Brick>
@@ -142,6 +142,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         __binary_op1,                                                                                // combine
         unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1},                // reduce
         __buf1.all_view(), __buf2.all_view());
+    // using move constructor to enable stealing resources (keep alive objects)
     return oneapi::dpl::__internal::__future<_Tp>(::std::move(__res), __init, __binary_op1);
 }
 
