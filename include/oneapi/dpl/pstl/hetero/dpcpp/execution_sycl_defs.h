@@ -44,19 +44,30 @@ class device_policy
 {
   public:
     using kernel_name = KernelName;
+    ::std::size_t __max_work_group_size;
+    uint64_t __max_local_allocation_size;
+    ::std::size_t __max_sub_group_size;
+    uint32_t __max_compute_units;
 
-    device_policy() = default;
+    device_policy() : q(sycl::queue{}) { __init(); };
     template <typename OtherName>
     device_policy(const device_policy<OtherName>& other) : q(other.queue())
     {
+        __init();
     }
-    explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) : q(d_) {}
+    explicit device_policy(const sycl::queue& q_) : q(q_) { __init(); }
+    explicit device_policy(const sycl::device& d_) : q(d_) { __init(); }
     operator sycl::queue() const { return q; }
     sycl::queue
     queue() const
     {
         return q;
+    }
+
+    sycl::device
+    device() const
+    {
+        return d;
     }
 
     // For internal use only
@@ -79,6 +90,24 @@ class device_policy
 
   private:
     sycl::queue q;
+    sycl::device d;
+
+    void __init()
+    {
+        d = q.get_device();
+        __max_work_group_size = d.template get_info<sycl::info::device::max_work_group_size>();
+        __max_local_allocation_size = d.template get_info<sycl::info::device::local_mem_size>();
+        __max_compute_units = d.template get_info<sycl::info::device::max_compute_units>();
+        // TODO: can get_info<sycl::info::device::sub_group_sizes>() return zero-size vector?
+        //       Spec does not say anything about that.
+        sycl::vector_class<::std::size_t> __supported_sg_sizes =
+            d.template get_info<sycl::info::device::sub_group_sizes>();
+
+        // TODO: Since it is unknown if sycl::vector_class returned
+        //       by get_info<sycl::info::device::sub_group_sizes>() can be empty,
+        //       at() is used instead of operator[] for out of bound check
+        __max_sub_group_size = __supported_sg_sizes.at(__supported_sg_sizes.size() - 1);
+    }
 };
 
 #if _ONEDPL_FPGA_DEVICE
@@ -104,8 +133,8 @@ class fpga_policy : public device_policy<KernelName>
 
     template <unsigned int other_factor, typename OtherName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
-    explicit fpga_policy(sycl::queue q) : base(q) {}
-    explicit fpga_policy(sycl::device d) : base(d) {}
+    explicit fpga_policy(const sycl::queue& q) : base(q) {}
+    explicit fpga_policy(const sycl::device& d) : base(d) {}
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
@@ -154,14 +183,14 @@ static fpga_policy<> dpcpp_fpga{__get_fpga_policy_object()};
 // make_policy functions
 template <typename KernelName = DefaultKernelName>
 device_policy<KernelName>
-make_device_policy(sycl::queue q)
+make_device_policy(const sycl::queue& q)
 {
     return device_policy<KernelName>(q);
 }
 
 template <typename KernelName = DefaultKernelName>
 device_policy<KernelName>
-make_device_policy(sycl::device d)
+make_device_policy(const sycl::device& d)
 {
     return device_policy<KernelName>(d);
 }
@@ -180,14 +209,14 @@ make_device_policy(const device_policy<OldKernelName>& policy
 #if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelNameFPGA>
 fpga_policy<unroll_factor, KernelName>
-make_fpga_policy(sycl::queue q)
+make_fpga_policy(const sycl::queue& q)
 {
     return fpga_policy<unroll_factor, KernelName>(q);
 }
 
 template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelNameFPGA>
 fpga_policy<unroll_factor, KernelName>
-make_fpga_policy(sycl::device d)
+make_fpga_policy(const sycl::device& d)
 {
     return fpga_policy<unroll_factor, KernelName>(d);
 }
@@ -328,14 +357,14 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __max_work_group_size(_ExecutionPolicy&& __policy)
 {
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+    return __policy.__max_work_group_size;
 }
 
 template <typename _ExecutionPolicy, typename _T>
-sycl::cl_ulong
+uint64_t
 __max_local_allocation_size(_ExecutionPolicy&& __policy, const sycl::cl_ulong& __local_allocation_size)
 {
-    const auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
+    const auto __local_mem_size = __policy.__max_local_allocation_size;
     return ::std::min(__local_mem_size / sizeof(_T), __local_allocation_size);
 }
 
@@ -344,15 +373,7 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __max_sub_group_size(_ExecutionPolicy&& __policy)
 {
-    // TODO: can get_info<sycl::info::device::sub_group_sizes>() return zero-size vector?
-    //       Spec does not say anything about that.
-    sycl::vector_class<::std::size_t> __supported_sg_sizes =
-        __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-
-    // TODO: Since it is unknown if sycl::vector_class returned
-    //       by get_info<sycl::info::device::sub_group_sizes>() can be empty,
-    //       at() is used instead of operator[] for out of bound check
-    return __supported_sg_sizes.at(__supported_sg_sizes.size() - 1);
+    return __policy.__max_sub_group_size;
 }
 #endif
 
@@ -360,7 +381,7 @@ template <typename _ExecutionPolicy>
 sycl::cl_uint
 __max_compute_units(_ExecutionPolicy&& __policy)
 {
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
+    return __policy.__max_compute_units;
 }
 
 //-----------------------------------------------------------------------------
@@ -374,7 +395,7 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    const auto& __device = __policy.queue().get_device();
+    const auto& __device = __policy.device();
     // TODO: investigate can we use kernel_work_group::preferred_work_group_size_multiple here.
     auto __max_wg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
@@ -394,7 +415,7 @@ template <typename _ExecutionPolicy>
 long
 __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    auto __device = __policy.queue().get_device();
+    auto __device = __policy.device();
     auto __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
     const ::std::size_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
