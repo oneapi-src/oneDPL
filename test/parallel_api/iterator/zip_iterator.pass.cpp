@@ -124,6 +124,7 @@ struct test_for_each
     }
 };
 
+#if __cplusplus >= 201703L
 struct test_for_each_structured_binding
 {
     template <typename Policy, typename Iterator1, typename Size>
@@ -151,6 +152,7 @@ struct test_for_each_structured_binding
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from for_each(tuple)");
     }
 };
+#endif // __cplusplus >= 201703L
 
 struct test_transform_reduce_unary
 {
@@ -623,7 +625,7 @@ main()
     PRINT_DEBUG("test_for_each");
     test1buffer<int32_t, test_for_each>();
 #endif
-#if defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
+#if (__cplusplus >= 201703L) && defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
     PRINT_DEBUG("test_for_each_structured_binding");
     test1buffer<int32_t, test_for_each_structured_binding>();
 #endif

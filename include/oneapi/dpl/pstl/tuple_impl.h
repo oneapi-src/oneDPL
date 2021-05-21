@@ -299,28 +299,28 @@ struct tuple<T1, T...>
     using tuple_type = ::std::tuple<T1, T...>;
 
     template <::std::size_t I>
-    constexpr auto
+    _ONEDPL_CPP14_CONSTEXPR auto
     get() & -> decltype(get_impl<I>()(*this))
     {
         return get_impl<I>()(*this);
     }
 
     template <::std::size_t I>
-    constexpr auto
+    _ONEDPL_CPP14_CONSTEXPR auto
     get() const& -> decltype(get_impl<I>()(*this))
     {
         return get_impl<I>()(*this);
     }
 
     template <::std::size_t I>
-    constexpr auto
+    _ONEDPL_CPP14_CONSTEXPR auto
     get() && -> decltype(get_impl<I>()(::std::move(*this)))
     {
         return get_impl<I>()(::std::move(*this));
     }
 
     template <::std::size_t I>
-    constexpr auto
+    _ONEDPL_CPP14_CONSTEXPR auto
     get() const&& -> decltype(get_impl<I>()(::std::move(*this)))
     {
         return get_impl<I>()(::std::move(*this));
@@ -329,8 +329,13 @@ struct tuple<T1, T...>
     tuple() = default;
     tuple(const tuple& other) = default;
     tuple(tuple&& other) = default;
-    template <typename U1, typename... U>
-    tuple(const tuple<U1, U...>& other) : holder(other.holder.value), next(other.next)
+    template <typename _U1, typename... _U, typename = typename ::std::enable_if<(sizeof...(_U) == sizeof...(T))>::type>
+    tuple(const tuple<_U1, _U...>& other) : holder(other.holder.value), next(other.next)
+    {
+    }
+
+    template <typename _U1, typename... _U, typename = typename ::std::enable_if<(sizeof...(_U) == sizeof...(T))>::type>
+    tuple(tuple<_U1, _U...>&& other) : holder(std::forward<_U1>(other.holder.value)), next(std::move(other.next))
     {
     }
 
