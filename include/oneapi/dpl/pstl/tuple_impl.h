@@ -282,12 +282,17 @@ template <typename _Tp>
 struct __copy_assignable_holder<_Tp, false> : oneapi::dpl::__internal::__value_holder<_Tp>
 {
     using oneapi::dpl::__internal::__value_holder<_Tp>::__value_holder;
+    __copy_assignable_holder() = default;
+    __copy_assignable_holder(const __copy_assignable_holder&) = default;
+    __copy_assignable_holder(__copy_assignable_holder&&) = default;
     __copy_assignable_holder&
     operator=(const __copy_assignable_holder& other)
     {
         this->value = other.value;
         return *this;
     }
+    __copy_assignable_holder&
+    operator=(__copy_assignable_holder&& other) = default;
 };
 
 template <typename T1, typename... T>
@@ -330,19 +335,20 @@ struct tuple<T1, T...>
     tuple(const tuple& other) = default;
     tuple(tuple&& other) = default;
     template <typename _U1, typename... _U, typename = typename ::std::enable_if<(sizeof...(_U) == sizeof...(T))>::type>
-    tuple(const tuple<_U1, _U...>& other) : holder(other.holder.value), next(other.next)
+    tuple(const tuple<_U1, _U...>& other) : holder(other.template get<0>()), next(other.next)
     {
     }
 
     template <typename _U1, typename... _U, typename = typename ::std::enable_if<(sizeof...(_U) == sizeof...(T))>::type>
-    tuple(tuple<_U1, _U...>&& other) : holder(std::forward<_U1>(other.holder.value)), next(std::move(other.next))
+    tuple(tuple<_U1, _U...>&& other) : holder(std::move(other).template get<0>()), next(std::move(other.next))
     {
     }
 
     template <typename _U1, typename... _U,
               typename = typename ::std::enable_if<
-                  (sizeof...(_U) == sizeof...(T) && ::std::is_constructible<T1, _U1&&>::value &&
-                   oneapi::dpl::__internal::__conjunction<::std::is_constructible<T, _U&&>...>::value)>::type>
+                  (sizeof...(_U) == sizeof...(T) &&
+                   oneapi::dpl::__internal::__conjunction<::std::is_constructible<T1, _U1&&>,
+                                                          ::std::is_constructible<T, _U&&>...>::value)>::type>
     tuple(_U1&& _value, _U&&... _next) : holder(::std::forward<_U1>(_value)), next(::std::forward<_U>(_next)...)
     {
     }
