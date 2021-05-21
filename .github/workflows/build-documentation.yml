@@ -11,9 +11,10 @@ jobs:
     - name: Install prerequisites
       run: |
           python -m pip install sphinx==3.4.0 sphinx-prompt sphinx_substitution_extensions sphinx_book_theme
-    - name: Builds and checks
+    - name: Builds
       run: |
           mkdir html
+          sphinx-build -b html documentation/library_guide/ build/
     - name: Archive build directory
       uses: actions/upload-artifact@v1
       with:
