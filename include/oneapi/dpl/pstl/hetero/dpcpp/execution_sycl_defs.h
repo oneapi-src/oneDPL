@@ -58,15 +58,14 @@ class device_policy
     explicit device_policy(const sycl::queue& q_) : q(q_) { __init(); }
     explicit device_policy(const sycl::device& d_) : q(d_) { __init(); }
     operator sycl::queue() const { return q; }
-    // const sycl::queue&
-    sycl::queue
-    queue() const
+    sycl::queue&
+    queue()
     {
         return q;
     }
 
-    sycl::device
-    device() const
+    sycl::device&
+    device()
     {
         return d;
     }
