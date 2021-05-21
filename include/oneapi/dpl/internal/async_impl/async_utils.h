@@ -58,23 +58,22 @@ class __future : public __par_backend_hetero::__future_base
     _T __init;
 
   public:
+    // empty sequence including ready event
     __future(_T __i) : __par_backend_hetero::__future_base(), __init(__i) {}
-
-    template <typename _Event, typename _Op, typename _Buf>
-    __future(_Event __e, _Buf __b, _Op __o, size_t __offset) : __par_backend_hetero::__future_base(__e)
-    {
-        __ret_val = ::std::unique_ptr<async_value<_T, _Buf, _Op>>(new async_value<_T, _Buf, _Op>(__b, __o, __offset));
-    }
-    void
-    set(_T __i)
-    {
-        __init = __i;
-    }
     _T
     get()
     {
         this->wait();
         return __ret_val->data(__init);
+    }
+    // transform from internal future returned by __parallel_transform_reduce pattern
+    template <typename _Op>
+    __future(__par_backend_hetero::__future<_T> __o, _T __i, _Op __op)
+        : __par_backend_hetero::__future_base(__o.__my_event), __init(__i)
+    {
+        using _Buf = decltype(__o.__data);
+        __ret_val = ::std::unique_ptr<async_value<_T, _Buf, _Op>>(
+            new async_value<_T, _Buf, _Op>(__o.__data, __op, __o.__result_idx));
     }
 };
 
@@ -89,18 +88,25 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
     ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmp;
 
   public:
-    template <typename... _Ts>
-    __future(sycl::event __e, _T __d, _Ts... __t) : __par_backend_hetero::__future_base(__e), __data(__d)
-    {
-        if (sizeof...(_Ts) != 0)
-            __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<_Ts...>>(
-                new __par_backend_hetero::__lifetime_keeper<_Ts...>(__t...));
-    }
+    // empty sequence including ready event.
+    __future(_T __d) : __par_backend_hetero::__future_base(), __data(__d) {}
     _T
     get()
     {
         this->wait();
         return __data;
+    }
+    // transform from internal future returned by __parallel_transform_scan pattern.
+    __future(__par_backend_hetero::__future<typename ::std::iterator_traits<_T>::value_type>&& __o, _T __d)
+        : __par_backend_hetero::__future_base(::std::move(__o.__my_event)), __data(__d)
+    {
+        __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>>(
+            new __par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>(__o.__data));
+    }
+    // transform from internal future returned by __parallel_for pattern.
+    __future(__par_backend_hetero::__future<void>&& __o, _T __d)
+        : __par_backend_hetero::__future_base(::std::move(__o.__my_event)), __data(__d), __tmp(::std::move(__o.__tmps))
+    {
     }
 };
 #endif
