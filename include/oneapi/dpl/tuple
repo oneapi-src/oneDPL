@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 #ifndef __ONEDPL_tuple
 #define __ONEDPL_tuple
+#include "oneapi/dpl/internal/common_config.h"
 #include <tuple>
 
 namespace oneapi

@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 #ifndef __ONEDPL_type_traits
 #define __ONEDPL_type_traits
+#include "oneapi/dpl/internal/common_config.h"
 #include <type_traits>
 
 namespace oneapi

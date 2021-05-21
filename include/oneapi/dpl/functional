@@ -15,7 +15,7 @@
 
 #ifndef __ONEDPL_functional
 #define __ONEDPL_functional
-
+#include "oneapi/dpl/internal/common_config.h"
 #include <functional>
 
 #include "oneapi/dpl/utility"
