@@ -58,14 +58,20 @@ class device_policy
     explicit device_policy(const sycl::queue& q_) : q(q_) { __init(); }
     explicit device_policy(const sycl::device& d_) : q(d_) { __init(); }
     operator sycl::queue() const { return q; }
-    sycl::queue&
-    queue()
+
+    // const sycl::queue&
+    // queue() const
+    // {
+    //     return q;
+    // }
+    sycl::queue
+    queue() const
     {
         return q;
     }
 
-    sycl::device&
-    device()
+    sycl::device
+    device() const
     {
         return d;
     }
@@ -395,7 +401,7 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    const auto& __device = __policy.device();
+    auto __device = __policy.device();
     // TODO: investigate can we use kernel_work_group::preferred_work_group_size_multiple here.
     auto __max_wg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
