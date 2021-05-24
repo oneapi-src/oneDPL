@@ -17,8 +17,8 @@
 //
 // Public header file provides common utils for random implementation
 
-#ifndef DPSTD_RANDOM_COMMON
-#define DPSTD_RANDOM_COMMON
+#ifndef _ONEDPL_RANDOM_COMMON
+#define _ONEDPL_RANDOM_COMMON
 
 namespace oneapi
 {
@@ -56,4 +56,4 @@ typedef union {
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf DPSTD_RANDOM_COMMON
+#endif // #ifndf _ONEDPL_RANDOM_COMMON
