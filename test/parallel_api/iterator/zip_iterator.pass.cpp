@@ -144,12 +144,13 @@ struct test_for_each_structured_binding
                         [f](auto value) {
                             auto [x, y] = value;
                             f(x);
+                            f(y);
                         });
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
         host_first1 = get_host_pointer(first1);
-        EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from for_each(tuple)");
+        EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 2), "wrong effect from for_each(tuple)");
     }
 };
 #endif // __cplusplus >= 201703L
