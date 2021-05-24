@@ -213,6 +213,9 @@ pipeline {
                                         echo "Environment file not generated."
                                         exit -1
                                     fi
+                                    cd ${env.OneAPI_Package_Date} 
+                                    mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
+                                    cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
                                 """, label: "Generate environment vars"
                             }
                             catch (e) {

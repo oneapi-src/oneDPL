@@ -226,11 +226,14 @@ pipeline {
                                 try {
                                     retry(2) {
                                         sh script: """
-                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
+                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}                                         
                                             if [ ! -f ./envs_tobe_loaded.txt ]; then
                                                 echo "Environment file not generated."
                                                 exit -1
                                             fi
+                                            cd ${env.OneAPI_Package_Date} 
+                                            mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
+                                            cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
                                         """, label: "Generate environment vars"
                                     }
 
