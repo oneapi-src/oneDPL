@@ -129,11 +129,12 @@ class uniform_real_distribution
     scalar_type a_;
     scalar_type b_;
     template <class _Engine>
-    inline scalar_type scale_and_displace(const scalar_type& __in, const param_type& __params, _Engine& __engine)
+    inline scalar_type
+    scale_and_displace(const scalar_type& __in, const param_type& __params, _Engine& __engine)
     {
         return ((__in - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                   (__params.second - __params.first) +
+               __params.first;
     }
 
     // Implementation for generate function
