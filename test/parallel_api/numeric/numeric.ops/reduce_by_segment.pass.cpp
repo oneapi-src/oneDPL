@@ -21,7 +21,6 @@
 #include "support/test_config.h"
 #include "support/utils.h"
 
-
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include <CL/sycl.hpp>
 
@@ -93,6 +92,7 @@ struct test_reduce_by_segment
         }
     }
 
+#if TEST_DPCPP_BACKEND_PRESENT
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
@@ -166,12 +166,15 @@ struct test_reduce_by_segment
         host_val_res = get_host_pointer(val_res);
         check_values(host_key_res, host_val_res, result_size);
     }
+#endif
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
     typename ::std::enable_if<
+#if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+#endif
             !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
             !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
         void>::type
@@ -274,7 +277,7 @@ test4buffers()
         Sequence<uint64_t> key_res_vec(n);
         Sequence<uint64_t> val_res_vec(n);
 
-        invoke_on_all_policies()(test_reduce_by_segment(), keys_vec.begin(), keys_vec.begin() + n, vals_vec.begin(),
+        invoke_on_all_host_policies()(test_reduce_by_segment(), keys_vec.begin(), keys_vec.begin() + n, vals_vec.begin(),
                                  key_res_vec.begin(), val_res_vec.begin(), n);
     }
 }
