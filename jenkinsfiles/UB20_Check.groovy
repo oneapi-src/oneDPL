@@ -91,6 +91,7 @@ pipeline {
         string(name: 'Repository', defaultValue: 'oneapi-src/oneDPL', description: '',)
         string(name: 'User', defaultValue: 'None', description: '',)
         string(name: 'OneAPI_Package_Date', defaultValue: 'Default', description: '',)
+        string(name: 'Base_branch', defaultValue: 'main', description: '',)
     }
 
     triggers {
@@ -100,7 +101,8 @@ pipeline {
                         [key: 'PR_number', value: '$.number', defaultValue: 'None'],
                         [key: 'Repository', value: '$.pull_request.base.repo.full_name', defaultValue: 'None'],
                         [key: 'User', value: '$.pull_request.user.login', defaultValue: 'None'],
-                        [key: 'action', value: '$.action', defaultValue: 'None']
+                        [key: 'action', value: '$.action', defaultValue: 'None'],
+                        [key: 'Base_branch', value: '$.pull_request.base.ref', defaultValue: 'main']
                 ],
 
                 causeString: 'Triggered on $PR_number',
@@ -174,7 +176,7 @@ pipeline {
                                     }
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
                                     sh script: "cd ./src; git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}", label: "Set Git Config"
-                                    sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}", label: "Checkout Commit"
+                                    sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}; git merge ${env.Base_branch}", label: "Checkout Commit"
                                 }
                             }
                             catch (e) {
