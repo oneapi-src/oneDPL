@@ -43,7 +43,7 @@ struct test_reduce_by_segment
             *host_vals = i % 4 + 1;
             *host_key_res = 9;
             *host_val_res = 1;
-            if ((i > 3) && (i + 1 <= n - 1))
+            if ((i > 3) && (i + 1 < n - 1))
             {
                 auto tmp = *host_keys;
                 ++host_keys;
@@ -52,6 +52,7 @@ struct test_reduce_by_segment
                 ++host_vals;
                 *host_vals = tmp;
                 ++host_key_res;
+                ++host_val_res;
                 *host_key_res = 9;
                 *host_val_res = 1;
             }
@@ -101,69 +102,80 @@ struct test_reduce_by_segment
             !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
             !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
         void>::type
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator3 key_res,
-               Iterator4 val_res, Size n)
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         // call algorithm with no optional arguments
-        auto host_keys = get_host_pointer(keys_first);
-        auto host_vals = get_host_pointer(vals_first);
-        auto host_key_res = get_host_pointer(key_res);
-        auto host_val_res = get_host_pointer(val_res);
+        {
+            auto host_keys = get_host_pointer(keys_first);
+            auto host_vals = get_host_pointer(vals_first);
+            auto host_key_res = get_host_pointer(key_res_first);
+            auto host_val_res = get_host_pointer(val_res_first);
 
-        initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
+        }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        auto res1 = oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res, val_res);
-#if _PSTL_SYCL_TEST_USM
+        auto res1 =
+            oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res_first, val_res_first);
+#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
-        Size result_size = std::distance(key_res, res1.first);
+#    endif
+        Size result_size = std::distance(key_res_first, res1.first);
 
-        host_key_res = get_host_pointer(key_res);
-        host_val_res = get_host_pointer(val_res);
-        check_values(host_key_res, host_val_res, result_size);
+        {
+            auto host_key_res = get_host_pointer(key_res_first);
+            auto host_val_res = get_host_pointer(val_res_first);
+            check_values(host_key_res, host_val_res, result_size);
+        }
 
         // call algorithm with equality comparator
-        host_keys = get_host_pointer(keys_first);
-        host_vals = get_host_pointer(vals_first);
-        host_key_res = get_host_pointer(key_res);
-        host_val_res = get_host_pointer(val_res);
+        {
+            auto host_keys = get_host_pointer(keys_first);
+            auto host_vals = get_host_pointer(vals_first);
+            auto host_key_res = get_host_pointer(key_res_first);
+            auto host_val_res = get_host_pointer(val_res_first);
 
-        initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
+        }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res, val_res,
-                                                   ::std::equal_to<KeyT>());
-#if _PSTL_SYCL_TEST_USM
+        auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
+                                                   val_res_first, ::std::equal_to<KeyT>());
+#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
-        result_size = std::distance(key_res, res2.first);
+#    endif
+        result_size = std::distance(key_res_first, res2.first);
 
-        host_key_res = get_host_pointer(key_res);
-        host_val_res = get_host_pointer(val_res);
-        check_values(host_key_res, host_val_res, result_size);
+        {
+            auto host_key_res = get_host_pointer(key_res_first);
+            auto host_val_res = get_host_pointer(val_res_first);
+            check_values(host_key_res, host_val_res, result_size);
+        }
 
         // call algorithm with addition operator
-        host_keys = get_host_pointer(keys_first);
-        host_vals = get_host_pointer(vals_first);
-        host_key_res = get_host_pointer(key_res);
-        host_val_res = get_host_pointer(val_res);
+        {
+            auto host_keys = get_host_pointer(keys_first);
+            auto host_vals = get_host_pointer(vals_first);
+            auto host_key_res = get_host_pointer(key_res_first);
+            auto host_val_res = get_host_pointer(val_res_first);
 
-        initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
+        }
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
-        auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res, val_res,
-                                                   ::std::equal_to<KeyT>(), ::std::plus<ValT>());
-#if _PSTL_SYCL_TEST_USM
+        auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
+                                                   val_res_first, ::std::equal_to<KeyT>(), ::std::plus<ValT>());
+#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
-        result_size = std::distance(key_res, res3.first);
+#    endif
+        result_size = std::distance(key_res_first, res3.first);
 
-        host_key_res = get_host_pointer(key_res);
-        host_val_res = get_host_pointer(val_res);
+        auto host_key_res = get_host_pointer(key_res_first);
+        auto host_val_res = get_host_pointer(val_res_first);
         check_values(host_key_res, host_val_res, result_size);
     }
 #endif
@@ -217,74 +229,11 @@ struct test_reduce_by_segment
     }
 };
 
-#if !TEST_DPCPP_BACKEND_PRESENT
-const int max_n = 100000;
-#endif
-
-template <typename T, typename TestName>
-void
-test4buffers()
-{
-#if TEST_DPCPP_BACKEND_PRESENT
-    const sycl::queue& queue = my_queue; // usm requires queue
-#    if _PSTL_SYCL_TEST_USM
-    {
-        // Allocate space for data using USM.
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> key_head(
-            (T*)sycl::malloc_shared(sizeof(T) * max_n, queue.get_device(), queue.get_context()), sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> val_head(
-            (T*)sycl::malloc_shared(sizeof(T) * max_n, queue.get_device(), queue.get_context()), sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> key_res_head(
-            (T*)sycl::malloc_shared(sizeof(T) * max_n, queue.get_device(), queue.get_context()), sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> val_res_head(
-            (T*)sycl::malloc_shared(sizeof(T) * max_n, queue.get_device(), queue.get_context()), sycl_deleter);
-
-        T* keys = key_head.get();
-        T* vals = key_head.get();
-        T* key_res = key_res_head.get();
-        T* val_res = val_res_head.get();
-
-        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-        {
-            invoke_on_all_hetero_policies<0>()(test_reduce_by_segment(), keys, keys + n, vals, key_res, val_res, n);
-        }
-    }
-#    endif
-
-    // create buffers
-    sycl::buffer<uint64_t, 1> key_buf{sycl::range<1>(max_n)};
-    sycl::buffer<uint64_t, 1> val_buf{sycl::range<1>(max_n)};
-    sycl::buffer<uint64_t, 1> key_res_buf{sycl::range<1>(max_n)};
-    sycl::buffer<uint64_t, 1> val_res_buf{sycl::range<1>(max_n)};
-
-    // create sycl iterators
-    auto keys = oneapi::dpl::begin(key_buf);
-    auto vals = oneapi::dpl::begin(val_buf);
-    auto key_res = oneapi::dpl::begin(key_res_buf);
-    auto val_res = oneapi::dpl::begin(val_res_buf);
-
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-    {
-        invoke_on_all_hetero_policies<1>()(test_reduce_by_segment(), keys, keys + n, vals, key_res, val_res, n);
-    }
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-    {
-        Sequence<uint64_t> keys_vec(n);
-        Sequence<uint64_t> vals_vec(n);
-        Sequence<uint64_t> key_res_vec(n);
-        Sequence<uint64_t> val_res_vec(n);
-
-        invoke_on_all_host_policies()(test_reduce_by_segment(), keys_vec.begin(), keys_vec.begin() + n, vals_vec.begin(),
-                                 key_res_vec.begin(), val_res_vec.begin(), n);
-    }
-}
-
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     test4buffers<uint64_t, test_reduce_by_segment>();
-    return TestUtils::done();
+#endif
+    return done(TEST_DPCPP_BACKEND_PRESENT);
 }
