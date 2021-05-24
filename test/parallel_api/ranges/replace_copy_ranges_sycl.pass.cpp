@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 #include <oneapi/dpl/execution>
+#include <oneapi/dpl/algorithm>
 
 #include "support/test_config.h"
 
@@ -30,32 +31,20 @@ main()
 {
 #if _ENABLE_RANGES_TESTING
     constexpr int max_n = 10;
-    int data[max_n]     = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    int expected[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    int val1 = -1, val2 = -2;
-
-    auto lambda = [](auto i) { return i % 2 == 0; };
+    constexpr int old_val = -1;
+    constexpr int new_val = 1;
 
     using namespace oneapi::dpl::experimental::ranges;
 
-    {
-        sycl::buffer<int> A(data, sycl::range<1>(max_n));
+    sycl::buffer<int> A(max_n);
 
-        auto view = views::all(A);
-
-        auto exec = TestUtils::default_dpcpp_policy;
-        using Policy = decltype(exec);
-        auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
-        auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
-                                       
-        replace_if(exec1, view, lambda, val1);
-        replace(exec2, A, val1, val2);
-    }
+    auto src = views::fill(old_val, max_n);
+    auto res = replace_copy(TestUtils::default_dpcpp_policy, src, A, old_val, new_val);
 
     //check result
-    ::std::replace_if(expected, expected + max_n, lambda, val2);
+    EXPECT_TRUE(res == max_n, "wrong result from replace_copy");
+    EXPECT_EQ_RANGES(views::fill(new_val, max_n), views::host_all(A), "wrong effect from replace_copy");
 
-    EXPECT_EQ_N(expected, data, max_n, "wrong effect from replace(_if) with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
     return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

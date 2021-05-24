@@ -46,9 +46,8 @@ main()
     //check result
     ::std::rotate(data, data + rotate_val, data + max_n);
 
-    EXPECT_EQ_N(data, expected, max_n, "wrong result from rotate view on a device");
+    EXPECT_EQ_N(expected, data, max_n, "wrong result from rotate view on a device");
 
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

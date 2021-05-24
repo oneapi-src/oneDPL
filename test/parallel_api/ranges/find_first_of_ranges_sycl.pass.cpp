@@ -35,9 +35,11 @@ main()
     const int count2 = 4;
     int data2[count2] = {-1, 0, 7, 8};
 
-    const int idx = 2; //2 - expected position of "7" in data1
+    const int idx1 = 2; //2 - expected position of "7" in data1
+    const int idx2 = 0;
 
-    int res = -1;
+    int res1 = -1;
+    int res2 = -1;
     using namespace oneapi::dpl::experimental::ranges;
     {
         sycl::buffer<int> A(data1, sycl::range<1>(count1));
@@ -51,12 +53,13 @@ main()
         auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
 
-        res = find_first_of(exec1, view_a, view_b);
-        res = find_first_of(exec2, A, B); //check passing sycl buffer directly
+        res1 = find_first_of(exec1, view_a, view_b);
+        res2 = find_first_of(exec2, A, B, [](auto a, auto b) { return a != b; }); //check passing sycl buffer directly
     }
 
     //check result
-    EXPECT_TRUE(res == idx, "wrong effect from 'find_first_of' with sycl ranges");
+    EXPECT_TRUE(res1 == idx1, "wrong effect from 'find_first_of' with sycl ranges");
+    EXPECT_TRUE(res2 == idx2, "wrong effect from 'find_first_of', sycl ranges, with predicate");
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

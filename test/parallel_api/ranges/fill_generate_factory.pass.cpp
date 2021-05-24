@@ -69,6 +69,5 @@ main()
     EXPECT_TRUE(res4, "wrong result from generate factory on a device");
 
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }
