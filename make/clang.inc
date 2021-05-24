@@ -29,7 +29,7 @@ ifneq (,$(shell clang --version | egrep  "clang version [6-9]\.[0-9]\.[0-9]"))
 CPLUS_FLAGS += -fopenmp-simd #supported at least since 6.0 version
 endif
 
-ifneq (,$(shell clang --version | egrep  "DPC++"))
+ifneq (,$(shell clang --version | egrep  "DPC"))
 CPLUS_FLAGS += -fopenmp-simd
 endif
 
