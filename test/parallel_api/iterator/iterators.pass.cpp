@@ -137,11 +137,6 @@ struct test_counting_iterator {
         EXPECT_TRUE(res, "wrong result with counting_iterator in vector's end portion");
 
         //explicit checks of the counting iterator specific
-        // There is a bug in clang when we pass the same arguments in the function
-        if(b[0]!=begin){
-            ::std::cout<<"wrong result with operator[] for an iterator"<<::std::endl;
-            exit(1);
-        }
         EXPECT_TRUE(*(b + 1) == begin+1, "wrong result with operator+ for an iterator");
         EXPECT_TRUE(*(b+=1) == begin+1, "wrong result with operator+= for an iterator");
     }
@@ -167,6 +162,8 @@ struct test_zip_iterator {
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
         //runtime call to check default constructor and increase code coverage
         oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> b;
+        //runtime call to check constructor with variadic arguments and increase code coverage
+        oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> c(in1.begin(), in2.begin());
 
         //runtime call to check copy assignable operator and increase code coverage
         b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
@@ -179,6 +176,9 @@ struct test_zip_iterator {
         ::std::for_each(b, e, [](const ::std::tuple<T1&, T2&>& a) { ::std::get<0>(a) = 1, ::std::get<1>(a) = 1;});
         auto res = ::std::all_of(b, e, [](const ::std::tuple<T1&, T2&>& a) {return ::std::get<0>(a) == 1 && ::std::get<1>(a) == 1;});
         EXPECT_TRUE(res, "wrong result sequence assignment to (1,1) with zip_iterator iterator");
+        //all_of check for iterator which is constructed passing variadic arguments
+        res = ::std::all_of(c, e, [](const ::std::tuple<T1&, T2&>& a) {return ::std::get<0>(a) == 1 && ::std::get<1>(a) == 1;});
+        EXPECT_TRUE(res, "wrong result of all_of algorithm with zip_iterator iterator which is constructed passing variadic arguments");
         }
 
         //check swapping de-referenced iterators (required by sort algorithm)
