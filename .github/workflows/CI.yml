@@ -45,7 +45,7 @@ jobs:
     - name: Build documentation
       run: |
         mkdir Downloads 
-        sphinx-build -b html documentation/library_guide/ Downloads /
+        sphinx-build -b html documentation/library_guide/ Downloads/
     - name: Archive build directory
       uses: actions/upload-artifact@v1
       with:
