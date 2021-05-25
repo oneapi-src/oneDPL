@@ -15,10 +15,10 @@ efforts across devices for high performance parallel applications.
    :glob:
 
    before_you_begin
-   pstl_main
-   extension_api
-   tested_standard_cpp_api
-   random 
+   overview
+   parallel_api_main
+   api_for_dpcpp_kernels_main
+   macros
    notices_disclaimers
 
    
