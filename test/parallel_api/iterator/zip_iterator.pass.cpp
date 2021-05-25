@@ -333,7 +333,7 @@ struct test_equal_structured_binding
             static_assert(::std::is_reference<decltype(c)>::value, "tuple element type is not a reference");
             static_assert(::std::is_reference<decltype(d)>::value, "tuple element type is not a reference");
 
-            return (a == c) && (c == d);
+            return (a == c) && (b == d);
         };
 
         bool is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
