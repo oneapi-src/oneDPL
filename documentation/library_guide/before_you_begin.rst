@@ -20,7 +20,7 @@ All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#incl
 To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the ``std`` namespace.
 
-`Prerequisites <parallel_api/algorithms.html#prerequisites>`_
+`Prerequisites <parallel_api/algorithms.html#prerequisitesgit >`_
 
 Exception Safety
 ----------------
