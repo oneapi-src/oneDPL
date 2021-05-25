@@ -1,0 +1,47 @@
+name: CI clang-format and documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches:
+      - release_oneDPL
+      - main
+      - 'release/**'
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get clang-format
+        run: sudo apt-get install -yqq clang-format-6.0
+      - name: Applying clang-format for changed files
+        run: |
+          FILES=$(git diff --diff-filter=d --name-only ${{ github.event.pull_request.base.sha }} | grep ^include | grep -v nanorange\.hpp\$ || true)
+          echo $FILES | xargs -n1 -t -r clang-format-6.0 --style=file -i
+      - name: Creating diff
+        run: git diff > clang-format-diff.diff
+      - name: Checking if diff is empty
+        run: if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Install prerequisites
+        run: |
+          echo GITHUB_SHA_SHORT=${GITHUB_SHA::8} >> $GITHUB_ENV
+          python -m pip install -r documentation/library_guide/requirements.txt
+      - name: Build documentation
+        run: |
+          mkdir html 
+          sphinx-build -b html documentation/library_guide/ html/
+      - name: Archive build directory
+        uses: actions/upload-artifact@v1
+        with:
+            name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
+            path: html

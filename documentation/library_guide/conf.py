@@ -50,8 +50,7 @@ rst_epilog = """
 # ones.
 extensions = [
     'sphinx-prompt', 
-    'sphinx_substitution_extensions',
-    'sphinx2dita'
+    'sphinx_substitution_extensions'
 	]
 
 docbundle_settings = {
