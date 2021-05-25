@@ -137,7 +137,6 @@ struct test_counting_iterator {
         EXPECT_TRUE(res, "wrong result with counting_iterator in vector's end portion");
 
         //explicit checks of the counting iterator specific
-        // There is a bug in clang when we pass the same arguments in the function
         EXPECT_TRUE(*(b + 1) == begin+1, "wrong result with operator+ for an iterator");
         EXPECT_TRUE(*(b+=1) == begin+1, "wrong result with operator+= for an iterator");
     }
