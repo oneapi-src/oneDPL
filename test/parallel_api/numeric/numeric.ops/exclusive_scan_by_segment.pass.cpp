@@ -92,6 +92,7 @@ struct test_exclusive_scan_by_segment
         }
     }
 
+#if TEST_DPCPP_BACKEND_PRESENT
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     typename ::std::enable_if<
@@ -153,11 +154,14 @@ struct test_exclusive_scan_by_segment
         host_val_res = get_host_pointer(val_res_first);
         check_values(host_keys, host_val_res, n);
     }
+#endif
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     typename ::std::enable_if<
+#if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+#endif
             !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
             !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
         void>::type
@@ -200,6 +204,8 @@ struct test_exclusive_scan_by_segment
 };
 
 int main() {
+#if TEST_DPCPP_BACKEND_PRESENT
     test3buffers<uint64_t, test_exclusive_scan_by_segment>();
+#endif
     return TestUtils::done();
 }
