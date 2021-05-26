@@ -17,107 +17,153 @@
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
 
-#include <iostream>
-
 #include "support/test_config.h"
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#    include <CL/sycl.hpp>
 
-#include <CL/sycl.hpp>
+using namespace oneapi::dpl::execution;
+#endif
+using namespace TestUtils;
 
-void test_on_device()
+struct test_binary_search
 {
-    bool correctness_flag =true;
-
-    //Test case 1
-    cl::sycl::buffer<uint64_t, 1> _key_buf{ cl::sycl::range<1>(10) };
-    cl::sycl::buffer<uint64_t, 1> _val_buf{ cl::sycl::range<1>(5) };
-    cl::sycl::buffer<uint64_t, 1> _res_buf{ cl::sycl::range<1>(5) };
-    { 
-        auto key_buf = _key_buf.template get_access<cl::sycl::access::mode::read_write>();
-	auto val_buf = _val_buf.template get_access<cl::sycl::access::mode::read_write>();
-	auto res_buf = _res_buf.template get_access<cl::sycl::access::mode::read_write>();
-     
-	// Initialize data
-	key_buf[0] = 0; key_buf[1] = 2; key_buf[2] = 2; key_buf[3] = 2; key_buf[4] = 3;
-	key_buf[5] = 3; key_buf[6] = 3; key_buf[7] = 3; key_buf[8] = 6; key_buf[9] = 6;
-	
-	val_buf[0] = 0; val_buf[1] = 2; val_buf[2] = 4; val_buf[3] = 7; val_buf[4] = 6;
-    }
-    
-    // create sycl iterators
-    auto key_beg = oneapi::dpl::begin(_key_buf);
-    auto key_end = oneapi::dpl::end(_key_buf);
-    auto val_beg = oneapi::dpl::begin(_val_buf);
-    auto val_end = oneapi::dpl::end(_val_buf);
-    auto res_beg = oneapi::dpl::begin(_res_buf);
-
-    // create named policy from existing one
-    auto new_policy = oneapi::dpl::execution::make_device_policy<class binarySearch>(oneapi::dpl::execution::dpcpp_default);
-    
-    // call algorithm
-    oneapi::dpl::binary_search(new_policy, key_beg, key_end, val_beg , val_end, res_beg);
-    
-    auto res = _res_buf.template get_access<cl::sycl::access::mode::read>();
-    
-    //check data
-    if((res[0] != true) || (res[1] != true) || (res[2] != false) && (res[3] != false) && (res[4] != true))
-        correctness_flag = false;
-
-    //test case 2
-    cl::sycl::buffer<uint64_t, 1> _key_buf_2{ cl::sycl::range<1>(2) };
-    cl::sycl::buffer<uint64_t, 1> _res_buf_2{ cl::sycl::range<1>(5) };
+    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    void
+    initialize_data(Iterator1 data, Iterator2 value, Iterator3 result, Size n)
     {
-        auto key_buf_2 = _key_buf_2.template get_access<cl::sycl::access::mode::read_write>();
-	
-	// Initialize data
-	key_buf_2[0] = 0; key_buf_2[1] = 2;
+        typedef typename ::std::iterator_traits<Iterator1>::value_type ValT;
+        int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
+        for (int i = 0; i < n; i += 2)
+        {
+            *data = i;
+            ++data;
+            if (i + 1 < n)
+            {
+                *data = i;
+                ++data;
+            }
+            if (i < num_values * 2)
+            {
+                // value = {0, 2, 5, 6, 9, 10, 13...}
+                // result will alternate true/false after initial true
+                *value = i + (i != 0 && i % 4 == 0 ? 1 : 0);
+                ++value;
+            }
+            *result = 0;
+            ++result;
+        }
     }
 
-    // create sycl iterators
-    auto key_beg_2 = oneapi::dpl::begin(_key_buf_2);
-    auto key_end_2 = oneapi::dpl::end(_key_buf_2);
-    auto res_beg_2 = oneapi::dpl::begin(_res_buf_2);
-    
-    // create named policy from existing one
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class binarySearch2>(oneapi::dpl::execution::dpcpp_default);
+    template <typename Iterator1, typename Size>
+    void
+    check_values(Iterator1 result, Size n)
+    {
+        int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
+        for (int i = 0; i != num_values; ++i, ++result)
+        {
+            if (i == 0)
+            {
+                EXPECT_TRUE(*result == true, "wrong effect from binary_search");
+            }
+            else
+            {
+                EXPECT_TRUE(*result == i % 2, "wrong effect from binary_search");
+            }
+        }
+    }
 
-    // call algorithm
-    oneapi::dpl::binary_search(new_policy2, key_beg_2, key_end_2, val_beg , val_end, res_beg_2, std::less<int>());
+#if TEST_DPCPP_BACKEND_PRESENT
+    // specialization for hetero policy
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<
+        oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+            !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
+            !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
+               Iterator3 result_first, Iterator3 result_last, Size n)
+    {
+        typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
 
-    auto res_2 = _res_buf_2.template get_access<cl::sycl::access::mode::read>();
-    //check data
-    if((res_2[0] != true) || (res_2[1]!= true) || (res_2[2] != false) || (res_2[3] != false) || (res_2[4] != false))
-        correctness_flag = false;
-    
-    if(correctness_flag != true)
-        std::cout << "binary_search on device FAIL." << std::endl;
-}
+        // call algorithm with no optional arguments
+        auto host_first = get_host_pointer(first);
+        auto host_val_first = get_host_pointer(value_first);
+        auto host_result = get_host_pointer(result_first);
+
+        initialize_data(host_first, host_val_first, host_result, n);
+
+        auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
+        auto res1 = oneapi::dpl::binary_search(new_policy, first, last, value_first, value_last, result_first);
+#    if _PSTL_SYCL_TEST_USM
+        exec.queue().wait_and_throw();
+#    endif
+        host_first = get_host_pointer(first);
+        host_val_first = get_host_pointer(value_first);
+        host_result = get_host_pointer(result_first);
+        check_values(host_result, n);
+
+        // call algorithm with comparator
+        initialize_data(host_first, host_val_first, host_result, n);
+
+        auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
+        auto res2 = oneapi::dpl::binary_search(new_policy2, first, last, value_first, value_last, result_first,
+                                               ::std::less<ValueT>());
+#    if _PSTL_SYCL_TEST_USM
+        exec.queue().wait_and_throw();
+#    endif
+        host_first = get_host_pointer(first);
+        host_val_first = get_host_pointer(value_first);
+        host_result = get_host_pointer(result_first);
+        check_values(host_result, n);
+    }
 #endif
 
-bool test_on_host()
-{
-    int key[10] = {0, 2, 2, 2, 3, 3, 3, 3, 6, 6};
-    int val[5] = {0, 2, 4, 7, 6};
-    int res[5];
-  
-     // call algorithm
-     oneapi::dpl::binary_search(oneapi::dpl::execution::par, std::begin(key), std::end(key), std::begin(val), std::end(val), std::begin(res), std::less<int>());
+    // specialization for host execution policies
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<
+#if TEST_DPCPP_BACKEND_PRESENT
+        !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+#endif
+            !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
+            !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
+               Iterator3 result_first, Iterator3 result_last, Size n)
+    {
+        typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
 
-     //check data
-     if((res[0] != true) || (res[1] != true) || (res[2] !=false) || (res[3] != false) || (res[4] != true))
-         std::cout << "binary_search on host FAIL." << std::endl;
+        // call algorithm with no optional arguments
+        initialize_data(first, value_first, result_first, n);
 
-     return 0;
-}
+        auto res1 = oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first);
+        check_values(result_first, n);
 
-int main()
+        // call algorithm with comparator
+        initialize_data(first, value_first, result_first, n);
+
+        auto res2 =
+            oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first, ::std::less<ValueT>());
+        check_values(result_first, n);
+    }
+
+    // specialization for non-random_access iterators
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value ||
+                                  is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+                              void>::type
+    operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
+               Iterator3 result_first, Iterator3 result_last, Size n)
+    {
+    }
+};
+
+int
+main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_on_device();
+    test3buffers<uint64_t, test_binary_search>();
 #endif
-    test_on_host();
-
     return TestUtils::done();
 }
