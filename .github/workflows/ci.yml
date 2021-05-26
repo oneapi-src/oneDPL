@@ -27,7 +27,7 @@ jobs:
       - name: Checking if diff is empty
         run: if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi
 
-codespell:
+  codespell:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
