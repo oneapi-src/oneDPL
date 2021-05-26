@@ -156,7 +156,7 @@
 #    define _ONEDPL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM)
 #endif
 
-// Requred to check if libstdc++ is 5.1.0 or greater
+// Required to check if libstdc++ is 5.1.0 or greater
 #if defined(__clang__)
 #    if __GLIBCXX__ && __has_include(<experimental/any>)
 #        define _ONEDPL_LIBSTDCXX_5_OR_GREATER 1

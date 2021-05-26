@@ -20,7 +20,7 @@ struct BMP {
  private:
   using FileHeader = struct {
     // not from specification
-    // was added for alignemt
+    // was added for alignment
     // store size of rest of the fields
     uint16_t sizeRest;  // file header size in bytes
 
@@ -43,7 +43,7 @@ struct BMP {
     uint32_t sizeImage;     // image map size in bytes
     int32_t xPelsPerMeter;  // pixel per metre (y axis)
     int32_t yPelsPerMeter;  // pixel per metre (y axis)
-    uint32_t clrUsed;       // color pallete (0 is default)
+    uint32_t clrUsed;       // color palette (0 is default)
     uint32_t clrImportant;
   };
 
@@ -73,7 +73,7 @@ struct BMP {
     _infoHeader.sizeImage = mapSize;  // image map size in bytes
     _infoHeader.xPelsPerMeter = 0;    // pixel per metre (x axis)
     _infoHeader.yPelsPerMeter = 0;    // pixel per metre (y axis)
-    _infoHeader.clrUsed = 0;          // color pallete (0 is default)
+    _infoHeader.clrUsed = 0;          // color palette (0 is default)
     _infoHeader.clrImportant = 0;
   }
 

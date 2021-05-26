@@ -10479,7 +10479,7 @@ struct nth_element_fn
                     if (i == --j)
                     {
                         // *first == *m, *m <= all other elements
-                        // Parition instead into [first, i) == *first and *first < [i, end)
+                        // Partition instead into [first, i) == *first and *first < [i, end)
                         ++i; // first + 1
                         j = end;
                         if (!pred(*first, *--j))

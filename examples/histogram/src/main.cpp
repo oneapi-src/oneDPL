@@ -107,7 +107,7 @@ int main(void) {
   for (int i = 0; i < N; i++) input.push_back(rand() % 9);
 
   // replacing all input entries of "4" with random number between 1 and 3
-  // this is to ensure that we have atleast one entry with zero-bin size,
+  // this is to ensure that we have at least one entry with zero-bin size,
   // which shows the difference between sparse and dense algorithm output
   for (int i = 0; i < N; i++)
     if (input[i] == 4) input[i] = rand() % 3;

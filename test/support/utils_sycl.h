@@ -312,7 +312,7 @@ namespace TestUtils
     }
 
     // use the function carefully due to temporary accessor creation.
-    // Race conditiion between host and device may be occured
+    // Race conditiion between host and device may be occurred
     // if we work with the buffer host memory when kernel is invoked on device
     template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
     typename ::std::iterator_traits<Iter>::pointer

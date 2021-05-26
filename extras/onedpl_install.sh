@@ -21,7 +21,7 @@ else
 fi
 
 if [ -e $ONEDPL_INSTALL_DST/onedpl ]; then
-    echo "onedpl alredy exists in '$ONEDPL_INSTALL_DST'"
+    echo "onedpl already exists in '$ONEDPL_INSTALL_DST'"
     return 1;
 fi
 

@@ -74,7 +74,7 @@ __pattern_walk1_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n
 //------------------------------------------------------------------------
 
 // TODO: A tag _IsSync is used for provide a patterns call pipeline, where the last one should be synchronous
-// Probably it should be re-designed by a pipeline approach, when a patern returns some sync obejects
+// Probably it should be re-designed by a pipeline approach, when a pattern returns some sync obejects
 // and ones are combined into a "pipeline" (probably like Range pipeline)
 template <typename _IsSync = ::std::true_type,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
@@ -1537,7 +1537,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
         return __out_first;
 
     // TODO: we can avoid a separate __pattern_walk2 for initial copy: it can be done during sort itself
-    // like it's done for CPU version, but it's better to be done together with merge cutoff implmenetation
+    // like it's done for CPU version, but it's better to be done together with merge cutoff implementation
     // as it uses a similar mechanism.
     if (__in_size <= __out_size)
     {
@@ -1556,7 +1556,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
     }
     else
     {
-        // If our input buffer is smaller than the input bufer do the following:
+        // If our input buffer is smaller than the input buffer do the following:
         // - create a temporary buffer and copy all the elements from the input buffer there
         // - run partial sort on the temporary buffer
         // - copy k elements from the temporary buffer to the output buffer.
@@ -1921,7 +1921,7 @@ class __set_symmetric_difference_phase_2
 //------------------------------------------------------------------------
 // set_symmetric_difference
 //------------------------------------------------------------------------
-// At the moment the algo imlementation based on 3 phases:
+// At the moment the algo implementation based on 3 phases:
 // 1. Calc difference {1} \ {2}
 // 2. Calc difference {2} \ {1}
 // 3. Merge the differences

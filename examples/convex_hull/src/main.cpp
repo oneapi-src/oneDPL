@@ -85,7 +85,7 @@ void find_hull_points(Policy exec, Iterator first, Iterator last, pointVec_t &H,
 }
 
 // Quickhull algorithm
-// The algorihm based on the divide and conquer technique
+// The algorithm based on the divide and conquer technique
 void quickhull(const pointVec_t &points, pointVec_t &hull) {
   if (points.size() < 2) {
     hull.insert(hull.end(), points.cbegin(), points.cend());

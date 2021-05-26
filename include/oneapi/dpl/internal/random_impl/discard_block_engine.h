@@ -92,7 +92,7 @@ class discard_block_engine
             unsigned long long __n_skip =
                 __num_to_skip + static_cast<unsigned long long>((__num_to_skip + n_) / used_block) *
                                     static_cast<unsigned long long>(block_size - used_block);
-            // Check the oveflow case
+            // Check the overflow case
             if (__n_skip >= __num_to_skip)
             {
                 n_ = (__num_to_skip - (used_block - n_)) % used_block;
