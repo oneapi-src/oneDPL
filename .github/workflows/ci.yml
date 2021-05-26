@@ -1,4 +1,4 @@
-name: CI clang-format and documentation
+name: oneDPL CI
 
 on:
   push:
