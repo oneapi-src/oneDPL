@@ -107,7 +107,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
 
   The ``counting_iterator`` is a random access iterator-like type whose dereferenced value is an integer
   counter. Instances of ``counting_iterator`` provide read-only dereference operations. The counter of an
-  ``counting_iterator`` instance changes according to the arithmetics of the random access iterator type::
+  ``counting_iterator`` instance changes according to the arithmetic of the random access iterator type::
 
     using namespace oneapi;
     dpl::counting_iterator<int> count_a(0);
