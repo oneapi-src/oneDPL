@@ -193,14 +193,18 @@ class __kernel_name_base
     sycl::kernel_bundle<sycl::bundle_state::executable> __kernel_bundle;
 #endif
 
-    __kernel_name_base(const sycl::context& __context): __ctx(__context), __kernel_id(sycl::get_kernel_id<_DerivedKernelName>())
+    __kernel_name_base(const sycl::context& __context)
+        : __ctx(__context), __kernel_id(sycl::get_kernel_id<_DerivedKernelName>())
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
-    , __kernel_bundle(sycl::get_kernel_bundle<sycl::bundle_state::executable>(__context))
+          ,
+          __kernel_bundle(sycl::get_kernel_bundle<sycl::bundle_state::executable>(__context))
 #endif
-    {}
+    {
+    }
 
   public:
-    static __kernel_name_base<_DerivedKernelName> create(const sycl::context& __context)
+    static __kernel_name_base<_DerivedKernelName>
+    create(const sycl::context& __context)
     {
         return __kernel_name_base<_DerivedKernelName>(__context);
     }
@@ -217,7 +221,8 @@ class __kernel_name_base
 #endif
     }
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
-    auto kernel_bundle() const -> decltype(__kernel_bundle)
+    auto
+    kernel_bundle() const -> decltype(__kernel_bundle)
     {
         return __kernel_bundle;
     }
@@ -487,7 +492,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
                 __wgroup_size, __cgh);
 
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __cgh.use_kernel_bundle(__kernel_stuff_2.kernel_bundle());
+            __cgh.use_kernel_bundle(__kernel_stuff_2.kernel_bundle());
 #endif
             __cgh.parallel_for<_GlobalScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -703,7 +708,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
             sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
 
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __cgh.use_kernel_bundle(__kernel_stuff.kernel_bundle());
+            __cgh.use_kernel_bundle(__kernel_stuff.kernel_bundle());
 #endif
             __cgh.parallel_for<_FindOrKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT

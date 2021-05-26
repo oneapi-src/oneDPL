@@ -300,7 +300,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                           sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
                           ,
-                          _Kernel& __kernel
+                          _Kernel __kernel
 #endif
 )
 {
@@ -329,8 +329,11 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, access_target::local>(
             __block_size * __radix_states, __hdl);
 
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __hdl.use_kernel_bundle(__kernel);
+#endif
         __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel,
 #endif
             sycl::nd_range<1>(__segments * __block_size, __block_size), [=](sycl::nd_item<1> __self_item) {
@@ -464,7 +467,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
                             ,
-                            _Kernel& __kernel
+                            _Kernel __kernel
 #endif
 )
 {
@@ -494,8 +497,11 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
         // access with values to reorder and reordered values
         oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
 
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __hdl.use_kernel_bundle(__kernel);
+#endif
         __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel,
 #endif
             sycl::nd_range<1>(__segments * __sg_size, __sg_size), [=](sycl::nd_item<1> __self_item) {
@@ -586,8 +592,10 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     ::std::size_t __block_size = __max_sg_size;
     ::std::size_t __reorder_sg_size = __max_sg_size;
 #if _ONEDPL_COMPILE_KERNEL
-    auto __count_kernel = _RadixCountKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    auto __reorder_kernel = _RadixReorderKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __count_kernel_stuff = _RadixCountKernel::create(__exec.queue().get_context());
+    auto __count_kernel = __count_kernel_stuff.__compile_kernel();
+    auto __reorder_kernel_stuff = _RadixReorderKernel::create(__exec.queue().get_context());
+    auto __reorder_kernel = __reorder_kernel_stuff.__compile_kernel();
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
@@ -611,8 +619,12 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         ::std::forward<_InRange>(__in_rng), __tmp_buf, __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
+#    if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __count_kernel_stuff.kernel_bundle()
+#    else
         __count_kernel
-#endif
+#    endif
+#endif //_ONEDPL_COMPILE_KERNEL
     );
 
     // 2. Scan Phase
@@ -625,8 +637,12 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
         ,
+#    if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __reorder_kernel_stuff.kernel_bundle()
+#    else
         __reorder_kernel
-#endif
+#    endif
+#endif //_ONEDPL_COMPILE_KERNEL
     );
 
     return __reorder_event;
