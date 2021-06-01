@@ -191,7 +191,7 @@ pipeline {
                                     }
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
                                     sh script: "cd ./src; git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}", label: "Set Git Config"
-                                    sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}; git merge ${env.Base_branch}", label: "Checkout Commit"
+                                    sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}; git merge origin/${env.Base_branch}", label: "Checkout Commit"
                                 }
                             }
                             catch (e) {

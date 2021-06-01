@@ -205,7 +205,7 @@ pipeline {
                                         git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}
                                         git pull origin
                                         git checkout ${env.Commit_id}
-                                        git merge ${env.Base_branch}
+                                        git merge origin/${env.Base_branch}
                                      """
                                 }
                             }
