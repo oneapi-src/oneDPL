@@ -46,7 +46,8 @@ __pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
     if (__n > 0)
     {
         using __new_name = oneapi::dpl::__par_backend_hetero::new_kernel_name<_ExecutionPolicy, N>;
-        auto __new_exec = oneapi::dpl::execution::make_device_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
+        auto __new_exec =
+            oneapi::dpl::execution::make_device_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
         oneapi::dpl::__par_backend_hetero::__parallel_for(__new_exec,
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
                                                           ::std::forward<_Ranges>(__rngs)...)
