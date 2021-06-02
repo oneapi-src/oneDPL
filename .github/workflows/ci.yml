@@ -9,6 +9,11 @@ on:
       - main
       - 'release/**'
 
+env:
+  BUILD_CONCURRENCY: 2
+  TEST_TIMEOUT_RELEASE: 360
+  ONETBB_LINUX_LINK: https://github.com/oneapi-src/oneTBB/releases/download/v2021.2.0/oneapi-tbb-2021.2.0-lin.tgz
+
 jobs:
   clang-format:
     runs-on: ubuntu-latest
@@ -51,7 +56,7 @@ jobs:
           python -m pip install -r documentation/library_guide/requirements.txt
       - name: Build documentation
         run: |
-          mkdir html 
+          mkdir html
           sphinx-build -b html documentation/library_guide/ html/
       - name: Archive build directory
         uses: actions/upload-artifact@v1
@@ -59,3 +64,36 @@ jobs:
             name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html
 
+  linux-host-testing:
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.build_type }}_preview=${{ matrix.preview }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get oneTBB
+        run: |
+          wget ${ONETBB_LINUX_LINK}
+          tar xf oneapi*
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          source oneapi*/env/vars.sh intel64
+          if [[ ${build_type} == "debug" ]]; then
+            TEST_TIMEOUT=${TEST_TIMEOUT_DEBUG}
+          else
+            TEST_TIMEOUT=${TEST_TIMEOUT_RELEASE}
+          fi
+          mkdir build && cd build
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST ..
+          make VERBOSE=1 -j${BUILD_CONCURRENCY}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure
