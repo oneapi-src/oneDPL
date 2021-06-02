@@ -87,7 +87,7 @@ jobs:
         run: |
           set -x
           source oneapi*/env/vars.sh intel64
-          if [[ ${build_type} == "debug" ]]; then
+          if [[ "${{ matrix.build_type }}" == "debug" ]]; then
             TEST_TIMEOUT=${TEST_TIMEOUT_DEBUG}
           else
             TEST_TIMEOUT=${TEST_TIMEOUT_RELEASE}
