@@ -550,6 +550,8 @@ class permutation_iterator
     typedef ::std::random_access_iterator_tag iterator_category;
     typedef ::std::true_type is_permutation;
 
+    permutation_iterator() = default;
+
     permutation_iterator(const SourceIterator& input1, const IndexMap& input2, ::std::size_t index = 0)
         : my_source_it(input1), my_index_map(input2), my_index(index)
     {
