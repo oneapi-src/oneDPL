@@ -67,7 +67,7 @@ jobs:
   linux-host-testing:
     name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
-    timeout-minutes: 45
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
