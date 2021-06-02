@@ -633,6 +633,12 @@ class permutation_iterator
         return my_index - it.my_index;
     }
 
+    friend permutation_iterator
+    operator+(difference_type forward, const permutation_iterator& it)
+    {
+        return permutation_iterator(it.my_source_it, it.my_index_map, it.my_index + forward);
+    }
+
     bool
     operator==(const permutation_iterator& it) const
     {
@@ -694,6 +700,18 @@ struct ignore_copyable
     operator=(T&&) const
     {
         return *this;
+    }
+
+    bool
+    operator==(const ignore_copyable& other) const
+    {
+        return true;
+    }
+
+    bool
+    operator!=(const ignore_copyable& other) const
+    {
+        return false;
     }
 };
 
@@ -801,6 +819,21 @@ class discard_iterator
     operator-(difference_type __backward) const
     {
         return discard_iterator(__my_position_ - __backward);
+    }
+    friend discard_iterator
+    operator+(difference_type __forward, const discard_iterator& __it)
+    {
+        return discard_iterator(__it.__my_position_ + __forward);
+    }
+    bool
+    operator<=(const discard_iterator& __it) const
+    {
+        return !(__my_position_ > __it.__my_position_);
+    }
+    bool
+    operator>=(const discard_iterator& __it) const
+    {
+        return !(__my_position_ < __it.__my_position_);
     }
 
   private:

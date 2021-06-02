@@ -279,6 +279,114 @@ struct test_transform_iterator {
     }
 };
 
+struct test_permutation_iterator
+{
+    template <typename T1, typename T2>
+    void
+    operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2)
+    {
+        T1 iota_max = ::std::numeric_limits<T1>::max() < in1.size() ? ::std::numeric_limits<T1>::max() : in1.size();
+        ::std::iota(in1.begin(), in1.begin() + iota_max, T1(0));
+        ::std::reverse_copy(in1.begin(), in1.begin() + iota_max, in2.begin());
+
+        auto perm_begin = oneapi::dpl::make_permutation_iterator(in1.begin(), in2.begin());
+        auto perm_end = oneapi::dpl::make_permutation_iterator(in1.begin(), in2.begin()) + iota_max;
+
+        ::std::vector<T1> result(iota_max);
+        ::std::copy(perm_begin, perm_end, result.begin());
+
+        EXPECT_TRUE(::std::is_sorted(result.begin(), result.end(), ::std::greater<T1>()),
+                    "wrong result from permutation_iterator");
+
+        // random access iterator checks except the check for default constructible
+        using RandomIt = decltype(perm_begin);
+        EXPECT_TRUE(perm_begin == perm_begin, "== returned false negative");
+        EXPECT_TRUE(!(perm_begin == perm_begin + 1), "== returned false positive");
+        EXPECT_TRUE(perm_begin != perm_begin + 1, "!= returned false negative");
+        EXPECT_TRUE(!(perm_begin != perm_begin), "!= returned false positive");
+
+        EXPECT_TRUE(*perm_begin == *perm_begin, "wrong result with operator*");
+
+        RandomIt perm_begin1 = perm_begin;
+        EXPECT_TRUE(perm_begin1 == perm_begin, "iterator is not copy constructible");
+        RandomIt perm_begin2 = RandomIt(perm_begin);
+        EXPECT_TRUE(perm_begin2 == perm_begin, "iterator is not move constructible");
+
+        ++perm_begin1;
+        EXPECT_TRUE(perm_begin1 == perm_begin + 1, "wrong result with prefix operator++");
+
+        using ::std::swap;
+        swap(perm_begin1, perm_begin2);
+        EXPECT_TRUE((perm_begin1 == perm_begin) && (perm_begin2 == perm_begin + 1), "iterator is not swappable");
+
+        perm_begin2 = perm_begin;
+        EXPECT_TRUE(perm_begin2 == perm_begin, "iterator is not copy assignable");
+
+        ++perm_begin2;
+        perm_begin2 = RandomIt(perm_begin);
+        EXPECT_TRUE(perm_begin2 == perm_begin, "iterator is not move assignable");
+
+        perm_begin1 = perm_begin;
+        EXPECT_TRUE((perm_begin1++ == perm_begin) && (perm_begin1 == perm_begin + 1),
+                    "wrong result with postfix operator++");
+
+        perm_begin1 = perm_begin + 1;
+        EXPECT_TRUE(--perm_begin1 == perm_begin, "wrong result with prefix operator--");
+
+        perm_begin1 = perm_begin + 1;
+        EXPECT_TRUE((perm_begin1-- == perm_begin + 1) && (perm_begin1 == perm_begin),
+                    "wrong result with postfix operator--");
+
+        perm_begin1 += 1;
+        EXPECT_TRUE(perm_begin1 == perm_begin + 1, "wrong result with operator+=");
+
+        perm_begin1 -= 1;
+        EXPECT_TRUE(perm_begin1 == perm_begin, "wrong result with operator-=");
+
+        EXPECT_TRUE(1 + perm_begin == perm_begin + 1, "n + iterator != iterator + n");
+
+        EXPECT_TRUE((perm_begin + 1) - 1 == perm_begin, "wrong result with operator-(difference_type)");
+
+        EXPECT_TRUE((perm_begin + 1) - perm_begin == 1, "wrong result with iterator subtraction");
+
+        // There is a bug in clang when we pass the same arguments in the function
+        if (perm_begin[1] != *(perm_begin + 1))
+        {
+            ::std::cout << "wrong result with operator[]" << ::std::endl;
+            exit(1);
+        }
+
+        EXPECT_TRUE(perm_begin < perm_begin + 1, "operator< returned false negative");
+        EXPECT_TRUE(!(perm_begin < perm_begin), "operator< returned false positive");
+
+        EXPECT_TRUE(perm_begin + 1 > perm_begin, "operator> returned false negative");
+        EXPECT_TRUE(!(perm_begin > perm_begin), "operator> returned false positive");
+
+        EXPECT_TRUE(perm_begin <= perm_begin + 1, "operator<= returned false negative");
+        EXPECT_TRUE(perm_begin <= perm_begin, "operator<= returned false negative");
+        EXPECT_TRUE(!(perm_begin + 1 <= perm_begin), "operator<= returned false positive");
+
+        EXPECT_TRUE(1 + perm_begin >= perm_begin, "operator>= returned false negative");
+        EXPECT_TRUE(perm_begin >= perm_begin, "operator>= returned false negative");
+        EXPECT_TRUE(!(perm_begin >= perm_begin + 1), "operator>= returned false positive");
+    }
+};
+
+struct test_discard_iterator
+{
+    template <typename T1, typename T2>
+    void
+    operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2)
+    {
+        ::std::iota(in1.begin(), in1.end(), T1(0));
+
+        oneapi::dpl::discard_iterator dis_it;
+
+        ::std::transform(in1.begin(), in1.end(), dis_it, oneapi::dpl::identity());
+        test_random_iterator(dis_it);
+    }
+};
+
 template <typename T, typename IntType>
 void test_iterator_by_type(IntType n) {
 
@@ -294,6 +402,8 @@ void test_iterator_by_type(IntType n) {
 
     test_zip_iterator()(in, in2);
     test_transform_iterator()(in, in2);
+    test_permutation_iterator()(in, in2);
+    test_discard_iterator()(in, in2);
 }
 
 int main() {
