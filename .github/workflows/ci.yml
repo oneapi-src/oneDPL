@@ -12,6 +12,7 @@ on:
 env:
   BUILD_CONCURRENCY: 2
   TEST_TIMEOUT_RELEASE: 360
+  TEST_TIMEOUT_DEBUG: 1200
   ONETBB_LINUX_LINK: https://github.com/oneapi-src/oneTBB/releases/download/v2021.2.0/oneapi-tbb-2021.2.0-lin.tgz
 
 jobs:
