@@ -90,10 +90,10 @@ jobs:
           echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
       - name: Install oneTBB
-        run: apt install -y intel-oneapi-tbb-devel
+        run: sudo apt install -y intel-oneapi-tbb-devel
       - name: Install oneAPI Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
-        run: apt install -y intel-oneapi-compiler-dpcpp-cpp
+        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
       - name: Run testing
         shell: bash
         run: |
