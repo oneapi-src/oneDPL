@@ -83,7 +83,7 @@ and ``using namespace sycl;`` directives when refering to policy classes and fun
 
   auto policy_a = device_policy<class PolicyA> {};
   std::for_each(policy_a, …);
-  
+
 .. code::
 
   auto policy_b = device_policy<class PolicyB> {device{gpu_selector{}}};
@@ -180,6 +180,18 @@ requirements:
   are objects of the type, and ``n`` is an integer value
 * Has a ``get_buffer`` method with no arguments. The method returns the SYCL buffer passed to
   ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions
+
+Also ``begin``, ``end`` can optionally accept SYCL deduction tags and ``sycl::no_init``
+(See SYCL 2020: 4.7.6.3, 4.7.6.4 for details) to explicitly mention which access mode should be applied
+to the buffer accessor when submitting DPC++ kernel to a device, e.g.
+
+.. code:: cpp
+
+  auto first1 = begin(buf, sycl::read_only);
+  auto first2 = begin(buf, sycl::write_only, sycl::no_init);
+  auto first3 = begin(buf, sycl::no_init);
+
+It helps to build the dependency graph of parallel algorithms' calls more correctly.
 
 To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code.
 
