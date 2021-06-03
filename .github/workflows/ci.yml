@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: |
           set -x
-          rm -rf /opt/intel/oneapi/dpl || true
+          sudo rm -rf /opt/intel/oneapi/dpl || true
           source /opt/intel/oneapi/setvars.sh intel64
           if [[ "${{ matrix.build_type }}" == "debug" ]]; then
             TEST_TIMEOUT=${TEST_TIMEOUT_DEBUG}
