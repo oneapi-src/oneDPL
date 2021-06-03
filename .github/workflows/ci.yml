@@ -64,7 +64,7 @@ jobs:
             name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html
 
-  linux-host-testing:
+  linux-testing:
     name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 20
