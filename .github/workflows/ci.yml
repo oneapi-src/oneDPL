@@ -92,12 +92,13 @@ jobs:
       - name: Install oneTBB
         run: apt install -y intel-oneapi-tbb-devel
       - name: Install oneAPI Compiler
-        if: matrix.cxx_compiler == "dpcpp" || matrix.cxx_compiler == "icpx"
+        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
         run: apt install -y intel-oneapi-compiler-dpcpp-cpp
       - name: Run testing
         shell: bash
         run: |
           set -x
+          rm -rf /opt/intel/oneapi/dpl || true
           source /opt/intel/oneapi/setvars.sh intel64
           if [[ "${{ matrix.build_type }}" == "debug" ]]; then
             TEST_TIMEOUT=${TEST_TIMEOUT_DEBUG}
