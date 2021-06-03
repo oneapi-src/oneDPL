@@ -76,10 +76,6 @@ jobs:
             cxx_compiler: g++
             std: 17
             build_type: release
-          - os: ubuntu-20.04
-            cxx_compiler: icpx
-            std: 17
-            build_type: release
     steps:
       - uses: actions/checkout@v2
       - name: Configure apt repositories
