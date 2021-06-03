@@ -11,8 +11,7 @@ on:
 
 env:
   BUILD_CONCURRENCY: 2
-  TEST_TIMEOUT_RELEASE: 360
-  TEST_TIMEOUT_DEBUG: 1200
+  TEST_TIMEOUT: 360
 
 jobs:
   clang-format:
@@ -76,6 +75,14 @@ jobs:
             cxx_compiler: g++
             std: 17
             build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: dpcpp
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
     steps:
       - uses: actions/checkout@v2
       - name: Configure apt repositories
@@ -96,13 +103,8 @@ jobs:
           set -x
           sudo rm -rf /opt/intel/oneapi/dpl || true
           source /opt/intel/oneapi/setvars.sh intel64
-          if [[ "${{ matrix.build_type }}" == "debug" ]]; then
-            TEST_TIMEOUT=${TEST_TIMEOUT_DEBUG}
-          else
-            TEST_TIMEOUT=${TEST_TIMEOUT_RELEASE}
-          fi
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST ..
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure
