@@ -38,16 +38,16 @@ namespace __ranges
 // walk_n
 //------------------------------------------------------------------------
 
-template <int N = 0, typename _ExecutionPolicy, typename _Function, typename... _Ranges>
+template <int _N = 0, typename _ExecutionPolicy, typename _Function, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
 __pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     if (__n > 0)
     {
-        using __new_name = oneapi::dpl::__par_backend_hetero::new_kernel_name<_ExecutionPolicy, N>;
+        using __new_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<_ExecutionPolicy, _N>;
         auto __new_exec =
-            oneapi::dpl::execution::make_device_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
+            oneapi::dpl::execution::make_hetero_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
         oneapi::dpl::__par_backend_hetero::__parallel_for(__new_exec,
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
                                                           ::std::forward<_Ranges>(__rngs)...)

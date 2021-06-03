@@ -58,8 +58,10 @@ namespace TestUtils
             [&val](const T& x) { return x == val; });
     }
 
-    using oneapi::dpl::__par_backend_hetero::unique_kernel_name;
-    using oneapi::dpl::__par_backend_hetero::new_kernel_name;
+    template <typename Op, ::std::size_t CallNumber>
+    using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, CallNumber> ;
+    template <typename Policy, int idx>
+    using new_kernel_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<Policy, idx>;
 
     auto async_handler = [](sycl::exception_list ex_list) {
         for (auto& ex : ex_list) {
