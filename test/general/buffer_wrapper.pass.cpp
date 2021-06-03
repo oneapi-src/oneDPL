@@ -13,18 +13,9 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 struct test_buffer_wrapper
 {
-    template <typename Iterator1, typename Iterator2>
-    void operator()(const Iterator1& begin1, const Iterator2& end1, std::size_t size)
-    {
-        std::fill(oneapi::dpl::execution::dpcpp_default,begin1,end1,1);
-        auto begin_host1 = TestUtils::get_host_pointer(begin1);
-        auto end_host1 = TestUtils::get_host_pointer(end1);
-
-        for(auto it = begin_host1; it!= end_host1; it=it+1)
-        {
-            EXPECT_TRUE(*it == 1,"wrong effect of reduce with sycl_iterator");
-        }
-        
+    template <typename Iterator>
+    void operator()(Iterator begin1, Iterator end1, std::size_t size)
+    {   
         EXPECT_TRUE(begin1 == begin1, "operator == returned false negative");
         EXPECT_TRUE(!(begin1 == begin1 + 1), "operator == returned false positive");
 
@@ -42,15 +33,17 @@ struct test_buffer_wrapper
         EXPECT_TRUE(begin1 + size == end1, "wrong effect of iterator's operator + integer");
         EXPECT_TRUE(end1 - begin1 == size, "wrong effect of iterator's operator - iterator");
 
+        std::fill(oneapi::dpl::execution::dpcpp_default, begin1, end1, 1);
         auto buf = begin1.get_buffer();
-        auto begin_host2 = TestUtils::get_host_pointer(oneapi::dpl::begin(buf));
-        auto end_host2 = TestUtils::get_host_pointer(oneapi::dpl::end(buf));
+        EXPECT_TRUE(buf.get_count() == size, "wrog effect of iterator's method get_buffer");
 
-        for(auto it = begin_host2; it!= end_host2; it=it+1)
+        auto begin_host = sycl::host_accessor<typename Iterator::value_type, 1, sycl::access_mode::read>{buf}.get_pointer();
+        auto end_host = sycl::host_accessor<typename Iterator::value_type, 1, sycl::access_mode::read>{buf}.get_pointer() + size;
+
+        for(auto it = begin_host; it != end_host; it = it + 1)
         {
-            EXPECT_TRUE(*it == 1,"wrong effect of iterator's get_buffer method");
+            EXPECT_TRUE(*it == 1, "wrong effect of fill algorithm with sycl_iterator");
         }
-
     }
 };
 #endif
@@ -66,8 +59,7 @@ main()
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), size);
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), size);
-    test(oneapi::dpl::begin(buf, sycl::write_only, sycl::noinit), 
-            oneapi::dpl::end(buf, sycl::write_only, sycl::noinit), size);
+    test(oneapi::dpl::begin(buf, sycl::write_only, sycl::noinit), oneapi::dpl::end(buf, sycl::write_only, sycl::noinit), size);
     test(oneapi::dpl::begin(buf, sycl::noinit), oneapi::dpl::end(buf, sycl::noinit), size);
 
 #endif
