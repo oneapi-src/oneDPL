@@ -148,7 +148,7 @@ using is_hetero_it = oneapi::dpl::__par_backend_hetero::__internal::is_hetero_it
 template <typename _Iter>
 using is_passed_directly_it = oneapi::dpl::__par_backend_hetero::__internal::is_passed_directly<_Iter>;
 
-//struct for checking if it needs to create a temporay SYCL buffer or not
+//struct for checking if it needs to create a temporary SYCL buffer or not
 
 template <typename _Iter, typename Void = void>
 struct is_temp_buff : ::std::false_type
@@ -274,8 +274,8 @@ struct __range_holder
     }
 };
 
-// We have to keep sycl buffer intance here by sync reasons, at least in case of host iterators. SYCL runtime has sync
-// in bufer desctruction and a sycl view instance keeps just placeholder accessor, not a buffer.
+// We have to keep sycl buffer instance here by sync reasons, at least in case of host iterators. SYCL runtime has sync
+// in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
 template <typename _T>
 using buf_type = sycl::buffer<_T, 1>;
 
@@ -351,7 +351,7 @@ template <sycl::access::mode AccMode, typename _Iterator>
 struct __get_sycl_range
 {
   private:
-    //We have to keep sycl buffer(s) intance here by sync reasons; see __iter_types definition above
+    //We have to keep sycl buffer(s) instance here by sync reasons; see __iter_types definition above
     typename __iter_types<_Iterator>::type m_keep;
 
     template <typename _Iter>

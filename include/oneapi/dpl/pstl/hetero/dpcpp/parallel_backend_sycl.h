@@ -152,10 +152,10 @@ struct iter_mode
     T*
     operator()(T* ptr)
     {
-        // it doesnt have any iter mode because of two factors:
+        // it does not have any iter mode because of two factors:
         //   - since it is a raw pointer, kernel can read/write despite of access_mode
-        //   - access_mode also serves for implicit syncronization for buffers to build graph dependency
-        //     and since usm have only explicit syncronization and does not provide dependency resolution mechanism
+        //   - access_mode also serves for implicit synchronization for buffers to build graph dependency
+        //     and since usm have only explicit synchronization and does not provide dependency resolution mechanism
         //     it does not require access_mode
         return ptr;
     }
@@ -585,7 +585,7 @@ struct __early_exit_find_or
                 _BackwardTagType{}, [__n_iter, __i]() { return __n_iter - 1 - __i; }, [__i]() { return __i; });
 
             _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
-            // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for erly exit)
+            // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
             // should be investigated later, with other HW
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
@@ -701,7 +701,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                     }
                 });
         });
-        //The end of the scope  -  a point of syncronization (on temporary sycl buffer destruction)
+        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
     return oneapi::dpl::__internal::__invoke_if_else(
@@ -1155,7 +1155,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
                     const _Size __start_2 = __end_1;
                     const _Size __end_2 = sycl::min(__start_2 + __sorted, __n);
 
-                    // Distance between the beginning of a sorted sequence and the begining of a chunk
+                    // Distance between the beginning of a sorted sequence and the beginning of a chunk
                     const _Size __offset = __chunk * (__idx % __chunks_in_sorted);
 
                     if (!__data_in_temp)

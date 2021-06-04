@@ -52,8 +52,8 @@ struct Num
 template <typename Type>
 struct test_one_policy
 {
-    // Entites defined in ::std:: are prohibited to be inside a device kernel name,
-    // thus avoid passing the iterator type as a template paramemter to test_one_policy
+    // Entities defined in ::std:: are prohibited to be inside a device kernel name,
+    // thus avoid passing the iterator type as a template parameter to test_one_policy
     using RandomAccessIterator = typename Sequence<Type>::iterator;
 
     RandomAccessIterator d_first;

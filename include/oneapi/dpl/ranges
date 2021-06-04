@@ -17,7 +17,7 @@
 #define _ONEDPL_RANGES
 
 // TODO: Figure out the order of headers and add standard header version/ciso646 for library version macros.
-// Also, remove dependecy on <execution> header.
+// Also, remove dependency on <execution> header.
 #if defined(_GLIBCXX_RELEASE)
 #    define _ONEDPL_CXX_STANDARD_LIBRARY_CHECK (_GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
 #elif defined(_LIBCPP_VERSION)

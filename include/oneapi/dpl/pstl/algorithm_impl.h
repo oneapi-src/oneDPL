@@ -129,7 +129,7 @@ void
 __brick_walk1(_DifferenceType __n, _Function __f, ::std::true_type) noexcept
 {
     // TODO: when using this overload the correctness of the vectorization depends on that functor is provided.
-    // To avoid possible bugs we need to add a restriction on the functor so only the onces which would be
+    // To avoid possible bugs we need to add a restriction on the functor so only the ones which would be
     // correctly vectorizes are used passed here. But for now, just re-direct to serial version.
     oneapi::dpl::__internal::__brick_walk1(__n, __f, ::std::false_type{});
 }

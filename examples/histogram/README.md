@@ -11,7 +11,7 @@ In this example we are using oneDPL APIs to offload the computation to the selec
 | Time to complete                | At most 1 minute                                                               |
 
 ## Purpose
-This example creates both dense and sparse histograms using oneDPL APIs, on an input array of 1000 elements with values chosen randomly berween 0 and 9.
+This example creates both dense and sparse histograms using oneDPL APIs, on an input array of 1000 elements with values chosen randomly between 0 and 9.
 To differentiate between sparse and dense histogram, we make sure that one of the values never occurs in the input array, i.e. one bin will always have 0 value.
 
 For the dense histogram all the bins(including the zero-size bins) are stored, whereas for the sparse algorithm only non-zero sized bins are stored.

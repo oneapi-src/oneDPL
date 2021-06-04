@@ -77,7 +77,7 @@ Usage Examples
 ==============
 
 The code examples below assume you are ``using namespace oneapi::dpl::execution;``
-and ``using namespace sycl;`` directives when refering to policy classes and functions:
+and ``using namespace sycl;`` directives when referring to policy classes and functions:
 
 .. code::
 

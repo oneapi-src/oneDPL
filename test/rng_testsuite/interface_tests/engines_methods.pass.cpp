@@ -164,7 +164,7 @@ public:
                 }
                 if (sum)
                 {
-                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                    std::cout << "Error occurred in " << sum << " elements" << std::endl;
                 }
             }
             catch (sycl::exception const& e)
@@ -257,7 +257,7 @@ public:
                 }
                 if (sum)
                 {
-                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                    std::cout << "Error occurred in " << sum << " elements" << std::endl;
                 }
             }
             catch (sycl::exception const& e)
@@ -343,7 +343,7 @@ public:
                 }
                 if (sum)
                 {
-                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                    std::cout << "Error occurred in " << sum << " elements" << std::endl;
                 }
             }
             catch (sycl::exception const& e)
@@ -431,7 +431,7 @@ public:
                 }
                 if (sum)
                 {
-                    std::cout << "Error occured in " << sum << " elements" << std::endl;
+                    std::cout << "Error occurred in " << sum << " elements" << std::endl;
                 }
             }
             catch (sycl::exception const& e)

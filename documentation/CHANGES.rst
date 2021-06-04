@@ -28,7 +28,7 @@ Fixed Issues
 -  Fixed execution of ``swap_ranges`` algorithm with ``unseq``, ``par`` execution policies.
 -  Fixed an issue causing memory corruption and double freeing in scan-based algorithms compiled with
    -O0 and -g options and run on CPU devices.
--  Fixed incorrect behavior in the ``exclusive_scan`` algorithm that occurred when the input and ouput iterator ranges overlapped.
+-  Fixed incorrect behavior in the ``exclusive_scan`` algorithm that occurred when the input and output iterator ranges overlapped.
 -  Fixed error propagation for async runtime exceptions by consistently calling ``sycl::event::wait_and_throw`` internally.
 -  Fixed the warning: ``local variable will be copied despite being returned by name [-Wreturn-std-move]``.
 

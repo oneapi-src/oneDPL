@@ -157,7 +157,7 @@ struct shift_right_algo
         typename ::std::iterator_traits<It>::difference_type n)
     {
         //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
-        //Otherwise, returns firts.
+        //Otherwise, returns first.
         It __last = ::std::next(first, m);
         auto res_exp = (n > 0 && n < m ? ::std::next(first, n) : (n > 0 ? __last : first));
 
