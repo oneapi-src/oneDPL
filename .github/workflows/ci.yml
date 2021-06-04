@@ -77,12 +77,6 @@ jobs:
             build_type: release
             backend: tbb
             device_type: HOST
-          - os: ubuntu-20.04
-            cxx_compiler: dpcpp
-            std: 17
-            build_type: release
-            backend: dpcpp
-            device_type: CPU
     steps:
       - uses: actions/checkout@v2
       - name: Configure apt repositories
