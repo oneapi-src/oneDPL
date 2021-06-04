@@ -282,40 +282,6 @@ pipeline {
                     }
                 }
 
-                stage('Tests_g++_tbb_cxx_17') {
-                    when {
-                        expression { code_changed }
-                    }
-                    steps {
-                        timeout(time: 2, unit: 'HOURS') {
-                            script {
-                                try {
-                                    dir("./src/build") {
-                                        withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
-                                            sh script: """
-                                                rm -rf *
-                                                cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST -DCMAKE_BUILD_TYPE=release ..
-                                                make VERBOSE=1 build-all -j`nproc` -k || true
-                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
-
-                                            """, label: "All tests"
-                                        }
-                                    }
-                                }
-                                catch(e) {
-                                    build_ok = false
-                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        sh script: """
-                                            exit -1
-                                        """
-
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 stage('Check_Samples') {
                     when {
                         expression { code_changed }

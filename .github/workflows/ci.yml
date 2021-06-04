@@ -9,6 +9,10 @@ on:
       - main
       - 'release/**'
 
+env:
+  BUILD_CONCURRENCY: 2
+  TEST_TIMEOUT: 360
+
 jobs:
   clang-format:
     runs-on: ubuntu-latest
@@ -51,7 +55,7 @@ jobs:
           python -m pip install -r documentation/library_guide/requirements.txt
       - name: Build documentation
         run: |
-          mkdir html 
+          mkdir html
           sphinx-build -b html documentation/library_guide/ html/
       - name: Archive build directory
         uses: actions/upload-artifact@v1
@@ -59,3 +63,42 @@ jobs:
             name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html
 
+  linux-testing:
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure apt repositories
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+      - name: Install oneTBB
+        run: sudo apt install -y intel-oneapi-tbb-devel
+      - name: Install oneAPI Compiler
+        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
+        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          sudo rm -rf /opt/intel/oneapi/dpl || true
+          source /opt/intel/oneapi/setvars.sh intel64
+          mkdir build && cd build
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
+          make VERBOSE=1 -j${BUILD_CONCURRENCY}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure
