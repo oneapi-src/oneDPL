@@ -35,7 +35,7 @@ struct test_buffer_wrapper
 
         std::fill(oneapi::dpl::execution::dpcpp_default, begin1, end1, 1);
         auto buf = begin1.get_buffer();
-        EXPECT_TRUE(oneapi::dpl::begin(buf) == begin1, "wrog effect of iterator's method get_buffer");
+        EXPECT_TRUE(oneapi::dpl::begin(buf) == begin1, "wrong effect of iterator's method get_buffer");
 
         auto begin_host = sycl::host_accessor(buf, sycl::read_only).get_pointer();
         auto end_host = begin_host + size;
