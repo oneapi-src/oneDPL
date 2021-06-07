@@ -14,7 +14,6 @@ efforts across devices for high performance parallel applications.
    :titlesonly:
    :glob:
 
-   before_you_begin
    overview
    parallel_api_main
    api_for_dpcpp_kernels_main

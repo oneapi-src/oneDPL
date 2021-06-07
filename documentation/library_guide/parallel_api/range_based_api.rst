@@ -1,8 +1,5 @@
-Algorithms with range-based API, and supporting classes
-#######################################################
-
-Range-based API
----------------
+Range-based API algorithms
+##########################
 
 C++20 indroduces the Ranges library. C++20 standard splits ranges into two categories: factories and adaptors.
 A range factory doesn't have underlying data. An element is generated on success by an index or by dereferencing an iterator.

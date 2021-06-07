@@ -1,8 +1,5 @@
-Additional API: function object classes
-#######################################
-
-Function Object Classes
------------------------
+Additional Function Object Classes
+##################################
 
 The definitions of the function objects provided in the Extension API are available through the
 ``oneapi/dpl/functional`` header.  All function objects are implemented in the ``oneapi::dpl`` namespace.
