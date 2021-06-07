@@ -13,28 +13,28 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 struct test_buffer_wrapper
 {
-    template <typename Iterator>
-    void operator()(Iterator begin1, Iterator end1, std::size_t size)
+    template <typename Iterator, typename T>
+    void operator()(Iterator begin, Iterator end, T* data, std::size_t size)
     {   
-        EXPECT_TRUE(begin1 == begin1, "operator == returned false negative");
-        EXPECT_TRUE(!(begin1 == begin1 + 1), "operator == returned false positive");
+        EXPECT_TRUE(begin == begin, "operator == returned false negative");
+        EXPECT_TRUE(!(begin == begin + 1), "operator == returned false positive");
 
-        EXPECT_TRUE(begin1 != begin1 + 1, "operator != returned false negative");
-        EXPECT_TRUE(!(begin1 != begin1), "operator != returned false positive");
+        EXPECT_TRUE(begin != begin + 1, "operator != returned false negative");
+        EXPECT_TRUE(!(begin != begin), "operator != returned false positive");
 
-        auto it = begin1;
+        auto it = begin;
 
-        EXPECT_TRUE(it == begin1, "wrong effect of iterator's copy constructor");
+        EXPECT_TRUE(it == begin, "wrong effect of iterator's copy constructor");
 
-        it = end1;
+        it = end;
 
-        EXPECT_TRUE(it == end1, "wrong effect of iterator's copy assignment operator");
-        EXPECT_TRUE(it - size == begin1, "wrong effect of iterator's operator - integer");
-        EXPECT_TRUE(begin1 + size == end1, "wrong effect of iterator's operator + integer");
-        EXPECT_TRUE(end1 - begin1 == size, "wrong effect of iterator's operator - iterator");
+        EXPECT_TRUE(it == end, "wrong effect of iterator's copy assignment operator");
+        EXPECT_TRUE(it - size == begin, "wrong effect of iterator's operator - integer");
+        EXPECT_TRUE(begin + size == end, "wrong effect of iterator's operator + integer");
+        EXPECT_TRUE(end - begin == size, "wrong effect of iterator's operator - iterator");
 
-        auto buf = begin1.get_buffer();
-        EXPECT_TRUE(oneapi::dpl::begin(buf) == begin1, "wrong effect of iterator's method get_buffer");
+        auto buf = begin.get_buffer();
+        EXPECT_TRUE(sycl::host_accessor(buf, sycl::read_only).get_pointer() == data, "wrong effect of iterator's method get_buffer");
     }
 };
 #endif
@@ -47,11 +47,12 @@ main()
     std::size_t size = 1000;
     sycl::buffer<uint32_t> buf{size};
     test_buffer_wrapper test{};
+    auto begin = sycl::host_accessor(buf, sycl::read_only).get_pointer();
 
-    test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), size);
-    test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), size);
-    test(oneapi::dpl::begin(buf, sycl::write_only, sycl::noinit), oneapi::dpl::end(buf, sycl::write_only, sycl::noinit), size);
-    test(oneapi::dpl::begin(buf, sycl::noinit), oneapi::dpl::end(buf, sycl::noinit), size);
+    test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), begin, size);
+    test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), begin, size);
+    test(oneapi::dpl::begin(buf, sycl::write_only, sycl::noinit), oneapi::dpl::end(buf, sycl::write_only, sycl::noinit), begin, size);
+    test(oneapi::dpl::begin(buf, sycl::noinit), oneapi::dpl::end(buf, sycl::noinit), begin, size);
 
 #endif
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
