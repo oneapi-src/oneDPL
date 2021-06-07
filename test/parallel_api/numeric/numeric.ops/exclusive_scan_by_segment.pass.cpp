@@ -117,9 +117,7 @@ struct test_exclusive_scan_by_segment
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_keys = get_host_pointer(keys_first);
         host_val_res = get_host_pointer(val_res_first);
         check_values(host_keys, host_val_res, n);
@@ -132,9 +130,7 @@ struct test_exclusive_scan_by_segment
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
                                                            init, ::std::equal_to<KeyT>());
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_keys = get_host_pointer(keys_first);
         host_val_res = get_host_pointer(val_res_first);
         check_values(host_keys, host_val_res, n);
@@ -147,9 +143,7 @@ struct test_exclusive_scan_by_segment
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
                                                            init, ::std::equal_to<KeyT>(), ::std::plus<ValT>());
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_keys = get_host_pointer(keys_first);
         host_val_res = get_host_pointer(val_res_first);
         check_values(host_keys, host_val_res, n);

@@ -96,9 +96,7 @@ struct test_binary_search
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::binary_search(new_policy, first, last, value_first, value_last, result_first);
-#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#    endif
         host_first = get_host_pointer(first);
         host_val_first = get_host_pointer(value_first);
         host_result = get_host_pointer(result_first);
@@ -110,9 +108,7 @@ struct test_binary_search
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::binary_search(new_policy2, first, last, value_first, value_last, result_first,
                                                ::std::less<ValueT>());
-#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#    endif
         host_first = get_host_pointer(first);
         host_val_first = get_host_pointer(value_first);
         host_result = get_host_pointer(result_first);

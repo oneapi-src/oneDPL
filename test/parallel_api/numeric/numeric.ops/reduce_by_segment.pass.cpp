@@ -121,9 +121,7 @@ struct test_reduce_by_segment
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 =
             oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#    endif
         Size result_size = std::distance(key_res_first, res1.first);
 
         {
@@ -145,9 +143,7 @@ struct test_reduce_by_segment
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, ::std::equal_to<KeyT>());
-#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#    endif
         result_size = std::distance(key_res_first, res2.first);
 
         {
@@ -169,9 +165,7 @@ struct test_reduce_by_segment
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, ::std::equal_to<KeyT>(), ::std::plus<ValT>());
-#    if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#    endif
         result_size = std::distance(key_res_first, res3.first);
 
         auto host_key_res = get_host_pointer(key_res_first);
