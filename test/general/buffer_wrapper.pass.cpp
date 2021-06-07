@@ -33,17 +33,8 @@ struct test_buffer_wrapper
         EXPECT_TRUE(begin1 + size == end1, "wrong effect of iterator's operator + integer");
         EXPECT_TRUE(end1 - begin1 == size, "wrong effect of iterator's operator - iterator");
 
-        std::fill(oneapi::dpl::execution::dpcpp_default, begin1, end1, 1);
         auto buf = begin1.get_buffer();
         EXPECT_TRUE(oneapi::dpl::begin(buf) == begin1, "wrong effect of iterator's method get_buffer");
-
-        auto begin_host = sycl::host_accessor(buf, sycl::read_only).get_pointer();
-        auto end_host = begin_host + size;
-
-        for(auto it = begin_host; it != end_host; it = it + 1)
-        {
-            EXPECT_TRUE(*it == 1, "wrong effect of fill algorithm with sycl_iterator");
-        }
     }
 };
 #endif
