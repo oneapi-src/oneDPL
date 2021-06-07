@@ -744,6 +744,12 @@ class discard_iterator
 #    define _ONEDPL_CONSTEXPR_FIX constexpr
 #endif
 
+    _ONEDPL_CONSTEXPR_FIX difference_type
+    operator-(const discard_iterator& __it) const
+    {
+        return __my_position_ - __it.__my_position_;
+    }
+
     _ONEDPL_CONSTEXPR_FIX bool
     operator==(const discard_iterator& __it) const
     {
@@ -765,12 +771,6 @@ class discard_iterator
     operator>(const discard_iterator& __it) const
     {
         return __it < *this;
-    }
-
-    difference_type
-    operator-(const discard_iterator& __it) const
-    {
-        return __my_position_ - __it.__my_position_;
     }
 
     discard_iterator&
