@@ -313,7 +313,6 @@ struct test_discard_iterator
 
         oneapi::dpl::discard_iterator dis_it;
 
-        ::std::transform(in1.begin(), in1.end(), dis_it, oneapi::dpl::identity());
         test_random_iterator(dis_it);
     }
 };

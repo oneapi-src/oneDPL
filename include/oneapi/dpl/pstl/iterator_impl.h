@@ -747,7 +747,7 @@ class discard_iterator
     _ONEDPL_CONSTEXPR_FIX bool
     operator==(const discard_iterator& __it) const
     {
-        return __my_position_ - __it.__my_position_ == 0;
+        return *this - __it == 0;
     }
     _ONEDPL_CONSTEXPR_FIX bool
     operator!=(const discard_iterator& __it) const
@@ -759,12 +759,12 @@ class discard_iterator
     bool
     operator<(const discard_iterator& __it) const
     {
-        return __my_position_ - __it.__my_position_ < 0;
+        return *this - __it < 0;
     }
     bool
     operator>(const discard_iterator& __it) const
     {
-        return __my_position_ - __it.__my_position_ > 0;
+        return __it < *this;
     }
 
     difference_type
@@ -776,27 +776,25 @@ class discard_iterator
     discard_iterator&
     operator++()
     {
-        ++__my_position_;
-        return *this;
+        return *this += 1;
     }
     discard_iterator&
     operator--()
     {
-        --__my_position_;
-        return *this;
+        return *this -= 1;
     }
     discard_iterator
     operator++(int)
     {
-        discard_iterator __it(__my_position_);
-        ++__my_position_;
+        discard_iterator __it(*this);
+        ++(*this);
         return __it;
     }
     discard_iterator
     operator--(int)
     {
-        discard_iterator __it(__my_position_);
-        --__my_position_;
+        discard_iterator __it(*this);
+        --(*this);
         return __it;
     }
     discard_iterator&
@@ -808,7 +806,7 @@ class discard_iterator
     discard_iterator&
     operator-=(difference_type __backward)
     {
-        __my_position_ -= __backward;
+        *this += -__backward;
         return *this;
     }
 
@@ -825,17 +823,17 @@ class discard_iterator
     friend discard_iterator
     operator+(difference_type __forward, const discard_iterator& __it)
     {
-        return discard_iterator(__it.__my_position_ + __forward);
+        return __it + __forward;
     }
     bool
     operator<=(const discard_iterator& __it) const
     {
-        return !(__my_position_ > __it.__my_position_);
+        return !(*this > __it);
     }
     bool
     operator>=(const discard_iterator& __it) const
     {
-        return !(__my_position_ < __it.__my_position_);
+        return !(*this < __it);
     }
 
   private:
