@@ -175,15 +175,14 @@ allow you to pass SYCL buffers to parallel algorithms. These functions accept
 a SYCL buffer and return an object of an unspecified type that satisfies the following
 requirements:
 
-* Is ``CopyConstructible``, ``CopyAssignable``, and comparable with operators == and !=
-* The following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
+* it is ``CopyConstructible``, ``CopyAssignable``, and comparable with operators ``==`` and ``!=``;
+* the following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
   are objects of the type, and ``n`` is an integer value
-* Has a ``get_buffer`` method with no arguments. The method returns the SYCL buffer passed to
-  ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions
+* it provides the ``get_buffer`` method that returns the buffer passed to the ``begin`` and ``end`` functions
 
-Also ``begin``, ``end`` can optionally accept SYCL deduction tags and ``sycl::no_init``
-(See SYCL 2020: 4.7.6.3, 4.7.6.4 for details) to explicitly mention which access mode should be applied
-to the buffer accessor when submitting DPC++ kernel to a device, e.g.
+``begin``, ``end`` can optionally take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
+to explicitly mention, which access mode should be applied to the buffer accessor when submitting
+DPC++ kernel to a device. For example:
 
 .. code:: cpp
 
@@ -191,7 +190,7 @@ to the buffer accessor when submitting DPC++ kernel to a device, e.g.
   auto first2 = begin(buf, sycl::write_only, sycl::no_init);
   auto first3 = begin(buf, sycl::no_init);
 
-It helps to build the dependency graph of parallel algorithms' calls more correctly.
+It allows you to control the access mode for the particular buffer passing to a parallel algorithm.
 
 To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code.
 
