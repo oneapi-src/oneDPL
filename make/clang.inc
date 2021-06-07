@@ -29,6 +29,10 @@ ifneq (,$(shell clang --version | egrep  "clang version [6-9]\.[0-9]\.[0-9]"))
 CPLUS_FLAGS += -fopenmp-simd #supported at least since 6.0 version
 endif
 
+ifneq (,$(shell clang --version | egrep  "DPC"))
+CPLUS_FLAGS += -fopenmp-simd
+endif
+
 # In case of TBB backend and using Clang with libstdc++ the version of the library should be specify explicitly via TBB_USE_GLIBCXX_VERSION
 ifeq ($(backend), tbb)
 export gcc_version:=$(shell gcc -dumpfullversion -dumpversion)

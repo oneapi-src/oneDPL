@@ -99,7 +99,7 @@ ifneq (, $(filter $(compiler), icl))
     include $(proj_root)/make/icl.inc
 endif
 
-ifneq (, $(filter $(compiler), dpcpp dpc++))
+ifneq (, $(filter $(compiler), dpcpp dpc++ icpx))
     include $(proj_root)/make/dpcpp.inc
 endif
 
