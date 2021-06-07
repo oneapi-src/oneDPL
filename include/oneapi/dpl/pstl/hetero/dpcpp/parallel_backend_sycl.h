@@ -187,17 +187,18 @@ template <typename _DerivedKernelName>
 class __kernel_name_base
 {
     sycl::context __ctx;
-    sycl::kernel_id __kernel_id;
 
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
+    sycl::kernel_id __kernel_id;
     sycl::kernel_bundle<sycl::bundle_state::executable> __kernel_bundle;
 #endif
 
     __kernel_name_base(const sycl::context& __context)
-        : __ctx(__context), __kernel_id(sycl::get_kernel_id<_DerivedKernelName>())
+        : __ctx(__context)
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
           ,
-          __kernel_bundle(sycl::get_kernel_bundle<sycl::bundle_state::executable>(__context))
+          __kernel_id(sycl::get_kernel_id<_DerivedKernelName>()),
+          __kernel_bundle(sycl::get_kernel_bundle<sycl::bundle_state::executable>(__ctx, {__kernel_id}))
 #endif
     {
     }
