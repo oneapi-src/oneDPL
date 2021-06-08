@@ -317,6 +317,9 @@ struct test_discard_iterator
         ::std::iota(in1.begin(), in1.end(), T1(0));
 
         oneapi::dpl::discard_iterator dis_it;
+        oneapi::dpl::discard_iterator dis_it2(in1.size());
+
+        EXPECT_TRUE(dis_it + in1.size() == dis_it2, "wrong result from discard_iterator");
 
         test_random_iterator(dis_it);
     }
