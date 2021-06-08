@@ -298,8 +298,11 @@ struct test_permutation_iterator
 
         EXPECT_TRUE(::std::is_sorted(result.begin(), result.end(), ::std::greater<T1>()),
                     "wrong result from permutation_iterator");
-        EXPECT_TRUE(perm_end.base() == in1.begin(), "wrong result from permutation_iterator");
-        EXPECT_TRUE(perm_end.map() == in2.begin(), "wrong result from permutation_iterator");
+
+        oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it(in1.begin(), in2.begin(), in2.size()-1);
+        EXPECT_TRUE(perm_it == perm_begin + in2.size()-1, "wrong result from permutation_iterator");
+        EXPECT_TRUE(perm_it.base() == in1.begin(), "wrong result from permutation_iterator");
+        EXPECT_TRUE(perm_it.map() == in2.begin(), "wrong result from permutation_iterator");
 
         test_random_iterator(perm_begin);
     }
