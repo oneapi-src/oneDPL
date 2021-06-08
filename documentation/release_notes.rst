@@ -29,9 +29,9 @@ Fixed Issues
 -  Fixed an issue with async algorithm returning ``future<ptr>`` with unified shared memory (USM).
 
 Known Issues and Limitations
------------------------------
+----------------------------
 
-New in this release
+New in This Release
 ^^^^^^^^^^^^^^^^^^^
 -  The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 
