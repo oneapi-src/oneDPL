@@ -8,6 +8,60 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2021.4
+=============
+
+New Features
+------------
+-  Added the range-based versions of the following algorithms: ``any_of``, ``adjacent_find``,
+   ``copy_if``,  ``remove_copy_if``, ``remove_copy``, ``none_of``, ``swap_ranges``, ``unique``, ``unique_copy``,
+   ``reverse``, ``reverse_copy``, ``rotate_copy``, ``replace_copy``,  ``replace_copy_if``.
+-  Added non-blocking versions of the following algorithms: ``inclusive_scan``, ``exclusive_scan``,
+   ``transform_inclusive_scan``, ``transform_exclusive_scan``.
+-  Added structured binding support for ``zip_iterator::value_type``.
+
+Changes to Existing Features
+----------------------------
+-  Reworked several internal hetero pattern (reduce,scan) to enable async behavior.
+
+Fixed Issues
+------------
+-  Fixed an issue with async algorithm returning ``future<ptr>`` with unified shared memory (USM).
+
+Known Issues and Limitations
+-----------------------------
+
+New in this release
+^^^^^^^^^^^^^^^^^^^
+-  The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+- ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with vector execution policies
+  when building a program with GCC 10 and using -O0 option.
+- Some algorithms may hang when a program is built with -O0 option, executed on GPU devices and large number of elements is to be processed.
+- The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
+  compilation errors (caused by oneTBB API changes).
+  To overcome these issues, include oneDPL header files before the standard C++ header files,
+  or disable parallel algorithms support in the standard library.
+  For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+- The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
+  with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
+  ``oneapi::dpl`` namespace, or create a namespace alias.
+- The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
+- The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
+  or Clang 7 (or higher).
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects
+  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
+- ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
+  use ``std::array::operator[]`` instead.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
+  (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
+  for double precision.
+
 New in 2021.3
 =============
 
