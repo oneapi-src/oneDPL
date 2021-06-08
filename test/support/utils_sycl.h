@@ -356,10 +356,10 @@ test4buffers()
 #endif
     {
         // create buffers
-        sycl::buffer<uint64_t, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<uint64_t, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
-        sycl::buffer<uint64_t, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
-        sycl::buffer<uint64_t, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
+        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
+        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
+        sycl::buffer<T, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
+        sycl::buffer<T, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
 
         // create sycl iterators
         auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
