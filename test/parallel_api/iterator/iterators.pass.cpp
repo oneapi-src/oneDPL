@@ -298,6 +298,8 @@ struct test_permutation_iterator
 
         EXPECT_TRUE(::std::is_sorted(result.begin(), result.end(), ::std::greater<T1>()),
                     "wrong result from permutation_iterator");
+        EXPECT_TRUE(perm_end.base() == in1.begin(), "wrong result from permutation_iterator");
+        EXPECT_TRUE(perm_end.map() == in2.begin(), "wrong result from permutation_iterator");
 
         test_random_iterator(perm_begin);
     }

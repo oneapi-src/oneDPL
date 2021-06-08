@@ -713,7 +713,7 @@ struct ignore_copyable
     bool
     operator!=(const ignore_copyable& other) const
     {
-        return false;
+        return !(*this == other);
     }
 };
 
