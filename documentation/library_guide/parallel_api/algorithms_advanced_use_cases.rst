@@ -1,12 +1,7 @@
 Additional set of algorithms
 ############################
 
-The Extension API currently includes algorithms, iterators, and function object classes. The algorithms
-include segmented reduce, segmented scan and vectorized search algorithms. The iterators provided implement
-zip, transform, and permutation operations on other iterators, and also include a counting iterator
-and a discard iterator. The function object classes provide minimum, maximum and identity operations
-that may be passed to algorithms such as reduce or transform. The Extension API also includes an experimental
-implementation of range-based algorithms and the ranges required to use them.
+The additional set of algorithms includes segmented reduce, segmented scan and vectorized search algorithms.
 
 The definitions of the algorithms provided in the Extension API are available through the ``oneapi/dpl/algorithm``
 header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.

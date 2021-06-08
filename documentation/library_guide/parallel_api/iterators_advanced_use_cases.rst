@@ -1,12 +1,8 @@
 Special iterators
 #################
 
-The Extension API currently includes algorithms, iterators, and function object classes. The algorithms
-include segmented reduce, segmented scan and vectorized search algorithms. The iterators provided implement
-zip, transform, and permutation operations on other iterators, and also include a counting iterator
-and a discard iterator. The function object classes provide minimum, maximum and identity operations
-that may be passed to algorithms such as reduce or transform. The Extension API also includes an experimental
-implementation of range-based algorithms and the ranges required to use them.
+The set of special iterators provides implement zip, transform, and permutation operations on other iterators,
+and also include a counting iterator and a discard iterator.
 
 The definitions of the iterators provided in the Extension API are available through the ``oneapi/dpl/iterator``
 header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
