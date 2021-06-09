@@ -83,7 +83,7 @@ and ``using namespace sycl;`` directives when referring to policy classes and fu
 
   auto policy_a = device_policy<class PolicyA> {};
   std::for_each(policy_a, …);
-  
+
 .. code::
 
   auto policy_b = device_policy<class PolicyB> {device{gpu_selector{}}};
@@ -172,14 +172,26 @@ Use oneapi::dpl::begin and oneapi::dpl::end Functions
 
 ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` are special helper functions that
 allow you to pass SYCL buffers to parallel algorithms. These functions accept
-a SYCL buffer and return an object of an unspecified type that satisfies the following
-requirements:
+a SYCL buffer and return an object of an unspecified type that provides the following
+API:
 
-* Is ``CopyConstructible``, ``CopyAssignable``, and comparable with operators == and !=
-* The following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
-  are objects of the type, and ``n`` is an integer value
-* Has a ``get_buffer`` method with no arguments. The method returns the SYCL buffer passed to
-  ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` functions
+* it satisfies ``CopyConstructible``, ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``
+* the following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
+  are objects of the type, and ``n`` is an integer value. Effect for those operations is the same as for the type
+  that satisfies ``LegacyRandomAccessIterator`` C++ named requirement
+* it provides the ``get_buffer`` method that returns the buffer passed to the ``begin`` and ``end`` functions
+
+``begin``, ``end`` can optionally take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
+to explicitly mention, which access mode should be applied to the buffer accessor when submitting
+DPC++ kernel to a device. For example:
+
+.. code:: cpp
+
+  auto first1 = begin(buf, sycl::read_only);
+  auto first2 = begin(buf, sycl::write_only, sycl::no_init);
+  auto first3 = begin(buf, sycl::no_init);
+
+It allows you to control the access mode for the particular buffer passing to a parallel algorithm.
 
 To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code.
 
