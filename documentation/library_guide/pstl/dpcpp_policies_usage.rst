@@ -175,7 +175,7 @@ allow you to pass SYCL buffers to parallel algorithms. These functions accept
 a SYCL buffer and return an object of an unspecified type that provides the following
 API:
 
-* it is ``CopyConstructible``, ``CopyAssignable``, and comparable with operators ``==`` and ``!=``;
+* it satisfies ``CopyConstructible``, ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``
 * the following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
   are objects of the type, and ``n`` is an integer value
 * it provides the ``get_buffer`` method that returns the buffer passed to the ``begin`` and ``end`` functions
