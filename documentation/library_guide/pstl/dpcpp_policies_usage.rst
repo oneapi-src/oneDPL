@@ -172,8 +172,8 @@ Use oneapi::dpl::begin and oneapi::dpl::end Functions
 
 ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` are special helper functions that
 allow you to pass SYCL buffers to parallel algorithms. These functions accept
-a SYCL buffer and return an object of an unspecified type that satisfies the following
-requirements:
+a SYCL buffer and return an object of an unspecified type that provides the following
+API:
 
 * it is ``CopyConstructible``, ``CopyAssignable``, and comparable with operators ``==`` and ``!=``;
 * the following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
