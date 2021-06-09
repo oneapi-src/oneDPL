@@ -177,7 +177,8 @@ API:
 
 * it satisfies ``CopyConstructible``, ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``
 * the following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
-  are objects of the type, and ``n`` is an integer value
+  are objects of the type, and ``n`` is an integer value. Effect for those operations is the same as for the type
+  that satisfies ``LegacyRandomAccessIterator`` C++ named requirement
 * it provides the ``get_buffer`` method that returns the buffer passed to the ``begin`` and ``end`` functions
 
 ``begin``, ``end`` can optionally take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
