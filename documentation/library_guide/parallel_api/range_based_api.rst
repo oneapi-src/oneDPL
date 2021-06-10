@@ -22,9 +22,11 @@ to be called on both host and device.
 
 The following algorithms are available to use with the ranges:
 
+* ``adjacent_find``
 * ``all_of``
 * ``any_of``
 * ``copy``
+* ``copy_if``
 * ``count``
 * ``count_if``
 * ``equal``
@@ -43,18 +45,29 @@ The following algorithms are available to use with the ranges:
 * ``merge``
 * ``minmax_element``
 * ``move``
+* ``none_of``
 * ``reduce``
 * ``remove``
 * ``remove_if``
+* ``remove_copy``
+* ``remove_copy_if``
 * ``replace``
 * ``replace_if``
+* ``replace_copy``
+* ``replace_copy_if``
+* ``reverse``
+* ``reverse_copy``
+* ``rotate_copy``
 * ``search``
 * ``sort``
 * ``stable_sort``
+* ``swap_ranges``
 * ``transform``
 * ``transform_reduce``
 * ``transform_exclusive_scan``
 * ``transform_inclusive_scan``
+* ``unique``
+* ``unique_copy``
 
 The signature example of the range-based algorithms looks like::
 
@@ -67,20 +80,20 @@ These algorithms are declared in ``oneapi::dpl::experimental::ranges`` namespace
 In order to make these algorithm available the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
 Use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher) or Clang 7 (or higher).
 
-The following views are declared in the ``oneapi::dpl::experimental::ranges`` namespace. Only those are allowed to use as ranges
-for range-based algorithms.
+The following viewable ranges (CPO's) are declared in ``oneapi::dpl::experimental::ranges`` namespace. Only those are 
+allowed to use as ranges for range-based algorithms.
 
-* ``all_view`` is a custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements.
-* ``guard_view`` is a custom utility that represents a view of USM data range defined by a two USM pointers.
-* ``iota_view`` is a range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
-* ``generate`` is a range factory that generates a sequence of N elements, where each is produced by a given functional genrator.
-* ``fill`` is a range factory that generates a sequence of N elements, where each is equal a given value.
-* ``zip_view`` is a custom range adapter that produces one ``zip_view`` from other several views.
-* ``transform_view`` is a range adapter that represents a view of a underlying sequence after applying a transformation to each element.
-* ``reverse_view`` is a range adapter that produces a reversed sequence of elements provided by another view.
-* ``take_view`` is a range adapter that produces a view of the first N elements from another view.
-* ``drop_view`` is a range adapter that produces a view excluding the first N elements from another view.
-* ``rotate``: is a range adapter that produces a left rotated sequence of elements provided by another view.
+* ``views::iota``. A range factory - generates a sequence of N elements which starts from an initial value and ends by final N-1.
+* ``views::all``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
+* ``views::all_read``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
+* ``views::all_write``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
+* ``views::host_all``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on the host.
+* ``views::subrange``. A utility - represents a view of USM data range defined by a two USM pointers.
+* ``views::zip``. A custom range adapter - produces one ``zip_view`` from other several views.
+* ``views::transform``. A range adapter - represents a view of a underlying sequence after applying a transformation to each element.
+* ``views::reverse``. A range adapter - produces a reversed sequence of elements provided by another view.
+* ``views::take``. A range adapter - produces a view of the first N elements from another view.
+* ``views::drop``. A range adapter - produces a view excluding the first N elements from another view. “
 
 Example of Range-based API Usage
 --------------------------------
