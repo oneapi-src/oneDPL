@@ -40,8 +40,9 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
     std::stable_sort(dpl::execution::dpcpp_default, zipped_begin, zipped_begin + n,
         [](auto lhs, auto rhs) { return get<0>(lhs) < get<0>(rhs); });
 
-  The deferenced object of ``zip_iterator`` supports the *structured binding* (C++17 feature) for easier
-  access to wrapped iterators values::
+  The deferenced object of ``zip_iterator`` supports the *structured binding* feature (`since C++17
+  <https://en.cppreference.com/w/cpp/language/structured_binding>`_) for easier access to wrapped
+  iterators values::
 
     using namespace oneapi;
     auto zipped_begin = dpl::make_zip_iterator(sequence1.begin(), sequence2.begin(), sequence3.begin());
