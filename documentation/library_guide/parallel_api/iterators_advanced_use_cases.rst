@@ -29,7 +29,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   ``zip_iterator`` instance are also applied to each of the member iterators.
 
   The ``make_zip_iterator`` function is provided to simplify the construction of ``zip_iterator`` instances.
-  The function returns ``zip_iterator`` instance with all the agruments held as member iterators.
+  The function returns ``zip_iterator`` instance with all the arguments held as member iterators.
 
   The ``zip_iterator`` is useful in defining by key algorithms where input iterators
   representing keys and values are processed as key-value pairs. The example below demonstrates a stable sort
