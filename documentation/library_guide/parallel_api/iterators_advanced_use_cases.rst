@@ -21,6 +21,42 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
     auto sum = std::reduce(dpl::execution::dpcpp_default,
                            count_a, count_b, init); // sum is (0 + 0 + 1 + ... + 9) = 45
 
+* ``zip_iterator``
+
+  The ``zip_iterator`` is an iterator constructed with one or more iterators as input. The result of
+  ``zip_iterator`` dereferencing is a tuple-like object of unspecified type holding the values returned by
+  dereferencing the member iterators, which ``zip_iterator`` wraps. Arithmetic operations performed on a
+  ``zip_iterator`` instance are also applied to each of the member iterators.
+
+  The ``make_zip_iterator`` function is provided to simplify the construction of ``zip_iterator`` instances.
+  The function returns ``zip_iterator`` instance with all the agruments held as member iterators.
+
+  The ``zip_iterator`` is useful in defining by key algorithms where input iterators
+  representing keys and values are processed as key-value pairs. The example below demonstrates a stable sort
+  by key where only the keys are compared but both keys and values are swapped::
+
+    using namespace oneapi;
+    auto zipped_begin = dpl::make_zip_iterator(keys_begin, vals_begin);
+    std::stable_sort(dpl::execution::dpcpp_default, zipped_begin, zipped_begin + n,
+        [](auto lhs, auto rhs) { return get<0>(lhs) < get<0>(rhs); });
+
+  The deferenced object of ``zip_iterator`` supports the *structured binding* (C++17 feature) for easier
+  access to wrapped iterators values::
+
+    using namespace oneapi;
+    auto zipped_begin = dpl::make_zip_iterator(sequence1.begin(), sequence2.begin(), sequence3.begin());
+    auto found = std::find(dpl::execution::dpcpp_default, zipped_begin, zipped_begin + n,
+        [](auto tuple_like_obj) {
+          auto [e1, e2, e3] = tuple_like_obj;
+          return e1 == e2 && e1 == e3;
+        }
+    );
+
+  Since dereferencing ``zip_iterator`` is semantically a tuple of references the copying of such an object
+  is supposed to be cheap. Please note that in the example above ``e1``, ``e2`` and ``e3`` are references.
+
+  For more examples with ``zip_iterator`` please see the code snippet provided for ``discard_iterator``
+
 * ``discard_iterator``
 
   The ``discard_iterator`` is a random access iterator-like type that provides write-only dereference
@@ -50,7 +86,6 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   * ``transform_iterator(iter)`` instantiates the iterator using the base iterator provided and a default constructed unary functor.
 
   * ``transform_iterator(iter, func)`` instantiates the iterator using the base iterator and unary functor provided.
-  
 
   To simplify the construction of the iterator ``oneapi::dpl::make_transform_iterator`` is provided. The
   function receives the original iterator and transform operation instance as arguments, and constructs the
@@ -90,24 +125,3 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
     auto permutation_first = dpl::make_permutation_iterator(first, multiply_index_by_two());
     auto permutation_last = permutation_first + num_elements;
     std::copy(dpl::execution::dpcpp_default, permutation_first, permutation_last, result);
-
-* ``zip_iterator``
-
-  The ``zip_iterator`` is an iterator constructed with one or more iterators as input. The value returned by the
-  iterator when dereferenced is a tuple of the values returned by dereferencing the member iterators on which
-  the ``zip_iterator`` is defined. Arithmetic operations performed on a ``zip_iterator`` instance are also
-  applied to each of the member iterators.
-
-  The ``make_zip_iterator`` function is provided to simplify the construction of ``zip_iterator`` instances.
-  The function receives each of the iterators to be held as member iterators by the ``zip_iterator`` instance
-  it returns.
-
-  The example provided for ``discard_iterator`` demonstrates ``zip_iterator`` use in defining stencil
-  algorithms. The ``zip_iterator`` is also useful in defining by key algorithms where input iterators
-  representing keys and values are processed as key-value pairs. The example below demonstrates a stable sort
-  by key where only the keys are compared but both keys and values are swapped::
-
-    using namespace oneapi;
-    auto zipped_begin = dpl::make_zip_iterator(keys_begin, vals_begin);
-    std::stable_sort(dpl::execution::dpcpp_default, zipped_begin, zipped_begin + n,
-        [](auto lhs, auto rhs) { return get<0>(lhs) < get<0>(rhs); });
