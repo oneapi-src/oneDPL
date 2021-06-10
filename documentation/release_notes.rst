@@ -14,8 +14,9 @@ New in 2021.4
 New Features
 ------------
 -  Added the range-based versions of the following algorithms: ``any_of``, ``adjacent_find``,
-   ``copy_if``,  ``remove_copy_if``, ``remove_copy``, ``none_of``, ``swap_ranges``, ``unique``, ``unique_copy``,
-   ``reverse``, ``reverse_copy``, ``rotate_copy``, ``replace_copy``,  ``replace_copy_if``.
+   ``copy_if``, ``none_of``, ``remove_copy_if``, ``remove_copy``, ``replace_copy``, 
+   ``replace_copy_if``, ``reverse``, ``reverse_copy``, ``rotate_copy``, ``swap_ranges``,
+   ``unique``, ``unique_copy``.
 -  Added non-blocking versions of the following algorithms: ``inclusive_scan``, ``exclusive_scan``,
    ``transform_inclusive_scan``, ``transform_exclusive_scan``.
 -  Added structured binding support for ``zip_iterator::value_type``.
@@ -26,7 +27,7 @@ Changes to Existing Features
 
 Fixed Issues
 ------------
--  Fixed an issue with async algorithm returning ``future<ptr>`` with unified shared memory (USM).
+-  Fixed an issue with asynchronous algorithms returning ``future<ptr>`` with unified shared memory (USM).
 
 Known Issues and Limitations
 ----------------------------
