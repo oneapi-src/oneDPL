@@ -34,6 +34,8 @@ Known Issues and Limitations
 
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
+-  With Intel® oneAPI DPC++/C++ Compiler, ``unseq`` and ``par_unseq`` execution policies do not use OpenMP SIMD pragmas
+   due to compilation issues with the ``-fopenm-simd`` option, possibly resulting in suboptimal performance.
 -  The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 
 Existing Issues
