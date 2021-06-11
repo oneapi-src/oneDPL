@@ -21,10 +21,6 @@ New Features
    ``transform_inclusive_scan``, ``transform_exclusive_scan``.
 -  Added structured binding support for ``zip_iterator::value_type``.
 
-Changes to Existing Features
-----------------------------
--  Reworked several internal hetero pattern (reduce,scan) to enable async behavior.
-
 Fixed Issues
 ------------
 -  Fixed an issue with asynchronous algorithms returning ``future<ptr>`` with unified shared memory (USM).
