@@ -389,28 +389,35 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    const auto& __device = __policy.queue().get_device();
+    const sycl::device& __device = __policy.queue().get_device();
     // TODO: investigate can we use kernel_work_group::preferred_work_group_size_multiple here.
-    auto __max_wg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
+    const ::std::size_t __max_wg_size =
         __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
+    const ::std::size_t __preferred_wg_size =
+        __kernel.template get_info<sycl::info::kernel_device_specific::preferred_work_group_size_multiple>(__device);
 #else
+    const ::std::size_t __max_wg_size =
         __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
+    const ::std::size_t __preferred_wg_size =
+        __kernel.template get_work_group_info<sycl::info::kernel_work_group::preferred_work_group_size_multiple>(
+            __device);
 #endif
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
     const ::std::size_t __cpu_divisor = __device.is_cpu() ? 4 : 1;
 
-    return __max_wg_size / __cpu_divisor;
+    ::std::size_t __wg_size = __max_wg_size / __cpu_divisor;
+    return __wg_size > __preferred_wg_size ? (__wg_size / __preferred_wg_size) * __preferred_wg_size : __wg_size;
 }
 
 template <typename _ExecutionPolicy>
 long
 __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    auto __device = __policy.queue().get_device();
-    auto __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
+    const sycl::device& __device = __policy.queue().get_device();
+    const ::std::size_t __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
     const ::std::size_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
