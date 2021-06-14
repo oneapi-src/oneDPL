@@ -14,6 +14,7 @@
 #define _ONEDPL_PARALLEL_BACKEND_OMP_H
 
 #include <atomic>
+#include <iterator>
 #include <cstddef>
 #include <cstdio>
 #include <memory>
@@ -87,16 +88,15 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
                     _Size& __first_chunk_size, _Size __requested_chunk_size = __default_chunk_size)
 {
     /*
-   * This algorithm improves distribution of elements in chunks by avoiding
-   * small tail chunks. The leftover elements that do not fit neatly into
-   * the chunk size are redistributed to early chunks. This improves
-   * utilization of the processor's prefetch and reduces the number of
-   * tasks needed by 1.
-   */
+     * This algorithm improves distribution of elements in chunks by avoiding
+     * small tail chunks. The leftover elements that do not fit neatly into
+     * the chunk size are redistributed to early chunks. This improves
+     * utilization of the processor's prefetch and reduces the number of
+     * tasks needed by 1.
+     */
 
     const _Size __n = __last - __first;
-    if (__n < __requested_chunk_size)
-    {
+    if (__n < __requested_chunk_size) {
         __chunk_size = __n;
         __first_chunk_size = __n;
         __n_chunks = 1;
@@ -105,16 +105,19 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
 
     __n_chunks = (__n / __requested_chunk_size) + 1;
     __chunk_size = __n / __n_chunks;
-    const _Size __n_leftover_items = __n % __chunk_size;
+    __first_chunk_size = __chunk_size;
+    const _Size __n_leftover_items = __n - (__n_chunks * __chunk_size);
 
-    if (__n_leftover_items == 0)
-    {
+    if (__n_leftover_items == __chunk_size) {
+        __n_chunks += 1;
+        return;
+    } else if (__n_leftover_items == 0) {
         __first_chunk_size = __chunk_size;
         return;
     }
 
     const _Size __n_extra_items_per_chunk = __n_leftover_items / __n_chunks;
-    const _Size __n_final_leftover_items = __n_leftover_items % __n_chunks;
+    const _Size __n_final_leftover_items = __n_leftover_items  - (__n_extra_items_per_chunk * __n_chunks);
 
     __chunk_size += __n_extra_items_per_chunk;
     __first_chunk_size = __chunk_size + __n_final_leftover_items;
@@ -168,8 +171,8 @@ __parallel_for_body(_RandomAccessIterator __first, _RandomAccessIterator __last,
     {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
         auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
-        auto __begin = __first + __index;
-        auto __end = __begin + __this_chunk_size;
+        auto __begin = std::next(__first, __index);
+        auto __end = std::next(__begin, __this_chunk_size);
         __f(__begin, __end);
     }
 }
