@@ -547,6 +547,61 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     });
 }
 
+template <class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3, class _Function, class _Predicate>
+_ForwardIterator3
+__brick_mask_walk3(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
+                   _ForwardIterator3 __first3, _Function __f, _Predicate __pred, /*vector=*/::std::false_type) noexcept
+{
+    for (; __first1 != __last1; ++__first1, ++__first2, ++__first3)
+        if (__pred(*__first2))
+            __f(*__first1, *__first3);
+    return __first3;
+}
+
+template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _RandomAccessIterator3, class _Function,
+          class _Predicate>
+_RandomAccessIterator3
+__brick_mask_walk3(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
+                   _RandomAccessIterator3 __first3, _Function __f, _Predicate __pred,
+                   /*vector=*/::std::true_type) noexcept
+{
+    return __unseq_backend::__simd_mask_walk_3(__first1, __last1 - __first1, __first2, __first3, __f, __pred);
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3,
+          class _Function, class _Predicate, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator3>
+__pattern_mask_walk3(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                     _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f, _Predicate __pred,
+                     _IsVector __is_vector,
+                     /*parallel=*/::std::false_type) noexcept
+{
+    return __internal::__brick_mask_walk3(__first1, __last1, __first2, __first3, __f, __pred, __is_vector);
+}
+
+template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _Function, class _Predicate, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
+    _ExecutionPolicy,
+    __is_random_access_iterator<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3>::value,
+    _RandomAccessIterator3>
+__pattern_mask_walk3(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
+                     _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _Function __f, _Predicate __pred,
+                     _IsVector __is_vector,
+                     /*parallel=*/::std::true_type)
+{
+    return __internal::__except_handler([&]() {
+        __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+                                      [__f, __pred, __first1, __first2, __first3,
+                                       __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                                          __internal::__brick_mask_walk3(__i, __j, __first2 + (__i - __first1),
+                                                                         __first3 + (__i - __first1), __f, __pred,
+                                                                         __is_vector);
+                                      });
+        return __first3 + (__last1 - __first1);
+    });
+}
+
 //------------------------------------------------------------------------
 // equal
 //------------------------------------------------------------------------
@@ -2358,10 +2413,12 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, 
                       _Compare __comp, _IsVector /*is_vector*/, /*is_parallel=*/::std::true_type)
 {
     __internal::__except_handler([&]() {
-        __par_backend::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-                                              [](_RandomAccessIterator __first, _RandomAccessIterator __last,
-                                                 _Compare __comp) { ::std::stable_sort(__first, __last, __comp); },
-                                              __last - __first);
+        __par_backend::__parallel_stable_sort(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+            [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
+                ::std::stable_sort(__first, __last, __comp);
+            },
+            __last - __first);
     });
 }
 
@@ -2497,19 +2554,19 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
                                                   [__n2, __first, __r](_T1* __i, _T1* __j, _Compare __comp) {
                                                       _RandomAccessIterator1 __it = __first + (__i - __r);
 
-                                                      // 1. Copy elements from input to raw memory
-                                                      for (_T1* __k = __i; __k != __j; ++__k, ++__it)
-                                                      {
-                                                          ::new (__k) _T2(*__it);
-                                                      }
+                    // 1. Copy elements from input to raw memory
+                    for (_T1* __k = __i; __k != __j; ++__k, ++__it)
+                    {
+                        ::new (__k) _T2(*__it);
+                    }
 
-                                                      // 2. Sort elements in temporary buffer
-                                                      if (__n2 < __j - __i)
-                                                          ::std::partial_sort(__i, __i + __n2, __j, __comp);
-                                                      else
-                                                          ::std::sort(__i, __j, __comp);
-                                                  },
-                                                  __n2);
+                    // 2. Sort elements in temporary buffer
+                    if (__n2 < __j - __i)
+                        ::std::partial_sort(__i, __i + __n2, __j, __comp);
+                    else
+                        ::std::sort(__i, __j, __comp);
+                },
+                __n2);
 
             // 3. Move elements from temporary buffer to output
             __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n2,
@@ -3650,12 +3707,12 @@ __pattern_is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
                         _Compare __comp, _IsVector __is_vector, /* is_parallel = */ ::std::true_type)
 {
     return __internal::__except_handler([&]() {
-        return __parallel_find(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                               [__first, __comp, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
-                                   return __internal::__is_heap_until_local(__first, __i - __first, __j - __first,
-                                                                            __comp, __is_vector);
-                               },
-                               ::std::true_type{});
+        return __parallel_find(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [__first, __comp, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                return __internal::__is_heap_until_local(__first, __i - __first, __j - __first, __comp, __is_vector);
+            },
+            ::std::true_type{});
     });
 }
 

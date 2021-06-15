@@ -173,6 +173,14 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result,
           _UnaryOperation __op);
 
+// [alg.transform_if]
+
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
+          class _UnaryOperation, class _Predicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator __mask,
+             _ForwardIterator __result, _UnaryOperation __op, _Predicate __pred);
+
 // [alg.replace]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate, class _Tp>

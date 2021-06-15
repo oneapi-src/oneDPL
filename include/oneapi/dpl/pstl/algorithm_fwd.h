@@ -249,6 +249,19 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
                 _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _Function __f, _IsVector __is_vector,
                 /*parallel=*/::std::true_type);
 
+template <class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3, class _Function, class _Predicate>
+_ForwardIterator3
+__brick_mask_walk3(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
+                   _ForwardIterator3 __first3, _Function __f, _Predicate __pred, /*vector=*/::std::false_type) noexcept;
+
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3,
+          class _Function, class _Predicate, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator3>
+__pattern_mask_walk3(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                     _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f, _Predicate __pred,
+                     _IsVector __is_vector,
+                     /*parallel=*/::std::false_type) noexcept;
+
 //------------------------------------------------------------------------
 // equal
 //------------------------------------------------------------------------

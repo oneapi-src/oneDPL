@@ -356,6 +356,23 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
         __exec.__allow_parallel());
 }
 
+// [alg.transform_if]
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
+          class _UnaryOperation, class _Predicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __mask,
+             _ForwardIterator __result, _UnaryOperation __op, _Predicate __pred)
+{
+    return oneapi::dpl::__internal::__pattern_mask_walk3(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __mask, __result,
+        oneapi::dpl::__internal::__invoke_unary_op<_UnaryOperation>{::std::move(__op)}, __pred,
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
+                                                              _ForwardIterator>(__exec),
+        __exec.__allow_parallel()
+
+    );
+}
+
 // [alg.replace]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate, class _Tp>
