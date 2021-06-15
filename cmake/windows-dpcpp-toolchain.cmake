@@ -16,6 +16,13 @@ if (NOT CMAKE_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER "dpcpp")
 endif()
 
+if(${CMAKE_VERSION} GREATER_EQUAL "3.20")
+	string(REGEX REPLACE "-cl" "" DPCPP_COMPILER "${CMAKE_CXX_COMPILER}")
+	execute_process(COMMAND ${DPCPP_COMPILER} -dumpversion OUTPUT_VARIABLE COMPILER_VERSION)
+	string(REGEX REPLACE "\n" "" COMPILER_VERSION "${COMPILER_VERSION}")
+	set(CMAKE_CXX_COMPILER_ID "Clang ${COMPILER_VERSION}" CACHE STRING "Switch compiler identification" FORCE)
+endif()
+
 include (Platform/Windows-Clang)
 set(CMAKE_LINKER ${CMAKE_CXX_COMPILER})
 set(MSVC TRUE)
