@@ -307,17 +307,17 @@ Use of the range-based API requires C++17 and the C++ standard libraries coming 
 The following viewable ranges (CPO's) are declared in ``oneapi::dpl::experimental::ranges`` namespace. Only those are 
 allowed to use as ranges for range-based algorithms.
 
-* ``views::iota``. A range factory - generates a sequence of N elements which starts from an initial value and ends by final N-1.
-* ``views::all``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
-* ``views::all_read``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
-* ``views::all_write``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
-* ``views::host_all``. A custom utility - represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on the host.
-* ``views::subrange``. A utility - represents a view of USM data range defined by a two USM pointers.
-* ``views::zip``. A custom range adapter - produces one ``zip_view`` from other several views.
-* ``views::transform``. A range adapter - represents a view of a underlying sequence after applying a transformation to each element.
-* ``views::reverse``. A range adapter - produces a reversed sequence of elements provided by another view.
-* ``views::take``. A range adapter - produces a view of the first N elements from another view.
-* ``views::drop``. A range adapter - produces a view excluding the first N elements from another view.
+* ``views::iota``: A range factory that generates a sequence of N elements which starts from an initial value and ends by final N-1.
+* ``views::all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
+* ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
+* ``views::all_write``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
+* ``views::host_all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on the host.
+* ``views::subrange``: A utility that represents a view of USM data range defined by a two USM pointers.
+* ``views::zip``: A custom range adapter that produces one ``zip_view`` from other several views.
+* ``views::transform``: A range adapter that represents a view of a underlying sequence after applying a transformation to each element.
+* ``views::reverse``: A range adapter that produces a reversed sequence of elements provided by another view.
+* ``views::take``: A range adapter that produces a view of the first N elements from another view.
+* ``views::drop``: A range adapter that produces a view excluding the first N elements from another view.
 
 Example of Range-based API Usage
 --------------------------------
