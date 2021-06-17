@@ -17,8 +17,8 @@ New Features
    ``copy_if``, ``none_of``, ``remove_copy_if``, ``remove_copy``, ``replace_copy``, 
    ``replace_copy_if``, ``reverse``, ``reverse_copy``, ``rotate_copy``, ``swap_ranges``,
    ``unique``, ``unique_copy``.
--  Added non-blocking versions of the following algorithms: ``inclusive_scan``, ``exclusive_scan``,
-   ``transform_inclusive_scan``, ``transform_exclusive_scan``.
+-  Added new asynchronous algorithms: ``inclusive_scan_async``, ``exclusive_scan_async``,
+   ``transform_inclusive_scan_async``, ``transform_exclusive_scan_async``.
 -  Added structured binding support for ``zip_iterator::value_type``.
 
 Fixed Issues
@@ -32,7 +32,7 @@ New in This Release
 ^^^^^^^^^^^^^^^^^^^
 -  With Intel® oneAPI DPC++/C++ Compiler, ``unseq`` and ``par_unseq`` execution policies do not use OpenMP SIMD pragmas
    due to compilation issues with the ``-fopenm-simd`` option, possibly resulting in suboptimal performance.
--  The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+-  The ``oneapi::dpl::experimental::ranges::reverse`` algorithm does not compile with ``-fno-sycl-unnamed-lambda`` option.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
@@ -125,7 +125,7 @@ New Features
 ------------
 -  Added support of parallel, vector and DPC++ execution policies for the following algorithms: ``shift_left``, ``shift_right``.
 -  Added the range-based versions of the following algorithms: ``sort``, ``stable_sort``, ``merge``.
--  Added non-blocking versions of the following algorithms: ``copy``, ``fill``, ``for_each``, ``reduce``, ``sort``, ``transform``, ``transform_reduce``.
+-  Added asynchronous versions of the following algorithms: ``copy``, ``fill``, ``for_each``, ``reduce``, ``sort``, ``transform``, ``transform_reduce``.
    These algorithms are declared in ``oneapi::dpl::experimental`` namespace with suffix _async and implemented only for DPC++ policies.
    In order to make these algorithms available the ``<oneapi/dpl/async>`` header should be included. Use of the non-blocking API requires C++11.
 -  Utility function ``wait_for_all`` enables waiting for completion of an arbitrary number of events.
