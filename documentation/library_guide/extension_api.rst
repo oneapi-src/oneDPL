@@ -113,7 +113,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
     dpl::counting_iterator<int> count_a(0);
     dpl::counting_iterator<int> count_b = count_a + 10;
     int init = count_a[0]; // OK: init == 0
-    *count_b = 7; // ERROR: counting_iterator doesn't provide write operations
+    *count_b = 7; // ERROR: counting_iterator does not provide write operations
     auto sum = std::reduce(dpl::execution::dpcpp_default,
                            count_a, count_b, init); // sum is (0 + 0 + 1 + ... + 9) = 45
 
@@ -307,7 +307,7 @@ Use of the range-based API requires C++17 and the C++ standard libraries coming 
 The following viewable ranges (CPO's) are declared in ``oneapi::dpl::experimental::ranges`` namespace. Only those are 
 allowed to use as ranges for range-based algorithms.
 
-* ``views::iota``: A range factory that generates a sequence of N elements which starts from an initial value and ends by final N-1.
+* ``views::iota``: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.
 * ``views::all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on a device.
 * ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
 * ``views::all_write``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
@@ -322,7 +322,7 @@ allowed to use as ranges for range-based algorithms.
 Example of Range-based API Usage
 --------------------------------
 
-::
+.. code:: cpp
 
     using namespace oneapi::dpl::experimental::ranges;
 
