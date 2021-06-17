@@ -47,7 +47,7 @@ Use the |dpcpp_short| Execution Policies
 ========================================
 
 The |dpcpp_short| execution policy specifies where a parallel algorithm runs.
-It encapsulates a SYCL* device or queue, and
+It encapsulates a SYCL device or queue, and
 allows you to set an optional kernel name. |dpcpp_short| execution policies can be used with all
 standard C++ algorithms that support execution policies.
 
@@ -79,30 +79,30 @@ Usage Examples
 The code examples below assume you are ``using namespace oneapi::dpl::execution;``
 and ``using namespace sycl;`` directives when referring to policy classes and functions:
 
-.. code::
+.. code:: cpp
 
-  auto policy_a = device_policy<class PolicyA> {};
-  std::for_each(policy_a, …);
+   auto policy_a = device_policy<class PolicyA> {};
+   std::for_each(policy_a, ...);
 
-.. code::
+.. code:: cpp
 
   auto policy_b = device_policy<class PolicyB> {device{gpu_selector{}}};
-  std::for_each(policy_b, …);
+  std::for_each(policy_b, ...);
 
-.. code::
+.. code:: cpp
 
   auto policy_c = device_policy<class PolicyС> {cpu_selector{}};
-  std::for_each(policy_c, …);
+  std::for_each(policy_c, ...);
 
-.. code::
+.. code:: cpp
 
   auto policy_d = make_device_policy<class PolicyD>(dpcpp_default);
-  std::for_each(policy_d, …);
+  std::for_each(policy_d, ...);
 
-.. code::
+.. code:: cpp
 
   auto policy_e = make_device_policy(queue{property::queue::in_order()});
-  std::for_each(policy_e, …);
+  std::for_each(policy_e, ...);
 
 Use the FPGA Policy
 ===================
@@ -175,14 +175,14 @@ allow you to pass SYCL buffers to parallel algorithms. These functions accept
 a SYCL buffer and return an object of an unspecified type that provides the following
 API:
 
-* it satisfies ``CopyConstructible``, ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``
-* the following expressions are valid: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
-  are objects of the type, and ``n`` is an integer value. Effect for those operations is the same as for the type
-  that satisfies ``LegacyRandomAccessIterator`` C++ named requirement
-* it provides the ``get_buffer`` method that returns the buffer passed to the ``begin`` and ``end`` functions
+* It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``.
+* It gives the following valid expressions: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
+  are objects of the type, and ``n`` is an integer value. The effect of those operations is the same as the type
+  that satisfies the ``LegacyRandomAccessIterator``, a C++ named requirement.
+* It provides the ``get_buffer`` method, which returns the buffer passed to the ``begin`` and ``end`` functions.
 
-``begin``, ``end`` can optionally take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
-to explicitly mention, which access mode should be applied to the buffer accessor when submitting
+``begin`` and ``end`` can take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
+to explicitly mention which access mode should be applied to the buffer accessor when submitting a
 DPC++ kernel to a device. For example:
 
 .. code:: cpp
@@ -257,7 +257,7 @@ Alternatively, use ``std::vector`` with a USM allocator:
     return 0;
   }
 
-Use Host-Side ``std::vector``
+Use Host-Side std::vector
 -----------------------------
 
 |onedpl_short| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
@@ -296,8 +296,8 @@ responsibility of the caller. Specifically:
 * |dpcpp_short| asynchronous errors are not handled.
 
 In order to process |dpcpp_short| asynchronous errors, the queue associated with a |dpcpp_short| policy must be
-created with an error handler object. The predefined policy objects (``dpcpp_default`` etc.) have
-no error handlers; do not use those if you need to process asynchronous errors.
+created with an error handler object. The predefined policy objects (``dpcpp_default``, etc.) have
+no error handlers; do not use them if you need to process asynchronous errors.
 
 Restrictions
 ============
@@ -331,6 +331,6 @@ Use these steps to build your code with |onedpl_short|:
 Below is an example of a command line used to compile code that contains
 |onedpl_short| parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):
 
-.. code::
+.. code:: cpp
 
-  dpcpp [–fsycl-unnamed-lambda] test.cpp [-ltbb] -o test
+  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb] -o test

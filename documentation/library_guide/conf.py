@@ -134,10 +134,10 @@ ditaxml_topic_meta["location"]="us"
 ditaxml_topic_meta["menu"]="/content/data/globalelements/US/en/sub-navigation/idz/idz-oneAPI"
 ditaxml_topic_meta["noindexfollowarchive"]="true"
 ditaxml_topic_meta["operating system"]="guid:etm-d23b81f1319b4f0bb8ec859bcc84e2b9,guid:etm-cf0ee1fba3374ceea048ddac3e923cab"
-ditaxml_topic_meta["primaryOwner"]="Stern, Alexandra M (lexi.stern@intel.com)"
+ditaxml_topic_meta["primaryOwner"]="Benito, Dylan (dylan.benito@intel.com)"
 ditaxml_topic_meta["programidentifier"]="idz"
 ditaxml_topic_meta["programming language"]="guid:etm-e759606e77ad42549ba71c380d6d61e2"
-ditaxml_topic_meta["published date"]="05/03/2021"
+ditaxml_topic_meta["published date"]="06/28/2021"
 ditaxml_topic_meta["resourcetypeTag"]="guid:etm-15865f41343146919f486177b8dbb3f3"
 ditaxml_topic_meta["secondary contenttype"]="guid:etm-74fc3401b6764c42ad8255f4feb9bd9e"
 ditaxml_topic_meta["security classification"]="Public Content"
@@ -148,7 +148,7 @@ ditaxml_topic_meta["technology"]="guid:etm-6b088d69d83243a0aa3b986645a7e74b"
 
 ditaxml_prod_info={}
 ditaxml_prod_info["prodname"]="oneDPL"
-ditaxml_prod_info["version"]="2021.3"
+ditaxml_prod_info["version"]="2021.4"
 
 ditaxml_data_about={}
 ditaxml_data_about["intelswd_aliasprefix"]={"datatype":"webAttr","value":"oneapi-dpcpp-library-guide"}
