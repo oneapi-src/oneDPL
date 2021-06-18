@@ -34,7 +34,7 @@ struct test_buffer_wrapper
         EXPECT_TRUE(end - begin == size, "wrong effect of iterator's operator - iterator");
 
         auto buf = begin.get_buffer();
-        T* actual_data = sycl::host_accessor<uint32_t, 1, sycl::access_mode::read>(buf).get_pointer();
+        T* actual_data = sycl::host_accessor<T, 1, sycl::access_mode::read>(buf).get_pointer();
         EXPECT_TRUE(actual_data == expected_data, "wrong effect of iterator's method get_buffer");
     }
 };
