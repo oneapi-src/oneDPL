@@ -42,10 +42,30 @@ namespace oneapi
 {
 namespace dpl
 {
+using ::std::adjacent_find;
+using ::std::all_of;
+using ::std::any_of;
 using ::std::binary_search;
+using ::std::count;
+using ::std::count_if;
+using ::std::equal;
 using ::std::equal_range;
+using ::std::find;
+using ::std::find_end;
+using ::std::find_first_of;
+using ::std::find_if;
+using ::std::find_if_not;
+using ::std::for_each;
+using ::std::is_permutation;
 using ::std::lower_bound;
+using ::std::mismatch;
+using ::std::none_of;
+using ::std::search;
+using ::std::search_n;
 using ::std::upper_bound;
+#if _ONEDPL_CPP17_FUNCTIONALITY_PRESENT
+using ::std::for_each_n;
+#endif
 } // namespace dpl
 
 } // namespace oneapi
