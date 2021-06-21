@@ -568,34 +568,38 @@ __brick_mask_walk3(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __las
     return __unseq_backend::__simd_mask_walk_3(__first1, __last1 - __first1, __first2, __first3, __f, __pred);
 }
 
+//------------------------------------------------------------------------
+// transform_if
+//------------------------------------------------------------------------
+
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3,
-          class _Function, class _Predicate, class _IsVector>
+          class _UnaryOperation, class _Predicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator3>
-__pattern_mask_walk3(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                     _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f, _Predicate __pred,
-                     _IsVector __is_vector,
-                     /*parallel=*/::std::false_type) noexcept
+__pattern_transform_if(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _UnaryOperation __op, _Predicate __pred,
+                       _IsVector __is_vector,
+                       /*parallel=*/::std::false_type) noexcept
 {
-    return __internal::__brick_mask_walk3(__first1, __last1, __first2, __first3, __f, __pred, __is_vector);
+    return __internal::__brick_mask_walk3(__first1, __last1, __first2, __first3, __op, __pred, __is_vector);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
-          class _RandomAccessIterator3, class _Function, class _Predicate, class _IsVector>
+          class _RandomAccessIterator3, class _UnaryOperation, class _Predicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy,
     __is_random_access_iterator<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3>::value,
     _RandomAccessIterator3>
-__pattern_mask_walk3(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
-                     _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _Function __f, _Predicate __pred,
-                     _IsVector __is_vector,
-                     /*parallel=*/::std::true_type)
+__pattern_transform_if(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
+                       _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _UnaryOperation __op,
+                       _Predicate __pred, _IsVector __is_vector,
+                       /*parallel=*/::std::true_type) noexcept
 {
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
-                                      [__f, __pred, __first1, __first2, __first3,
+                                      [__op, __pred, __first1, __first2, __first3,
                                        __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                                           __internal::__brick_mask_walk3(__i, __j, __first2 + (__i - __first1),
-                                                                         __first3 + (__i - __first1), __f, __pred,
+                                                                         __first3 + (__i - __first1), __op, __pred,
                                                                          __is_vector);
                                       });
         return __first3 + (__last1 - __first1);

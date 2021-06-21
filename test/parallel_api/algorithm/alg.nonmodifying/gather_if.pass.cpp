@@ -23,9 +23,6 @@
 #include "support/utils.h"
 #include <random> //std::default_random_engine
 
-#include "dpct/dpct.hpp"
-#include "dpct/dpl_utils.hpp"
-
 struct is_even {
     bool operator()(int x) const {
         return (x % 2) == 0;
@@ -37,7 +34,7 @@ OutputIter gather_if(Policy&& policy, InputIter1 map_first, InputIter1 map_last,
     auto perm_begin = oneapi::dpl::make_permutation_iterator(input_first, map_first);
     const int n = std::distance(map_first, map_last);
 
-    return transform_if(policy, perm_begin, perm_begin + n, mask, result,
+    return oneapi::dpl::transform_if(policy, perm_begin, perm_begin + n, mask, result,
         [=](auto&& v){ return v; }, [=](auto&& m){ return pred(m); }
     );
 }

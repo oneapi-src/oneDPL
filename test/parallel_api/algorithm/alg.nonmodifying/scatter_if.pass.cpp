@@ -23,9 +23,6 @@
 #include "support/utils.h"
 #include <random> //std::default_random_engine
 
-#include "dpct/dpct.hpp"
-#include "dpct/dpl_utils.hpp"
-
 struct is_even {
     bool operator()(int x) const {
         return (x % 2) == 0;
@@ -34,7 +31,7 @@ struct is_even {
 
 template <typename Policy, typename InputIter1, typename InputIter2, typename InputIter3, typename OutputIter, typename Predicate>
 void scatter_if(Policy&& policy, InputIter1 first, InputIter1 last, InputIter2 map, InputIter3 mask, OutputIter result, Predicate pred) {
-    transform_if(policy, first, last, mask, oneapi::dpl::make_permutation_iterator(result, map),
+    oneapi::dpl::transform_if(policy, first, last, mask, oneapi::dpl::make_permutation_iterator(result, map),
         [=](auto&& v){ return v; }, [=](auto&& m){ return pred(m); }
     );
 }
