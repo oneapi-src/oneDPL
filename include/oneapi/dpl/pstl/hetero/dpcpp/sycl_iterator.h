@@ -18,6 +18,12 @@
 
 #include <CL/sycl.hpp>
 
+#ifdef __SYCL_COMPILER_VERSION
+#   define __SYCL_2020_MACRO (__SYCL_COMPILER_VERSION >= 20210617)
+#else
+#   define __SYCL_2020_MACRO 0
+#endif
+
 #include <iterator>
 #include "../../onedpl_config.h"
 
@@ -156,14 +162,24 @@ __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, A
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, sycl::property::noinit)
+    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, 
+#if __SYCL_2020_MACRO
+    sycl::property::no_init)
+#else
+    sycl::property::noinit)
+#endif
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, 0};
 }
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
-    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::property::noinit)
+    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, 
+#if __SYCL_2020_MACRO
+    sycl::property::no_init)
+#else
+    sycl::property::noinit)
+#endif
 {
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, 0};
 }
@@ -177,14 +193,23 @@ __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, All
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, sycl::property::noinit)
+    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, 
+#if __SYCL_2020_MACRO
+    sycl::property::no_init)
+#else
+    sycl::property::noinit)
+#endif
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, buf.get_count()};
 }
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-                                                                             sycl::property::noinit)
+#if __SYCL_2020_MACRO
+    sycl::property::no_init)
+#else
+    sycl::property::noinit)
+#endif
 {
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, buf.get_count()};
 }
