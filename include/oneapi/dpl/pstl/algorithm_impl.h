@@ -606,6 +606,41 @@ __pattern_transform_if(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first
     });
 }
 
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3,
+          class _UnaryOperation, class _Predicate, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
+    _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator1, _ForwardIterator2, _ForwardIterator3>::value,
+    _ForwardIterator3>
+__pattern_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _UnaryOperation __op, _Predicate __pred,
+                       _IsVector,
+                       /*parallel=*/::std::true_type)
+{
+    return __internal::__except_handler([&]() {
+        using _iterator_tuple = zip_forward_iterator<_ForwardIterator1, _ForwardIterator2, _ForwardIterator3>;
+        auto __begin = _iterator_tuple(__first1, __first2, __first3);
+        auto __end = _iterator_tuple(__last1, /*dummy parameter*/ _ForwardIterator2(),
+                                     /*dummy parameter*/ _ForwardIterator3());
+
+        typedef typename ::std::iterator_traits<_ForwardIterator1>::reference _ReferenceType1;
+        typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
+        typedef typename ::std::iterator_traits<_ForwardIterator3>::reference _ReferenceType3;
+
+        __par_backend::__parallel_for_each(
+            ::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
+            [&](const ::std::tuple<_ReferenceType1, _ReferenceType2, _ReferenceType3>& __val) {
+                if (__pred(::std::get<1>(__val)))
+                    __op(::std::get<0>(__val), ::std::get<2>(__val));
+            });
+
+        //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
+        // implementation. Therefore, iterator value is calculated separately.
+        for (; __begin != __end; ++__begin)
+            ;
+        return ::std::get<2>(__begin.base());
+    });
+}
+
 //------------------------------------------------------------------------
 // equal
 //------------------------------------------------------------------------
