@@ -9,7 +9,7 @@
 #include <vector>
 
 using namespace TestUtils;
-using namespace TestUtils::dpcpp;
+using namespace dpcpp;
 //This macro is required for the tests to work correctly in CI with tbb-backend.
 #if TEST_DPCPP_BACKEND_PRESENT
 struct test_buffer_wrapper

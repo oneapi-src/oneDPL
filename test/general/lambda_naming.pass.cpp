@@ -27,7 +27,7 @@
 #endif
 
 using namespace TestUtils;
-using namespace TestUtils::dpcpp;
+using namespace dpcpp;
 
 // This is the simple test for compilation only, to check if lambda naming works correctly
 int main() {
