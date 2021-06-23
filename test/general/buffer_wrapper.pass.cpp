@@ -9,7 +9,6 @@
 #include <vector>
 
 using namespace TestUtils;
-using namespace dpcpp;
 //This macro is required for the tests to work correctly in CI with tbb-backend.
 #if TEST_DPCPP_BACKEND_PRESENT
 struct test_buffer_wrapper
@@ -53,8 +52,8 @@ main()
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);
-    test(oneapi::dpl::begin(buf, sycl::write_only, noinit), oneapi::dpl::end(buf, sycl::write_only, noinit), data_ptr, size);
-    test(oneapi::dpl::begin(buf, noinit), oneapi::dpl::end(buf, noinit), data_ptr, size);
+    test(oneapi::dpl::begin(buf, sycl::write_only, __noinit), oneapi::dpl::end(buf, sycl::write_only, __noinit), data_ptr, size);
+    test(oneapi::dpl::begin(buf, __noinit), oneapi::dpl::end(buf, __noinit), data_ptr, size);
 
 #endif
     return done(TEST_DPCPP_BACKEND_PRESENT);

@@ -27,7 +27,6 @@
 #endif
 
 using namespace TestUtils;
-using namespace dpcpp;
 
 // This is the simple test for compilation only, to check if lambda naming works correctly
 int main() {
@@ -39,7 +38,7 @@ int main() {
     auto buf_end = buf_begin + n;
 
     const auto policy = TestUtils::default_dpcpp_policy;
-    auto buf_begin_discard_write = oneapi::dpl::begin(buf, sycl::write_only, noinit);
+    auto buf_begin_discard_write = oneapi::dpl::begin(buf, sycl::write_only, __noinit);
 
     ::std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
 #if __SYCL_UNNAMED_LAMBDA__

@@ -36,22 +36,19 @@
 namespace TestUtils
 {
 
-namespace dpcpp
-{
 #if __cplusplus >= 201703L
 #   if __SYCL_2020_NOINIT_MACRO
-#       define noinit sycl::no_init
+#       define __noinit sycl::no_init
 #   else
-#       define noinit sycl::noinit
+#       define __noinit sycl::noinit
 #   endif
 #else
 #   if __SYCL_2020_NOINIT_MACRO
-#       define noinit sycl::property::no_init{}
+#       define __noinit sycl::property::no_init{}
 #   else
-#       define noinit sycl::property::noinit{}
+#       define __noinit sycl::property::noinit{}
 #   endif 
 #endif
-}
 
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
