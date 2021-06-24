@@ -297,14 +297,14 @@ struct test_permutation_iterator
         ::std::copy(perm_begin, perm_end, result.begin());
 
         EXPECT_TRUE(::std::is_sorted(result.begin(), result.end(), ::std::greater<T1>()),
-                    "wrong result from permutation_iterator");
+                    "wrong result from copy with permutation_iterator");
 
         oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it1(in1.begin(), in2.begin());
         oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it2(in1.begin(), in2.begin(), in2.size()-1);
-        EXPECT_TRUE(perm_it1 == perm_begin, "wrong result from permutation_iterator");
-        EXPECT_TRUE(perm_it2 == perm_begin + in2.size()-1, "wrong result from permutation_iterator");
-        EXPECT_TRUE(perm_it1.base() == in1.begin(), "wrong result from permutation_iterator");
-        EXPECT_TRUE(perm_it1.map() == in2.begin(), "wrong result from permutation_iterator");
+        EXPECT_TRUE(perm_it1 == perm_begin, "wrong result from permutation_iterator(base, map)");
+        EXPECT_TRUE(perm_it2 == perm_begin + in2.size()-1, "wrong result from permutation_iterator(base, map, offset)");
+        EXPECT_TRUE(perm_it1.base() == in1.begin(), "wrong result from permutation_iterator::base");
+        EXPECT_TRUE(perm_it1.map() == in2.begin(), "wrong result from permutation_iterator::map");
 
         test_random_iterator(perm_begin);
     }
