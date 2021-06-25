@@ -85,7 +85,7 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
     : public __par_backend_hetero::__future_base
 {
     _T __data;
-    ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper_base> __tmp;
+    ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base> __tmp;
 
   public:
     // empty sequence including ready event.
@@ -100,8 +100,8 @@ class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_
     __future(__par_backend_hetero::__future<typename ::std::iterator_traits<_T>::value_type>&& __o, _T __d)
         : __par_backend_hetero::__future_base(::std::move(__o.__my_event)), __data(__d)
     {
-        __tmp = ::std::unique_ptr<__par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>>(
-            new __par_backend_hetero::__lifetime_keeper<decltype(__o.__data)>(__o.__data));
+        __tmp = ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper<decltype(__o.__data)>>(
+            new oneapi::dpl::__internal::__lifetime_keeper<decltype(__o.__data)>(__o.__data));
     }
     // transform from internal future returned by __parallel_for pattern.
     __future(__par_backend_hetero::__future<void>&& __o, _T __d)
