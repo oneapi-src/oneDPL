@@ -41,6 +41,7 @@ using ::std::accumulate;
 using ::std::inner_product;
 using ::std::iota;
 using ::std::partial_sum;
+using ::std::reduce;
 } // namespace dpl
 
 } // namespace oneapi
@@ -58,5 +59,4 @@ using oneapi::dpl::transform_inclusive_scan;
 using oneapi::dpl::transform_reduce;
 } // namespace std
 
-#include "oneapi/dpl/internal/serial_numeric_impl.h"
 #endif /* _ONEDPL_NUMERIC */
