@@ -1,12 +1,13 @@
-oneAPI DPC++ Library Guide
+|onedpl_long| Guide
 =================================
 
-An introduction to the oneAPI DPC++ Library (oneDPL).
+An introduction to |onedpl_short|.
 
-oneDPL aims to work with the oneAPI DPC++/C++ Compiler to
-provide high-productivity APIs to developers, which can minimize Data Parallel C++ (DPC++) programming
-efforts across devices for high performance parallel applications. oneDPL contains an additional set of library classes and functions that are referred to throughout this document as **Extension API**.
-oneDPL consists of the following components:
+|onedpl_short| works with the |dpcpp_cpp| to
+provide high-productivity APIs to developers, which can minimize |dpcpp_long| programming
+efforts across devices for high performance parallel applications.
+|onedpl_short| contains an additional set of library classes and functions that are referred to throughout this document as Extension API.
+|onedpl_short| consists of the following components:
 
 .. toctree::
    :maxdepth: 2

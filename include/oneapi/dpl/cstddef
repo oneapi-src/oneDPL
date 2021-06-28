@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 #ifndef __ONEDPL_cstddef
 #define __ONEDPL_cstddef
+#include "oneapi/dpl/internal/common_config.h"
 #include <cstddef>
 
 namespace oneapi

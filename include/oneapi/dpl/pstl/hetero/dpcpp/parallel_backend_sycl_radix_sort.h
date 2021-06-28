@@ -403,7 +403,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
     auto __count_rng =
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
 
-    // there are no local offsets for the first segment, but the rest segments shoud be scanned
+    // there are no local offsets for the first segment, but the rest segments should be scanned
     // with respect to the count value in the first segment what requires n + 1 positions
     const ::std::size_t __scan_size = __segments + 1;
 
@@ -540,8 +540,9 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             __self_item.get_sub_group(), __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
 
                         __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
-                        ::std::uint32_t __sg_total_offset = sycl::ONEAPI::reduce(
-                            __self_item.get_sub_group(), __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
+                        // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
+                        ::std::uint32_t __sg_total_offset = sycl::ONEAPI::broadcast(
+                            __self_item.get_sub_group(), __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
                         __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                     }

@@ -232,21 +232,23 @@ test_matrix(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         invoke_on_all_policies<7>()(test_transform_inclusive_scan_init<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
-        invoke_on_all_policies<8>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
-                                     expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
-        invoke_on_all_policies<9>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<8>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
+        invoke_on_all_policies<9>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
+                                     expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
         invoke_on_all_policies<10>()(test_transform_inclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                      out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                      trash);
 #endif
 #ifdef _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
+#if !TEST_GCC10_EXCLUSIVE_SCAN_BROKEN
         invoke_on_all_policies<11>()(test_transform_exclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
         invoke_on_all_policies<12>()(test_transform_exclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
+#endif
 #endif
     }
 }
@@ -255,11 +257,9 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !TEST_DPCPP_BACKEND_PRESENT
     test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>([](const Matrix2x2<int32_t> x) { return x; },
-                                                        Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
+                                                        Matrix2x2<int32_t>(), multiply_matrix<int32_t>(),
                                                         Matrix2x2<int32_t>(-666, 666));
-#endif
 #endif
     test<int32_t, uint32_t>([](int32_t x) { return x++; }, -123, [](int32_t x, int32_t y) { return x + y; }, 666);
 

@@ -64,7 +64,7 @@ class linear_congruential_engine
     void
     seed(scalar_type __seed = default_seed)
     {
-        // Engine initalization
+        // Engine initialization
         init<internal::type_traits_t<result_type>::num_elems>(__seed);
     }
 
@@ -101,7 +101,7 @@ class linear_congruential_engine
 
   private:
     // Static asserts
-    static_assert(((_M == 0) || (_A < _M) && (_C < _M)),
+    static_assert(((_M == 0) || ((_A < _M) && (_C < _M))),
                   "oneapi::dpl::linear_congruential_engine. Error: unsupported parameters");
 
     // Function for state adjustment
@@ -228,7 +228,7 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N > 1) && (_FLAG == true)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        ::std::uint64_t __mod = modulus, __inc = increment;
+        ::std::uint64_t __mod = modulus;
         ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
         for (int __i = 0; __i < _N; ++__i)
             state_[__i] = static_cast<scalar_type>(((__mult * static_cast<::std::uint64_t>(state_[__i])) % __mod));

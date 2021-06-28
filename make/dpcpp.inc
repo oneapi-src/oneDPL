@@ -19,6 +19,7 @@ ifeq ($(os_name), linux)
     ifneq (, $(shell which dpcpp))
         override compiler:=dpcpp
     endif
+    CPLUS_FLAGS += -fopenmp-simd
     ifeq ($(compiler), clang++)
         CPLUS_FLAGS += -fsycl
         DYN_LDFLAGS += -fsycl
@@ -37,6 +38,7 @@ endif
 ifeq ($(os_name), windows)
     DPCPP_OPTIMIZATION_DISABLED_FLAGS=$(KEY)O1 $(KEY)Zi $(KEY)Fd"$*.pdb" $(KEY)DEBUG
     override compiler:=dpcpp
+    CPLUS_FLAGS += -qopenmp-simd
     ifneq ($(stdver),)
         CPLUS_FLAGS += $(QKEY)std:$(stdver)
     endif
@@ -72,5 +74,5 @@ ifeq ($(device_type), FPGA_EMULATOR)
     DEVICE_COMPILE_FLAGS += $(KEY)DONEDPL_FPGA_EMULATOR
 endif
 ifeq ($(ranges_api), 1)
-    CPLUS_FLAGS += $(KEY)D_ONEDPL_USE_RANGES=1
+    CPLUS_FLAGS += $(KEY)D_ENABLE_RANGES_TESTING=1
 endif

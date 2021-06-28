@@ -35,9 +35,11 @@ main()
     const int count2 = 3;
     int data2[count2] = {5, 6, 7};
 
-    const int idx = 5;
+    const int idx1 = 5;
+    const int idx2 = 7;
 
-    int res = -1;
+    int res1 = -1;
+    int res2 = -1;
     using namespace oneapi::dpl::experimental::ranges;
     {
         sycl::buffer<int> A(data1, sycl::range<1>(count1));
@@ -51,12 +53,13 @@ main()
         auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
 
-        res = find_end(exec1, view_a, view_b);
-        res = find_end(exec2, A, B); //check passing sycl buffer directly
+        res1 = find_end(exec1, view_a, view_b);
+        res2 = find_end(exec2, A, B, [](auto a, auto b) { return a != b; }); //check passing sycl buffer directly
     }
 
     //check result
-    EXPECT_TRUE(res == idx, "wrong effect from 'find_end' with sycl ranges");
+    EXPECT_TRUE(res1 == idx1, "wrong effect from 'find_end' with sycl ranges");
+    EXPECT_TRUE(res2 == idx2, "wrong effect from 'find_end', sycl ranges, with predicate");
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

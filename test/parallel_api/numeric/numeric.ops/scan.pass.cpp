@@ -202,6 +202,30 @@ struct test_inclusive_scan_with_binary_op
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
               typename BinaryOp>
+    typename ::std::enable_if<!TestUtils::isReverse<Iterator1>::value, void>::type
+    operator()(Policy&& exec, Iterator1 in_first, Iterator1 in_last, Iterator2 out_first, Iterator2 out_last,
+               Iterator3 expected_first, Iterator3 /* expected_last */, Size n, BinaryOp binary_op, T trash)
+    {
+        using namespace std;
+
+        inclusive_scan_serial(in_first, in_last, expected_first, binary_op);
+        auto orr = inclusive_scan(exec, in_first, in_last, out_first, binary_op);
+
+        EXPECT_TRUE(out_last == orr, "inclusive_scan with binary operator without init returned wrong iterator");
+        EXPECT_EQ_N(expected_first, out_first, n, "wrong result from inclusive_scan with binary operator without init");
+        ::std::fill_n(out_first, n, trash);
+    }
+
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
+              typename BinaryOp>
+    typename ::std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
+    operator()(Policy&& /* exec */, Iterator1 /* in_first */, Iterator1 /* in_last */, Iterator2 /* out_first */, Iterator2 /* out_last */,
+               Iterator3 /* expected_first */, Iterator3 /* expected_last */, Size /* n */, BinaryOp /* binary_op */, T /* trash */)
+    {
+    }
+
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
+              typename BinaryOp>
     typename ::std::enable_if<TestUtils::isReverse<Iterator1>::value, void>::type
     operator()(Policy&& /* exec */, Iterator1 /* in_first */, Iterator1 /* in_last */, Iterator2 /* out_first */, Iterator2 /* out_last */,
                Iterator3 /* expected_first */, Iterator3 /* expected_last */, Size /* n */, T /* init */, BinaryOp /* binary_op */, T /* trash */)
@@ -254,13 +278,19 @@ test_matrix(Out init, BinaryOp binary_op, Out trash)
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
         invoke_on_all_policies<5>()(test_inclusive_scan_with_binary_op<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
+        invoke_on_all_policies<6>()(test_inclusive_scan_with_binary_op<In>(), in.begin(), in.end(), out.begin(),
+                                    out.end(), expected.begin(), expected.end(), in.size(), binary_op, trash);
+        invoke_on_all_policies<7>()(test_inclusive_scan_with_binary_op<In>(), in.cbegin(), in.cend(), out.begin(),
+                                    out.end(), expected.begin(), expected.end(), in.size(), binary_op, trash);
 #endif
 
 #ifdef _PSTL_TEST_EXCLUSIVE_SCAN
-        invoke_on_all_policies<6>()(test_exclusive_scan_with_binary_op<In>(), in.begin(), in.end(), out.begin(),
+#if !TEST_GCC10_EXCLUSIVE_SCAN_BROKEN
+        invoke_on_all_policies<8>()(test_exclusive_scan_with_binary_op<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
-        invoke_on_all_policies<7>()(test_exclusive_scan_with_binary_op<In>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<9>()(test_exclusive_scan_with_binary_op<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
+#endif
 #endif
     }
 }
@@ -269,11 +299,9 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-#if !TEST_DPCPP_BACKEND_PRESENT
     // Test with highly restricted type and associative but not commutative operation
-    test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>,
+    test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>(),
                                                             Matrix2x2<int32_t>(-666, 666));
-#endif
 #endif
 
     // Since the implicit "+" forms of the scan delegate to the generic forms,

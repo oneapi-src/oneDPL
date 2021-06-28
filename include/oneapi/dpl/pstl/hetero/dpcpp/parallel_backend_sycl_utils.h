@@ -82,6 +82,12 @@ struct explicit_wait_if<true>
     }
 };
 
+template <typename Op, ::std::size_t CallNumber>
+struct __unique_kernel_name;
+
+template <typename Policy, int idx>
+using __new_kernel_name = __unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
+
 // function is needed to wrap kernel name into another class
 template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
@@ -381,26 +387,41 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 };
 
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
-class __future_base
+struct __future_base
 {
     sycl::event __my_event;
 
-  public:
-    __future_base() : __my_event(sycl::event{}) {}
+    __future_base() = default;
     __future_base(sycl::event __e) : __my_event(__e) {}
     void
     wait()
     {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait();
+        __my_event.wait_and_throw();
 #endif
     }
     operator sycl::event() const { return __my_event; }
 };
 
-template <typename T>
+template <typename _T>
 class __future : public __future_base
 {
+    ::std::size_t __result_idx;
+    sycl::buffer<_T> __data;
+
+  public:
+    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
+        : __par_backend_hetero::__future_base(__e), __data(__b), __result_idx(__o)
+    {
+    }
+
+    _T
+    get()
+    {
+        return __data.template get_access<access_mode::read>()[__result_idx];
+    }
+    template <class _Tp, class _Enable>
+    friend class oneapi::dpl::__internal::__future;
 };
 
 template <>
@@ -420,6 +441,8 @@ class __future<void> : public __future_base
     {
         this->wait();
     }
+    template <class _Tp, class _Enable>
+    friend class oneapi::dpl::__internal::__future;
 };
 
 } // namespace __par_backend_hetero

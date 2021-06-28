@@ -152,10 +152,10 @@ struct iter_mode
     T*
     operator()(T* ptr)
     {
-        // it doesnt have any iter mode because of two factors:
+        // it does not have any iter mode because of two factors:
         //   - since it is a raw pointer, kernel can read/write despite of access_mode
-        //   - access_mode also serves for implicit syncronization for buffers to build graph dependency
-        //     and since usm have only explicit syncronization and does not provide dependency resolution mechanism
+        //   - access_mode also serves for implicit synchronization for buffers to build graph dependency
+        //     and since usm have only explicit synchronization and does not provide dependency resolution mechanism
         //     it does not require access_mode
         return ptr;
     }
@@ -184,10 +184,15 @@ class __kernel_name_base
     static sycl::kernel
     __compile_kernel(_Exec&& __exec)
     {
+#if 0 //_ONEDPL_KERNEL_BUNDLE_PRESENT
+        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__exec.queue().get_context());
+        return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
+#else
         sycl::program __program(__exec.queue().get_context());
 
         __program.build_with_kernel_type<_DerivedKernelName>();
         return __program.get_kernel<_DerivedKernelName>();
+#endif
     }
 };
 
@@ -242,13 +247,12 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... 
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    assert(__get_first_range_size(__rngs...) > 0);
+    assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_for_kernel, _CustomName,
                                                                                     _Fp, _Ranges...>;
-
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
     auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
         //get an access to data under SYCL buffer:
@@ -263,15 +267,16 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 }
 
 //------------------------------------------------------------------------
-// parallel_transform_reduce - sync pattern
+// parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
 
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
           typename _Rp, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, _Tp>
+oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__par_backend_hetero::__future<_Tp>>
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
-    auto __n = __get_first_range_size(__rngs...);
+    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
 
     using _Size = decltype(__n);
@@ -358,16 +363,16 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
         __n_items = __n_groups;
         __n_groups = (__n_items - 1) / __work_group_size + 1;
     } while (__n_items > 1);
-    return __temp.template get_access<access_mode::read_write>()[__offset_2];
+    return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
 }
 
 //------------------------------------------------------------------------
-// parallel_transform_scan - sync pattern
+// parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
-    _ExecutionPolicy, ::std::pair<oneapi::dpl::__internal::__difference_t<_Range2>, typename _InitType::__value_type>>
+    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>>
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
@@ -456,7 +461,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     }
 
     // 3. Final scan for whole range
-    __exec.queue().submit([&](sycl::handler& __cgh) {
+    auto __final_event = __exec.queue().submit([&](sycl::handler& __cgh) {
         __cgh.depends_on(__submit_event);
         oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
@@ -465,9 +470,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         });
     });
 
-    //point of syncronization (on host access)
-    auto __last_scaned_value = __wg_sums.template get_access<access_mode::read>()[__n_groups - 1];
-    return ::std::make_pair(__n, __last_scaned_value);
+    return oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>(__final_event, __n_groups - 1,
+                                                                                         __wg_sums);
 }
 
 //------------------------------------------------------------------------
@@ -559,10 +563,8 @@ struct __early_exit_find_or
         using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
 
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-        using _Size = decltype(__n);
 
         ::std::size_t __shift = 8;
-        ::std::size_t __global_idx = __item_id.get_global_id(0);
         ::std::size_t __local_idx = __item_id.get_local_id(0);
         ::std::size_t __group_idx = __item_id.get_group(0);
 
@@ -583,7 +585,7 @@ struct __early_exit_find_or
                 _BackwardTagType{}, [__n_iter, __i]() { return __n_iter - 1 - __i; }, [__i]() { return __i; });
 
             _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
-            // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for erly exit)
+            // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
             // should be investigated later, with other HW
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
@@ -699,7 +701,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                     }
                 });
         });
-        //The end of the scope  -  a point of syncronization (on temporary sycl buffer destruction)
+        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
     return oneapi::dpl::__internal::__invoke_if_else(
@@ -1153,7 +1155,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
                     const _Size __start_2 = __end_1;
                     const _Size __end_2 = sycl::min(__start_2 + __sorted, __n);
 
-                    // Distance between the beginning of a sorted sequence and the begining of a chunk
+                    // Distance between the beginning of a sorted sequence and the beginning of a chunk
                     const _Size __offset = __chunk * (__idx % __chunks_in_sorted);
 
                     if (!__data_in_temp)

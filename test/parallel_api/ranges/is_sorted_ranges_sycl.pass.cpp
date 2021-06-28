@@ -35,6 +35,7 @@ main()
 
     bool res1 = false;
     bool res2 = false;
+    bool res3 = false;
     using namespace TestUtils;
     using namespace oneapi::dpl::experimental::ranges;
     {
@@ -46,11 +47,13 @@ main()
 
         res1 = is_sorted(exec, all_view(A));
         res2 = is_sorted(make_new_policy<new_kernel_name<Policy, 0>>(exec), B);
+        res3 = is_sorted(make_new_policy<new_kernel_name<Policy, 1>>(exec), A, [](auto a, auto b) { return a > b;});
     }
 
     //check result
     EXPECT_TRUE(res1, "wrong effect from 'is_sorted' with sycl ranges (sorted)");
     EXPECT_TRUE(!res2, "wrong effect from 'is_sorted' with sycl ranges (unsorted)");
+    EXPECT_TRUE(!res3, "wrong effect from 'is_sorted', sycl ranges, with predicate (unsorted)");
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

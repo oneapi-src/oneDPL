@@ -54,7 +54,7 @@ class subtract_with_carry_engine
 
     explicit subtract_with_carry_engine(scalar_type __seed, unsigned long long __offset = 0)
     {
-        // Engine initalization
+        // Engine initialization
         init(__seed);
 
         // Discard offset
@@ -65,7 +65,7 @@ class subtract_with_carry_engine
     void
     seed(scalar_type __seed = default_seed)
     {
-        // Engine initalization
+        // Engine initialization
         init(__seed);
     }
 
@@ -125,28 +125,13 @@ class subtract_with_carry_engine
     scalar_type
     generate_internal_scalar()
     {
-        int64_t __id = static_cast<int64_t>(i_);
-        int64_t __id_1 = (__id - short_lag);
-        if (__id_1 < 0)
-            __id_1 += long_lag;
-        ::std::int64_t __id_2 = __id;
-
-        if (x_[__id_1] >= (x_[__id_2] + c_))
-        {
-            x_[__id] = x_[__id_1] - x_[__id_2] - c_;
-            c_ = 0;
-        }
-        else
-        {
-            x_[__id] = max() - x_[__id_2] - c_ + x_[__id_1] + 1u;
-            c_ = 1;
-        }
-
-        i_++;
-        if (i_ >= long_lag)
-            i_ = 0;
-
-        return x_[__id];
+        const scalar_type& __xs = x_[(i_ + (long_lag - short_lag)) % long_lag];
+        scalar_type& __xr = x_[i_];
+        scalar_type __new_c = c_ == 0 ? __xs < __xr : __xs != 0 ? __xs <= __xr : 1;
+        x_[i_] = __xr = (__xs - __xr - c_) & max();
+        c_ = __new_c;
+        i_ = (i_ + 1) % long_lag;
+        return __xr;
     };
 
     // Generate implementation

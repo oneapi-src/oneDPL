@@ -17,6 +17,7 @@
 #define _ONEDPL_RANGES_DEFS_H
 
 #include "ranges/nanorange.hpp"
+#include "ranges/nanorange_ext.h"
 
 namespace oneapi
 {
@@ -46,11 +47,18 @@ using oneapi::dpl::__ranges::views::all;
 using oneapi::dpl::__ranges::views::all_read;
 using oneapi::dpl::__ranges::views::all_write;
 
+using oneapi::dpl::__ranges::views::host_all;
+
 using nano::views::drop;
+using nano::views::fill;
+using nano::views::generate;
 using nano::views::iota;
 using nano::views::reverse;
+using nano::views::rotate;
 using nano::views::take;
 using nano::views::transform;
+
+using nano::subrange;
 } // namespace views
 
 } // namespace ranges

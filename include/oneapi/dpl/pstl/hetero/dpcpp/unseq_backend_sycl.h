@@ -474,7 +474,7 @@ struct __global_scan_functor
         if (__item_idx >= __size_per_wg && __item_idx + __shift < __n)
         {
             auto __wg_sums_idx = __item_idx / __size_per_wg - 1;
-            // an initial value preceeds the first group for the exclusive scan
+            // an initial value precedes the first group for the exclusive scan
             __item_idx += __shift;
             auto __bin_op_result = __binary_op(__wg_sums_acc[__wg_sums_idx], __out_acc[__item_idx]);
             using __out_type = typename ::std::decay<decltype(__out_acc[__item_idx])>::type;
@@ -744,7 +744,8 @@ struct __reverse_functor
     void
     operator()(const _Idx __idx, _Accessor& __acc) const
     {
-        ::std::swap(__acc[__idx], __acc[__size - __idx - 1]);
+        using ::std::swap;
+        swap(__acc[__idx], __acc[__size - __idx - 1]);
     }
 };
 
@@ -820,7 +821,7 @@ class __brick_set_op
         bool bres = _IsOpDifference(); //initialization in true in case of difference operation; false - intersection.
         if (__res == __nb || __comp(__val_a, __b[__b_beg + __res]))
         {
-            // there is no __val_a in __b, so __b in the defference {__a}/{__b};
+            // there is no __val_a in __b, so __b in the difference {__a}/{__b};
         }
         else
         {

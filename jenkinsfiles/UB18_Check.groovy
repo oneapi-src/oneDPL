@@ -64,10 +64,25 @@ def githubStatus = new GithubStatus(
         BUILD_URL: env.RUN_DISPLAY_URL
 )
 
+def runExample(String test_name, String cmake_flags = "") {
+    def result = sh(
+        script: "cd ./src/examples/" + test_name + "/ && mkdir build && cd build/ && cmake " + cmake_flags + " .. && make && make run && exit \$?",
+        returnStatus: true, label: test_name + "_test Step")
+    sh(
+        script: "rm -r ./src/examples/" + test_name + "/build")
+    if (result != 0) {
+        echo test_name + " check failed."
+        return false
+    }
+    else {
+        return true
+    }
+}
 
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
+boolean code_changed
 
 pipeline {
 
@@ -80,8 +95,8 @@ pipeline {
 
     environment {
         def NUMBER = sh(script: "expr ${env.BUILD_NUMBER}", returnStdout: true).trim()
-        def TIMESTEMP = sh(script: "date +%s", returnStdout: true).trim()
-        def DATESTEMP = sh(script: "date +\"%Y-%m-%d\"", returnStdout: true).trim()
+        def TIMESTAMP = sh(script: "date +%s", returnStdout: true).trim()
+        def DATESTAMP = sh(script: "date +\"%Y-%m-%d\"", returnStdout: true).trim()
         def TEST_TIMEOUT = 1400
     }
 
@@ -91,6 +106,7 @@ pipeline {
         string(name: 'Repository', defaultValue: 'oneapi-src/oneDPL', description: '',)
         string(name: 'User', defaultValue: 'None', description: '',)
         string(name: 'OneAPI_Package_Date', defaultValue: 'Default', description: '',)
+        string(name: 'Base_branch', defaultValue: 'main', description: '',)
     }
 
     triggers {
@@ -100,7 +116,8 @@ pipeline {
                         [key: 'PR_number', value: '$.number', defaultValue: 'None'],
                         [key: 'Repository', value: '$.pull_request.base.repo.full_name', defaultValue: 'None'],
                         [key: 'User', value: '$.pull_request.user.login', defaultValue: 'None'],
-                        [key: 'action', value: '$.action', defaultValue: 'None']
+                        [key: 'action', value: '$.action', defaultValue: 'None'],
+                        [key: 'Base_branch', value: '$.pull_request.base.ref', defaultValue: 'main']
                 ],
 
                 causeString: 'Triggered on $PR_number',
@@ -175,15 +192,7 @@ pipeline {
 
                                     sh script: 'cp -rf /export/users/oneDPL_CI/oneDPL-src/src ./', label: "Copy src Folder"
                                     sh script: "cd ./src; git config --local --add remote.origin.fetch +refs/pull/${env.PR_number}/head:refs/remotes/origin/pr/${env.PR_number}", label: "Set Git Config"
-                                    sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}", label: "Checkout Commit"
-
-                                    if (fileExists('./oneAPI-samples')) {
-                                        sh script: 'rm -rf oneAPI-samples', label: "Remove oneAPI-samples Folder"
-
-                                    }
-
-                                    sh script: 'cp -rf /export/users/oneDPL_CI/oneAPI-samples ./', label: "Copy oneAPI-samples Folder"
-                                    sh script: 'cd ./oneAPI-samples; git pull origin master', label: "Git Pull oneAPI-samples Folder"
+                                    sh script: "cd ./src; git pull origin; git checkout ${env.Commit_id}; git merge origin/${env.Base_branch}", label: "Checkout Commit"
                                 }
                             }
                             catch (e) {
@@ -195,18 +204,36 @@ pipeline {
                     }
                 }
 
+                stage('Check_code_changes') {
+                    steps {
+                        script {
+                            dir("./src") {
+                                code_changed = sh(
+                                    script: "! git diff --name-only main | grep -v ^documentation",
+                                    returnStatus: true, label: "Code_changed")
+                            }
+                        }
+                    }
+                }
+
                 stage('Setting_Env') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 20) {
                             script {
                                 try {
                                     retry(2) {
                                         sh script: """
-                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
+                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}                                         
                                             if [ ! -f ./envs_tobe_loaded.txt ]; then
                                                 echo "Environment file not generated."
                                                 exit -1
                                             fi
+                                            cd ${env.OneAPI_Package_Date} 
+                                            mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
+                                            cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
                                         """, label: "Generate environment vars"
                                     }
 
@@ -221,38 +248,10 @@ pipeline {
                     }
                 }
 
-                stage('Tests_dpcpp_cpu_cxx_14') {
-                    steps {
-                        timeout(time: 2, unit: 'HOURS') {
-                            script {
-                                try {
-                                    dir("./src/build") {
-                                        withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
-                                            sh script: """
-                                                rm -rf *
-                                                cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=14 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
-                                                make VERBOSE=1 build-all -j`nproc` -k || true
-                                                ctest --output-on-failure --timeout ${TEST_TIMEOUT}
-
-                                            """, label: "All tests"
-                                        }
-                                    }
-                                }
-                                catch(e) {
-                                    build_ok = false
-                                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                        sh script: """
-                                            exit -1
-                                        """
-
-                                    }
-                                }
-                            }
-                        }
+                stage('Tests_icpx_tbb_cxx_17') {
+                    when {
+                        expression { code_changed }
                     }
-                }
-
-                stage('Tests_g++_tbb_cxx_17') {
                     steps {
                         timeout(time: 2, unit: 'HOURS') {
                             script {
@@ -261,7 +260,7 @@ pipeline {
                                         withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
                                                 rm -rf *
-                                                cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST -DCMAKE_BUILD_TYPE=release ..
+                                                cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 build-all -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
 
@@ -284,34 +283,28 @@ pipeline {
                 }
 
                 stage('Check_Samples') {
+                    when {
+                        expression { code_changed }
+                    }
                     steps {
                         timeout(time: 1, unit: 'HOURS') {
                             script {
                                 try {
                                     withEnv(readFile('envs_tobe_loaded.txt').split('\n') as List) {
-                                        def gamma_return_value = sh(
-                                                script: """
-                                                    cd oneAPI-samples/Libraries/oneDPL/gamma-correction/
-                                                    mkdir build
-                                                    cd build/
-                                                    cmake ..
-                                                    make
-                                                    make run
-                                                    exit \$?""",
-                                                returnStatus: true, label: "gamma_return_value Step")
-                                        def stable_sort_return_value = sh(
-                                                script: """
-                                                    cd oneAPI-samples/Libraries/oneDPL/stable_sort_by_key/
-                                                    mkdir build
-                                                    cd build/
-                                                    cmake ..
-                                                    make
-                                                    make run
-                                                    exit \$?""",
-                                                returnStatus: true, label: "stable_sort_return_value Step")
+                                        String[] examples_dpcpp = ["gamma_correction","stable_sort_by_key","convex_hull","dot_product","histogram","random"]
+                                        String[] examples_cpp = ["convex_hull","dot_product"]
+                                        def test_pass_status = true
+                                        for (String example : examples_dpcpp) {
+                                            test_pass_status = test_pass_status && runExample(example,"-DCMAKE_CXX_COMPILER=dpcpp")
+                                        }
+                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
+                                        for (String example : examples_cpp) {
+                                            test_pass_status = test_pass_status && runExample(example,"-DCMAKE_CXX_COMPILER=c++")
+                                        }
+                                        test_pass_status = test_pass_status && runExample("gamma_correction","-DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS=-DBUILD_FOR_HOST")
 
-                                        if (gamma_return_value != 0 || stable_sort_return_value !=0) {
-                                            echo "gamma-correction or stable_sort_by_key check failed. Please check log to fix the issue."
+                                        if (test_pass_status != true) {
+                                            echo "Some checks failed. Please check log to fix the issue."
                                             sh script: "exit -1", label: "Set failure"
                                         }
                                     }

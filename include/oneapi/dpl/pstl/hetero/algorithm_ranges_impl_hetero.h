@@ -22,6 +22,7 @@
 #if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/utils_ranges_sycl.h"
 #    include "dpcpp/unseq_backend_sycl.h"
+#    include "dpcpp/parallel_backend_sycl_utils.h"
 #endif
 
 namespace oneapi
@@ -34,49 +35,24 @@ namespace __ranges
 {
 
 //------------------------------------------------------------------------
-// walk1
+// walk_n
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Function>
+template <int _N = 0, typename _ExecutionPolicy, typename _Function, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk1(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
+__pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
-    if (!__rng.empty())
-        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
-                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-                                                          __rng.size(), ::std::forward<_Range>(__rng))
+    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    if (__n > 0)
+    {
+        using __new_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<_ExecutionPolicy, _N>;
+        auto __new_exec =
+            oneapi::dpl::execution::make_hetero_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
+        oneapi::dpl::__par_backend_hetero::__parallel_for(__new_exec,
+                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                          ::std::forward<_Ranges>(__rngs)...)
             .wait();
-}
-
-//------------------------------------------------------------------------
-// walk2
-//------------------------------------------------------------------------
-
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk2(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Function __f)
-{
-    if (!__rng1.empty() && !__rng2.empty())
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-            __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
-            .wait();
-}
-
-//------------------------------------------------------------------------
-// walk3
-//------------------------------------------------------------------------
-
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_walk3(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Function __f)
-{
-    if (!__rng1.empty() && !__rng2.empty() && !__rng3.empty())
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-            __rng1.size(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-            ::std::forward<_Range3>(__rng3))
-            .wait();
+    }
 }
 
 //------------------------------------------------------------------------
@@ -294,6 +270,30 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
     return return_value(result, __rng.size(), __is__or_semantic);
 }
 
+template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range>>
+__pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicate)
+{
+    if (__rng.size() == 0)
+        return 0;
+
+    using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
+
+    auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
+    auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+               ::std::forward<_ExecutionPolicy>(__exec),
+               unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
+                                             decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
+               __identity_reduce_fn,
+               unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
+                   __identity_reduce_fn},
+               ::std::forward<_Range>(__rng))
+        .get();
+}
+
 //------------------------------------------------------------------------
 // copy_if
 //------------------------------------------------------------------------
@@ -323,24 +323,26 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec,
                                                                                                   __rng1.size());
 
-    auto __res = __par_backend_hetero::__parallel_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__ranges::zip_view(
-            __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
-                        __mask_buf.get_buffer())),
-        __rng2, __reduce_op, _InitType{},
-        // local scan
-        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
-                              _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
-                                                                       __add_mask_op, __create_mask_op},
-        // scan between groups
-        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                              _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                              __get_data_op},
-        // global scan
-        __copy_by_mask_op);
+    auto __res =
+        __par_backend_hetero::__parallel_transform_scan(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            oneapi::dpl::__ranges::zip_view(
+                __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
+                            __mask_buf.get_buffer())),
+            __rng2, __reduce_op, _InitType{},
+            // local scan
+            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
+                                  _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
+                                                                           __add_mask_op, __create_mask_op},
+            // scan between groups
+            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
+                                  _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
+                                                                  __get_data_op},
+            // global scan
+            __copy_by_mask_op)
+            .get();
 
-    return __res.second;
+    return __res;
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
@@ -370,7 +372,7 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
     if (__rng.size() == 0)
         return __rng.size();
 
-    using _ValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
+    using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
@@ -379,11 +381,53 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
                                             __copy_rng, __not_pred<_Predicate>{__pred});
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
-    oneapi::dpl::__internal::__ranges::__pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __copy_rng_truncated,
-                                                       ::std::forward<_Range>(__rng),
-                                                       oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
+                                                        oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+                                                        __copy_rng_truncated, ::std::forward<_Range>(__rng));
 
     return __copy_last_id;
+}
+
+//------------------------------------------------------------------------
+// unique_copy
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range2>>
+__pattern_unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred)
+{
+    using _It1DifferenceType = oneapi::dpl::__internal::__difference_t<_Range1>;
+    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+    __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
+        __not_pred<_BinaryPredicate>{__pred}};
+
+    return __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng),
+                               ::std::forward<_Range2>(__result), __create_mask_op, __copy_by_mask_op);
+}
+
+//------------------------------------------------------------------------
+// unique
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range>>
+__pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
+{
+    if (__rng.size() == 0)
+        return __rng.size();
+
+    using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
+
+    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
+    auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
+    auto res =
+        __pattern_unique_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), res_rng, __pred);
+
+    __pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
+                     ::std::forward<_Range>(__rng));
+    return res;
 }
 
 //------------------------------------------------------------------------
@@ -404,15 +448,15 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
     {
-        oneapi::dpl::__internal::__ranges::__pattern_walk2(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3),
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3));
     }
     else if (__n2 == 0)
     {
-        oneapi::dpl::__internal::__ranges::__pattern_walk2(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range3>(__rng3),
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
+            ::std::forward<_Range1>(__rng1), ::std::forward<_Range3>(__rng3));
     }
     else
     {
@@ -462,13 +506,16 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
         return __comp(get<1>(__b), get<1>(__a)) ? __b : __a;
     };
 
-    auto __ret_idx = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>{
-            __identity_reduce_fn, __identity_init_fn},
-        __identity_reduce_fn,
-        unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{__identity_reduce_fn},
-        ::std::forward<_Range>(__rng));
+    auto __ret_idx =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
+                                          decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
+            __identity_reduce_fn,
+            unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
+                __identity_reduce_fn},
+            ::std::forward<_Range>(__rng))
+            .get();
 
     using ::std::get;
     return get<0>(__ret_idx);
@@ -495,14 +542,17 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
 
     auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
 
-    _ReduceValueType __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>, decltype(__identity_init_fn)>{
-            __identity_reduce_fn<_Compare>{__comp}, __identity_init_fn},
-        __identity_reduce_fn<_Compare>{__comp},
-        unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
-            __identity_reduce_fn<_Compare>{__comp}},
-        ::std::forward<_Range>(__rng));
+    _ReduceValueType __ret =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
+            ::std::forward<_ExecutionPolicy>(__exec),
+            unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>,
+                                          decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
+                                                                        __identity_init_fn},
+            __identity_reduce_fn<_Compare>{__comp},
+            unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
+                __identity_reduce_fn<_Compare>{__comp}},
+            ::std::forward<_Range>(__rng))
+            .get();
 
     using ::std::get;
     return ::std::make_pair(get<0>(__ret), get<1>(__ret));

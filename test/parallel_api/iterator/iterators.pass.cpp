@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <numeric>
 #include <type_traits>
+#include <forward_list>
 
 using namespace TestUtils;
 
@@ -40,6 +41,8 @@ void test_random_iterator(const RandomIt& it) {
         typename RandomIt::reference ref = *it;
         (void) typename RandomIt::iterator_category{};
     }
+
+    static_assert(::std::is_default_constructible<RandomIt>::value, "iterator is not default constructible");
 
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
@@ -134,11 +137,6 @@ struct test_counting_iterator {
         EXPECT_TRUE(res, "wrong result with counting_iterator in vector's end portion");
 
         //explicit checks of the counting iterator specific
-        // There is a bug in clang when we pass the same arguments in the function
-        if(b[0]!=begin){
-            ::std::cout<<"wrong result with operator[] for an iterator"<<::std::endl;
-            exit(1);
-        }
         EXPECT_TRUE(*(b + 1) == begin+1, "wrong result with operator+ for an iterator");
         EXPECT_TRUE(*(b+=1) == begin+1, "wrong result with operator+= for an iterator");
     }
@@ -164,6 +162,8 @@ struct test_zip_iterator {
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
         //runtime call to check default constructor and increase code coverage
         oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> b;
+        //runtime call to check constructor with variadic arguments and increase code coverage
+        oneapi::dpl::zip_iterator<decltype(in1.begin()), decltype(in2.begin())> c(in1.begin(), in2.begin());
 
         //runtime call to check copy assignable operator and increase code coverage
         b = oneapi::dpl::make_zip_iterator(in1.begin(), in2.begin());
@@ -176,6 +176,9 @@ struct test_zip_iterator {
         ::std::for_each(b, e, [](const ::std::tuple<T1&, T2&>& a) { ::std::get<0>(a) = 1, ::std::get<1>(a) = 1;});
         auto res = ::std::all_of(b, e, [](const ::std::tuple<T1&, T2&>& a) {return ::std::get<0>(a) == 1 && ::std::get<1>(a) == 1;});
         EXPECT_TRUE(res, "wrong result sequence assignment to (1,1) with zip_iterator iterator");
+        //all_of check for iterator which is constructed passing variadic arguments
+        res = ::std::all_of(c, e, [](const ::std::tuple<T1&, T2&>& a) {return ::std::get<0>(a) == 1 && ::std::get<1>(a) == 1;});
+        EXPECT_TRUE(res, "wrong result of all_of algorithm with zip_iterator iterator which is constructed passing variadic arguments");
         }
 
         //check swapping de-referenced iterators (required by sort algorithm)
@@ -231,6 +234,22 @@ void test_transform_effect(VecIt1 first1, VecIt1 last1, VecIt2 first2) {
         }
 }
 
+//We need this functor to run fill algorithm with transform iterators. Operator() should return lvalue reference.
+struct ref_transform_functor {
+    template<typename T>
+    T& operator()(T& x) const {
+        return x += 1;
+    }
+};
+
+//We need this functor to pass operator* test for transform iterator
+struct transform_functor {
+    template<typename T>
+    T operator()(T& x) const {
+        return x + 1;
+    }
+};
+
 struct test_transform_iterator {
     template <typename T1, typename T2>
     void operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2) {
@@ -239,8 +258,24 @@ struct test_transform_iterator {
         test_transform_effect(in1.begin(),  in1.end(),  in2.begin());
         test_transform_effect(in1.cbegin(), in1.cend(), in2.begin());
 
-        auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), [](T2& x) { return x + 1; });
-        test_random_iterator(new_transform_iterator);
+        transform_functor new_functor;
+        ref_transform_functor ref_functor;
+        oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it1(in1.begin());
+        oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
+
+        ::std::forward_list<int> f_list{1, 2, 3, 4, 5, 6};
+        auto list_it1 = oneapi::dpl::make_transform_iterator(f_list.begin(), ref_functor);
+        auto list_it2 = oneapi::dpl::make_transform_iterator(f_list.end(), ref_functor);
+        ::std::fill(list_it1, list_it2, 7);
+        EXPECT_TRUE(::std::all_of(f_list.begin(), f_list.end(), [](int x){ return x == 7; }), 
+            "wrong result from fill with forward_iterator wrapped with transform_iterator");
+
+        auto test_lambda = [](T2& x){ return x + 1; };
+        auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);
+        EXPECT_TRUE(_it1.base() == in1.begin(), "wrong result from transform_iterator::base");
+        static_assert(::std::is_same<decltype(new_transform_iterator.functor()), decltype(test_lambda)>::value,
+            "wrong result from transform_iterator::functor");
+        test_random_iterator(_it2);
     }
 };
 
