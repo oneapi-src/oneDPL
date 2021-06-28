@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// Tests for transform_if
-
 #include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -26,50 +24,71 @@ using namespace TestUtils;
 
 struct test_transform_if
 {
-    template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
-              typename OutputIterator2, typename Size, typename UnaryOperation, typename Predicate>
+    template <typename It1, typename It2, typename Ot, typename Size>
+    bool check(It1 first, It1 last, It2 mask, Ot result, Size n) {
+        int i = 0;
+        int j = n-1;
+
+        if (n < 17) {
+        for (; first != last; ++first, ++mask, ++result, ++i, --j) {
+            std::cout << "result: " << *result << " mask: " << *mask << std::endl;
+            if (n%2 == 0) { // even # of elements in output sequence
+                if (*mask == 1) {
+                    if (i%2 == 0 && *result != -(3*i)) { // forward iterator case
+                        return false;
+                    }
+                    else if (i%2 == 1 && *result != -(3*j)) { // reverse iterator case
+                        return false;
+                    }
+                }
+                else if (*mask == 0 && *result != 0) {
+                    return false;
+                }
+            }
+            else { // odd # of elements in output sequence
+                if (*mask == 1) {
+                    if (i%2 == 0 && (*result != -(3*i) && *result != -(3*j))) {
+                        return false;
+                    }
+                }
+                else if (*mask == 0 && *result != 0) {
+                    return false;
+                }
+            }
+        }
+        std::cout << std::endl;
+        }
+        return true;
+    }
+
+    template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+              typename Size>
     void
     operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIterator2 mask,
-               InputIterator2 /* mask_end */, OutputIterator1 expected_first, OutputIterator1 expected_last,
-               OutputIterator2 actual_first, OutputIterator2 actual_last, Size n, UnaryOperation op, Predicate pred)
+               InputIterator2 /* mask_end */, OutputIterator result, OutputIterator result_end, Size n)
     {
-        // Try transform_if
-        auto call1 = transform_if(exec, first, last, mask, expected_first, op, pred);
-        auto call2 = oneapi::dpl::transform_if(exec, first, last, mask, actual_first, op, pred);
-#if !TEST_DPCPP_BACKEND_PRESENT
-        EXPECT_EQ_N(expected_first, actual_first, n, "Wrong effect from transform_if");
-        for (size_t i = 0; i < GuardSize; ++i)
-        {
-            ++call2;
-        }
-        EXPECT_TRUE(actual_last == call2, "transform_if returned wrong iterator");
 
-#else
-        auto expected_count = ::std::distance(expected_first, call1);
-        auto actual_count = ::std::distance(actual_first, call2);
-        EXPECT_TRUE(expected_count == actual_count, "wrong return value from transform_if");
+        // call transform_if
+        transform_if(exec, first, last, mask, result, ::std::negate<int>(), oneapi::dpl::identity());
 
-        EXPECT_EQ_N(expected_first, actual_first, expected_count, "Wrong effect from transform_if");
-
-#endif
+        EXPECT_TRUE(check(first, last, mask, result, n), "transform_if wrong result");
+        // reset output elements to 0
+        ::std::fill(result, result_end, 0);
     }
 };
 
 template <typename In1, typename In2, typename Out>
 void test() {
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
-        Sequence<In1> in1(n, [](size_t k) { return (3 * k); });
-        Sequence<In2> in2(n, [](size_t k) { return k % 2 == 0 ? 1 : 0; });
+        Sequence<In1> in1(n, [=](size_t k) { return (3 * k); });
+        Sequence<In2> in2(n, [=](size_t k) { return k % 2 == 0 ? 1 : 0; });
 
-        Sequence<Out> out_expected(n, [](size_t) { return 0; });
-        Sequence<Out> out_actual(n, [](size_t) { return 0; });
+        Sequence<Out> out(n, [=](size_t) { return 0; });
 
-        invoke_on_all_policies<0>()(test_transform_if(), in1.begin(), in1.end(), in2.begin(), in2.end(),
-                                    out_expected.begin(), out_expected.end(), out_actual.begin(), out_actual.end(), n,
-                                    std::negate<int>(), oneapi::dpl::identity());
-        invoke_on_all_policies<1>()(test_transform_if(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(),
-                                    out_expected.begin(), out_expected.end(), out_actual.begin(), out_actual.end(), n,
-                                    std::negate<int>(), oneapi::dpl::identity());
+        invoke_on_all_policies<0>()(test_transform_if(), in1.begin(), in1.end(), in2.begin(), 
+                                    in2.end(), out.begin(), out.end(), n);
+        invoke_on_all_policies<1>()(test_transform_if(), in1.cbegin(), in1.cend(), in2.cbegin(), 
+                                    in2.cend(), out.begin(), out.end(), n);
     }
 }
 
