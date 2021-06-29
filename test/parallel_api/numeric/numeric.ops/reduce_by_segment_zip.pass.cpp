@@ -30,10 +30,10 @@
 #include <iostream>
 #include <vector>
 
-//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", from JIRA (ONEDPL-249)
+//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", from JIRA (ONEDPL-249); just "memory deallocation" added.
 int main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT    
+#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue q(sycl::gpu_selector{});
 
     const int n = 9, n_res = 6;
@@ -78,6 +78,14 @@ int main()
     for(int i=0; i < n_res; i++) {
       std::cout << "{" << output_keys1[i] << ", " << output_keys2[i] << "}: " << output_values[i] << std::endl;
     }
+
+    // Deallocate memory
+    sycl::free(d_keys1, q);
+    sycl::free(d_keys2, q);
+    sycl::free(d_values, q);
+    sycl::free(d_output_keys1, q);
+    sycl::free(d_output_keys2, q);
+    sycl::free(d_output_values, q);
 #endif
     return TestUtils::done();
 }
