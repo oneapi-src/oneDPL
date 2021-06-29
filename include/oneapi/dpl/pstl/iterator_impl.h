@@ -753,7 +753,7 @@ class discard_iterator
     _ONEDPL_CONSTEXPR_FIX bool
     operator==(const discard_iterator& __it) const
     {
-        return *this - __it == 0;
+        return __my_position_ == __it.__my_position_;
     }
     _ONEDPL_CONSTEXPR_FIX bool
     operator!=(const discard_iterator& __it) const
