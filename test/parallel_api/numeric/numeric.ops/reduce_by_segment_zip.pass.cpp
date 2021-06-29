@@ -87,5 +87,5 @@ int main()
     sycl::free(d_output_keys2, q);
     sycl::free(d_output_values, q);
 #endif
-    return TestUtils::done();
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
