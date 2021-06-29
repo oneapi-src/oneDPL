@@ -13,24 +13,25 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <oneapi/dpl/execution>
+#include "support/test_config.h"
+
+#include _PSTL_TEST_HEADER(execution)
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #include <CL/sycl.hpp>
 #endif
 
-#include "support/test_config.h"
 #include "support/utils.h"
 
-#include <oneapi/dpl/algorithm>
-#include <oneapi/dpl/iterator>
-#include <oneapi/dpl/functional>
+#include _PSTL_TEST_HEADER(algorithm)
+#include _PSTL_TEST_HEADER(iterator)
+#include _PSTL_TEST_HEADER(functional)
 
 #include <functional>
 #include <iostream>
 #include <vector>
 
-//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", as an example reported buy a user; just "memory deallocation" added.
+//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", as an example reported by a user; just "memory deallocation" added.
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
