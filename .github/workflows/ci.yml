@@ -96,7 +96,7 @@ jobs:
         run: |
           set -x
           sudo rm -rf /opt/intel/oneapi/dpl || true
-          source /opt/intel/oneapi/setvars.sh intel64
+          source /opt/intel/oneapi/setvars.sh intel64 || true
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
