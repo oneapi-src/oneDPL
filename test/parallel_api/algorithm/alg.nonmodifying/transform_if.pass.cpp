@@ -24,9 +24,9 @@ using namespace TestUtils;
 
 struct test_transform_if
 {
-    template <typename It1, typename It2, typename Ot, typename Size>
+    template <typename It1, typename It2, typename Out, typename Size>
     bool
-    check(It1 first, It1 last, It2 mask, Ot result, Size n)
+    check(It1 first, It1 last, It2 mask, Out result, Size n)
     {
         int i = 0;
         int j = n - 1;
@@ -88,7 +88,7 @@ template <typename In1, typename In2, typename Out>
 void
 test()
 {
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<In1> in1(n, [=](size_t k) { return (3 * k); });
         Sequence<In2> in2(n, [=](size_t k) { return k % 2 == 0 ? 1 : 0; });
