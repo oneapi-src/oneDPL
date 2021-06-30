@@ -271,9 +271,8 @@ __pattern_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _F
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec),
-        unseq_backend::mask_walk_n<_ExecutionPolicy, _UnaryOperation, _Predicate>{__op, __pred}, __n, __buf1.all_view(),
-        __buf2.all_view(), __buf3.all_view())
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::mask_walk_n<_UnaryOperation, _Predicate>{__op, __pred},
+        __n, __buf1.all_view(), __buf2.all_view(), __buf3.all_view())
         .wait();
 
     return __first3 + __n;

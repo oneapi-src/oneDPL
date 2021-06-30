@@ -2452,12 +2452,10 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, 
                       _Compare __comp, _IsVector /*is_vector*/, /*is_parallel=*/::std::true_type)
 {
     __internal::__except_handler([&]() {
-        __par_backend::__parallel_stable_sort(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-            [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
-                ::std::stable_sort(__first, __last, __comp);
-            },
-            __last - __first);
+        __par_backend::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+                                              [](_RandomAccessIterator __first, _RandomAccessIterator __last,
+                                                 _Compare __comp) { ::std::stable_sort(__first, __last, __comp); },
+                                              __last - __first);
     });
 }
 
@@ -2593,19 +2591,19 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
                                                   [__n2, __first, __r](_T1* __i, _T1* __j, _Compare __comp) {
                                                       _RandomAccessIterator1 __it = __first + (__i - __r);
 
-                    // 1. Copy elements from input to raw memory
-                    for (_T1* __k = __i; __k != __j; ++__k, ++__it)
-                    {
-                        ::new (__k) _T2(*__it);
-                    }
+                                                      // 1. Copy elements from input to raw memory
+                                                      for (_T1* __k = __i; __k != __j; ++__k, ++__it)
+                                                      {
+                                                          ::new (__k) _T2(*__it);
+                                                      }
 
-                    // 2. Sort elements in temporary buffer
-                    if (__n2 < __j - __i)
-                        ::std::partial_sort(__i, __i + __n2, __j, __comp);
-                    else
-                        ::std::sort(__i, __j, __comp);
-                },
-                __n2);
+                                                      // 2. Sort elements in temporary buffer
+                                                      if (__n2 < __j - __i)
+                                                          ::std::partial_sort(__i, __i + __n2, __j, __comp);
+                                                      else
+                                                          ::std::sort(__i, __j, __comp);
+                                                  },
+                                                  __n2);
 
             // 3. Move elements from temporary buffer to output
             __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n2,
@@ -3746,12 +3744,12 @@ __pattern_is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
                         _Compare __comp, _IsVector __is_vector, /* is_parallel = */ ::std::true_type)
 {
     return __internal::__except_handler([&]() {
-        return __parallel_find(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-            [__first, __comp, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
-                return __internal::__is_heap_until_local(__first, __i - __first, __j - __first, __comp, __is_vector);
-            },
-            ::std::true_type{});
+        return __parallel_find(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                               [__first, __comp, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                                   return __internal::__is_heap_until_local(__first, __i - __first, __j - __first,
+                                                                            __comp, __is_vector);
+                               },
+                               ::std::true_type{});
     });
 }
 
