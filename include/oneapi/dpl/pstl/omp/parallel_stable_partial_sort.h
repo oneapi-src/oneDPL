@@ -199,6 +199,10 @@ __parallel_partition(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Ra
     delete[] __status;
 }
 
+template <typename _RandomAccessIterator, typename _Compare>
+void
+__parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp);
+
 template <typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
 __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp,
