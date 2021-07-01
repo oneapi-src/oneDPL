@@ -370,7 +370,8 @@ transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardItera
         oneapi::dpl::__internal::__invoke_unary_op<_UnaryOperation>{::std::move(__op)}, __pred,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                               _ForwardIterator>(__exec),
-        __exec.__allow_parallel());
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
+                                                                _ForwardIterator>(__exec));
 }
 
 // [alg.replace]

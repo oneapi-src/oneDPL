@@ -67,7 +67,7 @@ __simd_walk_3(_Iterator1 __first1, _DifferenceType __n, _Iterator2 __first2, _It
 template <class _Iterator1, class _DifferenceType, class _Iterator2, class _Iterator3, class _Function,
           class _Predicate>
 _Iterator3
-__simd_mask_walk_3(_Iterator1 __first1, _DifferenceType __n, _Iterator2 __first2, _Iterator3 __first3, _Function __f,
+__simd_mask_walk_2(_Iterator1 __first1, _DifferenceType __n, _Iterator2 __first2, _Iterator3 __first3, _Function __f,
                    _Predicate __pred) noexcept
 {
     _ONEDPL_PRAGMA_SIMD
