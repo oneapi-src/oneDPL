@@ -1,64 +1,73 @@
-template<typename _RandomAccessIterator, typename _Compare>
-struct _MinKOp {
-    std::vector<_RandomAccessIterator> &__items;
+template <typename _RandomAccessIterator, typename _Compare>
+struct _MinKOp
+{
+    std::vector<_RandomAccessIterator>& __items;
     _Compare __comp;
 
-    _MinKOp(std::vector<_RandomAccessIterator> &__items_, _Compare __comp_)
-        : __items(__items_), __comp(__comp_) {}
+    _MinKOp(std::vector<_RandomAccessIterator>& __items_, _Compare __comp_) : __items(__items_), __comp(__comp_) {}
 
-    auto __it_comp() const {
-        return [this](const auto &l, const auto &r) { return __comp(*l, *r); };
+    auto
+    __it_comp() const
+    {
+        return [this](const auto& l, const auto& r) { return __comp(*l, *r); };
     }
 
-    void __keep_smallest_k_items(_RandomAccessIterator __item) {
+    void
+    __keep_smallest_k_items(_RandomAccessIterator __item)
+    {
         // Put the new item on the heap and re-establish the heap invariant.
         __items.push_back(__item);
-        std::push_heap(__items.begin(),
-                       __items.end(), __it_comp());
+        std::push_heap(__items.begin(), __items.end(), __it_comp());
 
         // Pop the largest item off the heap.
-        std::pop_heap(__items.begin(),
-                      __items.end(), __it_comp());
+        std::pop_heap(__items.begin(), __items.end(), __it_comp());
         __items.pop_back();
     };
 
-    void __merge(std::vector<_RandomAccessIterator> &__other) {
-        for (auto __it = std::begin(__other);
-             __it != std::end(__other); ++__it) {
+    void
+    __merge(std::vector<_RandomAccessIterator>& __other)
+    {
+        for (auto __it = std::begin(__other); __it != std::end(__other); ++__it)
+        {
             __keep_smallest_k_items(*__it);
         }
     }
 
-    void __initialize(_RandomAccessIterator __first, _RandomAccessIterator __last,
-                      std::size_t __k) {
+    void
+    __initialize(_RandomAccessIterator __first, _RandomAccessIterator __last, std::size_t __k)
+    {
         __items.resize(__k);
         auto __item_it = __first;
         auto __tracking_it = std::begin(__items);
-        while (__item_it != __last &&
-            __tracking_it != std::end(__items)) {
+        while (__item_it != __last && __tracking_it != std::end(__items))
+        {
             *__tracking_it = __item_it;
             ++__item_it;
             ++__tracking_it;
         }
-        std::make_heap(__items.begin(),
-                       __items.end(), __it_comp());
-        for (; __item_it != __last; ++__item_it) {
+        std::make_heap(__items.begin(), __items.end(), __it_comp());
+        for (; __item_it != __last; ++__item_it)
+        {
             __keep_smallest_k_items(__item_it);
         }
     }
 
-    static auto __reduce(std::vector<_RandomAccessIterator> &__v1,
-                         std::vector<_RandomAccessIterator> &__v2, _Compare __comp)
-    -> std::vector<_RandomAccessIterator> {
-        if (__v1.empty()) {
+    static auto
+    __reduce(std::vector<_RandomAccessIterator>& __v1, std::vector<_RandomAccessIterator>& __v2, _Compare __comp)
+        -> std::vector<_RandomAccessIterator>
+    {
+        if (__v1.empty())
+        {
             return __v2;
         }
 
-        if (__v2.empty()) {
+        if (__v2.empty())
+        {
             return __v1;
         }
 
-        if (__v1.size() >= __v2.size()) {
+        if (__v1.size() >= __v2.size())
+        {
             _MinKOp<_RandomAccessIterator, _Compare> __op(__v1, __comp);
             __op.__merge(__v2);
             return __v1;
@@ -70,10 +79,11 @@ struct _MinKOp {
     }
 };
 
-template<typename _RandomAccessIterator, typename _Compare>
-auto __find_min_k(_RandomAccessIterator __first, _RandomAccessIterator __last,
-                  std::size_t __k, _Compare __comp)
--> std::vector<_RandomAccessIterator> {
+template <typename _RandomAccessIterator, typename _Compare>
+auto
+__find_min_k(_RandomAccessIterator __first, _RandomAccessIterator __last, std::size_t __k, _Compare __comp)
+    -> std::vector<_RandomAccessIterator>
+{
     std::vector<_RandomAccessIterator> __items;
     _MinKOp<_RandomAccessIterator, _Compare> op(__items, __comp);
 
@@ -81,16 +91,16 @@ auto __find_min_k(_RandomAccessIterator __first, _RandomAccessIterator __last,
     return __items;
 }
 
-template<typename _RandomAccessIterator, typename _Compare>
-auto __parallel_find_pivot(_RandomAccessIterator __first,
-                           _RandomAccessIterator __last, _Compare __comp,
-                           std::size_t __nsort) -> _RandomAccessIterator {
+template <typename _RandomAccessIterator, typename _Compare>
+auto
+__parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp, std::size_t __nsort)
+    -> _RandomAccessIterator
+{
     using _Value = std::vector<_RandomAccessIterator>;
     using _Op = _MinKOp<_RandomAccessIterator, _Compare>;
 
     std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
-    __chunk_partitioner(__first, __last, __n_chunks, __chunk_size,
-                        __first_chunk_size,
+    __chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size,
                         std::max(__nsort, __default_chunk_size));
     /*
      * This function creates a vector of iterators to the container being operated
@@ -111,22 +121,18 @@ auto __parallel_find_pivot(_RandomAccessIterator __first,
      * that here.
      */
 
-    auto __reduce_chunk = [&](std::uint32_t __chunk) {
-      auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
-      auto __index = __chunk == 0 ? 0
-                                  : (__chunk * __chunk_size) +
-              (__first_chunk_size - __chunk_size);
-      auto __begin = std::next(__first, __index);
-      auto __end = std::next(__begin, __this_chunk_size);
+    auto __reduce_chunk = [&](std::uint32_t __chunk)
+    {
+        auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
+        auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
+        auto __begin = std::next(__first, __index);
+        auto __end = std::next(__begin, __this_chunk_size);
 
-      return __find_min_k(__begin, __end, __nsort, __comp);
+        return __find_min_k(__begin, __end, __nsort, __comp);
     };
 
-    auto __reduce_value = [&](auto &__v1, auto &__v2) {
-      return _Op::__reduce(__v1, __v2, __comp);
-    };
-    auto __result = __parallel_reduce_chunks<_Value>(
-        0, __n_chunks, __reduce_chunk, __reduce_value);
+    auto __reduce_value = [&](auto& __v1, auto& __v2) { return _Op::__reduce(__v1, __v2, __comp); };
+    auto __result = __parallel_reduce_chunks<_Value>(0, __n_chunks, __reduce_chunk, __reduce_value);
 
     // Return largest item
     return __result.front();
@@ -211,4 +217,3 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
         __parallel_stable_sort_body(__xs, __part_end, __comp);
     }
 }
-

@@ -96,7 +96,8 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
      */
 
     const _Size __n = __last - __first;
-    if (__n < __requested_chunk_size) {
+    if (__n < __requested_chunk_size)
+    {
         __chunk_size = __n;
         __first_chunk_size = __n;
         __n_chunks = 1;
@@ -108,16 +109,19 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
     __first_chunk_size = __chunk_size;
     const _Size __n_leftover_items = __n - (__n_chunks * __chunk_size);
 
-    if (__n_leftover_items == __chunk_size) {
+    if (__n_leftover_items == __chunk_size)
+    {
         __n_chunks += 1;
         return;
-    } else if (__n_leftover_items == 0) {
+    }
+    else if (__n_leftover_items == 0)
+    {
         __first_chunk_size = __chunk_size;
         return;
     }
 
     const _Size __n_extra_items_per_chunk = __n_leftover_items / __n_chunks;
-    const _Size __n_final_leftover_items = __n_leftover_items  - (__n_extra_items_per_chunk * __n_chunks);
+    const _Size __n_final_leftover_items = __n_leftover_items - (__n_extra_items_per_chunk * __n_chunks);
 
     __chunk_size += __n_extra_items_per_chunk;
     __first_chunk_size = __chunk_size + __n_final_leftover_items;
