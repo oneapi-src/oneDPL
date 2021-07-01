@@ -13,6 +13,7 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_OMP_H
 #define _ONEDPL_PARALLEL_BACKEND_OMP_H
 
+#include <algorithm>
 #include <atomic>
 #include <iterator>
 #include <cstddef>
