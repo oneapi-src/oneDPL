@@ -63,7 +63,9 @@ jobs:
         with:
             name: oneDPL-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html.tar.gz
+
   pages:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     needs: [documentation]
     steps:
@@ -90,6 +92,7 @@ jobs:
           git add .
           git commit --reset-author --amend -m "Update from GitHub Actions"
           git push --force origin gh-pages
+
   linux-testing:
     name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
