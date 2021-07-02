@@ -61,7 +61,7 @@ jobs:
       - name: Archive build directory
         uses: actions/upload-artifact@v1
         with:
-            name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
+            name: oneDPL-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html.tar.gz
   pages:
     runs-on: ubuntu-latest
@@ -77,7 +77,7 @@ jobs:
       - name: Download documetation
         uses: actions/download-artifact@v2
         with:
-          name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
+          name: oneDPL-html-docs-${{ env.GITHUB_SHA_SHORT }}
       - name: Publish to github pages
         run: |
           tar -xvf html.tar.gz
