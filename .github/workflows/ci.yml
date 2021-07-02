@@ -1,0 +1,104 @@
+name: oneDPL CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches:
+      - release_oneDPL
+      - main
+      - 'release/**'
+
+env:
+  BUILD_CONCURRENCY: 2
+  TEST_TIMEOUT: 360
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get clang-format
+        run: sudo apt-get install -yqq clang-format-6.0
+      - name: Applying clang-format for changed files
+        run: |
+          FILES=$(git diff --diff-filter=d --name-only ${{ github.event.pull_request.base.sha }} | grep ^include | grep -v nanorange\.hpp\$ || true)
+          echo $FILES | xargs -n1 -t -r clang-format-6.0 --style=file -i
+      - name: Creating diff
+        run: git diff > clang-format-diff.diff
+      - name: Checking if diff is empty
+        run: if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi
+
+  codespell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          sudo apt update && sudo apt install -y codespell
+      - name: Run scan
+        run: |
+          ${GITHUB_WORKSPACE}/.github/scripts/codespell.sh $(pwd)
+
+  documentation:
+    runs-on: ubuntu-latest
+    needs: [codespell]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Install prerequisites
+        run: |
+          echo GITHUB_SHA_SHORT=${GITHUB_SHA::8} >> $GITHUB_ENV
+          python -m pip install -r documentation/library_guide/requirements.txt
+      - name: Build documentation
+        run: |
+          mkdir html
+          sphinx-build -b html documentation/library_guide/ html/
+      - name: Archive build directory
+        uses: actions/upload-artifact@v1
+        with:
+            name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
+            path: html
+
+  linux-testing:
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure apt repositories
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+      - name: Install oneTBB
+        run: sudo apt install -y intel-oneapi-tbb-devel
+      - name: Install oneAPI Compiler
+        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
+        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          sudo rm -rf /opt/intel/oneapi/dpl || true
+          source /opt/intel/oneapi/setvars.sh intel64 || true
+          mkdir build && cd build
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
+          make VERBOSE=1 -j${BUILD_CONCURRENCY}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure
