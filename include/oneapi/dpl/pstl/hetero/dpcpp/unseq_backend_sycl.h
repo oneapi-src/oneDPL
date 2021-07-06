@@ -209,7 +209,7 @@ struct multiple_match_pred
         const auto __total_shift = __shifted_idx;
 
         using _Size2 = decltype(__s_n);
-        for (_Size2 __ii = 0; __ii < __s_n && __result; ++__ii)
+        for (_Size2 __ii = 0; __ii < __s_n; ++__ii)
         {
             __result = __pred(__acc[__total_shift + __ii], __s_acc[__ii]);
             if (!__result)
