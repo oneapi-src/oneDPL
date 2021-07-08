@@ -75,7 +75,7 @@ jobs:
             cxx_compiler: g++
             std: 17
             build_type: release
-            backend: tbb
+            backend: omp
             device_type: HOST
     steps:
       - uses: actions/checkout@v2
