@@ -31,13 +31,14 @@ namespace __ranges
 {
 
 //A SYCL range over SYCL buffer
-template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read>
+template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read,
+          sycl::access::target _Target = sycl::access::target::global_buffer,
+          sycl::access::placeholder _Placeholder = sycl::access::placeholder::true_t>
 class all_view
 {
     using return_t = typename ::std::conditional<AccMode == sycl::access::mode::read, const _T, _T>::type;
-    using accessor_t =
-        sycl::accessor<_T, 1, AccMode, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>;
     using diff_type = typename ::std::iterator_traits<_T*>::difference_type;
+    using accessor_t = sycl::accessor<_T, 1, AccMode, _Target, _Placeholder>;
 
   public:
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
@@ -75,21 +76,23 @@ class all_view
     require_access(sycl::handler& cgh)
     {
         cgh.require(m_acc);
-    } //non-standard method
+    }
 
   private:
     accessor_t m_acc;
 };
 
-template <sycl::access::mode AccMode = sycl::access::mode::read_write>
+template <sycl::access::mode AccMode = sycl::access::mode::read_write,
+          sycl::access::target _Target = sycl::access::target::global_buffer,
+          sycl::access::placeholder _Placeholder = sycl::access::placeholder::true_t>
 struct all_view_fn
 {
     template <typename _T>
-    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
+    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>
     operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
                typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
     {
-        return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf, __offset, __n);
+        return oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>(__buf, __offset, __n);
     }
 
     template <typename _R>
@@ -102,9 +105,19 @@ struct all_view_fn
 
 namespace views
 {
-_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read_write> all;
-_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::read> all_read;
-_ONEDPL_CONSTEXPR_VAR all_view_fn<sycl::access::mode::write> all_write;
+_ONEDPL_CONSTEXPR_VAR
+all_view_fn<sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t> all;
+
+_ONEDPL_CONSTEXPR_VAR
+all_view_fn<sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t> all_read;
+
+_ONEDPL_CONSTEXPR_VAR
+all_view_fn<sycl::access::mode::write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>
+    all_write;
+
+_ONEDPL_CONSTEXPR_VAR
+all_view_fn<sycl::access::mode::read_write, sycl::access::target::host_buffer, sycl::access::placeholder::false_t>
+    host_all;
 } // namespace views
 
 //all_view traits
@@ -135,7 +148,7 @@ using is_hetero_it = oneapi::dpl::__par_backend_hetero::__internal::is_hetero_it
 template <typename _Iter>
 using is_passed_directly_it = oneapi::dpl::__par_backend_hetero::__internal::is_passed_directly<_Iter>;
 
-//struct for checking if it needs to create a temporay SYCL buffer or not
+//struct for checking if it needs to create a temporary SYCL buffer or not
 
 template <typename _Iter, typename Void = void>
 struct is_temp_buff : ::std::false_type
@@ -261,8 +274,8 @@ struct __range_holder
     }
 };
 
-// We have to keep sycl buffer intance here by sync reasons, at least in case of host iterators. SYCL runtime has sync
-// in bufer desctruction and a sycl view instance keeps just placeholder accessor, not a buffer.
+// We have to keep sycl buffer instance here by sync reasons, at least in case of host iterators. SYCL runtime has sync
+// in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
 template <typename _T>
 using buf_type = sycl::buffer<_T, 1>;
 
@@ -338,7 +351,7 @@ template <sycl::access::mode AccMode, typename _Iterator>
 struct __get_sycl_range
 {
   private:
-    //We have to keep sycl buffer(s) intance here by sync reasons; see __iter_types definition above
+    //We have to keep sycl buffer(s) instance here by sync reasons; see __iter_types definition above
     typename __iter_types<_Iterator>::type m_keep;
 
     template <typename _Iter>

@@ -54,7 +54,7 @@ class subtract_with_carry_engine
 
     explicit subtract_with_carry_engine(scalar_type __seed, unsigned long long __offset = 0)
     {
-        // Engine initalization
+        // Engine initialization
         init(__seed);
 
         // Discard offset
@@ -65,7 +65,7 @@ class subtract_with_carry_engine
     void
     seed(scalar_type __seed = default_seed)
     {
-        // Engine initalization
+        // Engine initialization
         init(__seed);
     }
 

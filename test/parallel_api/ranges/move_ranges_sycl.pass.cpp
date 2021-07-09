@@ -53,7 +53,7 @@ main()
         auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
 
-        move(exec1, view, C); //check passing a buffer for writting
+        move(exec1, view, C); //check passing a buffer for writing
         move(exec2, C, range_res); //check passing a buffer for reading
     }
 
@@ -64,6 +64,5 @@ main()
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from move with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

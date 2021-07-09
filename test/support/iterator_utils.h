@@ -113,7 +113,7 @@ class BidirectionalIterator : public ForwardIterator<Iterator, IteratorTag>
 //============================================================================
 // Adapters for creating different types of iterators.
 //
-// In this block we implemented some adapters for creating differnet types of iterators.
+// In this block we implemented some adapters for creating different types of iterators.
 // It's needed for extending the unit testing of Parallel STL algorithms.
 // We have adapters for iterators with different tags (forward_iterator_tag, bidirectional_iterator_tag), reverse iterators.
 // The input iterator should be const or non-const, non-reverse random access iterator.

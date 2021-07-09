@@ -47,6 +47,8 @@ using oneapi::dpl::__ranges::views::all;
 using oneapi::dpl::__ranges::views::all_read;
 using oneapi::dpl::__ranges::views::all_write;
 
+using oneapi::dpl::__ranges::views::host_all;
+
 using nano::views::drop;
 using nano::views::fill;
 using nano::views::generate;
@@ -55,6 +57,8 @@ using nano::views::reverse;
 using nano::views::rotate;
 using nano::views::take;
 using nano::views::transform;
+
+using nano::subrange;
 } // namespace views
 
 } // namespace ranges

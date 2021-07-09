@@ -103,7 +103,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
-    // Compute the indicies each segment sum should be written
+    // Compute the indices each segment sum should be written
     typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
@@ -211,7 +211,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
-    // Compute the indicies each segment sum should be written
+    // Compute the indices each segment sum should be written
     typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
@@ -338,7 +338,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
-    // Compute the indicies each segment sum should be written
+    // Compute the indices each segment sum should be written
     typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
@@ -457,7 +457,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
-    // Compute the indicies each segment sum should be written
+    // Compute the indices each segment sum should be written
     typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
     oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());

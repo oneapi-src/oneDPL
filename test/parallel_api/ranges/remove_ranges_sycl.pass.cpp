@@ -60,8 +60,6 @@ main()
     EXPECT_TRUE(::std::distance(exp.begin(), exp_end) == in_end_n, "wrong effect from remove with sycl ranges");
     EXPECT_EQ_N(exp.begin(), in.begin(), in_end_n, "wrong effect from remove with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
-
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }
 

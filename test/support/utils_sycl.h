@@ -58,11 +58,10 @@ namespace TestUtils
             [&val](const T& x) { return x == val; });
     }
 
-    template<typename Op, ::std::size_t CallNumber>
-    struct unique_kernel_name {};
-
-    template<typename Policy, int idx>
-    using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
+    template <typename Op, ::std::size_t CallNumber>
+    using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, CallNumber> ;
+    template <typename Policy, int idx>
+    using new_kernel_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<Policy, idx>;
 
     auto async_handler = [](sycl::exception_list ex_list) {
         for (auto& ex : ex_list) {
@@ -312,7 +311,7 @@ namespace TestUtils
     }
 
     // use the function carefully due to temporary accessor creation.
-    // Race conditiion between host and device may be occured
+    // Race conditiion between host and device may be occurred
     // if we work with the buffer host memory when kernel is invoked on device
     template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
     typename ::std::iterator_traits<Iter>::pointer

@@ -235,8 +235,8 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
 
             using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn)>;
 
-            oneapi::dpl::__par_backend_hetero::__parallel_for(std::forward<_ExecutionPolicy>(__exec), _Function{__fn},
-                                                              __n, __buf1.all_view(), __buf2.all_view())
+            oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, _Function{__fn}, __n, __buf1.all_view(),
+                                                              __buf2.all_view())
                 .wait();
 
             return __d_last;

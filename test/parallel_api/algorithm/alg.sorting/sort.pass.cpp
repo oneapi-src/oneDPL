@@ -25,7 +25,7 @@
 #define _PSTL_TEST_STABLE_SORT
 #endif
 
-// Testing with and without predicate may be usefull due to different implementations, e.g. merge-sort and radix-sort
+// Testing with and without predicate may be useful due to different implementations, e.g. merge-sort and radix-sort
 #if !defined(_PSTL_TEST_WITH_PREDICATE) && !defined(_PSTL_TEST_WITHOUT_PREDICATE)
 #define _PSTL_TEST_WITH_PREDICATE
 #define _PSTL_TEST_WITHOUT_PREDICATE

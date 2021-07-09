@@ -1,6 +1,8 @@
 breathe==4.9.1
-sphinx==3.2.1
-docutils==0.14
+sphinx==3.4.0
+docutils>=0.15
 sphinx_book_theme
 sphinx-intl==2.0.0
 sphinx-tabs
+sphinx-prompt
+sphinx_substitution_extensions

@@ -29,33 +29,30 @@ int32_t
 main()
 {
 #if _ENABLE_RANGES_TESTING
-    constexpr int max_n = 10;
-    int data[max_n]     = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    int expected[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    int val1 = -1, val2 = -2;
+    constexpr int n = 10;
+    int data[n] = {5, 6, 7, 3, 4, 5, 6, 7, 8, 9};
 
-    auto lambda = [](auto i) { return i % 2 == 0; };
+    constexpr int idx = 5;
+    data[idx] = -1, data[idx + 1] = -1;
 
+    int res1 = -1, res2 = -1;
     using namespace oneapi::dpl::experimental::ranges;
-
     {
-        sycl::buffer<int> A(data, sycl::range<1>(max_n));
-
-        auto view = views::all(A);
+        sycl::buffer<int> A(data, sycl::range<1>(n));
 
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(exec);
         auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
-                                       
-        replace_if(exec1, view, lambda, val1);
-        replace(exec2, A, val1, val2);
+
+        res1 = adjacent_find(exec1, views::all_read(A));
+        res2 = adjacent_find(exec2, A, [](auto a, auto b) {return a == b;});
     }
 
     //check result
-    ::std::replace_if(expected, expected + max_n, lambda, val2);
-
-    EXPECT_EQ_N(expected, data, max_n, "wrong effect from replace(_if) with sycl ranges");
+    EXPECT_TRUE(res1 == idx, "wrong effect from 'adjacent_find', sycl ranges");
+    EXPECT_TRUE(res2 == idx, "wrong effect from 'adjacent_find' with predicate, sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
+
     return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

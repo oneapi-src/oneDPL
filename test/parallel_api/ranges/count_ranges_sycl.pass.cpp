@@ -53,6 +53,5 @@ main()
     EXPECT_TRUE(res1 == 4, "wrong result from count_if with sycl ranges");
     EXPECT_TRUE(res2 == 2, "wrong result from count with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
-    ::std::cout << TestUtils::done() << ::std::endl;
-    return 0;
+    return TestUtils::done(_ENABLE_RANGES_TESTING);
 }

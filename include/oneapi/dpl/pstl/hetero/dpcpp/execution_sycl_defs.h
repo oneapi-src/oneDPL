@@ -177,6 +177,13 @@ make_device_policy(const device_policy<OldKernelName>& policy
     return device_policy<NewKernelName>(policy);
 }
 
+template <typename NewKernelName, typename OldKernelName = DefaultKernelName>
+device_policy<NewKernelName>
+make_hetero_policy(const device_policy<OldKernelName>& policy)
+{
+    return device_policy<NewKernelName>(policy);
+}
+
 #if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelNameFPGA>
 fpga_policy<unroll_factor, KernelName>
@@ -200,6 +207,14 @@ make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy
                  = dpcpp_fpga
 #    endif // _ONEDPL_USE_PREDEFINED_POLICIES
 )
+{
+    return fpga_policy<new_unroll_factor, NewKernelName>(policy);
+}
+
+template <unsigned int new_unroll_factor, typename NewKernelName, unsigned int old_unroll_factor = 1,
+          typename OldKernelName = DefaultKernelNameFPGA>
+fpga_policy<new_unroll_factor, NewKernelName>
+make_hetero_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy)
 {
     return fpga_policy<new_unroll_factor, NewKernelName>(policy);
 }
@@ -374,9 +389,8 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    const auto& __device = __policy.queue().get_device();
-    // TODO: investigate can we use kernel_work_group::preferred_work_group_size_multiple here.
-    auto __max_wg_size =
+    const sycl::device& __device = __policy.queue().get_device();
+    const ::std::size_t __max_wg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
 #else
@@ -391,12 +405,12 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
 }
 
 template <typename _ExecutionPolicy>
-long
+::std::uint32_t
 __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    auto __device = __policy.queue().get_device();
-    auto __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
-    const ::std::size_t __sg_size =
+    const sycl::device& __device = __policy.queue().get_device();
+    const ::std::size_t __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
+    const ::std::uint32_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
 #else

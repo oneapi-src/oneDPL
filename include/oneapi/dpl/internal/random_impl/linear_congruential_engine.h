@@ -64,7 +64,7 @@ class linear_congruential_engine
     void
     seed(scalar_type __seed = default_seed)
     {
-        // Engine initalization
+        // Engine initialization
         init<internal::type_traits_t<result_type>::num_elems>(__seed);
     }
 
