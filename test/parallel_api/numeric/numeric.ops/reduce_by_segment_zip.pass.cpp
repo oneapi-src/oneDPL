@@ -35,7 +35,7 @@
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    sycl::queue q(sycl::gpu_selector{});
+    sycl::queue q;
 
     const int n = 9, n_res = 6;
 
