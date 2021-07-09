@@ -17,4 +17,3 @@ __parallel_for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwar
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
-
