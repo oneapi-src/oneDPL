@@ -1,3 +1,10 @@
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
+{
+
 template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
 void
@@ -9,3 +16,7 @@ __parallel_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __xs, _Random
     __serial_backend::__parallel_merge(std::forward<_ExecutionPolicy>(__exec), __xs, __xe, __ys, __ye, __zs, __comp,
                                        __leaf_merge);
 }
+
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi

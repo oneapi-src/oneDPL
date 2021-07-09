@@ -1,3 +1,10 @@
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
+{
+
 template <class _RandomAccessIterator, class _Fp>
 void
 __parallel_for_body(_RandomAccessIterator __first, _RandomAccessIterator __last, _Fp __f)
@@ -40,3 +47,7 @@ __parallel_for(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessI
         _PSTL_PRAGMA(omp single) { dpl::__omp_backend::__parallel_for_body(__first, __last, __f); }
     }
 }
+
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi

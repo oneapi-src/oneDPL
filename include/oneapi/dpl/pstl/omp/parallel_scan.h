@@ -1,3 +1,10 @@
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
+{
+
 template <typename _Index>
 _Index
 __split(_Index __m)
@@ -106,3 +113,7 @@ __parallel_strict_scan(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial, _Rp
         }
     }
 }
+
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi

@@ -1,3 +1,10 @@
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
+{
+
 template <typename _RandomAccessIterator, typename _Compare>
 void
 __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp)
@@ -117,3 +124,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
         }
     }
 }
+
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi

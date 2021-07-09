@@ -1,3 +1,10 @@
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
+{
+
 template <typename _RandomAccessIterator, typename _Compare>
 struct _MinKOp
 {
@@ -220,3 +227,7 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
         __parallel_stable_sort_body(__xs, __part_end, __comp);
     }
 }
+
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi

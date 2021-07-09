@@ -1,3 +1,10 @@
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
+{
+
 template <class _Value, typename _ChunkReducer, typename _Reduction>
 auto
 __parallel_reduce_chunks(std::uint32_t start, std::uint32_t end, _ChunkReducer __reduce_chunk, _Reduction __reduce)
@@ -96,3 +103,7 @@ __parallel_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAcce
 
     return __res;
 }
+
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi

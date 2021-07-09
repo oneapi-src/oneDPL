@@ -128,6 +128,10 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
     __first_chunk_size = __chunk_size + __n_final_leftover_items;
 }
 
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi
+
 //------------------------------------------------------------------------
 // parallel_invoke
 //------------------------------------------------------------------------
@@ -172,8 +176,4 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
 //------------------------------------------------------------------------
 #include "./omp/parallel_merge.h"
 
-} // namespace __omp_backend
-} // namespace dpl
-} // namespace oneapi
-
-#endif //
+#endif //_ONEDPL_PARALLEL_BACKEND_OMP_H

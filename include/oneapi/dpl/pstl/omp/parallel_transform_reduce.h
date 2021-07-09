@@ -1,3 +1,10 @@
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
+{
+
 //------------------------------------------------------------------------
 // parallel_transform_reduce
 //
@@ -106,3 +113,7 @@ __parallel_transform_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _
 
     return __result;
 }
+
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi
