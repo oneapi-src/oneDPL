@@ -20,7 +20,7 @@
 
 goals = $(or $(MAKECMDGOALS),all)
 ifneq (, $(filter-out clean clean_all,$(goals)))
-    ifeq (, $(filter $(backend), serial tbb sycl_only sycl))
+    ifeq (, $(filter $(backend), serial tbb omp sycl_only sycl))
         $(info Threading backend was not specified; using TBB)
         backend=tbb
     endif
@@ -135,6 +135,10 @@ else
     else
         OPTIMIZATION_KEYS = $(OPTIMIZATION_ENABLED_FLAGS)
     endif
+endif
+
+ifeq ($(backend), omp)
+    EXTRA_DEF_MACROS += $(KEY)DONEDPL_USE_OMP_BACKEND=1 $(KEY)DONEDPL_USE_TBB_BACKEND=0 $(KEY)DONEDPL_USE_DPCPP_BACKEND=0 $(KEY)fopenmp
 endif
 
 ifeq ($(backend), serial)

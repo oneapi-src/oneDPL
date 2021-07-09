@@ -52,7 +52,7 @@ all: $(test_bin)
 $(PSTL_LIB_NAME):
 	$(MAKE) -f $(PSTL_MAKEFILE) backend=$(backend) cfg=$(cfg)
 
-ifneq (,$(filter $(backend), tbb serial))
+ifneq (,$(filter $(backend), tbb omp serial))
 
 ifeq (,$(filter $(compiler), dpcpp dpc++))
 test_%.offload.exe: test_%.offload$(OBJ_SFX) exception_list.offload$(OBJ_SFX)
