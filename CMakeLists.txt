@@ -36,6 +36,7 @@ option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD f
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
+include(GNUInstallDirs)
 
 # Set default back-end in according with compiler (DPC++ or others)
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
@@ -238,3 +239,12 @@ target_include_directories(oneDPL
 ###############################################################################
 enable_testing()
 add_subdirectory(test)
+
+###############################################################################
+# Installation instructions
+###############################################################################
+install(CODE "set(OUTPUT_DIR \"${CMAKE_INSTALL_FULL_LIBDIR}/cmake/oneDPL\")")
+install(CODE "set(SKIP_HEADERS_SUBDIR TRUE)")
+install(SCRIPT cmake/scripts/generate_config.cmake)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY licensing DESTINATION ${CMAKE_INSTALL_DOCDIR})
