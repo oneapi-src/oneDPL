@@ -5,9 +5,9 @@ namespace dpl
 namespace __omp_backend
 {
 
-template <class _RandomAccessIterator, class _Fp>
+template <class _Index, class _Fp>
 void
-__parallel_for_body(_RandomAccessIterator __first, _RandomAccessIterator __last, _Fp __f)
+__parallel_for_body(_Index __first, _Index __last, _Fp __f)
 {
     std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
     __chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size);
@@ -18,8 +18,8 @@ __parallel_for_body(_RandomAccessIterator __first, _RandomAccessIterator __last,
     {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
         auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
-        auto __begin = std::next(__first, __index);
-        auto __end = std::next(__begin, __this_chunk_size);
+        auto __begin = __first + __index;
+        auto __end = __begin + __this_chunk_size;
         __f(__begin, __end);
     }
 }
@@ -29,9 +29,9 @@ __parallel_for_body(_RandomAccessIterator __first, _RandomAccessIterator __last,
 // Evaluation of brick f[i,j) for each subrange [i,j) of [first, last)
 //------------------------------------------------------------------------
 
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Fp>
+template <class _ExecutionPolicy, class _Index, class _Fp>
 void
-__parallel_for(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Fp __f)
+__parallel_for(_ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
 {
     if (omp_in_parallel())
     {
