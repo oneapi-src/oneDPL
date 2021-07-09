@@ -76,9 +76,19 @@ int main()
     // {21, 20}: 4
     // {21, 21}: 11
     // {37, 37}: 15
+    int exp_keys1[n_res] = {11, 21, 20, 21, 21,37};
+    int exp_keys2[n_res] = {11, 20, 20, 20, 21, 37};
+    int exp_values[n_res] = {1, 2, 3, 4, 11, 15};
+    EXPECT_EQ_N(exp_keys1, output_keys1.begin(), n_res, "wrong keys1 from reduce_by_segment");
+    EXPECT_EQ_N(exp_keys2, output_keys2.begin(), n_res, "wrong keys2 from reduce_by_segment");
+    EXPECT_EQ_N(exp_values, output_values.begin(), n_res, "wrong values from reduce_by_segment");
+
+//Dump
+#if 0
     for(int i=0; i < n_res; i++) {
       std::cout << "{" << output_keys1[i] << ", " << output_keys2[i] << "}: " << output_values[i] << std::endl;
     }
+#endif
 
     // Deallocate memory
     sycl::free(d_keys1, q);
@@ -87,6 +97,7 @@ int main()
     sycl::free(d_output_keys1, q);
     sycl::free(d_output_keys2, q);
     sycl::free(d_output_values, q);
+
 #endif
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
