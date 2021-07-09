@@ -142,7 +142,8 @@ class uniform_real_distribution
     typename ::std::enable_if<((_Ndistr == _Nengine) & (_Ndistr != 0)), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        return (((__engine() - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+        return (((__engine().template convert<scalar_type>() - __engine.min()) /
+                 (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
                     (__params.second - __params.first) +
                 __params.first);
     }
