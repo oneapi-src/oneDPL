@@ -130,7 +130,7 @@ class uniform_real_distribution
     scalar_type b_;
     template <class _Engine>
     inline scalar_type
-    scale_and_displace(const scalar_type& __in, const param_type& __params, _Engine& __engine)
+    scale_and_displace(const scalar_type& __in, const param_type& __params, const _Engine& __engine)
     {
         return ((__in - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
                    (__params.second - __params.first) +
@@ -142,12 +142,9 @@ class uniform_real_distribution
     typename ::std::enable_if<((_Ndistr == _Nengine) & (_Ndistr != 0)), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        auto __engine_output = __engine();
-        result_type __res;
-
-        for (int __i = 0; __i < _Ndistr; ++__i)
-            __res[__i] = scale_and_displace(static_cast<scalar_type>(__engine_output[__i]), __params, __engine);
-        return __res;
+        return ((( __engine() - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
+                __params.first);
     }
 
     template <int _Ndistr, int _Nengine, class _Engine>
