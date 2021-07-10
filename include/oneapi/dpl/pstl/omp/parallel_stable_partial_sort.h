@@ -138,7 +138,7 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
     };
 
     auto __reduce_value = [&](auto& __v1, auto& __v2) { return _Op::__reduce(__v1, __v2, __comp); };
-    auto __result = __parallel_reduce_chunks<_Value>(0, __n_chunks, __reduce_chunk, __reduce_value);
+    auto __result = __parallel_reduce_chunks(0, __n_chunks, __reduce_chunk, __reduce_value, _Value());
 
     // Return largest item
     return __result.front();

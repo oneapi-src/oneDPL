@@ -5,12 +5,12 @@ namespace dpl
 namespace __omp_backend
 {
 
-template <class _Value, typename _ChunkReducer, typename _Reduction>
+template <typename _ChunkReducer, typename _Reduction, typename _Value>
 auto
-__parallel_reduce_chunks(std::uint32_t start, std::uint32_t end, _ChunkReducer __reduce_chunk, _Reduction __reduce)
-    -> _Value
+__parallel_reduce_chunks(std::uint32_t start, std::uint32_t end, _ChunkReducer __reduce_chunk, _Reduction __reduce,
+                         _Value __identity) -> _Value
 {
-    _Value v1, v2;
+    _Value v1 = __identity, v2 = __identity;
 
     if (end - start == 1)
     {
@@ -29,10 +29,10 @@ __parallel_reduce_chunks(std::uint32_t start, std::uint32_t end, _ChunkReducer _
         auto middle = start + ((end - start) / 2);
 
         _PSTL_PRAGMA(omp task shared(v1))
-        v1 = __parallel_reduce_chunks<_Value>(start, middle, __reduce_chunk, __reduce);
+        v1 = __parallel_reduce_chunks(start, middle, __reduce_chunk, __reduce, __identity);
 
         _PSTL_PRAGMA(omp task shared(v2))
-        v2 = __parallel_reduce_chunks<_Value>(middle, end, __reduce_chunk, __reduce);
+        v2 = __parallel_reduce_chunks(middle, end, __reduce_chunk, __reduce, __identity);
     }
 
     _PSTL_PRAGMA(omp taskwait)
@@ -61,7 +61,7 @@ __parallel_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __la
         return __real_body(__begin, __end, __identity);
     };
 
-    return __parallel_reduce_chunks<_Value>(0, __n_chunks, __reduce_chunk, __reduction);
+    return __parallel_reduce_chunks(0, __n_chunks, __reduce_chunk, __reduction, __identity);
 }
 
 //------------------------------------------------------------------------
