@@ -32,11 +32,23 @@ struct _MinKOp
     };
 
     void
-    __merge(std::vector<_RandomAccessIterator>& __other)
+    __merge(std::vector<_RandomAccessIterator>& __other, std::size_t __k)
     {
+        if (__items.capacity() < __k) {
+            __items.reserve(__k);
+        }
+
         for (auto __it = std::begin(__other); __it != std::end(__other); ++__it)
         {
-            __keep_smallest_k_items(*__it);
+            if (__items.size() < __k) {
+                // Continue growing the items list until we have at least k items by
+                // putting the new item on the heap and re-establishing the heap
+                // invariant.
+                __items.push_back(*__it);
+                std::push_heap(__items.begin(), __items.end(), __it_comp());
+            } else {
+                __keep_smallest_k_items(*__it);
+            }
         }
     }
 
@@ -64,7 +76,7 @@ struct _MinKOp
     }
 
     static auto
-    __reduce(std::vector<_RandomAccessIterator>& __v1, std::vector<_RandomAccessIterator>& __v2, _Compare __comp)
+    __reduce(std::vector<_RandomAccessIterator>& __v1, std::vector<_RandomAccessIterator>& __v2, std::size_t __k,  _Compare __comp)
         -> std::vector<_RandomAccessIterator>
     {
         if (__v1.empty())
@@ -80,12 +92,12 @@ struct _MinKOp
         if (__v1.size() >= __v2.size())
         {
             _MinKOp<_RandomAccessIterator, _Compare> __op(__v1, __comp);
-            __op.__merge(__v2);
+            __op.__merge(__v2, __k);
             return __v1;
         }
 
         _MinKOp<_RandomAccessIterator, _Compare> __op(__v2, __comp);
-        __op.__merge(__v1);
+        __op.__merge(__v1, __k);
         return __v2;
     }
 };
@@ -142,7 +154,7 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
         return __find_min_k(__begin, __end, __nsort, __comp);
     };
 
-    auto __reduce_value = [&](auto& __v1, auto& __v2) { return _Op::__reduce(__v1, __v2, __comp); };
+    auto __reduce_value = [&](auto& __v1, auto& __v2) { return _Op::__reduce(__v1, __v2, __nsort, __comp); };
     auto __result = __parallel_reduce_chunks(0, __n_chunks, __reduce_chunk, __reduce_value, _Value());
 
     // Return largest item
