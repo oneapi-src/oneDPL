@@ -14,7 +14,7 @@ struct _MinKOp
     _MinKOp(std::vector<_RandomAccessIterator>& __items_, _Compare __comp_) : __items(__items_), __comp(__comp_) {}
 
     auto
-    __it_comp() const
+    __it_comp()
     {
         return [this](const auto& l, const auto& r) { return __comp(*l, *r); };
     }
