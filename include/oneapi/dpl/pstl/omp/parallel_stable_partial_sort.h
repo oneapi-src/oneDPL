@@ -43,7 +43,11 @@ struct _MinKOp
     void
     __initialize(_RandomAccessIterator __first, _RandomAccessIterator __last, std::size_t __k)
     {
-        __items.resize(__k);
+        // If the 'k' value is larger than the chunk size, don't allocate more space. This will
+        // cause errors in the reducer as it tries to de-reference iterators that were never
+        // assigned.
+        __items.resize(std::min(__k, static_cast<std::size_t>(std::distance(__first, __last))));
+
         auto __item_it = __first;
         auto __tracking_it = std::begin(__items);
         while (__item_it != __last && __tracking_it != std::end(__items))
@@ -128,7 +132,8 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
      * that here.
      */
 
-    auto __reduce_chunk = [&](std::uint32_t __chunk) {
+    auto __reduce_chunk = [&](std::uint32_t __chunk)
+    {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
         auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
         auto __begin = std::next(__first, __index);

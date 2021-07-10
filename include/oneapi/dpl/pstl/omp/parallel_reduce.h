@@ -18,20 +18,22 @@ __parallel_reduce_chunks(std::uint32_t start, std::uint32_t end, _ChunkReducer _
     }
     else if (end - start == 2)
     {
-        _PSTL_PRAGMA(omp task shared(v1))
+        _PSTL_PRAGMA(omp task default(none) firstprivate(start, __reduce_chunk) shared(v1))
         v1 = __reduce_chunk(start);
 
-        _PSTL_PRAGMA(omp task shared(v2))
+        _PSTL_PRAGMA(omp task default(none) firstprivate(start, __reduce_chunk) shared(v2))
         v2 = __reduce_chunk(start + 1);
     }
     else
     {
         auto middle = start + ((end - start) / 2);
 
-        _PSTL_PRAGMA(omp task shared(v1))
+        _PSTL_PRAGMA(omp task default(none) firstprivate(start, end, middle, __reduce_chunk, __reduce, __identity)
+                         shared(v1))
         v1 = __parallel_reduce_chunks(start, middle, __reduce_chunk, __reduce, __identity);
 
-        _PSTL_PRAGMA(omp task shared(v2))
+        _PSTL_PRAGMA(omp task default(none) firstprivate(start, end, middle, __reduce_chunk, __reduce, __identity)
+                         shared(v2))
         v2 = __parallel_reduce_chunks(middle, end, __reduce_chunk, __reduce, __identity);
     }
 
@@ -48,7 +50,8 @@ __parallel_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __la
     std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
     __omp_backend::__chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size);
 
-    auto __reduce_chunk = [&](std::uint32_t __chunk) {
+    auto __reduce_chunk = [&](std::uint32_t __chunk)
+    {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
         auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
         auto __begin = __first + __index;
