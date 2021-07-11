@@ -1,8 +1,4 @@
-namespace oneapi
-{
-namespace dpl
-{
-namespace __omp_backend
+namespace oneapi::dpl::__omp_backend
 {
 
 template <typename _RandomAccessIterator, typename _Compare>
@@ -34,19 +30,23 @@ struct _MinKOp
     void
     __merge(std::vector<_RandomAccessIterator>& __other, std::size_t __k)
     {
-        if (__items.capacity() < __k) {
+        if (__items.capacity() < __k)
+        {
             __items.reserve(__k);
         }
 
         for (auto __it = std::begin(__other); __it != std::end(__other); ++__it)
         {
-            if (__items.size() < __k) {
+            if (__items.size() < __k)
+            {
                 // Continue growing the items list until we have at least k items by
                 // putting the new item on the heap and re-establishing the heap
                 // invariant.
                 __items.push_back(*__it);
                 std::push_heap(__items.begin(), __items.end(), __it_comp());
-            } else {
+            }
+            else
+            {
                 __keep_smallest_k_items(*__it);
             }
         }
@@ -76,8 +76,8 @@ struct _MinKOp
     }
 
     static auto
-    __reduce(std::vector<_RandomAccessIterator>& __v1, std::vector<_RandomAccessIterator>& __v2, std::size_t __k,  _Compare __comp)
-        -> std::vector<_RandomAccessIterator>
+    __reduce(std::vector<_RandomAccessIterator>& __v1, std::vector<_RandomAccessIterator>& __v2, std::size_t __k,
+             _Compare __comp) -> std::vector<_RandomAccessIterator>
     {
         if (__v1.empty())
         {
@@ -133,11 +133,10 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
      * each chunk. Finally, the largest item from the merged chunks is returned as
      * the pivot.
      *
-     * The chunks are partitioned in such a way that there will always be at least
-     * k items in one chunk. The reducer will always produce a chunk merge so that
-     * the longest k items list propagates out. So even if some of the chunks are
-     * less than __nsort elements, at least one chunk will be and this chunk will
-     * end up producing a correctly sized smallest k items list.
+     * The reducer will always produce a chunk merge so that the longest k items
+     * list propagates out. So even if some of the chunks are less than __nsort
+     * elements, at least one chunk will be and this chunk will  end up producing
+     * a correctly sized smallest k items list.
      *
      * Note that the case where __nsort == distance(__first, __last) is handled by
      * performing a complete sort of the container, so we don't have to handle
@@ -241,10 +240,8 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
     }
     else
     {
-        __parallel_stable_sort_body(__xs, __part_end, __comp);
+        __parallel_stable_sort_body(__xs, __part_end - 1, __comp);
     }
 }
 
-} // namespace __omp_backend
-} // namespace dpl
-} // namespace oneapi
+} // namespace oneapi::dpl::__omp_backend

@@ -56,7 +56,7 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
 
             _PSTL_PRAGMA(omp task untied mergeable)
             {
-                if (std::distance(__right_it, __xe) && __is_swapped_right)
+                if (std::distance(__right_it, __xe) > 0 && __is_swapped_right)
                 {
                     __parallel_stable_sort_body(__right_it + 1, __xe, __comp);
                 }
@@ -65,17 +65,15 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
     }
     else
     {
-        _PSTL_PRAGMA(omp task untied mergeable)
+        // Don't spawn new tasks for these chunks because they are too
+        // small. Just run them in the current task.
+        if (std::distance(__xs, __left_it) > 0 && __is_swapped_left)
         {
-            if (std::distance(__xs, __left_it) > 0 && __is_swapped_left)
-            {
-                __parallel_stable_sort_body(__xs, __left_it - 1, __comp);
-            }
-
-            if (std::distance(__right_it, __xe) && __is_swapped_right)
-            {
-                __parallel_stable_sort_body(__right_it + 1, __xe, __comp);
-            }
+            __parallel_stable_sort_body(__xs, __left_it - 1, __comp);
+        }
+        if (std::distance(__right_it, __xe) > 0 && __is_swapped_right)
+        {
+            __parallel_stable_sort_body(__right_it + 1, __xe, __comp);
         }
     }
 }
@@ -103,7 +101,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
     {
         if (__count <= __nsort)
         {
-            __parallel_stable_sort_body(__xs, __xe, __comp);
+            __parallel_stable_sort_body(__xs, __xe - 1, __comp);
         }
         else
         {
@@ -116,7 +114,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
         _PSTL_PRAGMA(omp single)
         if (__count <= __nsort)
         {
-            __parallel_stable_sort_body(__xs, __xe, __comp);
+            __parallel_stable_sort_body(__xs, __xe - 1, __comp);
         }
         else
         {
