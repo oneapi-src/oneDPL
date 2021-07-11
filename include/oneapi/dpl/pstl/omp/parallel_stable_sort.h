@@ -1,8 +1,4 @@
-namespace oneapi
-{
-namespace dpl
-{
-namespace __omp_backend
+namespace oneapi::dpl::__omp_backend
 {
 
 template <typename _RandomAccessIterator, typename _Compare>
@@ -10,71 +6,29 @@ void
 __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp)
 {
     std::size_t __size = std::distance(__xs, __xe);
-    if (__size == 0)
+
+    if (__size <= __default_chunk_size)
     {
-        return;
-    }
-
-    auto __left_it = __xs;
-    auto __right_it = __xe;
-    bool __is_swapped_left = false, __is_swapped_right = false;
-    auto __pivot = *__xs;
-
-    auto __forward_it = __xs + 1;
-    while (__forward_it <= __right_it)
-    {
-        if (__comp(*__forward_it, __pivot))
+        if (__size > 1)
         {
-            __is_swapped_left = true;
-            std::iter_swap(__left_it, __forward_it);
-            __left_it++;
-            __forward_it++;
-        }
-        else if (__comp(__pivot, *__forward_it))
-        {
-            __is_swapped_right = true;
-            std::iter_swap(__right_it, __forward_it);
-            __right_it--;
-        }
-        else
-        {
-            __forward_it++;
-        }
-    }
-
-    if (__size >= __default_chunk_size)
-    {
-        _PSTL_PRAGMA(omp taskgroup)
-        {
-            _PSTL_PRAGMA(omp task untied mergeable)
-            {
-                if (std::distance(__xs, __left_it) > 0 && __is_swapped_left)
-                {
-                    __parallel_stable_sort_body(__xs, __left_it - 1, __comp);
-                }
-            }
-
-            _PSTL_PRAGMA(omp task untied mergeable)
-            {
-                if (std::distance(__right_it, __xe) > 0 && __is_swapped_right)
-                {
-                    __parallel_stable_sort_body(__right_it + 1, __xe, __comp);
-                }
-            }
+            auto __mid = __xs + (__size / 2);
+            __parallel_stable_sort_body(__xs, __mid, __comp);
+            __parallel_stable_sort_body(__mid, __xe, __comp);
+            std::inplace_merge(__xs, __mid, __xe, __comp);
         }
     }
     else
     {
-        // Don't spawn new tasks for these chunks because they are too
-        // small. Just run them in the current task.
-        if (std::distance(__xs, __left_it) > 0 && __is_swapped_left)
-        {
-            __parallel_stable_sort_body(__xs, __left_it - 1, __comp);
+        auto __mid = __xs + (__size / 2);
+        _PSTL_PRAGMA(omp taskgroup) {
+            _PSTL_PRAGMA(omp task untied mergeable) {
+                __parallel_stable_sort_body(__xs, __mid, __comp);
+            }
+            _PSTL_PRAGMA(omp task untied mergeable) {
+                __parallel_stable_sort_body(__mid, __xe, __comp);
+            }
         }
-        if (std::distance(__right_it, __xe) > 0 && __is_swapped_right)
-        {
-            __parallel_stable_sort_body(__right_it + 1, __xe, __comp);
-        }
+        std::inplace_merge(__xs, __mid, __xe, __comp);
     }
 }
 
@@ -101,7 +55,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
     {
         if (__count <= __nsort)
         {
-            __parallel_stable_sort_body(__xs, __xe - 1, __comp);
+            __parallel_stable_sort_body(__xs, __xe, __comp);
         }
         else
         {
@@ -114,7 +68,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
         _PSTL_PRAGMA(omp single)
         if (__count <= __nsort)
         {
-            __parallel_stable_sort_body(__xs, __xe - 1, __comp);
+            __parallel_stable_sort_body(__xs, __xe, __comp);
         }
         else
         {
@@ -123,6 +77,4 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
     }
 }
 
-} // namespace __omp_backend
-} // namespace dpl
-} // namespace oneapi
+} // namespace oneapi::dpl::__omp_backend

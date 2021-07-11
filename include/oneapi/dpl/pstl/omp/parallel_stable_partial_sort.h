@@ -240,7 +240,7 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
     }
     else
     {
-        __parallel_stable_sort_body(__xs, __part_end - 1, __comp);
+        __parallel_stable_sort_body(__xs, __part_end, __comp);
     }
 }
 
