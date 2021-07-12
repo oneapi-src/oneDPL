@@ -147,8 +147,7 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
      * that here.
      */
 
-    auto __reduce_chunk = [&](std::uint32_t __chunk)
-    {
+    auto __reduce_chunk = [&](std::uint32_t __chunk) {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
         auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
         auto __begin = std::next(__first, __index);
