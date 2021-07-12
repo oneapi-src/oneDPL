@@ -1,4 +1,8 @@
-namespace oneapi::dpl::__omp_backend
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
 {
 
 template <typename _RandomAccessIterator, typename _Compare>
@@ -244,4 +248,6 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
     }
 }
 
-} // namespace oneapi::dpl::__omp_backend
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi

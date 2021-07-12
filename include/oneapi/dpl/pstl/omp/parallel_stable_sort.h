@@ -1,4 +1,8 @@
-namespace oneapi::dpl::__omp_backend
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
 {
 
 template <typename _RandomAccessIterator, typename _Compare>
@@ -20,13 +24,10 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
     else
     {
         auto __mid = __xs + (__size / 2);
-        _PSTL_PRAGMA(omp taskgroup) {
-            _PSTL_PRAGMA(omp task untied mergeable) {
-                __parallel_stable_sort_body(__xs, __mid, __comp);
-            }
-            _PSTL_PRAGMA(omp task untied mergeable) {
-                __parallel_stable_sort_body(__mid, __xe, __comp);
-            }
+        _PSTL_PRAGMA(omp taskgroup)
+        {
+            _PSTL_PRAGMA(omp task untied mergeable) { __parallel_stable_sort_body(__xs, __mid, __comp); }
+            _PSTL_PRAGMA(omp task untied mergeable) { __parallel_stable_sort_body(__mid, __xe, __comp); }
         }
         std::inplace_merge(__xs, __mid, __xe, __comp);
     }
@@ -77,4 +78,6 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
     }
 }
 
-} // namespace oneapi::dpl::__omp_backend
+} // namespace __omp_backend
+} // namespace dpl
+} // namespace oneapi
