@@ -104,6 +104,7 @@ jobs:
           sudo rm -rf /opt/intel/oneapi/dpl || true
           source /opt/intel/oneapi/setvars.sh intel64
           mkdir build && cd build
+          lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY}
