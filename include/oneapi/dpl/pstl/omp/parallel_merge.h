@@ -6,7 +6,7 @@ namespace __omp_backend
 {
 
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3,
-          typename _Compare, typename _LeafMerge>
+          typename _Compare>
 void
 __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessIterator1 __xs,
                       _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye,
