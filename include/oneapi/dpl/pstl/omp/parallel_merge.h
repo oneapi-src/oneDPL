@@ -5,6 +5,27 @@ namespace dpl
 namespace __omp_backend
 {
 
+template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
+void
+__parallel_merge_assign(
+    _RandomAccessIterator1 __src, _RandomAccessIterator2 __dst,
+    typename std::enable_if_t<
+        std::is_copy_assignable<typename std::iterator_traits<_RandomAccessIterator2>::value_type>::value, bool> = true)
+{
+    *__dst = *__src;
+}
+
+template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
+void
+__parallel_merge_assign(
+    _RandomAccessIterator1 __src, _RandomAccessIterator2 __dst,
+    typename std::enable_if_t<
+        !std::is_copy_assignable<typename std::iterator_traits<_RandomAccessIterator2>::value_type>::value, bool> =
+        true)
+{
+    *__dst = std::move(*__src);
+}
+
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3,
           typename _Compare>
 void
@@ -33,7 +54,8 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
             auto __ys_index = std::distance(__ys, __value);
             auto __xs_index = std::distance(__xs, std::lower_bound(__xs, __xe, *__value, __comp));
 
-            *(__zs + __xs_index + __ys_index) = std::move(*__value);
+            __parallel_merge_assign<_RandomAccessIterator2, _RandomAccessIterator3>(__value,
+                                                                                    __zs + __xs_index + __ys_index);
         }
     }
 }
