@@ -164,24 +164,40 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
 }
 
 template <typename _RandomAccessIterator, typename _Compare>
-void
+std::size_t
 __parallel_partition(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _RandomAccessIterator __pivot,
-                     _Compare __comp, std::size_t __nsort)
+                     _Compare __comp)
 {
     auto __size = static_cast<std::size_t>(std::distance(__xs, __xe));
-    std::atomic_bool* __status = new std::atomic_bool[__size];
+    std::atomic<std::size_t> __count_smaller_or_equal(0);
 
     /*
-     * First, walk through the entire array and mark items that are on the
-     * correct side of the pivot as true, and the others as false.
+     * First, walk through the entire array and determine how many
+     * items are <= the pivot.
      */
-    _PSTL_PRAGMA(omp taskloop shared(__status))
+    _PSTL_PRAGMA(omp taskloop untied mergeable shared(__count_smaller_or_equal))
     for (std::size_t __index = 0U; __index < __size; ++__index)
     {
         auto __item = std::next(__xs, __index);
-        if (__index < __nsort)
+        if (!__comp(*__pivot, *__item))
         {
-            __status[__index].store(__comp(*__item, *__pivot));
+            __count_smaller_or_equal.fetch_add(1);
+        }
+    }
+
+    std::vector<std::atomic_bool> __status(__size);
+
+    /*
+     * Next, walk through the entire array and mark items that are on the
+     * correct side of the pivot as true, and the others as false.
+     */
+    _PSTL_PRAGMA(omp taskloop shared(__status, __count_smaller_or_equal))
+    for (std::size_t __index = 0U; __index < __size; ++__index)
+    {
+        auto __item = std::next(__xs, __index);
+        if (__index < __count_smaller_or_equal)
+        {
+            __status[__index].store(!__comp(*__pivot, *__item));
         }
         else
         {
@@ -189,14 +205,16 @@ __parallel_partition(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Ra
         }
     }
 
+    __size = __size;
+
     /*
-     * Second, walk through the first __nsort items of the array and move
+     * Finally, walk through the first __count_smaller_or_equal items of the array and move
      * any items that are not in the right place. The status array is used
      * to locate places outside the partition where values can be safely
      * swapped.
      */
-    _PSTL_PRAGMA(omp taskloop shared(__status))
-    for (std::size_t __index = 0U; __index < __nsort; ++__index)
+    _PSTL_PRAGMA(omp taskloop shared(__status, __count_smaller_or_equal))
+    for (std::size_t __index = 0U; __index < __count_smaller_or_equal; ++__index)
     {
         // If the item is already in the right place, move along.
         if (__status[__index].load())
@@ -206,12 +224,14 @@ __parallel_partition(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Ra
 
         // Otherwise, find the an item that can be moved into this
         // spot safely.
-        for (std::size_t __swap_index = __nsort; __swap_index < __size; ++__swap_index)
+        for (std::size_t __swap_index = __size - 1; __swap_index >= __count_smaller_or_equal; --__swap_index)
         {
             // Try to capture this slot by using compare and exchange. If we
             // are able to capture the slot then perform a swap and exit this
             // loop.
-            if (__status[__swap_index].load() == false && __status[__swap_index].exchange(true) == false)
+            bool __placed = false;
+            if (__status[__swap_index].load() == false &&
+                __status[__swap_index].compare_exchange_strong(__placed, true, std::memory_order_seq_cst))
             {
                 auto __current_item = std::next(__xs, __index);
                 auto __swap_item = std::next(__xs, __swap_index);
@@ -221,7 +241,7 @@ __parallel_partition(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Ra
         }
     }
 
-    delete[] __status;
+    return __count_smaller_or_equal.load();
 }
 
 template <typename _RandomAccessIterator, typename _Compare>
@@ -234,8 +254,8 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
                                _LeafSort __leaf_sort, std::size_t __nsort)
 {
     auto __pivot = __parallel_find_pivot(__xs, __xe, __comp, __nsort);
-    __parallel_partition(__xs, __xe, __pivot, __comp, __nsort);
-    auto __part_end = std::next(__xs, __nsort);
+    auto __count = __parallel_partition(__xs, __xe, __pivot, __comp);
+    auto __part_end = std::next(__xs, __count);
 
     if (__nsort <= __default_chunk_size)
     {
