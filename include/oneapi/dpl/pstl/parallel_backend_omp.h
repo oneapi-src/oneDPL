@@ -37,7 +37,11 @@
 #    define _PSTL_PRAGMA(x) _Pragma(#    x)
 #endif
 
-namespace oneapi::dpl::__omp_backend
+namespace oneapi
+{
+namespace dpl
+{
+namespace __omp_backend
 {
 
 //------------------------------------------------------------------------
@@ -124,6 +128,8 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
     __first_chunk_size = __chunk_size + __n_final_leftover_items;
 }
 
+} // namespace __omp_backend
+} // namespace dpl
 } // namespace oneapi
 
 //------------------------------------------------------------------------

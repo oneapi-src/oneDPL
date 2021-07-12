@@ -10,16 +10,8 @@ template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, type
 void
 __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessIterator1 __xs,
                       _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye,
-                      _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge)
+                      _RandomAccessIterator3 __zs, _Compare __comp)
 {
-
-    // Make sure that the (__xs, __xe] range is always the larger one.
-    /* if (__size_y > __size_x) {
-        std::swap(__xs, __ys);
-        std::swap(__xe, __ye);
-        std::swap(__size_x, __size_y);
-    } */
-
     // Split the (__ys, __ye] range into chunks.
     std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
     __chunk_partitioner(__ys, __ye, __n_chunks, __chunk_size, __first_chunk_size, __default_chunk_size);
@@ -41,7 +33,7 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
             auto __ys_index = std::distance(__ys, __value);
             auto __xs_index = std::distance(__xs, std::lower_bound(__xs, __xe, *__value, __comp));
 
-            *(__zs + __xs_index + __ys_index) = *__value;
+            *(__zs + __xs_index + __ys_index) = std::move(*__value);
         }
     }
 }
@@ -64,15 +56,36 @@ __parallel_merge(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator1 __xs, _Ra
         return;
     }
 
+    /*
+     * Run the merge in parallel by chunking it up. Use the smaller range (if any) as the iteration range, and the
+     * larger range as the search range.
+     */
+
     if (omp_in_parallel())
     {
-        __parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp, __leaf_merge);
+        if (__size_x > __size_y)
+        {
+            __parallel_merge_body(__size_y, __size_x, __ys, __ye, __xs, __xe, __zs, __comp);
+        }
+        else
+        {
+            __parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp);
+        }
     }
     else
     {
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single)
-        __parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp, __leaf_merge);
+        {
+            if (__size_x > __size_y)
+            {
+                __parallel_merge_body(__size_y, __size_x, __ys, __ye, __xs, __xe, __zs, __comp);
+            }
+            else
+            {
+                __parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp);
+            }
+        }
     }
 
     /* __serial_backend::__parallel_merge(std::forward<_ExecutionPolicy>(__exec), __xs, __xe, __ys, __ye, __zs, __comp,
