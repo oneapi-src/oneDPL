@@ -17,10 +17,7 @@
 #ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
-#if (__cplusplus < 201703L) || (defined(__GLIBCXX__) && __GLIBCXX__ < 20200312)
-#    define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL 1
-#endif
-
+#if (__cplusplus >= 201703L)
 #include <iterator>
 namespace oneapi
 {
@@ -55,4 +52,6 @@ using ::std::reduce;
 #endif
 } // namespace dpl
 } // namespace oneapi
+#else
+#endif
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */

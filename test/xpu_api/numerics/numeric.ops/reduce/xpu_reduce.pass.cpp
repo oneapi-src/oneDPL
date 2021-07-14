@@ -8,8 +8,6 @@
 
 // <numeric>
 // UNSUPPORTED: c++03, c++11, c++14
-// UNSUPPORTED: clang-8
-// UNSUPPORTED: gcc-9
 
 // Became constexpr in C++20
 // template<class InputIterator>
@@ -21,9 +19,6 @@
 #include <CL/sycl.hpp>
 
 #include "support/test_iterators.h"
-
-constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class T>
 class KernelTest;
@@ -51,8 +46,8 @@ test(sycl::queue& deviceQueue)
         deviceQueue.submit(
             [&](sycl::handler& cgh)
             {
-                auto in = buffer1.get_access<sycl_read>(cgh);
-                auto out = buffer2.get_access<sycl_write>(cgh);
+                auto in = buffer1.get_access<sycl::access::mode::read>(cgh);
+                auto out = buffer2.get_access<sycl::access::mode::write>(cgh);
                 cgh.single_task<KernelTest<Iter>>(
                     [=]()
                     {
@@ -102,7 +97,9 @@ test(sycl::queue& deviceQueue)
 int
 main(int, char**)
 {
+#if __cplusplus >= 201703L
     sycl::queue deviceQueue;
     test(deviceQueue);
+#endif
     return 0;
 }
