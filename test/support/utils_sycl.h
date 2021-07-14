@@ -37,13 +37,13 @@ namespace TestUtils
 {
 
 #if __cplusplus >= 201703L
-#   if __SYCL_2020_NOINIT_MACRO
+#   if SYCL_2020_NOINIT_MACRO
 #       define __noinit sycl::no_init
 #   else
 #       define __noinit sycl::noinit
 #   endif
 #else
-#   if __SYCL_2020_NOINIT_MACRO
+#   if SYCL_2020_NOINIT_MACRO
 #       define __noinit sycl::property::no_init{}
 #   else
 #       define __noinit sycl::property::noinit{}

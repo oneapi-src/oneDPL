@@ -18,7 +18,7 @@
 
 #include <CL/sycl.hpp>
 
-#define __SYCL_2020_NOINIT_MACRO (__LIBSYCL_MAJOR_VERSION >= 5 && __LIBSYCL_MINOR_VERSION >= 2)
+#define SYCL_2020_NOINIT_MACRO (__LIBSYCL_MAJOR_VERSION >= 5 && __LIBSYCL_MINOR_VERSION >= 2)
 
 #include <iterator>
 #include "../../onedpl_config.h"
@@ -159,7 +159,7 @@ __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, A
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
     begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>,
-#if __SYCL_2020_NOINIT_MACRO
+#if SYCL_2020_NOINIT_MACRO
           sycl::property::no_init)
 #else
           sycl::property::noinit)
@@ -171,7 +171,7 @@ __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocato
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
     begin(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-#if __SYCL_2020_NOINIT_MACRO
+#if SYCL_2020_NOINIT_MACRO
           sycl::property::no_init)
 #else
           sycl::property::noinit)
@@ -190,7 +190,7 @@ __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, All
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
     end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>,
-#if __SYCL_2020_NOINIT_MACRO
+#if SYCL_2020_NOINIT_MACRO
         sycl::property::no_init)
 #else
         sycl::property::noinit)
@@ -201,7 +201,7 @@ __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocato
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-#if __SYCL_2020_NOINIT_MACRO
+#if SYCL_2020_NOINIT_MACRO
                                                                              sycl::property::no_init)
 #else
                                                                              sycl::property::noinit)
