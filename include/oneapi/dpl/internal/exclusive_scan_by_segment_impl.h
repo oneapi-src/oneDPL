@@ -107,7 +107,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         return result;
     else if (n == 1)
     {
-        auto result_acc = internal::get_access<cl::sycl::access::mode::write>(result);
+        auto result_acc = internal::get_access<cl::sycl::access::mode::write>(policy, result);
         result_acc[0] = init;
         return result + 1;
     }
