@@ -16,6 +16,22 @@ if (NOT OUTPUT_DIR)
     set(OUTPUT_DIR "output")
 endif()
 
+if (SKIP_HEADERS_SUBDIR)
+    set(HANDLE_HEADERS_PATH "
+get_filename_component(_onedpl_headers \"\${_onedpl_root}/include\" ABSOLUTE)
+")
+else()
+    set(HANDLE_HEADERS_PATH "
+if (WIN32)
+    set(_onedpl_headers_subdir windows)
+else()
+    set(_onedpl_headers_subdir linux)
+endif()
+
+get_filename_component(_onedpl_headers \"\${_onedpl_root}/\${_onedpl_headers_subdir}/include\" ABSOLUTE)
+")
+endif()
+
 set(ONEDPL_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
 
 file(READ ${ONEDPL_ROOT}/include/oneapi/dpl/pstl/onedpl_config.h _onedpl_version_info LIMIT 1024)
@@ -27,7 +43,7 @@ set(PROJECT_VERSION "${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_pat
 
 configure_file("${ONEDPL_ROOT}/cmake/templates/oneDPLConfig.cmake.in"
                "${OUTPUT_DIR}/oneDPLConfig.cmake"
-               COPYONLY)
+               @ONLY)
 configure_file("${ONEDPL_ROOT}/cmake/templates/oneDPLConfigVersion.cmake.in"
                "${OUTPUT_DIR}/oneDPLConfigVersion.cmake"
                @ONLY)
