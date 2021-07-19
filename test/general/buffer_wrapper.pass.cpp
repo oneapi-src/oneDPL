@@ -8,7 +8,7 @@
 #include "support/utils.h"
 #include <vector>
 
-
+using namespace TestUtils;
 //This macro is required for the tests to work correctly in CI with tbb-backend.
 #if TEST_DPCPP_BACKEND_PRESENT
 struct test_buffer_wrapper
@@ -48,13 +48,17 @@ main()
     std::size_t size = 1000;
     sycl::buffer<uint32_t> buf{size};
     test_buffer_wrapper test{};
-    auto begin = sycl::host_accessor<uint32_t, 1, sycl::access_mode::read>(buf).get_pointer();
+    auto data_ptr = sycl::host_accessor<uint32_t, 1, sycl::access_mode::read>(buf).get_pointer();
 
-    test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), begin, size);
-    test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), begin, size);
-    test(oneapi::dpl::begin(buf, sycl::write_only, sycl::noinit), oneapi::dpl::end(buf, sycl::write_only, sycl::noinit), begin, size);
-    test(oneapi::dpl::begin(buf, sycl::noinit), oneapi::dpl::end(buf, sycl::noinit), begin, size);
+    test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
+    test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);
+    test(oneapi::dpl::begin(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), oneapi::dpl::end(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), data_ptr, size);
+#if SYCL_2020_NOINIT_MACRO
+    test(oneapi::dpl::begin(buf, sycl::property::no_init{}), oneapi::dpl::end(buf, sycl::property::no_init{}), data_ptr, size);
+#else
+    test(oneapi::dpl::begin(buf, sycl::property::noinit{}), oneapi::dpl::end(buf, sycl::property::noinit{}), data_ptr, size);
+#endif
 
 #endif
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return done(TEST_DPCPP_BACKEND_PRESENT);
 }

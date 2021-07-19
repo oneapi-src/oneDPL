@@ -36,6 +36,20 @@
 namespace TestUtils
 {
 
+#if __cplusplus >= 201703L
+#   if SYCL_2020_NOINIT_MACRO
+#       define _ONEDPL_SYCL_NOINIT sycl::no_init
+#   else
+#       define _ONEDPL_SYCL_NOINIT sycl::noinit
+#   endif
+#else
+#   if SYCL_2020_NOINIT_MACRO
+#       define _ONEDPL_SYCL_NOINIT sycl::property::no_init{}
+#   else
+#       define _ONEDPL_SYCL_NOINIT sycl::property::noinit{}
+#   endif 
+#endif
+
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
     inline void
