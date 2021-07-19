@@ -550,6 +550,8 @@ class permutation_iterator
     typedef ::std::random_access_iterator_tag iterator_category;
     typedef ::std::true_type is_permutation;
 
+    permutation_iterator() = default;
+
     permutation_iterator(const SourceIterator& input1, const IndexMap& input2, ::std::size_t index = 0)
         : my_source_it(input1), my_index_map(input2), my_index(index)
     {
@@ -633,6 +635,12 @@ class permutation_iterator
         return my_index - it.my_index;
     }
 
+    friend permutation_iterator
+    operator+(difference_type forward, const permutation_iterator& it)
+    {
+        return permutation_iterator(it.my_source_it, it.my_index_map, it.my_index + forward);
+    }
+
     bool
     operator==(const permutation_iterator& it) const
     {
@@ -695,6 +703,18 @@ struct ignore_copyable
     {
         return *this;
     }
+
+    bool
+    operator==(const ignore_copyable& other) const
+    {
+        return true;
+    }
+
+    bool
+    operator!=(const ignore_copyable& other) const
+    {
+        return !(*this == other);
+    }
 };
 
 constexpr ignore_copyable ignore{};
@@ -724,10 +744,16 @@ class discard_iterator
 #    define _ONEDPL_CONSTEXPR_FIX constexpr
 #endif
 
+    _ONEDPL_CONSTEXPR_FIX difference_type
+    operator-(const discard_iterator& __it) const
+    {
+        return __my_position_ - __it.__my_position_;
+    }
+
     _ONEDPL_CONSTEXPR_FIX bool
     operator==(const discard_iterator& __it) const
     {
-        return __my_position_ - __it.__my_position_ == 0;
+        return __my_position_ == __it.__my_position_;
     }
     _ONEDPL_CONSTEXPR_FIX bool
     operator!=(const discard_iterator& __it) const
@@ -739,44 +765,36 @@ class discard_iterator
     bool
     operator<(const discard_iterator& __it) const
     {
-        return __my_position_ - __it.__my_position_ < 0;
+        return *this - __it < 0;
     }
     bool
     operator>(const discard_iterator& __it) const
     {
-        return __my_position_ - __it.__my_position_ > 0;
-    }
-
-    difference_type
-    operator-(const discard_iterator& __it) const
-    {
-        return __my_position_ - __it.__my_position_;
+        return __it < *this;
     }
 
     discard_iterator&
     operator++()
     {
-        ++__my_position_;
-        return *this;
+        return *this += 1;
     }
     discard_iterator&
     operator--()
     {
-        --__my_position_;
-        return *this;
+        return *this -= 1;
     }
     discard_iterator
     operator++(int)
     {
-        discard_iterator __it(__my_position_);
-        ++__my_position_;
+        discard_iterator __it(*this);
+        ++(*this);
         return __it;
     }
     discard_iterator
     operator--(int)
     {
-        discard_iterator __it(__my_position_);
-        --__my_position_;
+        discard_iterator __it(*this);
+        --(*this);
         return __it;
     }
     discard_iterator&
@@ -788,7 +806,7 @@ class discard_iterator
     discard_iterator&
     operator-=(difference_type __backward)
     {
-        __my_position_ -= __backward;
+        *this += -__backward;
         return *this;
     }
 
@@ -801,6 +819,21 @@ class discard_iterator
     operator-(difference_type __backward) const
     {
         return discard_iterator(__my_position_ - __backward);
+    }
+    friend discard_iterator
+    operator+(difference_type __forward, const discard_iterator& __it)
+    {
+        return __it + __forward;
+    }
+    bool
+    operator<=(const discard_iterator& __it) const
+    {
+        return !(*this > __it);
+    }
+    bool
+    operator>=(const discard_iterator& __it) const
+    {
+        return !(*this < __it);
     }
 
   private:

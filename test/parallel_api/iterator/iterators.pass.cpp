@@ -279,6 +279,54 @@ struct test_transform_iterator {
     }
 };
 
+struct test_permutation_iterator
+{
+    template <typename T1, typename T2>
+    void
+    operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2)
+    {
+        T1 iota_max = ::std::numeric_limits<T1>::max() < in1.size() ? ::std::numeric_limits<T1>::max() : in1.size();
+        ::std::iota(in1.begin(), in1.begin() + iota_max, T1(0));
+        ::std::reverse_copy(in1.begin(), in1.begin() + iota_max, in2.begin());
+
+        oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_begin;
+        perm_begin = oneapi::dpl::make_permutation_iterator(in1.begin(), in2.begin());
+        auto perm_end = oneapi::dpl::make_permutation_iterator(in1.begin(), in2.begin()) + iota_max;
+
+        ::std::vector<T1> result(iota_max);
+        ::std::copy(perm_begin, perm_end, result.begin());
+
+        EXPECT_TRUE(::std::is_sorted(result.begin(), result.end(), ::std::greater<T1>()),
+                    "wrong result from copy with permutation_iterator");
+
+        oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it1(in1.begin(), in2.begin());
+        oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it2(in1.begin(), in2.begin(), in2.size()-1);
+        EXPECT_TRUE(perm_it1 == perm_begin, "wrong result from permutation_iterator(base, map)");
+        EXPECT_TRUE(perm_it2 == perm_begin + in2.size()-1, "wrong result from permutation_iterator(base, map, offset)");
+        EXPECT_TRUE(perm_it1.base() == in1.begin(), "wrong result from permutation_iterator::base");
+        EXPECT_TRUE(perm_it1.map() == in2.begin(), "wrong result from permutation_iterator::map");
+
+        test_random_iterator(perm_begin);
+    }
+};
+
+struct test_discard_iterator
+{
+    template <typename T1, typename T2>
+    void
+    operator()(::std::vector<T1>& in1, ::std::vector<T2>& in2)
+    {
+        ::std::iota(in1.begin(), in1.end(), T1(0));
+
+        oneapi::dpl::discard_iterator dis_it;
+        oneapi::dpl::discard_iterator dis_it2(in1.size());
+
+        EXPECT_TRUE(dis_it + in1.size() == dis_it2, "wrong result from discard_iterator");
+
+        test_random_iterator(dis_it);
+    }
+};
+
 template <typename T, typename IntType>
 void test_iterator_by_type(IntType n) {
 
@@ -294,6 +342,8 @@ void test_iterator_by_type(IntType n) {
 
     test_zip_iterator()(in, in2);
     test_transform_iterator()(in, in2);
+    test_permutation_iterator()(in, in2);
+    test_discard_iterator()(in, in2);
 }
 
 int main() {
