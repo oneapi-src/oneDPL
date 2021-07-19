@@ -438,7 +438,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
             __wgroup_size, __cgh);
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
+        __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
 #endif
         __cgh.parallel_for<_LocalScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
