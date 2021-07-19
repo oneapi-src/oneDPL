@@ -52,8 +52,12 @@ main()
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);
-    test(oneapi::dpl::begin(buf, sycl::write_only, __noinit), oneapi::dpl::end(buf, sycl::write_only, __noinit), data_ptr, size);
-    test(oneapi::dpl::begin(buf, __noinit), oneapi::dpl::end(buf, __noinit), data_ptr, size);
+    test(oneapi::dpl::begin(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), oneapi::dpl::end(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), data_ptr, size);
+#if SYCL_2020_NOINIT_MACRO
+    test(oneapi::dpl::begin(buf, sycl::property::no_init{}), oneapi::dpl::end(buf, sycl::property::no_init{}), data_ptr, size);
+#else
+    test(oneapi::dpl::begin(buf, sycl::property::noinit{}), oneapi::dpl::end(buf, sycl::property::noinit{}), data_ptr, size);
+#endif
 
 #endif
     return done(TEST_DPCPP_BACKEND_PRESENT);
