@@ -20,7 +20,7 @@ API:
 
 * It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``.
 * It gives the following valid expressions: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
-  are objects of the type, and ``n`` is an integer value. The effect of those operations is the same as the type
+  are objects of the type, and ``n`` is an integer value. The effect of those operations is the same as for the type
   that satisfies the ``LegacyRandomAccessIterator``, a C++ named requirement.
 * It provides the ``get_buffer`` method, which returns the buffer passed to the ``begin`` and ``end`` functions.
 
