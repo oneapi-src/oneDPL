@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- exponential_distribution.h ---------------------------------------===//
+//===-- exponential_distribution.h ----------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

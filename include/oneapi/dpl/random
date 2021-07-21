@@ -30,7 +30,6 @@
 #include "internal/random_impl/uniform_int_distribution.h"
 #include "internal/random_impl/normal_distribution.h"
 #include "internal/random_impl/exponential_distribution.h"
-#include "internal/random_impl/bernoulli_distribution.h"
 
 namespace oneapi
 {
