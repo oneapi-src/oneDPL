@@ -165,6 +165,12 @@ jobs:
       matrix:
         include:
           - os: windows-2019
+            cxx_compiler: dpcpp
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: windows-2019
             cxx_compiler: cl
             std: 17
             build_type: release
