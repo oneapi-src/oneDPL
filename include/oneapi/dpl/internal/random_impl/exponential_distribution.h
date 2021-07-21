@@ -1,3 +1,22 @@
+// -*- C++ -*-
+//===-- exponential_distribution.h ---------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+//
+// Abstract:
+//
+// Public header file provides implementation for Exponential Distribution
+
 #ifndef DPSTD_EXPONENTIAL_DISTRIBUTION
 #define DPSTD_EXPONENTIAL_DISTRIBUTION
 
@@ -85,7 +104,7 @@ class exponential_distribution
 
   private:
     // Size of type
-    static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems; 
+    static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,

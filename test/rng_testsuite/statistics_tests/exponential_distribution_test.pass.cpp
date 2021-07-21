@@ -16,6 +16,7 @@
 // Abstract:
 //
 // Test of exponential_distribution - comparison with std::
+// Note not all types can be compared with std:: implementation is different
 
 #include "support/utils.h"
 #include <iostream>
@@ -84,7 +85,6 @@ test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
     constexpr int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0
                                   ? 1
                                   : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
-    constexpr int num_to_skip = num_elems % 2 ? num_elems + 1 : num_elems;
 
     // dpstd generation
     {
@@ -94,7 +94,7 @@ test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
             auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems), [=](sycl::item<1> idx) {
-                unsigned long long offset = idx.get_linear_id() * num_to_skip;
+                unsigned long long offset = idx.get_linear_id() * num_elems;
                 oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
                 oneapi::dpl::exponential_distribution<RealType> distr(lambda);
 
@@ -133,7 +133,6 @@ test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsample
                                            ? 1
                                            : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
     int n_elems = (part >= num_elems) ? num_elems : part;
-    int num_to_skip = n_elems % 2 ? n_elems + 1 : n_elems;
 
     // dpstd generation
     {
@@ -143,13 +142,13 @@ test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsample
             auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems), [=](sycl::item<1> idx) {
-                unsigned long long offset = idx.get_linear_id() * num_to_skip;
+                unsigned long long offset = idx.get_linear_id() * n_elems;
                 oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
                 oneapi::dpl::exponential_distribution<RealType> distr(lambda);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
                 for (int i = 0; i < n_elems; ++i)
-                    dpstd_acc.get_pointer()[idx.get_linear_id() * n_elems + i] = res[i];
+                    dpstd_acc.get_pointer()[offset + i] = res[i];
             });
         });
         queue.wait_and_throw();
