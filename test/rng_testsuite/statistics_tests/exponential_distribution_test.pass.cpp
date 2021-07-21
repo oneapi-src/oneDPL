@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- exponential_distribution_test.cpp ---------------------------------------===//
+//===-- exponential_distribution_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,8 +15,7 @@
 //
 // Abstract:
 //
-// Test of exponential_distribution - comparison with std::
-// Note not all types can be compared with std:: implementation is different
+// Test of exponential_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 #include <iostream>

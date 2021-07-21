@@ -71,7 +71,7 @@ check_params(oneapi::dpl::exponential_distribution<T>& distr)
     Element_type<T> lambda = static_cast<Element_type<T>>(1);
     return ((distr.lambda() != lambda) || (distr.min() != 0) ||
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
-            (distr.param() != lambda));
+            (distr.param().lambda != lambda));
 }
 
 template <typename Distr>
