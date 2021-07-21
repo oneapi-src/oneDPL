@@ -126,7 +126,7 @@ jobs:
         run: sudo apt install -y intel-oneapi-tbb-devel
       - name: Install oneAPI Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icpc'
-        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
+        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
       - name: Run testing
         shell: bash
         run: |
