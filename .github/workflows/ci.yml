@@ -178,17 +178,17 @@ jobs:
             device_type: CPU
     steps:
       - uses: actions/checkout@v2
+      - name: Install oneTBB
+        shell: cmd
+        run: |
+          call %CONDA%/condabin/conda.bat activate base
+          conda install -c intel tbb-devel
       - name: Install oneAPI Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icx'
         shell: cmd
         run: |
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel dpcpp_win-64
-      - name: Install oneTBB
-        shell: cmd
-        run: |
-          call %CONDA%/condabin/conda.bat activate base
-          conda install -c intel tbb-devel
       - name: Run testing
         shell: cmd
         run: |
@@ -196,7 +196,7 @@ jobs:
             set ninja_targets=sycl_iterator.pass
             set ctest_flags=-R sycl_iterator.pass
             set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
-            echo "::warning ::dpcpp backend is set. Compile and run only sycl_iterator.pass"
+            echo ::warning ::dpcpp backend is set. Compile and run only sycl_iterator.pass
           )
           call %CONDA%/condabin/conda.bat activate base
           mkdir build && cd build
