@@ -318,6 +318,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::fdim``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::optional``                    Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::reduce``                      Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

@@ -21,6 +21,7 @@
 #include <numeric>
 #include "oneapi/dpl/pstl/onedpl_config.h"
 #include "oneapi/dpl/internal/gcd_impl.h"
+#include "oneapi/dpl/internal/serial_numeric_impl.h"
 
 #if !_ONEDPL_NUMERIC_FORWARD_DECLARED
 // If not declared, pull in forward declarations
