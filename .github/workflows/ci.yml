@@ -64,7 +64,7 @@ jobs:
             path: html
 
   linux-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_${{ matrix.backend }}_${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -76,6 +76,42 @@ jobs:
             std: 17
             build_type: release
             backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 11
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-18.04
+            cxx_compiler: clang++
+            std: 11
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-18.04
+            cxx_compiler: icpc
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: serial
             device_type: HOST
     steps:
       - uses: actions/checkout@v2
@@ -89,7 +125,7 @@ jobs:
       - name: Install oneTBB
         run: sudo apt install -y intel-oneapi-tbb-devel
       - name: Install oneAPI Compiler
-        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
+        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icpc'
         run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
       - name: Run testing
         shell: bash
