@@ -64,7 +64,7 @@ jobs:
             path: html
 
   linux-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_${{ matrix.backend }}_${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -157,7 +157,7 @@ jobs:
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
   windows-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_${{ matrix.backend }}_${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -199,7 +199,7 @@ jobs:
             echo "::warning ::dpcpp backend is set. Compile and run only sycl_iterator.pass"
           )
           call %CONDA%/condabin/conda.bat activate base
-          cd onedpl && mkdir build && cd build
+          mkdir build && cd build
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           set INCLUDE=%CONDA_PREFIX%\Library\include;%INCLUDE%
           set LIB=%CONDA_PREFIX%\Library\lib;%LIB%
