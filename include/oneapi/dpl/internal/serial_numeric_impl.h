@@ -18,7 +18,9 @@
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
 #if (__cplusplus >= 201703L)
+#    include <functional>
 #    include <iterator>
+#    include <numeric>
 namespace oneapi
 {
 namespace dpl
@@ -37,7 +39,7 @@ template <class _InputIterator, class _Tp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init)
 {
-    return oneapi::dpl::reduce(__first, __last, __init, [](const _Tp& lhs, const _Tp& rhs) { return lhs + rhs; });
+    return oneapi::dpl::reduce(__first, __last, __init, ::std::plus<_Tp>());
 }
 
 template <class _InputIterator>
@@ -47,7 +49,6 @@ reduce(_InputIterator __first, _InputIterator __last)
     return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
 #    else
-#        include <numeric>
 using ::std::reduce;
 #    endif
 } // namespace dpl

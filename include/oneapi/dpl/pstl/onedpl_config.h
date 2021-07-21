@@ -279,7 +279,7 @@
 
 // some algorithms in <numeric> such as 'reduce' were added since libstdc++-9.3, we
 // have to provide our own implementation if legacy libstdc++ is in use.
-#define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL (__GLIBCXX__ && __GLIBCXX__ < 20200312)
+#define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL (__GLIBCXX__ && __GLIBCXX__ < 20200312 && (_GLIBCXX_RELEASE <= 9))
 
 // Check the user-defined macro for parallel policies
 // define _ONEDPL_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
