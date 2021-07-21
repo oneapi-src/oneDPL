@@ -32,12 +32,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'oneAPI Libraries Documentation'
+project = 'oneDPL'
 copyright = 'Intel Corporation'
 author = 'Intel'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+# release = '1.0'
 
 rst_epilog = """
 .. include:: /variables.txt
@@ -105,11 +105,9 @@ html_theme = 'sphinx_book_theme'
 
 # Theme options
 html_theme_options = {
-    # 'typekit_id': 'hiw1hhg',
-    # 'analytics_id': '',
-    # 'sticky_navigation': True,  # Set to False to disable the sticky nav while scrolling.
-    #'logo_only': False,  # if we have a html_logo below, this shows /only/ the logo with no title text
-    #'collapse_navigation': False,  # Collapse navigation (False makes it tree-like)
-    # 'display_version': True,  # Display the docs version
-    #'navigation_depth': 4  # Depth of the headers shown in the navigation bar
+    'repository_url': 'https://github.com/oneapi-src/oneDPL',
+    'path_to_docs': 'documentation/library_guide',
+    'use_issues_button': True,
+    'use_edit_page_button': True,
+    'repository_branch': 'main'
 }
