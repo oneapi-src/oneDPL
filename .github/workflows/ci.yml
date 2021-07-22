@@ -143,7 +143,7 @@ jobs:
           sudo rm -rf /opt/intel/oneapi/dpl || true
           source /opt/intel/oneapi/setvars.sh intel64 || true
           if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
-            echo "::warning::$(dpcpp --version)"
+            echo "::warning::Compiler: $(dpcpp --version)"
           fi
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
             make_targets="sycl_iterator.pass"
@@ -198,14 +198,14 @@ jobs:
       - name: Run testing
         shell: cmd
         run: |
+          call %CONDA%/condabin/conda.bat activate base
           IF "${{ matrix.backend }}" == "dpcpp" (
             set ninja_targets=sycl_iterator.pass
             set ctest_flags=-R sycl_iterator.pass
             echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass
           )
-          call %CONDA%/condabin/conda.bat activate base
           IF "${{ matrix.cxx_compiler }}" == "dpcpp" (
-            powershell $output = dpcpp --version; echo ::warning::$output
+            powershell $output = dpcpp --version; echo ::warning::Compiler: $output
             set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
           )
           mkdir build && cd build
