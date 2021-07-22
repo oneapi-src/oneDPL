@@ -64,9 +64,9 @@ class exponential_distribution
     }
 
     void
-    param(const param_type& __parm)
+    param(const param_type& __param)
     {
-        lambda_ = __parm.lambda;
+        lambda_ = __param.lambda;
     }
 
     scalar_type
@@ -124,7 +124,7 @@ class exponential_distribution
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
     typename ::std::enable_if<(_Ndistr != 0), result_type>::type
-    generate(_Engine& __engine, const param_type __params)
+    generate(_Engine& __engine, const param_type& __params)
     {
         return generate_vec<_Ndistr, _Engine>(__engine, __params);
     }
@@ -132,18 +132,18 @@ class exponential_distribution
     // Specialization of the scalar generation
     template <int _Ndistr, class _Engine>
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
-    generate(_Engine& __engine, const param_type __params)
+    generate(_Engine& __engine, const param_type& __params)
     {
         result_type __res;
-        uniform_real_distribution<scalar_type> __u;
-        __res = -std::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
+        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
+        __res = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
         return __res;
     }
 
     // Specialization of the vector generation  with size = [1; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
-    generate_vec(_Engine& __engine, const param_type __params)
+    generate_vec(_Engine& __engine, const param_type& __params)
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
     }
@@ -151,9 +151,9 @@ class exponential_distribution
     // Specialization of the vector generation with size = [4; 8; 16]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N > 3), result_type>::type
-    generate_vec(_Engine& __engine, const param_type __params)
+    generate_vec(_Engine& __engine, const param_type& __params)
     {
-        uniform_real_distribution<result_type> __u;
+        oneapi::dpl::uniform_real_distribution<result_type> __u;
         result_type __res;
         __res = __u(__engine);
         __res = -sycl::log(scalar_type{1.0} - __res) / __params.lambda;
@@ -163,10 +163,10 @@ class exponential_distribution
     // Implementation for the N vector's elements generation
     template <class _Engine>
     result_type
-    generate_n_elems(_Engine& __engine, const param_type __params, unsigned int __N)
+    generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        uniform_real_distribution __u;
+        oneapi::dpl::uniform_real_distribution __u;
         for (int i = 0; i < __N; i++)
         {
             __res[i] = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
@@ -177,7 +177,7 @@ class exponential_distribution
     // Implementation for result_portion function
     template <int _Ndistr, class _Engine>
     typename ::std::enable_if<(_Ndistr != 0), result_type>::type
-    result_portion_internal(_Engine& __engine, const param_type __params, unsigned int __N)
+    result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __part_vec;
         if (__N == 0)

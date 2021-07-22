@@ -35,7 +35,7 @@ constexpr auto seed = 777;
 
 template <typename ScalarRealType>
 int
-statistics_check(int nsamples, ScalarRealType lambda, const std::vector<ScalarRealType>& dpstd_samples)
+statistics_check(int nsamples, ScalarRealType lambda, const std::vector<ScalarRealType>& samples)
 {
     // theoretical moments
     double tM = 1 / lambda;
@@ -47,8 +47,8 @@ statistics_check(int nsamples, ScalarRealType lambda, const std::vector<ScalarRe
     double sum2 = 0.0;
     for (int i = 0; i < nsamples; i++)
     {
-        sum += dpstd_samples[i];
-        sum2 += dpstd_samples[i] * dpstd_samples[i];
+        sum += samples[i];
+        sum2 += samples[i] * samples[i];
     }
     double sM = sum / nsamples;
     double sD = sum2 / nsamples - sM * sM;
@@ -76,21 +76,21 @@ int
 test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
 {
 
-    sycl::queue queue(sycl::default_selector{});
+    sycl::queue queue;
 
     // memory allocation
-    std::vector<oneapi::dpl::internal::element_type_t<RealType>> dpstd_samples(nsamples);
+    std::vector<oneapi::dpl::internal::element_type_t<RealType>> samples(nsamples);
 
     constexpr int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0
                                   ? 1
                                   : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
 
-    // dpstd generation
+    // generation
     {
-        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> dpstd_buffer(dpstd_samples.data(), nsamples);
+        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
-            auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+            auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * num_elems;
@@ -98,14 +98,13 @@ test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
                 oneapi::dpl::exponential_distribution<RealType> distr(lambda);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
-                res.store(idx.get_linear_id(), dpstd_acc.get_pointer());
+                res.store(idx.get_linear_id(), acc.get_pointer());
             });
         });
-        queue.wait();
     }
 
     // statistics check
-    int err = statistics_check(nsamples, lambda, dpstd_samples);
+    int err = statistics_check(nsamples, lambda, samples);
 
     if (err)
     {
@@ -127,18 +126,18 @@ test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsample
     sycl::queue queue(sycl::default_selector{});
 
     // memory allocation
-    std::vector<oneapi::dpl::internal::element_type_t<RealType>> dpstd_samples(nsamples);
+    std::vector<oneapi::dpl::internal::element_type_t<RealType>> samples(nsamples);
     constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0
                                            ? 1
                                            : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
     int n_elems = (part >= num_elems) ? num_elems : part;
 
-    // dpstd generation
+    // generation
     {
-        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> dpstd_buffer(dpstd_samples.data(), nsamples);
+        sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
-            auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+            auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * n_elems;
@@ -147,14 +146,13 @@ test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsample
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
                 for (int i = 0; i < n_elems; ++i)
-                    dpstd_acc.get_pointer()[offset + i] = res[i];
+                    acc.get_pointer()[offset + i] = res[i];
             });
         });
-        queue.wait_and_throw();
     }
 
     // statistics check
-    int err = statistics_check(nsamples, lambda, dpstd_samples);
+    int err = statistics_check(nsamples, lambda, samples);
 
     if (err)
     {
@@ -176,14 +174,12 @@ tests_set(int nsamples)
 
     float lambda_array[nparams] = {0.5, 1.5};
 
-    int err;
     // Test for all non-zero parameters
     for (int i = 0; i < nparams; ++i)
     {
         std::cout << "exponential_distribution test<type>, lambda = " << lambda_array[i]
                   << ", nsamples  = " << nsamples;
-        err = test<RealType, UIntType>(lambda_array[i], nsamples);
-        if (err)
+        if (test<RealType, UIntType>(lambda_array[i], nsamples))
         {
             return 1;
         }
@@ -200,14 +196,12 @@ tests_set_portion(std::int32_t nsamples, unsigned int part)
 
     oneapi::dpl::internal::element_type_t<RealType> lambda_array[nparams] = {0.5, 1.5};
 
-    int err;
     // Test for all non-zero parameters
     for (int i = 0; i < nparams; ++i)
     {
         std::cout << "exponential_distribution test<type>, lambda = " << lambda_array[i] << ", nsamples = " << nsamples
                   << ", part = " << part;
-        err = test_portion<RealType, UIntType>(lambda_array[i], nsamples, part);
-        if (err)
+        if (test_portion<RealType, UIntType>(lambda_array[i], nsamples, part))
         {
             return 1;
         }

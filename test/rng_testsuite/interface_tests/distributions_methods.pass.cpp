@@ -36,7 +36,7 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::uniform_int_distribution<T>& distr)
 {
-    Element_type<T> a = static_cast<Element_type<T>>(0);
+    Element_type<T> a = Element_type<T>{0};
     Element_type<T> b = std::numeric_limits<Element_type<T>>::max();
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
@@ -46,8 +46,8 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::uniform_real_distribution<T>& distr)
 {
-    Element_type<T> a = static_cast<Element_type<T>>(0);
-    Element_type<T> b = static_cast<Element_type<T>>(1);
+    Element_type<T> a = Element_type<T>{0};
+    Element_type<T> b = Element_type<T>{1};
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
 }
@@ -56,8 +56,8 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::normal_distribution<T>& distr)
 {
-    Element_type<T> mean = static_cast<Element_type<T>>(0);
-    Element_type<T> stddev = static_cast<Element_type<T>>(1);
+    Element_type<T> mean = Element_type<T>{0};
+    Element_type<T> stddev = Element_type<T>{1};
     return ((distr.mean() != mean) || (distr.stddev() != stddev) ||
             (distr.min() > -std::numeric_limits<Element_type<T>>::max()) ||
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().first != mean) ||
@@ -68,7 +68,7 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::exponential_distribution<T>& distr)
 {
-    Element_type<T> lambda = static_cast<Element_type<T>>(1);
+    Element_type<T> lambda = Element_type<T>{1};
     return ((distr.lambda() != lambda) || (distr.min() != 0) ||
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
             (distr.param().lambda != lambda));
@@ -81,9 +81,9 @@ typename ::std::enable_if<::std::is_same<typename Distr::param_type,
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 =
-        ::std::make_pair(static_cast<typename Distr::scalar_type>(0), static_cast<typename Distr::scalar_type>(10));
+        ::std::make_pair(typename Distr::scalar_type{0}, typename Distr::scalar_type{10});
     params2 =
-        ::std::make_pair(static_cast<typename Distr::scalar_type>(2), static_cast<typename Distr::scalar_type>(8));
+        ::std::make_pair(typename Distr::scalar_type{2}, typename Distr::scalar_type{8});
 }
 
 template <typename Distr>
@@ -92,8 +92,8 @@ typename ::std::enable_if<!::std::is_same<typename Distr::param_type,
                           void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
-    params1 = static_cast<typename Distr::scalar_type>(1);
-    params2 = static_cast<typename Distr::scalar_type>(2);
+    params1 = typename Distr::scalar_type{1};
+    params2 = typename Distr::scalar_type{2};
 }
 
 template <class Distr>
