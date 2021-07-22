@@ -128,12 +128,12 @@ jobs:
           rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
           echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
-      - name: Install oneTBB
+      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
         run: sudo apt install -y intel-oneapi-tbb-devel
-      - name: Install oneAPI Compiler
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
         run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
-      - name: Install oneAPI Compiler (classic)
+      - name: Install Intel® oneAPI C++ Compiler Classic
         if: matrix.cxx_compiler == 'icpc'
         run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
       - name: Run testing
@@ -184,12 +184,12 @@ jobs:
             device_type: CPU
     steps:
       - uses: actions/checkout@v2
-      - name: Install oneTBB
+      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
         shell: cmd
         run: |
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel tbb-devel
-      - name: Install oneAPI Compiler
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icx'
         shell: cmd
         run: |
