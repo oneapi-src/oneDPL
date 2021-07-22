@@ -142,7 +142,7 @@ jobs:
           set -x
           sudo rm -rf /opt/intel/oneapi/dpl || true
           source /opt/intel/oneapi/setvars.sh intel64 || true
-          if [[ "${{ matrix.cxx_compiler }} == "dpcpp" ]]; then
+          if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
             echo "::warning::Compiler: $(dpcpp --version)"
           fi
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
