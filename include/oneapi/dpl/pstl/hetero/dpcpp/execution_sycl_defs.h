@@ -25,9 +25,10 @@
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
-#define __LIBSYCL_VERSION (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
+#    define __LIBSYCL_VERSION                                                                                          \
+        (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
 #else
-#define __LIBSYCL_VERSION 0
+#    define __LIBSYCL_VERSION 0
 #endif
 
 namespace oneapi
