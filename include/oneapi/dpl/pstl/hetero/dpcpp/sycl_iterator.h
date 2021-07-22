@@ -18,8 +18,6 @@
 
 #include <CL/sycl.hpp>
 
-#define SYCL_2020_NOINIT_MACRO (__LIBSYCL_MAJOR_VERSION >= 5 && __LIBSYCL_MINOR_VERSION >= 3)
-
 #include <iterator>
 #include "../../onedpl_config.h"
 
