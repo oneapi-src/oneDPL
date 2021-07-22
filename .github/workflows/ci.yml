@@ -197,7 +197,7 @@ jobs:
         shell: cmd
         run: |
           call %CONDA%/condabin/conda.bat activate base
-          powershell $output = ${{ matrix.cxx_compiler }} --version; echo ::warning::Compiler: $output
+          powershell $output = ${{ matrix.cxx_compiler }} --version; echo "::warning::Compiler: $output"
           IF "${{ matrix.backend }}" == "dpcpp" (
             set ninja_targets=sycl_iterator.pass
             set ctest_flags=-R sycl_iterator.pass
