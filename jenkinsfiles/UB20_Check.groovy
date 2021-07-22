@@ -213,7 +213,7 @@ pipeline {
                                         echo "Environment file not generated."
                                         exit -1
                                     fi
-                                    cd ${env.OneAPI_Package_Date} 
+                                    cd ${env.OneAPI_Package_Date}
                                     mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
                                     cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
                                 """, label: "Generate environment vars"
@@ -239,6 +239,7 @@ pipeline {
                                         withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
                                                 rm -rf *
+                                                dpcpp --version
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 build-all -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}

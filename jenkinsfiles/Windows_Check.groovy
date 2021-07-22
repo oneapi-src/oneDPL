@@ -305,6 +305,7 @@ pipeline {
                                                 bat script: """
                                                     set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
                                                     rd /s /q . 2>nul
+                                                    dpcpp --version
                                                     cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM="%MAKE_PROGRAM%"^
                                                         -DCMAKE_TOOLCHAIN_FILE=cmake\\windows-dpcpp-toolchain.cmake^
                                                         -DCMAKE_CXX_STANDARD=17^
