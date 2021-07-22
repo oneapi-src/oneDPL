@@ -195,10 +195,12 @@ jobs:
       - name: Run testing
         shell: cmd
         run: |
+          IF "${{ matrix.cxx_compiler }}" == "dpcpp" (
+            set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
+          )
           IF "${{ matrix.backend }}" == "dpcpp" (
             set ninja_targets=sycl_iterator.pass
             set ctest_flags=-R sycl_iterator.pass
-            set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
             echo ::warning ::dpcpp backend is set. Compile and run only sycl_iterator.pass
           )
           call %CONDA%/condabin/conda.bat activate base
