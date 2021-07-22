@@ -314,9 +314,6 @@
 #    define ONEDPL_ALLOW_DEFERRED_WAITING 0
 #endif
 
-// Combine SYCL runtime library version
-#define __LIBSYCL_VERSION (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION*100 + __LIBSYCL_PATCH_VERSION)
-
 //'present' macros
 // shift_left, shift_right; GCC 10; VS 2019 16.1
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
