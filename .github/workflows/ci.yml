@@ -205,7 +205,7 @@ jobs:
             echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass
           )
           IF "${{ matrix.cxx_compiler }}" == "dpcpp" (
-            powershell $output = dpcpp --version; Write-Host -NoNewline ::warning::Compiler: $output
+            powershell $output = dpcpp --version; Write-Host ::warning::Compiler: $output
             set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
           )
           mkdir build && cd build
