@@ -169,11 +169,7 @@ class exponential_distribution
         uniform_real_distribution __u;
         for (int i = 0; i < __N; i++)
         {
-            __res[i] = __u(__engine);
-            if (__res[i] < 0)
-                __res[i] = 0;
-            else
-                __res[i] = ((-1) / __params.lambda) * sycl::log(__res[i]);
+            __res[i] = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
         }
         return __res;
     }
