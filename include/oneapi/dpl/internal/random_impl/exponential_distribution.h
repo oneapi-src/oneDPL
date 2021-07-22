@@ -31,8 +31,9 @@ class exponential_distribution
     // Distribution types
     using result_type = _RealType;
     using scalar_type = internal::element_type_t<_RealType>;
-    
-    struct param_type {
+
+    struct param_type
+    {
         param_type() : param_type(1.0) {}
         param_type(scalar_type __lambda) : lambda(__lambda) {}
         scalar_type lambda;
@@ -135,7 +136,7 @@ class exponential_distribution
     {
         result_type __res;
         uniform_real_distribution<scalar_type> __u;
-        __res = -std::log(scalar_type{1.0} - __u(__engine))/__params.lambda;
+        __res = -std::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
         return __res;
     }
 
@@ -146,7 +147,7 @@ class exponential_distribution
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
     }
-    
+
     // Specialization of the vector generation with size = [4; 8; 16]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N > 3), result_type>::type
@@ -155,9 +156,9 @@ class exponential_distribution
         uniform_real_distribution<result_type> __u;
         result_type __res;
         __res = __u(__engine);
-        __res = -sycl::log(scalar_type{1.0} - __res)/__params.lambda;
+        __res = -sycl::log(scalar_type{1.0} - __res) / __params.lambda;
         return __res;
-    }      
+    }
 
     // Implementation for the N vector's elements generation
     template <class _Engine>
