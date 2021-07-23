@@ -154,12 +154,12 @@ __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, A
     return __internal::sycl_iterator<Mode, T, Allocator>{buf, 0};
 }
 
-#define SYCL_2020_NOINIT_MACRO (__LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_NO_INIT_PRESENT (__LIBSYCL_VERSION >= 50300)
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
     begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>,
-#if SYCL_2020_NOINIT_MACRO
+#if _ONEDPL_NO_INIT_PRESENT
           sycl::property::no_init)
 #else
           sycl::property::noinit)
@@ -171,7 +171,7 @@ __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocato
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
     begin(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-#if SYCL_2020_NOINIT_MACRO
+#if _ONEDPL_NO_INIT_PRESENT
           sycl::property::no_init)
 #else
           sycl::property::noinit)
@@ -190,7 +190,7 @@ __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, All
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
     end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>,
-#if SYCL_2020_NOINIT_MACRO
+#if _ONEDPL_NO_INIT_PRESENT
         sycl::property::no_init)
 #else
         sycl::property::noinit)
@@ -201,7 +201,7 @@ __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocato
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-#if SYCL_2020_NOINIT_MACRO
+#if _ONEDPL_NO_INIT_PRESENT
                                                                              sycl::property::no_init)
 #else
                                                                              sycl::property::noinit)
