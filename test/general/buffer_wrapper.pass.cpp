@@ -15,7 +15,7 @@ struct test_buffer_wrapper
 {
     template <typename Iterator, typename T>
     void operator()(Iterator begin, Iterator end, T* expected_data, std::size_t size)
-    {   
+    {
         EXPECT_TRUE(begin == begin, "operator == returned false negative");
         EXPECT_TRUE(!(begin == begin + 1), "operator == returned false positive");
 
@@ -53,7 +53,7 @@ main()
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), oneapi::dpl::end(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), data_ptr, size);
-#if SYCL_2020_NOINIT_MACRO
+#if TEST_NO_INIT_PRESENT
     test(oneapi::dpl::begin(buf, sycl::property::no_init{}), oneapi::dpl::end(buf, sycl::property::no_init{}), data_ptr, size);
 #else
     test(oneapi::dpl::begin(buf, sycl::property::noinit{}), oneapi::dpl::end(buf, sycl::property::noinit{}), data_ptr, size);
