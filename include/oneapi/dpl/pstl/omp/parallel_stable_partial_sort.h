@@ -127,8 +127,8 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
     using _Op = _MinKOp<_RandomAccessIterator, _Compare>;
 
     std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
-    __chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size,
-                        std::max(__nsort, __default_chunk_size));
+    __omp_backend::__chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size,
+                                       std::max(__nsort, __default_chunk_size));
     /*
      * This function creates a vector of iterators to the container being operated
      * on. It splits that container into fixed size chunks, just like other
@@ -147,7 +147,8 @@ __parallel_find_pivot(_RandomAccessIterator __first, _RandomAccessIterator __las
      * that here.
      */
 
-    auto __reduce_chunk = [&](std::uint32_t __chunk) {
+    auto __reduce_chunk = [&](std::uint32_t __chunk)
+    {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
         auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
         auto __begin = std::next(__first, __index);
@@ -244,9 +245,10 @@ __parallel_partition(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Ra
     return __count_smaller_or_equal.load();
 }
 
-template <typename _RandomAccessIterator, typename _Compare>
+template <typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp);
+__parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp,
+                            _LeafSort __leaf_sort);
 
 template <typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
@@ -263,7 +265,7 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
     }
     else
     {
-        __parallel_stable_sort_body(__xs, __part_end, __comp);
+        __parallel_stable_sort_body(__xs, __part_end, __comp, __leaf_sort);
     }
 }
 

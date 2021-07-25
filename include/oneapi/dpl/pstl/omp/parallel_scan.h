@@ -48,7 +48,8 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
             [=] { __omp_backend::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
             // Assumes that __combine never throws.
             // TODO: Consider adding a requirement for user functors to be constant.
-            [=, &__combine] {
+            [=, &__combine]
+            {
                 __omp_backend::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
                                            __combine(__initial, __r[__k - 1]), __combine, __scan);
             });

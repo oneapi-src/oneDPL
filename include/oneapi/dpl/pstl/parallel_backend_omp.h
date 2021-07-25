@@ -23,6 +23,7 @@
 #include <omp.h>
 
 #include "parallel_backend_serial.h"
+#include "parallel_backend_utils.h"
 #include "unseq_backend_simd.h"
 #include "utils.h"
 
