@@ -64,9 +64,9 @@ class exponential_distribution
     }
 
     void
-    param(const param_type& __param)
+    param(const param_type& __parm)
     {
-        lambda_ = __param.lambda;
+        lambda_ = __parm.lambda;
     }
 
     scalar_type
@@ -166,7 +166,7 @@ class exponential_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        oneapi::dpl::uniform_real_distribution __u;
+        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
         for (int i = 0; i < __N; i++)
         {
             __res[i] = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
