@@ -64,9 +64,9 @@ class exponential_distribution
     }
 
     void
-    param(const param_type& __parm)
+    param(const param_type& __param)
     {
-        lambda_ = __parm.lambda;
+        lambda_ = __param.lambda;
     }
 
     scalar_type

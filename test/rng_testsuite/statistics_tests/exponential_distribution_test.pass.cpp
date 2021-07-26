@@ -123,7 +123,7 @@ int
 test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples, unsigned int part)
 {
 
-    sycl::queue queue(sycl::default_selector{});
+    sycl::queue queue;
 
     // memory allocation
     std::vector<oneapi::dpl::internal::element_type_t<RealType>> samples(nsamples);
@@ -149,6 +149,7 @@ test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsample
                     acc.get_pointer()[offset + i] = res[i];
             });
         });
+        queue.wait_and_throw();
     }
 
     // statistics check
