@@ -141,17 +141,16 @@ class exponential_distribution
     }
 
     // Specialization of the vector generation  with size = [1; 3]
-    /* template <int __N, class _Engine>
+    template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
-    }*/
+    }
 
     // Specialization of the vector generation with size = [4; 8; 16]
     template <int __N, class _Engine>
-    // typename ::std::enable_if<(__N > 3), result_type>::type
-    result_type
+    typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<result_type> __u;
