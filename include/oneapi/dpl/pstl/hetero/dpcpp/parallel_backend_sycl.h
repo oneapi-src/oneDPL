@@ -564,7 +564,7 @@ struct __early_exit_find_or
 
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
 
-        ::std::size_t __shift = 8;
+        ::std::size_t __shift = 16;
         ::std::size_t __local_idx = __item_id.get_local_id(0);
         ::std::size_t __group_idx = __item_id.get_group(0);
 
@@ -674,14 +674,12 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                     sycl::atomic<_AtomicType, sycl::access::address_space::local_space> __found_local(
                         __temp_local.get_pointer());
 
-                    // 1. Set value from global atomic to local atomic
+                    // 1. Set initial value to local atomic
                     if (__local_idx == 0)
-                    {
-                        __found_local.store(__found.load());
-                    }
+                        __found_local.store(__init_value);
                     __item_id.barrier(sycl::access::fence_space::local_space);
 
-                    // 2. find any element that satisfies pred and Set local atomic value to global atomic
+                    // 2. Find any element that satisfies pred and set local atomic value to global atomic
                     constexpr auto __comp = typename _BrickTag::_Compare{};
                     __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
                     __item_id.barrier(sycl::access::fence_space::local_space);
