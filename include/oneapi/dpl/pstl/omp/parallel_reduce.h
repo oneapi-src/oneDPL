@@ -50,8 +50,7 @@ __parallel_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __la
     std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
     __omp_backend::__chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size);
 
-    auto __reduce_chunk = [&](std::uint32_t __chunk)
-    {
+    auto __reduce_chunk = [&](std::uint32_t __chunk) {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
         auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
         auto __begin = __first + __index;
