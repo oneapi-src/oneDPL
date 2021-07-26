@@ -16,12 +16,10 @@
 #ifndef _ONEDPL_execution_sycl_defs_H
 #define _ONEDPL_execution_sycl_defs_H
 
-#include <CL/sycl.hpp>
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
-#if _ONEDPL_FPGA_DEVICE
-#    include <CL/sycl/INTEL/fpga_extensions.hpp>
-#endif
+
+#include "sycl_defs.h"
 
 namespace oneapi
 {
@@ -94,9 +92,9 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy()
         : base(sycl::queue(
 #    if _ONEDPL_FPGA_EMU
-              sycl::INTEL::fpga_emulator_selector {}
+              __dpl_sycl::__fpga_emulator_selector {}
 #    else
-              sycl::INTEL::fpga_selector {}
+              __dpl_sycl::__fpga_selector {}
 #    endif // _ONEDPL_FPGA_EMU
               ))
     {
@@ -346,12 +344,13 @@ __max_work_group_size(_ExecutionPolicy&& __policy)
     return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 }
 
-template <typename _ExecutionPolicy, typename _T>
-sycl::cl_ulong
-__max_local_allocation_size(_ExecutionPolicy&& __policy, const sycl::cl_ulong& __local_allocation_size)
+template <typename _ExecutionPolicy, typename _Size>
+_Size
+__max_local_allocation_size(_ExecutionPolicy&& __policy, _Size __type_size, _Size __local_allocation_size)
 {
-    const auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
-    return ::std::min(__local_mem_size / sizeof(_T), __local_allocation_size);
+    return ::std::min(__policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>() /
+                          __type_size,
+                      __local_allocation_size);
 }
 
 #if _USE_SUB_GROUPS
@@ -372,8 +371,9 @@ __max_sub_group_size(_ExecutionPolicy&& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-sycl::cl_uint
+auto
 __max_compute_units(_ExecutionPolicy&& __policy)
+    -> decltype(__policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>())
 {
     return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
 }
@@ -389,9 +389,8 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    const auto& __device = __policy.queue().get_device();
-    // TODO: investigate can we use kernel_work_group::preferred_work_group_size_multiple here.
-    auto __max_wg_size =
+    const sycl::device& __device = __policy.queue().get_device();
+    const ::std::size_t __max_wg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
 #else
@@ -400,18 +399,20 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
-    const ::std::size_t __cpu_divisor = __device.is_cpu() ? 4 : 1;
+    ::std::size_t __cpu_divisor = 1;
+    if (__device.is_cpu() && __max_wg_size >= 4)
+        __cpu_divisor = 4;
 
     return __max_wg_size / __cpu_divisor;
 }
 
 template <typename _ExecutionPolicy>
-long
+::std::uint32_t
 __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
-    auto __device = __policy.queue().get_device();
-    auto __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
-    const ::std::size_t __sg_size =
+    const sycl::device& __device = __policy.queue().get_device();
+    const ::std::size_t __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
+    const ::std::uint32_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
 #else

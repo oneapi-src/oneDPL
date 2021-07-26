@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Linear Congruential Engine
 
-#ifndef DPSTD_LINEAR_CONGRUENTIAL_ENGINE
-#define DPSTD_LINEAR_CONGRUENTIAL_ENGINE
+#ifndef _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE
+#define _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE
 
 namespace oneapi
 {
@@ -210,9 +210,9 @@ class linear_congruential_engine
     typename ::std::enable_if<(_N == 0) && (_FLAG == true)>::type
     skip_seq(unsigned long long __num_to_skip)
     {
-        ::std::uint64_t __mod = modulus, __inc = increment;
+        ::std::uint64_t __mod = modulus;
         ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        state_ = static_cast<scalar_type>((__mult * static_cast<::std::uint64_t>(state_) + __inc) % __mod);
+        state_ = static_cast<scalar_type>((__mult * static_cast<::std::uint64_t>(state_)) % __mod);
     }
 
     template <int _N = 0, bool _FLAG = false>
@@ -230,8 +230,7 @@ class linear_congruential_engine
     {
         ::std::uint64_t __mod = modulus;
         ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        for (int __i = 0; __i < _N; ++__i)
-            state_[__i] = static_cast<scalar_type>(((__mult * static_cast<::std::uint64_t>(state_[__i])) % __mod));
+        state_ = ((__mult * state_.template convert<::std::uint64_t>()) % __mod).template convert<scalar_type>();
     }
 
     // result_portion implementation
@@ -257,4 +256,4 @@ class linear_congruential_engine
 } // namespace dpl
 } // namespace oneapi
 
-#endif // ifndef DPSTD_LINEAR_CONGRUENTIAL_ENGINE
+#endif // ifndef _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE

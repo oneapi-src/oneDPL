@@ -27,7 +27,7 @@
 #endif
 
 #if _ONEDPL_BACKEND_SYCL
-#    include <CL/sycl.hpp>
+#    include "hetero/dpcpp/sycl_defs.h"
 #    include "hetero/dpcpp/sycl_iterator.h"
 #endif
 
@@ -621,6 +621,20 @@ struct __conjunction<_B1> : _B1
 template <typename _B1, typename... _Bs>
 struct __conjunction<_B1, _Bs...> : ::std::conditional<!bool(_B1::value), _B1, __conjunction<_Bs...>>::type
 {
+};
+
+// empty base class for type erasure
+struct __lifetime_keeper_base
+{
+    virtual ~__lifetime_keeper_base() {}
+};
+
+// derived class to keep temporaries (e.g. buffer) alive
+template <typename... Ts>
+struct __lifetime_keeper : public __lifetime_keeper_base
+{
+    ::std::tuple<Ts...> __my_tmps;
+    __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
 };
 
 } // namespace __internal

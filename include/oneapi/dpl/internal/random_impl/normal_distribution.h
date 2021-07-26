@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Normal Distribution
 
-#ifndef DPSTD_NORMAL_DISTRIBUTION
-#define DPSTD_NORMAL_DISTRIBUTION
+#ifndef _ONEDPL_NORMAL_DISTRIBUTION
+#define _ONEDPL_NORMAL_DISTRIBUTION
 
 namespace oneapi
 {
@@ -226,7 +226,7 @@ class normal_distribution
         return __res;
     }
 
-    // Specialization of the vector generation with size = [1; 3]
+    // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type __params)
@@ -353,18 +353,19 @@ class normal_distribution
 
             for (unsigned int __i = 1; __i < (__N - __tail); __i += 2)
             {
-                __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
-
                 __u1 = __u[__i - 1];
                 __u2 = __u[__i];
+
+                __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
+
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __sin);
                 __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __cos);
             }
             if (__tail)
             {
-                __u1 = __u[__N - 1];
-                __u2 = __u[__N];
+                __u1 = __u[__N - 2];
+                __u2 = __u[__N - 1];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__N - 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
                                                       sycl::sin(pi2<scalar_type>() * __u2));
@@ -386,7 +387,7 @@ class normal_distribution
         if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
-            return operator()(__engine);
+            return operator()(__engine, __params);
 
         __part_vec = generate_n_elems(__engine, __params, __N);
         return __part_vec;
@@ -396,4 +397,4 @@ class normal_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf DPSTD_NORMAL_DISTRIBUTION
+#endif // #ifndf _ONEDPL_NORMAL_DISTRIBUTION

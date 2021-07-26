@@ -49,15 +49,17 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
+    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
-    _RepackedTp __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp>(
-                            __exec,
-                            unseq_backend::transform_init<_Policy, _BinaryOperation1, _Functor>{
-                                __binary_op1, _Functor{__binary_op2}},                                    // transform
-                            __binary_op1,                                                                 // combine
-                            unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1}, // reduce
-                            ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
-                            .get();
+    _RepackedTp __res =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp>(
+            __exec,
+            unseq_backend::transform_init<_Policy, _BinaryOperation1, _Functor>{__binary_op1,
+                                                                                _Functor{__binary_op2}}, // transform
+            unseq_backend::transform_init<_Policy, _BinaryOperation1, _NoOpFunctor>{__binary_op1, _NoOpFunctor{}},
+            unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1}, // reduce
+            ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
+            .get();
 
     return __binary_op1(__init, _Tp{__res});
 }
@@ -77,15 +79,17 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range&& __rng, _Tp __init
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
+    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
-    _RepackedTp __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp>(
-                            __exec,
-                            unseq_backend::transform_init<_Policy, _BinaryOperation, _Functor>{
-                                __binary_op, _Functor{__unary_op}},                                     // transform
-                            __binary_op,                                                                // combine
-                            unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op}, // reduce
-                            ::std::forward<_Range>(__rng))
-                            .get();
+    _RepackedTp __res =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp>(
+            __exec,
+            unseq_backend::transform_init<_Policy, _BinaryOperation, _Functor>{__binary_op,
+                                                                               _Functor{__unary_op}}, // transform
+            unseq_backend::transform_init<_Policy, _BinaryOperation, _NoOpFunctor>{__binary_op, _NoOpFunctor{}},
+            unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op}, // reduce
+            ::std::forward<_Range>(__rng))
+            .get();
 
     return __binary_op(__init, _Tp{__res});
 }

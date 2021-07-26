@@ -17,12 +17,17 @@
 #define _ONEDPL_parallel_backend_sycl_utils_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
-#include <CL/sycl.hpp>
 #include <type_traits>
-#include "../../iterator_impl.h"
-#include "sycl_iterator.h"
 
+#include "../../iterator_impl.h"
+
+#include "sycl_defs.h"
+#include "sycl_iterator.h"
 #include "../../utils.h"
+
+#if _ONEDPL_DEBUG_SYCL
+#    include <iostream>
+#endif
 
 #define _PRINT_INFO_IN_DEBUG_MODE(...)                                                                                 \
     oneapi::dpl::__par_backend_hetero::__internal::__print_device_debug_info(__VA_ARGS__)
@@ -122,7 +127,11 @@ namespace __internal
 template <typename _CustomName>
 struct _HasDefaultName
 {
-    static constexpr bool value = std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value;
+    static constexpr bool value = ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value
+#if _ONEDPL_FPGA_DEVICE
+                                  || ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>::value
+#endif
+        ;
 };
 
 template <template <typename...> class _ExternalName, typename _InternalName>
@@ -131,14 +140,75 @@ struct _HasDefaultName<_ExternalName<_InternalName>>
     static constexpr bool value = _HasDefaultName<_InternalName>::value;
 };
 
-template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
-using _KernelName_t =
+template <typename... _Name>
+struct __optional_kernel_name;
+
+template <typename _CustomName>
+using __kernel_name_provider =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename std::conditional<_HasDefaultName<_CustomName>::value, _BaseName<_CustomName, _Args...>,
-                              _BaseName<_CustomName>>::type;
+    typename ::std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
+                                __optional_kernel_name<_CustomName>>::type;
 #else
+    __optional_kernel_name<_CustomName>;
+#endif
+
+template <char...>
+struct __composite_kernel_name
+{
+};
+
+// Compose kernel name by transforming the constexpr string to the sequence of chars
+// and instantiate template with variadic non-type template parameters.
+// This approach is required to get reliable work group size when kernel is unnamed
+#if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
+template <typename _Tp>
+class __kernel_name_composer
+{
+    static constexpr auto __name = __builtin_sycl_unique_stable_name(_Tp);
+    static constexpr ::std::size_t __name_size = __builtin_strlen(__name);
+
+    template <::std::size_t... _Is>
+    static __composite_kernel_name<__name[_Is]...>
+    __compose_kernel_name(oneapi::dpl::__internal::__index_sequence<_Is...>);
+
+  public:
+    using type = decltype(__compose_kernel_name(oneapi::dpl::__internal::__make_index_sequence<__name_size>{}));
+};
+#endif // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
+
+template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
+using __kernel_name_generator =
+#if __SYCL_UNNAMED_LAMBDA__
+    typename ::std::conditional<_HasDefaultName<_CustomName>::value,
+#    if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
+                                typename __kernel_name_composer<_BaseName<_CustomName, _Args...>>::type,
+#    else // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
+                                _BaseName<_CustomName, _Args...>,
+#    endif
+                                _BaseName<_CustomName>>::type;
+#else // __SYCL_UNNAMED_LAMBDA__
     _BaseName<_CustomName>;
 #endif
+
+template <typename _DerivedKernelName>
+class __kernel_compiler
+{
+  public:
+    template <typename _Exec>
+    static sycl::kernel
+    __compile_kernel(_Exec&& __exec)
+    {
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__exec.queue().get_context());
+        return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
+#else
+        sycl::program __program(__exec.queue().get_context());
+
+        __program.build_with_kernel_type<_DerivedKernelName>();
+        return __program.get_kernel<_DerivedKernelName>();
+#endif
+    }
+};
 
 #if _ONEDPL_DEBUG_SYCL
 template <typename _Policy>
@@ -372,20 +442,6 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 // future and helper classes for async pattern/algorithm
 //-----------------------------------------------------------------------
 
-// empty base class for type erasure
-struct __lifetime_keeper_base
-{
-    virtual ~__lifetime_keeper_base() {}
-};
-
-// derived class to keep temporaries (e.g. buffer) alive
-template <typename... Ts>
-struct __lifetime_keeper : public __lifetime_keeper_base
-{
-    ::std::tuple<Ts...> __my_tmps;
-    __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
-};
-
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
 struct __future_base
 {
@@ -411,7 +467,7 @@ class __future : public __future_base
 
   public:
     __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
-        : __par_backend_hetero::__future_base(__e), __data(__b), __result_idx(__o)
+        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __data(__b)
     {
     }
 
@@ -427,14 +483,15 @@ class __future : public __future_base
 template <>
 class __future<void> : public __future_base
 {
-    ::std::unique_ptr<__lifetime_keeper_base> __tmps;
+    ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base> __tmps;
 
   public:
     template <typename... _Ts>
     __future(sycl::event __e, _Ts... __t) : __future_base(__e)
     {
         if (sizeof...(__t) != 0)
-            __tmps = ::std::unique_ptr<__lifetime_keeper<_Ts...>>(new __lifetime_keeper<_Ts...>(__t...));
+            __tmps = ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper<_Ts...>>(
+                new oneapi::dpl::__internal::__lifetime_keeper<_Ts...>(__t...));
     }
     void
     get()

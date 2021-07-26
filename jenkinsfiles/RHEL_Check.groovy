@@ -79,6 +79,7 @@ def runExample(String test_name, String cmake_flags = "") {
     }
 }
 
+String pipeline_name = "Jenkins/RHEL_Check (dpcpp_gpu_cxx_17, dpcpp_fpga_emu_cxx_17)"
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
@@ -156,7 +157,7 @@ pipeline {
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
-                                githubStatus.setPending(this, "Jenkins/RHEL_Check")
+                                githubStatus.setPending(this, pipeline_name)
                             }
                             else {
                                 user_in_github_group = false
@@ -228,7 +229,7 @@ pipeline {
                                         echo "Environment file not generated."
                                         exit -1
                                     fi
-                                    cd ${env.OneAPI_Package_Date} 
+                                    cd ${env.OneAPI_Package_Date}
                                     mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
                                     cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
                                 """, label: "Generate environment vars"
@@ -255,6 +256,7 @@ pipeline {
                                             sh script: """
                                                 rm -rf *
                                                 export PATH=/usr/bin/:$PATH
+                                                dpcpp --version
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=GPU -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 build-all -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
@@ -291,6 +293,7 @@ pipeline {
                                             sh script: """
                                                 rm -rf *
                                                 export PATH=/usr/bin/:$PATH
+                                                dpcpp --version
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=FPGA_EMU -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 ${TESTS} -k || true
                                                 ctest  -R \"^(`echo ${TESTS} | sed 's/ /|/g'`)\$\" --output-on-failure --timeout ${TEST_TIMEOUT}
@@ -364,10 +367,10 @@ pipeline {
                 if (user_in_github_group) {
                     if (build_ok) {
                         currentBuild.result = "SUCCESS"
-                        githubStatus.setSuccess(this, "Jenkins/RHEL_Check")
+                        githubStatus.setSuccess(this, pipeline_name)
                     } else {
                         currentBuild.result = "FAILURE"
-                        githubStatus.setFailed(this, "Jenkins/RHEL_Check")
+                        githubStatus.setFailed(this, pipeline_name)
                     }
                 }
             }

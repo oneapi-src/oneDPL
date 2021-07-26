@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_random
 #define _ONEDPL_random
 #include "oneapi/dpl/internal/common_config.h"
-#include <CL/sycl.hpp>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #include <utility>
 #include <cstdint>
 #include <type_traits>
@@ -29,6 +29,13 @@
 #include "internal/random_impl/uniform_real_distribution.h"
 #include "internal/random_impl/uniform_int_distribution.h"
 #include "internal/random_impl/normal_distribution.h"
+#include "internal/random_impl/exponential_distribution.h"
+#include "internal/random_impl/bernoulli_distribution.h"
+#include "internal/random_impl/geometric_distribution.h"
+#include "internal/random_impl/weibull_distribution.h"
+#include "internal/random_impl/lognormal_distribution.h"
+#include "internal/random_impl/cauchy_distribution.h"
+#include "internal/random_impl/extreme_value_distribution.h"
 
 namespace oneapi
 {

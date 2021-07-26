@@ -64,13 +64,25 @@ jobs:
             path: html
 
   linux-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_cxx${{ matrix.std }}_${{ matrix.backend }}_${{ matrix.build_type }}
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
+          - os: ubuntu-20.04
+            cxx_compiler: dpcpp
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
+          - os: ubuntu-20.04
+            cxx_compiler: dpcpp
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
           - os: ubuntu-18.04
             cxx_compiler: g++
             std: 17
@@ -83,29 +95,122 @@ jobs:
             build_type: release
             backend: tbb
             device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 11
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-18.04
+            cxx_compiler: clang++
+            std: 11
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: serial
+            device_type: HOST
     steps:
       - uses: actions/checkout@v2
-      - name: Configure apt repositories
-        run: |
-          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
-          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
-      - name: Install oneTBB
-        run: sudo apt install -y intel-oneapi-tbb-devel
-      - name: Install oneAPI Compiler
+      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
+        run: $CONDA/bin/conda install -c intel tbb-devel
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
-        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
+        run: $CONDA/bin/conda install -c intel dpcpp_linux-64
       - name: Run testing
         shell: bash
         run: |
           set -x
-          sudo rm -rf /opt/intel/oneapi/dpl || true
-          source /opt/intel/oneapi/setvars.sh intel64
+          source $CONDA/bin/activate
+          export PATH=$CONDA/lib:$PATH
+          export CPATH=$CONDA/include:$CPATH
+          if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
+            echo "::warning::Compiler: $(dpcpp --version)"
+          fi
+          if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
+            make_targets="sycl_iterator.pass"
+            ctest_flags="-R sycl_iterator.pass"
+            echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass"
+          fi
           mkdir build && cd build
           lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
-          make VERBOSE=1 -j${BUILD_CONCURRENCY}
-          ctest --timeout ${TEST_TIMEOUT} --output-on-failure
+          make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
+
+  windows-testing:
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            cxx_compiler: dpcpp
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: windows-2019
+            cxx_compiler: cl
+            std: 17
+            build_type: release
+            backend: tbb
+            device_type: HOST
+          - os: windows-2019
+            cxx_compiler: dpcpp
+            std: 17
+            build_type: release
+            backend: dpcpp
+            device_type: CPU
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
+        shell: cmd
+        run: |
+          call %CONDA%/condabin/conda.bat activate base
+          conda install -c intel tbb-devel
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
+        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icx'
+        shell: cmd
+        run: |
+          call %CONDA%/condabin/conda.bat activate base
+          conda install -c intel dpcpp_win-64
+      - name: Run testing
+        shell: cmd
+        run: |
+          call %CONDA%/condabin/conda.bat activate base
+          IF "${{ matrix.backend }}" == "dpcpp" (
+            set ninja_targets=sycl_iterator.pass
+            set ctest_flags=-R sycl_iterator.pass
+            echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass
+          )
+          IF "${{ matrix.cxx_compiler }}" == "dpcpp" (
+            powershell $output = dpcpp --version; Write-Host ::warning::Compiler: $output
+            set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
+          )
+          mkdir build && cd build
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          set INCLUDE=%CONDA_PREFIX%\Library\include;%INCLUDE%
+          set LIB=%CONDA_PREFIX%\Library\lib;%LIB%
+          set OCL_ICD_FILENAMES=%CONDA_PREFIX%\Library\lib\intelocl64.dll
+          cmake -G "Ninja" %toolchain_option% -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
+          ninja -j 2 -v %ninja_targets%
+          ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags%

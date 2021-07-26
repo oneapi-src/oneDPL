@@ -11,6 +11,9 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
+# rng_tests
+set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
+set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
 add_custom_target(build-all
     COMMENT "Build all the pstl tests.")
@@ -42,6 +45,21 @@ macro(onedpl_add_test test_source_file)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
+
+    string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
+    if (DEFINED ${_test_name}_timeout_${_build_type_in_lower})
+        message(STATUS
+        "Timeout for ${_test_name} is set to ${${_test_name}_timeout_${_build_type_in_lower}}, "
+        "it overrides user-defined timeout for CTest")
+        set_tests_properties(${_test_name} PROPERTIES TIMEOUT ${${_test_name}_timeout_${_build_type_in_lower}})
+    elseif (DEFINED ${_test_name}_timeout_release)
+        # Apply default (release) timeout
+        message(STATUS
+        "Timeout for ${_test_name} is set to ${${_test_name}_timeout_release}, "
+        "it overrides user-defined timeout for CTest")
+        set_tests_properties(${_test_name} PROPERTIES TIMEOUT ${${_test_name}_timeout_release})
+    endif()
+
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
     if (ONEDPL_DEVICE_TYPE)
         if (ONEDPL_DEVICE_TYPE MATCHES "FPGA")

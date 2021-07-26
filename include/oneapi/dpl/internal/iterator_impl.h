@@ -39,13 +39,13 @@ struct extract_accessor
 #if _ONEDPL_BACKEND_SYCL
 // Specialization for sycl_iterator to provide access to its component types needed to
 // construct the accessor type
-template <cl::sycl::access::mode Mode, typename T, typename Allocator>
+template <sycl::access::mode Mode, typename T, typename Allocator>
 struct extract_accessor<oneapi::dpl::__internal::sycl_iterator<Mode, T, Allocator>>
 {
-    static constexpr cl::sycl::access::mode mode = Mode;
+    static constexpr sycl::access::mode mode = Mode;
     static constexpr int dim = 1;
-    using buffer_type = cl::sycl::buffer<T, dim, Allocator>;
-    using accessor_type = cl::sycl::accessor<T, dim, mode, cl::sycl::access::target::host_buffer>;
+    using buffer_type = sycl::buffer<T, dim, Allocator>;
+    using accessor_type = sycl::accessor<T, dim, mode, sycl::access::target::host_buffer>;
 
     static accessor_type
     get(oneapi::dpl::__internal::sycl_iterator<Mode, T, Allocator>& iter)

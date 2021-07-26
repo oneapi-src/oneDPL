@@ -63,7 +63,7 @@ def githubStatus = new GithubStatus(
         BUILD_URL: env.RUN_DISPLAY_URL
 )
 
-
+String pipeline_name = "Jenkins/UB20_Check (dpcpp_cpu_cxx_17, g++_tbb_cxx_11)"
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
@@ -141,7 +141,7 @@ pipeline {
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
-                                githubStatus.setPending(this, "Jenkins/UB20_Check")
+                                githubStatus.setPending(this, pipeline_name)
                             }
                             else {
                                 user_in_github_group = false
@@ -213,7 +213,7 @@ pipeline {
                                         echo "Environment file not generated."
                                         exit -1
                                     fi
-                                    cd ${env.OneAPI_Package_Date} 
+                                    cd ${env.OneAPI_Package_Date}
                                     mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
                                     cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
                                 """, label: "Generate environment vars"
@@ -239,6 +239,7 @@ pipeline {
                                         withEnv(readFile('../../envs_tobe_loaded.txt').split('\n') as List) {
                                             sh script: """
                                                 rm -rf *
+                                                dpcpp --version
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=CPU -DCMAKE_BUILD_TYPE=release ..
                                                 make VERBOSE=1 build-all -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
@@ -303,10 +304,10 @@ pipeline {
                 if (user_in_github_group) {
                     if (build_ok) {
                         currentBuild.result = "SUCCESS"
-                        githubStatus.setSuccess(this, "Jenkins/UB20_Check")
+                        githubStatus.setSuccess(this, pipeline_name)
                     } else {
                         currentBuild.result = "FAILURE"
-                        githubStatus.setFailed(this, "Jenkins/UB20_Check")
+                        githubStatus.setFailed(this, pipeline_name)
                     }
                 }
             }

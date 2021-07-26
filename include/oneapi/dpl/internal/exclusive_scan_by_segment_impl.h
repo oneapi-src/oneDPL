@@ -22,6 +22,7 @@
 #include "../pstl/parallel_backend.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
+#include "../pstl/utils.h"
 
 namespace oneapi
 {
@@ -65,7 +66,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     flags[0] = 1;
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              ::std::not2(binary_pred));
+              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
     oneapi::dpl::__par_backend::__buffer<policy_type, OutputType> _temp(n);
@@ -107,7 +108,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         return result;
     else if (n == 1)
     {
-        auto result_acc = internal::get_access<cl::sycl::access::mode::write>(result);
+        auto result_acc = internal::get_access<sycl::access::mode::write>(policy, result);
         result_acc[0] = init;
         return result + 1;
     }
@@ -123,18 +124,18 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     internal::__buffer<policy_type, FlagType> _flags(policy, n);
     {
         auto flag_buf = _flags.get_buffer();
-        auto flags = flag_buf.template get_access<cl::sycl::access::mode::read_write>();
+        auto flags = flag_buf.template get_access<sycl::access::mode::read_write>();
         flags[0] = 1;
     }
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              ::std::not2(binary_pred));
+              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
     internal::__buffer<policy_type, OutputType> _temp(policy, n);
     {
         auto temp_buf = _temp.get_buffer();
-        auto temp = temp_buf.template get_access<cl::sycl::access::mode::read_write>();
+        auto temp = temp_buf.template get_access<sycl::access::mode::read_write>();
 
         temp[0] = init;
     }

@@ -27,23 +27,9 @@
 constexpr auto REF_SAMPLE_ID = 9999;
 
 template<class Engine, int NGenSamples, int NElemsInResultType>
-typename Engine::scalar_type test() {
+typename Engine::scalar_type test(sycl::queue& queue) {
 
     using result_type = typename Engine::scalar_type;
-
-    // Catch asynchronous exceptions
-    auto exception_handler = [] (sycl::exception_list exceptions) {
-        for (std::exception_ptr const& e : exceptions) {
-            try {
-                std::rethrow_exception(e);
-            } catch(sycl::exception const& e) {
-                std::cout << "Caught asynchronous SYCL exception during generation:\n"
-                << e.what() << std::endl;
-            }
-        }
-    };
-
-    sycl::queue queue(sycl::default_selector{}, exception_handler);
 
     // Memory allocation
     std::vector<result_type> dpstd_samples(NGenSamples);

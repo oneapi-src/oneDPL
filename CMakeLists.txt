@@ -36,6 +36,7 @@ option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD f
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
+include(GNUInstallDirs)
 
 # Set default back-end in according with compiler (DPC++ or others)
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
@@ -71,8 +72,11 @@ message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
 string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
 if (ONEDPL_ENABLE_SIMD)
-    # TODO: remove skipping of Intel® oneAPI DPC++ Compiler once it can handle such options.
-    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
+    if (CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
+        execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE VER)
+        string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" DPCPP_VER ${VER})
+    endif()
+    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$" OR NOT DPCPP_VER VERSION_LESS 2021.4)
         foreach(_simd_flag -fiopenmp-simd /Qiopenmp-simd -fopenmp-simd -qopenmp-simd /Qopenmp-simd -openmp:experimental -openmp-simd)
             string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
             check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
@@ -249,3 +253,12 @@ target_include_directories(oneDPL
 ###############################################################################
 enable_testing()
 add_subdirectory(test)
+
+###############################################################################
+# Installation instructions
+###############################################################################
+install(CODE "set(OUTPUT_DIR \"${CMAKE_INSTALL_FULL_LIBDIR}/cmake/oneDPL\")")
+install(CODE "set(SKIP_HEADERS_SUBDIR TRUE)")
+install(SCRIPT cmake/scripts/generate_config.cmake)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY licensing DESTINATION ${CMAKE_INSTALL_DOCDIR})

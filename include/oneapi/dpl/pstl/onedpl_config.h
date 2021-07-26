@@ -289,6 +289,11 @@
 #define _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY                                                                \
     (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)
 
+// some algorithms in <numeric> such as 'reduce' were added since libstdc++-9.3, we
+// have to provide our own implementation if legacy libstdc++ is in use.
+#define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL                                                                                \
+    (__GLIBCXX__ && (_GLIBCXX_RELEASE < 9 || (_GLIBCXX_RELEASE == 9 && __GLIBCXX__ < 20200312)))
+
 // Check the user-defined macro for parallel policies
 // define _ONEDPL_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
 #if !defined(_ONEDPL_BACKEND_SYCL)
@@ -330,5 +335,7 @@
 // shift_left, shift_right; GCC 10; VS 2019 16.1
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
     (__cplusplus >= 202002L && ((_GLIBCXX_RELEASE >= 10) || (_MSC_VER >= 1921)))
+
+#define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
 #endif /* _ONEDPL_CONFIG_H */

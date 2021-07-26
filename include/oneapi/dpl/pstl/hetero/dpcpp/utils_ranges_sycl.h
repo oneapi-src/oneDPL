@@ -22,6 +22,7 @@
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
+#include "sycl_defs.h"
 
 namespace oneapi
 {
@@ -42,7 +43,7 @@ class all_view
 
   public:
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
-        : m_acc(__buf, sycl::range<1>(__n > 0 ? __n : __buf.get_count()), __offset)
+        : m_acc(__buf, sycl::range<1>(__n > 0 ? __n : __dpl_sycl::__get_buffer_size(__buf)), __offset)
     {
     }
 
@@ -64,7 +65,7 @@ class all_view
     diff_type
     size() const
     {
-        return m_acc.get_count();
+        return __dpl_sycl::__get_accessor_size(m_acc);
     }
     bool
     empty() const
@@ -291,68 +292,17 @@ struct __buffer_holder
     }
 };
 
-template <typename _T>
-struct __buffer_wrap : public buf_type<_T>
-{
-    __buffer_wrap() : buf_type<_T>(0) {}
-
-    template <sycl::access::mode AccMode>
-    __buffer_wrap&
-    operator=(__buffer_holder<_T, AccMode> buf)
-    {
-        buf_type<_T>::operator=(buf.__buf);
-        return *this;
-    }
-};
-
-template <typename Iter>
-struct __iter_types
-{
-    //TODO: we cannot use "base()" because the same method is used for iterators of the standard STL containers.
-    using base_iter = Iter; //typename pipeline_base<Iter>::type;
-    using value_type = val_t<base_iter>;
-
-    //TODO: In case when a temporary buffer doesn't need we have to use a dummy type - "oneapi::dpl::internal::ignore_copyable, for example
-    //For zip_iterator it makes sense to "collapse" a tuple keeper order to have exact number of temporary buffers for lifetime extending.
-    using type = typename ::std::conditional<is_temp_buff<base_iter>::value, __buffer_wrap<value_type>,
-                                             oneapi::dpl::internal::ignore_copyable>::type;
-};
-
-template <typename... Iters>
-struct __iter_types<oneapi::dpl::zip_iterator<Iters...>>
-{
-    using type = oneapi::dpl::__internal::tuple<typename __iter_types<Iters>::type...>;
-};
-
-template <typename _Map, typename = void>
-struct __map_type
-{
-    using type = oneapi::dpl::internal::ignore_copyable;
-};
-
-template <typename _Map>
-struct __map_type<_Map, typename ::std::enable_if<is_map_iterator<_Map>::value>::type>
-{
-    using type = typename ::std::conditional<is_temp_buff<_Map>::value, __buffer_wrap<val_t<_Map>>,
-                                             oneapi::dpl::internal::ignore_copyable>::type;
-};
-
-template <typename _It, typename _Map>
-struct __iter_types<oneapi::dpl::permutation_iterator<_It, _Map>>
-{
-    using type1 = typename ::std::conditional<is_temp_buff<_It>::value, __buffer_wrap<val_t<_It>>,
-                                              oneapi::dpl::internal::ignore_copyable>::type;
-    using type2 = typename __map_type<_Map>::type;
-
-    using type = oneapi::dpl::__internal::tuple<type1, type2>;
-};
-
 template <sycl::access::mode AccMode, typename _Iterator>
 struct __get_sycl_range
 {
+    __get_sycl_range()
+    {
+        m_buffers.reserve(4); //4 - due to a number of arguments(host iterators) cannot be too big.
+    }
+
   private:
-    //We have to keep sycl buffer(s) instance here by sync reasons; see __iter_types definition above
-    typename __iter_types<_Iterator>::type m_keep;
+    //We have to keep sycl buffer(s) instance here by sync reasons;
+    ::std::vector<::std::shared_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
     template <typename _Iter>
     buf_type<val_t<_Iter>>
@@ -382,7 +332,7 @@ struct __get_sycl_range
 
     template <typename _F, typename _It, typename _DiffType>
     static auto
-    gen_view(_F __f, _It __it, _DiffType __n) -> decltype(__f(__it, __it + __n))
+    gen_view(_F& __f, _It __it, _DiffType __n) -> decltype(__f(__it, __it + __n))
     {
         return __f(__it, __it + __n);
     }
@@ -393,7 +343,6 @@ struct __get_sycl_range
         -> decltype(oneapi::dpl::__ranges::make_zip_view(gen_view(*this, ::std::get<_Ip>(__t), __n).all_view()...))
     {
         auto tmp = oneapi::dpl::__internal::make_tuple(gen_view(*this, ::std::get<_Ip>(__t), __n)...);
-        m_keep = tmp;
         return oneapi::dpl::__ranges::make_zip_view(::std::get<_Ip>(tmp).all_view()...);
     }
 
@@ -475,7 +424,8 @@ struct __get_sycl_range
             is_hetero_it<_It>::value,
             __range_holder<oneapi::dpl::__ranges::permutation_view_simple<
                 decltype(::std::declval<__get_sycl_range<AccMode, _Iterator>>()(
-                             __first.base(), __first.base() + __first.base().get_buffer().get_count())
+                             __first.base(),
+                             __first.base() + __dpl_sycl::__get_buffer_size(__first.base().get_buffer()))
                              .all_view()),
                 decltype(__get_all_view(__first.map(), ::std::declval<__get_sycl_range<AccMode, _Iterator>>()
                                                            .__get_it_map_view(__first.map(), __last - __first)))>>>::
@@ -484,7 +434,8 @@ struct __get_sycl_range
         auto __n = __last - __first;
         assert(__n > 0);
 
-        auto res_src = this->operator()(__first.base(), __first.base() + __first.base().get_buffer().get_count());
+        auto res_src = this->operator()(__first.base(),
+                                        __first.base() + __dpl_sycl::__get_buffer_size(__first.base().get_buffer()));
         auto res_idx = __get_it_map_view(__first.map(), __n);
 
         auto rng = oneapi::dpl::__ranges::permutation_view_simple<decltype(res_src.all_view()),
@@ -585,6 +536,10 @@ struct __get_sycl_range
 
         auto buf = copy_direct(__first, __last, copy_direct_tag());
         buf = copy_back(__first, buf, copy_back_tag());
+
+        auto __p_buf = ::std::shared_ptr<oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>>(
+            new oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>(buf));
+        m_buffers.push_back(__p_buf);
 
         return __buffer_holder<val_t<_Iter>, AccMode>{buf};
     }

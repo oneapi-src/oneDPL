@@ -50,8 +50,10 @@ using ::std::minus;
 using ::std::modulus;
 using ::std::multiplies;
 using ::std::negate;
+#if __cplusplus <= 201703L
 using ::std::not1;
 using ::std::not2;
+#endif
 using ::std::not_equal_to;
 using ::std::plus;
 using ::std::ref;

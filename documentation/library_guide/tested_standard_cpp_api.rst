@@ -43,13 +43,17 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL* de
       return 0;
   }
 
-Use the following command to build and run the program (assuming it resides in the ``kernel_swap.cpp file``)::
+Use the following command to build and run the program (assuming it resides in the ``kernel_swap.cpp file``)
 
-  dpcpp kernel_swap.cpp –o kernel_swap.exe
+.. code:: cpp
+
+  dpcpp kernel_swap.cpp -o kernel_swap.exe
 
   ./kernel_swap.exe
 
-The printed result is::
+The printed result is
+
+.. code:: cpp
 
   4, 5
 
@@ -314,6 +318,26 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::fdim``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::optional``                    Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::reduce``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::all_of``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::any_of``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::none_of``                     Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::count``                       Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::count_if``                    Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::for_each``                    Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::find``                        Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::find_if``                     Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::find_if_not``                 Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
