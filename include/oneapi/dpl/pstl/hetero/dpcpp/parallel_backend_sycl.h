@@ -20,11 +20,7 @@
 #include <CL/sycl.hpp>
 
 // Macros to check the new SYCL features
-#if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION)
-#    define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_MAJOR_VERSION >= 5 && __LIBSYCL_MINOR_VERSION >= 2)
-#else
-#    define _ONEDPL_KERNEL_BUNDLE_PRESENT 0
-#endif
+#define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
 
 #include <cassert>
 #include <algorithm>
