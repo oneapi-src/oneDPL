@@ -328,10 +328,12 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         // an accessor per work-group with value counters from each work-item
         auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, access_target::local>(
             __block_size * __radix_states, __hdl);
-
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
         __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL
-            __kernel,
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel,
 #endif
             sycl::nd_range<1>(__segments * __block_size, __block_size), [=](sycl::nd_item<1> __self_item) {
                 // item info
@@ -493,10 +495,12 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
         // access with values to reorder and reordered values
         oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
-
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
         __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL
-            __kernel,
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel,
 #endif
             sycl::nd_range<1>(__segments * __sg_size, __sg_size), [=](sycl::nd_item<1> __self_item) {
                 // item info
