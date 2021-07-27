@@ -29,6 +29,7 @@
 #include "internal/random_impl/uniform_real_distribution.h"
 #include "internal/random_impl/uniform_int_distribution.h"
 #include "internal/random_impl/normal_distribution.h"
+#include "internal/random_impl/exponential_distribution.h"
 
 namespace oneapi
 {

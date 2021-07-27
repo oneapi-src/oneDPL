@@ -36,7 +36,7 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::uniform_int_distribution<T>& distr)
 {
-    Element_type<T> a = static_cast<Element_type<T>>(0);
+    Element_type<T> a = Element_type<T>{0};
     Element_type<T> b = std::numeric_limits<Element_type<T>>::max();
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
@@ -46,8 +46,8 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::uniform_real_distribution<T>& distr)
 {
-    Element_type<T> a = static_cast<Element_type<T>>(0);
-    Element_type<T> b = static_cast<Element_type<T>>(1);
+    Element_type<T> a = Element_type<T>{0};
+    Element_type<T> b = Element_type<T>{1};
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
 }
@@ -56,12 +56,44 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::normal_distribution<T>& distr)
 {
-    Element_type<T> mean = static_cast<Element_type<T>>(0);
-    Element_type<T> stddev = static_cast<Element_type<T>>(1);
+    Element_type<T> mean = Element_type<T>{0};
+    Element_type<T> stddev = Element_type<T>{1};
     return ((distr.mean() != mean) || (distr.stddev() != stddev) ||
             (distr.min() > -std::numeric_limits<Element_type<T>>::max()) ||
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) ||
-            (distr.param().first != mean) || (distr.param().second != stddev));
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().first != mean) ||
+            (distr.param().second != stddev));
+}
+
+template <class T>
+std::int32_t
+check_params(oneapi::dpl::exponential_distribution<T>& distr)
+{
+    Element_type<T> lambda = Element_type<T>{1};
+    return ((distr.lambda() != lambda) || (distr.min() != 0) ||
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.param().lambda != lambda));
+}
+
+template <typename Distr>
+typename ::std::enable_if<::std::is_same<typename Distr::param_type,
+                                         ::std::pair<typename Distr::scalar_type, typename Distr::scalar_type>>::value,
+                          void>::type
+make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
+{
+    params1 =
+        ::std::make_pair(typename Distr::scalar_type{0}, typename Distr::scalar_type{10});
+    params2 =
+        ::std::make_pair(typename Distr::scalar_type{2}, typename Distr::scalar_type{8});
+}
+
+template <typename Distr>
+typename ::std::enable_if<!::std::is_same<typename Distr::param_type,
+                                          ::std::pair<typename Distr::scalar_type, typename Distr::scalar_type>>::value,
+                          void>::type
+make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
+{
+    params1 = typename Distr::scalar_type{1};
+    params2 = typename Distr::scalar_type{2};
 }
 
 template <class Distr>
@@ -83,10 +115,10 @@ test_vec()
         }
     };
 
-    typename Distr::param_type params1(static_cast<typename Distr::scalar_type>(0),
-                                       static_cast<typename Distr::scalar_type>(10));
-    typename Distr::param_type params2(static_cast<typename Distr::scalar_type>(2),
-                                       static_cast<typename Distr::scalar_type>(8));
+    typename Distr::param_type params1;
+    typename Distr::param_type params2;
+
+    make_param<Distr>(params1, params2);
 
     sycl::queue queue(sycl::default_selector{}, exception_handler);
     int sum = 0;
@@ -160,10 +192,10 @@ test()
         }
     };
 
-    typename Distr::param_type params1(static_cast<typename Distr::scalar_type>(0),
-                                       static_cast<typename Distr::scalar_type>(10));
-    typename Distr::param_type params2(static_cast<typename Distr::scalar_type>(2),
-                                       static_cast<typename Distr::scalar_type>(8));
+    typename Distr::param_type params1;
+    typename Distr::param_type params2;
+
+    make_param<Distr>(params1, params2);
 
     sycl::queue queue(sycl::default_selector{}, exception_handler);
     int sum = 0;
@@ -225,84 +257,112 @@ main()
     std::cout << "uniform_int_distribution<std::int32_t>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::uniform_int_distribution<std::int32_t>>();
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 16>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 8>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 4>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 3>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 2>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 1>>>();
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_int_distribution<std::uint32_t>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::uniform_int_distribution<std::uint32_t>>();
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 16>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 8>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 4>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 3>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 2>>>();
     err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 1>>>();
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_real_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::uniform_real_distribution<float>>();
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 8>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 4>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 3>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 2>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 1>>>();
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_real_distribution<double>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::uniform_real_distribution<double>>();
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 16>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 8>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 4>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 3>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 2>>>();
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 1>>>();
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "normal_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::normal_distribution<float>>();
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 3>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 1>>>();
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "normal_distribution<double>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::normal_distribution<double>>();
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 3>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>>();
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 1>>>();
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "exponential_distribution<float>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::exponential_distribution<float>>();
+#    if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 16>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 8>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 4>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 3>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 2>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 1>>>();
+#    endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "exponential_distribution<double>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::exponential_distribution<double>>();
+#    if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 16>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 8>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 4>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>>();
+    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>>();
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
