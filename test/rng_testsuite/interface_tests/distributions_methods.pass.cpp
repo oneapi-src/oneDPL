@@ -74,10 +74,28 @@ check_params(oneapi::dpl::exponential_distribution<T>& distr)
             (distr.param().lambda != lambda));
 }
 
+template <class T>
+std::int32_t
+check_params(oneapi::dpl::bernoulli_distribution<T>& distr)
+{
+    double p = 0.5;
+    return ((distr.p() != p) || (distr.min() != false) ||
+            (distr.max() != true) || (distr.param().p != p));
+}
+
+template <class T>
+std::int32_t
+check_params(oneapi::dpl::geometric_distribution<T>& distr)
+{
+    double p = 0.5;
+    return ((distr.p() != p) || (distr.min() != 0) ||
+            (distr.max()  < std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.param().p != p));
+}
+
 template <typename Distr>
 typename ::std::enable_if<::std::is_same<typename Distr::param_type,
-                                         ::std::pair<typename Distr::scalar_type, typename Distr::scalar_type>>::value,
-                          void>::type
+        ::std::pair<typename Distr::scalar_type, typename Distr::scalar_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 =
@@ -87,14 +105,25 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<!::std::is_same<typename Distr::param_type,
-                                          ::std::pair<typename Distr::scalar_type, typename Distr::scalar_type>>::value,
-                          void>::type
+typename ::std::enable_if<::std::is_same<Distr, 
+        oneapi::dpl::exponential_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
-    params1 = typename Distr::scalar_type{1};
-    params2 = typename Distr::scalar_type{2};
+    params1 = typename Distr::param_type{1.5};
+    params2 = typename Distr::param_type{3.0};
 }
+
+template <typename Distr>
+typename ::std::enable_if<::std::is_same<Distr, 
+             oneapi::dpl::bernoulli_distribution<typename Distr::result_type>>::value ||
+             ::std::is_same<Distr, oneapi::dpl::geometric_distribution<typename Distr::result_type>>
+             ::value, void>::type
+make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
+{
+    params1 = typename Distr::param_type{0.5};
+    params2 = typename Distr::param_type{0.1};
+}
+
 
 template <class Distr>
 bool
@@ -124,7 +153,7 @@ test_vec()
     int sum = 0;
 
     // Memory allocation
-    std::vector<typename Distr::scalar_type> dpstd_res(N_GEN);
+    typename Distr::scalar_type res[N_GEN];
     constexpr std::int32_t num_elems =
         oneapi::dpl::internal::type_traits_t<typename Distr::result_type>::num_elems == 0
             ? 1
@@ -132,13 +161,13 @@ test_vec()
 
     // Random number generation
     {
-        sycl::buffer<typename Distr::scalar_type> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+        sycl::buffer<typename Distr::scalar_type> buffer(res, N_GEN);
 
         try
         {
 
             queue.submit([&](sycl::handler& cgh) {
-                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+                auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
 
                 cgh.parallel_for<>(sycl::range<1>(N_GEN / (2 * num_elems)), [=](sycl::item<1> idx) {
                     unsigned long long offset = idx.get_linear_id() * num_elems;
@@ -151,8 +180,8 @@ test_vec()
                     typename Distr::result_type res1 = d1(engine, params1, 1);
                     for (int i = 0; i < num_elems; ++i)
                     {
-                        dpstd_acc[offset * 2 + i] = res0[i];
-                        dpstd_acc[offset * 2 + num_elems + i] = res1[i];
+                        acc[offset * 2 + i] = res0[i];
+                        acc[offset * 2 + num_elems + i] = res1[i];
                     }
                 });
             });
@@ -201,17 +230,16 @@ test()
     int sum = 0;
 
     // Memory allocation
-    std::vector<typename Distr::scalar_type> dpstd_res(N_GEN);
+    typename Distr::scalar_type res[N_GEN];
 
     // Random number generation
     {
-        sycl::buffer<typename Distr::scalar_type> dpstd_buffer(dpstd_res.data(), dpstd_res.size());
+        sycl::buffer<typename Distr::scalar_type> buffer(res, N_GEN);
 
         try
         {
-
             queue.submit([&](sycl::handler& cgh) {
-                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>(cgh);
+                auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
 
                 cgh.parallel_for<>(sycl::range<1>(N_GEN / 2), [=](sycl::item<1> idx) {
                     unsigned long long offset = idx.get_linear_id();
@@ -222,8 +250,8 @@ test()
                     d2.reset();
                     typename Distr::scalar_type res0 = d1(engine, params2);
                     typename Distr::scalar_type res1 = d1(engine, params1);
-                    dpstd_acc[offset * 2] = res0;
-                    dpstd_acc[offset * 2 + 1] = res1;
+                    acc[offset * 2] = res0;
+                    acc[offset * 2 + 1] = res1;
                 });
             });
         }
@@ -362,6 +390,48 @@ main()
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>>();
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>>();
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>>();
+#    endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "bernoulli_distribution<bool>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::bernoulli_distribution<bool>>();
+#    if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 16>>>();
+    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 8>>>();
+    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 4>>>();
+    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 3>>>();
+    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 2>>>();
+    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 1>>>();
+#    endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "geometric_distribution<std::int32_t>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::geometric_distribution<std::int32_t>>();
+#    if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>>();
+#    endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "geometric_distribution<std::uint32_t>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::geometric_distribution<std::uint32_t>>();
+#    if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 16>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 8>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 4>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 3>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 2>>>();
+    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 1>>>();
 #    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
