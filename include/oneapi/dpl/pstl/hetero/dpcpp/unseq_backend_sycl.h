@@ -155,11 +155,17 @@ struct reduce
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __group_size = __item_id.get_local_range().size();
+        const auto& __wgroup = __item_id.get_group();
 
         auto __k = 1;
+
         do
         {
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+            sycl::group_barrier(__wgroup);
+#else
             __item_id.barrier(sycl::access::fence_space::local_space);
+#endif
             if (__local_idx % (2 * __k) == 0 && __local_idx + __k < __group_size && __global_idx < __n &&
                 __global_idx + __k < __n)
             {
@@ -543,16 +549,26 @@ struct __scan
             // 1:      01010101    11110000
             // 2:      00010001    11000000
             // 3:      00000001    10000000
+            const auto& __wgroup = __item.get_group();
             do
             {
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+                sycl::group_barrier(__wgroup);
+#else
                 __item.barrier(sycl::access::fence_space::local_space);
+#endif
+
                 if (__adjusted_global_id < __n && __local_id % (2 * __k) == 2 * __k - 1)
                 {
                     __local_acc[__local_id] = __bin_op(__local_acc[__local_id - __k], __local_acc[__local_id]);
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+            sycl::group_barrier(__wgroup);
+#else
             __item.barrier(sycl::access::fence_space::local_space);
+#endif
 
             // 2. scan
             auto __partial_sums = __local_acc[__local_id];
@@ -568,9 +584,19 @@ struct __scan
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+            sycl::group_barrier(__wgroup);
+#else
             __item.barrier(sycl::access::fence_space::local_space);
+#endif
+
             __local_acc[__local_id] = __partial_sums;
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+            sycl::group_barrier(__wgroup);
+#else
             __item.barrier(sycl::access::fence_space::local_space);
+#endif
+
             __adder = __local_acc[__wgroup_size - 1];
 
             if (__adjusted_global_id + __shift < __n)
@@ -616,8 +642,20 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
             // for each work-item in sub-group
             __local_mem[__local_id] = 0;
         }
+        const auto& __wgroup = __item.get_group();
+#    if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+        sycl::group_barrier(__wgroup);
+#    else
         __item.barrier(sycl::access::fence_space::local_space);
-        return sycl::ONEAPI::reduce(__item.get_group(), __local_mem[__local_id], sycl::ONEAPI::plus<_Tp>());
+#    endif
+
+        return
+#    if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+            sycl::reduce_over_group(
+#    else
+            sycl::ONEAPI::reduce(
+#    endif
+                __wgroup, __local_mem[__local_id], sycl::ONEAPI::plus<_Tp>());
     }
 };
 
@@ -667,8 +705,20 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
             else if (__adjusted_global_id == 0)
                 __use_init(__init, __old_value, __bin_op);
 
-            __local_acc[__local_id] = sycl::ONEAPI::inclusive_scan(__item.get_group(), __old_value, __bin_op);
+            const auto& __wgroup = __item.get_group();
+            __local_acc[__local_id] =
+#    if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+                sycl::reduce_over_group(
+#    else
+                sycl::ONEAPI::reduce(
+#    endif
+                    __wgroup, __old_value, __bin_op);
+
+#    if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+            sycl::group_barrier(__wgroup);
+#    else
             __item.barrier(sycl::access::fence_space::local_space);
+#    endif
 
             __adder = __local_acc[__wgroup_size - 1];
 

@@ -351,7 +351,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                         // TODO: check the approach when we use grainsize here too
                         if (__global_idx < __n_items)
                             __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+                        sycl::group_barrier(__item_id.get_group());
+#else
                         __item_id.barrier(sycl::access::fence_space::local_space);
+#endif
                     }
                     // 2. Reduce within work group using local memory
                     _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
@@ -690,13 +694,21 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                     // 1. Set initial value to local atomic
                     if (__local_idx == 0)
                         __found_local.store(__init_value);
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+                    sycl::group<1> __wgroup = __item_id.get_group();
+                    sycl::group_barrier(__wgroup);
+#else
                     __item_id.barrier(sycl::access::fence_space::local_space);
+#endif
 
                     // 2. Find any element that satisfies pred and set local atomic value to global atomic
                     constexpr auto __comp = typename _BrickTag::_Compare{};
                     __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
+#if _ONEDPL_SYCL2020_BARRIERS_PRESENT
+                    sycl::group_barrier(__wgroup);
+#else
                     __item_id.barrier(sycl::access::fence_space::local_space);
-
+#endif
                     // Set local atomic value to global atomic
                     if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
                     {

@@ -31,6 +31,15 @@
 #    define __LIBSYCL_VERSION 0
 #endif
 
+#if __LIBSYCL_VERSION >= 50300
+#    define _ONEDPL_SYCL_SIZE size()
+#else
+#    define _ONEDPL_SYCL_SIZE get_count()
+#endif
+
+#define _ONEDPL_SYCL2020_BARRIERS_PRESENT (__LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
+
 namespace oneapi
 {
 namespace dpl

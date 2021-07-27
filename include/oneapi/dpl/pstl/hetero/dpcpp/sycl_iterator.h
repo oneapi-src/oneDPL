@@ -144,7 +144,7 @@ __internal::sycl_iterator<access_mode::read_write, T, Allocator> begin(sycl::buf
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 {
-    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, buf._ONEDPL_SYCL_SIZE};
 }
 
 // begin
@@ -184,7 +184,7 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>)
 {
-    return __internal::sycl_iterator<Mode, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<Mode, T, Allocator>{buf, buf._ONEDPL_SYCL_SIZE};
 }
 
 template <typename T, typename Allocator, access_mode Mode>
@@ -196,7 +196,8 @@ __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocato
         sycl::property::noinit)
 #endif
 {
-    return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf,
+                                                                                              buf._ONEDPL_SYCL_SIZE};
 }
 
 template <typename T, typename Allocator>
@@ -207,7 +208,7 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
                                                                              sycl::property::noinit)
 #endif
 {
-    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, buf._ONEDPL_SYCL_SIZE};
 }
 } // namespace dpl
 } // namespace oneapi
