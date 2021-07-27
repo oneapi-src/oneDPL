@@ -330,7 +330,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_ReduceKernel>(
@@ -433,7 +433,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::discard_write>(__cgh);
         sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
             __wgroup_size, __cgh);
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
 #endif
         __cgh.parallel_for<_LocalScanKernel>(
@@ -455,7 +455,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
                 __wgroup_size, __cgh);
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_GlobalScanKernel>(
@@ -669,7 +669,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
 
             // create local accessor to connect atomic with
             sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_FindOrKernel>(
