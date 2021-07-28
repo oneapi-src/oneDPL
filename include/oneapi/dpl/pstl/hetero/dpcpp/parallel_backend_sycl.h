@@ -19,6 +19,9 @@
 
 #include <CL/sycl.hpp>
 
+// Macros to check the new SYCL features
+#define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
+
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
@@ -184,7 +187,7 @@ class __kernel_name_base
     static sycl::kernel
     __compile_kernel(_Exec&& __exec)
     {
-#if 0 //_ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
         auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__exec.queue().get_context());
         return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
 #else
@@ -327,8 +330,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
             __cgh.parallel_for<_ReduceKernel>(
-#if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel,
 #endif
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
@@ -427,9 +433,11 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         auto __wg_sums_acc = __wg_sums.template get_access<access_mode::discard_write>(__cgh);
         sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
             __wgroup_size, __cgh);
-
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
+#endif
         __cgh.parallel_for<_LocalScanKernel>(
-#if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel_1,
 #endif
             sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
@@ -447,9 +455,11 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
                 __wgroup_size, __cgh);
-
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
+#endif
             __cgh.parallel_for<_GlobalScanKernel>(
-#if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel_2,
 #endif
                 // TODO: try to balance work between several workgroups instead of one
@@ -659,8 +669,11 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
 
             // create local accessor to connect atomic with
             sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
             __cgh.parallel_for<_FindOrKernel>(
-#if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel,
 #endif
                 sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
