@@ -64,14 +64,14 @@ __group_barrier(_Item _item,
 #if __LIBSYCL_VERSION >= 50300
     sycl::memory_scope _fence_scope = sycl::memory_scope::work_group
 #else
-    sycl::access::fence_space _fence_scope = sycl:access::fence_space::local_space
+    sycl::access::fence_space _fence_scope = sycl::access::fence_space::local_space
 #endif
 )
 {
 #if __LIBSYCL_VERSION >= 50300
     sycl::group_barrier(_item.get_group(), _fence_scope);
 #else
-    item.barrier(_fence_scope);
+    _item.barrier(_fence_scope);
 #endif
 }
 
