@@ -602,9 +602,9 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
 
     // correct __block_size according to local memory limit in count phase
-    const auto __max_allocation_size =
-        oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, typename __decay_t<_TmpBuf>::value_type>(
-            ::std::forward<_ExecutionPolicy>(__exec), __block_size * __radix_states);
+    const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size(
+        ::std::forward<_ExecutionPolicy>(__exec), sizeof(typename __decay_t<_TmpBuf>::value_type),
+        __block_size * __radix_states);
     __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
 
     // TODO: block size must be power of 2 and more than number of states. Check how to get rid of that restriction.
