@@ -23,23 +23,6 @@
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
 
-// Combine SYCL runtime library version
-#if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
-#    define __LIBSYCL_VERSION                                                                                          \
-        (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
-#else
-#    define __LIBSYCL_VERSION 0
-#endif
-
-#if __LIBSYCL_VERSION >= 50300
-#    define _ONEDPL_SYCL_SIZE size()
-#else
-#    define _ONEDPL_SYCL_SIZE get_count()
-#endif
-
-#define _ONEDPL_SYCL2020_BARRIERS_PRESENT (__LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
-
 namespace oneapi
 {
 namespace dpl

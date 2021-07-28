@@ -22,6 +22,7 @@
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
+#include "utils_sycl.h"
 
 namespace oneapi
 {
@@ -42,7 +43,8 @@ class all_view
 
   public:
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
-        : m_acc(__buf, sycl::range<1>(__n > 0 ? __n : __buf._ONEDPL_SYCL_SIZE), __offset)
+        : m_acc(__buf, sycl::range<1>(__n > 0 ? __n : oneapi::dpl::__par_backend_hetero::__get_buffer_size(__buf)),
+                __offset)
     {
     }
 
@@ -64,7 +66,7 @@ class all_view
     diff_type
     size() const
     {
-        return m_acc._ONEDPL_SYCL_SIZE;
+        return oneapi::dpl::__par_backend_hetero::__get_accessor_size(m_acc);
     }
     bool
     empty() const
@@ -475,7 +477,8 @@ struct __get_sycl_range
             is_hetero_it<_It>::value,
             __range_holder<oneapi::dpl::__ranges::permutation_view_simple<
                 decltype(::std::declval<__get_sycl_range<AccMode, _Iterator>>()(
-                             __first.base(), __first.base() + __first.base().get_buffer()._ONEDPL_SYCL_SIZE)
+                             __first.base(), __first.base() + oneapi::dpl::__par_backend_hetero::__get_buffer_size(
+                                                                  __first.base().get_buffer()))
                              .all_view()),
                 decltype(__get_all_view(__first.map(), ::std::declval<__get_sycl_range<AccMode, _Iterator>>()
                                                            .__get_it_map_view(__first.map(), __last - __first)))>>>::
@@ -484,7 +487,9 @@ struct __get_sycl_range
         auto __n = __last - __first;
         assert(__n > 0);
 
-        auto res_src = this->operator()(__first.base(), __first.base() + __first.base().get_buffer()._ONEDPL_SYCL_SIZE);
+        auto res_src = this->operator()(
+            __first.base(),
+            __first.base() + oneapi::dpl::__par_backend_hetero::__get_buffer_size(__first.base().get_buffer()));
         auto res_idx = __get_it_map_view(__first.map(), __n);
 
         auto rng = oneapi::dpl::__ranges::permutation_view_simple<decltype(res_src.all_view()),
