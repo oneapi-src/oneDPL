@@ -52,11 +52,11 @@ main()
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);
-    test(oneapi::dpl::begin(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), oneapi::dpl::end(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), data_ptr, size);
-#if _ONEDPL_NO_INIT_PRESENT
-    test(oneapi::dpl::begin(buf, sycl::property::no_init{}), oneapi::dpl::end(buf, sycl::property::no_init{}), data_ptr, size);
+    test(oneapi::dpl::begin(buf, sycl::write_only, no_init()), oneapi::dpl::end(buf, sycl::write_only, no_init()), data_ptr, size);
+#if __cplusplus >= 201703L
+    test(oneapi::dpl::begin(buf, no_init_predefined()), oneapi::dpl::end(buf, no_init_predefined()), data_ptr, size);
 #else
-    test(oneapi::dpl::begin(buf, sycl::property::noinit{}), oneapi::dpl::end(buf, sycl::property::noinit{}), data_ptr, size);
+    test(oneapi::dpl::begin(buf, no_init()), oneapi::dpl::end(buf, no_init()), data_ptr, size);
 #endif
 
 #endif
