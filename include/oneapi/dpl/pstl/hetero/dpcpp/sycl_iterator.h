@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_sycl_iterator_H
 #define _ONEDPL_sycl_iterator_H
 
-#include <CL/sycl.hpp>
+#include "utils_sycl.h"
 
 #include <iterator>
 #include "../../onedpl_config.h"

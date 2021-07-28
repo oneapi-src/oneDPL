@@ -17,7 +17,7 @@
 #ifndef _ONEDPL_parallel_backend_sycl_fpga_H
 #define _ONEDPL_parallel_backend_sycl_fpga_H
 
-#include <CL/sycl.hpp>
+#include "utils_sycl.h"
 
 #include <cassert>
 #include <algorithm>

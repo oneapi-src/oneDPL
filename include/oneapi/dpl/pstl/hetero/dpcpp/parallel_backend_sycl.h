@@ -17,7 +17,7 @@
 #ifndef _ONEDPL_parallel_backend_sycl_H
 #define _ONEDPL_parallel_backend_sycl_H
 
-#include <CL/sycl.hpp>
+#include "utils_sycl.h"
 
 // Macros to check the new SYCL features
 #define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)

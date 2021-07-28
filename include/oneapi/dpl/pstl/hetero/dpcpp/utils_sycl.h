@@ -13,6 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This file contains SYCL specific macros and abstractions
+// to support different versions of SYCL and to simplify its interfaces
+//
+// Include this header instead of sycl.hpp throughout the project
+
 #ifndef _ONEDPL_utils_sycl_H
 #define _ONEDPL_utils_sycl_H
 

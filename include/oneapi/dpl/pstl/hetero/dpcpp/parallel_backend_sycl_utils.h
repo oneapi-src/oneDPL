@@ -17,7 +17,7 @@
 #define _ONEDPL_parallel_backend_sycl_utils_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
-#include <CL/sycl.hpp>
+#include "utils_sycl.h"
 #include <type_traits>
 #include "../../iterator_impl.h"
 #include "sycl_iterator.h"
