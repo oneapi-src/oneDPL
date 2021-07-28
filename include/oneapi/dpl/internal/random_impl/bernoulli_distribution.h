@@ -153,10 +153,10 @@ class bernoulli_distribution
     {
         oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
         sycl::vec<double, __N> __u = __distr(__engine);
-        sycl::vec<long, __N> __res_long = __u < sycl::vec<double, __N>{__params.p};
+        sycl::vec<int64_t, __N> __res_int64 = __u < sycl::vec<double, __N>{__params.p};
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = static_cast<bool>(__res_long[i]);
+            __res[i] = static_cast<bool>(__res_int64[i]);
         return __res;
     }
 
@@ -181,7 +181,7 @@ class bernoulli_distribution
         if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
-            return operator()(__engine);
+            return operator()(__engine, __params);
 
         __part_vec = generate_n_elems(__engine, __params, __N);
         return __part_vec;

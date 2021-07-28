@@ -386,7 +386,7 @@ class normal_distribution
         if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
-            return operator()(__engine);
+            return operator()(__engine, __params);
 
         __part_vec = generate_n_elems(__engine, __params, __N);
         return __part_vec;

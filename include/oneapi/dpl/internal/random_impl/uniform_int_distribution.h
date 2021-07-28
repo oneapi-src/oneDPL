@@ -170,7 +170,7 @@ class uniform_int_distribution
         if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
-            return operator()(__engine);
+            return operator()(__engine, __params);
 
         RealType __res =
             uniform_real_distribution_(__engine,

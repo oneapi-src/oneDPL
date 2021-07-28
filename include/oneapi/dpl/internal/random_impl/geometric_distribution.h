@@ -155,8 +155,9 @@ class geometric_distribution
         sycl::vec<double, __N> __u = __distr(__engine);
 
         sycl::vec<double, __N> __res_double = sycl::floor(sycl::log(1.0 - __u) / sycl::log(1.0 - __params.p));
-
-        result_type __res = __res_double.template convert<scalar_type>();
+        result_type __res;
+        for (int i = 0; i < __N; ++i)
+            __res[i] = static_cast<scalar_type>(__res_double[i]);
         return __res;
     }
 
@@ -167,8 +168,9 @@ class geometric_distribution
     {
         result_type __res;
         oneapi::dpl::uniform_real_distribution<double> __u;
+        double __tmp = sycl::log(1.0 - __params.p);
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::floor(sycl::log(1.0 - __u(__engine)) / sycl::log(1.0 - __params.p));
+            __res[i] = sycl::floor(sycl::log(1.0 - __u(__engine)) / __tmp);
         return __res;
     }
 
@@ -181,7 +183,7 @@ class geometric_distribution
         if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
-            return operator()(__engine);
+            return operator()(__engine, __params);
 
         __part_vec = generate_n_elems(__engine, __params, __N);
         return __part_vec;
