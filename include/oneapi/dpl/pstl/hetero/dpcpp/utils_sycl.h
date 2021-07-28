@@ -67,9 +67,9 @@ template <typename _Item>
 void
 __group_barrier(_Item _item,
 #if __LIBSYCL_VERSION >= 50300
-    sycl::memory_scope _fence_scope = sycl::memory_scope::work_group
+                sycl::memory_scope _fence_scope = sycl::memory_scope::work_group
 #else
-    sycl::access::fence_space _fence_scope = sycl::access::fence_space::local_space
+                sycl::access::fence_space _fence_scope = sycl::access::fence_space::local_space
 #endif
 )
 {
@@ -83,7 +83,8 @@ __group_barrier(_Item _item,
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
 
 template <typename _Group, typename _T>
-_T __group_broadcast(_Group _g, _T _val, ::std::size_t _local_id)
+_T
+__group_broadcast(_Group _g, _T _val, ::std::size_t _local_id)
 {
     return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -91,12 +92,12 @@ _T __group_broadcast(_Group _g, _T _val, ::std::size_t _local_id)
 #else
         sycl::ONEAPI::broadcast(
 #endif
-        _g, _val, _local_id);
+            _g, _val, _local_id);
 }
 
-
 template <typename _Group, typename _T, typename _BinaryOp>
-_T __exclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
+_T
+__exclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
 {
     return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -108,7 +109,8 @@ _T __exclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
 }
 
 template <typename _Group, typename _T, typename _BinaryOp>
-_T __inclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
+_T
+__inclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
 {
     return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -120,7 +122,8 @@ _T __inclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
 }
 
 template <typename _Group, typename _T, typename _BinaryOp>
-_T __reduce_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
+_T
+__reduce_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
 {
     return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -132,7 +135,8 @@ _T __reduce_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
 }
 
 template <typename _Group, typename _InPtr, typename _OutPtr, typename _T, typename _BinaryOp>
-_OutPtr __joint_exclusive_scan(_Group _g, _InPtr _first, _InPtr _last, _OutPtr _result, _T _init, _BinaryOp _binary_op)
+_OutPtr
+__joint_exclusive_scan(_Group _g, _InPtr _first, _InPtr _last, _OutPtr _result, _T _init, _BinaryOp _binary_op)
 {
     return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -143,8 +147,8 @@ _OutPtr __joint_exclusive_scan(_Group _g, _InPtr _first, _InPtr _last, _OutPtr _
             _g, _first, _last, _result, _init, _binary_op);
 }
 
-} // oneapi
-} // dpl
-} // __par_backend_hetero
+} // namespace __par_backend_hetero
+} // namespace dpl
+} // namespace oneapi
 
 #endif /* _ONEDPL_utils_sycl_H */
