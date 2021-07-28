@@ -320,9 +320,34 @@ template <typename T, typename TestName>
 void
 test4buffers()
 {
-    const sycl::queue& queue = my_queue; // usm requires queue
+    {
+        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        {
+        // create buffers
+        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
+        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
+        sycl::buffer<T, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
+        sycl::buffer<T, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
+
+        // create sycl iterators
+        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
+        auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
+        auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
+        auto inout4_offset_first = oneapi::dpl::begin(inout4) + inout4_offset;
+
+#if _ONEDPL_DEBUG_SYCL
+            ::std::cout << "n = " << n << ::std::endl;
+#endif
+            invoke_on_all_hetero_policies<1>()(
+                TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
+                inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
+        }
+    }
+
 #if _PSTL_SYCL_TEST_USM
     {
+        const sycl::queue& queue = my_queue; // usm requires queue
+
         // Allocate space for data using USM.
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
         ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
@@ -354,29 +379,6 @@ test4buffers()
         }
     }
 #endif
-    {
-        // create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
-        sycl::buffer<T, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
-        sycl::buffer<T, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
-
-        // create sycl iterators
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
-        auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
-        auto inout4_offset_first = oneapi::dpl::begin(inout4) + inout4_offset;
-
-        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-        {
-#if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
-#endif
-            invoke_on_all_hetero_policies<1>()(
-                TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
-                inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
-        }
-    }
 }
 
     // use the function carefully due to temporary accessor creation.

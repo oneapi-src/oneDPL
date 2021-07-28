@@ -37,28 +37,24 @@ struct test_reduce_by_segment
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, ..., 0 };
         //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, ..., 0 };
-        for (int i = 0; i<n - 1; i> 3 ? i += 2 : ++i, ++host_keys, ++host_vals, ++host_key_res, ++host_val_res)
+        for (int i = 0; i<n - 1; i> 3 ? i += 2 : ++i)
         {
-            *host_keys = i % 4 + 1;
-            *host_vals = i % 4 + 1;
-            *host_key_res = 9;
-            *host_val_res = 1;
+            host_keys[i] = i % 4 + 1;
+            host_vals[i] = i % 4 + 1;
+            host_key_res[i] = 9;
+            host_val_res[i] = 1;
             if ((i > 3) && (i + 1 < n - 1))
             {
-                auto tmp = *host_keys;
-                ++host_keys;
-                *host_keys = tmp;
-                tmp = *host_vals;
-                ++host_vals;
-                *host_vals = tmp;
-                ++host_key_res;
-                ++host_val_res;
-                *host_key_res = 9;
-                *host_val_res = 1;
+                auto tmp = host_keys[i];
+                host_keys[i+1] = tmp;
+                tmp = host_vals[i];
+                host_vals[i+1] = tmp;
+                host_key_res[i+1] = 9;
+                host_val_res[i+1] = 1;
             }
         }
-        *host_keys = 0;
-        *host_vals = 0;
+        host_keys[n-1] = 0;
+        host_vals[n-1] = 0;
     }
 
     template <typename Iterator1, typename Iterator2, typename Size>
@@ -110,10 +106,10 @@ struct test_reduce_by_segment
 
         // call algorithm with no optional arguments
         {
-            auto host_keys = get_host_pointer(keys_first);
-            auto host_vals = get_host_pointer(vals_first);
-            auto host_key_res = get_host_pointer(key_res_first);
-            auto host_val_res = get_host_pointer(val_res_first);
+            auto host_keys = get_host_access(keys_first);
+            auto host_vals = get_host_access(vals_first);
+            auto host_key_res = get_host_access(key_res_first);
+            auto host_val_res = get_host_access(val_res_first);
 
             initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
         }
@@ -121,21 +117,21 @@ struct test_reduce_by_segment
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 =
             oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-        exec.queue().wait_and_throw();
+        new_policy.queue().wait_and_throw();
         Size result_size = std::distance(key_res_first, res1.first);
 
         {
-            auto host_key_res = get_host_pointer(key_res_first);
-            auto host_val_res = get_host_pointer(val_res_first);
+            auto host_key_res = get_host_access(key_res_first);
+            auto host_val_res = get_host_access(val_res_first);
             check_values(host_key_res, host_val_res, result_size);
         }
 
         // call algorithm with equality comparator
         {
-            auto host_keys = get_host_pointer(keys_first);
-            auto host_vals = get_host_pointer(vals_first);
-            auto host_key_res = get_host_pointer(key_res_first);
-            auto host_val_res = get_host_pointer(val_res_first);
+            auto host_keys = get_host_access(keys_first);
+            auto host_vals = get_host_access(vals_first);
+            auto host_key_res = get_host_access(key_res_first);
+            auto host_val_res = get_host_access(val_res_first);
 
             initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
         }
@@ -143,12 +139,12 @@ struct test_reduce_by_segment
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, ::std::equal_to<KeyT>());
-        exec.queue().wait_and_throw();
+        new_policy2.queue().wait_and_throw();
         result_size = std::distance(key_res_first, res2.first);
 
         {
-            auto host_key_res = get_host_pointer(key_res_first);
-            auto host_val_res = get_host_pointer(val_res_first);
+            auto host_key_res = get_host_access(key_res_first);
+            auto host_val_res = get_host_access(val_res_first);
             check_values(host_key_res, host_val_res, result_size);
         }
 
@@ -165,12 +161,14 @@ struct test_reduce_by_segment
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, ::std::equal_to<KeyT>(), ::std::plus<ValT>());
-        exec.queue().wait_and_throw();
+        new_policy3.queue().wait_and_throw();
         result_size = std::distance(key_res_first, res3.first);
 
-        auto host_key_res = get_host_pointer(key_res_first);
-        auto host_val_res = get_host_pointer(val_res_first);
-        check_values(host_key_res, host_val_res, result_size);
+        {
+          auto host_key_res = get_host_access(key_res_first);
+          auto host_val_res = get_host_access(val_res_first);
+          check_values(host_key_res, host_val_res, result_size);
+        }
     }
 #endif
 
