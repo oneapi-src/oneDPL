@@ -39,8 +39,6 @@
 #define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
 
-inline namespace __internal
-{
 namespace __sycl
 {
 
@@ -133,6 +131,5 @@ __joint_exclusive_scan(_Args... __args)
 }
 
 } // namespace __sycl
-} // namespace __internal
 
 #endif /* _ONEDPL_sycl_defs_H */

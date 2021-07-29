@@ -37,13 +37,13 @@ namespace TestUtils
 {
 
 #if __cplusplus >= 201703L
-#   if TEST_NO_INIT_PRESENT
+#   if _ONEDPL_NO_INIT_PRESENT
 #       define _ONEDPL_SYCL_NOINIT sycl::no_init
 #   else
 #       define _ONEDPL_SYCL_NOINIT sycl::noinit
 #   endif
 #else
-#   if TEST_NO_INIT_PRESENT
+#   if _ONEDPL_NO_INIT_PRESENT
 #       define _ONEDPL_SYCL_NOINIT sycl::property::no_init{}
 #   else
 #       define _ONEDPL_SYCL_NOINIT sycl::property::noinit{}
