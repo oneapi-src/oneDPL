@@ -363,12 +363,12 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 const ::std::uint32_t __count_start_idx = __radix_states * __self_lidx;
                 for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
                     __count_lacc[__count_start_idx + __radix_state_idx] = __count_arr[__radix_state_idx];
-                oneapi::dpl::__par_backend_hetero::__group_barrier(__self_item);
+                __sycl::__group_barrier(__self_item);
 
                 // 2.1. count per wgroup: reduce till __count_lacc[] size > __block_size (all threads work)
                 for (::std::uint32_t __i = 1; __i < __radix_states; ++__i)
                     __count_lacc[__self_lidx] += __count_lacc[__block_size * __i + __self_lidx];
-                oneapi::dpl::__par_backend_hetero::__group_barrier(__self_item);
+                __sycl::__group_barrier(__self_item);
 
                 // 2.2. count per wgroup: reduce until __count_lacc[] size > __radix_states (threads /= 2 per iteration)
                 for (::std::uint32_t __active_ths = __block_size >> 1; __active_ths >= __radix_states;
@@ -376,7 +376,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 {
                     if (__self_lidx < __active_ths)
                         __count_lacc[__self_lidx] += __count_lacc[__active_ths + __self_lidx];
-                    oneapi::dpl::__par_backend_hetero::__group_barrier(__self_item);
+                    __sycl::__group_barrier(__self_item);
                 }
 
                 // 2.3. count per wgroup: write local count array to global count array
@@ -414,8 +414,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
     __scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
 
     const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
-    const ::std::size_t __global_scan_begin =
-        oneapi::dpl::__par_backend_hetero::__get_buffer_size(__count_buf) - __radix_states;
+    const ::std::size_t __global_scan_begin = __sycl::__get_buffer_size(__count_buf) - __radix_states;
 
     // 1. Local scan: produces local offsets using count values
     sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
@@ -427,9 +426,8 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                 // find borders of a region with a specific bucket id
                 sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
                 // TODO: consider another approach with use of local memory
-                oneapi::dpl::__par_backend_hetero::__joint_exclusive_scan(__self_item.get_group(), __begin,
-                                                                          __begin + __scan_size, __begin, _CountT(0),
-                                                                          sycl::ONEAPI::plus<_CountT>{});
+                __sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
+                                               _CountT(0), sycl::ONEAPI::plus<_CountT>{});
             });
     });
 
@@ -445,7 +443,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                 ::std::size_t __last_segment_bucket_idx = (__self_lidx + 1) * __scan_size - 1;
 
                 // copy buckets from the last segment, scan them to get global offsets
-                __count_rng[__global_offset_idx] = oneapi::dpl::__par_backend_hetero::__exclusive_scan_over_group(
+                __count_rng[__global_offset_idx] = __sycl::__exclusive_scan_over_group(
                     __self_item.get_group(), __count_rng[__last_segment_bucket_idx], sycl::ONEAPI::plus<_CountT>{});
             });
     });
@@ -545,14 +543,13 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     {
                         ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
                         const auto& __sgroup = __self_item.get_sub_group();
-                        ::std::uint32_t __sg_item_offset =
-                            oneapi::dpl::__par_backend_hetero::__exclusive_scan_over_group(
-                                __sgroup, __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
+                        ::std::uint32_t __sg_item_offset = __sycl::__exclusive_scan_over_group(
+                            __sgroup, __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
 
                         __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
                         // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
-                        ::std::uint32_t __sg_total_offset = oneapi::dpl::__par_backend_hetero::__group_broadcast(
-                            __sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
+                        ::std::uint32_t __sg_total_offset =
+                            __sycl::__group_broadcast(__sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
                         __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                     }

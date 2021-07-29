@@ -31,124 +31,102 @@
 #    define __LIBSYCL_VERSION 0
 #endif
 
-namespace oneapi
+#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
+
+inline namespace __internal
 {
-namespace dpl
-{
-namespace __par_backend_hetero
+namespace __sycl
 {
 
-template <typename _T, int _Dim, typename _AllocT>
-::std::size_t
-__get_buffer_size(const sycl::buffer<_T, _Dim, _AllocT>& __buffer)
+template <typename _Buffer>
+auto
+__get_buffer_size(const _Buffer& __buffer)
 {
-    return
 #if __LIBSYCL_VERSION >= 50300
-        __buffer.size();
+    return __buffer.size();
 #else
-        __buffer.get_count();
+    return __buffer.get_count();
 #endif
 }
 
-template <typename _T, int _Dim, sycl::access::mode _AccMode, sycl::access::target _AccTarget,
-          sycl::access::placeholder _Placeholder>
-::std::size_t
-__get_accessor_size(const sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>& __accessor)
+template <typename _Accessor>
+auto
+__get_accessor_size(const _Accessor& __accessor)
 {
-    return
 #if __LIBSYCL_VERSION >= 50300
-        __accessor.size();
+    return __accessor.size();
 #else
-        __accessor.get_count();
+    return __accessor.get_count();
 #endif
 }
 
 template <typename _Item>
 void
-__group_barrier(_Item _item,
-#if __LIBSYCL_VERSION >= 50300
-                sycl::memory_scope _fence_scope = sycl::memory_scope::work_group
-#else
-                sycl::access::fence_space _fence_scope = sycl::access::fence_space::local_space
-#endif
-)
+__group_barrier(_Item __item)
 {
 #if __LIBSYCL_VERSION >= 50300
-    sycl::group_barrier(_item.get_group(), _fence_scope);
+    sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 #else
-    _item.barrier(_fence_scope);
+    __item.barrier(sycl::access::fence_space::local_space);
 #endif
 }
 
-#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
-
-template <typename _Group, typename _T>
-_T
-__group_broadcast(_Group _g, _T _val, ::std::size_t _local_id)
+template <typename... _Args>
+auto
+__group_broadcast(_Args... __args)
 {
-    return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-        sycl::group_broadcast(
+    return sycl::group_broadcast(__args...);
 #else
-        sycl::ONEAPI::broadcast(
+    return sycl::ONEAPI::broadcast(__args...);
 #endif
-            _g, _val, _local_id);
 }
 
-template <typename _Group, typename _T, typename _BinaryOp>
-_T
-__exclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
+template <typename... _Args>
+auto
+__exclusive_scan_over_group(_Args... __args)
 {
-    return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-        sycl::exclusive_scan_over_group(
+    return sycl::exclusive_scan_over_group(__args...);
 #else
-        sycl::ONEAPI::exclusive_scan(
+    return sycl::ONEAPI::exclusive_scan(__args...);
 #endif
-            _g, _val, _binary_op);
 }
 
-template <typename _Group, typename _T, typename _BinaryOp>
-_T
-__inclusive_scan_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
+template <typename... _Args>
+auto
+__inclusive_scan_over_group(_Args... __args)
 {
-    return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-        sycl::inclusive_scan_over_group(
+    return sycl::inclusive_scan_over_group(__args...);
 #else
-        sycl::ONEAPI::inclusive_scan(
+    return sycl::ONEAPI::inclusive_scan(__args...);
 #endif
-            _g, _val, _binary_op);
 }
 
-template <typename _Group, typename _T, typename _BinaryOp>
-_T
-__reduce_over_group(_Group _g, _T _val, _BinaryOp _binary_op)
+template <typename... _Args>
+auto
+__reduce_over_group(_Args... __args)
 {
-    return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-        sycl::reduce_over_group(
+    return sycl::reduce_over_group(__args...);
 #else
-        sycl::ONEAPI::reduce(
+    return sycl::ONEAPI::reduce(__args...);
 #endif
-            _g, _val, _binary_op);
 }
 
-template <typename _Group, typename _InPtr, typename _OutPtr, typename _T, typename _BinaryOp>
-_OutPtr
-__joint_exclusive_scan(_Group _g, _InPtr _first, _InPtr _last, _OutPtr _result, _T _init, _BinaryOp _binary_op)
+template <typename... _Args>
+auto
+__joint_exclusive_scan(_Args... __args)
 {
-    return
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-        sycl::joint_exclusive_scan(
+    return sycl::joint_exclusive_scan(__args...);
 #else
-        sycl::ONEAPI::exclusive_scan(
+    return sycl::ONEAPI::exclusive_scan(__args...);
 #endif
-            _g, _first, _last, _result, _init, _binary_op);
 }
 
-} // namespace __par_backend_hetero
-} // namespace dpl
-} // namespace oneapi
+} // namespace __sycl
+} // namespace __internal
 
 #endif /* _ONEDPL_utils_sycl_H */

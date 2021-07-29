@@ -159,7 +159,7 @@ struct reduce
 
         do
         {
-            oneapi::dpl::__par_backend_hetero::__group_barrier(__item_id);
+            __sycl::__group_barrier(__item_id);
             if (__local_idx % (2 * __k) == 0 && __local_idx + __k < __group_size && __global_idx < __n &&
                 __global_idx + __k < __n)
             {
@@ -545,7 +545,7 @@ struct __scan
             // 3:      00000001    10000000
             do
             {
-                oneapi::dpl::__par_backend_hetero::__group_barrier(__item);
+                __sycl::__group_barrier(__item);
 
                 if (__adjusted_global_id < __n && __local_id % (2 * __k) == 2 * __k - 1)
                 {
@@ -553,7 +553,7 @@ struct __scan
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
-            oneapi::dpl::__par_backend_hetero::__group_barrier(__item);
+            __sycl::__group_barrier(__item);
 
             // 2. scan
             auto __partial_sums = __local_acc[__local_id];
@@ -569,10 +569,10 @@ struct __scan
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
-            oneapi::dpl::__par_backend_hetero::__group_barrier(__item);
+            __sycl::__group_barrier(__item);
 
             __local_acc[__local_id] = __partial_sums;
-            oneapi::dpl::__par_backend_hetero::__group_barrier(__item);
+            __sycl::__group_barrier(__item);
             __adder = __local_acc[__wgroup_size - 1];
 
             if (__adjusted_global_id + __shift < __n)
@@ -618,10 +618,9 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
             // for each work-item in sub-group
             __local_mem[__local_id] = 0;
         }
-        oneapi::dpl::__par_backend_hetero::__group_barrier(__item);
+        __sycl::__group_barrier(__item);
 
-        return oneapi::dpl::__par_backend_hetero::__reduce_over_group(__item.get_group(), __local_mem[__local_id],
-                                                                      sycl::ONEAPI::plus<_Tp>());
+        return __sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], sycl::ONEAPI::plus<_Tp>());
     }
 };
 
@@ -671,9 +670,8 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
             else if (__adjusted_global_id == 0)
                 __use_init(__init, __old_value, __bin_op);
 
-            __local_acc[__local_id] = oneapi::dpl::__par_backend_hetero::__inclusive_scan_over_group(
-                __item.get_group(), __old_value, __bin_op);
-            oneapi::dpl::__par_backend_hetero::__group_barrier(__item);
+            __local_acc[__local_id] = __sycl::__inclusive_scan_over_group(__item.get_group(), __old_value, __bin_op);
+            __sycl::__group_barrier(__item);
 
             __adder = __local_acc[__wgroup_size - 1];
 

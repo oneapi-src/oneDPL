@@ -145,8 +145,7 @@ __internal::sycl_iterator<access_mode::read_write, T, Allocator> begin(sycl::buf
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 {
-    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{
-        buf, oneapi::dpl::__par_backend_hetero::__get_buffer_size(buf)};
+    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, __sycl::__get_buffer_size(buf)};
 }
 
 // begin
@@ -186,8 +185,7 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>)
 {
-    return __internal::sycl_iterator<Mode, T, Allocator>{buf,
-                                                         oneapi::dpl::__par_backend_hetero::__get_buffer_size(buf)};
+    return __internal::sycl_iterator<Mode, T, Allocator>{buf, __sycl::__get_buffer_size(buf)};
 }
 
 template <typename T, typename Allocator, access_mode Mode>
@@ -200,7 +198,7 @@ __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocato
 #endif
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{
-        buf, oneapi::dpl::__par_backend_hetero::__get_buffer_size(buf)};
+        buf, __sycl::__get_buffer_size(buf)};
 }
 
 template <typename T, typename Allocator>
@@ -211,8 +209,8 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
                                                                              sycl::property::noinit)
 #endif
 {
-    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{
-        buf, oneapi::dpl::__par_backend_hetero::__get_buffer_size(buf)};
+    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf,
+                                                                                    __sycl::__get_buffer_size(buf)};
 }
 } // namespace dpl
 } // namespace oneapi
