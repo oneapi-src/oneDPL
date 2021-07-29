@@ -36,6 +36,20 @@
 namespace TestUtils
 {
 
+#if __cplusplus >= 201703L
+#   if TEST_NO_INIT_PRESENT
+#       define _ONEDPL_SYCL_NOINIT sycl::no_init
+#   else
+#       define _ONEDPL_SYCL_NOINIT sycl::noinit
+#   endif
+#else
+#   if TEST_NO_INIT_PRESENT
+#       define _ONEDPL_SYCL_NOINIT sycl::property::no_init{}
+#   else
+#       define _ONEDPL_SYCL_NOINIT sycl::property::noinit{}
+#   endif
+#endif
+
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
     inline void
@@ -352,36 +366,5 @@ namespace TestUtils
     {
         return data;
     }
-
-#if __cplusplus >= 201703L
-#   if _ONEDPL_NO_INIT_PRESENT
-    constexpr sycl::property::no_init
-#   else
-    constexpr sycl::property::noinit
-#   endif
-    no_init_predefined()
-    {
-#   if _ONEDPL_NO_INIT_PRESENT
-        return sycl::no_init;
-#   else
-        return sycl::noinit;
-#   endif
-    }
-#endif // __cplusplus >= 201703L
-
-#if _ONEDPL_NO_INIT_PRESENT
-    sycl::property::no_init
-#else
-    sycl::property::noinit
-#endif
-    no_init()
-    {
-#if _ONEDPL_NO_INIT_PRESENT
-    return sycl::property::no_init{};
-#else
-    return sycl::property::noinit{};
-#endif
-    }
-
 } /* namespace TestUtils */
 #endif
