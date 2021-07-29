@@ -21,10 +21,6 @@
 #ifndef _ONEDPL_sycl_defs_H
 #define _ONEDPL_sycl_defs_H
 
-#if !_ONEDPL_BACKEND_SYCL
-#    error SYCL backend is not specified.
-#endif
-
 #include <CL/sycl.hpp>
 
 // Combine SYCL runtime library version
