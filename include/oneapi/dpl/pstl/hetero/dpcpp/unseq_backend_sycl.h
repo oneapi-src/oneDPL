@@ -21,7 +21,7 @@
 
 #include "../../onedpl_config.h"
 #include "../../utils.h"
-#include "utils_sycl.h"
+#include "sycl_defs.h"
 
 namespace oneapi
 {

@@ -18,7 +18,7 @@
 #define _ONEDPL_ASYNC_UTILS_H
 
 #if _ONEDPL_BACKEND_SYCL
-#    include "../../pstl/hetero/dpcpp/utils_sycl.h"
+#    include "../../pstl/hetero/dpcpp/sycl_defs.h"
 #endif
 
 namespace oneapi

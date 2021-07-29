@@ -17,11 +17,6 @@
 #ifndef _ONEDPL_parallel_backend_sycl_H
 #define _ONEDPL_parallel_backend_sycl_H
 
-#include "utils_sycl.h"
-
-// Macros to check the new SYCL features
-#define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
-
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
@@ -31,7 +26,7 @@
 #include "../../execution_impl.h"
 #include "../../utils_ranges.h"
 
-#include "utils_sycl.h"
+#include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
 #include "sycl_iterator.h"

@@ -22,7 +22,7 @@
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
-#include "utils_sycl.h"
+#include "sycl_defs.h"
 
 namespace oneapi
 {

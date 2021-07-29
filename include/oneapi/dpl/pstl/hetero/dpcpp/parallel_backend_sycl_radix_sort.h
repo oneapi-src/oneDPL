@@ -16,9 +16,9 @@
 #ifndef _ONEDPL_parallel_backend_sycl_radix_sort_H
 #define _ONEDPL_parallel_backend_sycl_radix_sort_H
 
-#include "utils_sycl.h"
 #include <climits>
 
+#include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
 

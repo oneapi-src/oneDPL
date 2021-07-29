@@ -16,9 +16,10 @@
 #ifndef _ONEDPL_execution_sycl_defs_H
 #define _ONEDPL_execution_sycl_defs_H
 
-#include "utils_sycl.h"
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
+
+#include "sycl_defs.h"
 #if _ONEDPL_FPGA_DEVICE
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
 #endif
