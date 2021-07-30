@@ -32,14 +32,22 @@
 #endif
 
 // Macros to check the new SYCL features
+#define _ONEDPL_NO_INIT_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
 
 namespace __sycl
 {
 
+using __no_init =
+#if _ONEDPL_NO_INIT_PRESENT
+    sycl::property::no_init;
+#else
+    sycl::property::noinit;
+#endif
+
 template <typename _Buffer>
-auto
+constexpr auto
 __get_buffer_size(const _Buffer& __buffer)
 {
 #if __LIBSYCL_VERSION >= 50300
@@ -50,7 +58,7 @@ __get_buffer_size(const _Buffer& __buffer)
 }
 
 template <typename _Accessor>
-auto
+constexpr auto
 __get_accessor_size(const _Accessor& __accessor)
 {
 #if __LIBSYCL_VERSION >= 50300
@@ -61,7 +69,7 @@ __get_accessor_size(const _Accessor& __accessor)
 }
 
 template <typename _Item>
-void
+constexpr void
 __group_barrier(_Item __item)
 {
 #if __LIBSYCL_VERSION >= 50300
@@ -72,7 +80,7 @@ __group_barrier(_Item __item)
 }
 
 template <typename... _Args>
-auto
+constexpr auto
 __group_broadcast(_Args... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -83,7 +91,7 @@ __group_broadcast(_Args... __args)
 }
 
 template <typename... _Args>
-auto
+constexpr auto
 __exclusive_scan_over_group(_Args... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -94,7 +102,7 @@ __exclusive_scan_over_group(_Args... __args)
 }
 
 template <typename... _Args>
-auto
+constexpr auto
 __inclusive_scan_over_group(_Args... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -105,7 +113,7 @@ __inclusive_scan_over_group(_Args... __args)
 }
 
 template <typename... _Args>
-auto
+constexpr auto
 __reduce_over_group(_Args... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -116,7 +124,7 @@ __reduce_over_group(_Args... __args)
 }
 
 template <typename... _Args>
-auto
+constexpr auto
 __joint_exclusive_scan(_Args... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT

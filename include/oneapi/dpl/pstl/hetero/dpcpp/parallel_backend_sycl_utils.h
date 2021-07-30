@@ -18,10 +18,11 @@
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #include <type_traits>
+
 #include "../../iterator_impl.h"
+
 #include "sycl_defs.h"
 #include "sycl_iterator.h"
-
 #include "../../utils.h"
 
 #define _PRINT_INFO_IN_DEBUG_MODE(...)                                                                                 \

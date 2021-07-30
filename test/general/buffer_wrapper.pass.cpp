@@ -52,12 +52,8 @@ main()
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);
-    test(oneapi::dpl::begin(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), oneapi::dpl::end(buf, sycl::write_only, _ONEDPL_SYCL_NOINIT), data_ptr, size);
-#if _ONEDPL_NO_INIT_PRESENT
-    test(oneapi::dpl::begin(buf, sycl::property::no_init{}), oneapi::dpl::end(buf, sycl::property::no_init{}), data_ptr, size);
-#else
-    test(oneapi::dpl::begin(buf, sycl::property::noinit{}), oneapi::dpl::end(buf, sycl::property::noinit{}), data_ptr, size);
-#endif
+    test(oneapi::dpl::begin(buf, sycl::write_only, __sycl::__no_init{}), oneapi::dpl::end(buf, sycl::write_only, __sycl::__no_init{}), data_ptr, size);
+    test(oneapi::dpl::begin(buf, __sycl::no_init{}), oneapi::dpl::end(buf, __sycl::__no_init{}), data_ptr, size);
 
 #endif
     return done(TEST_DPCPP_BACKEND_PRESENT);
