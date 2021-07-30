@@ -339,12 +339,12 @@ namespace TestUtils
     template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
     auto
     get_host_access(Iter it)
-        -> decltype(it.get_buffer().template get_access<mode>(it.get_buffer().get_count() - (it - oneapi::dpl::begin(it.get_buffer())),
+        -> decltype(it.get_buffer().template get_access<mode>(__sycl::__get_buffer_size(it.get_buffer()) - (it - oneapi::dpl::begin(it.get_buffer())),
                                                               it - oneapi::dpl::begin(it.get_buffer())))
     {
         auto temp_buf = it.get_buffer();
         auto temp_idx = it - oneapi::dpl::begin(temp_buf);
-        return temp_buf.template get_access<mode>(temp_buf.get_count() - temp_idx, temp_idx);
+        return temp_buf.template get_access<mode>(__sycl::__get_buffer_size(temp_buf) - temp_idx, temp_idx);
     }
 
     template<typename T>
