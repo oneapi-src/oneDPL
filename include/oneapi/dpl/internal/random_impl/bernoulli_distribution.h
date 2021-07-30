@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- exponential_distribution.h ----------------------------------------===//
+//===-- bernoulli_distribution.h ------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,34 +15,34 @@
 //
 // Abstract:
 //
-// Public header file provides implementation for Exponential Distribution
+// Public header file provides implementation for Bernoulli Distribution
 
-#ifndef _ONEDPL_EXPONENTIAL_DISTRIBUTION
-#define _ONEDPL_EXPONENTIAL_DISTRIBUTION
+#ifndef _ONEDPL_BERNOULLI_DISTRIBUTION
+#define _ONEDPL_BERNOULLI_DISTRIBUTION
 
 namespace oneapi
 {
 namespace dpl
 {
-template <class _RealType = double>
-class exponential_distribution
+template <class _BoolType = bool>
+class bernoulli_distribution
 {
   public:
     // Distribution types
-    using result_type = _RealType;
-    using scalar_type = internal::element_type_t<_RealType>;
+    using result_type = _BoolType;
+    using scalar_type = internal::element_type_t<_BoolType>;
 
     struct param_type
     {
-        param_type() : param_type(1.0) {}
-        param_type(scalar_type __lambda) : lambda(__lambda) {}
-        scalar_type lambda;
+        param_type() : param_type(0.5) {}
+        param_type(double __p) : p(__p) {}
+        double p;
     };
 
     // Constructors
-    exponential_distribution() : exponential_distribution(scalar_type{1.0}) {}
-    explicit exponential_distribution(scalar_type __lambda) : lambda_(__lambda) {}
-    explicit exponential_distribution(const param_type& __params) : lambda_(__params.lambda) {}
+    bernoulli_distribution() : bernoulli_distribution(0.5) {}
+    explicit bernoulli_distribution(double __p) : p_(__p) {}
+    explicit bernoulli_distribution(const param_type& __params) : p_(__params.p) {}
 
     // Reset function
     void
@@ -51,34 +51,34 @@ class exponential_distribution
     }
 
     // Property functions
-    scalar_type
-    lambda() const
+    double
+    p() const
     {
-        return lambda_;
+        return p_;
     }
 
     param_type
     param() const
     {
-        return param_type(lambda_);
+        return param_type(p_);
     }
 
     void
     param(const param_type& __param)
     {
-        lambda_ = __param.lambda;
+        p_ = __param.p;
     }
 
     scalar_type
     min() const
     {
-        return scalar_type{};
+        return false;
     }
 
     scalar_type
     max() const
     {
-        return ::std::numeric_limits<scalar_type>::infinity();
+        return true;
     }
 
     // Generate functions
@@ -86,7 +86,7 @@ class exponential_distribution
     result_type
     operator()(_Engine& __engine)
     {
-        return operator()<_Engine>(__engine, param_type(lambda_));
+        return operator()<_Engine>(__engine, param_type(p_));
     }
 
     template <class _Engine>
@@ -100,7 +100,7 @@ class exponential_distribution
     result_type
     operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(lambda_), __random_nums);
+        return operator()<_Engine>(__engine, param_type(p_), __random_nums);
     }
 
     template <class _Engine>
@@ -115,11 +115,11 @@ class exponential_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_floating_point<scalar_type>::value,
-                  "oneapi::dpl::exponential_distribution. Error: unsupported data type");
+    static_assert(::std::is_same<scalar_type, bool>::value,
+                  "oneapi::dpl::bernoulli_distribution. Error: unsupported data type");
 
     // Distribution parameters
-    scalar_type lambda_;
+    double p_;
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
@@ -134,13 +134,11 @@ class exponential_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        result_type __res;
-        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        __res = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
-        return __res;
+        oneapi::dpl::uniform_real_distribution<double> __distr;
+        return __distr(__engine) < __params.p;
     }
 
-    // Specialization of the vector generation  with size = [1; 3]
+    // Specialization of the vector generation with size = [1; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
@@ -153,10 +151,12 @@ class exponential_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<result_type> __u;
+        oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
+        sycl::vec<double, __N> __u = __distr(__engine);
+        sycl::vec<int64_t, __N> __res_int64 = __u < sycl::vec<double, __N>{__params.p};
         result_type __res;
-        __res = __u(__engine);
-        __res = -sycl::log(scalar_type{1.0} - __res) / __params.lambda;
+        for (int i = 0; i < __N; i++)
+            __res[i] = static_cast<bool>(__res_int64[i]);
         return __res;
     }
 
@@ -166,11 +166,9 @@ class exponential_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
+        oneapi::dpl::uniform_real_distribution<double> __distr;
         for (int i = 0; i < __N; i++)
-        {
-            __res[i] = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
-        }
+            __res[i] = __distr(__engine) < __params.p;
         return __res;
     }
 
@@ -192,4 +190,4 @@ class exponential_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_EXPONENTIAL_DISTRIBUTION
+#endif // #ifndf _ONEDPL_BERNOULLI_DISTRIBUTION
