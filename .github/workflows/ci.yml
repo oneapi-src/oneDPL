@@ -131,10 +131,13 @@ jobs:
         run: |
           set -x
           export PATH=$CONDA/bin:$CONDA/include:$CONDA/lib:$PATH
+          export LD_LIBRARY_PATH=$CONDA/lib:$LD_LIBRARY_PATH
+          export LIBRARY_PATH=$CONDA/lib:$LIBRARY_PATH
           if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
             echo "::warning::Compiler: $(dpcpp --version)"
           fi
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
+            export OCL_ICD_FILENAMES=libintelocl.so
             make_targets="sycl_iterator.pass"
             ctest_flags="-R sycl_iterator.pass"
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass"
