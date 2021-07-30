@@ -121,27 +121,18 @@ jobs:
             device_type: HOST
     steps:
       - uses: actions/checkout@v2
-      - name: Configure apt repositories
-        run: |
-          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
-          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
-        run: sudo apt install -y intel-oneapi-tbb-devel
+        run: $CONDA/bin/conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
-        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp
-      - name: Install Intel® oneAPI C++ Compiler Classic
-        if: matrix.cxx_compiler == 'icpc'
-        run: sudo apt install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+        run: $CONDA/bin/conda install -c intel dpcpp_linux-64
       - name: Run testing
         shell: bash
         run: |
           set -x
-          sudo rm -rf /opt/intel/oneapi/dpl || true
-          source /opt/intel/oneapi/setvars.sh intel64 || true
+          source $CONDA/bin/activate
+          export PATH=$CONDA/lib:$PATH
+          export CPATH=$CONDA/include:$CPATH
           if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
             echo "::warning::Compiler: $(dpcpp --version)"
           fi
