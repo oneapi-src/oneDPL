@@ -16,19 +16,12 @@
 #ifndef _ONEDPL_execution_sycl_defs_H
 #define _ONEDPL_execution_sycl_defs_H
 
-#include <CL/sycl.hpp>
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
+
+#include "sycl_defs.h"
 #if _ONEDPL_FPGA_DEVICE
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
-#endif
-
-// Combine SYCL runtime library version
-#if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
-#    define __LIBSYCL_VERSION                                                                                          \
-        (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
-#else
-#    define __LIBSYCL_VERSION 0
 #endif
 
 namespace oneapi
