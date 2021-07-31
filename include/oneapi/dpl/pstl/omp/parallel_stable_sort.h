@@ -86,11 +86,6 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
             _PSTL_PRAGMA(omp task untied mergeable) { __parallel_stable_sort_body(__mid, __xe, __comp, __leaf_sort); }
         }
 
-        std::inplace_merge(__xs, __mid, __xe, __comp);
-
-#if 0
-        // The parallel merge fails some tests. Not sure why...
-
         // Perform a parallel merge of the sorted ranges into __output.
         _VecType __output(__size);
         _MoveValueType __move_value;
@@ -105,7 +100,6 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
 
         // Move the values from __output back in the original source range.
         __sort_details::__parallel_move_range(__output.begin(), __output.end(), __xs);
-#endif
     }
 }
 

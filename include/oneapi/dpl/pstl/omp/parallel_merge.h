@@ -13,7 +13,7 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
                       _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge)
 {
 
-    if (__size_x + __size_y <= __default_chunk_size)
+    if (__size_x + __size_y <= __omp_backend::__default_chunk_size)
     {
         __leaf_merge(__xs, __xe, __ys, __ye, __zs, __comp);
         return;
@@ -35,13 +35,17 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
 
     auto __zm = __zs + std::distance(__xs, __xm) + std::distance(__ys, __ym);
 
-    _PSTL_PRAGMA(omp task untied mergeable)
+    _PSTL_PRAGMA(omp task untied mergeable default(none)
+                     firstprivate(__xs, __xm, __ys, __ym, __zs, __comp, __leaf_merge))
     __parallel_merge_body(std::distance(__xs, __xm), std::distance(__ys, __ym), __xs, __xm, __ys, __ym, __zs, __comp,
                           __leaf_merge);
 
-    _PSTL_PRAGMA(omp task untied mergeable)
+    _PSTL_PRAGMA(omp task untied mergeable default(none)
+                     firstprivate(__xm, __xe, __ym, __ye, __zm, __comp, __leaf_merge))
     __parallel_merge_body(std::distance(__xm, __xe), std::distance(__ym, __ye), __xm, __xe, __ym, __ye, __zm, __comp,
                           __leaf_merge);
+
+    _PSTL_PRAGMA(omp taskwait)
 }
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
@@ -70,7 +74,6 @@ __parallel_merge(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator1 __xs, _Ra
     if (omp_in_parallel())
     {
         __parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp, __leaf_merge);
-        _PSTL_PRAGMA(omp barrier)
     }
     else
     {
@@ -78,12 +81,8 @@ __parallel_merge(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator1 __xs, _Ra
         {
             _PSTL_PRAGMA(omp single)
             __parallel_merge_body(__size_x, __size_y, __xs, __xe, __ys, __ye, __zs, __comp, __leaf_merge);
-            _PSTL_PRAGMA(omp barrier)
         }
     }
-
-    /* __serial_backend::__parallel_merge(std::forward<_ExecutionPolicy>(__exec), __xs, __xe, __ys, __ye, __zs, __comp,
-                                       __leaf_merge);*/
 }
 
 } // namespace __omp_backend
