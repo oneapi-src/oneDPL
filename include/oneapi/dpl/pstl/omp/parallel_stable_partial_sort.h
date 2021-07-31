@@ -258,7 +258,7 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
     auto __count = __parallel_partition(__xs, __xe, __pivot, __comp);
     auto __part_end = std::next(__xs, __count);
 
-    if (__nsort <= __default_chunk_size)
+    if (__count <= __default_chunk_size)
     {
         __leaf_sort(__xs, __part_end, __comp);
     }
