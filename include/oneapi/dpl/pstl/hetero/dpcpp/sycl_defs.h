@@ -46,6 +46,14 @@ using __no_init =
     sycl::property::noinit;
 #endif
 
+template <typename _T>
+using __plus =
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    sycl::plus<_T>;
+#else
+    sycl::ONEAPI::plus<_T>;
+#endif
+
 template <typename _Buffer>
 constexpr auto
 __get_buffer_size(const _Buffer& __buffer)

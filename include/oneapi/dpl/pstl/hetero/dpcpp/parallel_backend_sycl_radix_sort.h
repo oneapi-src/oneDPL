@@ -427,7 +427,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                 sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
                 // TODO: consider another approach with use of local memory
                 __sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
-                                               _CountT(0), sycl::ONEAPI::plus<_CountT>{});
+                                               _CountT(0), __sycl::__plus<_CountT>{});
             });
     });
 
@@ -444,7 +444,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
 
                 // copy buckets from the last segment, scan them to get global offsets
                 __count_rng[__global_offset_idx] = __sycl::__exclusive_scan_over_group(
-                    __self_item.get_group(), __count_rng[__last_segment_bucket_idx], sycl::ONEAPI::plus<_CountT>{});
+                    __self_item.get_group(), __count_rng[__last_segment_bucket_idx], __sycl::__plus<_CountT>{});
             });
     });
 
@@ -544,7 +544,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                         ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
                         const auto& __sgroup = __self_item.get_sub_group();
                         ::std::uint32_t __sg_item_offset = __sycl::__exclusive_scan_over_group(
-                            __sgroup, __is_current_bucket, sycl::ONEAPI::plus<::std::uint32_t>());
+                            __sgroup, __is_current_bucket, __sycl::__plus<::std::uint32_t>());
 
                         __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
                         // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
