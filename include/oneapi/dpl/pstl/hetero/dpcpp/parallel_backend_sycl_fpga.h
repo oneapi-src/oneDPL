@@ -43,35 +43,45 @@ namespace __par_backend_hetero
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 
+template <typename _Name>
+struct __parallel_for_fpga_invoker;
+
+template <typename... _Name>
+struct __parallel_for_fpga_invoker<__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    __future<void>
+    operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
+    {
+        auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+        assert(__n > 0);
+
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+            //get an access to data under SYCL buffer:
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
+            __cgh.single_task<_Name...>([=]() {
+#pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
+                for (auto __idx = 0; __idx < __count; ++__idx)
+                {
+                    __brick(__idx, __rngs...);
+                }
+            });
+        });
+        return __future<void>(__event);
+    }
+};
+
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, __future<void>>
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-    assert(__n > 0);
-
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using __kernel_name = typename _Policy::kernel_name;
-#if __SYCL_UNNAMED_LAMBDA__
-    using __kernel_name_t = __parallel_for_kernel<_Fp, __kernel_name, _Ranges...>;
-#else
-    using __kernel_name_t = __parallel_for_kernel<__kernel_name>;
-#endif
+    using __parallel_for_name = __internal::__kernel_name_provider<typename _Policy::kernel_name>;
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec);
-    auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
-        //get an access to data under SYCL buffer:
-        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-
-        __cgh.single_task<__kernel_name_t>([=]() {
-#pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
-            for (auto __idx = 0; __idx < __count; ++__idx)
-            {
-                __brick(__idx, __rngs...);
-            }
-        });
-    });
-    return __future<void>(__event);
+    return __parallel_for_fpga_invoker<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                              std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------

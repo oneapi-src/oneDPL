@@ -295,19 +295,19 @@ struct __radix_sort_count_invoker<__internal::__optional_kernel_name<_Name...>, 
 {
     template <typename _ExecutionPolicy, typename _ValRange, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
-            ,
-            typename _Kernel
+              ,
+              typename _Kernel
 #endif
-            >
+              >
     sycl::event
     operator()(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
-                            ::std::uint32_t __radix_iter, _ValRange&& __val_rng, _CountBuf& __count_buf,
-                            sycl::event __dependency_event
+               ::std::uint32_t __radix_iter, _ValRange&& __val_rng, _CountBuf& __count_buf,
+               sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                            ,
-                            _Kernel& __kernel
+               ,
+               _Kernel& __kernel
 #endif
-    ) const
+               ) const
     {
         // typedefs
         using _ValueT = oneapi::dpl::__internal::__value_t<_ValRange>;
@@ -334,7 +334,7 @@ struct __radix_sort_count_invoker<__internal::__optional_kernel_name<_Name...>, 
             auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, access_target::local>(
                 __block_size * __radix_states, __hdl);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+            __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __hdl.parallel_for<_Name...>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -376,7 +376,7 @@ struct __radix_sort_count_invoker<__internal::__optional_kernel_name<_Name...>, 
                     __dpl_sycl::__group_barrier(__self_item);
                     // 2.2. count per wgroup: reduce until __count_lacc[] size > __radix_states (threads /= 2 per iteration)
                     for (::std::uint32_t __active_ths = __block_size >> 1; __active_ths >= __radix_states;
-                        __active_ths >>= 1)
+                         __active_ths >>= 1)
                     {
                         if (__self_lidx < __active_ths)
                             __count_lacc[__self_lidx] += __count_lacc[__active_ths + __self_lidx];
@@ -473,18 +473,19 @@ struct __radix_sort_reorder_invoker<__internal::__optional_kernel_name<_Name...>
 {
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf
 #if _ONEDPL_COMPILE_KERNEL
-            ,
-            typename _Kernel
+              ,
+              typename _Kernel
 #endif
-            >
+              >
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
-               ::std::size_t __sg_size, ::std::uint32_t __radix_iter, _InRange&& __input_rng,
-               _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
+    operator()(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size, ::std::size_t __sg_size,
+               ::std::uint32_t __radix_iter, _InRange&& __input_rng, _OutRange&& __output_rng, _OffsetBuf& __offset_buf,
+               sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                , _Kernel& __kernel
+               ,
+               _Kernel& __kernel
 #endif
-    ) const
+               ) const
     {
         // typedefs
         using _InputT = oneapi::dpl::__internal::__value_t<_InRange>;
@@ -543,27 +544,28 @@ struct __radix_sort_reorder_invoker<__internal::__optional_kernel_name<_Name...>
 
                         // get value, convert it to ordered (in terms of bitness)
                         // if the index is outside of the range, use fake value which will not affect other values
-                        __ordered_t<_InputT> __batch_val = __val_idx < __inout_buf_size
-                                                            ? __convert_to_ordered(__input_rng[__val_idx])
-                                                            : __get_last_value<__ordered_t<_InputT>, __is_comp_asc>();
+                        __ordered_t<_InputT> __batch_val =
+                            __val_idx < __inout_buf_size ? __convert_to_ordered(__input_rng[__val_idx])
+                                                         : __get_last_value<__ordered_t<_InputT>, __is_comp_asc>();
 
                         // get bit values in a certain bucket of a value
                         ::std::uint32_t __bucket_val =
                             __get_bucket_value<__radix_bits, __is_comp_asc>(__batch_val, __radix_iter);
 
-                    _OffsetT __new_offset_idx = 0;
-                    // TODO: most computation-heavy code segment - find a better optimized solution
-                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
-                    {
-                        ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
-                        const auto& __sgroup = __self_item.get_sub_group();
-                        ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
-                            __sgroup, __is_current_bucket, __dpl_sycl::__plus<::std::uint32_t>());
+                        _OffsetT __new_offset_idx = 0;
+                        // TODO: most computation-heavy code segment - find a better optimized solution
+                        for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                        {
+                            ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+                            const auto& __sgroup = __self_item.get_sub_group();
+                            ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
+                                __sgroup, __is_current_bucket, __dpl_sycl::__plus<::std::uint32_t>());
 
-                        __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
-                        // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
-                        ::std::uint32_t __sg_total_offset = __dpl_sycl::__group_broadcast(
-                            __sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
+                            __new_offset_idx |=
+                                __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
+                            // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
+                            ::std::uint32_t __sg_total_offset = __dpl_sycl::__group_broadcast(
+                                __sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
                             __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                         }

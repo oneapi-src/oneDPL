@@ -195,8 +195,6 @@ class __kernel_name_base
     }
 };
 
-
-
 template <typename _KernelName>
 struct __parallel_for_invoker;
 
@@ -228,9 +226,9 @@ struct __parallel_reduce_invoker;
 template <typename... _Name, typename _Tp, ::std::size_t _Grainsize>
 struct __parallel_reduce_invoker<__internal::__optional_kernel_name<_Name...>, _Tp, _Grainsize>
 {
-    template <typename _ExecutionPolicy, typename _Up, typename _Cp,
-          typename _Rp, typename... _Ranges>
-     oneapi::dpl::__par_backend_hetero::__future<_Tp> operator()(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs) const
+    template <typename _ExecutionPolicy, typename _Up, typename _Cp, typename _Rp, typename... _Ranges>
+    oneapi::dpl::__par_backend_hetero::__future<_Tp>
+    operator()(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs) const
     {
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
         assert(__n > 0);
@@ -243,16 +241,17 @@ struct __parallel_reduce_invoker<__internal::__optional_kernel_name<_Name...>, _
     __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                              sizeof(_Tp), __work_group_size);
 #if _ONEDPL_COMPILE_KERNEL
-        sycl::kernel __kernel = __kernel_name_base<_Name...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+        sycl::kernel __kernel =
+            __kernel_name_base<_Name...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
         __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                                ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+                                                              ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
         ::std::size_t __iters_per_work_item = _Grainsize;
         // distribution is ~1 work groups per compute init
         if (__exec.queue().get_device().is_cpu())
             __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
         ::std::size_t __size_per_work_group =
-            __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
+            __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
         _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
         _Size __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of work items
 
@@ -285,7 +284,8 @@ struct __parallel_reduce_invoker<__internal::__optional_kernel_name<_Name...>, _
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                     __kernel,
 #endif
-                    sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
+                    sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size),
+                                      sycl::range<1>(__work_group_size)),
                     [=](sycl::nd_item<1> __item_id) {
                         ::std::size_t __global_idx = __item_id.get_global_id(0);
                         ::std::size_t __local_idx = __item_id.get_local_id(0);
@@ -317,7 +317,7 @@ struct __parallel_reduce_invoker<__internal::__optional_kernel_name<_Name...>, _
             __n_items = __n_groups;
             __n_groups = (__n_items - 1) / __work_group_size + 1;
         } while (__n_items > 1);
-        return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);;
+        return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
     }
 };
 
@@ -337,8 +337,10 @@ class __parallel_scan_propagate_kernel;
                                                                          sizeof(_Type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel_1 = __kernel_name_base<_LocalScanName...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-        auto __kernel_2 = __kernel_name_base<_GlobalScanName...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernel_1 =
+            __kernel_name_base<_LocalScanName...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernel_2 =
+            __kernel_name_base<_GlobalScanName...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
         auto __wgroup_size_kernel_1 =
             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
         auto __wgroup_size_kernel_2 =
@@ -370,7 +372,7 @@ class __parallel_scan_propagate_kernel;
 #endif
                 sycl::nd_range<1>(__n_groups * __wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
                     __local_scan(__item, __n, __local_acc, __rng1, __rng2, __wg_sums_acc, __size_per_wg, __wgroup_size,
-                                __iters_per_witem, __init);
+                                 __iters_per_witem, __init);
                 });
         });
 
@@ -384,7 +386,7 @@ class __parallel_scan_propagate_kernel;
                 sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
                     __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
+                __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
 #endif
                 __cgh.parallel_for<_GlobalScanName...>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -393,7 +395,7 @@ class __parallel_scan_propagate_kernel;
                     // TODO: try to balance work between several workgroups instead of one
                     sycl::nd_range<1>(__wgroup_size, __wgroup_size), [=](sycl::nd_item<1> __item) {
                         __group_scan(__item, __n_groups, __local_acc, __wg_sums_acc, __wg_sums_acc,
-                                    /*dummy*/ __wg_sums_acc, __n_groups, __wgroup_size, __iters_per_single_wg);
+                                     /*dummy*/ __wg_sums_acc, __n_groups, __wgroup_size, __iters_per_single_wg);
                     });
             });
         }
@@ -403,13 +405,13 @@ class __parallel_scan_propagate_kernel;
             __cgh.depends_on(__submit_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
-            __cgh.parallel_for<_PropagateScanName...>(sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) {
-                __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg);
-            });
+            __cgh.parallel_for<_PropagateScanName...>(
+                sycl::range<1>(__n_groups * __size_per_wg), [=](sycl::item<1> __item) {
+                    __global_scan(__item, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg);
+                });
         });
 
-        return oneapi::dpl::__par_backend_hetero::__future<_Type>(__final_event, __n_groups - 1,
-                                                                  __wg_sums);
+        return oneapi::dpl::__par_backend_hetero::__future<_Type>(__final_event, __n_groups - 1, __wg_sums);
     }
 };
 
@@ -561,7 +563,7 @@ struct __parallel_find_or_invoker<__internal::__optional_kernel_name<_Name...>>
 #if _ONEDPL_COMPILE_KERNEL
         auto __kernel = _FindOrKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
         __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                    ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+                                                      ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
         auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
@@ -588,7 +590,8 @@ struct __parallel_find_or_invoker<__internal::__optional_kernel_name<_Name...>>
                 auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
 
                 // create local accessor to connect atomic with
-                sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
+                sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
+                    1, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
@@ -597,7 +600,7 @@ struct __parallel_find_or_invoker<__internal::__optional_kernel_name<_Name...>>
                     __kernel,
 #endif
                     sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                            sycl::range</*dim=*/1>(__wgroup_size)),
+                                              sycl::range</*dim=*/1>(__wgroup_size)),
                     [=](sycl::nd_item</*dim=*/1> __item_id) {
                         auto __local_idx = __item_id.get_local_id(0);
 
@@ -624,7 +627,7 @@ struct __parallel_find_or_invoker<__internal::__optional_kernel_name<_Name...>>
                                 __or_tag_check, [&__found]() { __found.store(1); },
                                 [&__found_local, &__found, &__comp]() {
                                     for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                        __old = __found.load())
+                                         __old = __found.load())
                                     {
                                         __found.compare_exchange_strong(__old, __found_local.load());
                                     }
@@ -868,7 +871,7 @@ struct __parallel_merge_invoker<__internal::__optional_kernel_name<_Name...>>
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
                 __full_merge_kernel()(__item_id.get_linear_id() * __chunk, __rng1, decltype(__n)(0), __n, __rng2,
-                                    decltype(__n_2)(0), __n_2, __rng3, decltype(__n)(0), __comp, __chunk);
+                                      decltype(__n_2)(0), __n_2, __rng3, decltype(__n)(0), __comp, __chunk);
             });
         });
         return __future<void>(__event);
@@ -951,12 +954,13 @@ struct __parallel_sort_invoker<__internal::__optional_kernel_name<_LeafSortName.
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__leaf_steps), [=](sycl::item</*dim=*/1> __item_id) {
-                const _Size __idx = __item_id.get_linear_id() * __leaf;
-                const _Size __start = __idx;
-                const _Size __end = sycl::min(__start + __leaf, __n);
-                __leaf_sort_kernel()(__rng, __start, __end, __comp);
-            });
+            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__leaf_steps),
+                                                 [=](sycl::item</*dim=*/1> __item_id) {
+                                                     const _Size __idx = __item_id.get_linear_id() * __leaf;
+                                                     const _Size __start = __idx;
+                                                     const _Size __end = sycl::min(__start + __leaf, __n);
+                                                     __leaf_sort_kernel()(__rng, __start, __end, __comp);
+                                                 });
         });
 
         _Size __sorted = __leaf;
@@ -1014,8 +1018,8 @@ struct __parallel_sort_invoker<__internal::__optional_kernel_name<_LeafSortName.
 
                         if (!__data_in_temp)
                         {
-                            __merge(__offset, __rng, __start_1, __end_1, __rng, __start_2, __end_2, __temp_acc, __start_1,
-                                    __comp, __chunk);
+                            __merge(__offset, __rng, __start_1, __end_1, __rng, __start_2, __end_2, __temp_acc,
+                                    __start_1, __comp, __chunk);
                         }
                         else
                         {
@@ -1079,24 +1083,25 @@ struct __parallel_partial_sort_invoker<__internal::__optional_kernel_name<_Globa
                 __cgh.depends_on(__event1);
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-                __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                    auto __global_idx = __item_id.get_linear_id();
+                __cgh.parallel_for<_GlobalSortName...>(
+                    sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
+                        auto __global_idx = __item_id.get_linear_id();
 
-                    _Size __start = 2 * __k * (__global_idx / (2 * __k));
-                    _Size __end_1 = sycl::min(__start + __k, __n);
-                    _Size __end_2 = sycl::min(__start + 2 * __k, __n);
+                        _Size __start = 2 * __k * (__global_idx / (2 * __k));
+                        _Size __end_1 = sycl::min(__start + __k, __n);
+                        _Size __end_2 = sycl::min(__start + 2 * __k, __n);
 
-                    if (!__data_in_temp)
-                    {
-                        __merge(__global_idx, __rng, __start, __end_1, __rng, __end_1, __end_2, __temp_acc, __start,
-                                __comp);
-                    }
-                    else
-                    {
-                        __merge(__global_idx, __temp_acc, __start, __end_1, __temp_acc, __end_1, __end_2, __rng, __start,
-                                __comp);
-                    }
-                });
+                        if (!__data_in_temp)
+                        {
+                            __merge(__global_idx, __rng, __start, __end_1, __rng, __end_1, __end_2, __temp_acc, __start,
+                                    __comp);
+                        }
+                        else
+                        {
+                            __merge(__global_idx, __temp_acc, __start, __end_1, __temp_acc, __end_1, __end_2, __rng,
+                                    __start, __comp);
+                        }
+                    });
             });
             __data_in_temp = !__data_in_temp;
             __k *= 2;
@@ -1120,7 +1125,6 @@ struct __parallel_partial_sort_invoker<__internal::__optional_kernel_name<_Globa
     }
 };
 
-
 //------------------------------------------------------------------------
 // parallel_for - async pattern
 //------------------------------------------------------------------------
@@ -1135,7 +1139,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
     using _CustomName = typename _Policy::kernel_name;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_for_invoker<_ForKernel>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count, std::forward<_Ranges>(__rngs)...);
+    return __parallel_for_invoker<_ForKernel>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -1149,10 +1154,10 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _ReduceKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
+    using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_reduce_invoker<_ReduceKernel, _Tp, _Grainsize>()(std::forward<_ExecutionPolicy>(__exec), __u, __combine, __brick_reduce, std::forward<_Ranges>(__rngs)...);
+    return __parallel_reduce_invoker<_ReduceKernel, _Tp, _Grainsize>()(
+        std::forward<_ExecutionPolicy>(__exec), __u, __combine, __brick_reduce, std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -1168,15 +1173,16 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
 
-    using _LocalScanKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_scan_local_kernel<_CustomName>>;
-    using _GlobalScanKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_scan_global_kernel<_CustomName>>;
-    using _PropagateKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_scan_propagate_kernel<_CustomName>>;
+    using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __parallel_scan_local_kernel<_CustomName>>;
+    using _GlobalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __parallel_scan_global_kernel<_CustomName>>;
+    using _PropagateKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __parallel_scan_propagate_kernel<_CustomName>>;
 
-    return __parallel_scan_invoker<_LocalScanKernel, _GlobalScanKernel, _PropagateKernel>()(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2), 
-                                                                                            __binary_op, __init, __local_scan, __group_scan, __global_scan);
+    return __parallel_scan_invoker<_LocalScanKernel, _GlobalScanKernel, _PropagateKernel>()(
+        std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
+        __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
 //------------------------------------------------------------------------
@@ -1200,7 +1206,8 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     using _CustomName = typename _Policy::kernel_name;
     using _FindOrKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_find_or_invoker<_FindOrKernel>()(std::forward<_ExecutionPolicy>(__exec), __f, __brick_tag, std::forward<_Ranges>(__rngs)...);
+    return __parallel_find_or_invoker<_FindOrKernel>()(std::forward<_ExecutionPolicy>(__exec), __f, __brick_tag,
+                                                       std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -1295,10 +1302,10 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _MergeKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
-    
-    return __parallel_merge_invoker<_MergeKernel>()(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
+    using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
+
+    return __parallel_merge_invoker<_MergeKernel>()(std::forward<_ExecutionPolicy>(__exec),
+                                                    std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
                                                     std::forward<_Range3>(__rng3), __comp);
 }
 
@@ -1314,13 +1321,13 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
     using _CustomName = typename _Policy::kernel_name;
     using _LeafSortKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_sort_leaf_kernel<_CustomName>>;
-    using _GlobalSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_sort_global_kernel<_CustomName>>;
-    using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_sort_copy_back_kernel<_CustomName>>;
+    using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __parallel_sort_global_kernel<_CustomName>>;
+    using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __parallel_sort_copy_back_kernel<_CustomName>>;
 
-    return __parallel_sort_invoker<_LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(std::forward<_ExecutionPolicy>(__exec),
-                                                            std::forward<_Range>(__rng), __merge, __comp);
+    return __parallel_sort_invoker<_LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+        std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __merge, __comp);
 }
 
 template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
@@ -1329,13 +1336,13 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _GlobalSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_sort_global_kernel<_CustomName>>;
-    using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_sort_copy_back_kernel<_CustomName>>;
+    using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __parallel_sort_global_kernel<_CustomName>>;
+    using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __parallel_sort_copy_back_kernel<_CustomName>>;
 
-    return __parallel_partial_sort_invoker<_GlobalSortKernel, _CopyBackKernel>()(std::forward<_ExecutionPolicy>(__exec),
-                                                            std::forward<_Range>(__rng), __merge, __comp);
+    return __parallel_partial_sort_invoker<_GlobalSortKernel, _CopyBackKernel>()(
+        std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __merge, __comp);
 }
 
 //------------------------------------------------------------------------
