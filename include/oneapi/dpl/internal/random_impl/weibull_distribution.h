@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- geometric_distribution.h ------------------------------------------===//
+//===-- weibull_distribution.h ------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,34 +15,35 @@
 //
 // Abstract:
 //
-// Public header file provides implementation for Geometric Distribution
+// Public header file provides implementation for Weibull Distribution
 
-#ifndef _ONEDPL_GEOMETRIC_DISTRIBUTION
-#define _ONEDPL_GEOMETRIC_DISTRIBUTION
+#ifndef _ONEDPL_WEIBULL_DISTRIBUTION
+#define _ONEDPL_WEIBULL_DISTRIBUTION
 
 namespace oneapi
 {
 namespace dpl
 {
-template <class _IntType = int>
-class geometric_distribution
+template <class _RealType = double>
+class weibull_distribution
 {
   public:
     // Distribution types
-    using result_type = _IntType;
-    using scalar_type = internal::element_type_t<_IntType>;
+    using result_type = _RealType;
+    using scalar_type = internal::element_type_t<_RealType>;
 
     struct param_type
     {
-        param_type() : param_type(0.5) {}
-        param_type(double __p) : p(__p) {}
-        double p;
+        param_type() : param_type(scalar_type{1}) {}
+        param_type(scalar_type __a, scalar_type __b = scalar_type{1}) : a(__a), b(__b) {}
+        scalar_type a;
+        scalar_type b;
     };
 
     // Constructors
-    geometric_distribution() : geometric_distribution(0.5) {}
-    explicit geometric_distribution(double __p) : p_(__p) {}
-    explicit geometric_distribution(const param_type& __params) : p_(__params.p) {}
+    weibull_distribution() : weibull_distribution(scalar_type{1}) {}
+    explicit weibull_distribution(scalar_type __a, scalar_type __b = scalar_type{1}) : a_(__a), b_(__b){}
+    explicit weibull_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
 
     // Reset function
     void
@@ -51,22 +52,29 @@ class geometric_distribution
     }
 
     // Property functions
-    double
-    p() const
+    scalar_type
+    a() const
     {
-        return p_;
+        return a_;
+    }
+
+    scalar_type
+    b() const
+    {
+        return b_;
     }
 
     param_type
     param() const
     {
-        return param_type(p_);
+        return param_type(a_, b_);
     }
 
     void
     param(const param_type& __param)
     {
-        p_ = __param.p;
+        a_ = __param.a;
+        b_ = __param.b;
     }
 
     scalar_type
@@ -86,7 +94,7 @@ class geometric_distribution
     result_type
     operator()(_Engine& __engine)
     {
-        return operator()<_Engine>(__engine, param_type(p_));
+        return operator()<_Engine>(__engine, param_type(a_, b_));
     }
 
     template <class _Engine>
@@ -100,7 +108,7 @@ class geometric_distribution
     result_type
     operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(p_), __random_nums);
+        return operator()<_Engine>(__engine, param_type(a_, b_), __random_nums);
     }
 
     template <class _Engine>
@@ -115,11 +123,12 @@ class geometric_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_integral<scalar_type>::value,
-                  "oneapi::dpl::geometric_distribution. Error: unsupported data type");
+    static_assert(::std::is_floating_point<scalar_type>::value,
+                  "oneapi::dpl::weibull_distribution. Error: unsupported data type");
 
     // Distribution parameters
-    double p_;
+    scalar_type a_;
+    scalar_type b_;
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
@@ -134,8 +143,9 @@ class geometric_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<double> __u;
-        return sycl::floor(sycl::log(1.0 - __u(__engine)) / sycl::log(1.0 - __params.p));
+        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
+        return b_* sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))), 
+                    scalar_type{1.0}/a_);
     }
 
     // Specialization of the vector generation with size = [1; 3]
@@ -151,10 +161,10 @@ class geometric_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
-        sycl::vec<double, __N> __u = __distr(__engine);
-        sycl::vec<double, __N> __res_double = sycl::floor(sycl::log(1.0 - __u) / sycl::log(1.0 - __params.p));
-        result_type __res = __res_double.template convert<scalar_type, sycl::rounding_mode::rtz>();
+        oneapi::dpl::uniform_real_distribution<sycl::vec<scalar_type, __N>> __distr;
+        sycl::vec<scalar_type, __N> __u = __distr(__engine);
+        result_type __res = b_* sycl::pow(static_cast<result_type>(-sycl::log(scalar_type{1.0} - __u)),
+                    sycl::vec<scalar_type, __N>(scalar_type{1.0}/a_));
         return __res;
     }
 
@@ -164,10 +174,10 @@ class geometric_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        oneapi::dpl::uniform_real_distribution<double> __u;
-        double __tmp = sycl::log(1.0 - __params.p);
+        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
+        scalar_type __tmp = scalar_type{1.0} / a_;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::floor(sycl::log(1.0 - __u(__engine)) / __tmp);
+            __res[i] = b_* sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))), __tmp);
         return __res;
     }
 
@@ -189,4 +199,4 @@ class geometric_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_GEOMETRIC_DISTRIBUTION
+#endif // #ifndf _ONEDPL_WEIBULL_DISTRIBUTION

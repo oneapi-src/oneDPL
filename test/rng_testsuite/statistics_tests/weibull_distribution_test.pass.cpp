@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- exponential_distribution_test.cpp ---------------------------------===//
+//===-- weibull_distribution_test.cpp ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,7 +15,7 @@
 //
 // Abstract:
 //
-// Test of exponential_distribution - check statistical properties of the distribution
+// Test of weibull_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 #include <iostream>
@@ -36,19 +36,23 @@ constexpr auto seed = 777;
 
 template <typename ScalarRealType>
 int
-statistics_check(int nsamples, ScalarRealType lambda, const std::vector<ScalarRealType>& samples)
+statistics_check(int nsamples, ScalarRealType _a, ScalarRealType _b, const std::vector<ScalarRealType>& samples)
 {
     // theoretical moments
-    double tM = 1 / lambda;
-    double tD = 1 / (lambda * lambda);
-    double tQ = 9 / (lambda * lambda * lambda * lambda);
+    double G1 = sycl::tgamma(1 + 1 / _a);
+    double G2 = sycl::tgamma(1 + 2 / _a);
+    double G3 = sycl::tgamma(1 + 3 / _a);
+    double G4 = sycl::tgamma(1 + 4 / _a);
+    double tM = _b * G1;
+    double tD = _b * _b * (G2 - G1 * G1);
+    double tQ = _b * _b * _b * _b * ((-3) * G1 * G1 * G1 * G1 + 12 * G1 * G1 * G2 - 4 * G1 * G3 + G4 - 6 * G2 * G1 *G1);
 
     return compare_moments(nsamples, samples, tM, tD, tQ);
 }
 
 template <class RealType, class UIntType>
 int
-test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
+test(oneapi::dpl::internal::element_type_t<RealType> _a,  oneapi::dpl::internal::element_type_t<RealType> _b, int nsamples)
 {
 
     sycl::queue queue;
@@ -65,12 +69,12 @@ test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
         sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
-            auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
+            sycl::accessor acc(buffer, cgh, sycl::write_only);
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * num_elems;
                 oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
-                oneapi::dpl::exponential_distribution<RealType> distr(lambda);
+                oneapi::dpl::weibull_distribution<RealType> distr(_a, _b);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
                 res.store(idx.get_linear_id(), acc.get_pointer());
@@ -79,7 +83,7 @@ test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
     }
 
     // statistics check
-    int err = statistics_check(nsamples, lambda, samples);
+    int err = statistics_check(nsamples, _a, _b, samples);
 
     if (err)
     {
@@ -95,9 +99,9 @@ test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
 
 template <class RealType, class UIntType>
 int
-test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples, unsigned int part)
+test_portion(oneapi::dpl::internal::element_type_t<RealType> _a,  oneapi::dpl::internal::element_type_t<RealType> _b, 
+                    int nsamples, unsigned int part)
 {
-
     sycl::queue queue;
 
     // memory allocation
@@ -112,12 +116,12 @@ test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsample
         sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
 
         queue.submit([&](sycl::handler& cgh) {
-            auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
+            sycl::accessor acc(buffer, cgh, sycl::write_only);
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * n_elems;
                 oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
-                oneapi::dpl::exponential_distribution<RealType> distr(lambda);
+                oneapi::dpl::weibull_distribution<RealType> distr(_a, _b);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
                 for (int i = 0; i < n_elems; ++i)
@@ -128,7 +132,7 @@ test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsample
     }
 
     // statistics check
-    int err = statistics_check(nsamples, lambda, samples);
+    int err = statistics_check(nsamples, _a, _b, samples);
 
     if (err)
     {
@@ -147,16 +151,14 @@ int
 tests_set(int nsamples)
 {
     constexpr int nparams = 2;
-
-    float lambda_array[nparams] = {0.5, 1.5};
+    float a_array [nparams] = {0.0, -10.0};
+    float b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for (int i = 0; i < nparams; ++i)
-    {
-        std::cout << "exponential_distribution test<type>, lambda = " << lambda_array[i]
-                  << ", nsamples  = " << nsamples;
-        if (test<RealType, UIntType>(lambda_array[i], nsamples))
-        {
+    for(int i = 0; i < nparams; ++i) {
+        std::cout << "weibull_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
+        ", nsamples  = " << nsamples;
+        if(test<RealType, UIntType>(a_array[i], b_array[i], nsamples)) {
             return 1;
         }
     }
@@ -168,20 +170,19 @@ template <class RealType, class UIntType>
 int
 tests_set_portion(std::int32_t nsamples, unsigned int part)
 {
-    constexpr int nparams = 2;
-
-    oneapi::dpl::internal::element_type_t<RealType> lambda_array[nparams] = {0.5, 1.5};
+     constexpr int nparams = 2;
+    float a_array [nparams] = {0.0, -10.0};
+    float b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
-    for (int i = 0; i < nparams; ++i)
-    {
-        std::cout << "exponential_distribution test<type>, lambda = " << lambda_array[i] << ", nsamples = " << nsamples
-                  << ", part = " << part;
-        if (test_portion<RealType, UIntType>(lambda_array[i], nsamples, part))
-        {
+    for(int i = 0; i < nparams; ++i) {
+        std::cout << "weibull_distribution test<type>, a = " << a_array[i] << ", right = " << b_array[i] <<
+        ", nsamples = " << nsamples << ", part = " << part;
+        if(test_portion<RealType, UIntType>(a_array[i], b_array[i], nsamples, part)) {
             return 1;
         }
     }
+
     return 0;
 }
 
@@ -268,6 +269,7 @@ main()
     err += tests_set_portion<sycl::vec<float, 2>, sycl::vec<std::uint32_t, 1>>(100, 3);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
+
 
     // testing sycl::vec<float, 3> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
@@ -362,6 +364,7 @@ main()
     err += tests_set_portion<sycl::vec<float, 8>, sycl::vec<std::uint32_t, 1>>(160, 9);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
+
 
     // testing sycl::vec<float, 16> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
@@ -472,6 +475,7 @@ main()
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
+
     // testing sycl::vec<double, 3> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
     std::cout << "sycl::vec<double,3>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
@@ -565,6 +569,7 @@ main()
     err += tests_set_portion<sycl::vec<double, 8>, sycl::vec<std::uint32_t, 1>>(160, 9);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
+
 
     // testing sycl::vec<double, 16> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
