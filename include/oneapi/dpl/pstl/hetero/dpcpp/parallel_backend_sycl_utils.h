@@ -132,13 +132,17 @@ struct _HasDefaultName<_ExternalName<_InternalName>>
     static constexpr bool value = _HasDefaultName<_InternalName>::value;
 };
 
-template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
-using _KernelName_t =
+
+template <typename... _Name>
+struct __optional_kernel_name;
+
+template <typename _CustomName>
+using __kernel_name_provider =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename std::conditional<_HasDefaultName<_CustomName>::value, _BaseName<_CustomName, _Args...>,
-                              _BaseName<_CustomName>>::type;
+    typename std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
+                              __optional_kernel_name<_CustomName>>::type;
 #else
-    _BaseName<_CustomName>;
+    __optional_kernel_name<_CustomName>;
 #endif
 
 #if _ONEDPL_DEBUG_SYCL
