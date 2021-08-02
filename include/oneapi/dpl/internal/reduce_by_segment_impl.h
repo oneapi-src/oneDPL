@@ -156,7 +156,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     ValueType initial_value;
     {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
+        auto first2_acc = internal::get_access<sycl::access::mode::read>(first2);
         initial_value = first2_acc[0];
     }
 
@@ -165,9 +165,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1, result2);
     else if (n == 1)
     {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
+        auto result1_acc = internal::get_access<sycl::access::mode::write>(result1);
+        auto result2_acc = internal::get_access<sycl::access::mode::write>(result2);
+        auto first1_acc = internal::get_access<sycl::access::mode::read>(first1);
         result1_acc[0] = first1_acc[0];
         result2_acc[0] = initial_value;
         return ::std::make_pair(result1 + 1, result2 + 1);
@@ -283,7 +283,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     ValueType initial_value;
     {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
+        auto first2_acc = internal::get_access<sycl::access::mode::read>(first2);
         initial_value = first2_acc[0];
     }
 
@@ -292,9 +292,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1, result2);
     else if (n == 1)
     {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
+        auto result1_acc = internal::get_access<sycl::access::mode::write>(result1);
+        auto result2_acc = internal::get_access<sycl::access::mode::write>(result2);
+        auto first1_acc = internal::get_access<sycl::access::mode::read>(first1);
         result1_acc[0] = first1_acc[0];
         result2_acc[0] = initial_value;
         return ::std::make_pair(result1 + 1, result2 + 1);
@@ -402,7 +402,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     ValueType initial_value;
     {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
+        auto first2_acc = internal::get_access<sycl::access::mode::read>(first2);
         initial_value = first2_acc[0];
     }
 
@@ -411,9 +411,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1, result2);
     else if (n == 1)
     {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
+        auto result1_acc = internal::get_access<sycl::access::mode::write>(result1);
+        auto result2_acc = internal::get_access<sycl::access::mode::write>(result2);
+        auto first1_acc = internal::get_access<sycl::access::mode::read>(first1);
         result1_acc[0] = first1_acc[0];
         result2_acc[0] = initial_value;
         return ::std::make_pair(result1 + 1, result2 + 1);

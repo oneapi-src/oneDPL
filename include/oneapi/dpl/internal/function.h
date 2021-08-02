@@ -61,33 +61,32 @@ using oneapi::dpl::__par_backend_hetero::__internal::is_hetero_iterator;
 #if _ONEDPL_BACKEND_SYCL
 // Helpers used to get indexable access to the data passed to the SYCL implementation of an
 // algorithm from either a SYCL iterator or a USM pointer.
-template <sycl::access::mode Mode, typename Policy, typename Iterator>
+template <sycl::access::mode Mode, typename Iterator>
 auto
-get_access(Policy, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+get_access(Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
     -> decltype(i.get_buffer().template get_access<Mode>())
 {
     return i.get_buffer().template get_access<Mode>();
 }
 
-template <sycl::access::mode Mode, typename Policy, typename Iterator>
+template <sycl::access::mode Mode, typename Iterator>
 Iterator
-get_access(Policy, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+get_access(Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
 {
     return i;
 }
 
-template <sycl::access::mode Mode, typename Policy, typename T>
+template <sycl::access::mode Mode, typename T>
 counting_iterator<T>
-get_access(Policy, counting_iterator<T> i)
+get_access(counting_iterator<T> i)
 {
     return i;
 }
 
-template <sycl::access::mode Mode, typename Policy, typename T>
+template <sycl::access::mode Mode, typename T>
 T*
-get_access(Policy policy, T* ptr)
+get_access(T* ptr)
 {
-    assert(sycl::get_pointer_type(ptr, policy.queue().get_context()) == sycl::usm::alloc::shared);
     return ptr;
 }
 #endif
