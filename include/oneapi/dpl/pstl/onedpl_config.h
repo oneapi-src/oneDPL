@@ -311,7 +311,7 @@
 // when target devices are CPU or FPGA emulator. Since CPU and GPU devices
 // cannot be distinguished during compilation, the macro is enabled by default.
 #    if !defined(_ONEDPL_COMPILE_KERNEL)
-#        define _ONEDPL_COMPILE_KERNEL 0
+#        define _ONEDPL_COMPILE_KERNEL 1
 #    endif
 #endif
 

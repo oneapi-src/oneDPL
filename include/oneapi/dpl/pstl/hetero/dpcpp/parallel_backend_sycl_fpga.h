@@ -20,7 +20,6 @@
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
-#include <iostream>
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"

@@ -25,6 +25,10 @@
 #include "sycl_iterator.h"
 #include "../../utils.h"
 
+#if _ONEDPL_DEBUG_SYCL
+#    include <iostream>
+#endif
+
 #define _PRINT_INFO_IN_DEBUG_MODE(...)                                                                                 \
     oneapi::dpl::__par_backend_hetero::__internal::__print_device_debug_info(__VA_ARGS__)
 
@@ -123,9 +127,9 @@ namespace __internal
 template <typename _CustomName>
 struct _HasDefaultName
 {
-    static constexpr bool value = std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value
+    static constexpr bool value = ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value
 #if _ONEDPL_FPGA_DEVICE
-                                  || std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>::value
+                                  || ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>::value
 #endif
         ;
 };
@@ -142,10 +146,39 @@ struct __optional_kernel_name;
 template <typename _CustomName>
 using __kernel_name_provider =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
-                              __optional_kernel_name<_CustomName>>::type;
+    typename ::std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
+                                __optional_kernel_name<_CustomName>>::type;
 #else
     __optional_kernel_name<_CustomName>;
+#endif
+
+template <char...>
+struct __composite_kernel_name
+{
+};
+
+template <typename T>
+class __kernel_name_composer
+{
+    static constexpr auto __name = __builtin_sycl_unique_stable_name(T);
+    static constexpr std::size_t __name_size = __builtin_strlen(__name);
+
+    template <::std::size_t... Is>
+    static __composite_kernel_name<__name[Is]...>
+    __compose_kernel_name(::std::index_sequence<Is...>);
+
+  public:
+    using type = decltype(__compose_kernel_name(::std::make_index_sequence<__name_size>{}));
+};
+
+template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
+using _KernelName_t =
+#if __SYCL_UNNAMED_LAMBDA__
+    typename ::std::conditional<_HasDefaultName<_CustomName>::value,
+                                typename __kernel_name_composer<_BaseName<_CustomName, _Args...>>::type,
+                                _BaseName<_CustomName>>::type;
+#else
+    _BaseName<_CustomName>
 #endif
 
 #if _ONEDPL_DEBUG_SYCL
@@ -162,8 +195,8 @@ __print_device_debug_info(_Policy __policy, size_t __wg_size = 0, size_t __mcu =
                 << (__wg_size ? __wg_size : oneapi::dpl::__internal::__max_work_group_size(__policy)) << ::std::endl;
 }
 #else
-template <typename _Policy>
-inline void __print_device_debug_info(_Policy, size_t = 0, size_t = 0)
+    template <typename _Policy>
+    inline void __print_device_debug_info(_Policy, size_t = 0, size_t = 0)
 {
 }
 #endif

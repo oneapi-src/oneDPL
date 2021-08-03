@@ -20,7 +20,6 @@
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
-#include <iostream>
 
 #include "../../iterator_impl.h"
 #include "../../execution_impl.h"
@@ -175,7 +174,7 @@ make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
 }
 
 // set of templated classes to name kernels
-template <typename... _DerivedKernelName>
+template <typename _DerivedKernelName>
 class __kernel_name_base
 {
   public:
@@ -185,12 +184,12 @@ class __kernel_name_base
     {
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
         auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__exec.queue().get_context());
-        return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName...>());
+        return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
 #else
         sycl::program __program(__exec.queue().get_context());
 
-        __program.build_with_kernel_type<_DerivedKernelName...>();
-        return __program.get_kernel<_DerivedKernelName...>();
+        __program.build_with_kernel_type<_DerivedKernelName>();
+        return __program.get_kernel<_DerivedKernelName>();
 #endif
     }
 };
@@ -220,106 +219,11 @@ struct __parallel_for_invoker<__internal::__optional_kernel_name<_Name...>>
     }
 };
 
-template <typename _KernelName, typename _Tp, ::std::size_t _Grainsize>
-struct __parallel_reduce_invoker;
+template <typename... _Name>
+class __parallel_reduce_kernel;
 
-template <typename... _Name, typename _Tp, ::std::size_t _Grainsize>
-struct __parallel_reduce_invoker<__internal::__optional_kernel_name<_Name...>, _Tp, _Grainsize>
-{
-    template <typename _ExecutionPolicy, typename _Up, typename _Cp, typename _Rp, typename... _Ranges>
-    oneapi::dpl::__par_backend_hetero::__future<_Tp>
-    operator()(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs) const
-    {
-        auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-        assert(__n > 0);
-
-        using _Size = decltype(__n);
-
-    auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
-    ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __work_group_size according to local memory limit
-    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Tp), __work_group_size);
-#if _ONEDPL_COMPILE_KERNEL
-        sycl::kernel __kernel =
-            __kernel_name_base<_Name...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-        __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                              ::std::forward<_ExecutionPolicy>(__exec), __kernel));
-#endif
-        ::std::size_t __iters_per_work_item = _Grainsize;
-        // distribution is ~1 work groups per compute init
-        if (__exec.queue().get_device().is_cpu())
-            __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
-        ::std::size_t __size_per_work_group =
-            __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
-        _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
-        _Size __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of work items
-
-        _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
-
-        // Create temporary global buffers to store temporary values
-        sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
-        // __is_first == true. Reduce over each work_group
-        // __is_first == false. Reduce between work groups
-        bool __is_first = true;
-
-        // For memory utilization it's better to use one big buffer instead of two small because size of the buffer is close to a few MB
-        _Size __offset_1 = 0;
-        _Size __offset_2 = __n_groups;
-
-        sycl::event __reduce_event;
-        do
-        {
-            __reduce_event = __exec.queue().submit([&](sycl::handler& __cgh) {
-                __cgh.depends_on(__reduce_event);
-
-                oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-                auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-                sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
-                    sycl::range<1>(__work_group_size), __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
-                __cgh.parallel_for<_Name...>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                    __kernel,
-#endif
-                    sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size),
-                                      sycl::range<1>(__work_group_size)),
-                    [=](sycl::nd_item<1> __item_id) {
-                        ::std::size_t __global_idx = __item_id.get_global_id(0);
-                        ::std::size_t __local_idx = __item_id.get_local_id(0);
-                        // 1. Initialization (transform part). Fill local memory
-                        if (__is_first)
-                        {
-                            __u(__item_id, __n, __iters_per_work_item, __global_idx, __temp_local, __rngs...);
-                        }
-                        else
-                        {
-                            // TODO: check the approach when we use grainsize here too
-                            if (__global_idx < __n_items)
-                                __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
-                            __dpl_sycl::__group_barrier(__item_id);
-                        }
-                        // 2. Reduce within work group using local memory
-                        _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
-                        if (__local_idx == 0)
-                        {
-                            __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
-                        }
-                    });
-            });
-            if (__is_first)
-            {
-                __is_first = false;
-            }
-            ::std::swap(__offset_1, __offset_2);
-            __n_items = __n_groups;
-            __n_groups = (__n_items - 1) / __work_group_size + 1;
-        } while (__n_items > 1);
-        return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
-    }
-};
+template <typename... _Name>
+class __parallel_find_or_kernel;
 
 template <typename... _Name>
 class __parallel_scan_local_kernel;
@@ -330,17 +234,42 @@ class __parallel_scan_global_kernel;
 template <typename... _Name>
 class __parallel_scan_propagate_kernel;
 
-    auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __wgroup_size according to local memory limit
-    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                         sizeof(_Type), __wgroup_size);
+template <typename _CustomName, typename _PropagateScanName>
+struct __parallel_scan_invoker;
+
+template <typename _CustomName, typename... _PropagateScanName>
+struct __parallel_scan_invoker<_CustomName, __internal::__optional_kernel_name<_PropagateScanName...>>
+{
+    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
+              typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+    oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
+               _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
+    {
+        using _Type = typename _InitType::__value_type;
+        using _LocalScanKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_scan_local_kernel, _CustomName,
+                                                                         _Range1, _Range2, _BinaryOperation, _Type,
+                                                                         _LocalScan, _GroupScan, _GlobalScan>;
+        using _GlobalScanKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_scan_global_kernel, _CustomName,
+                                                                         _Range1, _Range2, _BinaryOperation, _Type,
+                                                                         _LocalScan, _GroupScan, _GlobalScan>;
+
+        auto __n = __rng1.size();
+        assert(__n > 0);
+
+        auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+        // change __wgroup_size according to local memory limit
+        __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                             sizeof(_Type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
         auto __kernel_1 =
-            __kernel_name_base<_LocalScanName...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+            __kernel_name_base<_LocalScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
         auto __kernel_2 =
-            __kernel_name_base<_GlobalScanName...>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+            __kernel_name_base<_GlobalScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
         auto __wgroup_size_kernel_1 =
             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
         auto __wgroup_size_kernel_2 =
@@ -366,7 +295,7 @@ class __parallel_scan_propagate_kernel;
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
 #endif
-            __cgh.parallel_for<_LocalScanName...>(
+            __cgh.parallel_for<_LocalScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel_1,
 #endif
@@ -388,7 +317,7 @@ class __parallel_scan_propagate_kernel;
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
 #endif
-                __cgh.parallel_for<_GlobalScanName...>(
+                __cgh.parallel_for<_GlobalScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                     __kernel_2,
 #endif
@@ -412,235 +341,6 @@ class __parallel_scan_propagate_kernel;
         });
 
         return oneapi::dpl::__par_backend_hetero::__future<_Type>(__final_event, __n_groups - 1, __wg_sums);
-    }
-};
-
-// Tag for __parallel_find_or to find the first element that satisfies predicate
-template <typename _RangeType>
-struct __parallel_find_forward_tag
-{
-// FPGA devices don't support 64-bit atomics
-#if _ONEDPL_FPGA_DEVICE
-    using _AtomicType = uint32_t;
-#else
-    using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
-#endif
-    using _Compare = oneapi::dpl::__internal::__pstl_less;
-
-    // The template parameter is intended to unify __init_value in tags.
-    template <typename _DiffType>
-    constexpr static _AtomicType
-    __init_value(_DiffType __val)
-    {
-        return __val;
-    }
-};
-
-// Tag for __parallel_find_or to find the last element that satisfies predicate
-template <typename _RangeType>
-struct __parallel_find_backward_tag
-{
-// FPGA devices don't support 64-bit atomics
-#if _ONEDPL_FPGA_DEVICE
-    using _AtomicType = int32_t;
-#else
-    using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
-#endif
-    using _Compare = oneapi::dpl::__internal::__pstl_greater;
-
-    template <typename _DiffType>
-    constexpr static _AtomicType __init_value(_DiffType)
-    {
-        return _AtomicType{-1};
-    }
-};
-
-// Tag for __parallel_find_or for or-semantic
-struct __parallel_or_tag
-{
-    class __atomic_compare
-    {
-      public:
-        template <typename _LocalAtomic, typename _GlobalAtomic>
-        bool
-        operator()(const _LocalAtomic& __found_local, const _GlobalAtomic& __found) const
-        {
-            return __found_local == 1 && __found == 0;
-        }
-    };
-
-    using _AtomicType = int32_t;
-    using _Compare = __atomic_compare;
-
-    // The template parameter is intended to unify __init_value in tags.
-    template <typename _DiffType>
-    constexpr static _AtomicType __init_value(_DiffType)
-    {
-        return 0;
-    }
-};
-
-//------------------------------------------------------------------------
-// early_exit (find_or)
-//------------------------------------------------------------------------
-
-template <typename _ExecutionPolicy, typename _Pred>
-struct __early_exit_find_or
-{
-    _Pred __pred;
-
-    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare,
-              typename _BrickTag, typename... _Ranges>
-    void
-    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
-               _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
-    {
-        using __par_backend_hetero::__parallel_or_tag;
-        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
-        using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
-
-        auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-
-        ::std::size_t __shift = 16;
-        ::std::size_t __local_idx = __item_id.get_local_id(0);
-        ::std::size_t __group_idx = __item_id.get_group(0);
-
-        // each work_item processes N_ELEMENTS with step SHIFT
-        ::std::size_t __leader = (__local_idx / __shift) * __shift;
-        ::std::size_t __init_index = __group_idx * __wg_size * __n_iter + __leader * __n_iter + __local_idx % __shift;
-
-        // if our "line" is out of work group size, reduce the line to the number of the rest elements
-        if (__wg_size - __leader < __shift)
-            __shift = __wg_size - __leader;
-        for (_IterSize __i = 0; __i < __n_iter; ++__i)
-        {
-            //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
-            using _ShiftedIdxType =
-                typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
-                                            decltype(__found_local.load())>::type;
-            _IterSize __current_iter = oneapi::dpl::__internal::__invoke_if_else(
-                _BackwardTagType{}, [__n_iter, __i]() { return __n_iter - 1 - __i; }, [__i]() { return __i; });
-
-            _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
-            // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
-            // should be investigated later, with other HW
-            if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
-            {
-                oneapi::dpl::__internal::__invoke_if_else(
-                    _OrTagType{}, [&__found_local]() { __found_local.store(1); },
-                    [&__found_local, &__comp, &__shifted_idx]() {
-                        for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
-                             __old = __found_local.load())
-                        {
-                            __found_local.compare_exchange_strong(__old, __shifted_idx);
-                        }
-                    });
-                return;
-            }
-        }
-    }
-};
-
-template <typename _Name>
-struct __parallel_find_or_invoker;
-
-template <typename... _Name>
-struct __parallel_find_or_invoker<__internal::__optional_kernel_name<_Name...>>
-{
-    template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
-    typename ::std::conditional<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
-                                oneapi::dpl::__internal::__difference_t<
-                                    typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>::type
-    operator()(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs) const
-    {
-        using _AtomicType = typename _BrickTag::_AtomicType;
-
-        auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
-        auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-        assert(__rng_n > 0);
-
-        auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
-#if _ONEDPL_COMPILE_KERNEL
-        auto __kernel = _FindOrKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-        __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                      ::std::forward<_ExecutionPolicy>(__exec), __kernel));
-#endif
-        auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
-
-        auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
-        // TODO: try to change __n_groups with another formula for more perfect load balancing
-        __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__mcu));
-
-        auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
-
-        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
-
-        _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
-        auto __result = __init_value;
-
-        auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
-
-        // scope is to copy data back to __result after destruction of temporary sycl:buffer
-        {
-            auto __temp = sycl::buffer<_AtomicType, 1>(&__result, 1); // temporary storage for global atomic
-
-            // main parallel_for
-            __exec.queue().submit([&](sycl::handler& __cgh) {
-                oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-                auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-
-                // create local accessor to connect atomic with
-                sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
-                    1, __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
-                __cgh.parallel_for<_Name...>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                    __kernel,
-#endif
-                    sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
-                                              sycl::range</*dim=*/1>(__wgroup_size)),
-                    [=](sycl::nd_item</*dim=*/1> __item_id) {
-                        auto __local_idx = __item_id.get_local_id(0);
-
-                        // connect global atomic with global memory
-                        sycl::atomic<_AtomicType> __found(__temp_acc.get_pointer());
-                        // connect local atomic with local memory
-                        sycl::atomic<_AtomicType, sycl::access::address_space::local_space> __found_local(
-                            __temp_local.get_pointer());
-
-                        // 1. Set initial value to local atomic
-                        if (__local_idx == 0)
-                            __found_local.store(__init_value);
-                        __dpl_sycl::__group_barrier(__item_id);
-
-                        // 2. Find any element that satisfies pred and set local atomic value to global atomic
-                        constexpr auto __comp = typename _BrickTag::_Compare{};
-                        __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
-                        __dpl_sycl::__group_barrier(__item_id);
-
-                        // Set local atomic value to global atomic
-                        if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
-                        {
-                            oneapi::dpl::__internal::__invoke_if_else(
-                                __or_tag_check, [&__found]() { __found.store(1); },
-                                [&__found_local, &__found, &__comp]() {
-                                    for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                         __old = __found.load())
-                                    {
-                                        __found.compare_exchange_strong(__old, __found_local.load());
-                                    }
-                                });
-                        }
-                    });
-            });
-            //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
-        }
-
-        return oneapi::dpl::__internal::__invoke_if_else(
-            __or_tag_check, [&__result]() { return __result; },
-            [&__result, &__rng_n, &__init_value]() { return __result != __init_value ? __result : __rng_n; });
     }
 };
 
@@ -1146,18 +846,104 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 //------------------------------------------------------------------------
 // parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
-template <typename _Tp, ::std::size_t _Grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
+template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
           typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__par_backend_hetero::__future<_Tp>>
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
+    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    assert(__n > 0);
+
+    using _Size = decltype(__n);
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
+    using _ReduceKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_reduce_kernel, _CustomName, _Up, _Cp,
+                                                                     _Rp, _Ranges...>;
 
-    return __parallel_reduce_invoker<_ReduceKernel, _Tp, _Grainsize>()(
-        std::forward<_ExecutionPolicy>(__exec), __u, __combine, __brick_reduce, std::forward<_Ranges>(__rngs)...);
+    sycl::cl_uint __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
+    ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    // change __work_group_size according to local memory limit
+    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                             sizeof(_Tp), __work_group_size);
+#if _ONEDPL_COMPILE_KERNEL
+    sycl::kernel __kernel =
+        __kernel_name_base<_ReduceKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
+                                                          ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+#endif
+    ::std::size_t __iters_per_work_item = __grainsize;
+    // distribution is ~1 work groups per compute init
+    if (__exec.queue().get_device().is_cpu())
+        __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
+    ::std::size_t __size_per_work_group =
+        __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
+    _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
+    _Size __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of work items
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
+
+    // Create temporary global buffers to store temporary values
+    sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
+    // __is_first == true. Reduce over each work_group
+    // __is_first == false. Reduce between work groups
+    bool __is_first = true;
+
+    // For memory utilization it's better to use one big buffer instead of two small because size of the buffer is close to a few MB
+    _Size __offset_1 = 0;
+    _Size __offset_2 = __n_groups;
+
+    sycl::event __reduce_event;
+    do
+    {
+        __reduce_event = __exec.queue().submit([&](sycl::handler& __cgh) {
+            __cgh.depends_on(__reduce_event);
+
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+            sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
+                sycl::range<1>(__work_group_size), __cgh);
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+            __cgh.parallel_for<_ReduceKernel>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel,
+#endif
+                sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
+                [=](sycl::nd_item<1> __item_id) {
+                    ::std::size_t __global_idx = __item_id.get_global_id(0);
+                    ::std::size_t __local_idx = __item_id.get_local_id(0);
+                    // 1. Initialization (transform part). Fill local memory
+                    if (__is_first)
+                    {
+                        __u(__item_id, __n, __iters_per_work_item, __global_idx, __temp_local, __rngs...);
+                    }
+                    else
+                    {
+                        // TODO: check the approach when we use grainsize here too
+                        if (__global_idx < __n_items)
+                            __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
+                        __dpl_sycl::__group_barrier(__item_id);
+                    }
+                    // 2. Reduce within work group using local memory
+                    _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
+                    if (__local_idx == 0)
+                    {
+                        __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
+                    }
+                });
+        });
+        if (__is_first)
+        {
+            __is_first = false;
+        }
+        ::std::swap(__offset_1, __offset_2);
+        __n_items = __n_groups;
+        __n_groups = (__n_items - 1) / __work_group_size + 1;
+    } while (__n_items > 1);
+    return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
 }
 
 //------------------------------------------------------------------------
@@ -1173,14 +959,10 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
 
-    using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __parallel_scan_local_kernel<_CustomName>>;
-    using _GlobalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __parallel_scan_global_kernel<_CustomName>>;
     using _PropagateKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __parallel_scan_propagate_kernel<_CustomName>>;
 
-    return __parallel_scan_invoker<_LocalScanKernel, _GlobalScanKernel, _PropagateKernel>()(
+    return __parallel_scan_invoker<_CustomName, _PropagateKernel>()(
         std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
@@ -1188,6 +970,132 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
 //------------------------------------------------------------------------
 // find_or tags
 //------------------------------------------------------------------------
+
+// Tag for __parallel_find_or to find the first element that satisfies predicate
+template <typename _RangeType>
+struct __parallel_find_forward_tag
+{
+// FPGA devices don't support 64-bit atomics
+#if _ONEDPL_FPGA_DEVICE
+    using _AtomicType = uint32_t;
+#else
+    using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
+#endif
+    using _Compare = oneapi::dpl::__internal::__pstl_less;
+
+    // The template parameter is intended to unify __init_value in tags.
+    template <typename _DiffType>
+    constexpr static _AtomicType
+    __init_value(_DiffType __val)
+    {
+        return __val;
+    }
+};
+
+// Tag for __parallel_find_or to find the last element that satisfies predicate
+template <typename _RangeType>
+struct __parallel_find_backward_tag
+{
+// FPGA devices don't support 64-bit atomics
+#if _ONEDPL_FPGA_DEVICE
+    using _AtomicType = int32_t;
+#else
+    using _AtomicType = oneapi::dpl::__internal::__difference_t<_RangeType>;
+#endif
+    using _Compare = oneapi::dpl::__internal::__pstl_greater;
+
+    template <typename _DiffType>
+    constexpr static _AtomicType __init_value(_DiffType)
+    {
+        return _AtomicType{-1};
+    }
+};
+
+// Tag for __parallel_find_or for or-semantic
+struct __parallel_or_tag
+{
+    class __atomic_compare
+    {
+      public:
+        template <typename _LocalAtomic, typename _GlobalAtomic>
+        bool
+        operator()(const _LocalAtomic& __found_local, const _GlobalAtomic& __found) const
+        {
+            return __found_local == 1 && __found == 0;
+        }
+    };
+
+    using _AtomicType = int32_t;
+    using _Compare = __atomic_compare;
+
+    // The template parameter is intended to unify __init_value in tags.
+    template <typename _DiffType>
+    constexpr static _AtomicType __init_value(_DiffType)
+    {
+        return 0;
+    }
+};
+
+//------------------------------------------------------------------------
+// early_exit (find_or)
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Pred>
+struct __early_exit_find_or
+{
+    _Pred __pred;
+
+    template <typename _NDItemId, typename _IterSize, typename _WgSize, typename _LocalAtomic, typename _Compare,
+              typename _BrickTag, typename... _Ranges>
+    void
+    operator()(const _NDItemId __item_id, const _IterSize __n_iter, const _WgSize __wg_size, _Compare __comp,
+               _LocalAtomic& __found_local, _BrickTag, _Ranges&&... __rngs) const
+    {
+        using __par_backend_hetero::__parallel_or_tag;
+        using _OrTagType = ::std::is_same<_BrickTag, __par_backend_hetero::__parallel_or_tag>;
+        using _BackwardTagType = ::std::is_same<typename _BrickTag::_Compare, oneapi::dpl::__internal::__pstl_greater>;
+
+        auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+
+        ::std::size_t __shift = 16;
+        ::std::size_t __local_idx = __item_id.get_local_id(0);
+        ::std::size_t __group_idx = __item_id.get_group(0);
+
+        // each work_item processes N_ELEMENTS with step SHIFT
+        ::std::size_t __leader = (__local_idx / __shift) * __shift;
+        ::std::size_t __init_index = __group_idx * __wg_size * __n_iter + __leader * __n_iter + __local_idx % __shift;
+
+        // if our "line" is out of work group size, reduce the line to the number of the rest elements
+        if (__wg_size - __leader < __shift)
+            __shift = __wg_size - __leader;
+        for (_IterSize __i = 0; __i < __n_iter; ++__i)
+        {
+            //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
+            using _ShiftedIdxType =
+                typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
+                                            decltype(__found_local.load())>::type;
+            _IterSize __current_iter = oneapi::dpl::__internal::__invoke_if_else(
+                _BackwardTagType{}, [__n_iter, __i]() { return __n_iter - 1 - __i; }, [__i]() { return __i; });
+
+            _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
+            // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
+            // should be investigated later, with other HW
+            if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
+            {
+                oneapi::dpl::__internal::__invoke_if_else(
+                    _OrTagType{}, [&__found_local]() { __found_local.store(1); },
+                    [&__found_local, &__comp, &__shifted_idx]() {
+                        for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
+                             __old = __found_local.load())
+                        {
+                            __found_local.compare_exchange_strong(__old, __shifted_idx);
+                        }
+                    });
+                return;
+            }
+        }
+    }
+};
 
 //------------------------------------------------------------------------
 // parallel_find_or - sync pattern
@@ -1204,10 +1112,95 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _FindOrKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
+    using _AtomicType = typename _BrickTag::_AtomicType;
+    using _FindOrKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_find_or_kernel,
+                                                                                       _CustomName, _Brick, _Ranges...>;
 
-    return __parallel_find_or_invoker<_FindOrKernel>()(std::forward<_ExecutionPolicy>(__exec), __f, __brick_tag,
-                                                       std::forward<_Ranges>(__rngs)...);
+    auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
+    auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    assert(__rng_n > 0);
+
+    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
+#if _ONEDPL_COMPILE_KERNEL
+    auto __kernel = __kernel_name_base<_FindOrKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
+                                                  ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+#endif
+    auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+
+    auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
+    // TODO: try to change __n_groups with another formula for more perfect load balancing
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__mcu));
+
+    auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+
+    _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    auto __result = __init_value;
+
+    auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+
+    // scope is to copy data back to __result after destruction of temporary sycl:buffer
+    {
+        auto __temp = sycl::buffer<_AtomicType, 1>(&__result, 1); // temporary storage for global atomic
+
+        // main parallel_for
+        __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+
+            // create local accessor to connect atomic with
+            sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+            __cgh.parallel_for<_FindOrKernel>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel,
+#endif
+                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+                                          sycl::range</*dim=*/1>(__wgroup_size)),
+                [=](sycl::nd_item</*dim=*/1> __item_id) {
+                    auto __local_idx = __item_id.get_local_id(0);
+
+                    // connect global atomic with global memory
+                    sycl::atomic<_AtomicType> __found(__temp_acc.get_pointer());
+                    // connect local atomic with local memory
+                    sycl::atomic<_AtomicType, sycl::access::address_space::local_space> __found_local(
+                        __temp_local.get_pointer());
+
+                    // 1. Set initial value to local atomic
+                    if (__local_idx == 0)
+                        __found_local.store(__init_value);
+                    __dpl_sycl::__group_barrier(__item_id);
+
+                    // 2. Find any element that satisfies pred and set local atomic value to global atomic
+                    constexpr auto __comp = typename _BrickTag::_Compare{};
+                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
+                    __dpl_sycl::__group_barrier(__item_id);
+
+                    // Set local atomic value to global atomic
+                    if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
+                    {
+                        oneapi::dpl::__internal::__invoke_if_else(
+                            __or_tag_check, [&__found]() { __found.store(1); },
+                            [&__found_local, &__found, &__comp]() {
+                                for (auto __old = __found.load(); __comp(__found_local.load(), __old);
+                                     __old = __found.load())
+                                {
+                                    __found.compare_exchange_strong(__old, __found_local.load());
+                                }
+                            });
+                    }
+                });
+        });
+        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
+    }
+
+    return oneapi::dpl::__internal::__invoke_if_else(
+        __or_tag_check, [&__result]() { return __result; },
+        [&__result, &__rng_n, &__init_value]() { return __result != __init_value ? __result : __rng_n; });
 }
 
 //------------------------------------------------------------------------
