@@ -83,7 +83,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     ValueType initial_value;
     {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(first2);
+        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
         initial_value = first2_acc[0];
     }
 
@@ -93,7 +93,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         return result;
     else if (n == 1)
     {
-        auto result_acc = internal::get_access<sycl::access::mode::write>(result);
+        auto result_acc = internal::get_access<sycl::access::mode::write>(policy, result);
         result_acc[0] = initial_value;
         return result + 1;
     }

@@ -623,6 +623,20 @@ struct __conjunction<_B1, _Bs...> : ::std::conditional<!bool(_B1::value), _B1, _
 {
 };
 
+// empty base class for type erasure
+struct __lifetime_keeper_base
+{
+    virtual ~__lifetime_keeper_base() {}
+};
+
+// derived class to keep temporaries (e.g. buffer) alive
+template <typename... Ts>
+struct __lifetime_keeper : public __lifetime_keeper_base
+{
+    ::std::tuple<Ts...> __my_tmps;
+    __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
