@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- geometric_distribution_test.cpp ------------------------------------===//
+//===----------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -11,11 +11,7 @@
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 //
-//===----------------------------------------------------------------------===//
-//
-// Abstract:
-//
-// Test of geometric_distribution - check statistical properties of the distribution
+//===----------------------------------------------------------===//
 
 #include <iostream>
 #include <vector>

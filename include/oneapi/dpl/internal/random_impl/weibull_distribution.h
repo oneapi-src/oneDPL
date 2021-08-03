@@ -34,15 +34,15 @@ class weibull_distribution
 
     struct param_type
     {
-        param_type() : param_type(scalar_type{1}) {}
-        param_type(scalar_type __a, scalar_type __b = scalar_type{1}) : a(__a), b(__b) {}
+        param_type() : param_type(scalar_type{1.0}) {}
+        param_type(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a(__a), b(__b) {}
         scalar_type a;
         scalar_type b;
     };
 
     // Constructors
-    weibull_distribution() : weibull_distribution(scalar_type{1}) {}
-    explicit weibull_distribution(scalar_type __a, scalar_type __b = scalar_type{1}) : a_(__a), b_(__b) {}
+    weibull_distribution() : weibull_distribution(scalar_type{1.0}) {}
+    explicit weibull_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
     explicit weibull_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
 
     // Reset function
