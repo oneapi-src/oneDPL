@@ -61,7 +61,7 @@ using oneapi::dpl::__par_backend_hetero::__internal::is_hetero_iterator;
 #if _ONEDPL_BACKEND_SYCL
 // Helpers used to get indexable access to the data passed to the SYCL implementation of an
 // algorithm from either a SYCL iterator or a USM pointer.
-template <cl::sycl::access::mode Mode, typename Iterator>
+template <sycl::access::mode Mode, typename Iterator>
 auto
 get_access(Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
     -> decltype(i.get_buffer().template get_access<Mode>())
@@ -69,21 +69,21 @@ get_access(Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::v
     return i.get_buffer().template get_access<Mode>();
 }
 
-template <cl::sycl::access::mode Mode, typename Iterator>
+template <sycl::access::mode Mode, typename Iterator>
 Iterator
 get_access(Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
 {
     return i;
 }
 
-template <cl::sycl::access::mode Mode, typename T>
+template <sycl::access::mode Mode, typename T>
 counting_iterator<T>
 get_access(counting_iterator<T> i)
 {
     return i;
 }
 
-template <cl::sycl::access::mode Mode, typename T>
+template <sycl::access::mode Mode, typename T>
 T*
 get_access(T* ptr)
 {

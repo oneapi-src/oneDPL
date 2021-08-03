@@ -35,6 +35,7 @@
 #define _ONEDPL_NO_INIT_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (__LIBSYCL_VERSION >= 50300)
 
 namespace __sycl
 {
@@ -44,6 +45,14 @@ using __no_init =
     sycl::property::no_init;
 #else
     sycl::property::noinit;
+#endif
+
+template <typename _T>
+using __plus =
+#if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
+    sycl::plus<_T>;
+#else
+    sycl::ONEAPI::plus<_T>;
 #endif
 
 template <typename _Buffer>

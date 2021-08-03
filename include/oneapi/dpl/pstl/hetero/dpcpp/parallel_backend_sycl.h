@@ -285,11 +285,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
         oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_reduce_kernel, _CustomName, _Up, _Cp,
                                                                      _Rp, _Ranges...>;
 
-    sycl::cl_uint __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
+    auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
     ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __work_group_size according to local memory limit
-    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
-        ::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
+    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                             sizeof(_Tp), __work_group_size);
 #if _ONEDPL_COMPILE_KERNEL
     sycl::kernel __kernel = _ReduceKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
@@ -401,8 +401,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __wgroup_size according to local memory limit
-    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Type>(
-        ::std::forward<_ExecutionPolicy>(__exec), __wgroup_size);
+    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                         sizeof(_Type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernel_1 = _LocalScanKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));

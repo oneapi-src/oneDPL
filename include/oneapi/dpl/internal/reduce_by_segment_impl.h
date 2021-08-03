@@ -156,7 +156,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     ValueType initial_value;
     {
-        auto first2_acc = internal::get_access<cl::sycl::access::mode::read>(first2);
+        auto first2_acc = internal::get_access<sycl::access::mode::read>(first2);
         initial_value = first2_acc[0];
     }
 
@@ -165,9 +165,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1, result2);
     else if (n == 1)
     {
-        auto result1_acc = internal::get_access<cl::sycl::access::mode::write>(result1);
-        auto result2_acc = internal::get_access<cl::sycl::access::mode::write>(result2);
-        auto first1_acc = internal::get_access<cl::sycl::access::mode::read>(first1);
+        auto result1_acc = internal::get_access<sycl::access::mode::write>(result1);
+        auto result2_acc = internal::get_access<sycl::access::mode::write>(result2);
+        auto first1_acc = internal::get_access<sycl::access::mode::read>(first1);
         result1_acc[0] = first1_acc[0];
         result2_acc[0] = initial_value;
         return ::std::make_pair(result1 + 1, result2 + 1);
@@ -180,7 +180,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     internal::__buffer<policy_type, FlagType> _mask(policy, n + 1);
     {
         auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<cl::sycl::access::mode::write>();
+        auto mask = mask_buf.template get_access<sycl::access::mode::write>();
         mask[0] = initial_mask;
 
         // instead of copying mask, use shifted sequence:
@@ -225,7 +225,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // buffer alive at any point in time.
     {
         auto scanned_tail_flags_buf = _scanned_tail_flags.get_buffer();
-        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<cl::sycl::access::mode::read>();
+        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<sycl::access::mode::read>();
 
         N = scanned_tail_flags[n - 1] + 1;
     }
@@ -283,7 +283,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     ValueType initial_value;
     {
-        auto first2_acc = internal::get_access<cl::sycl::access::mode::read>(first2);
+        auto first2_acc = internal::get_access<sycl::access::mode::read>(first2);
         initial_value = first2_acc[0];
     }
 
@@ -292,9 +292,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1, result2);
     else if (n == 1)
     {
-        auto result1_acc = internal::get_access<cl::sycl::access::mode::write>(result1);
-        auto result2_acc = internal::get_access<cl::sycl::access::mode::write>(result2);
-        auto first1_acc = internal::get_access<cl::sycl::access::mode::read>(first1);
+        auto result1_acc = internal::get_access<sycl::access::mode::write>(result1);
+        auto result2_acc = internal::get_access<sycl::access::mode::write>(result2);
+        auto first1_acc = internal::get_access<sycl::access::mode::read>(first1);
         result1_acc[0] = first1_acc[0];
         result2_acc[0] = initial_value;
         return ::std::make_pair(result1 + 1, result2 + 1);
@@ -307,7 +307,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     internal::__buffer<policy_type, FlagType> _mask(policy, n + 1);
     {
         auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<cl::sycl::access::mode::write>();
+        auto mask = mask_buf.template get_access<sycl::access::mode::write>();
         mask[0] = initial_mask;
 
         // instead of copying mask, use shifted sequence:
@@ -352,7 +352,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // buffer alive at any point in time.
     {
         auto scanned_tail_flags_buf = _scanned_tail_flags.get_buffer();
-        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<cl::sycl::access::mode::read>();
+        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<sycl::access::mode::read>();
 
         N = scanned_tail_flags[n - 1] + 1;
     }
@@ -402,7 +402,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     ValueType initial_value;
     {
-        auto first2_acc = internal::get_access<cl::sycl::access::mode::read>(first2);
+        auto first2_acc = internal::get_access<sycl::access::mode::read>(first2);
         initial_value = first2_acc[0];
     }
 
@@ -411,9 +411,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1, result2);
     else if (n == 1)
     {
-        auto result1_acc = internal::get_access<cl::sycl::access::mode::write>(result1);
-        auto result2_acc = internal::get_access<cl::sycl::access::mode::write>(result2);
-        auto first1_acc = internal::get_access<cl::sycl::access::mode::read>(first1);
+        auto result1_acc = internal::get_access<sycl::access::mode::write>(result1);
+        auto result2_acc = internal::get_access<sycl::access::mode::write>(result2);
+        auto first1_acc = internal::get_access<sycl::access::mode::read>(first1);
         result1_acc[0] = first1_acc[0];
         result2_acc[0] = initial_value;
         return ::std::make_pair(result1 + 1, result2 + 1);
@@ -426,7 +426,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     internal::__buffer<policy_type, FlagType> _mask(policy, n + 1);
     {
         auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<cl::sycl::access::mode::write>();
+        auto mask = mask_buf.template get_access<sycl::access::mode::write>();
         mask[0] = initial_mask;
 
         // instead of copying mask, use shifted sequence:
@@ -471,7 +471,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // buffer alive at any point in time.
     {
         auto scanned_tail_flags_buf = _scanned_tail_flags.get_buffer();
-        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<cl::sycl::access::mode::read>();
+        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<sycl::access::mode::read>();
 
         N = scanned_tail_flags[n - 1] + 1;
     }

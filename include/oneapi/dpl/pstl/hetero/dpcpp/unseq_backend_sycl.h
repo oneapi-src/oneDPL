@@ -620,7 +620,7 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
         }
         __sycl::__group_barrier(__item);
 
-        return __sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], sycl::ONEAPI::plus<_Tp>());
+        return __sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], __sycl::__plus<_Tp>());
     }
 };
 
@@ -630,7 +630,7 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
               _GlobalAssigner, _DataAccessor, __enable_if_arithmetic_init_type<_InitType>>
 {
     using _Tp = typename _InitType::__value_type;
-    sycl::ONEAPI::plus<_Tp> __bin_op;
+    __sycl::__plus<_Tp> __bin_op;
     _UnaryOp __unary_op;
     _WgAssigner __wg_assigner;
     _GlobalAssigner __gl_assigner;
