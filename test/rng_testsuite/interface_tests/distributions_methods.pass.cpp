@@ -46,8 +46,8 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::uniform_real_distribution<T>& distr)
 {
-    Element_type<T> a = Element_type<T>{0};
-    Element_type<T> b = Element_type<T>{1};
+    Element_type<T> a = Element_type<T>{0.0};
+    Element_type<T> b = Element_type<T>{1.0};
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != a) || (distr.max() != b) ||
             (distr.param().first != a) || (distr.param().second != b));
 }
@@ -56,8 +56,8 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::normal_distribution<T>& distr)
 {
-    Element_type<T> mean = Element_type<T>{0};
-    Element_type<T> stddev = Element_type<T>{1};
+    Element_type<T> mean = Element_type<T>{0.0};
+    Element_type<T> stddev = Element_type<T>{1.0};
     return ((distr.mean() != mean) || (distr.stddev() != stddev) ||
             (distr.min() > -std::numeric_limits<Element_type<T>>::max()) ||
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().first != mean) ||
@@ -68,7 +68,7 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::exponential_distribution<T>& distr)
 {
-    Element_type<T> lambda = Element_type<T>{1};
+    Element_type<T> lambda = Element_type<T>{1.0};
     return ((distr.lambda() != lambda) || (distr.min() != 0) ||
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
             (distr.param().lambda != lambda));
@@ -97,8 +97,8 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::weibull_distribution<T>& distr)
 {
-    Element_type<T> a = Element_type<T>{1};
-    Element_type<T> b = Element_type<T>{1};
+    Element_type<T> a = Element_type<T>{1.0};
+    Element_type<T> b = Element_type<T>{1.0};
     return ((distr.a() != a) || (distr.b() != b) || (distr.min() != 0) || 
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) ||
             (distr.param().a != a) || (distr.param().b != b));
