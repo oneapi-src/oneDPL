@@ -144,8 +144,8 @@ class weibull_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        return b_ *
-               sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))), scalar_type{1.0} / a_);
+        return __params.b * sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))),
+                                      scalar_type{1.0} / __params.a);
     }
 
     // Specialization of the vector generation with size = [1; 3]
@@ -163,8 +163,8 @@ class weibull_distribution
     {
         oneapi::dpl::uniform_real_distribution<sycl::vec<scalar_type, __N>> __distr;
         sycl::vec<scalar_type, __N> __u = __distr(__engine);
-        result_type __res = b_ * sycl::pow(static_cast<result_type>(-sycl::log(scalar_type{1.0} - __u)),
-                                           sycl::vec<scalar_type, __N>(scalar_type{1.0} / a_));
+        result_type __res = __params.b * sycl::pow(static_cast<result_type>(-sycl::log(scalar_type{1.0} - __u)),
+                                                   sycl::vec<scalar_type, __N>(scalar_type{1.0} / __params.a));
         return __res;
     }
 
@@ -175,9 +175,10 @@ class weibull_distribution
     {
         result_type __res;
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        scalar_type __tmp = scalar_type{1.0} / a_;
+        scalar_type __tmp = scalar_type{1.0} / __params.a;
         for (int i = 0; i < __N; i++)
-            __res[i] = b_ * sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))), __tmp);
+            __res[i] =
+                __params.b * sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))), __tmp);
         return __res;
     }
 

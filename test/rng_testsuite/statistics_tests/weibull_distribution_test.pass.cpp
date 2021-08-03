@@ -151,7 +151,7 @@ int
 tests_set(int nsamples)
 {
     constexpr int nparams = 2;
-    float a_array [nparams] = {0.0, -10.0};
+    float a_array [nparams] = {2.0, -10.0};
     float b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
@@ -171,7 +171,7 @@ int
 tests_set_portion(std::int32_t nsamples, unsigned int part)
 {
      constexpr int nparams = 2;
-    float a_array [nparams] = {0.0, -10.0};
+    float a_array [nparams] = {2.0, -10.0};
     float b_array [nparams] = {1.0, 10.0};
 
     // Test for all non-zero parameters
