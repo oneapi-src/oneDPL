@@ -316,7 +316,7 @@ test3buffers(int mult = 1)
     }
 }
 
-template <typename T, typename TestName>
+template <int N, typename Key, typename Value, typename TestName>
 void
 test4buffers()
 {
@@ -324,10 +324,10 @@ test4buffers()
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
         {
         // create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
-        sycl::buffer<T, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
-        sycl::buffer<T, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
+        sycl::buffer<Key, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
+        sycl::buffer<Value, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
+        sycl::buffer<Key, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
+        sycl::buffer<Value, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
 
         // create sycl iterators
         auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
@@ -338,7 +338,7 @@ test4buffers()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(
+            invoke_on_all_hetero_policies<N+1>()(
                 TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
                 inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
         }
@@ -349,31 +349,32 @@ test4buffers()
         const sycl::queue& queue = my_queue; // usm requires queue
 
         // Allocate space for data using USM.
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout3_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout3_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout4_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout4_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        auto sycl_key_deleter = [queue](Key* mem) { sycl::free(mem, queue.get_context()); };
+        auto sycl_value_deleter = [queue](Value* mem) { sycl::free(mem, queue.get_context()); };
+        ::std::unique_ptr<Key, decltype(sycl_key_deleter)> inout1_first(
+            (Key*)sycl::malloc_shared(sizeof(Key) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
+            sycl_key_deleter);
+        ::std::unique_ptr<Value, decltype(sycl_value_deleter)> inout2_first(
+            (Value*)sycl::malloc_shared(sizeof(Value) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
+            sycl_value_deleter);
+        ::std::unique_ptr<Key, decltype(sycl_key_deleter)> inout3_first(
+            (Key*)sycl::malloc_shared(sizeof(Key) * (max_n + inout3_offset), queue.get_device(), queue.get_context()),
+            sycl_key_deleter);
+        ::std::unique_ptr<Value, decltype(sycl_value_deleter)> inout4_first(
+            (Value*)sycl::malloc_shared(sizeof(Value) * (max_n + inout4_offset), queue.get_device(), queue.get_context()),
+            sycl_value_deleter);
 
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
-        T* inout3_offset_first = inout3_first.get() + inout3_offset;
-        T* inout4_offset_first = inout4_first.get() + inout4_offset;
+        Key* inout1_offset_first = inout1_first.get() + inout1_offset;
+        Value* inout2_offset_first = inout2_first.get() + inout2_offset;
+        Key* inout3_offset_first = inout3_first.get() + inout3_offset;
+        Value* inout4_offset_first = inout4_first.get() + inout4_offset;
 
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
         {
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(
+            invoke_on_all_hetero_policies<N+2>()(
                 TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
                 inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
         }

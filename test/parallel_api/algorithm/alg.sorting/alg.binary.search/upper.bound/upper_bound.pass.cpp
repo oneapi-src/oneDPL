@@ -29,45 +29,40 @@ using namespace TestUtils;
 
 struct test_upper_bound
 {
-    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    template <typename Accessor1, typename Accessor2, typename Accessor3, typename Size>
     void
-    initialize_data(Iterator1 data, Iterator2 value, Iterator3 result, Size n)
+    initialize_data(Accessor1 data, Accessor2 value, Accessor3 result, Size n)
     {
-        typedef typename ::std::iterator_traits<Iterator1>::value_type ValT;
         int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
         for (int i = 0; i < n; i += 2)
         {
-            *data = i;
-            ++data;
+            data[i] = i;
             if (i + 1 < n)
             {
-                *data = i;
-                ++data;
+                data[i+1] = i;
             }
             if (i < num_values * 2)
             {
                 // value = {0, 2, 5, 6, 9, 10, 13...}
-                *value = i + (i != 0 && i % 4 == 0 ? 1 : 0);
-                ++value;
+                value[i/2] = i + (i != 0 && i % 4 == 0 ? 1 : 0);
             }
-            *result = 0;
-            ++result;
+            result[i/2] = 0;
         }
     }
 
-    template <typename Iterator1, typename Iterator2, typename Size>
+    template <typename Accessor1, typename Accessor2, typename Size>
     void
-    check_values(Iterator1 result, Iterator2 value, Size n)
+    check_values(Accessor1 result, Accessor2 value, Size n)
     {
         int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
         if (n == 1)
         {
-            EXPECT_TRUE(1 == *result, "wrong effect from upper_bound");
+            EXPECT_TRUE(1 == result[0], "wrong effect from upper_bound");
             return;
         }
-        for (int i = 0; i != num_values; ++i, ++result, ++value)
+        for (int i = 0; i != num_values; ++i)
         {
-            EXPECT_TRUE((*value / 2 + 1) * 2 == *result, "wrong effect from upper_bound");
+            EXPECT_TRUE((value[i] / 2 + 1) * 2 == result[i], "wrong effect from upper_bound");
         }
     }
 
@@ -84,31 +79,37 @@ struct test_upper_bound
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
         // call algorithm with no optional arguments
-        auto host_first = get_host_pointer(first);
-        auto host_val_first = get_host_pointer(value_first);
-        auto host_result = get_host_pointer(result_first);
+        {
+        auto host_first = get_host_access(first);
+        auto host_val_first = get_host_access(value_first);
+        auto host_result = get_host_access(result_first);
 
         initialize_data(host_first, host_val_first, host_result, n);
+        }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::upper_bound(new_policy, first, last, value_first, value_last, result_first);
         exec.queue().wait_and_throw();
-        host_first = get_host_pointer(first);
-        host_val_first = get_host_pointer(value_first);
-        host_result = get_host_pointer(result_first);
+        {
+        auto host_first = get_host_access(first);
+        auto host_val_first = get_host_access(value_first);
+        auto host_result = get_host_access(result_first);
         check_values(host_result, host_val_first, n);
 
         // call algorithm with comparator
         initialize_data(host_first, host_val_first, host_result, n);
+        }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::upper_bound(new_policy2, first, last, value_first, value_last, result_first,
                                              ::std::less<ValueT>());
         exec.queue().wait_and_throw();
-        host_first = get_host_pointer(first);
-        host_val_first = get_host_pointer(value_first);
-        host_result = get_host_pointer(result_first);
+        {
+        auto host_first = get_host_access(first);
+        auto host_val_first = get_host_access(value_first);
+        auto host_result = get_host_access(result_first);
         check_values(host_result, host_val_first, n);
+        }
     }
 #endif
 

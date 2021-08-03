@@ -29,47 +29,42 @@ using namespace TestUtils;
 
 struct test_binary_search
 {
-    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    template <typename Accessor1, typename Accessor2, typename Accessor3, typename Size>
     void
-    initialize_data(Iterator1 data, Iterator2 value, Iterator3 result, Size n)
+    initialize_data(Accessor1 data, Accessor2 value, Accessor3 result, Size n)
     {
-        typedef typename ::std::iterator_traits<Iterator1>::value_type ValT;
         int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
         for (int i = 0; i < n; i += 2)
         {
-            *data = i;
-            ++data;
+            data[i] = i;
             if (i + 1 < n)
             {
-                *data = i;
-                ++data;
+                data[i+1] = i;
             }
             if (i < num_values * 2)
             {
                 // value = {0, 2, 5, 6, 9, 10, 13...}
                 // result will alternate true/false after initial true
-                *value = i + (i != 0 && i % 4 == 0 ? 1 : 0);
-                ++value;
+                value[i/2] = i + (i != 0 && i % 4 == 0 ? 1 : 0);
             }
-            *result = 0;
-            ++result;
+            result[i/2] = 0;
         }
     }
 
-    template <typename Iterator1, typename Size>
+    template <typename Accessor1, typename Size>
     void
-    check_values(Iterator1 result, Size n)
+    check_values(Accessor1 result, Size n)
     {
         int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
-        for (int i = 0; i != num_values; ++i, ++result)
+        for (int i = 0; i != num_values; ++i)
         {
             if (i == 0)
             {
-                EXPECT_TRUE(*result == true, "wrong effect from binary_search");
+                EXPECT_TRUE(result[i] == true, "wrong effect from binary_search");
             }
             else
             {
-                EXPECT_TRUE(*result == i % 2, "wrong effect from binary_search");
+                EXPECT_TRUE(result[i] == i % 2, "wrong effect from binary_search");
             }
         }
     }
@@ -88,31 +83,37 @@ struct test_binary_search
         typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
 
         // call algorithm with no optional arguments
-        auto host_first = get_host_pointer(first);
-        auto host_val_first = get_host_pointer(value_first);
-        auto host_result = get_host_pointer(result_first);
+        {
+        auto host_first = get_host_access(first);
+        auto host_val_first = get_host_access(value_first);
+        auto host_result = get_host_access(result_first);
 
         initialize_data(host_first, host_val_first, host_result, n);
+        }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::binary_search(new_policy, first, last, value_first, value_last, result_first);
         exec.queue().wait_and_throw();
-        host_first = get_host_pointer(first);
-        host_val_first = get_host_pointer(value_first);
-        host_result = get_host_pointer(result_first);
+        {
+        auto host_first = get_host_access(first);
+        auto host_val_first = get_host_access(value_first);
+        auto host_result = get_host_access(result_first);
         check_values(host_result, n);
 
         // call algorithm with comparator
         initialize_data(host_first, host_val_first, host_result, n);
+        }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::binary_search(new_policy2, first, last, value_first, value_last, result_first,
                                                ::std::less<ValueT>());
         exec.queue().wait_and_throw();
-        host_first = get_host_pointer(first);
-        host_val_first = get_host_pointer(value_first);
-        host_result = get_host_pointer(result_first);
+        {
+        auto host_first = get_host_access(first);
+        auto host_val_first = get_host_access(value_first);
+        auto host_result = get_host_access(result_first);
         check_values(host_result, n);
+        }
     }
 #endif
 

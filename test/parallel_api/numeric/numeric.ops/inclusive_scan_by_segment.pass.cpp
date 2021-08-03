@@ -35,10 +35,6 @@ struct test_inclusive_scan_by_segment
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, ... };
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
-
-        const ValT value = 1;
 
         int segment_length = 1;
         int i = 0;
@@ -46,12 +42,9 @@ struct test_inclusive_scan_by_segment
         {
           for (int j = 0; j != 4*segment_length && i != n; ++j)
           {
-              *host_keys = j/segment_length + 1;
-              *host_vals = 1;
-              *host_val_res = 0;
-              ++host_keys;
-              ++host_vals;
-              ++host_val_res;
+              host_keys[i] = j/segment_length + 1;
+              host_vals[i] = 1;
+              host_val_res[i] = 0;
               ++i;
           }
           ++segment_length;
@@ -64,30 +57,24 @@ struct test_inclusive_scan_by_segment
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         int segment_length = 1;
-        ValT expected_segment_sum = segment_length * (segment_length + 1) / 2;
-        KeyT current_key = *host_keys;
-        ValT current_sum = 0;
+        auto expected_segment_sum = segment_length * (segment_length + 1) / 2;
+        auto current_key = host_keys[0];
+        auto current_sum = 0;
         for (int i = 0; i != n; ++i)
         {
-            if (current_key == *host_keys)
+            if (current_key == host_keys[i])
             {
-              current_sum += *val_res;
-              ++host_keys;
-              ++val_res;
+              current_sum += val_res[i];
             } else {
                 EXPECT_TRUE(current_sum == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
-                current_sum = *val_res;
-                current_key = *host_keys;
+                current_sum = val_res[i];
+                current_key = host_keys[i];
                 if (current_key == 1) {
                     ++segment_length;
                     expected_segment_sum = segment_length * (segment_length + 1) / 2;
                 }
-                ++host_keys;
-                ++val_res;
             }
         }
     }
@@ -107,43 +94,50 @@ struct test_inclusive_scan_by_segment
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         // call algorithm with no optional arguments
-        auto host_keys = get_host_pointer(keys_first);
-        auto host_vals = get_host_pointer(vals_first);
-        auto host_val_res = get_host_pointer(val_res_first);
+        {
+        auto host_keys = get_host_access(keys_first);
+        auto host_vals = get_host_access(vals_first);
+        auto host_val_res = get_host_access(val_res_first);
 
         initialize_data(host_keys, host_vals, host_val_res, n);
+        }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::inclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
-        host_keys = get_host_pointer(keys_first);
-        host_val_res = get_host_pointer(val_res_first);
+
+        {
+        auto host_keys = get_host_access(keys_first);
+        auto host_val_res = get_host_access(val_res_first);
         check_values(host_keys, host_val_res, n);
 
         // call algorithm with equality comparator
-        host_vals = get_host_pointer(vals_first);
+        auto host_vals = get_host_access(vals_first);
 
         initialize_data(host_keys, host_vals, host_val_res, n);
+        }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::inclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
                                                            ::std::equal_to<KeyT>());
         exec.queue().wait_and_throw();
-        host_keys = get_host_pointer(keys_first);
-        host_val_res = get_host_pointer(val_res_first);
+        {
+        auto host_keys = get_host_access(keys_first);
+        auto host_val_res = get_host_access(val_res_first);
         check_values(host_keys, host_val_res, n);
 
         // call algorithm with addition operator
-        host_vals = get_host_pointer(vals_first);
+        auto host_vals = get_host_access(vals_first);
 
         initialize_data(host_keys, host_vals, host_val_res, n);
+        }
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
                                                            ::std::equal_to<KeyT>(), ::std::plus<ValT>());
         exec.queue().wait_and_throw();
-        host_keys = get_host_pointer(keys_first);
-        host_val_res = get_host_pointer(val_res_first);
+        auto host_keys = get_host_access(keys_first);
+        auto host_val_res = get_host_access(val_res_first);
         check_values(host_keys, host_val_res, n);
     }
 #endif

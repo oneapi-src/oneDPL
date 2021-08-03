@@ -150,10 +150,10 @@ struct test_reduce_by_segment
 
         // call algorithm with addition operator
         {
-            auto host_keys = get_host_pointer(keys_first);
-            auto host_vals = get_host_pointer(vals_first);
-            auto host_key_res = get_host_pointer(key_res_first);
-            auto host_val_res = get_host_pointer(val_res_first);
+            auto host_keys = get_host_access(keys_first);
+            auto host_vals = get_host_access(vals_first);
+            auto host_key_res = get_host_access(key_res_first);
+            auto host_val_res = get_host_access(val_res_first);
 
             initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
         }
@@ -182,31 +182,31 @@ struct test_reduce_by_segment
             !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
             !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
         void>::type
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator3 key_res,
-               Iterator4 val_res, Size n)
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-        initialize_data(keys_first, vals_first, key_res, val_res, n);
+        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
 
-        auto res1 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res, val_res);
-        Size result_size = std::distance(key_res, res1.first);
-        check_values(key_res, val_res, result_size);
+        auto res1 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
+        Size result_size = std::distance(key_res_first, res1.first);
+        check_values(key_res_first, val_res_first, result_size);
 
         // call algorithm with equality comparator
-        initialize_data(keys_first, vals_first, key_res, val_res, n);
-        auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res, val_res,
+        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+        auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first,
                                                    ::std::equal_to<KeyT>());
-        result_size = std::distance(key_res, res2.first);
-        check_values(key_res, val_res, result_size);
+        result_size = std::distance(key_res_first, res2.first);
+        check_values(key_res_first, val_res_first, result_size);
 
         // call algorithm with addition operator
-        initialize_data(keys_first, vals_first, key_res, val_res, n);
-        auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res, val_res,
+        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+        auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first,
                                                    ::std::equal_to<KeyT>(), ::std::plus<ValT>());
-        result_size = std::distance(key_res, res3.first);
-        check_values(key_res, val_res, result_size);
+        result_size = std::distance(key_res_first, res3.first);
+        check_values(key_res_first, val_res_first, result_size);
     }
 
     // specialization for non-random_access iterators
@@ -215,17 +215,47 @@ struct test_reduce_by_segment
     typename ::std::enable_if<is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value ||
                                   is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
                               void>::type
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator3 key_res,
-               Iterator4 val_res, Size n)
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
     }
 };
+
+template <typename Key, typename Value, typename TestName>
+void
+test_on_host()
+{
+    {
+        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+        {
+        // create buffers
+        std::vector<Key>   inout1(max_n + inout1_offset);
+        std::vector<Value> inout2(max_n + inout2_offset);
+        std::vector<Key>   inout3(max_n + inout3_offset);
+        std::vector<Value> inout4(max_n + inout4_offset);
+
+        // create iterators
+        auto inout1_offset_first = std::begin(inout1) + inout1_offset;
+        auto inout2_offset_first = std::begin(inout2) + inout2_offset;
+        auto inout3_offset_first = std::begin(inout3) + inout3_offset;
+        auto inout4_offset_first = std::begin(inout4) + inout4_offset;
+
+#if _ONEDPL_DEBUG_SYCL
+            ::std::cout << "n = " << n << ::std::endl;
+#endif
+            invoke_on_all_host_policies()(
+                TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
+                inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
+        }
+    }
+}
 
 int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test4buffers<uint64_t, test_reduce_by_segment>();
+    test4buffers<0, char, uint64_t, test_reduce_by_segment>();
 #endif
+    test_on_host<uint64_t, int, test_reduce_by_segment>();
     return done(TEST_DPCPP_BACKEND_PRESENT);
 }
