@@ -16,19 +16,12 @@
 #ifndef _ONEDPL_execution_sycl_defs_H
 #define _ONEDPL_execution_sycl_defs_H
 
-#include <CL/sycl.hpp>
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
+
+#include "sycl_defs.h"
 #if _ONEDPL_FPGA_DEVICE
 #    include <CL/sycl/INTEL/fpga_extensions.hpp>
-#endif
-
-// Combine SYCL runtime library version
-#if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
-#    define __LIBSYCL_VERSION                                                                                          \
-        (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
-#else
-#    define __LIBSYCL_VERSION 0
 #endif
 
 namespace oneapi
@@ -354,12 +347,13 @@ __max_work_group_size(_ExecutionPolicy&& __policy)
     return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 }
 
-template <typename _ExecutionPolicy, typename _T>
-sycl::cl_ulong
-__max_local_allocation_size(_ExecutionPolicy&& __policy, const sycl::cl_ulong& __local_allocation_size)
+template <typename _ExecutionPolicy, typename _Size>
+_Size
+__max_local_allocation_size(_ExecutionPolicy&& __policy, _Size __type_size, _Size __local_allocation_size)
 {
-    const auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
-    return ::std::min(__local_mem_size / sizeof(_T), __local_allocation_size);
+    return ::std::min(__policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>() /
+                          __type_size,
+                      __local_allocation_size);
 }
 
 #if _USE_SUB_GROUPS
@@ -380,8 +374,9 @@ __max_sub_group_size(_ExecutionPolicy&& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-sycl::cl_uint
+auto
 __max_compute_units(_ExecutionPolicy&& __policy)
+    -> decltype(__policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>())
 {
     return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
 }

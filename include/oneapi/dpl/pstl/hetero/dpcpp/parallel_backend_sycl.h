@@ -17,11 +17,6 @@
 #ifndef _ONEDPL_parallel_backend_sycl_H
 #define _ONEDPL_parallel_backend_sycl_H
 
-#include <CL/sycl.hpp>
-
-// Macros to check the new SYCL features
-#define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
-
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
@@ -31,6 +26,7 @@
 #include "../../execution_impl.h"
 #include "../../utils_ranges.h"
 
+#include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
 #include "sycl_iterator.h"
@@ -289,11 +285,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
         oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_reduce_kernel, _CustomName, _Up, _Cp,
                                                                      _Rp, _Ranges...>;
 
-    sycl::cl_uint __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
+    auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
     ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __work_group_size according to local memory limit
-    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Tp>(
-        ::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
+    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                             sizeof(_Tp), __work_group_size);
 #if _ONEDPL_COMPILE_KERNEL
     sycl::kernel __kernel = _ReduceKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
     __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
@@ -351,7 +347,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                         // TODO: check the approach when we use grainsize here too
                         if (__global_idx < __n_items)
                             __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
-                        __item_id.barrier(sycl::access::fence_space::local_space);
+                        __sycl::__group_barrier(__item_id);
                     }
                     // 2. Reduce within work group using local memory
                     _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
@@ -405,8 +401,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __wgroup_size according to local memory limit
-    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size<_ExecutionPolicy, _Type>(
-        ::std::forward<_ExecutionPolicy>(__exec), __wgroup_size);
+    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                         sizeof(_Type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernel_1 = _LocalScanKernel::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
@@ -690,12 +686,12 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                     // 1. Set initial value to local atomic
                     if (__local_idx == 0)
                         __found_local.store(__init_value);
-                    __item_id.barrier(sycl::access::fence_space::local_space);
+                    __sycl::__group_barrier(__item_id);
 
                     // 2. Find any element that satisfies pred and set local atomic value to global atomic
                     constexpr auto __comp = typename _BrickTag::_Compare{};
                     __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
-                    __item_id.barrier(sycl::access::fence_space::local_space);
+                    __sycl::__group_barrier(__item_id);
 
                     // Set local atomic value to global atomic
                     if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))

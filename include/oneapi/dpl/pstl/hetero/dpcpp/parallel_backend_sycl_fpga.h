@@ -17,13 +17,12 @@
 #ifndef _ONEDPL_parallel_backend_sycl_fpga_H
 #define _ONEDPL_parallel_backend_sycl_fpga_H
 
-#include <CL/sycl.hpp>
-
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
 #include <iostream>
 
+#include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 // workaround until we implement more performant optimization for patterns
 #include "parallel_backend_sycl.h"

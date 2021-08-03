@@ -27,7 +27,7 @@
 #endif
 
 #if _ONEDPL_BACKEND_SYCL
-#    include <CL/sycl.hpp>
+#    include "hetero/dpcpp/sycl_defs.h"
 #    include "hetero/dpcpp/sycl_iterator.h"
 #endif
 

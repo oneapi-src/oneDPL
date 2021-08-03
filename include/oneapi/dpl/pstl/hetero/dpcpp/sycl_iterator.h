@@ -16,10 +16,9 @@
 #ifndef _ONEDPL_sycl_iterator_H
 #define _ONEDPL_sycl_iterator_H
 
-#include <CL/sycl.hpp>
-
 #include <iterator>
 #include "../../onedpl_config.h"
+#include "sycl_defs.h"
 
 namespace oneapi
 {
@@ -144,7 +143,7 @@ __internal::sycl_iterator<access_mode::read_write, T, Allocator> begin(sycl::buf
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 {
-    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, __sycl::__get_buffer_size(buf)};
 }
 
 // begin
@@ -154,28 +153,16 @@ __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, A
     return __internal::sycl_iterator<Mode, T, Allocator>{buf, 0};
 }
 
-#define _ONEDPL_NO_INIT_PRESENT (__LIBSYCL_VERSION >= 50300)
-
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>,
-#if _ONEDPL_NO_INIT_PRESENT
-          sycl::property::no_init)
-#else
-          sycl::property::noinit)
-#endif
+    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __sycl::__no_init)
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, 0};
 }
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
-    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-#if _ONEDPL_NO_INIT_PRESENT
-          sycl::property::no_init)
-#else
-          sycl::property::noinit)
-#endif
+    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, __sycl::__no_init)
 {
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, 0};
 }
@@ -184,30 +171,23 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>)
 {
-    return __internal::sycl_iterator<Mode, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<Mode, T, Allocator>{buf, __sycl::__get_buffer_size(buf)};
 }
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>,
-#if _ONEDPL_NO_INIT_PRESENT
-        sycl::property::no_init)
-#else
-        sycl::property::noinit)
-#endif
+    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __sycl::__no_init)
 {
-    return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{
+        buf, __sycl::__get_buffer_size(buf)};
 }
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-#if _ONEDPL_NO_INIT_PRESENT
-                                                                             sycl::property::no_init)
-#else
-                                                                             sycl::property::noinit)
-#endif
+                                                                             __sycl::__no_init)
 {
-    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, buf.get_count()};
+    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf,
+                                                                                    __sycl::__get_buffer_size(buf)};
 }
 } // namespace dpl
 } // namespace oneapi

@@ -21,8 +21,7 @@
 
 #include "../../onedpl_config.h"
 #include "../../utils.h"
-
-#include <CL/sycl.hpp>
+#include "sycl_defs.h"
 
 namespace oneapi
 {
@@ -157,9 +156,10 @@ struct reduce
         auto __group_size = __item_id.get_local_range().size();
 
         auto __k = 1;
+
         do
         {
-            __item_id.barrier(sycl::access::fence_space::local_space);
+            __sycl::__group_barrier(__item_id);
             if (__local_idx % (2 * __k) == 0 && __local_idx + __k < __group_size && __global_idx < __n &&
                 __global_idx + __k < __n)
             {
@@ -545,14 +545,15 @@ struct __scan
             // 3:      00000001    10000000
             do
             {
-                __item.barrier(sycl::access::fence_space::local_space);
+                __sycl::__group_barrier(__item);
+
                 if (__adjusted_global_id < __n && __local_id % (2 * __k) == 2 * __k - 1)
                 {
                     __local_acc[__local_id] = __bin_op(__local_acc[__local_id - __k], __local_acc[__local_id]);
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
-            __item.barrier(sycl::access::fence_space::local_space);
+            __sycl::__group_barrier(__item);
 
             // 2. scan
             auto __partial_sums = __local_acc[__local_id];
@@ -568,9 +569,10 @@ struct __scan
                 }
                 __k *= 2;
             } while (__k < __wgroup_size);
-            __item.barrier(sycl::access::fence_space::local_space);
+            __sycl::__group_barrier(__item);
+
             __local_acc[__local_id] = __partial_sums;
-            __item.barrier(sycl::access::fence_space::local_space);
+            __sycl::__group_barrier(__item);
             __adder = __local_acc[__wgroup_size - 1];
 
             if (__adjusted_global_id + __shift < __n)
@@ -616,8 +618,9 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
             // for each work-item in sub-group
             __local_mem[__local_id] = 0;
         }
-        __item.barrier(sycl::access::fence_space::local_space);
-        return sycl::ONEAPI::reduce(__item.get_group(), __local_mem[__local_id], sycl::ONEAPI::plus<_Tp>());
+        __sycl::__group_barrier(__item);
+
+        return __sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], __sycl::__plus<_Tp>());
     }
 };
 
@@ -627,7 +630,7 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
               _GlobalAssigner, _DataAccessor, __enable_if_arithmetic_init_type<_InitType>>
 {
     using _Tp = typename _InitType::__value_type;
-    sycl::ONEAPI::plus<_Tp> __bin_op;
+    __sycl::__plus<_Tp> __bin_op;
     _UnaryOp __unary_op;
     _WgAssigner __wg_assigner;
     _GlobalAssigner __gl_assigner;
@@ -667,8 +670,8 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
             else if (__adjusted_global_id == 0)
                 __use_init(__init, __old_value, __bin_op);
 
-            __local_acc[__local_id] = sycl::ONEAPI::inclusive_scan(__item.get_group(), __old_value, __bin_op);
-            __item.barrier(sycl::access::fence_space::local_space);
+            __local_acc[__local_id] = __sycl::__inclusive_scan_over_group(__item.get_group(), __old_value, __bin_op);
+            __sycl::__group_barrier(__item);
 
             __adder = __local_acc[__wgroup_size - 1];
 
