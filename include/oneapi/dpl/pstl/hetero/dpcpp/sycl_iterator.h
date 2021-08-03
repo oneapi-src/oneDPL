@@ -143,7 +143,7 @@ __internal::sycl_iterator<access_mode::read_write, T, Allocator> begin(sycl::buf
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 {
-    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, __sycl::__get_buffer_size(buf)};
+    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
 }
 
 // begin
@@ -155,14 +155,14 @@ __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, A
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __sycl::__no_init)
+    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __dpl_sycl::__no_init)
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, 0};
 }
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
-    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, __sycl::__no_init)
+    begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, __dpl_sycl::__no_init)
 {
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, 0};
 }
@@ -171,23 +171,23 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>)
 {
-    return __internal::sycl_iterator<Mode, T, Allocator>{buf, __sycl::__get_buffer_size(buf)};
+    return __internal::sycl_iterator<Mode, T, Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
 }
 
 template <typename T, typename Allocator, access_mode Mode>
 __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
-    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __sycl::__no_init)
+    end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __dpl_sycl::__no_init)
 {
     return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{
-        buf, __sycl::__get_buffer_size(buf)};
+        buf, __dpl_sycl::__get_buffer_size(buf)};
 }
 
 template <typename T, typename Allocator>
 __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf,
-                                                                             __sycl::__no_init)
+                                                                             __dpl_sycl::__no_init)
 {
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf,
-                                                                                    __sycl::__get_buffer_size(buf)};
+                                                                                    __dpl_sycl::__get_buffer_size(buf)};
 }
 } // namespace dpl
 } // namespace oneapi
