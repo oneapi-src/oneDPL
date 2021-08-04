@@ -60,13 +60,13 @@ class lognormal_distribution
 
     // Property functions
     scalar_type
-    mean() const
+    m() const
     {
         return mean_;
     }
 
     scalar_type
-    stddev() const
+    s() const
     {
         return stddev_;
     }
@@ -157,7 +157,7 @@ class lognormal_distribution
         return sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
     }
 
-    // Specialization of the vector generation with size = [1; 3]
+    // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
@@ -181,11 +181,13 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr > 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
-        result_type __res = sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev), __N));
+        result_type __res = nd_(__engine, std::make_pair(__params.mean, __params.stddev), __N);
+        for (int i = 0; i < __N; i++)
+            __res[i] = sycl::exp(__res[i]);
         return __res;
     }
 
-    // Implementation for the N vector's elements generation with size = [1; 3]
+    // Implementation for the N vector's elements generation with size = [1; 2; 3]
     template <int _Ndistr, class _Engine>
     typename ::std::enable_if<(_Ndistr <= 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)

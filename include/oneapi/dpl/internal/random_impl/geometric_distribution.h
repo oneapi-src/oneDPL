@@ -138,7 +138,7 @@ class geometric_distribution
         return sycl::floor(sycl::log(1.0 - __u(__engine)) / sycl::log(1.0 - __params.p));
     }
 
-    // Specialization of the vector generation with size = [1; 3]
+    // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)

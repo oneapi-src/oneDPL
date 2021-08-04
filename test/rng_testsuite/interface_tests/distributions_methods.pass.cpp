@@ -110,7 +110,7 @@ check_params(oneapi::dpl::lognormal_distribution<T>& distr)
 {
     Element_type<T> mean = Element_type<T>{0.0};
     Element_type<T> stddev = Element_type<T>{1.0};
-    return ((distr.mean() != mean) || (distr.stddev() != stddev) ||
+    return ((distr.m() != mean) || (distr.s() != stddev) ||
             (distr.min() != 0) || (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
             (distr.param().mean != mean) || (distr.param().stddev != stddev));
 }

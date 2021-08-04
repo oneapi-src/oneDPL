@@ -140,7 +140,7 @@ class exponential_distribution
         return __res;
     }
 
-    // Specialization of the vector generation  with size = [1; 3]
+    // Specialization of the vector generation  with size = [1; 2; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
