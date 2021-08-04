@@ -254,7 +254,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test4buffers<0, char, uint64_t, test_reduce_by_segment>();
+    test4buffers<char, uint64_t, test_reduce_by_segment>();
 #endif
     test_on_host<uint64_t, int, test_reduce_by_segment>();
     return done(TEST_DPCPP_BACKEND_PRESENT);

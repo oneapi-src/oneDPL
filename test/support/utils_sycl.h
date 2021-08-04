@@ -316,7 +316,7 @@ test3buffers(int mult = 1)
     }
 }
 
-template <int N, typename Key, typename Value, typename TestName>
+template <typename Key, typename Value, typename TestName>
 void
 test4buffers()
 {
@@ -338,7 +338,7 @@ test4buffers()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<N+1>()(
+            invoke_on_all_hetero_policies<0>()(
                 TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
                 inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
         }
@@ -374,7 +374,7 @@ test4buffers()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<N+2>()(
+            invoke_on_all_hetero_policies<1>()(
                 TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
                 inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
         }
