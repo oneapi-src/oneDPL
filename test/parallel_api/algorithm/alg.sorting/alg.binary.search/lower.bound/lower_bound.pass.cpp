@@ -23,7 +23,11 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include <CL/sycl.hpp>
+#endif
 
+#include <cmath>
+
+#if TEST_DPCPP_BACKEND_PRESENT
 using namespace oneapi::dpl::execution;
 #endif
 using namespace TestUtils;
