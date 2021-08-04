@@ -15,10 +15,10 @@
 //
 // Abstract:
 //
-// Public header file provides implementation for Weibull Distribution
+// Public header file provides implementation for Lognormal Distribution
 
-#ifndef _ONEDPL_lognormal_DISTRIBUTION
-#define _ONEDPL_lognormal_DISTRIBUTION
+#ifndef _ONEDPL_LOGNORMAL_DISTRIBUTION
+#define _ONEDPL_LOGNORMAL_DISTRIBUTION
 
 namespace oneapi
 {
@@ -214,4 +214,4 @@ class lognormal_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_lognormal_DISTRIBUTION
+#endif // #ifndf _ONEDPL_LOGNORMAL_DISTRIBUTION
