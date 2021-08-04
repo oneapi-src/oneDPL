@@ -176,7 +176,7 @@ tests_set_portion(std::int32_t nsamples, unsigned int part)
 
     // Test for all non-zero parameters
     for(int i = 0; i < nparams; ++i) {
-        std::cout << "weibull_distribution test<type>, a = " << a_array[i] << ", right = " << b_array[i] <<
+        std::cout << "weibull_distribution test<type>, a = " << a_array[i] << ", b = " << b_array[i] <<
         ", nsamples = " << nsamples << ", part = " << part;
         if(test_portion<RealType, UIntType>(a_array[i], b_array[i], nsamples, part)) {
             return 1;

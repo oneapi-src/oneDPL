@@ -141,7 +141,7 @@ typename ::std::enable_if<::std::is_same<Distr,
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, -3.0};
-    params2 = typename Distr::param_type{-2.0, 40};
+    params2 = typename Distr::param_type{2.0, 40};
 }
 
 
