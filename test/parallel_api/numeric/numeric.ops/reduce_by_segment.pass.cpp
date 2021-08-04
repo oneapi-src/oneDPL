@@ -241,9 +241,9 @@ test_on_host()
     auto inout3_offset_first = std::begin(inout3) + inout3_offset;
     auto inout4_offset_first = std::begin(inout4) + inout4_offset;
 
-_ONEDPL_DEBUG_SYCL
+#if _ONEDPL_DEBUG_SYCL
         ::std::cout << "n = " << n << ::std::endl;
-if
+#endif
         invoke_on_all_host_policies()(
             TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
             inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
