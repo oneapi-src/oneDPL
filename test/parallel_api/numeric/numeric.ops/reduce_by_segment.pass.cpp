@@ -220,28 +220,33 @@ template <typename Key, typename Value, typename TestName>
 void
 test_on_host()
 {
-    {
-        for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-        {
-        // create buffers
-        std::vector<Key>   inout1(max_n + inout1_offset);
-        std::vector<Value> inout2(max_n + inout2_offset);
-        std::vector<Key>   inout3(max_n + inout3_offset);
-        std::vector<Value> inout4(max_n + inout4_offset);
-
-        // create iterators
-        auto inout1_offset_first = std::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = std::begin(inout2) + inout2_offset;
-        auto inout3_offset_first = std::begin(inout3) + inout3_offset;
-        auto inout4_offset_first = std::begin(inout4) + inout4_offset;
-
-#if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+#if !TEST_DPCPP_BACKEND_PRESENT
+    const int max_n = 100000;
+    const int inout1_offset = 3;
+    const int inout2_offset = 5;
+    const int inout3_offset = 7;
+    const int inout4_offset = 9;
 #endif
-            invoke_on_all_host_policies()(
-                TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
-                inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
-        }
+    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
+    // create buffers
+    std::vector<Key>   inout1(max_n + inout1_offset);
+    std::vector<Value> inout2(max_n + inout2_offset);
+    std::vector<Key>   inout3(max_n + inout3_offset);
+    std::vector<Value> inout4(max_n + inout4_offset);
+
+    // create iterators
+    auto inout1_offset_first = std::begin(inout1) + inout1_offset;
+    auto inout2_offset_first = std::begin(inout2) + inout2_offset;
+    auto inout3_offset_first = std::begin(inout3) + inout3_offset;
+    auto inout4_offset_first = std::begin(inout4) + inout4_offset;
+
+_ONEDPL_DEBUG_SYCL
+        ::std::cout << "n = " << n << ::std::endl;
+if
+        invoke_on_all_host_policies()(
+            TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first, inout2_offset_first + n,
+            inout3_offset_first, inout3_offset_first + n, inout4_offset_first, inout4_offset_first + n, n);
     }
 }
 
