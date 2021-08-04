@@ -19,6 +19,7 @@
 
 #include "support/test_config.h"
 #include "support/utils.h"
+#include "../binary_search_utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include <CL/sycl.hpp>
@@ -29,28 +30,6 @@ using namespace TestUtils;
 
 struct test_binary_search
 {
-    template <typename Accessor1, typename Accessor2, typename Accessor3, typename Size>
-    void
-    initialize_data(Accessor1 data, Accessor2 value, Accessor3 result, Size n)
-    {
-        int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
-        for (int i = 0; i < n; i += 2)
-        {
-            data[i] = i;
-            if (i + 1 < n)
-            {
-                data[i+1] = i;
-            }
-            if (i < num_values * 2)
-            {
-                // value = {0, 2, 5, 6, 9, 10, 13...}
-                // result will alternate true/false after initial true
-                value[i/2] = i + (i != 0 && i % 4 == 0 ? 1 : 0);
-            }
-            result[i/2] = 0;
-        }
-    }
-
     template <typename Accessor1, typename Size>
     void
     check_values(Accessor1 result, Size n)
@@ -162,5 +141,6 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test3buffers<uint64_t, test_binary_search>();
 #endif
+    test_on_host<uint64_t, test_binary_search>();
     return TestUtils::done();
 }

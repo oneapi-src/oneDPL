@@ -37,21 +37,16 @@ struct test_reduce_by_segment
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, ..., 0 };
         //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, ..., 0 };
-        for (int i = 0; i<n - 1; i> 3 ? i += 2 : ++i)
+        for (int i = 0; i < n - 1; ++i)
         {
-            host_keys[i] = i % 4 + 1;
-            host_vals[i] = i % 4 + 1;
+            std::size_t fill_first = i + 1;
+            std::size_t fill_repeat = i % 4 < 2 ? 1 : 3;
+            std::size_t fill = i < 4 ? fill_first : fill_repeat;
+
+            host_keys[i] = fill;
+            host_vals[i] = fill;
             host_key_res[i] = 9;
             host_val_res[i] = 1;
-            if ((i > 3) && (i + 1 < n - 1))
-            {
-                auto tmp = host_keys[i];
-                host_keys[i+1] = tmp;
-                tmp = host_vals[i];
-                host_vals[i+1] = tmp;
-                host_key_res[i+1] = 9;
-                host_val_res[i+1] = 1;
-            }
         }
         host_keys[n-1] = 0;
         host_vals[n-1] = 0;
