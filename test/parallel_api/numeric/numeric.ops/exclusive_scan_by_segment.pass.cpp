@@ -52,15 +52,15 @@ struct test_exclusive_scan_by_segment
         }
     }
 
-    template <typename Accessor1, typename Accessor2, typename Size>
+    template <typename Accessor1, typename Accessor2, typename T, typename Size>
     void
-    check_values(Accessor1 host_keys, Accessor2 val_res, Size n)
+    check_values(Accessor1 host_keys, Accessor2 val_res, T init, Size n)
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
 
         int segment_length = 1;
-        auto expected_segment_sum = segment_length * (segment_length + 1) / 2;
+        auto expected_segment_sum = init == 1 ? segment_length * (segment_length + 1) / 2 : segment_length * (segment_length - 1) / 2;
         auto current_key = host_keys[0];
         typename std::decay<decltype(val_res[0])>::type current_sum = 0;
         for (int i = 0; i != n; ++i)
@@ -69,12 +69,14 @@ struct test_exclusive_scan_by_segment
             {
               current_sum += val_res[i];
             } else {
+                if (current_sum != expected_segment_sum)
+                  std::cout << "here\n"; 
                 EXPECT_TRUE(current_sum == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
                 current_sum = val_res[i];
                 current_key = host_keys[i];
                 if (current_key == 1) {
                     ++segment_length;
-                    expected_segment_sum = segment_length * (segment_length + 1) / 2;
+                    expected_segment_sum = init == 1 ? segment_length * (segment_length + 1) / 2 : segment_length * (segment_length - 1) / 2;
                 }
             }
         }
@@ -111,7 +113,7 @@ struct test_exclusive_scan_by_segment
         {
         auto host_keys = get_host_access(keys_first);
         auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, n);
+        check_values(host_keys, host_val_res, init, n);
 
         // call algorithm with equality comparator
         auto host_vals = get_host_access(vals_first);
@@ -126,7 +128,7 @@ struct test_exclusive_scan_by_segment
         {
         auto host_keys = get_host_access(keys_first);
         auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, n);
+        check_values(host_keys, host_val_res, init, n);
 
         // call algorithm with addition operator
         auto host_vals = get_host_access(vals_first);
@@ -141,7 +143,16 @@ struct test_exclusive_scan_by_segment
         {
         auto host_keys = get_host_access(keys_first);
         auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, n);
+        check_values(host_keys, host_val_res, init, n);
+        }
+
+        auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
+        auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
+        exec.queue().wait_and_throw();
+        {
+        auto host_keys = get_host_access(keys_first);
+        auto host_val_res = get_host_access(val_res_first);
+        check_values(host_keys, host_val_res, 0, n);
         }
     }
 #endif
