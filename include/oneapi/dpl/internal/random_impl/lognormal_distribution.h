@@ -154,7 +154,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, __params));
+        return sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
     }
 
     // Specialization of the vector generation with size = [1; 3]
@@ -164,7 +164,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, __params));
+            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
         return __res;
     }
 
@@ -173,7 +173,7 @@ class lognormal_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, __params));
+        return sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
     }
 
     // Implementation for the N vector's elements generation with size = [4; 8; 16]
@@ -181,7 +181,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr > 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
-        result_type __res = sycl::exp(nd_(__engine, __params, __N));
+        result_type __res = sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev), __N));
         return __res;
     }
 
@@ -192,7 +192,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, __params));
+            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.a, __params.b)));
         return __res;
     }
 
