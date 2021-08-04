@@ -15,6 +15,15 @@
 
 using namespace TestUtils;
 
+#if !TEST_DPCPP_BACKEND_PRESENT
+// Test buffers
+const int max_n = 100000;
+const int inout1_offset = 3;
+const int inout2_offset = 5;
+const int inout3_offset = 7;
+const int inout4_offset = 9;
+#endif
+
 template <typename Accessor1, typename Accessor2, typename Accessor3, typename Size>
 void
 initialize_data(Accessor1 data, Accessor2 value, Accessor3 result, Size n)
