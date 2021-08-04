@@ -42,10 +42,14 @@ class lognormal_distribution
 
     // Constructors
     lognormal_distribution() : lognormal_distribution(scalar_type{0.0}) {}
-    explicit lognormal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : mean_(__mean), stddev_(__stddev), 
-                nd_(mean_, stddev_) {}
-    explicit lognormal_distribution(const param_type& __params) : mean_(__params.mean), stddev_(__params.stddev), 
-                nd_(mean_, stddev_) {}
+    explicit lognormal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0})
+        : mean_(__mean), stddev_(__stddev), nd_(mean_, stddev_)
+    {
+    }
+    explicit lognormal_distribution(const param_type& __params)
+        : mean_(__params.mean), stddev_(__params.stddev), nd_(mean_, stddev_)
+    {
+    }
 
     // Reset function
     void
@@ -125,8 +129,8 @@ class lognormal_distribution
     // Size of type
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
-    using normal_distr =
-        oneapi::dpl::normal_distribution<typename ::std::conditional<(size_of_type_ <= 3), scalar_type, result_type>::type>;
+    using normal_distr = oneapi::dpl::normal_distribution<
+        typename ::std::conditional<(size_of_type_ <= 3), scalar_type, result_type>::type>;
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,
@@ -150,7 +154,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine));
+        return sycl::exp(nd_(__engine, __params));
     }
 
     // Specialization of the vector generation with size = [1; 3]
@@ -160,7 +164,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine));
+            __res[i] = sycl::exp(nd_(__engine, __params));
         return __res;
     }
 
@@ -169,7 +173,7 @@ class lognormal_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine));
+        return sycl::exp(nd_(__engine, __params));
     }
 
     // Implementation for the N vector's elements generation with size = [4; 8; 16]
@@ -177,7 +181,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr > 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
-        result_type __res = sycl::exp(nd_(__engine, __N));
+        result_type __res = sycl::exp(nd_(__engine, __params, __N));
         return __res;
     }
 
@@ -188,7 +192,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine));
+            __res[i] = sycl::exp(nd_(__engine, __params));
         return __res;
     }
 
