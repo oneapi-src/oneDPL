@@ -194,7 +194,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.a, __params.b)));
+            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
         return __res;
     }
 
