@@ -45,6 +45,8 @@ struct test_binary_search
             {
                 EXPECT_TRUE(result[i] == i % 2, "wrong effect from binary_search");
             }
+            // clean result for next test case
+            result[i] = 0;
         }
     }
 
@@ -78,11 +80,9 @@ struct test_binary_search
         auto host_val_first = get_host_access(value_first);
         auto host_result = get_host_access(result_first);
         check_values(host_result, n);
-
-        // call algorithm with comparator
-        initialize_data(host_first, host_val_first, host_result, n);
         }
 
+        // call algorithm with comparator
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::binary_search(new_policy2, first, last, value_first, value_last, result_first,
                                                ::std::less<ValueT>());
@@ -117,8 +117,6 @@ struct test_binary_search
         check_values(result_first, n);
 
         // call algorithm with comparator
-        initialize_data(first, value_first, result_first, n);
-
         auto res2 =
             oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first, ::std::less<ValueT>());
         check_values(result_first, n);

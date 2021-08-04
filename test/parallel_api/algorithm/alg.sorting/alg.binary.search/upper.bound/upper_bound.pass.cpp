@@ -38,11 +38,17 @@ struct test_upper_bound
         if (n == 1)
         {
             EXPECT_TRUE(1 == result[0], "wrong effect from upper_bound");
+
+            // clean result for next test case
+            result[0] = 0;
             return;
         }
         for (int i = 0; i != num_values; ++i)
         {
             EXPECT_TRUE((value[i] / 2 + 1) * 2 == result[i], "wrong effect from upper_bound");
+
+            // clean result for next test case
+            result[i] = 0;
         }
     }
 
@@ -75,11 +81,9 @@ struct test_upper_bound
         auto host_val_first = get_host_access(value_first);
         auto host_result = get_host_access(result_first);
         check_values(host_result, host_val_first, n);
-
-        // call algorithm with comparator
-        initialize_data(host_first, host_val_first, host_result, n);
         }
 
+        // call algorithm with comparator
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::upper_bound(new_policy2, first, last, value_first, value_last, result_first,
                                              ::std::less<ValueT>());
@@ -113,8 +117,6 @@ struct test_upper_bound
         check_values(result_first, value_first, n);
 
         // call algorithm with comparator
-        initialize_data(first, value_first, result_first, n);
-
         auto res2 =
             oneapi::dpl::upper_bound(exec, first, last, value_first, value_last, result_first, ::std::less<ValueT>());
         check_values(result_first, value_first, n);
