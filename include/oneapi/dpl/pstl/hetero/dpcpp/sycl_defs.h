@@ -37,7 +37,7 @@
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (__LIBSYCL_VERSION >= 50300)
 
-namespace __sycl
+namespace __dpl_sycl
 {
 
 using __no_init =
@@ -143,6 +143,6 @@ __joint_exclusive_scan(_Args... __args)
 #endif
 }
 
-} // namespace __sycl
+} // namespace __dpl_sycl
 
 #endif /* _ONEDPL_sycl_defs_H */
