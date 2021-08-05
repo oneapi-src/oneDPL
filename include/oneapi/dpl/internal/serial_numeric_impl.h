@@ -53,6 +53,5 @@ using ::std::reduce;
 #    endif
 } // namespace dpl
 } // namespace oneapi
-#else
 #endif
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
