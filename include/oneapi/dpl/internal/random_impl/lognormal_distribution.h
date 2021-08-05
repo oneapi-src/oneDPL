@@ -35,21 +35,17 @@ class lognormal_distribution
     struct param_type
     {
         param_type() : param_type(scalar_type{0.0}) {}
-        param_type(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : mean(__mean), stddev(__stddev) {}
-        scalar_type mean;
-        scalar_type stddev;
+        param_type(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : m(__mean), s(__stddev) {}
+        scalar_type m;
+        scalar_type s;
     };
 
     // Constructors
     lognormal_distribution() : lognormal_distribution(scalar_type{0.0}) {}
-    explicit lognormal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0})
-        : mean_(__mean), stddev_(__stddev), nd_(mean_, stddev_)
+    explicit lognormal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : nd_(__mean, __stddev)
     {
     }
-    explicit lognormal_distribution(const param_type& __params)
-        : mean_(__params.mean), stddev_(__params.stddev), nd_(mean_, stddev_)
-    {
-    }
+    explicit lognormal_distribution(const param_type& __params) : nd_(__params.m, __params.s) {}
 
     // Reset function
     void
@@ -62,26 +58,25 @@ class lognormal_distribution
     scalar_type
     m() const
     {
-        return mean_;
+        return nd_.mean();
     }
 
     scalar_type
     s() const
     {
-        return stddev_;
+        return nd_.stddev();
     }
 
     param_type
     param() const
     {
-        return param_type(mean_, stddev_);
+        return param_type(nd_.mean(), nd_.stddev());
     }
 
     void
     param(const param_type& __param)
     {
-        mean_ = __param.mean;
-        stddev_ = __param.stddev;
+        nd_.param(std::make_pair(__param.m, __param.s));
     }
 
     scalar_type
@@ -101,7 +96,7 @@ class lognormal_distribution
     result_type
     operator()(_Engine& __engine)
     {
-        return operator()<_Engine>(__engine, param_type(mean_, stddev_));
+        return operator()<_Engine>(__engine, param_type(nd_.mean(), nd_.stddev()));
     }
 
     template <class _Engine>
@@ -115,7 +110,7 @@ class lognormal_distribution
     result_type
     operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(mean_, stddev_), __random_nums);
+        return operator()<_Engine>(__engine, param_type(nd_.mean(), nd_.stddev()), __random_nums);
     }
 
     template <class _Engine>
@@ -137,8 +132,6 @@ class lognormal_distribution
                   "oneapi::dpl::lognormal_distribution. Error: unsupported data type");
 
     // Distribution parameters
-    scalar_type mean_;
-    scalar_type stddev_;
     normal_distr nd_;
 
     // Implementation for generate function
@@ -154,7 +147,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
+        return sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -164,7 +157,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
+            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
         return __res;
     }
 
@@ -173,7 +166,7 @@ class lognormal_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
+        return sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
     }
 
     // Implementation for the N vector's elements generation with size = [4; 8; 16]
@@ -181,7 +174,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr > 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
-        result_type __res = nd_(__engine, std::make_pair(__params.mean, __params.stddev), __N);
+        result_type __res = nd_(__engine, std::make_pair(__params.m, __params.s), __N);
         for (int i = 0; i < __N; i++)
             __res[i] = sycl::exp(__res[i]);
         return __res;
@@ -194,7 +187,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.mean, __params.stddev)));
+            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
         return __res;
     }
 
