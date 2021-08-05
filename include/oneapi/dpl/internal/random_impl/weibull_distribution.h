@@ -144,28 +144,15 @@ class weibull_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        return __params.b * sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))),
-                                      scalar_type{1.0} / __params.a);
+        return __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), scalar_type{1.0} / __params.a);
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
-    typename ::std::enable_if<(__N <= 3), result_type>::type
+    result_type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
-    }
-
-    // Specialization of the vector generation with size = [4; 8; 16]
-    template <int __N, class _Engine>
-    typename ::std::enable_if<(__N > 3), result_type>::type
-    generate_vec(_Engine& __engine, const param_type& __params)
-    {
-        oneapi::dpl::uniform_real_distribution<sycl::vec<scalar_type, __N>> __distr;
-        sycl::vec<scalar_type, __N> __u = __distr(__engine);
-        result_type __res = __params.b * sycl::pow(static_cast<result_type>(-sycl::log(scalar_type{1.0} - __u)),
-                                                   sycl::vec<scalar_type, __N>(scalar_type{1.0} / __params.a));
-        return __res;
     }
 
     // Implementation for the N vector's elements generation
@@ -177,8 +164,7 @@ class weibull_distribution
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
         scalar_type __tmp = scalar_type{1.0} / __params.a;
         for (int i = 0; i < __N; i++)
-            __res[i] =
-                __params.b * sycl::pow(static_cast<scalar_type>(-sycl::log(scalar_type{1.0} - __u(__engine))), __tmp);
+            __res[i] = __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), __tmp);
         return __res;
     }
 
