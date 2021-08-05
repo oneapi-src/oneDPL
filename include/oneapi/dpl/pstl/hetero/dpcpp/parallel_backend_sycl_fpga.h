@@ -43,10 +43,10 @@ namespace __par_backend_hetero
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 
 template <typename _Name>
-struct __parallel_for_fpga_invoker;
+struct __parallel_for_fpga_submitter;
 
 template <typename... _Name>
-struct __parallel_for_fpga_invoker<__internal::__optional_kernel_name<_Name...>>
+struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     __future<void>
@@ -79,8 +79,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __parallel_for_name = __internal::__kernel_name_provider<typename _Policy::kernel_name>;
 
-    return __parallel_for_fpga_invoker<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                              std::forward<_Ranges>(__rngs)...);
+    return __parallel_for_fpga_submitter<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick,
+                                                                __count, std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------

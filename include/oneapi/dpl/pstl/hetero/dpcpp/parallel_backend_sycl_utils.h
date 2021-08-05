@@ -157,29 +157,55 @@ struct __composite_kernel_name
 {
 };
 
-template <typename T>
+#if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
+template <typename _Tp>
 class __kernel_name_composer
 {
-    static constexpr auto __name = __builtin_sycl_unique_stable_name(T);
-    static constexpr std::size_t __name_size = __builtin_strlen(__name);
+    static constexpr auto __name = __builtin_sycl_unique_stable_name(_Tp);
+    static constexpr ::std::size_t __name_size = __builtin_strlen(__name);
 
-    template <::std::size_t... Is>
-    static __composite_kernel_name<__name[Is]...>
-    __compose_kernel_name(::std::index_sequence<Is...>);
+    template <::std::size_t... _Is>
+    static __composite_kernel_name<__name[_Is]...>
+    __compose_kernel_name(oneapi::dpl::__internal::__index_sequence<_Is...>);
 
   public:
-    using type = decltype(__compose_kernel_name(::std::make_index_sequence<__name_size>{}));
+    using type = decltype(__compose_kernel_name(oneapi::dpl::__internal::__make_index_sequence<__name_size>{}));
 };
+#endif // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
 
 template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
 using _KernelName_t =
 #if __SYCL_UNNAMED_LAMBDA__
     typename ::std::conditional<_HasDefaultName<_CustomName>::value,
+#    if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
                                 typename __kernel_name_composer<_BaseName<_CustomName, _Args...>>::type,
+#    else // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
+                                _BaseName<_CustomName, _Args...>,
+#    endif
                                 _BaseName<_CustomName>>::type;
-#else
-    _BaseName<_CustomName>
+#else // __SYCL_UNNAMED_LAMBDA__
+    _BaseName<_CustomName>;
 #endif
+
+template <typename _DerivedKernelName>
+class __kernel_compiler
+{
+  public:
+    template <typename _Exec>
+    static sycl::kernel
+    __compile_kernel(_Exec&& __exec)
+    {
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__exec.queue().get_context());
+        return __kernel_bundle.get_kernel(sycl::get_kernel_id<_DerivedKernelName>());
+#else
+        sycl::program __program(__exec.queue().get_context());
+
+        __program.build_with_kernel_type<_DerivedKernelName>();
+        return __program.get_kernel<_DerivedKernelName>();
+#endif
+    }
+};
 
 #if _ONEDPL_DEBUG_SYCL
 template <typename _Policy>
@@ -195,8 +221,8 @@ __print_device_debug_info(_Policy __policy, size_t __wg_size = 0, size_t __mcu =
                 << (__wg_size ? __wg_size : oneapi::dpl::__internal::__max_work_group_size(__policy)) << ::std::endl;
 }
 #else
-    template <typename _Policy>
-    inline void __print_device_debug_info(_Policy, size_t = 0, size_t = 0)
+template <typename _Policy>
+inline void __print_device_debug_info(_Policy, size_t = 0, size_t = 0)
 {
 }
 #endif
