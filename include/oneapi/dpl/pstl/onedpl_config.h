@@ -277,6 +277,11 @@
 #define _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY                                                                \
     (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)
 
+// some algorithms in <numeric> such as 'reduce' were added since libstdc++-9.3, we
+// have to provide our own implementation if legacy libstdc++ is in use.
+#define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL                                                                                \
+    (__GLIBCXX__ && (_GLIBCXX_RELEASE < 9 || (_GLIBCXX_RELEASE == 9 && __GLIBCXX__ < 20200312)))
+
 // Check the user-defined macro for parallel policies
 // define _ONEDPL_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
 #if !defined(_ONEDPL_BACKEND_SYCL)
