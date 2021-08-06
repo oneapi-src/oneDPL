@@ -138,7 +138,7 @@ class geometric_distribution
         return sycl::floor(sycl::log(1.0 - __u(__engine)) / sycl::log(1.0 - __params.p));
     }
 
-    // Specialization of the vector generation with size = [1; 3]
+    // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
@@ -153,11 +153,8 @@ class geometric_distribution
     {
         oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
         sycl::vec<double, __N> __u = __distr(__engine);
-
         sycl::vec<double, __N> __res_double = sycl::floor(sycl::log(1.0 - __u) / sycl::log(1.0 - __params.p));
-        result_type __res;
-        for (int i = 0; i < __N; ++i)
-            __res[i] = static_cast<scalar_type>(__res_double[i]);
+        result_type __res = __res_double.template convert<scalar_type, sycl::rounding_mode::rtz>();
         return __res;
     }
 

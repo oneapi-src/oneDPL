@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- bernoulli_distribution.h ------------------------------------------===//
+//===-- weibull_distribution.h ------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,34 +15,35 @@
 //
 // Abstract:
 //
-// Public header file provides implementation for Bernoulli Distribution
+// Public header file provides implementation for Weibull Distribution
 
-#ifndef _ONEDPL_BERNOULLI_DISTRIBUTION
-#define _ONEDPL_BERNOULLI_DISTRIBUTION
+#ifndef _ONEDPL_WEIBULL_DISTRIBUTION
+#define _ONEDPL_WEIBULL_DISTRIBUTION
 
 namespace oneapi
 {
 namespace dpl
 {
-template <class _BoolType = bool>
-class bernoulli_distribution
+template <class _RealType = double>
+class weibull_distribution
 {
   public:
     // Distribution types
-    using result_type = _BoolType;
-    using scalar_type = internal::element_type_t<_BoolType>;
+    using result_type = _RealType;
+    using scalar_type = internal::element_type_t<_RealType>;
 
     struct param_type
     {
-        param_type() : param_type(0.5) {}
-        param_type(double __p) : p(__p) {}
-        double p;
+        param_type() : param_type(scalar_type{1.0}) {}
+        param_type(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a(__a), b(__b) {}
+        scalar_type a;
+        scalar_type b;
     };
 
     // Constructors
-    bernoulli_distribution() : bernoulli_distribution(0.5) {}
-    explicit bernoulli_distribution(double __p) : p_(__p) {}
-    explicit bernoulli_distribution(const param_type& __params) : p_(__params.p) {}
+    weibull_distribution() : weibull_distribution(scalar_type{1.0}) {}
+    explicit weibull_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
+    explicit weibull_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
 
     // Reset function
     void
@@ -51,34 +52,41 @@ class bernoulli_distribution
     }
 
     // Property functions
-    double
-    p() const
+    scalar_type
+    a() const
     {
-        return p_;
+        return a_;
+    }
+
+    scalar_type
+    b() const
+    {
+        return b_;
     }
 
     param_type
     param() const
     {
-        return param_type(p_);
+        return param_type(a_, b_);
     }
 
     void
     param(const param_type& __param)
     {
-        p_ = __param.p;
+        a_ = __param.a;
+        b_ = __param.b;
     }
 
     scalar_type
     min() const
     {
-        return false;
+        return scalar_type{};
     }
 
     scalar_type
     max() const
     {
-        return true;
+        return std::numeric_limits<scalar_type>::max();
     }
 
     // Generate functions
@@ -86,7 +94,7 @@ class bernoulli_distribution
     result_type
     operator()(_Engine& __engine)
     {
-        return operator()<_Engine>(__engine, param_type(p_));
+        return operator()<_Engine>(__engine, param_type(a_, b_));
     }
 
     template <class _Engine>
@@ -100,7 +108,7 @@ class bernoulli_distribution
     result_type
     operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(p_), __random_nums);
+        return operator()<_Engine>(__engine, param_type(a_, b_), __random_nums);
     }
 
     template <class _Engine>
@@ -115,11 +123,12 @@ class bernoulli_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_same<scalar_type, bool>::value,
-                  "oneapi::dpl::bernoulli_distribution. Error: unsupported data type");
+    static_assert(::std::is_floating_point<scalar_type>::value,
+                  "oneapi::dpl::weibull_distribution. Error: unsupported data type");
 
     // Distribution parameters
-    double p_;
+    scalar_type a_;
+    scalar_type b_;
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
@@ -134,30 +143,16 @@ class bernoulli_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<double> __distr;
-        return __distr(__engine) < __params.p;
+        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
+        return __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), scalar_type{1.0} / __params.a);
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
-    typename ::std::enable_if<(__N <= 3), result_type>::type
+    result_type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
-    }
-
-    // Specialization of the vector generation with size = [4; 8; 16]
-    template <int __N, class _Engine>
-    typename ::std::enable_if<(__N > 3), result_type>::type
-    generate_vec(_Engine& __engine, const param_type& __params)
-    {
-        oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
-        sycl::vec<double, __N> __u = __distr(__engine);
-        sycl::vec<int64_t, __N> __res_int64 = __u < sycl::vec<double, __N>{__params.p};
-        result_type __res;
-        for (int i = 0; i < __N; i++)
-            __res[i] = static_cast<bool>(__res_int64[i]);
-        return __res;
     }
 
     // Implementation for the N vector's elements generation
@@ -166,9 +161,10 @@ class bernoulli_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        oneapi::dpl::uniform_real_distribution<double> __distr;
+        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
+        scalar_type __tmp = scalar_type{1.0} / __params.a;
         for (int i = 0; i < __N; i++)
-            __res[i] = __distr(__engine) < __params.p;
+            __res[i] = __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), __tmp);
         return __res;
     }
 
@@ -190,4 +186,4 @@ class bernoulli_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_BERNOULLI_DISTRIBUTION
+#endif // #ifndf _ONEDPL_WEIBULL_DISTRIBUTION

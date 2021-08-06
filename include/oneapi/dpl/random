@@ -32,6 +32,8 @@
 #include "internal/random_impl/exponential_distribution.h"
 #include "internal/random_impl/bernoulli_distribution.h"
 #include "internal/random_impl/geometric_distribution.h"
+#include "internal/random_impl/weibull_distribution.h"
+#include "internal/random_impl/lognormal_distribution.h"
 
 namespace oneapi
 {

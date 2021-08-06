@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- bernoulli_distribution.h ------------------------------------------===//
+//===-- lognormal_distribution.h ------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,70 +15,80 @@
 //
 // Abstract:
 //
-// Public header file provides implementation for Bernoulli Distribution
+// Public header file provides implementation for Lognormal Distribution
 
-#ifndef _ONEDPL_BERNOULLI_DISTRIBUTION
-#define _ONEDPL_BERNOULLI_DISTRIBUTION
+#ifndef _ONEDPL_LOGNORMAL_DISTRIBUTION
+#define _ONEDPL_LOGNORMAL_DISTRIBUTION
 
 namespace oneapi
 {
 namespace dpl
 {
-template <class _BoolType = bool>
-class bernoulli_distribution
+template <class _RealType = double>
+class lognormal_distribution
 {
   public:
     // Distribution types
-    using result_type = _BoolType;
-    using scalar_type = internal::element_type_t<_BoolType>;
+    using result_type = _RealType;
+    using scalar_type = internal::element_type_t<_RealType>;
 
     struct param_type
     {
-        param_type() : param_type(0.5) {}
-        param_type(double __p) : p(__p) {}
-        double p;
+        param_type() : param_type(scalar_type{0.0}) {}
+        param_type(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : m(__mean), s(__stddev) {}
+        scalar_type m;
+        scalar_type s;
     };
 
     // Constructors
-    bernoulli_distribution() : bernoulli_distribution(0.5) {}
-    explicit bernoulli_distribution(double __p) : p_(__p) {}
-    explicit bernoulli_distribution(const param_type& __params) : p_(__params.p) {}
+    lognormal_distribution() : lognormal_distribution(scalar_type{0.0}) {}
+    explicit lognormal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : nd_(__mean, __stddev)
+    {
+    }
+    explicit lognormal_distribution(const param_type& __params) : nd_(__params.m, __params.s) {}
 
     // Reset function
     void
     reset()
     {
+        nd_.reset();
     }
 
     // Property functions
-    double
-    p() const
+    scalar_type
+    m() const
     {
-        return p_;
+        return nd_.mean();
+    }
+
+    scalar_type
+    s() const
+    {
+        return nd_.stddev();
     }
 
     param_type
     param() const
     {
-        return param_type(p_);
+        return param_type(nd_.mean(), nd_.stddev());
     }
 
     void
     param(const param_type& __param)
     {
-        p_ = __param.p;
+        nd_.param(std::make_pair(__param.m, __param.s));
     }
 
     scalar_type
     min() const
     {
-        return false;
+        return scalar_type{};
     }
 
     scalar_type
     max() const
     {
-        return true;
+        return std::numeric_limits<scalar_type>::max();
     }
 
     // Generate functions
@@ -86,7 +96,7 @@ class bernoulli_distribution
     result_type
     operator()(_Engine& __engine)
     {
-        return operator()<_Engine>(__engine, param_type(p_));
+        return operator()<_Engine>(__engine, param_type(nd_.mean(), nd_.stddev()));
     }
 
     template <class _Engine>
@@ -100,7 +110,7 @@ class bernoulli_distribution
     result_type
     operator()(_Engine& __engine, unsigned int __random_nums)
     {
-        return operator()<_Engine>(__engine, param_type(p_), __random_nums);
+        return operator()<_Engine>(__engine, param_type(nd_.mean(), nd_.stddev()), __random_nums);
     }
 
     template <class _Engine>
@@ -114,12 +124,15 @@ class bernoulli_distribution
     // Size of type
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
+    using normal_distr = oneapi::dpl::normal_distribution<
+        typename ::std::conditional<(size_of_type_ <= 3), scalar_type, result_type>::type>;
+
     // Static asserts
-    static_assert(::std::is_same<scalar_type, bool>::value,
-                  "oneapi::dpl::bernoulli_distribution. Error: unsupported data type");
+    static_assert(::std::is_floating_point<scalar_type>::value,
+                  "oneapi::dpl::lognormal_distribution. Error: unsupported data type");
 
     // Distribution parameters
-    double p_;
+    normal_distr nd_;
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
@@ -134,8 +147,7 @@ class bernoulli_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<double> __distr;
-        return __distr(__engine) < __params.p;
+        return sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -143,7 +155,10 @@ class bernoulli_distribution
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        return generate_n_elems<_Engine>(__engine, __params, __N);
+        result_type __res;
+        for (int i = 0; i < __N; i++)
+            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
+        return __res;
     }
 
     // Specialization of the vector generation with size = [4; 8; 16]
@@ -151,24 +166,28 @@ class bernoulli_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
-        sycl::vec<double, __N> __u = __distr(__engine);
-        sycl::vec<int64_t, __N> __res_int64 = __u < sycl::vec<double, __N>{__params.p};
-        result_type __res;
+        return sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
+    }
+
+    // Implementation for the N vector's elements generation with size = [4; 8; 16]
+    template <int _Ndistr, class _Engine>
+    typename ::std::enable_if<(_Ndistr > 3), result_type>::type
+    generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
+    {
+        result_type __res = nd_(__engine, std::make_pair(__params.m, __params.s), __N);
         for (int i = 0; i < __N; i++)
-            __res[i] = static_cast<bool>(__res_int64[i]);
+            __res[i] = sycl::exp(__res[i]);
         return __res;
     }
 
-    // Implementation for the N vector's elements generation
-    template <class _Engine>
-    result_type
+    // Implementation for the N vector's elements generation with size = [1; 2; 3]
+    template <int _Ndistr, class _Engine>
+    typename ::std::enable_if<(_Ndistr <= 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        oneapi::dpl::uniform_real_distribution<double> __distr;
         for (int i = 0; i < __N; i++)
-            __res[i] = __distr(__engine) < __params.p;
+            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
         return __res;
     }
 
@@ -183,11 +202,11 @@ class bernoulli_distribution
         else if (__N >= _Ndistr)
             return operator()(__engine, __params);
 
-        __part_vec = generate_n_elems(__engine, __params, __N);
+        __part_vec = generate_n_elems<_Ndistr, _Engine>(__engine, __params, __N);
         return __part_vec;
     }
 };
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_BERNOULLI_DISTRIBUTION
+#endif // #ifndf _ONEDPL_LOGNORMAL_DISTRIBUTION

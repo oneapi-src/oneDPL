@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- exponential_distribution_test.cpp ---------------------------------===//
+//===-- lognormal_distribution_test.cpp ---------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -11,11 +11,11 @@
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 //
-//===----------------------------------------------------------------------===//
+//===-------------------------------------------------------------------------===//
 //
 // Abstract:
 //
-// Test of exponential_distribution - check statistical properties of the distribution
+// Test of lognormal_distribution - check statistical properties of the distribution
 
 #include "support/utils.h"
 #include <iostream>
@@ -34,151 +34,137 @@ constexpr auto c = 200u;
 constexpr auto m = 2147483563u;
 constexpr auto seed = 777;
 
-template <typename ScalarRealType>
-int
-statistics_check(int nsamples, ScalarRealType lambda, const std::vector<ScalarRealType>& samples)
-{
+template<typename ScalarRealType>
+int statistics_check(int nsamples, ScalarRealType mean, ScalarRealType stddev,
+    const std::vector<ScalarRealType>& samples) {
     // theoretical moments
-    double tM = 1 / lambda;
-    double tD = 1 / (lambda * lambda);
-    double tQ = 9 / (lambda * lambda * lambda * lambda);
+    double tM = exp(mean + stddev * stddev / 2);
+    double tD = (exp(stddev * stddev) - 1) * exp(2 * mean + stddev * stddev);
+    double tQ = (exp(4 * stddev * stddev) + 2 * exp(3 * stddev * stddev) + 3 * exp(2 * stddev * stddev) - 3) * tD * tD;
 
     return compare_moments(nsamples, samples, tM, tD, tQ);
 }
 
-template <class RealType, class UIntType>
-int
-test(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples)
-{
+template<class RealType, class UIntType>
+int test(oneapi::dpl::internal::element_type_t<RealType> mean, oneapi::dpl::internal::element_type_t<RealType> stddev, int nsamples) {
 
     sycl::queue queue;
 
     // memory allocation
     std::vector<oneapi::dpl::internal::element_type_t<RealType>> samples(nsamples);
 
-    constexpr int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0
-                                  ? 1
-                                  : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
+    constexpr int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0 ? 1 : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
 
     // generation
     {
         sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
 
-        queue.submit([&](sycl::handler& cgh) {
-            auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
+        queue.submit([&](sycl::handler &cgh) {
+            sycl::accessor acc(buffer, cgh, sycl::write_only);
 
-            cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems), [=](sycl::item<1> idx) {
+            cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems),
+                    [=](sycl::item<1> idx) {
+
                 unsigned long long offset = idx.get_linear_id() * num_elems;
                 oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
-                oneapi::dpl::exponential_distribution<RealType> distr(lambda);
+                oneapi::dpl::lognormal_distribution<RealType> distr(mean, stddev);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
                 res.store(idx.get_linear_id(), acc.get_pointer());
             });
         });
+        queue.wait();
     }
 
     // statistics check
-    int err = statistics_check(nsamples, lambda, samples);
+    int err = statistics_check(nsamples, mean, stddev, samples);
 
-    if (err)
-    {
+    if(err) {
         std::cout << "\tFailed" << std::endl;
     }
-    else
-    {
+    else {
         std::cout << "\tPassed" << std::endl;
     }
 
     return err;
 }
 
-template <class RealType, class UIntType>
-int
-test_portion(oneapi::dpl::internal::element_type_t<RealType> lambda, int nsamples, unsigned int part)
-{
+template<class RealType, class UIntType>
+int test_portion(oneapi::dpl::internal::element_type_t<RealType> mean, oneapi::dpl::internal::element_type_t<RealType> stddev,
+    int nsamples, unsigned int part) {
 
     sycl::queue queue;
 
     // memory allocation
     std::vector<oneapi::dpl::internal::element_type_t<RealType>> samples(nsamples);
-    constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0
-                                           ? 1
-                                           : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
+    constexpr unsigned int num_elems = oneapi::dpl::internal::type_traits_t<RealType>::num_elems == 0 ? 1 : oneapi::dpl::internal::type_traits_t<RealType>::num_elems;
     int n_elems = (part >= num_elems) ? num_elems : part;
 
     // generation
     {
         sycl::buffer<oneapi::dpl::internal::element_type_t<RealType>, 1> buffer(samples.data(), nsamples);
 
-        queue.submit([&](sycl::handler& cgh) {
-            auto acc = buffer.template get_access<sycl::access::mode::write>(cgh);
+        queue.submit([&](sycl::handler &cgh) {
+            sycl::accessor acc(buffer, cgh, sycl::write_only);
 
-            cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems), [=](sycl::item<1> idx) {
-                unsigned long long offset = idx.get_linear_id() * n_elems;
+            cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems),
+                    [=](sycl::item<1> idx) {
+
+                unsigned long long offset = idx.get_linear_id() * num_elems;
                 oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
-                oneapi::dpl::exponential_distribution<RealType> distr(lambda);
+                oneapi::dpl::lognormal_distribution<RealType> distr(mean, stddev);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
-                for (int i = 0; i < n_elems; ++i)
-                    acc.get_pointer()[offset + i] = res[i];
+                for(int i = 0; i < n_elems; ++i)
+                    acc.get_pointer()[idx.get_linear_id() * n_elems + i] = res[i];
             });
         });
         queue.wait_and_throw();
     }
 
     // statistics check
-    int err = statistics_check(nsamples, lambda, samples);
+    int err = statistics_check(nsamples, mean, stddev, samples);
 
-    if (err)
-    {
+    if(err) {
         std::cout << "\tFailed" << std::endl;
     }
-    else
-    {
+    else {
         std::cout << "\tPassed" << std::endl;
     }
 
     return err;
 }
 
-template <class RealType, class UIntType>
-int
-tests_set(int nsamples)
-{
+template<class RealType, class UIntType>
+int tests_set(int nsamples) {
     constexpr int nparams = 2;
 
-    float lambda_array[nparams] = {0.5, 1.5};
+    oneapi::dpl::internal::element_type_t<RealType> mean_array [nparams] = {0.0, 1.0};
+    oneapi::dpl::internal::element_type_t<RealType> stddev_array [nparams] = {1.0, 1000.0};
 
     // Test for all non-zero parameters
-    for (int i = 0; i < nparams; ++i)
-    {
-        std::cout << "exponential_distribution test<type>, lambda = " << lambda_array[i]
-                  << ", nsamples  = " << nsamples;
-        if (test<RealType, UIntType>(lambda_array[i], nsamples))
-        {
+    for(int i = 0; i < nparams; ++i) {
+        std::cout << "lognormal_distribution test<type>, mean = " << mean_array[i] << ", stddev = " << stddev_array[i] <<
+        ", nsamples = " << nsamples;
+        if (test<RealType, UIntType>(mean_array[i], stddev_array[i], nsamples))
             return 1;
-        }
     }
 
     return 0;
 }
 
-template <class RealType, class UIntType>
-int
-tests_set_portion(std::int32_t nsamples, unsigned int part)
-{
+template<class RealType, class UIntType>
+int tests_set_portion(std::int32_t nsamples, unsigned int part) {
     constexpr int nparams = 2;
 
-    oneapi::dpl::internal::element_type_t<RealType> lambda_array[nparams] = {0.5, 1.5};
+    oneapi::dpl::internal::element_type_t<RealType> mean_array [nparams] = {0.0, 1.0};
+    oneapi::dpl::internal::element_type_t<RealType> stddev_array [nparams] = {1.0, 1000.0};
 
     // Test for all non-zero parameters
-    for (int i = 0; i < nparams; ++i)
-    {
-        std::cout << "exponential_distribution test<type>, lambda = " << lambda_array[i] << ", nsamples = " << nsamples
-                  << ", part = " << part;
-        if (test_portion<RealType, UIntType>(lambda_array[i], nsamples, part))
-        {
+    for(int i = 0; i < nparams; ++i) {
+        std::cout << "lognormal_distribution test<type>, mean = " << mean_array[i] << ", stddev = " << stddev_array[i] <<
+        ", nsamples = " << nsamples << ", part = "<< part;
+        if(test_portion<RealType, UIntType>(mean_array[i], stddev_array[i], nsamples, part)) {
             return 1;
         }
     }
@@ -187,9 +173,7 @@ tests_set_portion(std::int32_t nsamples, unsigned int part)
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-int
-main()
-{
+int main() {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
