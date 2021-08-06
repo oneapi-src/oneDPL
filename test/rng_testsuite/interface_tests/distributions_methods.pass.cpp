@@ -115,6 +115,30 @@ check_params(oneapi::dpl::lognormal_distribution<T>& distr)
             (distr.param().m != mean) || (distr.param().s != stddev));
 }
 
+template <class T>
+std::int32_t
+check_params(oneapi::dpl::cauchy_distribution<T>& distr)
+{
+    Element_type<T> a = Element_type<T>{0.0};
+    Element_type<T> b = Element_type<T>{1.0};
+    return ((distr.a() != a) || (distr.b() != b) ||
+            (distr.min() > -std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.param().a != a) || (distr.param().b != b));
+}
+
+template <class T>
+std::int32_t
+check_params(oneapi::dpl::extreme_value_distribution<T>& distr)
+{
+    Element_type<T> a = Element_type<T>{0.0};
+    Element_type<T> b = Element_type<T>{1.0};
+    return ((distr.a() != a) || (distr.b() != b) ||
+            (distr.min() > -std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.param().a != a) || (distr.param().b != b));
+}
+
 template <typename Distr>
 typename ::std::enable_if<::std::is_same<typename Distr::param_type,
         ::std::pair<typename Distr::scalar_type, typename Distr::scalar_type>>::value, void>::type
@@ -158,6 +182,24 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 template <typename Distr>
 typename ::std::enable_if<::std::is_same<Distr, 
         oneapi::dpl::lognormal_distribution<typename Distr::result_type>>::value, void>::type
+make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
+{
+    params1 = typename Distr::param_type{1.5, 3.5};
+    params2 = typename Distr::param_type{-2, 10};
+}
+
+template <typename Distr>
+typename ::std::enable_if<::std::is_same<Distr, 
+        oneapi::dpl::cauchy_distribution<typename Distr::result_type>>::value, void>::type
+make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
+{
+    params1 = typename Distr::param_type{1.5, 3.5};
+    params2 = typename Distr::param_type{-2, 10};
+}
+
+template <typename Distr>
+typename ::std::enable_if<::std::is_same<Distr, 
+        oneapi::dpl::extreme_value_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -529,6 +571,63 @@ main()
     err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 1>>>();
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "cauchy_distribution<float>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::cauchy_distribution<float>>();
+#if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 16>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 8>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 4>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 3>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 2>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 1>>>();
+#endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "cauchy_distribution<double>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::cauchy_distribution<double>>();
+#if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 16>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 8>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 4>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 3>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 2>>>();
+    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 1>>>();
+#endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "extreme_value_distribution<float>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::extreme_value_distribution<float>>();
+#if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 16>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 8>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 4>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 3>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 2>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 1>>>();
+#endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    std::cout << "extreme_value_distribution<double>" << std::endl;
+    std::cout << "---------------------------------------------------" << std::endl;
+    err += test<oneapi::dpl::extreme_value_distribution<double>>();
+#if TEST_LONG_RUN
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 16>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 8>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 4>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 3>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 2>>>();
+    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 1>>>();
+#endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
+
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
