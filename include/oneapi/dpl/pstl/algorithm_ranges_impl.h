@@ -45,7 +45,7 @@ namespace __ranges
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range3>>
-__pattern_reduce_by_key(_ExecutionPolicy&& __exec, _Range1&& __keys_in, _Range2&& __vals_in, _Range3&& __keys_out, _Range4&& __vals_out)
+__pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys_in, _Range2&& __vals_in, _Range3&& __keys_out, _Range4&& __vals_out)
 {
     using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
 
