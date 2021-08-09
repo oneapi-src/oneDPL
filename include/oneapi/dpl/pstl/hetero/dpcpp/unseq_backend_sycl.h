@@ -143,7 +143,11 @@ struct transform_init
 };
 
 // Reduce on local memory
-template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
+template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp
+#if _USE_GROUP_ALGOS
+    , bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation1, _Tp>
+#endif
+>
 struct reduce
 {
     _BinaryOperation1 __bin_op1;
@@ -603,10 +607,10 @@ template <typename _InitType,
 using __enable_if_arithmetic_init_type = _InitType;
 
 // Reduce on local memory with subgroups
-template <typename _ExecutionPolicy, typename _Tp>
-struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
+template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
+struct reduce<_ExecutionPolicy, _BinaryOperation1, _Tp, true>
 {
-    ::std::plus<_Tp> __reduce;
+    _BinaryOperation1 __bin_op1;
 
     template <typename _NDItem, typename _GlobalIdx, typename _GlobalSize, typename _LocalAcc>
     _Tp
@@ -615,11 +619,11 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
         auto __local_id = __item.get_local_id(0);
         if (__global_id >= __n)
         {
-            // Fill the rest of local buffer with 0s so each of inclusive_scan method could correctly work
+            // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
             // for each work-item in sub-group
-            __local_mem[__local_id] = 0;
+            __local_mem[__local_id] = sycl::known_identity_v<_BinaryOperation1, _Tp>;
         }
-        return __dpl_sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], __dpl_sycl::__plus<_Tp>());
+        return __dpl_sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], __bin_op1);
     }
 };
 
