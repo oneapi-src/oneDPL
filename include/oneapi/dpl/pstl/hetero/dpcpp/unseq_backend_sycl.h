@@ -145,9 +145,10 @@ struct transform_init
 // Reduce on local memory
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp
 #if _USE_GROUP_ALGOS
-    , bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation1, _Tp>
+          ,
+          bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation1, _Tp>
 #endif
->
+          >
 struct reduce
 {
     _BinaryOperation1 __bin_op1;
@@ -501,9 +502,10 @@ struct __global_scan_functor
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
           typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType
 #if _USE_GROUP_ALGOS
-    , bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation, typename _InitType::__value_type>
+          ,
+          bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation, typename _InitType::__value_type>
 #endif
->
+          >
 struct __scan
 {
     _BinaryOperation __bin_op;
@@ -631,10 +633,10 @@ struct reduce<_ExecutionPolicy, _BinaryOperation1, _Tp, true>
     }
 };
 
-template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp, typename _WgAssigner,
-          typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
-struct __scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryOp, _WgAssigner,
-              _GlobalAssigner, _DataAccessor, _InitType, true>
+template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
+          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
+struct __scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryOp, _WgAssigner, _GlobalAssigner, _DataAccessor,
+              _InitType, true>
 {
     using _Tp = typename _InitType::__value_type;
     _BinaryOperation __bin_op;
