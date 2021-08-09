@@ -320,6 +320,12 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::optional``                    Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::reduce``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::all_of``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::any_of``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::none_of``                     Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

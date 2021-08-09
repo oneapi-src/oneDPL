@@ -42,9 +42,12 @@ namespace oneapi
 {
 namespace dpl
 {
+using ::std::all_of;
+using ::std::any_of;
 using ::std::binary_search;
 using ::std::equal_range;
 using ::std::lower_bound;
+using ::std::none_of;
 using ::std::upper_bound;
 } // namespace dpl
 
