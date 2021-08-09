@@ -43,7 +43,7 @@ main()
 
     auto exec = TestUtils::default_dpcpp_policy;
 
-    auto res = reduce_by_key(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(D));
+    auto res = reduce_by_segment(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(D));
 
     // The expected keys 
     int key_exp[n_res] = {1, 3, 2, 1};
@@ -61,8 +61,8 @@ main()
     ::std::cout << ::std::endl;
 
     //check result
-    EXPECT_EQ_N(key_exp, views::host_all(C).begin(), n_res, "wrong keys from reduce_by_key");
-    EXPECT_EQ_N(value_exp, views::host_all(D).begin(), n_res, "wrong values from reduce_by_key");
+    EXPECT_EQ_N(key_exp, views::host_all(C).begin(), n_res, "wrong keys from reduce_by_segment");
+    EXPECT_EQ_N(value_exp, views::host_all(D).begin(), n_res, "wrong values from reduce_by_segment");
 
 #endif //_ENABLE_RANGES_TESTING
 

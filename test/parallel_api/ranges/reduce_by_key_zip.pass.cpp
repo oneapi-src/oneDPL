@@ -34,7 +34,7 @@ main()
 
     using namespace oneapi::dpl::experimental::ranges;
 
-    auto res = reduce_by_key(oneapi::dpl::execution::make_device_policy(q),
+    auto res = reduce_by_segment(oneapi::dpl::execution::make_device_policy(q),
         zip_view(views::all_read(A), views::all_read(A1)), 
         views::all_read(B), zip_view(views::all_write(C), views::all_write(C1)), views::all_write(D));
 

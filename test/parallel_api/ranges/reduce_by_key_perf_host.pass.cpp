@@ -31,7 +31,7 @@ auto do_work_2(BufA& A, BufB& B, BufC& C, BufD& D, Res& res)
     using namespace oneapi::dpl::experimental::ranges;
 
     auto sTime = std::chrono::high_resolution_clock::now();
-    res = reduce_by_key(::std::execution::par_unseq, nano::views::all(A), nano::views::all(B), nano::views::all(C), nano::views::all(D));
+    res = reduce_by_segment(::std::execution::par_unseq, nano::views::all(A), nano::views::all(B), nano::views::all(C), nano::views::all(D));
     auto eTime = std::chrono::high_resolution_clock::now();
 
     return std::chrono::duration_cast<std::chrono::milliseconds>(eTime - sTime).count();
@@ -79,7 +79,7 @@ main()
 
     auto res = 0; 
     auto time = (do_work_2(A, B, C, D, res), do_work_2(A, B, C, D, res)); //double call to init RT and warm the cache
-    ::std::cout << "do_work, reduce_by_key, 2 patterns, time (ms): " << time << ::std::endl;
+    ::std::cout << "do_work, reduce_by_segment, 2 patterns, time (ms): " << time << ::std::endl;
 //    ::std::cout << res << ::std::endl;
 
     // dump first 100 elements
@@ -103,9 +103,9 @@ main()
     ::std::cout << ::std::endl;
 #endif
 
-//    EXPECT_TRUE(res1 == res, "wrong result from reduce_by_key");
-    EXPECT_EQ_N(C1.begin(), C.begin(), res1, "wrong keys from reduce_by_key");
-    EXPECT_EQ_N(D1.begin(), D.begin(), res1, "wrong values from reduce_by_key");
+//    EXPECT_TRUE(res1 == res, "wrong result from reduce_by_segment");
+    EXPECT_EQ_N(C1.begin(), C.begin(), res1, "wrong keys from reduce_by_segment");
+    EXPECT_EQ_N(D1.begin(), D.begin(), res1, "wrong values from reduce_by_segment");
 
 #endif //_ENABLE_RANGES_TESTING
     return TestUtils::done(_ENABLE_RANGES_TESTING);
