@@ -499,7 +499,11 @@ struct __global_scan_functor
 };
 
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
-          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
+          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType
+#if _USE_GROUP_ALGOS
+    , bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation, typename _InitType::__value_type>
+#endif
+>
 struct __scan
 {
     _BinaryOperation __bin_op;
@@ -627,13 +631,13 @@ struct reduce<_ExecutionPolicy, _BinaryOperation1, _Tp, true>
     }
 };
 
-template <typename _Inclusive, typename _ExecutionPolicy, typename _UnaryOp, typename _WgAssigner,
+template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp, typename _WgAssigner,
           typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
-struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__value_type>, _UnaryOp, _WgAssigner,
-              _GlobalAssigner, _DataAccessor, __enable_if_arithmetic_init_type<_InitType>>
+struct __scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryOp, _WgAssigner,
+              _GlobalAssigner, _DataAccessor, _InitType, true>
 {
     using _Tp = typename _InitType::__value_type;
-    __dpl_sycl::__plus<_Tp> __bin_op;
+    _BinaryOperation __bin_op;
     _UnaryOp __unary_op;
     _WgAssigner __wg_assigner;
     _GlobalAssigner __gl_assigner;
@@ -664,7 +668,7 @@ struct __scan<_Inclusive, _ExecutionPolicy, ::std::plus<typename _InitType::__va
             if (__adjusted_global_id < __n)
                 __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc);
             else
-                __local_acc[__local_id] = _Tp{0}; // for plus only
+                __local_acc[__local_id] = _Tp{sycl::known_identity_v<_BinaryOperation, _Tp>};
 
             // the result of __unary_op must be convertible to _Tp
             _Tp __old_value = __unary_op(__local_id, __local_acc);
