@@ -179,8 +179,9 @@ class extreme_value_distribution
     {
         oneapi::dpl::exponential_distribution<result_type> __distr;
         result_type __e = __distr(__engine);
-        result_type __res = select(sycl::log(__e), result_type{callback<scalar_type>()}, sycl::isequal(__e, result_type{0.0}));
-        return __params.a - __params.b *__res;
+        result_type __res =
+            select(sycl::log(__e), result_type{callback<scalar_type>()}, sycl::isequal(__e, result_type{0.0}));
+        return __params.a - __params.b * __res;
     }
 
     // Implementation for the N vector's elements generation
@@ -197,7 +198,7 @@ class extreme_value_distribution
             __res[i] = (__e == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__e);
             __res[i] = __params.a - __params.b * __res[i];
         }
-            
+
         return __res;
     }
 
