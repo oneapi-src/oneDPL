@@ -62,7 +62,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
                      ::std::forward<_ExecutionPolicy>(__exec),
                      unseq_backend::transform_init<_Policy, _BinaryOperation1, _Functor>{
                          __binary_op1, _Functor{__binary_op2}},                                    // transform
-                     __binary_op1,                                                                 // combine
+                     unseq_backend::leaf_reduce<_Policy, _BinaryOperation1>{__binary_op1},
                      unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1}, // reduce
                      __buf1.all_view(), __buf2.all_view())
                      .get();
@@ -94,7 +94,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
                      ::std::forward<_ExecutionPolicy>(__exec),
                      unseq_backend::transform_init<_Policy, _BinaryOperation, _Functor>{
                          __binary_op, _Functor{__unary_op}},                                     // transform
-                     __binary_op,                                                                // combine
+                     unseq_backend::leaf_reduce<_Policy, _BinaryOperation>{__binary_op},
                      unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op}, // reduce
                      __buf.all_view())
                      .get();

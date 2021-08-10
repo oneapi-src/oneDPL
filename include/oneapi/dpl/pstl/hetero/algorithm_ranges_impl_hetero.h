@@ -287,7 +287,7 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
                ::std::forward<_ExecutionPolicy>(__exec),
                unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                              decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-               __identity_reduce_fn,
+               unseq_backend::leaf_reduce<_Policy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
                unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                    __identity_reduce_fn},
                ::std::forward<_Range>(__rng))
@@ -511,7 +511,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
             ::std::forward<_ExecutionPolicy>(__exec),
             unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                           decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-            __identity_reduce_fn,
+            unseq_backend::leaf_reduce<_Policy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
             ::std::forward<_Range>(__rng))
@@ -549,6 +549,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
                                           decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
                                                                         __identity_init_fn},
             __identity_reduce_fn<_Compare>{__comp},
+            unseq_backend::leaf_reduce<_Policy, decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp}},
             unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
                 __identity_reduce_fn<_Compare>{__comp}},
             ::std::forward<_Range>(__rng))

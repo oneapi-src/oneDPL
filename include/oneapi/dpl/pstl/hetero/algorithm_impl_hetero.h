@@ -410,7 +410,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
             ::std::forward<_ExecutionPolicy>(__exec),
             unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                           decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-            __identity_reduce_fn,
+            unseq_backend::leaf_reduce<_ExecutionPolicy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
             __buf.all_view())
@@ -488,6 +488,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     using _IndexValueType =
         typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
     using _ReduceValueType = ::std::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
+    using _ReduceFnType = __identity_reduce_fn<_Compare>;
 
     auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
 
@@ -497,12 +498,12 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
                                                                                 /*__grainsize=*/8>(
                      ::std::forward<_ExecutionPolicy>(__exec),
-                     unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>,
-                                                   decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
+                     unseq_backend::transform_init<_ExecutionPolicy, _ReduceFnType,
+                                                   decltype(__identity_init_fn)>{_ReduceFnType{__comp},
                                                                                  __identity_init_fn},
-                     __identity_reduce_fn<_Compare>{__comp},
-                     unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
-                         __identity_reduce_fn<_Compare>{__comp}},
+                     unseq_backend::leaf_reduce<_ExecutionPolicy, _ReduceFnType>{_ReduceFnType{__comp}},
+                     unseq_backend::reduce<_ExecutionPolicy, _ReduceFnType, _ReduceValueType>{
+                         _ReduceFnType{__comp}},
                      __buf.all_view())
                      .get();
     return ::std::make_pair<_Iterator, _Iterator>(__first + ::std::get<0>(__ret), __first + ::std::get<1>(__ret));
@@ -627,7 +628,7 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
                ::std::forward<_ExecutionPolicy>(__exec),
                unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                              decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-               __identity_reduce_fn,
+               unseq_backend::leaf_reduce<_ExecutionPolicy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
                unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                    __identity_reduce_fn},
                __buf.all_view())
@@ -1152,7 +1153,7 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
             ::std::forward<_ExecutionPolicy>(__exec),
             unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                           decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-            __identity_reduce_fn,
+            unseq_backend::leaf_reduce<_ExecutionPolicy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
             __buf.all_view())
@@ -1437,7 +1438,7 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
             ::std::forward<_ExecutionPolicy>(__exec),
             unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                           decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-            __identity_reduce_fn,
+            unseq_backend::leaf_reduce<_ExecutionPolicy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
             __buf1.all_view(), __buf2.all_view())

@@ -243,11 +243,11 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 //------------------------------------------------------------------------
 // parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
-template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
+template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
           typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__par_backend_hetero::__future<_Tp>>
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce, _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
@@ -256,7 +256,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ReduceKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_reduce_kernel, _CustomName, _Up, _Cp,
+        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_reduce_kernel, _CustomName, _Up, _LRp,
                                                                      _Rp, _Ranges...>;
 
     auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
@@ -319,11 +319,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                     }
                     else
                     {
-                        // TODO: check the approach when we use grainsize here too
-                        if (__global_idx < __n_items)
-                            __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
-                        __dpl_sycl::__group_barrier(__item_id);
+                        __brick_leaf_reduce(__item_id, __n, __iters_per_work_item, __global_idx, __offset_2, __temp_local, __temp_acc);
                     }
+                    __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory
                     _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
                     if (__local_idx == 0)
@@ -337,7 +335,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
             __is_first = false;
         }
         ::std::swap(__offset_1, __offset_2);
-        __n_items = __n_groups;
+        __n_items = (__n_groups - 1) / __iters_per_work_item + 1;
         __n_groups = (__n_items - 1) / __work_group_size + 1;
     } while (__n_items > 1);
     return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
