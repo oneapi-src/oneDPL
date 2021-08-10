@@ -279,6 +279,7 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
         return 0;
 
     using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
+    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
@@ -287,7 +288,8 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
                ::std::forward<_ExecutionPolicy>(__exec),
                unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                              decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-               unseq_backend::leaf_reduce<_Policy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
+               unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), _NoOpFunctor>{
+                   __identity_reduce_fn, _NoOpFunctor{}},
                unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                    __identity_reduce_fn},
                ::std::forward<_Range>(__rng))
@@ -511,7 +513,8 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
             ::std::forward<_ExecutionPolicy>(__exec),
             unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
                                           decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-            unseq_backend::leaf_reduce<_Policy, decltype(__identity_reduce_fn)>{__identity_reduce_fn},
+            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), _NoOpFunctor>{
+                __identity_reduce_fn, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
             ::std::forward<_Range>(__rng))
@@ -549,7 +552,8 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
                                           decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
                                                                         __identity_init_fn},
             __identity_reduce_fn<_Compare>{__comp},
-            unseq_backend::leaf_reduce<_Policy, decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp}},
+            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), _NoOpFunctor>{
+                __identity_reduce_fn, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
                 __identity_reduce_fn<_Compare>{__comp}},
             ::std::forward<_Range>(__rng))

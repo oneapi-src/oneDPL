@@ -247,7 +247,8 @@ template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy
           typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__par_backend_hetero::__future<_Tp>>
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce, _Ranges&&... __rngs)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
+                            _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
@@ -315,11 +316,13 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                     // 1. Initialization (transform part). Fill local memory
                     if (__is_first)
                     {
-                        __u(__item_id, __n, __iters_per_work_item, __global_idx, __temp_local, __rngs...);
+                        __u(__item_id, __n, __iters_per_work_item, __global_idx, /*global_offset*/ 0, __temp_local,
+                            __rngs...);
                     }
                     else
                     {
-                        __brick_leaf_reduce(__item_id, __n, __iters_per_work_item, __global_idx, __offset_2, __temp_local, __temp_acc);
+                        __brick_leaf_reduce(__item_id, __n, __iters_per_work_item, __global_idx, __offset_2,
+                                            __temp_local, __temp_acc);
                     }
                     __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory

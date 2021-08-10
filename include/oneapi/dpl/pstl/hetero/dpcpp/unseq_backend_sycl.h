@@ -122,10 +122,10 @@ struct transform_init
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
     operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id,
-               _AccLocal& __local_mem, const _Acc&... __acc) const
+               ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         using _Tp = typename __accessor_traits<_AccLocal>::value_type;
-        ::std::size_t __adjusted_global_id = __iters_per_work_item * __global_id;
+        ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
         if (__adjusted_global_id < __n)
         {
             ::std::size_t __local_id = __item.get_local_id(0);
@@ -138,33 +138,6 @@ struct transform_init
                     __res = __binary_op(__res, __unary_op(__shifted_id, __acc...));
             }
             __local_mem[__local_id] = __res;
-        }
-    }
-};
-
-// Reduce on global memory
-template <typename _ExecutionPolicy, typename _BinaryOp>
-struct leaf_reduce
-{
-    _BinaryOp __binary_op;
-
-    template <typename _NDItemId, typename _Size, typename _AccLocal, typename _Acc>
-    void
-    operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id,
-               ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc& __acc) const
-    {
-        using _Tp = typename __accessor_traits<_AccLocal>::value_type;
-        ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
-        if (__adjusted_global_id < __n)
-        {
-            _Tp __res = __acc[__adjusted_global_id];
-            for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
-            {
-                ::std::size_t __shifted_idx = __adjusted_global_id + __i;
-                if (__shifted_idx < __n)
-                    __res = __binary_op(__res, __acc[__shifted_idx]);
-            }
-            __local_mem[__item.get_local_id(0)] = __res;
         }
     }
 };
