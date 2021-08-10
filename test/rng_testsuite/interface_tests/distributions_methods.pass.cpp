@@ -122,7 +122,7 @@ check_params(oneapi::dpl::cauchy_distribution<T>& distr)
     Element_type<T> a = Element_type<T>{0.0};
     Element_type<T> b = Element_type<T>{1.0};
     return ((distr.a() != a) || (distr.b() != b) ||
-            (distr.min() > -std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) || 
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
             (distr.param().a != a) || (distr.param().b != b));
 }
@@ -134,7 +134,7 @@ check_params(oneapi::dpl::extreme_value_distribution<T>& distr)
     Element_type<T> a = Element_type<T>{0.0};
     Element_type<T> b = Element_type<T>{1.0};
     return ((distr.a() != a) || (distr.b() != b) ||
-            (distr.min() > -std::numeric_limits<Element_type<T>>::max()) || 
+            (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) || 
             (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
             (distr.param().a != a) || (distr.param().b != b));
 }
