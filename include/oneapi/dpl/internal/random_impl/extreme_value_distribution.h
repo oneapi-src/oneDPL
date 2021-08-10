@@ -130,6 +130,21 @@ class extreme_value_distribution
     scalar_type a_;
     scalar_type b_;
 
+    // Callback function
+    template <typename _Type = float>
+    inline scalar_type
+    callback()
+    {
+        return ((scalar_type*)(internal::gaussian_sp_table))[1];
+    }
+
+    template <>
+    inline scalar_type
+    callback<double>()
+    {
+        return ((scalar_type*)(internal::gaussian_dp_table))[1];
+    }
+
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
     typename ::std::enable_if<(_Ndistr != 0), result_type>::type
@@ -143,8 +158,10 @@ class extreme_value_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::exponential_distribution<scalar_type> __e;
-        return __params.a - __params.b * sycl::log(__e(__engine));
+        oneapi::dpl::exponential_distribution<scalar_type> __distr;
+        scalar_type __e = __distr(__engine);
+        result_type __res = (__e == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__e);
+        return __params.a - __params.b * __res;
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -160,9 +177,10 @@ class extreme_value_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::exponential_distribution<result_type> __e;
-        result_type __res = __params.a - __params.b * sycl::log(__e(__engine));
-        return __res;
+        oneapi::dpl::exponential_distribution<result_type> __distr;
+        result_type __e = __distr(__engine);
+        result_type __res = select(sycl::log(__e), result_type{callback<scalar_type>()}, sycl::isequal(__e, result_type{0.0}));
+        return __params.a - __params.b *__res;
     }
 
     // Implementation for the N vector's elements generation
@@ -171,9 +189,15 @@ class extreme_value_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        oneapi::dpl::exponential_distribution<scalar_type> __e;
+        oneapi::dpl::exponential_distribution<scalar_type> __distr;
+        scalar_type __e = __distr(__engine);
         for (int i = 0; i < __N; i++)
-            __res[i] = __params.a - __params.b * sycl::log(__e(__engine));
+        {
+            scalar_type __e = __distr(__engine);
+            __res[i] = (__e == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__e);
+            __res[i] = __params.a - __params.b * __res[i];
+        }
+            
         return __res;
     }
 
