@@ -154,7 +154,7 @@ class weibull_distribution
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
     }
-    
+
     // Specialization of the vector generation with size = [4; 8; 16]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N > 3), result_type>::type
