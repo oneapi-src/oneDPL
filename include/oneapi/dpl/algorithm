@@ -45,7 +45,10 @@ namespace dpl
 using ::std::all_of;
 using ::std::any_of;
 using ::std::binary_search;
+using ::std::count;
+using ::std::count_if;
 using ::std::equal_range;
+using ::std::for_each;
 using ::std::lower_bound;
 using ::std::none_of;
 using ::std::upper_bound;
