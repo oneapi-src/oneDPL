@@ -432,6 +432,7 @@ struct __radix_global_scan_caller
     ::std::size_t __m_scan_size;
 };
 
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _RadixLocalScanName, typename _RadixGlobalScanName, ::std::uint32_t __radix_bits>
 struct __radix_sort_scan_submitter;
 
@@ -606,15 +607,14 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 {
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
     using _RadixCountKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__radix_sort_count_kernel, _CustomName,
-                                                                     __decay_t<_InRange>, __decay_t<_TmpBuf>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_count_kernel, _CustomName,
+                                                                               __decay_t<_InRange>, __decay_t<_TmpBuf>>;
     using _RadixLocalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__radix_sort_scan_kernel_1<_CustomName>>;
     using _RadixGlobalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
-    using _RadixReorderKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__radix_sort_reorder_kernel, _CustomName,
-                                                                     __decay_t<_InRange>, __decay_t<_OutRange>>;
+    using _RadixReorderKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        __radix_sort_reorder_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);

@@ -83,8 +83,7 @@ class device_policy
 };
 
 #if _ONEDPL_FPGA_DEVICE
-struct DefaultKernelNameFPGA;
-template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
+template <unsigned int factor = 1, typename KernelName = DefaultKernelName>
 class fpga_policy : public device_policy<KernelName>
 {
     using base = device_policy<KernelName>;
@@ -186,14 +185,14 @@ make_hetero_policy(const device_policy<OldKernelName>& policy)
 }
 
 #if _ONEDPL_FPGA_DEVICE
-template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelNameFPGA>
+template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelName>
 fpga_policy<unroll_factor, KernelName>
 make_fpga_policy(sycl::queue q)
 {
     return fpga_policy<unroll_factor, KernelName>(q);
 }
 
-template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelNameFPGA>
+template <unsigned int unroll_factor = 1, typename KernelName = DefaultKernelName>
 fpga_policy<unroll_factor, KernelName>
 make_fpga_policy(sycl::device d)
 {
@@ -201,7 +200,7 @@ make_fpga_policy(sycl::device d)
 }
 
 template <unsigned int new_unroll_factor, typename NewKernelName, unsigned int old_unroll_factor = 1,
-          typename OldKernelName = DefaultKernelNameFPGA>
+          typename OldKernelName = DefaultKernelName>
 fpga_policy<new_unroll_factor, NewKernelName>
 make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy
 #    if _ONEDPL_USE_PREDEFINED_POLICIES
@@ -213,7 +212,7 @@ make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy
 }
 
 template <unsigned int new_unroll_factor, typename NewKernelName, unsigned int old_unroll_factor = 1,
-          typename OldKernelName = DefaultKernelNameFPGA>
+          typename OldKernelName = DefaultKernelName>
 fpga_policy<new_unroll_factor, NewKernelName>
 make_hetero_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy)
 {
