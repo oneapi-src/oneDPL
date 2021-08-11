@@ -402,7 +402,7 @@ int main() {
 
     // testing flag = true case
     std::cout << "-----------------------------------------------------" << std::endl;
-    std::cout << "double vector sizes = [1, 2, 3, 4, 8, 16], flag = true" << std::endl;
+    std::cout << "double vector sizes = [1, 2, 3], flag = true" << std::endl;
     std::cout << "-----------------------------------------------------" << std::endl;
     err = tests_set_flag<sycl::vec<double, 1>, sycl::vec<std::uint32_t, 1>>(160);
 #if TEST_LONG_RUN
