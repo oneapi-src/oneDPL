@@ -91,7 +91,8 @@ template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy
           typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy,
                                                            oneapi::dpl::__par_backend_hetero::__future<_Tp>>
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce, _Ranges&&... __rngs)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
+                            _Ranges&&... __rngs)
 {
     // workaround until we implement more performant version for patterns
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
