@@ -126,6 +126,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
+    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __n = __last1 - __first1;
     auto __keep1 =
@@ -139,8 +140,8 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::transform_init<_Policy, _BinaryOperation1, _Functor>{__binary_op1,
                                                                             _Functor{__binary_op2}}, // transform
-        __binary_op1,                                                                                // combine
-        unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1},                // reduce
+        unseq_backend::transform_init<_Policy, _BinaryOperation1, _NoOpFunctor>{__binary_op1, _NoOpFunctor{}},
+        unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1}, // reduce
         __buf1.all_view(), __buf2.all_view());
     // using move constructor to enable stealing resources (keep alive objects)
     return oneapi::dpl::__internal::__future<_Tp>(::std::move(__res), __init, __binary_op1);
@@ -162,6 +163,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
+    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
@@ -170,8 +172,8 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::transform_init<_Policy, _BinaryOperation, _Functor>{__binary_op,
                                                                            _Functor{__unary_op}}, // transform
-        __binary_op,                                                                              // combine
-        unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op},               // reduce
+        unseq_backend::transform_init<_Policy, _BinaryOperation, _NoOpFunctor>{__binary_op, _NoOpFunctor{}},
+        unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op}, // reduce
         __buf.all_view());
     return oneapi::dpl::__internal::__future<_Tp>(::std::move(__res), __init, __binary_op);
 }

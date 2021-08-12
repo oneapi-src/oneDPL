@@ -122,22 +122,22 @@ struct transform_init
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
     operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id,
-               _AccLocal& __local_mem, const _Acc&... __acc) const
+               ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         using _Tp = typename __accessor_traits<_AccLocal>::value_type;
-        ::std::size_t __adjusted_global_id = __iters_per_work_item * __global_id;
-        if (__adjusted_global_id < __n)
+        ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
+        _Size __adjusted_n = __global_offset + __n;
+        if (__adjusted_global_id < __adjusted_n)
         {
-            ::std::size_t __local_id = __item.get_local_id(0);
             _Tp __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
             for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
             {
                 ::std::size_t __shifted_id = __adjusted_global_id + __i;
-                if (__shifted_id < __n)
+                if (__shifted_id < __adjusted_n)
                     __res = __binary_op(__res, __unary_op(__shifted_id, __acc...));
             }
-            __local_mem[__local_id] = __res;
+            __local_mem[__item.get_local_id(0)] = __res;
         }
     }
 };
@@ -618,8 +618,6 @@ struct reduce<_ExecutionPolicy, ::std::plus<_Tp>, __enable_if_arithmetic<_Tp>>
             // for each work-item in sub-group
             __local_mem[__local_id] = 0;
         }
-        __dpl_sycl::__group_barrier(__item);
-
         return __dpl_sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], __dpl_sycl::__plus<_Tp>());
     }
 };
