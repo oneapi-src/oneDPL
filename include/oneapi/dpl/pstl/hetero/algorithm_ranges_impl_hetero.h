@@ -555,7 +555,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
                                                                         __identity_init_fn},
             __identity_reduce_fn<_Compare>{__comp},
             unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _NoOpFunctor>{
-                __identity_reduce_fn, _NoOpFunctor{}},
+                __identity_reduce_fn<_Compare>{__comp}, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
                 __identity_reduce_fn<_Compare>{__comp}},
             ::std::forward<_Range>(__rng))
