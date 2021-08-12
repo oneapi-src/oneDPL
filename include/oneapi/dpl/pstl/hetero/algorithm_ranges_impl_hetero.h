@@ -578,20 +578,28 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     using namespace oneapi::dpl::experimental::ranges;
 
     using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
+    using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
+    // Round 1: reduce with extra indices added to avoid long segments
     auto __n = __keys.size();
     auto __idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n)
+                     .get_buffer();
+    auto __tmp_out_keys = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n)
+                     .get_buffer();
+    auto __tmp_out_values = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n)
                      .get_buffer();
 
     auto __k1 = oneapi::dpl::__ranges::drop_view_simple<_Range1, __diff_type>(__keys, 1);
     auto __k2 = __keys;
 
     auto __view1 = zip_view(views::iota(0, __n), __k1, __k2);
-    auto __view2 = zip_view(__out_keys, views::all_write(__idx));
+    auto __view2 = zip_view(views::all_write(__tmp_out_keys), views::all_write(__idx));
 
+    // TODO: replace literal with appropriate SYCL query.
     auto __res = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view1, __view2,
                                    [__n](const auto& __a) {
                                        return ::std::get<0>(__a) == __n ||
+                                              ::std::get<0>(__a) % 8192 == 0 || // segment size
                                               ::std::get<1>(__a) != ::std::get<2>(__a); //keys comparison
                                    },
                                    unseq_backend::__brick_assign{});
@@ -599,8 +607,30 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::__brick_reduce_idx{}, __res,
-        views::all_read(__idx), ::std::forward<_Range2>(__values), ::std::forward<_Range4>(__out_values))
+        views::all_read(__idx), ::std::forward<_Range2>(__values), views::all_write(__tmp_out_values))
         .wait();
+
+    // Round 2: final reduction to get result for each segment of equal adjacent keys
+    oneapi::dpl::__ranges::all_view<__val_type, __par_backend_hetero::access_mode::read_write> __new_keys(__tmp_out_keys);
+    auto __k3 = oneapi::dpl::__ranges::drop_view_simple<oneapi::dpl::__ranges::all_view<__val_type, __par_backend_hetero::access_mode::read_write>, __diff_type>(__new_keys, 1);
+    auto __k4 = __new_keys;
+
+    auto __view3 = zip_view(views::iota(0, __res), __k3, __k4);
+    auto __view4 = zip_view(views::all_write(__out_keys), views::all_write(__idx));
+
+    __res = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view3, __view4,
+                              [__res](const auto& __a) {
+                                  return ::std::get<0>(__a) == __res ||
+                                         ::std::get<1>(__a) != ::std::get<2>(__a); //keys comparison
+                              },
+                              unseq_backend::__brick_assign{});
+
+    //reduce by segment
+    oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::__brick_reduce_idx{}, __res,
+        views::all_read(__idx), views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
+        .wait();
+
 
     return __res;
 }
