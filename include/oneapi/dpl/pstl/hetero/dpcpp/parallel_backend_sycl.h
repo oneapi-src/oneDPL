@@ -334,13 +334,12 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                 });
         });
         if (__is_first)
-        {
             __is_first = false;
-        }
         ::std::swap(__offset_1, __offset_2);
-        __n_items = __n_groups;
-        __n_groups = (__n_items - 1) / __size_per_work_group + 1;
-    } while (__n_items > 1);
+        __n = __n_groups;
+        __n_items = (__n - 1) / __iters_per_work_item + 1;
+        __n_groups = (__n - 1) / __size_per_work_group + 1;
+    } while (__n > 1);
     return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
 }
 
