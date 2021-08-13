@@ -34,6 +34,8 @@
 #include "internal/random_impl/geometric_distribution.h"
 #include "internal/random_impl/weibull_distribution.h"
 #include "internal/random_impl/lognormal_distribution.h"
+#include "internal/random_impl/cauchy_distribution.h"
+#include "internal/random_impl/extreme_value_distribution.h"
 
 namespace oneapi
 {
