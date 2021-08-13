@@ -300,7 +300,7 @@ class uniform_real_distribution
                         (__params.second - __params.first) +
                     __params.first;
 
-                    for (unsigned int __j = 0; __j < __tail_size; ++__j)
+                for (unsigned int __j = 0; __j < __tail_size; ++__j)
                 {
                     __res[__i + __j] = __res_tmp[__j];
                 }
