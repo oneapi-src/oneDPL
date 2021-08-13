@@ -141,6 +141,7 @@ class uniform_real_distribution
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
 
         __res = ((__res - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
+                    (__params.second - __params.first) +
                 __params.first;
         return __res;
     }
