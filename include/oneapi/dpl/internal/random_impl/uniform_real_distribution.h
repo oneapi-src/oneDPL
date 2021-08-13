@@ -203,7 +203,7 @@ class uniform_real_distribution
                     (__params.second - __params.first) +
                 __params.first;
 
-            for (int __j = 0; __j < _Negnine; ++__j)
+            for (int __j = 0; __j < _Nengine; ++__j)
                 __res[__i + __j] = __res_tmp[__j];
         }
 
@@ -286,7 +286,7 @@ class uniform_real_distribution
                     ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
                         (__params.second - __params.first) +
                     __params.first;
-                for (int __j = 0; __j < _Negnine; ++__j)
+                for (int __j = 0; __j < _Nengine; ++__j)
                 {
                     __res[__i + __j] = __res_tmp[__j];
                 }
