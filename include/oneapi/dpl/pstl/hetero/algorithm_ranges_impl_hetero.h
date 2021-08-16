@@ -396,13 +396,14 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
 // unique_copy
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate,
+          typename _Assign = oneapi::dpl::__internal::__pstl_assign>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range2>>
-__pattern_unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred)
+__pattern_unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred, _Assign)
 {
     using _It1DifferenceType = oneapi::dpl::__internal::__difference_t<_Range1>;
-    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
     __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
         __not_pred<_BinaryPredicate>{__pred}};
 
