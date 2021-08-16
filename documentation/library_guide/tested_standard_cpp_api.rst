@@ -332,6 +332,12 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::count_if``                    Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::for_each``                    Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::find``                        Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::find_if``                     Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::find_if_not``                 Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
