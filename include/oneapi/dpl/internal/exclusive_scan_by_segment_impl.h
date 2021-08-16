@@ -65,7 +65,8 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     flags[0] = 1;
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              [=binary_pred](const BinaryPredicate::first_argument_type& first, const BinaryPredicate::second_argument_type& second)
+              [binary_pred](
+              const typename BinaryPredicate::first_argument_type& first, const typename BinaryPredicate::second_argument_type& second)
               {
                   return !binary_pred(first, second);
               });
@@ -131,7 +132,8 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     }
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              [=binary_pred](const BinaryPredicate::first_argument_type& first, const BinaryPredicate::second_argument_type& second)
+              [binary_pred](
+              const typename BinaryPredicate::first_argument_type& first, const typename BinaryPredicate::second_argument_type& second)
               {
                   return !binary_pred(first, second);
               });

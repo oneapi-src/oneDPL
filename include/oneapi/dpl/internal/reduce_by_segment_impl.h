@@ -83,7 +83,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // Identify where the first key in a sequence of equivalent keys is located
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [=binary_pred](const BinaryPred::first_argument_type& first, const BinaryPred::second_argument_type& second)
+              [binary_pred](
+              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
               {
                   return !binary_pred(first, second);
               });
@@ -193,7 +194,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // Identify where the first key in a sequence of equivalent keys is located
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [=binary_pred](const BinaryPred::first_argument_type& first, const BinaryPred::second_argument_type& second)
+              [binary_pred](
+              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
               {
                   return !binary_pred(first, second);
               });
@@ -324,7 +326,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // Identify where the first key in a sequence of equivalent keys is located
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [=binary_pred](const BinaryPred::first_argument_type& first, const BinaryPred::second_argument_type& second)
+              [binary_pred](
+              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
               {
                   return !binary_pred(first, second);
               });
@@ -447,7 +450,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // Identify where the first key in a sequence of equivalent keys is located
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [=binary_pred](const BinaryPred::first_argument_type& first, const BinaryPred::second_argument_type& second)
+              [binary_pred](
+              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
               {
                   return !binary_pred(first, second);
               });
