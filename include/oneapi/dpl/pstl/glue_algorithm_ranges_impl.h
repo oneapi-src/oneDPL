@@ -655,16 +655,39 @@ minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng)
                           oneapi::dpl::__internal::__pstl_less());
 }
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range3>>
+reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
+              _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
+{
+    return oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
+        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__keys)),
+        views::all_read(::std::forward<_Range2>(__values)), views::all_write(::std::forward<_Range3>(__out_keys)),
+        views::all_write(::std::forward<_Range4>(__out_values)), ::std::forward<_BinaryPredicate>(__binary_pred),
+        ::std::forward<_BinaryOperator>(__binary_op));
+}
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4, typename _BinaryPredicate>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+                                                      oneapi::dpl::__internal::__difference_t<_Range3>>
+reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
+              _Range4&& __out_values, _BinaryPredicate __binary_pred)
+{
+    return reduce_by_segment(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys),
+        ::std::forward<_Range2>(__values), ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values),
+        ::std::forward<_BinaryPredicate>(__binary_pred), oneapi::dpl::__internal::__pstl_plus());
+}
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range3>>
 reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
               _Range4&& __out_values)
 {
-    return oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__keys)),
-        views::all_read(::std::forward<_Range2>(__values)), views::all_write(::std::forward<_Range3>(__out_keys)),
-        views::all_write(::std::forward<_Range4>(__out_values)));
+    return reduce_by_segment(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys),
+        ::std::forward<_Range2>(__values), ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values),
+        oneapi::dpl::__internal::__pstl_equal());
 }
 
 } // namespace ranges

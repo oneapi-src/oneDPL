@@ -566,11 +566,11 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
     return ::std::make_pair(get<0>(__ret), get<1>(__ret));
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range3>>
 __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                        _Range4&& __out_values)
+                        _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
     if (__keys.empty())
         return 0;
@@ -597,16 +597,16 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // TODO: replace literal with appropriate SYCL query.
     auto __res = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view1, __view2,
-                                   [__n](const auto& __a) {
+                                   [__n, __binary_pred](const auto& __a) {
                                        return ::std::get<0>(__a) == __n ||
-                                              ::std::get<0>(__a) % 8192 == 0 || // segment size
-                                              ::std::get<1>(__a) != ::std::get<2>(__a); //keys comparison
+                                              ::std::get<0>(__a) % 2048 == 0 || // segment size
+                                              !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
                                    },
                                    unseq_backend::__brick_assign{});
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::__brick_reduce_idx{}, __res,
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::__brick_reduce_idx<_BinaryOperator>{__binary_op}, __res,
         views::all_read(__idx), ::std::forward<_Range2>(__values), views::all_write(__tmp_out_values))
         .wait();
 
@@ -619,15 +619,15 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     auto __view4 = zip_view(views::all_write(__out_keys), views::all_write(__idx));
 
     __res = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view3, __view4,
-                              [__res](const auto& __a) {
+                              [__res, __binary_pred](const auto& __a) {
                                   return ::std::get<0>(__a) == __res ||
-                                         ::std::get<1>(__a) != ::std::get<2>(__a); //keys comparison
+                                         !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
                               },
                               unseq_backend::__brick_assign{});
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::__brick_reduce_idx{}, __res,
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::__brick_reduce_idx<_BinaryOperator>{__binary_op}, __res,
         views::all_read(__idx), views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
         .wait();
 

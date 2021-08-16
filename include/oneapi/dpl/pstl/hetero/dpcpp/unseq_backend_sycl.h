@@ -890,15 +890,21 @@ struct __brick_assign
     }
 };
 
+template<typename _BinaryOperator>
 struct __brick_reduce_idx
 {
+    __brick_reduce_idx(const _BinaryOperator& __b)
+        : __binary_op(__b)
+    {
+    }
+
     template <typename _Idx, typename _Values>
     auto
     reduce(_Idx __i, _Idx __j, const _Values& __values) const
     {
         auto __res = __values[__i];
         for (++__i; __i < __j; ++__i)
-            __res += __values[__i];
+            __res = __binary_op(__res, __values[__i]);
 
         return __res;
     }
@@ -913,6 +919,9 @@ struct __brick_reduce_idx
         else
             __out_values[__idx] = reduce(__reduce_idx[__idx - 1], __reduce_idx[__idx], __values);
     }
+
+private:
+    _BinaryOperator __binary_op;
 };
 
 } // namespace unseq_backend
