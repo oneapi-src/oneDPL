@@ -135,9 +135,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value/* &&
-        !oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
-        !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value*/,
+    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value,
     ::std::pair<OutputIterator1, OutputIterator2>>::type
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
@@ -189,8 +187,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // number of unique keys
     CountType N = experimental::ranges::reduce_by_segment(::std::forward<Policy>(policy),
-                      experimental::ranges::views::all_read(key_buf), experimental::ranges::views::all_read(value_buf), experimental::ranges::views::all_write(key_output_buf),
-                      experimental::ranges::views::all_write(value_output_buf), binary_pred, binary_op);
+                      key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
+                      value_output_buf.all_view(), binary_pred, binary_op);
     return ::std::make_pair(result1 + N, result2 + N);
 }
 #endif
