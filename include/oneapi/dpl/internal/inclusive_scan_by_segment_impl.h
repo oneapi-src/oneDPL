@@ -60,7 +60,11 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     mask[0] = 1;
 
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, ::std::not2(binary_pred));
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
+              [=binary_pred](const BinaryPredicate::first_argument_type& first, const BinaryPredicate::second_argument_type& second)
+              {
+                  return !binary_pred(first, second);
+              });
 
     typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
     inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
@@ -108,7 +112,11 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         mask[0] = initial_mask;
     }
 
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, ::std::not2(binary_pred));
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
+              [=binary_pred](const BinaryPredicate::first_argument_type& first, const BinaryPredicate::second_argument_type& second)
+              {
+                  return !binary_pred(first, second);
+              });
 
     typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
     transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
