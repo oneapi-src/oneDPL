@@ -23,6 +23,7 @@
 #include "function.h"
 #include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
+#include "../ranges"
 
 namespace oneapi
 {
@@ -134,9 +135,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value/* &&
         !oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
-        !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
+        !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value*/,
     ::std::pair<OutputIterator1, OutputIterator2>>::type
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
@@ -155,6 +156,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
     typedef typename ::std::decay<Policy>::type policy_type;
+
+    namespace __bknd = __par_backend_hetero;
 
     ValueType initial_value;
     {
@@ -175,329 +178,19 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1 + 1, result2 + 1);
     }
 
-    FlagType initial_mask = 1;
-
-    // buffer that is used to store a flag indicating if the associated key is not equal to
-    // the next key, and thus its associated sum should be part of the final result
-    internal::__buffer<policy_type, FlagType> _mask(policy, n + 1);
-    {
-        auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<sycl::access::mode::write>();
-        mask[0] = initial_mask;
-
-        // instead of copying mask, use shifted sequence:
-        mask[n] = initial_mask;
-    }
-
-    // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              oneapi::dpl::__internal::__not_pred<BinaryPred>(binary_pred));
-
-    // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
-
-    // buffer stores the sums of values associated with a given key. Sums are copied with
-    // a shift into result2, and the shift is computed at the same time as the sums, so the
-    // sums can't be written to result2 directly.
-    internal::__buffer<policy_type, FlagType> _scanned_values(policy, n);
-
-    // Buffer is used to store results of the scan of the mask. Values indicate which position
-    // in result2 needs to be written with the scanned_values element.
-    internal::__buffer<policy_type, FlagType> _scanned_tail_flags(policy, n);
-
-    // Compute the sum of the segments. scanned_tail_flags values are not used.
-    typename internal::rebind_policy<policy_type, Reduce1<policy_type>>::type policy1(policy);
-    transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
-                             make_zip_iterator(first2, _mask.get()) + n,
-                             make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
-                             internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
-                             oneapi::dpl::__internal::__no_op(), ::std::make_tuple(initial_value, initial_mask));
-
-    // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
-
-    // Compute the indices each segment sum should be written
-    typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
-    oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                                ::std::plus<CountType>());
-
-    // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
+    auto keep_keys = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
+    auto key_buf = keep_keys(first1, last1);
+    auto keep_values = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
+    auto value_buf = keep_values(first2, first2+n);
+    auto keep_key_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator1>();
+    auto key_output_buf = keep_key_outputs(result1, result1+n);
+    auto keep_value_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator2>();
+    auto value_output_buf = keep_value_outputs(result2, result2+n);
 
     // number of unique keys
-    CountType N = 0;
-
-    // scoped sections enforce that there is only one access to the scanned_tail_flags
-    // buffer alive at any point in time.
-    {
-        auto scanned_tail_flags_buf = _scanned_tail_flags.get_buffer();
-        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<sycl::access::mode::read>();
-
-        N = scanned_tail_flags[n - 1] + 1;
-    }
-
-    // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
-    typename internal::rebind_policy<policy_type, Reduce4<policy_type>>::type policy4(policy);
-
-    // permutation iterator reorders elements in result1 so the element at index
-    // _scanned_tail_flags[i] is returned when index i of the iterator is accessed. The result
-    // is that some elements of result are written multiple times.
-    {
-        auto permute_it1 = make_permutation_iterator(result1, _scanned_tail_flags.get());
-        oneapi::dpl::for_each(policy3, make_zip_iterator(first1, _mask.get() + 1, permute_it1),
-                              make_zip_iterator(last1, _mask.get() + 1 + n, permute_it1 + n),
-                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
-    }
-
-    {
-        auto permute_it2 = make_permutation_iterator(result2, _scanned_tail_flags.get());
-        oneapi::dpl::for_each(policy4, make_zip_iterator(_scanned_values.get(), _mask.get() + 1, permute_it2),
-                              make_zip_iterator(_scanned_values.get() + n, _mask.get() + 1 + n, permute_it2 + n),
-                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
-    }
-    // for example: result1 = {1, 2, 3, 4, 1, 3, 1, 3, 0}
-    // for example: result2 = {1, 2, 3, 4, 2, 6, 2, 6, 0}
-
-    return ::std::make_pair(result1 + N, result2 + N);
-}
-
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
-          typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-        oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
-        !oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
-    ::std::pair<OutputIterator1, OutputIterator2>>::type
-reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                       OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
-                       BinaryOperator binary_op)
-{
-    // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
-    // keys for the values are equal to the adjacent key.
-    //
-    // Example: keys          = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first1, last1)
-    //          values        = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first2, first2+n)
-    //
-    //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
-    //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
-
-    typedef uint64_t FlagType;
-    typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef uint64_t CountType;
-    typedef typename ::std::decay<Policy>::type policy_type;
-
-    ValueType initial_value;
-    {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
-        initial_value = first2_acc[0];
-    }
-
-    const auto n = ::std::distance(first1, last1);
-    if (n <= 0)
-        return ::std::make_pair(result1, result2);
-    else if (n == 1)
-    {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
-        result1_acc[0] = first1_acc[0];
-        result2_acc[0] = initial_value;
-        return ::std::make_pair(result1 + 1, result2 + 1);
-    }
-
-    FlagType initial_mask = 1;
-
-    // buffer that is used to store a flag indicating if the associated key is not equal to
-    // the next key, and thus its associated sum should be part of the final result
-    internal::__buffer<policy_type, FlagType> _mask(policy, n + 1);
-    {
-        auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<sycl::access::mode::write>();
-        mask[0] = initial_mask;
-
-        // instead of copying mask, use shifted sequence:
-        mask[n] = initial_mask;
-    }
-
-    // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              oneapi::dpl::__internal::__not_pred<BinaryPred>(binary_pred));
-
-    // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
-
-    // buffer stores the sums of values associated with a given key. Sums are copied with
-    // a shift into result2, and the shift is computed at the same time as the sums, so the
-    // sums can't be written to result2 directly.
-    internal::__buffer<policy_type, FlagType> _scanned_values(policy, n);
-
-    // Buffer is used to store results of the scan of the mask. Values indicate which position
-    // in result2 needs to be written with the scanned_values element.
-    internal::__buffer<policy_type, FlagType> _scanned_tail_flags(policy, n);
-
-    // Compute the sum of the segments. scanned_tail_flags values are not used.
-    typename internal::rebind_policy<policy_type, Reduce1<policy_type>>::type policy1(policy);
-    transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
-                             make_zip_iterator(first2, _mask.get()) + n,
-                             make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
-                             internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
-                             oneapi::dpl::__internal::__no_op(), ::std::make_tuple(initial_value, initial_mask));
-
-    // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
-
-    // Compute the indices each segment sum should be written
-    typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
-    oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                                ::std::plus<CountType>());
-
-    // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
-
-    // number of unique keys
-    CountType N = 0;
-
-    // scoped sections enforce that there is only one access to the scanned_tail_flags
-    // buffer alive at any point in time.
-    {
-        auto scanned_tail_flags_buf = _scanned_tail_flags.get_buffer();
-        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<sycl::access::mode::read>();
-
-        N = scanned_tail_flags[n - 1] + 1;
-    }
-
-    // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, Reduce4<policy_type>>::type policy4(policy);
-
-    // result1 is a discard_iterator instance so we omit the write to it.
-
-    // permutation iterator reorders elements in result2 so the element at index
-    // _scanned_tail_flags[i] is returned when index i of the iterator is accessed. The result
-    // is that some elements of result are written multiple times.
-    {
-        auto permute_it2 = make_permutation_iterator(result2, _scanned_tail_flags.get());
-        oneapi::dpl::for_each(policy4, make_zip_iterator(_scanned_values.get(), _mask.get() + 1, permute_it2),
-                              make_zip_iterator(_scanned_values.get() + n, _mask.get() + 1 + n, permute_it2 + n),
-                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
-    }
-    // for example: result2 = {1, 2, 3, 4, 2, 6, 2, 6, 0}
-
-    return ::std::make_pair(result1 + N, result2 + N);
-}
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
-          typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-        !oneapi::dpl::internal::is_discard_iterator<OutputIterator1>::value &&
-        oneapi::dpl::internal::is_discard_iterator<OutputIterator2>::value,
-    ::std::pair<OutputIterator1, OutputIterator2>>::type
-reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                       OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
-                       BinaryOperator binary_op)
-{
-    // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
-    // keys for the values are equal to the adjacent key.
-    //
-    // Example: keys          = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first1, last1)
-    //          values        = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first2, first2+n)
-    //
-    //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
-    //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
-
-    typedef uint64_t FlagType;
-    typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef uint64_t CountType;
-    typedef typename ::std::decay<Policy>::type policy_type;
-
-    ValueType initial_value;
-    {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
-        initial_value = first2_acc[0];
-    }
-
-    const auto n = ::std::distance(first1, last1);
-    if (n <= 0)
-        return ::std::make_pair(result1, result2);
-    else if (n == 1)
-    {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
-        result1_acc[0] = first1_acc[0];
-        result2_acc[0] = initial_value;
-        return ::std::make_pair(result1 + 1, result2 + 1);
-    }
-
-    FlagType initial_mask = 1;
-
-    // buffer that is used to store a flag indicating if the associated key is not equal to
-    // the next key, and thus its associated sum should be part of the final result
-    internal::__buffer<policy_type, FlagType> _mask(policy, n + 1);
-    {
-        auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<sycl::access::mode::write>();
-        mask[0] = initial_mask;
-
-        // instead of copying mask, use shifted sequence:
-        mask[n] = initial_mask;
-    }
-
-    // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              oneapi::dpl::__internal::__not_pred<BinaryPred>(binary_pred));
-
-    // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
-
-    // buffer stores the sums of values associated with a given key. Sums are copied with
-    // a shift into result2, and the shift is computed at the same time as the sums, so the
-    // sums can't be written to result2 directly.
-    internal::__buffer<policy_type, FlagType> _scanned_values(policy, n);
-
-    // Buffer is used to store results of the scan of the mask. Values indicate which position
-    // in result2 needs to be written with the scanned_values element.
-    internal::__buffer<policy_type, FlagType> _scanned_tail_flags(policy, n);
-
-    // Compute the sum of the segments. scanned_tail_flags values are not used.
-    typename internal::rebind_policy<policy_type, Reduce1<policy_type>>::type policy1(policy);
-    transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
-                             make_zip_iterator(first2, _mask.get()) + n,
-                             make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
-                             internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
-                             oneapi::dpl::__internal::__no_op(), ::std::make_tuple(initial_value, initial_mask));
-
-    // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
-
-    // Compute the indices each segment sum should be written
-    typename internal::rebind_policy<policy_type, Reduce2<policy_type>>::type policy2(policy);
-    oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                                ::std::plus<CountType>());
-
-    // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
-
-    // number of unique keys
-    CountType N = 0;
-
-    // scoped sections enforce that there is only one access to the scanned_tail_flags
-    // buffer alive at any point in time.
-    {
-        auto scanned_tail_flags_buf = _scanned_tail_flags.get_buffer();
-        auto scanned_tail_flags = scanned_tail_flags_buf.template get_access<sycl::access::mode::read>();
-
-        N = scanned_tail_flags[n - 1] + 1;
-    }
-
-    // scatter the keys and accumulated values
-    typename internal::rebind_policy<policy_type, Reduce3<policy_type>>::type policy3(policy);
-
-    // permutation iterator reorders elements in result1 so the element at index
-    // _scanned_tail_flags[i] is returned when index i of the iterator is accessed. The result
-    // is that some elements of result are written multiple times.
-    {
-        auto permute_it1 = make_permutation_iterator(result1, _scanned_tail_flags.get());
-        oneapi::dpl::for_each(policy3, make_zip_iterator(first1, _mask.get() + 1, permute_it1),
-                              make_zip_iterator(last1, _mask.get() + 1 + n, permute_it1 + n),
-                              internal::transform_if_stencil_fun<FlagType, identity>(identity()));
-    }
-
-    // result2 is a discard_iterator instance so we omit the write to it.
-
-    // for example: result1 = {1, 2, 3, 4, 1, 3, 1, 3, 0}
-
+    CountType N = experimental::ranges::reduce_by_segment(::std::forward<Policy>(policy),
+                      experimental::ranges::views::all_read(key_buf), experimental::ranges::views::all_read(value_buf), experimental::ranges::views::all_write(key_output_buf),
+                      experimental::ranges::views::all_write(value_output_buf), binary_pred, binary_op);
     return ::std::make_pair(result1 + N, result2 + N);
 }
 #endif
