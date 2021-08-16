@@ -73,8 +73,8 @@ Distribution                   Description
 ``uniform_real_distribution``  Produces real values evenly distributed across a range
 ``normal_distribution``        Produces real values according to the Normal (Gaussian) distribution
 ``exponential_distribution``   Produces real values according to the Exponential distribution
-``bernoulli_distribution``     Produces boolean values: 1 with probability p, and 0 with probability (1-p)
-``geometric_distribution``     Produces integer values - the number of failures before you get a success in a series of Bernoulli trials
+``bernoulli_distribution``     Produces bool values according to the Bernoulli distribution
+``geometric_distribution``     Produces integer values according to the Geometric distribution
 ``weibull_distribution``       Produces real values according to the Weibull distribution
 ``lognormal_distribution``     Produces real values according to the Lognormal distribution
 ``extreme_value_distribution`` Produces real values according to the Extreme value (Gumbel) distribution
