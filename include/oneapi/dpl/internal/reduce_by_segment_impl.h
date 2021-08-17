@@ -24,9 +24,9 @@
 #include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
 #if _ONEDPL_BACKEND_SYCL
-#include "../pstl/utils_ranges.h"
-#include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-#include "../ranges"
+#    include "../pstl/utils_ranges.h"
+#    include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#    include "../ranges"
 #endif
 
 namespace oneapi
