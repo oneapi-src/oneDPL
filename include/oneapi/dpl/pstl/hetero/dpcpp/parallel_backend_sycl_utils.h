@@ -464,7 +464,7 @@ class __future : public __future_base
 
   public:
     __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
-        : __par_backend_hetero::__future_base(__e), __data(__b), __result_idx(__o)
+        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __data(__b)
     {
     }
 
