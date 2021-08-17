@@ -19,8 +19,6 @@
 #include "execution_defs.h"
 #include "glue_algorithm_defs.h"
 
-#include "algorithm_ranges_impl.h"
-
 #if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_ranges_impl_hetero.h"
 #    include "hetero/algorithm_impl_hetero.h" //TODO: for __brick_copy
