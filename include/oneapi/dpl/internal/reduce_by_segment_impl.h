@@ -179,16 +179,16 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     auto keep_keys = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto key_buf = keep_keys(first1, last1);
     auto keep_values = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
-    auto value_buf = keep_values(first2, first2+n);
+    auto value_buf = keep_values(first2, first2 + n);
     auto keep_key_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator1>();
-    auto key_output_buf = keep_key_outputs(result1, result1+n);
+    auto key_output_buf = keep_key_outputs(result1, result1 + n);
     auto keep_value_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator2>();
-    auto value_output_buf = keep_value_outputs(result2, result2+n);
+    auto value_output_buf = keep_value_outputs(result2, result2 + n);
 
     // number of unique keys
-    CountType N = experimental::ranges::reduce_by_segment(::std::forward<Policy>(policy),
-                      key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
-                      value_output_buf.all_view(), binary_pred, binary_op);
+    CountType N = experimental::ranges::reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(),
+                                                          value_buf.all_view(), key_output_buf.all_view(),
+                                                          value_output_buf.all_view(), binary_pred, binary_op);
     return ::std::make_pair(result1 + N, result2 + N);
 }
 #endif

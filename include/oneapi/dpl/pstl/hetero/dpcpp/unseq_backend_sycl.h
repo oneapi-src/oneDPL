@@ -890,13 +890,10 @@ struct __brick_assign
     }
 };
 
-template<typename _BinaryOperator>
+template <typename _BinaryOperator>
 struct __brick_reduce_idx
 {
-    __brick_reduce_idx(const _BinaryOperator& __b)
-        : __binary_op(__b)
-    {
-    }
+    __brick_reduce_idx(const _BinaryOperator& __b) : __binary_op(__b) {}
 
     template <typename _Idx, typename _Values>
     auto
@@ -915,11 +912,11 @@ struct __brick_reduce_idx
                _OutValues& __out_values) const
     {
         using __value_type = decltype(__reduce_idx[__idx]);
-        __value_type __left_operand = (idx == 0) ?  __value_type(0) : __reduce_idx[__idx - 1];
+        __value_type __left_operand = (idx == 0) ? __value_type(0) : __reduce_idx[__idx - 1];
         __out_values[__idx] = reduce(__left_operand, __reduce_idx[__idx], __values);
     }
 
-private:
+  private:
     _BinaryOperator __binary_op;
 };
 
