@@ -39,6 +39,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 any_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_any_of(::std::forward<_ExecutionPolicy>(__exec),
                                                                views::all_read(::std::forward<_Range>(__rng)), __pred);
 }
@@ -70,6 +74,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Function>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 for_each(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f,
                                                         views::all(::std::forward<_Range>(__rng)));
 }
@@ -80,6 +88,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 find_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_find_if(::std::forward<_ExecutionPolicy>(__exec),
                                                                 views::all_read(::std::forward<_Range>(__rng)), __pred);
 }
@@ -98,6 +110,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Tp>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 find(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __value)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return find_if(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
         oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
@@ -111,6 +127,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 find_end(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_find_end(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_read(::std::forward<_Range2>(__rng2)), __pred);
@@ -132,6 +152,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 find_first_of(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_find_first_of(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_read(::std::forward<_Range2>(__rng2)), __pred);
@@ -152,6 +176,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)), __pred,
         oneapi::dpl::__internal::__first_semantic());
@@ -172,6 +200,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 count_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_count(::std::forward<_ExecutionPolicy>(__exec),
                                                               views::all_read(::std::forward<_Range>(__rng)), __pred);
 }
@@ -193,6 +225,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_search(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_read(::std::forward<_Range2>(__rng2)), __pred);
@@ -211,6 +247,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Size, typename _
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 search_n(_ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value, _BinaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_search_n(::std::forward<_ExecutionPolicy>(__exec),
                                                                  views::all_read(::std::forward<_Range>(__rng)),
                                                                  __count, __value, __pred);
@@ -230,6 +270,10 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
         views::all_read(::std::forward<_Range1>(__rng)), views::all_write(::std::forward<_Range2>(__result)));
@@ -240,6 +284,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range2>>
 copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_copy_if(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
         views::all_write(::std::forward<_Range2>(__result)), __pred);
@@ -252,6 +300,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     using _ReferenceType1 = oneapi::dpl::__internal::__value_t<_Range1>&;
     using _ReferenceType2 = oneapi::dpl::__internal::__value_t<_Range2>&;
 
@@ -281,6 +333,10 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _UnaryOperation __op)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto& z) { z = __op(x); },
         views::all_read(::std::forward<_Range1>(__rng)), views::all_write(::std::forward<_Range2>(__result)));
@@ -290,6 +346,10 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _BinaryOperation __op)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto y, auto& z) { z = __op(x, y); },
         views::all_read(::std::forward<_Range1>(__rng1)), views::all_read(::std::forward<_Range2>(__rng2)),
@@ -302,6 +362,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_remove_if(::std::forward<_ExecutionPolicy>(__exec),
                                                                   views::all(::std::forward<_Range>(__rng)), __pred);
 }
@@ -344,6 +408,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_unique(::std::forward<_ExecutionPolicy>(__exec),
                                                                views::all(::std::forward<_Range>(__rng)), __pred);
 }
@@ -361,6 +429,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range2>>
 unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_unique_copy(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
         views::all_write(::std::forward<_Range2>(__result)), __pred);
@@ -381,6 +453,10 @@ template <typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 reverse(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     auto __v = views::all(::std::forward<_Range>(__rng));
     auto __n = __v.size();
     auto __n_2 = __n / 2;
@@ -395,6 +471,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 reverse_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
     copy(::std::forward<_ExecutionPolicy>(__exec), __src | views::reverse, ::std::forward<_Range2>(__result));
     return __src.size();
@@ -406,6 +486,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 rotate_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, oneapi::dpl::__internal::__difference_t<_Range1> __rotate_value,
             _Range2&& __result)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
     copy(::std::forward<_ExecutionPolicy>(__exec), __src | views::rotate(__rotate_value),
          ::std::forward<_Range2>(__result));
@@ -418,6 +502,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate, 
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 replace_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred, const _Tp& __new_value)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__internal::__replace_functor<
@@ -443,6 +531,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 replace_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _UnaryPredicate __pred,
                 const _Tp& __new_value)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         ::std::forward<_ExecutionPolicy>(__exec),
@@ -474,6 +566,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     oneapi::dpl::__internal::__ranges::__pattern_sort(::std::forward<_ExecutionPolicy>(__exec),
                                                       views::all(::std::forward<_Range>(__rng)), __comp);
 }
@@ -509,6 +605,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 is_sorted_until(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     auto __view = views::all_read(::std::forward<_Range>(__rng));
     const auto __res = oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
         ::std::forward<_ExecutionPolicy>(__exec), __view, oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
@@ -529,6 +629,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     auto __view = views::all_read(::std::forward<_Range>(__rng));
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
                ::std::forward<_ExecutionPolicy>(__exec), __view,
@@ -550,6 +654,10 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __p)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_equal(::std::forward<_ExecutionPolicy>(__exec),
                                                               views::all_read(::std::forward<_Range1>(__rng1)),
                                                               views::all_read(::std::forward<_Range2>(__rng2)), __p);
@@ -569,6 +677,10 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     using _DecayedExecutionPolicy = typename ::std::decay<_ExecutionPolicy>::type;
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
@@ -583,6 +695,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range3>>
 merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_merge(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_read(::std::forward<_Range2>(__rng2)), views::all_write(::std::forward<_Range3>(__rng3)), __comp);
@@ -604,6 +720,10 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_min_element(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)), __comp);
 }
@@ -639,6 +759,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<
     ::std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
 minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_minmax_element(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)), __comp);
 }
@@ -660,6 +784,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
                   _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
+    static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+                  "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+                  "with GCC 8.1 (or higher) or Clang 7 (or higher)");
+
     return oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__keys)),
         views::all_read(::std::forward<_Range2>(__values)), views::all_write(::std::forward<_Range3>(__out_keys)),
