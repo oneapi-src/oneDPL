@@ -27,9 +27,6 @@
 #    include "oneapi/dpl/internal/by_segment_extension_defs.h"
 #    include "oneapi/dpl/internal/binary_search_extension_defs.h"
 #    define _ONEDPL_ALGORITHM_FORWARD_DECLARED 1
-#    if (__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK)
-#        include "oneapi/dpl/ranges"
-#    endif
 #endif
 
 #if _ONEDPL_EXECUTION_POLICIES_DEFINED
