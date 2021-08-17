@@ -382,7 +382,8 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
 
     auto __copy_last_id = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                                            __copy_rng, __not_pred<_Predicate>{__pred});
+                                            __copy_rng, __not_pred<_Predicate>{__pred},
+                                            oneapi::dpl::__internal::__pstl_assign());
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
