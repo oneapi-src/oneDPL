@@ -881,12 +881,12 @@ struct __brick_shift_left
 
 struct __brick_assign
 {
-    template <typename T1, typename T2>
+    template <typename _T1, typename _T2>
     void
-    operator()(const T1& __a, T2&& __b) const
+    operator()(const _T1& __a, _T2&& __b) const
     {
-        ::std::get<0>(__b) = ::std::get<2>(__a);     //key
-        ::std::get<1>(__b) = ::std::get<0>(__a) + 1; //index
+        ::std::get<0>(::std::forward<_T2>(__b)) = ::std::get<2>(__a);     //key
+        ::std::get<1>(::std::forward<_T2>(__b)) = ::std::get<0>(__a) + 1; //index
     }
 };
 
@@ -914,10 +914,9 @@ struct __brick_reduce_idx
     operator()(const _ItemId __idx, const _ReduceIdx& __reduce_idx, const _Values& __values,
                _OutValues& __out_values) const
     {
-        if (__idx == 0)
-            __out_values[__idx] = reduce((decltype(__reduce_idx[__idx]))0, __reduce_idx[__idx], __values);
-        else
-            __out_values[__idx] = reduce(__reduce_idx[__idx - 1], __reduce_idx[__idx], __values);
+        using __value_type = decltype(__reduce_idx[__idx]);
+        __value_type __left_operand = (idx == 0) ?  __value_type(0) : __reduce_idx[__idx - 1];
+        __out_values[__idx] = reduce(__left_operand, __reduce_idx[__idx], __values);
     }
 
 private:
