@@ -31,6 +31,7 @@
 
 #if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations
+#    include "oneapi/dpl/ranges"
 #    include "oneapi/dpl/pstl/glue_algorithm_impl.h"
 
 #    include "oneapi/dpl/internal/exclusive_scan_by_segment_impl.h"
