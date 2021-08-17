@@ -158,8 +158,6 @@ class __reorder_pred
 class __pstl_assign
 {
   public:
-    explicit __pstl_assign() {}
-
     template <typename _Xp, typename _Yp>
     void
     operator()(const _Xp& __x, _Yp& __y) const
@@ -174,8 +172,6 @@ class __pstl_assign
 class __pstl_equal
 {
   public:
-    explicit __pstl_equal() {}
-
     template <typename _Xp, typename _Yp>
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
