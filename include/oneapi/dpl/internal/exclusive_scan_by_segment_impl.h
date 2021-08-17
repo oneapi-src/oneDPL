@@ -22,6 +22,7 @@
 #include "../pstl/parallel_backend.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
+#include "../pstl/utils.h"
 
 namespace oneapi
 {
@@ -65,11 +66,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     flags[0] = 1;
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              [binary_pred](
-              const typename BinaryPredicate::first_argument_type& first, const typename BinaryPredicate::second_argument_type& second)
-              {
-                  return !binary_pred(first, second);
-              });
+              oneapi::dpl::__internal::__not_pred(binary_pred));
 
     // shift input one to the right and initialize segments with init
     oneapi::dpl::__par_backend::__buffer<policy_type, OutputType> _temp(n);
@@ -132,11 +129,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     }
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              [binary_pred](
-              const typename BinaryPredicate::first_argument_type& first, const typename BinaryPredicate::second_argument_type& second)
-              {
-                  return !binary_pred(first, second);
-              });
+              oneapi::dpl::__internal::__not_pred(binary_pred));
 
     // shift input one to the right and initialize segments with init
     internal::__buffer<policy_type, OutputType> _temp(policy, n);

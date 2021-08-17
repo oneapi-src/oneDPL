@@ -22,6 +22,7 @@
 #include "../pstl/iterator_impl.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
+#include "../pstl/utils.h"
 
 namespace oneapi
 {
@@ -82,12 +83,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     mask[n] = 1;
 
     // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [binary_pred](
-              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
-              {
-                  return !binary_pred(first, second);
-              });
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, oneapi::dpl::__internal::__not_pred(binary_pred));
 
     // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
 
@@ -193,12 +189,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     }
 
     // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [binary_pred](
-              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
-              {
-                  return !binary_pred(first, second);
-              });
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, oneapi::dpl::__internal::__not_pred(binary_pred));
 
     // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
 
@@ -325,12 +316,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     }
 
     // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [binary_pred](
-              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
-              {
-                  return !binary_pred(first, second);
-              });
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, oneapi::dpl::__internal::__not_pred(binary_pred));
 
     // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
 
@@ -449,12 +435,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     }
 
     // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              [binary_pred](
-              const typename BinaryPred::first_argument_type& first, const typename BinaryPred::second_argument_type& second)
-              {
-                  return !binary_pred(first, second);
-              });
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, oneapi::dpl::__internal::__not_pred(binary_pred));
 
     // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
 
