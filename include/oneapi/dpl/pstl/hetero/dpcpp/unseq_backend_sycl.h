@@ -912,7 +912,7 @@ struct __brick_reduce_idx
                _OutValues& __out_values) const
     {
         using __value_type = decltype(__reduce_idx[__idx]);
-        __value_type __left_operand = (idx == 0) ? __value_type(0) : __reduce_idx[__idx - 1];
+        __value_type __left_operand = (__idx == 0) ? __value_type(0) : __reduce_idx[__idx - 1];
         __out_values[__idx] = reduce(__left_operand, __reduce_idx[__idx], __values);
     }
 
