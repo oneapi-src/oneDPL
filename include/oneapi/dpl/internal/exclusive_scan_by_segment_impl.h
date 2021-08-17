@@ -66,7 +66,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     flags[0] = 1;
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              oneapi::dpl::__internal::__not_pred(binary_pred));
+              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
     oneapi::dpl::__par_backend::__buffer<policy_type, OutputType> _temp(n);
@@ -129,7 +129,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     }
 
     transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
-              oneapi::dpl::__internal::__not_pred(binary_pred));
+              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
     internal::__buffer<policy_type, OutputType> _temp(policy, n);
