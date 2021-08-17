@@ -23,6 +23,7 @@
 #include "function.h"
 #include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
+#include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../ranges"
 
 namespace oneapi
