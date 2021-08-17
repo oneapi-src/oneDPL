@@ -42,6 +42,7 @@ namespace __par_backend_hetero
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _Name>
 struct __parallel_for_fpga_submitter;
 
