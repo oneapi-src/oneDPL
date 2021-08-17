@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-#include <time.h>
 #include <oneapi/dpl/execution>
 #include "oneapi/dpl/algorithm"
 #include "support/test_config.h"
@@ -23,7 +21,10 @@
 #include <oneapi/dpl/ranges>
 #endif
 #include "support/utils.h"
+#include <iostream>
+#include <time.h>
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template<typename BufA, typename BufB, typename BufC, typename BufD, typename Res>
 auto do_work_2(BufA A, BufB B, BufC C, BufD D, Res& res)
 {
@@ -48,7 +49,7 @@ auto do_work_4(BufA A, BufB B, BufC C, BufD D, Res& res)
 
     return std::chrono::duration_cast<std::chrono::milliseconds>(eTime - sTime).count();
 }
-
+#endif
 
 int32_t
 main()
