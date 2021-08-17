@@ -62,15 +62,6 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys_in, _Ran
 
     auto __nres = __res - __idx;
 
-//    for(int i = 0; i < nres-1; ++i)
-  //  {
-//        C[i] = A[Idx[i]];
-  //      std::cout << C[i] << " ";
-        //std::cout << Idx[i] << " ";
-//    }
-//    std::cout << std::endl;
-   
-
     auto __v = views::iota(0, __nres-1);
     //TODO: using iterator based API due to there is not  range-based API yet. 
     ::std::for_each(::std::forward<_ExecutionPolicy>(__exec), __v.begin(), __v.begin() + __v.size(),
@@ -81,17 +72,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys_in, _Ran
         }
     );
 
-//    for(int i = 0; i < nres-1; ++i)
-//    {
-//        std::cout << D[i] << " ";
-//    }
-//    std::cout << std::endl;
-
      return __nres;
-//thrust::pair<int*,int*> new_end;
-//new_end = thrust::reduce_by_key(thrust::host, A, A + N, B, C, D);
-// The first four keys in C are now {1, 3, 2, 1} and new_end.first - C is 4.
-// The first four values in D are now {9, 21, 9, 3} and new_end.second - D is 4.
 }
 
 } //__ranges
