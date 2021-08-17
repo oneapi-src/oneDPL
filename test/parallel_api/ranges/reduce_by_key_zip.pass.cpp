@@ -1,4 +1,3 @@
-#include <CL/sycl.hpp>
 #include <oneapi/dpl/execution>
 
 #include "support/test_config.h"

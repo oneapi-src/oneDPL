@@ -598,9 +598,9 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     auto __idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n)
                      .get_buffer();
     auto __tmp_out_keys =
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n).get_buffer();
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __key_type>(__exec, __n).get_buffer();
     auto __tmp_out_values =
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n)
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n)
             .get_buffer();
 
     //create two views over keys, the first with the first key removed for adjacent key comparison
@@ -640,10 +640,10 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     // Round 2: final reduction to get result for each segment of equal adjacent keys
 
     // create views over adjacent keys
-    oneapi::dpl::__ranges::all_view<__val_type, __par_backend_hetero::access_mode::read_write> __new_keys(
+    oneapi::dpl::__ranges::all_view<__key_type, __par_backend_hetero::access_mode::read_write> __new_keys(
         __tmp_out_keys);
     auto __k3 = oneapi::dpl::__ranges::drop_view_simple<
-        oneapi::dpl::__ranges::all_view<__val_type, __par_backend_hetero::access_mode::read_write>, __diff_type>(
+        oneapi::dpl::__ranges::all_view<__key_type, __par_backend_hetero::access_mode::read_write>, __diff_type>(
         __new_keys, 1);
     auto __k4 = __new_keys;
 
