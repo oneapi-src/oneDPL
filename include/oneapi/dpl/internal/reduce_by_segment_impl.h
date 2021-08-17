@@ -26,7 +26,9 @@
 #if _ONEDPL_BACKEND_SYCL
 #    include "../pstl/utils_ranges.h"
 #    include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-#    include "../ranges"
+#    include "../pstl/ranges_defs.h"
+#    include "../pstl/glue_algorithm_ranges_defs.h"
+#    include "../pstl/glue_algorithm_ranges_impl.h"
 #endif
 
 namespace oneapi
