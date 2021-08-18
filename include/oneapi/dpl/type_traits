@@ -107,7 +107,9 @@ using ::std::remove_extent;
 using ::std::remove_pointer;
 using ::std::remove_reference;
 using ::std::remove_volatile;
+#if __cplusplus <= 201703L
 using ::std::result_of;
+#endif
 using ::std::true_type;
 using ::std::underlying_type;
 #if __cplusplus > 201103L
@@ -132,7 +134,9 @@ using ::std::remove_extent_t;
 using ::std::remove_pointer_t;
 using ::std::remove_reference_t;
 using ::std::remove_volatile_t;
+#    if __cplusplus <= 201703L
 using ::std::result_of_t;
+#    endif
 using ::std::underlying_type_t;
 #endif
 #if __cplusplus > 201402L

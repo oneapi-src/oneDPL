@@ -23,6 +23,7 @@
 #include "../pstl/parallel_backend.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
+#include "../pstl/utils.h"
 
 namespace oneapi
 {
@@ -60,7 +61,8 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     mask[0] = 1;
 
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, ::std::not2(binary_pred));
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
+              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
     inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
@@ -108,7 +110,8 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         mask[0] = initial_mask;
     }
 
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1, ::std::not2(binary_pred));
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
+              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
     transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
