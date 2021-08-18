@@ -101,10 +101,11 @@ namespace TestUtils
 #if ONEDPL_FPGA_DEVICE
     auto default_selector =
 #if ONEDPL_FPGA_EMULATOR
-        sycl::INTEL::fpga_emulator_selector{};
+        __dpl_sycl::fpga_emulator_selector{};
 #else
-        sycl::INTEL::fpga_selector{};
+        __dpl_sycl::fpga_selector{};
 #endif // ONEDPL_FPGA_EMULATOR
+
     auto&& default_dpcpp_policy =
 #if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_fpga;

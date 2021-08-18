@@ -22,6 +22,9 @@
 #define _ONEDPL_sycl_defs_H
 
 #include <CL/sycl.hpp>
+#if _ONEDPL_FPGA_DEVICE
+#    include <CL/sycl/INTEL/fpga_extensions.hpp>
+#endif
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
@@ -142,6 +145,16 @@ __joint_exclusive_scan(_Args... __args)
     return sycl::ONEAPI::exclusive_scan(__args...);
 #endif
 }
+
+#if _ONEDPL_FPGA_DEVICE
+#    if __LIBSYCL_VERSION >= 50400
+using fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;
+using fpga_selector = sycl::ext::intel::fpga_selector;
+#    else
+using fpga_emulator_selector = sycl::INTEL::fpga_emulator_selector;
+using fpga_selector = sycl::INTEL::fpga_selector;
+#    endif
+#endif // _ONEDPL_FPGA_DEVICE
 
 } // namespace __dpl_sycl
 

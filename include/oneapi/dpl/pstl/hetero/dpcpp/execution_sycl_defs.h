@@ -20,9 +20,6 @@
 #include "../../execution_defs.h"
 
 #include "sycl_defs.h"
-#if _ONEDPL_FPGA_DEVICE
-#    include <CL/sycl/INTEL/fpga_extensions.hpp>
-#endif
 
 namespace oneapi
 {
@@ -94,9 +91,9 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy()
         : base(sycl::queue(
 #    if _ONEDPL_FPGA_EMU
-              sycl::INTEL::fpga_emulator_selector {}
+              __dpl_sycl::fpga_emulator_selector {}
 #    else
-              sycl::INTEL::fpga_selector {}
+              __dpl_sycl::fpga_selector {}
 #    endif // _ONEDPL_FPGA_EMU
               ))
     {
