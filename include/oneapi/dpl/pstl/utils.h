@@ -160,7 +160,7 @@ class __pstl_assign
   public:
     template <typename _Xp, typename _Yp>
     void
-    operator()(const _Xp& __x, _Yp& __y) const
+    operator()(const _Xp& __x, _Yp&& __y) const
     {
         __y = __x;
     }
