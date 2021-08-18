@@ -79,6 +79,7 @@ def runExample(String test_name, String cmake_flags = "") {
     }
 }
 
+String pipeline_name = "Jenkins/RHEL_Check (dpcpp_gpu_cxx_17, dpcpp_fpga_emu_cxx_17)"
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
@@ -156,7 +157,7 @@ pipeline {
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
-                                githubStatus.setPending(this, "Jenkins/RHEL_Check")
+                                githubStatus.setPending(this, pipeline_name)
                             }
                             else {
                                 user_in_github_group = false
@@ -366,10 +367,10 @@ pipeline {
                 if (user_in_github_group) {
                     if (build_ok) {
                         currentBuild.result = "SUCCESS"
-                        githubStatus.setSuccess(this, "Jenkins/RHEL_Check")
+                        githubStatus.setSuccess(this, pipeline_name)
                     } else {
                         currentBuild.result = "FAILURE"
-                        githubStatus.setFailed(this, "Jenkins/RHEL_Check")
+                        githubStatus.setFailed(this, pipeline_name)
                     }
                 }
             }
