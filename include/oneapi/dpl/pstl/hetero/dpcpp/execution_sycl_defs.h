@@ -401,7 +401,9 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
-    const ::std::size_t __cpu_divisor = __device.is_cpu() ? 4 : 1;
+    ::std::size_t __cpu_divisor = 1;
+    if (__device.is_cpu() && __max_wg_size >= 4)
+        __cpu_divisor = 4;
 
     return __max_wg_size / __cpu_divisor;
 }
