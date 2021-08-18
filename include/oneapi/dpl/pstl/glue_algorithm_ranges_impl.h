@@ -242,7 +242,7 @@ copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predica
 {
     return oneapi::dpl::__internal::__ranges::__pattern_copy_if(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
-        views::all_write(::std::forward<_Range2>(__result)), __pred);
+        views::all_write(::std::forward<_Range2>(__result)), __pred, oneapi::dpl::__internal::__pstl_assign());
 }
 
 // [alg.swap]
@@ -363,7 +363,7 @@ unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Bin
 {
     return oneapi::dpl::__internal::__ranges::__pattern_unique_copy(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
-        views::all_write(::std::forward<_Range2>(__result)), __pred);
+        views::all_write(::std::forward<_Range2>(__result)), __pred, oneapi::dpl::__internal::__pstl_assign());
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
