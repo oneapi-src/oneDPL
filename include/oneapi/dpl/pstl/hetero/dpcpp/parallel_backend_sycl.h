@@ -296,6 +296,12 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
     // distribution is ~1 work groups per compute init
     if (__exec.queue().get_device().is_cpu())
         __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
+    // __iters_per_work_item shows number of elements to reduce on global memory
+    // __work_group_size shows number of elements to reduce on local memory
+    // guarantee convergence of the reduction
+    if (__iters_per_work_item == 1 && __work_group_size == 1)
+        __iters_per_work_item = 2;
+
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
     _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
