@@ -98,26 +98,10 @@ class
 test_vec
 {
 public:
-    bool run()
+    bool run(sycl::queue& queue)
     {
         using result_type = typename Engine::scalar_type;
 
-        // Catch asynchronous exceptions
-        auto exception_handler = [](sycl::exception_list exceptions) {
-            for (std::exception_ptr const& e : exceptions)
-            {
-                try
-                {
-                    std::rethrow_exception(e);
-                }
-                catch (sycl::exception const& e)
-                {
-                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
-                }
-            }
-        };
-
-        sycl::queue queue(sycl::default_selector{}, exception_handler);
         int sum = 0;
 
         // Memory allocation
@@ -189,26 +173,10 @@ class
 test_vec<oneapi::dpl::ranlux24_vec<N>>
 {
 public:
-    bool run()
+    bool run(sycl::queue& queue)
     {
         using result_type = typename oneapi::dpl::ranlux24_vec<N>::scalar_type;
 
-        // Catch asynchronous exceptions
-        auto exception_handler = [](sycl::exception_list exceptions) {
-            for (std::exception_ptr const& e : exceptions)
-            {
-                try
-                {
-                    std::rethrow_exception(e);
-                }
-                catch (sycl::exception const& e)
-                {
-                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
-                }
-            }
-        };
-
-        sycl::queue queue(sycl::default_selector{}, exception_handler);
         int sum = 0;
 
         // Memory allocation
@@ -282,26 +250,10 @@ class
 test
 {
 public:
-    bool run()
+    bool run(sycl::queue& queue)
     {
         using result_type = typename Engine::scalar_type;
 
-        // Catch asynchronous exceptions
-        auto exception_handler = [](sycl::exception_list exceptions) {
-            for (std::exception_ptr const& e : exceptions)
-            {
-                try
-                {
-                    std::rethrow_exception(e);
-                }
-                catch (sycl::exception const& e)
-                {
-                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
-                }
-            }
-        };
-
-        sycl::queue queue(sycl::default_selector{}, exception_handler);
         int sum = 0;
 
         // Memory allocation
@@ -368,26 +320,10 @@ class
 test<oneapi::dpl::ranlux24>
 {
 public:
-    bool run()
+    bool run(sycl::queue& queue)
     {
         using result_type = typename oneapi::dpl::ranlux24::scalar_type;
 
-        // Catch asynchronous exceptions
-        auto exception_handler = [](sycl::exception_list exceptions) {
-            for (std::exception_ptr const& e : exceptions)
-            {
-                try
-                {
-                    std::rethrow_exception(e);
-                }
-                catch (sycl::exception const& e)
-                {
-                    std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
-                }
-            }
-        };
-
-        sycl::queue queue(sycl::default_selector{}, exception_handler);
         int sum = 0;
 
         // Memory allocation
@@ -458,48 +394,64 @@ main()
 {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+    // Catch asynchronous exceptions
+    auto exception_handler = [](sycl::exception_list exceptions) {
+        for (std::exception_ptr const& e : exceptions)
+        {
+            try
+            {
+                std::rethrow_exception(e);
+            }
+            catch (sycl::exception const& e)
+            {
+                std::cout << "Caught asynchronous SYCL exception during generation:\n" << e.what() << std::endl;
+            }
+        }
+    };
 
+    sycl::queue queue(sycl::default_selector{}, exception_handler);
+    
     std::int32_t err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "linear_congruential_engine<48271, 0, 2147483647>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::minstd_rand>{}.run();
+    err += test<oneapi::dpl::minstd_rand>{}.run(queue);
 #if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::minstd_rand_vec<16>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<8>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<4>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<3>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<2>>{}.run();
-    err += test_vec<oneapi::dpl::minstd_rand_vec<1>>{}.run();
+    err += test_vec<oneapi::dpl::minstd_rand_vec<16>>{}.run(queue);
+    err += test_vec<oneapi::dpl::minstd_rand_vec<8>>{}.run(queue);
+    err += test_vec<oneapi::dpl::minstd_rand_vec<4>>{}.run(queue);
+    err += test_vec<oneapi::dpl::minstd_rand_vec<3>>{}.run(queue);
+    err += test_vec<oneapi::dpl::minstd_rand_vec<2>>{}.run(queue);
+    err += test_vec<oneapi::dpl::minstd_rand_vec<1>>{}.run(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "subtract_with_carry_engine<24, 10, 24>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::ranlux24_base>{}.run();
+    err += test<oneapi::dpl::ranlux24_base>{}.run(queue);
 #if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<16>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<8>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<4>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<3>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<2>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_base_vec<1>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<16>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<8>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<4>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<3>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<2>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_base_vec<1>>{}.run(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "discard_block_engine<ranlux24_base, 223, 23>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::ranlux24>{}.run();
+    err += test<oneapi::dpl::ranlux24>{}.run(queue);
 #if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::ranlux24_vec<16>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<8>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<4>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<3>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<2>>{}.run();
-    err += test_vec<oneapi::dpl::ranlux24_vec<1>>{}.run();
+    err += test_vec<oneapi::dpl::ranlux24_vec<16>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_vec<8>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_vec<4>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_vec<3>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_vec<2>>{}.run(queue);
+    err += test_vec<oneapi::dpl::ranlux24_vec<1>>{}.run(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
