@@ -127,7 +127,11 @@ namespace __internal
 template <typename _CustomName>
 struct _HasDefaultName
 {
-    static constexpr bool value = ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value;
+    static constexpr bool value = ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value
+#if _ONEDPL_FPGA_DEVICE
+                                  || ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>::value
+#endif
+        ;
 };
 
 template <template <typename...> class _ExternalName, typename _InternalName>
