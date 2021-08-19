@@ -147,7 +147,7 @@ __joint_exclusive_scan(_Args... __args)
 }
 
 #if _ONEDPL_FPGA_DEVICE
-#    if __LIBSYCL_VERSION >= 50400
+#    if __LIBSYCL_VERSION >= 50300
 using fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;
 using fpga_selector = sycl::ext::intel::fpga_selector;
 #    else
