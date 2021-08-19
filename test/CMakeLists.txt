@@ -11,13 +11,9 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
-# template_tests
-set (subtract_with_carry_std_template_test.pass_timeout_release "900") # 15min
-set (subtract_with_carry_std_template_test.pass_timeout_debug "720") # 12min
-
-set (linear_congruential_std_template_test.pass_timeout_release "900") # 15min
-set (linear_congruential_std_template_test.pass_timeout_debug "720") # 12min
-
+# rng_tests
+set (ranlux_24_48_test.pass_timeout_release "900") # 15min
+set (ranlux_24_48_test.pass_timeout_debug "720") # 12min
 
 add_custom_target(build-all
     COMMENT "Build all the pstl tests.")
