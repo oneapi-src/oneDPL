@@ -27,9 +27,7 @@
 #include <oneapi/dpl/random>
 
 template<class Engine, class StdEngine>
-int test(oneapi::dpl::internal::element_type_t<typename Engine::result_type> seed, std::int32_t nsamples) {
-
-    sycl::queue queue(sycl::default_selector{});
+int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<typename Engine::result_type> seed, std::int32_t nsamples) {
 
     // memory allocation
     std::vector<oneapi::dpl::internal::element_type_t<typename Engine::result_type>> std_samples(nsamples);
@@ -82,9 +80,7 @@ int test(oneapi::dpl::internal::element_type_t<typename Engine::result_type> see
 }
 
 template<class Engine, class StdEngine>
-int test_portion(oneapi::dpl::internal::element_type_t<typename Engine::result_type> seed, int nsamples, unsigned int part) {
-
-    sycl::queue queue(sycl::default_selector{});
+int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<typename Engine::result_type> seed, int nsamples, unsigned int part) {
 
     // memory allocation
     std::vector<oneapi::dpl::internal::element_type_t<typename Engine::result_type>> std_samples(nsamples);
@@ -140,14 +136,14 @@ int test_portion(oneapi::dpl::internal::element_type_t<typename Engine::result_t
 }
 
 template<class Engine, class StdEngine>
-int tests_set(int nsamples) {
+int tests_set(sycl::queue& queue, int nsamples) {
     const int nseeds = 2;
     int64_t seed_array [nseeds] = {0, 19780503u};
 
     int err;
     for(int i = 0; i < nseeds; ++i) {
         std::cout << "DB test<Engine, StdEngine>(" << seed_array[i] << ", "<< nsamples << ")";
-        err = test<Engine, StdEngine>(seed_array[i], nsamples);
+        err = test<Engine, StdEngine>(queue, seed_array[i], nsamples);
         if(err) {
             return 1;
         }
@@ -157,14 +153,14 @@ int tests_set(int nsamples) {
 }
 
 template<class Engine, class StdEngine>
-int tests_set_portion(int nsamples, unsigned int part) {
+int tests_set_portion(sycl::queue& queue, int nsamples, unsigned int part) {
     const int nseeds = 1;
     int64_t seed_array [nseeds] = {19780503u};
 
     int err;
     for(int i = 0; i < nseeds; ++i) {
         std::cout << "DB test_portion<Engine, StdEngine>(" << seed_array[i] << ", "<< nsamples << ", " << part << ")";
-        err = test_portion<Engine, StdEngine>(seed_array[i], nsamples, part);
+        err = test_portion<Engine, StdEngine>(queue, seed_array[i], nsamples, part);
         if(err) {
             return 1;
         }
@@ -179,6 +175,7 @@ int main() {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
+    sycl::queue queue;
     constexpr int nsamples = 100;
     int err = 0;
 
@@ -187,7 +184,7 @@ int main() {
     std::cout << "discard_block_engine<minstd_rand0, 100, 10>" << std::endl;
     std::cout << "-------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::minstd_rand0, 100, 10>,
-        std::discard_block_engine<std::minstd_rand0, 100, 10>>(nsamples);
+        std::discard_block_engine<std::minstd_rand0, 100, 10>>(queue, nsamples);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base, 30, 5>
@@ -195,7 +192,7 @@ int main() {
     std::cout << "discard_block_engine<ranlux24_base, 30, 5>" << std::endl;
     std::cout << "------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base, 30, 5>,
-        std::discard_block_engine<std::ranlux24_base, 30, 5>>(nsamples);
+        std::discard_block_engine<std::ranlux24_base, 30, 5>>(queue, nsamples);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux48_base, 100, 100>
@@ -203,7 +200,7 @@ int main() {
     std::cout << "discard_block_engine<ranlux48_base, 100, 100>" << std::endl;
     std::cout << "---------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux48_base, 100, 100>,
-        std::discard_block_engine<std::ranlux48_base, 100, 100>>(nsamples);
+        std::discard_block_engine<std::ranlux48_base, 100, 100>>(queue, nsamples);
     EXPECT_TRUE(!err, "Test FAILED");
 
 #if TEST_LONG_RUN
@@ -212,9 +209,9 @@ int main() {
     std::cout << "discard_block_engine<ranlux24_base_vec<1>, 70, 69>" << std::endl;
     std::cout << "--------------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<1>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<1>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 1);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples, 1);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<2>, 70, 69>
@@ -222,9 +219,9 @@ int main() {
     std::cout << "discard_block_engine<ranlux24_base_vec<2>, 70, 69>" << std::endl;
     std::cout << "--------------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<2>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<2>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 1);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples, 1);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<3>, 70, 69>
@@ -232,9 +229,9 @@ int main() {
     std::cout << "discard_block_engine<ranlux24_base_vec<3>, 70, 69>" << std::endl;
     std::cout << "--------------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<3>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(99);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 99);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<3>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 2);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples, 2);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<4>, 70, 69>
@@ -242,9 +239,9 @@ int main() {
     std::cout << "discard_block_engine<ranlux24_base_vec<4>, 70, 69>" << std::endl;
     std::cout << "--------------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<4>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<4>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(99, 3);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 99, 3);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<8>, 70, 69>
@@ -252,9 +249,9 @@ int main() {
     std::cout << "discard_block_engine<ranlux24_base_vec<8>, 70, 69>" << std::endl;
     std::cout << "--------------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<8>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(160);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 160);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<8>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(160, 5);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 160, 5);
     EXPECT_TRUE(!err, "Test FAILED");
 
     // testing discard_block_engine<ranlux24_base_vec<16>, 70, 69>
@@ -262,27 +259,27 @@ int main() {
     std::cout << "discard_block_engine<ranlux24_base_vec<16>, 70, 69>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += tests_set<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(16);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 16);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 1);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples, 1);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 2);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples, 2);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(99, 3);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 99, 3);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(nsamples, 4);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, nsamples, 4);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(70, 7);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 70, 7);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(160, 8);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 160, 8);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(99, 9);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 99, 9);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(110, 11);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 110, 11);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(160, 16);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 160, 16);
     err += tests_set_portion<oneapi::dpl::discard_block_engine<oneapi::dpl::ranlux24_base_vec<16>, 70, 69>,
-        std::discard_block_engine<std::ranlux24_base, 70, 69>>(160, 17);
+        std::discard_block_engine<std::ranlux24_base, 70, 69>>(queue, 160, 17);
     EXPECT_TRUE(!err, "Test FAILED");
 #endif // TEST_LONG_RUN
 
