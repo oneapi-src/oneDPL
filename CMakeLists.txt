@@ -73,7 +73,12 @@ string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
 if (ONEDPL_ENABLE_SIMD)
     # TODO: remove skipping of Intel® oneAPI DPC++ Compiler once it can handle such options.
-    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
+    if (CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
+        execute_process(COMMAND dpcpp --version OUTPUT_VARIABLE VER)
+        string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" DPCPP_VER ${VER})
+        string(REPLACE "." 0 DPCPP_VER ${DPCPP_VER})
+    endif()
+    if ((NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$") OR ((CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$") AND (${DPCPP_VER} GREATER_EQUAL 20210400)))
         foreach(_simd_flag -fiopenmp-simd /Qiopenmp-simd -fopenmp-simd -qopenmp-simd /Qopenmp-simd -openmp:experimental -openmp-simd)
             string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
             check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
