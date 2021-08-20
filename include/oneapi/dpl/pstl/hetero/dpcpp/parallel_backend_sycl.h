@@ -282,6 +282,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                                                                                _Up, _LRp, _Rp, _Ranges...>;
 
     auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
+    // TODO: find a way to generalize getting of reliable work-group size
     ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __work_group_size according to local memory limit
     __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
@@ -296,6 +297,12 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
     // distribution is ~1 work groups per compute init
     if (__exec.queue().get_device().is_cpu())
         __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
+    // __iters_per_work_item shows number of elements to reduce on global memory
+    // __work_group_size shows number of elements to reduce on local memory
+    // guarantee convergence of the reduction
+    if (__iters_per_work_item == 1 && __work_group_size == 1)
+        __iters_per_work_item = 2;
+
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
     _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
@@ -416,6 +423,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         assert(__n > 0);
 
         auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        // TODO: find a way to generalize getting of reliable work-group sizes
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
         // change __wgroup_size according to local memory limit
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
@@ -673,6 +681,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
 
+    // TODO: find a way to generalize getting of reliable work-group size
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernel =
