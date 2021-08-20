@@ -91,9 +91,9 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy()
         : base(sycl::queue(
 #    if _ONEDPL_FPGA_EMU
-              __dpl_sycl::fpga_emulator_selector {}
+              __dpl_sycl::__fpga_emulator_selector {}
 #    else
-              __dpl_sycl::fpga_selector {}
+              __dpl_sycl::__fpga_selector {}
 #    endif // _ONEDPL_FPGA_EMU
               ))
     {
