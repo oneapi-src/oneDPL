@@ -48,7 +48,8 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
             [=] { __omp_backend::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
             // Assumes that __combine never throws.
             // TODO: Consider adding a requirement for user functors to be constant.
-            [=, &__combine] {
+            [=, &__combine]
+            {
                 __omp_backend::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
                                            __combine(__initial, __r[__k - 1]), __combine, __scan);
             });
@@ -58,8 +59,7 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
 template <typename _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp,
           typename _Ap>
 void
-__parallel_strict_scan_body(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
-                            _Ap __apex)
+__parallel_strict_scan_body(_Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex)
 {
     _Index __p = omp_get_num_threads();
     const _Index __slack = 4;
@@ -84,32 +84,36 @@ __parallel_strict_scan_body(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp _
 
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
-__parallel_strict_scan(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
+__parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
                        _Ap __apex)
 {
-    if (__n <= 1)
+    if (__n <= __default_chunk_size)
     {
-        __serial_backend::__parallel_strict_scan(std::forward<_ExecutionPolicy>(__exec), __n, __initial, __reduce,
-                                                 __combine, __scan, __apex);
+        _Tp __sum = __initial;
+        if (__n)
+        {
+            __sum = __combine(__sum, __reduce(_Index(0), __n));
+        }
+        __apex(__sum);
+        if (__n)
+        {
+            __scan(_Index(0), __n, __initial);
+        }
         return;
     }
 
     if (omp_in_parallel())
     {
-        // we don't create a nested parallel region in an existing parallel
-        // region: just create tasks
-        dpl::__omp_backend::__parallel_strict_scan_body(std::forward<_ExecutionPolicy>(__exec), __n, __initial,
-                                                        __reduce, __combine, __scan, __apex);
+        dpl::__omp_backend::__parallel_strict_scan_body<_ExecutionPolicy>(__n, __initial, __reduce, __combine, __scan,
+                                                                          __apex);
     }
     else
     {
-        // in any case (nested or non-nested) one parallel region is created and
-        // only one thread creates a set of tasks
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single)
         {
-            dpl::__omp_backend::__parallel_strict_scan_body(std::forward<_ExecutionPolicy>(__exec), __n, __initial,
-                                                            __reduce, __combine, __scan, __apex);
+            dpl::__omp_backend::__parallel_strict_scan_body<_ExecutionPolicy>(__n, __initial, __reduce, __combine,
+                                                                              __scan, __apex);
         }
     }
 }

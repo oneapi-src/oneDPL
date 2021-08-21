@@ -113,14 +113,15 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
         return;
     }
 
-    if (__nsort <= __default_chunk_size)
+    std::size_t __count = static_cast<std::size_t>(std::distance(__xs, __xe));
+    if (__count <= __default_chunk_size || __nsort < __count)
     {
-        __serial_backend::__parallel_stable_sort(std::forward<_ExecutionPolicy>(__exec), __xs, __xe, __comp,
-                                                 __leaf_sort, __nsort);
+        __leaf_sort(__xs, __xe, __comp);
         return;
     }
 
-    std::size_t __count = static_cast<std::size_t>(std::distance(__xs, __xe));
+    // TODO: the partial sort implementation should
+    // be shared with the other backends.
 
     if (omp_in_parallel())
     {
