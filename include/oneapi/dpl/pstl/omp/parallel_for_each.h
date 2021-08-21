@@ -9,12 +9,14 @@ template <class _ForwardIterator, class _Fp>
 void
 __parallel_for_each_body(_ForwardIterator __first, _ForwardIterator __last, _Fp __f)
 {
-    _PSTL_PRAGMA(omp taskgroup)
+    using DifferenceType = typename ::std::iterator_traits<_ForwardIterator>::difference_type;
+    auto __size = ::std::distance(__first, __last);
+
+    _PSTL_PRAGMA(omp taskloop untied mergeable)
+    for (DifferenceType __index = 0; __index < __size; ++__index)
     {
-        for (auto __iter = __first; __iter != __last; ++__iter)
-        {
-            _PSTL_PRAGMA(omp task firstprivate(__iter, __f)) { __f(*__iter); }
-        }
+        auto __iter = ::std::next(__first, __index);
+        __f(*__iter);
     }
 }
 

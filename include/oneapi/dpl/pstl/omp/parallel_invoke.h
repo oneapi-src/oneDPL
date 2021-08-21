@@ -11,8 +11,8 @@ __parallel_invoke_body(_F1&& __f1, _F2&& __f2)
 {
     _PSTL_PRAGMA(omp taskgroup)
     {
-        _PSTL_PRAGMA(omp task) { std::forward<_F1>(__f1)(); }
-        _PSTL_PRAGMA(omp task) { std::forward<_F2>(__f2)(); }
+        _PSTL_PRAGMA(omp task untied mergeable) { std::forward<_F1>(__f1)(); }
+        _PSTL_PRAGMA(omp task untied mergeable) { std::forward<_F2>(__f2)(); }
     }
 }
 

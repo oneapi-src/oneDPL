@@ -13,7 +13,7 @@ __parallel_for_body(_Index __first, _Index __last, _Fp __f)
     __chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size);
 
     // To avoid over-subscription we use taskloop for the nested parallelism
-    _PSTL_PRAGMA(omp taskloop)
+    _PSTL_PRAGMA(omp taskloop untied mergeable)
     for (std::size_t __chunk = 0; __chunk < __n_chunks; ++__chunk)
     {
         auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
@@ -33,6 +33,12 @@ template <class _ExecutionPolicy, class _Index, class _Fp>
 void
 __parallel_for(_ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
 {
+    if (__should_run_serial(__first, __last))
+    {
+        __f(__first, __last);
+        return;
+    }
+
     if (omp_in_parallel())
     {
         // we don't create a nested parallel region in an existing parallel

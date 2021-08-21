@@ -22,7 +22,6 @@
 #include <vector>
 #include <omp.h>
 
-#include "parallel_backend_serial.h"
 #include "parallel_backend_utils.h"
 #include "unseq_backend_simd.h"
 #include "utils.h"
@@ -82,6 +81,25 @@ class __buffer
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 512;
+
+// Convenience function to determine when we should run serial.
+template <typename _Iterator, ::std::enable_if_t<!::std::is_integral<_Iterator>::value, bool> = true>
+constexpr auto
+__should_run_serial(_Iterator __first, _Iterator __last) -> bool
+{
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+    auto __size = ::std::distance(__first, __last);
+    return __size <= static_cast<_difference_type>(__default_chunk_size);
+}
+
+template <typename _Index, ::std::enable_if_t<::std::is_integral<_Index>::value, bool> = true>
+constexpr auto
+__should_run_serial(_Index __first, _Index __last) -> bool
+{
+    using _difference_type = ::std::intptr_t;
+    auto __size = __last - __first;
+    return __size <= static_cast<_difference_type>(__default_chunk_size);
+}
 
 // The iteration space partitioner according to __requested_chunk_size
 template <class _RandomAccessIterator, class _Size>

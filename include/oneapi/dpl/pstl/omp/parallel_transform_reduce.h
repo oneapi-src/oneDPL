@@ -28,13 +28,13 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
         // Here, we cannot use OpenMP UDR because we must store the init value in
         // the combiner and it will be used several times. Although there should be
         // the only one; we manually generate the identity elements for each thread.
-        alignas(_Value) char __accums_storage[__num_threads * sizeof(_Value)];
-        _Value* __accums = reinterpret_cast<_Value*>(__accums_storage);
+        ::std::vector<_Value> __accums;
+        __accums.reserve(__num_threads);
 
         // initialize accumulators for all threads
         for (_Size __i = 0; __i < __num_threads; ++__i)
         {
-            ::new (__accums + __i) _Value(__unary_op(__first + __i));
+            __accums.emplace_back(__unary_op(__first + __i));
         }
 
         // initial partition of the iteration space into chunks
@@ -60,15 +60,10 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
         {
             __init = __combiner(__init, __accums[__i]);
         }
-
-        // destroy accumulators
-        for (_Size __i = 0; __i < __num_threads; ++__i)
-        {
-            __accums[__i].~_Value();
-        }
     }
     else
-    { // if the number of elements is less than the number of threads, we
+    {
+        // if the number of elements is less than the number of threads, we
         // process them sequentially
         for (_Size __i = 0; __i < __n; ++__i)
         {
