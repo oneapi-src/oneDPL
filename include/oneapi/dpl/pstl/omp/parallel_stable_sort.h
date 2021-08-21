@@ -71,20 +71,16 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
     using _MoveValueType = typename __omp_backend::__sort_details::__move_value<_RandomAccessIterator, _OutputIterator>;
     using _MoveRangeType = __omp_backend::__sort_details::__move_range<_RandomAccessIterator, _OutputIterator>;
 
-    std::size_t __size = std::distance(__xs, __xe);
-
-    if (__size <= __default_chunk_size)
+    if (__should_run_serial(__xs, __xe))
     {
         __leaf_sort(__xs, __xe, __comp);
     }
     else
     {
+        std::size_t __size = std::distance(__xs, __xe);
         auto __mid = __xs + (__size / 2);
-        _PSTL_PRAGMA(omp taskgroup)
-        {
-            _PSTL_PRAGMA(omp task untied mergeable) { __parallel_stable_sort_body(__xs, __mid, __comp, __leaf_sort); }
-            _PSTL_PRAGMA(omp task untied mergeable) { __parallel_stable_sort_body(__mid, __xe, __comp, __leaf_sort); }
-        }
+        __parallel_invoke_body([&]() { __parallel_stable_sort_body(__xs, __mid, __comp, __leaf_sort); },
+                               [&]() { __parallel_stable_sort_body(__mid, __xe, __comp, __leaf_sort); });
 
         // Perform a parallel merge of the sorted ranges into __output.
         _VecType __output(__size);
@@ -113,7 +109,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __xs, _R
         return;
     }
 
-    std::size_t __count = static_cast<std::size_t>(std::distance(__xs, __xe));
+    auto __count = static_cast<std::size_t>(std::distance(__xs, __xe));
     if (__count <= __default_chunk_size || __nsort < __count)
     {
         __leaf_sort(__xs, __xe, __comp);
