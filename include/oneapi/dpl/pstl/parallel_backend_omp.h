@@ -101,11 +101,16 @@ __should_run_serial(_Index __first, _Index __last) -> bool
     return __size <= static_cast<_difference_type>(__default_chunk_size);
 }
 
+struct __chunk_policy
+{
+    std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
+};
+
 // The iteration space partitioner according to __requested_chunk_size
-template <class _RandomAccessIterator, class _Size>
-void
-__chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last, _Size& __n_chunks, _Size& __chunk_size,
-                    _Size& __first_chunk_size, _Size __requested_chunk_size = __default_chunk_size)
+template <class _RandomAccessIterator, class _Size = std::size_t>
+auto
+__chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
+                    _Size __requested_chunk_size = __default_chunk_size) -> __chunk_policy
 {
     /*
      * This algorithm improves distribution of elements in chunks by avoiding
@@ -116,12 +121,15 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
      */
 
     const _Size __n = __last - __first;
+    _Size __n_chunks = 0;
+    _Size __chunk_size = 0;
+    _Size __first_chunk_size = 0;
     if (__n < __requested_chunk_size)
     {
         __chunk_size = __n;
         __first_chunk_size = __n;
         __n_chunks = 1;
-        return;
+        return __chunk_policy{__n_chunks, __chunk_size, __first_chunk_size};
     }
 
     __n_chunks = (__n / __requested_chunk_size) + 1;
@@ -132,12 +140,12 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
     if (__n_leftover_items == __chunk_size)
     {
         __n_chunks += 1;
-        return;
+        return __chunk_policy{__n_chunks, __chunk_size, __first_chunk_size};
     }
     else if (__n_leftover_items == 0)
     {
         __first_chunk_size = __chunk_size;
-        return;
+        return __chunk_policy{__n_chunks, __chunk_size, __first_chunk_size};
     }
 
     const _Size __n_extra_items_per_chunk = __n_leftover_items / __n_chunks;
@@ -145,6 +153,21 @@ __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
 
     __chunk_size += __n_extra_items_per_chunk;
     __first_chunk_size = __chunk_size + __n_final_leftover_items;
+
+    return __chunk_policy{__n_chunks, __chunk_size, __first_chunk_size};
+}
+
+template <typename _Iterator, typename _Index, typename _F>
+void
+__process_chunk(const __chunk_policy& __policy, _Iterator __base, _Index __chunk_index, _F __f)
+{
+    auto __this_chunk_size = __chunk_index == 0 ? __policy.__first_chunk_size : __policy.__chunk_size;
+    auto __index = __chunk_index == 0 ? 0
+                                      : (__chunk_index * __policy.__chunk_size) +
+                                            (__policy.__first_chunk_size - __policy.__chunk_size);
+    auto __first = __base + __index;
+    auto __last = __first + __this_chunk_size;
+    __f(__first, __last);
 }
 
 } // namespace __omp_backend

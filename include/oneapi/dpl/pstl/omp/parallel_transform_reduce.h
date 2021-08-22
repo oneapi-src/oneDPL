@@ -21,54 +21,46 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
 {
     using _Size = std::size_t;
     const _Size __num_threads = omp_get_num_threads();
-    const _Size __n = __last - __first;
+    const _Size __size = __last - __first;
 
-    if (__n >= __num_threads)
+    // Initial partition of the iteration space into chunks. If the range is too small,
+    // this will result in a nonsense policy, so we check on the size as well below.
+    auto __policy = __omp_backend::__chunk_partitioner(__first + __num_threads, __last);
+
+    if (__size <= __num_threads || __policy.__n_chunks < 2)
     {
-        // Here, we cannot use OpenMP UDR because we must store the init value in
-        // the combiner and it will be used several times. Although there should be
-        // the only one; we manually generate the identity elements for each thread.
-        ::std::vector<_Value> __accums;
-        __accums.reserve(__num_threads);
-
-        // initialize accumulators for all threads
-        for (_Size __i = 0; __i < __num_threads; ++__i)
-        {
-            __accums.emplace_back(__unary_op(__first + __i));
-        }
-
-        // initial partition of the iteration space into chunks
-        std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
-        __omp_backend::__chunk_partitioner(__first + __num_threads, __last, __n_chunks, __chunk_size,
-                                           __first_chunk_size);
-
-        // main loop
-        _PSTL_PRAGMA(omp taskloop)
-        for (std::size_t __chunk = 0; __chunk < __n_chunks; ++__chunk)
-        {
-            auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
-            auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
-            auto __begin = __first + __index + __num_threads;
-            auto __end = __begin + __this_chunk_size;
-
-            auto __thread_num = omp_get_thread_num();
-            __accums[__thread_num] = __reduction(__begin, __end, __accums[__thread_num]);
-        }
-
-        // combine by accumulators
-        for (_Size __i = 0; __i < __num_threads; ++__i)
-        {
-            __init = __combiner(__init, __accums[__i]);
-        }
+        return __reduction(__first, __last, __init);
     }
-    else
+
+    // Here, we cannot use OpenMP UDR because we must store the init value in
+    // the combiner and it will be used several times. Although there should be
+    // the only one; we manually generate the identity elements for each thread.
+    ::std::vector<_Value> __accums;
+    __accums.reserve(__num_threads);
+
+    // initialize accumulators for all threads
+    for (_Size __i = 0; __i < __num_threads; ++__i)
     {
-        // if the number of elements is less than the number of threads, we
-        // process them sequentially
-        for (_Size __i = 0; __i < __n; ++__i)
-        {
-            __init = __combiner(__init, __unary_op(__first + __i));
-        }
+        __accums.emplace_back(__unary_op(__first + __i));
+    }
+
+    // main loop
+    _PSTL_PRAGMA(omp taskloop shared(__accums))
+    for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
+    {
+        __omp_backend::__process_chunk(__policy, __first + __num_threads, __chunk,
+                                       [&](auto __chunk_first, auto __chunk_last)
+                                       {
+                                           auto __thread_num = omp_get_thread_num();
+                                           __accums[__thread_num] =
+                                               __reduction(__chunk_first, __chunk_last, __accums[__thread_num]);
+                                       });
+    }
+
+    // combine by accumulators
+    for (_Size __i = 0; __i < __num_threads; ++__i)
+    {
+        __init = __combiner(__init, __accums[__i]);
     }
 
     return __init;

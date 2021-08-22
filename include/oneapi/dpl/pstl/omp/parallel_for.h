@@ -9,18 +9,14 @@ template <class _Index, class _Fp>
 void
 __parallel_for_body(_Index __first, _Index __last, _Fp __f)
 {
-    std::size_t __n_chunks{0}, __chunk_size{0}, __first_chunk_size{0};
-    __chunk_partitioner(__first, __last, __n_chunks, __chunk_size, __first_chunk_size);
+    // initial partition of the iteration space into chunks
+    auto __policy = __omp_backend::__chunk_partitioner(__first, __last);
 
     // To avoid over-subscription we use taskloop for the nested parallelism
     _PSTL_PRAGMA(omp taskloop untied mergeable)
-    for (std::size_t __chunk = 0; __chunk < __n_chunks; ++__chunk)
+    for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
-        auto __this_chunk_size = __chunk == 0 ? __first_chunk_size : __chunk_size;
-        auto __index = __chunk == 0 ? 0 : (__chunk * __chunk_size) + (__first_chunk_size - __chunk_size);
-        auto __begin = __first + __index;
-        auto __end = __begin + __this_chunk_size;
-        __f(__begin, __end);
+        __omp_backend::__process_chunk(__policy, __first, __chunk, __f);
     }
 }
 
