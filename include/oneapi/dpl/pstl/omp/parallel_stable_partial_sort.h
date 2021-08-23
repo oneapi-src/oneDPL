@@ -10,7 +10,7 @@ void
 __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp,
                                _LeafSort __leaf_sort, std::size_t __nsort)
 {
-    assert(false || "Parallel partial sort needs to be implmented.");
+    assert(false || "Parallel partial sort needs to be implemented.");
 }
 
 } // namespace __omp_backend
