@@ -1,3 +1,5 @@
+![](https://spec.oneapi.io/oneapi-logo-white-scaled.jpg)
+oneDPL is part of [oneAPI](https://oneapi.io)
 # oneAPI DPC++ Library (oneDPL)
 
 The oneAPI DPC++ Library (oneDPL) aims to work with the oneAPI DPC++ Compiler
