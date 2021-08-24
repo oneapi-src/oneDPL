@@ -366,6 +366,7 @@ int main() {
     err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 2>>(queue, 160, 17);
     err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 1>>(queue, 160, 17);
 #endif // TEST_LONG_RUN
+    EXPECT_TRUE(!err, "Test FAILED");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
