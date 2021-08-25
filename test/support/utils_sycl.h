@@ -38,10 +38,10 @@ namespace TestUtils
 
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
-    inline void
-    print_debug(const char*
+inline void
+print_debug(const char*
 #if _ONEDPL_DEBUG_SYCL
-    message
+                message
 #endif
 )
 {
@@ -58,33 +58,35 @@ check_values(Iterator first, Iterator last, const T& val)
     return ::std::all_of(first, last, [&val](const T& x) { return x == val; });
 }
 
-    template <typename Op, ::std::size_t CallNumber>
-    using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, CallNumber> ;
-    template <typename Policy, int idx>
-    using new_kernel_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<Policy, idx>;
+template <typename Op, ::std::size_t CallNumber>
+using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, CallNumber>;
+template <typename Policy, int idx>
+using new_kernel_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<Policy, idx>;
 
-    auto async_handler = [](sycl::exception_list ex_list) {
-        for (auto& ex : ex_list) {
-            try {
-                ::std::rethrow_exception(ex);
-            }
-            catch (sycl::exception& ex) {
-                ::std::cerr << ex.what() << ::std::endl;
-                ::std::exit(EXIT_FAILURE);
-            }
-        }
-    };
-
-    //function is needed to wrap kernel name into another class
-    template <typename _NewKernelName, typename _Policy,
-              oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
-    auto
-    make_new_policy(_Policy&& __policy)
-        -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
+auto async_handler = [](sycl::exception_list ex_list) {
+    for (auto& ex : ex_list)
     {
-        return oneapi::dpl::execution::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
+        try
+        {
+            ::std::rethrow_exception(ex);
+        }
+        catch (sycl::exception& ex)
+        {
+            ::std::cerr << ex.what() << ::std::endl;
+            ::std::exit(EXIT_FAILURE);
+        }
     }
+};
 
+//function is needed to wrap kernel name into another class
+template <typename _NewKernelName, typename _Policy,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
+auto
+make_new_policy(_Policy&& __policy)
+    -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
+{
+    return oneapi::dpl::execution::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
+}
 
 #if ONEDPL_FPGA_DEVICE
 template <typename _NewKernelName, typename _Policy,
@@ -150,13 +152,6 @@ struct invoke_on_all_hetero_policies
 #endif
     }
 };
-
-// Test buffers
-const int max_n = 100000;
-const int inout1_offset = 3;
-const int inout2_offset = 5;
-const int inout3_offset = 7;
-const int inout4_offset = 9;
 
 template <typename T, typename TestName>
 void
@@ -323,17 +318,17 @@ test4buffers()
     {
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
         {
-        // create buffers
-        sycl::buffer<Key, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<Value, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
-        sycl::buffer<Key, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
-        sycl::buffer<Value, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
+            // create buffers
+            sycl::buffer<Key, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
+            sycl::buffer<Value, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
+            sycl::buffer<Key, 1> inout3{sycl::range<1>(max_n + inout3_offset)};
+            sycl::buffer<Value, 1> inout4{sycl::range<1>(max_n + inout4_offset)};
 
-        // create sycl iterators
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
-        auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
-        auto inout4_offset_first = oneapi::dpl::begin(inout4) + inout4_offset;
+            // create sycl iterators
+            auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
+            auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
+            auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
+            auto inout4_offset_first = oneapi::dpl::begin(inout4) + inout4_offset;
 
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -355,13 +350,15 @@ test4buffers()
             (Key*)sycl::malloc_shared(sizeof(Key) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
             sycl_key_deleter);
         ::std::unique_ptr<Value, decltype(sycl_value_deleter)> inout2_first(
-            (Value*)sycl::malloc_shared(sizeof(Value) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
+            (Value*)sycl::malloc_shared(sizeof(Value) * (max_n + inout2_offset), queue.get_device(),
+                                        queue.get_context()),
             sycl_value_deleter);
         ::std::unique_ptr<Key, decltype(sycl_key_deleter)> inout3_first(
             (Key*)sycl::malloc_shared(sizeof(Key) * (max_n + inout3_offset), queue.get_device(), queue.get_context()),
             sycl_key_deleter);
         ::std::unique_ptr<Value, decltype(sycl_value_deleter)> inout4_first(
-            (Value*)sycl::malloc_shared(sizeof(Value) * (max_n + inout4_offset), queue.get_device(), queue.get_context()),
+            (Value*)sycl::malloc_shared(sizeof(Value) * (max_n + inout4_offset), queue.get_device(),
+                                        queue.get_context()),
             sycl_value_deleter);
 
         Key* inout1_offset_first = inout1_first.get() + inout1_offset;
@@ -382,48 +379,50 @@ test4buffers()
 #endif
 }
 
-    // use the function carefully due to temporary accessor creation.
-    // Race conditiion between host and device may be occurred
-    // if we work with the buffer host memory when kernel is invoked on device
-    template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
-    typename ::std::iterator_traits<Iter>::pointer
-    get_host_pointer(Iter it)
-    {
-        auto temp_idx = it - oneapi::dpl::begin(it.get_buffer());
-        return it.get_buffer().template get_access<mode>().get_pointer() + temp_idx;
-    }
+// use the function carefully due to temporary accessor creation.
+// Race conditiion between host and device may be occurred
+// if we work with the buffer host memory when kernel is invoked on device
+template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
+typename ::std::iterator_traits<Iter>::pointer
+get_host_pointer(Iter it)
+{
+    auto temp_idx = it - oneapi::dpl::begin(it.get_buffer());
+    return it.get_buffer().template get_access<mode>().get_pointer() + temp_idx;
+}
 
+template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
+          sycl::access::placeholder Placeholder>
+T*
+get_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>& acc)
+{
+    return acc.get_pointer();
+}
 
-    template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
-              sycl::access::placeholder Placeholder>
-    T* get_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>& acc)
-    {
-        return acc.get_pointer();
-    }
+// for USM pointers
+template <typename T>
+T*
+get_host_pointer(T* data)
+{
+    return data;
+}
 
-    // for USM pointers
-    template <typename T>
-    T*
-    get_host_pointer(T* data)
-    {
-        return data;
-    }
+template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
+auto
+get_host_access(Iter it)
+    -> decltype(it.get_buffer().template get_access<mode>(__dpl_sycl::__get_buffer_size(it.get_buffer()) -
+                                                              (it - oneapi::dpl::begin(it.get_buffer())),
+                                                          it - oneapi::dpl::begin(it.get_buffer())))
+{
+    auto temp_buf = it.get_buffer();
+    auto temp_idx = it - oneapi::dpl::begin(temp_buf);
+    return temp_buf.template get_access<mode>(__dpl_sycl::__get_buffer_size(temp_buf) - temp_idx, temp_idx);
+}
 
-    template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
-    auto
-    get_host_access(Iter it)
-        -> decltype(it.get_buffer().template get_access<mode>(__dpl_sycl::__get_buffer_size(it.get_buffer()) - (it - oneapi::dpl::begin(it.get_buffer())),
-                                                              it - oneapi::dpl::begin(it.get_buffer())))
-    {
-        auto temp_buf = it.get_buffer();
-        auto temp_idx = it - oneapi::dpl::begin(temp_buf);
-        return temp_buf.template get_access<mode>(__dpl_sycl::__get_buffer_size(temp_buf) - temp_idx, temp_idx);
-    }
-    
-    template<typename T>
-    T* get_host_access(T* data)
-    {
-        return data;
-    }
+template <typename T>
+T*
+get_host_access(T* data)
+{
+    return data;
+}
 } /* namespace TestUtils */
 #endif
