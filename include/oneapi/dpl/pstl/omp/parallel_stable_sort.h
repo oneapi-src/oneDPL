@@ -36,13 +36,11 @@ __parallel_move_range(Iterator1 __first1, Iterator1 __last1, Iterator2 __first2)
     _PSTL_PRAGMA(omp taskloop)
     for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
-        __omp_backend::__process_chunk(__policy, __first1, __chunk,
-                                       [&](auto __chunk_first, auto __chunk_last)
-                                       {
-                                           auto __chunk_offset = ::std::distance(__first1, __chunk_first);
-                                           auto __output = __first2 + __chunk_offset;
-                                           ::std::move(__chunk_first, __chunk_last, __output);
-                                       });
+        __omp_backend::__process_chunk(__policy, __first1, __chunk, [&](auto __chunk_first, auto __chunk_last) {
+            auto __chunk_offset = ::std::distance(__first1, __chunk_first);
+            auto __output = __first2 + __chunk_offset;
+            ::std::move(__chunk_first, __chunk_last, __output);
+        });
     }
 
     return __first2 + __size;
@@ -90,8 +88,9 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
             std::distance(__xs, __mid), std::distance(__mid, __xe), __xs, __mid, __mid, __xe, __output.begin(), __comp,
             [&__merge, &__move_value, &__move_range](_RandomAccessIterator __as, _RandomAccessIterator __ae,
                                                      _RandomAccessIterator __bs, _RandomAccessIterator __be,
-                                                     _OutputIterator __cs, _Compare __comp)
-            { __merge(__as, __ae, __bs, __be, __cs, __comp, __move_value, __move_value, __move_range, __move_range); });
+                                                     _OutputIterator __cs, _Compare __comp) {
+                __merge(__as, __ae, __bs, __be, __cs, __comp, __move_value, __move_value, __move_range, __move_range);
+            });
 
         // Move the values from __output back in the original source range.
         __sort_details::__parallel_move_range(__output.begin(), __output.end(), __xs);
