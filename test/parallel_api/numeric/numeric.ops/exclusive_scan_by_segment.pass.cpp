@@ -173,24 +173,24 @@ struct test_exclusive_scan_by_segment
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         const ValT init = 1;
+        const ValT zero = 1;
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
-        check_values(keys_first, vals_first, n);
+        check_values(keys_first, val_res_first, init, n);
 
         // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res2 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
+        auto res2 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, zero,
                                                            ::std::equal_to<KeyT>());
-        check_values(keys_first, vals_first, n);
+        check_values(keys_first, val_res_first, zero, n);
 
         // call algorithm with addition operator
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res3 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            init, ::std::equal_to<KeyT>(), ::std::plus<ValT>());
-        check_values(keys_first, vals_first, n);
-
+        check_values(keys_first, val_res_first, init, n);
     }
 
     // specialization for non-random_access iterators
@@ -208,5 +208,6 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     test3buffers<uint64_t, test_exclusive_scan_by_segment>();
 #endif
+    test_algo_three_sequences<uint64_t, test_exclusive_scan_by_segment>();
     return TestUtils::done();
 }

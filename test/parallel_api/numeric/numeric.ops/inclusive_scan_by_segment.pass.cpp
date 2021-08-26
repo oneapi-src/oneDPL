@@ -160,19 +160,19 @@ struct test_inclusive_scan_by_segment
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res1 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
-        check_values(keys_first, vals_first, n);
+        check_values(keys_first, val_res_first, n);
 
         // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res2 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            ::std::equal_to<KeyT>());
-        check_values(keys_first, vals_first, n);
+        check_values(keys_first, val_res_first, n);
 
         // call algorithm with addition operator
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            ::std::equal_to<KeyT>(), ::std::plus<ValT>());
-        check_values(keys_first, vals_first, n);
+        check_values(keys_first, val_res_first, n);
 
     }
 
@@ -191,5 +191,6 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     test3buffers<uint64_t, test_inclusive_scan_by_segment>();
 #endif
+    test_algo_three_sequences<uint64_t, test_inclusive_scan_by_segment>();
     return TestUtils::done();
 }
