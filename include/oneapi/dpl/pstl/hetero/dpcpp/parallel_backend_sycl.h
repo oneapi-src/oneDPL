@@ -323,7 +323,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
     sycl::event __reduce_event;
     do
     {
-        __reduce_event = __exec.queue().submit([&](sycl::handler& __cgh) {
+        __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n, __n_items,
+                                                __n_groups](sycl::handler& __cgh) {
             __cgh.depends_on(__reduce_event);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
