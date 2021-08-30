@@ -29,6 +29,8 @@ using namespace TestUtils;
 
 struct test_inclusive_scan_by_segment
 {
+    // TODO: replace data generation with random data and update check to compare result to
+    // the result of a serial implementation of the algorithm
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_val_res, Size n)
@@ -59,7 +61,7 @@ struct test_inclusive_scan_by_segment
         //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
 
         int segment_length = 1;
-        auto expected_segment_sum = segment_length * (segment_length + 1) / 2;
+        auto expected_segment_sum = 1;
         auto current_key = host_keys[0];
         auto current_sum = 0;
         for (int i = 0; i != n; ++i)
@@ -84,8 +86,7 @@ struct test_inclusive_scan_by_segment
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     typename ::std::enable_if<
         oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-            !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
-            !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
@@ -119,7 +120,7 @@ struct test_inclusive_scan_by_segment
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::inclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
-                                                           ::std::equal_to<KeyT>());
+                                                           [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
         {
         auto host_keys = get_host_access(keys_first);
@@ -134,7 +135,8 @@ struct test_inclusive_scan_by_segment
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
-                                                           ::std::equal_to<KeyT>(), ::std::plus<ValT>());
+                                                           [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
         exec.queue().wait_and_throw();
         auto host_keys = get_host_access(keys_first);
         auto host_val_res = get_host_access(val_res_first);
@@ -148,8 +150,7 @@ struct test_inclusive_scan_by_segment
 #if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
 #endif
-            !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
-            !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
@@ -165,21 +166,21 @@ struct test_inclusive_scan_by_segment
         // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res2 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
-                                                           ::std::equal_to<KeyT>());
+                                                           [](KeyT first, KeyT second) { return first == second; });
         check_values(keys_first, val_res_first, n);
 
         // call algorithm with addition operator
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
-                                                           ::std::equal_to<KeyT>(), ::std::plus<ValT>());
+                                                           [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
         check_values(keys_first, val_res_first, n);
 
     }
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    typename ::std::enable_if<is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value ||
-                                  is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+    typename ::std::enable_if<!is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
                               void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)

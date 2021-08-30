@@ -30,7 +30,8 @@ using namespace TestUtils;
 
 struct test_reduce_by_segment
 {
-
+    // TODO: replace data generation with random data and update check to compare result to
+    // the result of a serial implementation of the algorithm
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename Size>
     void
     initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_key_res, Iterator4 host_val_res, Size n)
@@ -74,7 +75,7 @@ struct test_reduce_by_segment
             else if (i % 2 == 0)
             {
                 EXPECT_TRUE(key_res[i] == 1, "wrong effect from reduce_by_segment");
-                EXPECT_TRUE(val_res[i] == 2 || val_res[i] == 1, "wrong effect from reduce_by_segment");
+                EXPECT_TRUE(val_res[i] == 2 || (val_res[i] == 1 && i == n - 2), "wrong effect from reduce_by_segment");
             }
             else
             {
@@ -90,8 +91,7 @@ struct test_reduce_by_segment
               typename Size>
     typename ::std::enable_if<
         oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-            !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
-            !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
@@ -133,7 +133,7 @@ struct test_reduce_by_segment
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, ::std::equal_to<KeyT>());
+                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; });
         new_policy2.queue().wait_and_throw();
         result_size = std::distance(key_res_first, res2.first);
 
@@ -155,7 +155,8 @@ struct test_reduce_by_segment
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, ::std::equal_to<KeyT>(), ::std::plus<ValT>());
+                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; },
+                                                   [](ValT first, ValT second) { return first + second; });
         new_policy3.queue().wait_and_throw();
         result_size = std::distance(key_res_first, res3.first);
 
@@ -174,8 +175,7 @@ struct test_reduce_by_segment
 #if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
 #endif
-            !is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value &&
-            !is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
@@ -193,14 +193,15 @@ struct test_reduce_by_segment
         // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
         auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, ::std::equal_to<KeyT>());
+                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; });
         result_size = std::distance(key_res_first, res2.first);
         check_values(key_res_first, val_res_first, result_size);
 
         // call algorithm with addition operator
         initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
         auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, ::std::equal_to<KeyT>(), ::std::plus<ValT>());
+                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; },
+                                                   [](ValT first, ValT second) { return first + second; });
         result_size = std::distance(key_res_first, res3.first);
         check_values(key_res_first, val_res_first, result_size);
     }
@@ -208,8 +209,7 @@ struct test_reduce_by_segment
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
-    typename ::std::enable_if<is_same_iterator_category<Iterator3, ::std::bidirectional_iterator_tag>::value ||
-                                  is_same_iterator_category<Iterator3, ::std::forward_iterator_tag>::value,
+    typename ::std::enable_if<!is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
                               void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
