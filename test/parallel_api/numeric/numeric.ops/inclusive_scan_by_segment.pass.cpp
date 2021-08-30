@@ -96,11 +96,11 @@ struct test_inclusive_scan_by_segment
 
         // call algorithm with no optional arguments
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_vals = get_host_access(vals_first);
-        auto host_val_res = get_host_access(val_res_first);
+            auto host_keys = get_host_access(keys_first);
+            auto host_vals = get_host_access(vals_first);
+            auto host_val_res = get_host_access(val_res_first);
 
-        initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_val_res, n);
         }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
@@ -108,14 +108,14 @@ struct test_inclusive_scan_by_segment
         exec.queue().wait_and_throw();
 
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, n);
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, n);
 
-        // call algorithm with equality comparator
-        auto host_vals = get_host_access(vals_first);
+            // call algorithm with equality comparator
+            auto host_vals = get_host_access(vals_first);
 
-        initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_val_res, n);
         }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
@@ -123,14 +123,14 @@ struct test_inclusive_scan_by_segment
                                                            [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, n);
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, n);
 
-        // call algorithm with addition operator
-        auto host_vals = get_host_access(vals_first);
+            // call algorithm with addition operator
+            auto host_vals = get_host_access(vals_first);
 
-        initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_val_res, n);
         }
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);

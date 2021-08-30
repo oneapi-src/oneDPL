@@ -42,14 +42,14 @@ struct test_exclusive_scan_by_segment
         int i = 0;
         while (i != n)
         {
-          for (int j = 0; j != 4*segment_length && i != n; ++j)
-          {
-              host_keys[i] = j/segment_length + 1;
-              host_vals[i] = 1;
-              host_val_res[i] = 0;
-              ++i;
-          }
-          ++segment_length;
+            for (int j = 0; j != 4*segment_length && i != n; ++j)
+            {
+                host_keys[i] = j/segment_length + 1;
+                host_vals[i] = 1;
+                host_val_res[i] = 0;
+                ++i;
+            }
+            ++segment_length;
         }
     }
 
@@ -69,7 +69,7 @@ struct test_exclusive_scan_by_segment
         {
             if (current_key == host_keys[i])
             {
-              current_sum += val_res[i];
+                current_sum += val_res[i];
             } else {
                 EXPECT_TRUE(current_sum == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
                 current_sum = val_res[i];
@@ -99,25 +99,25 @@ struct test_exclusive_scan_by_segment
 
         // call algorithm with no optional arguments
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_vals = get_host_access(vals_first);
-        auto host_val_res = get_host_access(val_res_first);
+            auto host_keys = get_host_access(keys_first);
+            auto host_vals = get_host_access(vals_first);
+            auto host_val_res = get_host_access(val_res_first);
 
-        initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_val_res, n);
         }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, init, n);
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, init, n);
 
-        // call algorithm with equality comparator
-        auto host_vals = get_host_access(vals_first);
+            // call algorithm with equality comparator
+            auto host_vals = get_host_access(vals_first);
 
-        initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_val_res, n);
         }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
@@ -125,14 +125,14 @@ struct test_exclusive_scan_by_segment
                                                            init, [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, init, n);
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, init, n);
 
-        // call algorithm with addition operator
-        auto host_vals = get_host_access(vals_first);
+            // call algorithm with addition operator
+            auto host_vals = get_host_access(vals_first);
 
-        initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys, host_vals, host_val_res, n);
         }
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
@@ -141,18 +141,18 @@ struct test_exclusive_scan_by_segment
                                                            [](ValT first, ValT second) { return first + second; });
         exec.queue().wait_and_throw();
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, init, n);
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, init, n);
         }
 
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
         auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
         {
-        auto host_keys = get_host_access(keys_first);
-        auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_val_res, 0, n);
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, 0, n);
         }
     }
 #endif
