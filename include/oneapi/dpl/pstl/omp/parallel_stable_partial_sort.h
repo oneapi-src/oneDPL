@@ -11,7 +11,7 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
                                _LeafSort __leaf_sort, std::size_t __nsort)
 {
     //TODO: "Parallel partial sort needs to be implemented.");
-     __leaf_sort(__first, __last, __comp);
+    __leaf_sort(__xs, __xe, __comp);
 }
 
 } // namespace __omp_backend
