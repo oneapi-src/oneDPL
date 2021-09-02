@@ -8,6 +8,35 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2021.5
+=============
+
+New Features
+------------
+- Added new random number distributions: ``exponential_distribution``, ``bernoulli_distribution``,
+  ``geometric_distribution``, ``lognormal_distribution``, ``weibull_distribution``, ``cachy_distribution``, ``extreme_value_distribution``.
+- Improved performance of ``search`` and ``find_end`` algorithms on GPU devices.
+
+Fixed Issues
+------------
+- Fixed SYCL* 2020 features deprecation warnings.
+- Fixed some corner cases of ``normal_distribution`` functionality.
+- Fixed a floating point exception occurring on CPU devices when a program uses a lot of oneDPL algorithms and DPC++ kernels.
+- Fixed hanging of reduction-based algorithms (``count``, ``count_if``, ``is_partitioned``, ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``,    ``reduce``, ``transform_reduce``) used with DPC++ policies. The hanging occured when the algorithms handled elements with a large size (e.g. 64 bytes and more) and a program used a lot of oneDPL algorithms and DPC++ kernels.
+- Fixed a possible data race for the following algorithms with DPC++ policies: ``count``, ``count_if``, ``is_partitioned``,
+  ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``transform_reduce``. 
+
+Known Issues and Limitations
+----------------------------
+
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- ``ranlux_24_48_test`` test may hang on Ubuntu* OS.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+- 
+
 New in 2021.4
 =============
 
