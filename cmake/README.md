@@ -43,7 +43,22 @@ The following targets are available for build system after configuration:
 Sudirectories are added as labels for each test and can be used with `ctest -L <label>`.
 For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` labels.
 
-## How to use oneDPL package from CMake
+## How to use oneDPL from CMake
+### Using oneDPL source files
+
+This way allow to integrate oneDPL source code into user project using the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_dir> <output_dir>)`, where `<oneDPL_dir>` is a relative or absolute path to oneDPL root dir and `<output_dir>` is a relative or absolute path to directory for holding output files of oneDPL, adds oneDPL to user project build.
+
+For example:
+
+```cmake
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Add oneDPL to the build, where oneDPL is clonned in user project root directory.
+add_subdirectory(oneDPL build_oneDPL)
+```
+
+### Using oneDPL package
 
 oneDPLConfig.cmake and oneDPLConfigVersion.cmake are included into oneDPL distribution.
 
@@ -61,8 +76,9 @@ find_package(oneDPL REQUIRED)
 # Connect oneDPL to foo
 target_link_libraries(foo oneDPL)
 ```
+### Macro
 
-Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)`:
+Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)` or `add_subdirectory(<oneDPL_dir> <output_dir>)`:
 
 - macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if oneTBB is not available;
 - macro `ONEDPL_USE_DPCPP_BACKEND` is set to `0` if DPC++ is not available.
@@ -71,6 +87,19 @@ Detailed description of these and other macros is available in the [documentatio
 
 For example:
 
+#### Using oneDPL source files
+```cmake
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Add oneDPL to the build, where oneDPL is clonned in user project root directory.
+add_subdirectory(oneDPL build_oneDPL)
+
+# Disable TBB backend in oneDPL
+target_compile_definitions(foo PRIVATE ONEDPL_USE_TBB_BACKEND=0)
+```
+
+#### Using oneDPL package
 ```cmake
 project(Foo)
 add_executable(foo foo.cpp)
