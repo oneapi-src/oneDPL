@@ -46,7 +46,7 @@ For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` label
 ## How to use oneDPL from CMake
 ### Using oneDPL source files
 
-This way allow to integrate oneDPL source code into user project using the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_dir> <output_dir>)`, where `<oneDPL_dir>` is a relative or absolute path to oneDPL root dir and `<output_dir>` is a relative or absolute path to directory for holding output files of oneDPL, adds oneDPL to user project build.
+This way allow to integrate oneDPL source code into user project using the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_root_dir> <oneDPL_output_dir>)`, where `<oneDPL_root_dir>` is a relative or absolute path to oneDPL root dir and `<oneDPL_output_dir>` is a relative or absolute path to directory for holding output files of oneDPL, adds oneDPL to user project build. If `<oneDPL_root_dir>` is the relative path, then `<oneDPL_output_dir>` is the optional variable.
 
 For example:
 
@@ -54,9 +54,22 @@ For example:
 project(Foo)
 add_executable(foo foo.cpp)
 
-# Add oneDPL to the build, where oneDPL is clonned in user project root directory.
-add_subdirectory(oneDPL build_oneDPL)
+# Add oneDPL to the build.
+add_subdirectory(/path/to/oneDPL /path/to/build_oneDPL)
 ```
+When using this way oneDPL is builded with the user project simultaneously, so variables affecting oneDPL build can be specified in the user project's CMakeLists.txt file:
+
+```cmake
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Add oneDPL to the build.
+add_subdirectory(/path/to/oneDPL /path/to/build_oneDPL)
+
+# Specify oneDPL backend
+target_compile_definitions(foo PRIVATE ONEDPL_BACKEND=tbb)
+```
+Or passed to cmake call as when building oneDPL separately.
 
 ### Using oneDPL package
 
@@ -76,7 +89,6 @@ find_package(oneDPL REQUIRED)
 # Connect oneDPL to foo
 target_link_libraries(foo oneDPL)
 ```
-### Macro
 
 Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)` or `add_subdirectory(<oneDPL_dir> <output_dir>)`:
 
@@ -87,19 +99,6 @@ Detailed description of these and other macros is available in the [documentatio
 
 For example:
 
-#### Using oneDPL source files
-```cmake
-project(Foo)
-add_executable(foo foo.cpp)
-
-# Add oneDPL to the build, where oneDPL is clonned in user project root directory.
-add_subdirectory(oneDPL build_oneDPL)
-
-# Disable TBB backend in oneDPL
-target_compile_definitions(foo PRIVATE ONEDPL_USE_TBB_BACKEND=0)
-```
-
-#### Using oneDPL package
 ```cmake
 project(Foo)
 add_executable(foo foo.cpp)
