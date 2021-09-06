@@ -57,7 +57,7 @@ add_executable(foo foo.cpp)
 # Add oneDPL to the build.
 add_subdirectory(/path/to/oneDPL /path/to/build_oneDPL)
 ```
-When using this way oneDPL is builded with the user project simultaneously, so variables affecting oneDPL build can be specified in the user project's CMakeLists.txt file:
+When using this way oneDPL is built with the user project simultaneously, so variables affecting oneDPL build can be specified in the user project's CMakeLists.txt file:
 
 ```cmake
 project(Foo)
