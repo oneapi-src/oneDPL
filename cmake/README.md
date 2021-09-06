@@ -90,7 +90,7 @@ find_package(oneDPL REQUIRED)
 target_link_libraries(foo oneDPL)
 ```
 
-Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)` or `add_subdirectory(<oneDPL_dir> <output_dir>)`:
+Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)`:
 
 - macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if oneTBB is not available;
 - macro `ONEDPL_USE_DPCPP_BACKEND` is set to `0` if DPC++ is not available.
