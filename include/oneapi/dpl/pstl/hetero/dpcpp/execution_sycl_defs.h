@@ -358,15 +358,11 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __max_sub_group_size(_ExecutionPolicy&& __policy)
 {
-    // TODO: can get_info<sycl::info::device::sub_group_sizes>() return zero-size vector?
-    //       Spec does not say anything about that.
-    sycl::vector_class<::std::size_t> __supported_sg_sizes =
+    auto __supported_sg_sizes = 
         __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-
-    // TODO: Since it is unknown if sycl::vector_class returned
-    //       by get_info<sycl::info::device::sub_group_sizes>() can be empty,
-    //       at() is used instead of operator[] for out of bound check
-    return __supported_sg_sizes.at(__supported_sg_sizes.size() - 1);
+  
+    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty.
+    return __supported_sg_sizes.empty() ? 0 : __supported_sg_sizes.back();
 }
 #endif
 
