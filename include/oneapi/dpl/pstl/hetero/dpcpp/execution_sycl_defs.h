@@ -358,10 +358,9 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __max_sub_group_size(_ExecutionPolicy&& __policy)
 {
-    auto __supported_sg_sizes = 
-        __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-  
-    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty.
+    auto __supported_sg_sizes = __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
+
+    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty - the function returns 0;
     return __supported_sg_sizes.empty() ? 0 : __supported_sg_sizes.back();
 }
 #endif
