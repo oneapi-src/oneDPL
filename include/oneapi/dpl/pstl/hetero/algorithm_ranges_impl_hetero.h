@@ -656,8 +656,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     // element is copied if it is the last element (end of final segment), or has a key not equal to
     // the adjacenent element (end of a segment). Artificial segments based on wg size are not created.
     using __new_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<_ExecutionPolicy, 1>;
-    auto __new_exec =
-        oneapi::dpl::execution::make_hetero_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
+    auto __new_exec = oneapi::dpl::execution::make_hetero_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
     __res = __pattern_copy_if(__new_exec, __view3, __view4,
                               [__res, __binary_pred](const auto& __a) {
                                   return ::std::get<0>(__a) == __res ||
@@ -667,8 +666,8 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        __new_exec, unseq_backend::__brick_reduce_idx<_BinaryOperator>{__binary_op},
-        __res, experimental::ranges::views::all_read(__idx), experimental::ranges::views::all_read(__tmp_out_values),
+        __new_exec, unseq_backend::__brick_reduce_idx<_BinaryOperator>{__binary_op}, __res,
+        experimental::ranges::views::all_read(__idx), experimental::ranges::views::all_read(__tmp_out_values),
         ::std::forward<_Range4>(__out_values))
         .wait();
 
