@@ -79,7 +79,7 @@ void test_with_buffers()
     auto val_res_beg = oneapi::dpl::begin(val_res_buf);
 
     // create named policy from existing one
-    auto new_policy = oneapi::dpl::execution::make_device_policy(
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class TestBuffers>(
         oneapi::dpl::execution::dpcpp_default);
 
     // call algorithm
