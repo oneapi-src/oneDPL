@@ -14,6 +14,7 @@ efforts across devices for high performance parallel applications.
    :titlesonly:
    :glob:
 
+   onedpl_gsg
    before_you_begin
    pstl_main
    extension_api
