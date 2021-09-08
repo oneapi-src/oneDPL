@@ -34,7 +34,7 @@ Known Issues and Limitations
 
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- ``ranlux_24_48_test`` test may hang on Ubuntu* OS.
+- No new issues in this release.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
