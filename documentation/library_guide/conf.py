@@ -105,6 +105,7 @@ html_theme = 'sphinx_book_theme'
 
 # Theme options
 html_theme_options = {
+    'extra_footer': '<p align="right"><a href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>'
     # 'typekit_id': 'hiw1hhg',
     # 'analytics_id': '',
     # 'sticky_navigation': True,  # Set to False to disable the sticky nav while scrolling.
