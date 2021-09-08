@@ -274,4 +274,4 @@ Known Issues and Limitations
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`the oneDPL User Guide`: https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
-.. _`Tested Standard C++ API Reference`: https://github.com/oneapi-src/oneDPL/blob/release/2021.5/documentation/library_guide/tested_standard_cpp_api.rst#tested-standard-c-api-reference`_.
+.. _`Tested Standard C++ API Reference`: https://github.com/oneapi-src/oneDPL/blob/release/2021.5/documentation/library_guide/tested_standard_cpp_api.rst#tested-standard-c-api-reference
