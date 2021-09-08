@@ -46,7 +46,9 @@ For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` label
 ## How to use oneDPL from CMake
 ### Using oneDPL source files
 
-This way allow to integrate oneDPL source code into user project using the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_root_dir> <oneDPL_output_dir>)`, where `<oneDPL_root_dir>` is a relative or absolute path to oneDPL root dir and `<oneDPL_output_dir>` is a relative or absolute path to directory for holding output files of oneDPL, adds oneDPL to user project build. If `<oneDPL_root_dir>` is the relative path, then `<oneDPL_output_dir>` is the optional variable.
+This way allows to integrate oneDPL source code into user project with the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_root_dir> [<oneDPL_output_dir>])`, where `<oneDPL_root_dir>` is a relative or absolute path to oneDPL root directory and `<oneDPL_output_dir>` is a relative or absolute path to directory for holding output files for oneDPL, adds oneDPL to the user project build. If `<oneDPL_root_dir>` is the relative path, then `<oneDPL_output_dir>` is optional.
+
+Variables for oneDPL configuration from the table above can be specified before `add_subdirectory` call to customize oneDPL configuration and build.
 
 For example:
 
@@ -54,22 +56,12 @@ For example:
 project(Foo)
 add_executable(foo foo.cpp)
 
-# Add oneDPL to the build.
-add_subdirectory(/path/to/oneDPL /path/to/build_oneDPL)
-```
-When using this way oneDPL is built with the user project simultaneously, so variables affecting oneDPL build can be specified in the user project's CMakeLists.txt file:
-
-```cmake
-project(Foo)
-add_executable(foo foo.cpp)
-
-# Add oneDPL to the build.
-add_subdirectory(/path/to/oneDPL /path/to/build_oneDPL)
-
 # Specify oneDPL backend
-target_compile_definitions(foo PRIVATE ONEDPL_BACKEND=tbb)
+set(ONEDPL_BACKEND tbb)
+
+# Add oneDPL to the build.
+add_subdirectory(/path/to/oneDPL build_oneDPL)
 ```
-Or passed to cmake call as when building oneDPL separately.
 
 ### Using oneDPL package
 
