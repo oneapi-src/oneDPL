@@ -25,9 +25,7 @@ Fixed Issues
 - Fixed SYCL* 2020 features deprecation warnings.
 - Fixed some corner cases of ``normal_distribution`` functionality.
 - Fixed a floating point exception occurring on CPU devices when a program uses a lot of oneDPL algorithms and DPC++ kernels.
-- Fixed hanging of reduction-based algorithms (``count``, ``count_if``, ``is_partitioned``, ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``,    ``reduce``, ``transform_reduce``) used with DPC++ policies. The hanging occurred when the algorithms handled elements with a large size (e.g. 64 bytes and more) and a program used a lot of oneDPL algorithms and DPC++ kernels.
-- Fixed a possible data race for the following algorithms with DPC++ policies: ``count``, ``count_if``, ``is_partitioned``,
-  ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``, ``transform_reduce``. 
+- Fixed possible hanging and data races of the following algorithms used with DPC++ execution policies: ``count``, ``count_if``, ``is_partitioned``, ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``,    ``reduce``, ``transform_reduce``.
 
 Known Issues and Limitations
 ----------------------------
