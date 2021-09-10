@@ -22,9 +22,6 @@
 #define _ONEDPL_sycl_defs_H
 
 #include <CL/sycl.hpp>
-#if _ONEDPL_FPGA_DEVICE
-#    include <CL/sycl/INTEL/fpga_extensions.hpp>
-#endif
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
@@ -32,6 +29,14 @@
         (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
 #else
 #    define __LIBSYCL_VERSION 0
+#endif
+
+#if _ONEDPL_FPGA_DEVICE
+#    if __LIBSYCL_VERSION >= 50400
+#        include <sycl/ext/intel/fpga_extensions.hpp>
+#    else
+#        include <CL/sycl/INTEL/fpga_extensions.hpp>
+#    endif
 #endif
 
 // Macros to check the new SYCL features
@@ -55,7 +60,11 @@ using __plus =
 #if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
     sycl::plus<_T>;
 #else
+#    if __LIBSYCL_VERSION >= 50400
+    sycl::ext::onepi::plus<_T>;
+#    else
     sycl::ONEAPI::plus<_T>;
+#    endif
 #endif
 
 template <typename _Buffer>
@@ -101,7 +110,11 @@ __group_broadcast(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::group_broadcast(__args...);
 #else
+#    if __LIBSYCL_VERSION >= 50400
+    return sycl::ext::onepi::broadcast(__args...);
+#    else
     return sycl::ONEAPI::broadcast(__args...);
+#    endif
 #endif
 }
 
@@ -112,7 +125,11 @@ __exclusive_scan_over_group(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::exclusive_scan_over_group(__args...);
 #else
+#    if __LIBSYCL_VERSION >= 50400
+    return sycl::ext::onepi::exclusive_scan(__args...);
+#    else
     return sycl::ONEAPI::exclusive_scan(__args...);
+#    endif
 #endif
 }
 
@@ -123,7 +140,11 @@ __inclusive_scan_over_group(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::inclusive_scan_over_group(__args...);
 #else
+#    if __LIBSYCL_VERSION >= 50400
+    return sycl::ext::onepi::inclusive_scan(__args...);
+#    else
     return sycl::ONEAPI::inclusive_scan(__args...);
+#    endif
 #endif
 }
 
@@ -134,7 +155,11 @@ __reduce_over_group(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::reduce_over_group(__args...);
 #else
+#    if __LIBSYCL_VERSION >= 50400
+    return sycl::ext::onepi::reduce(__args...);
+#    else
     return sycl::ONEAPI::reduce(__args...);
+#    endif
 #endif
 }
 
@@ -145,7 +170,11 @@ __joint_exclusive_scan(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_exclusive_scan(__args...);
 #else
+#    if __LIBSYCL_VERSION >= 50400
+    return sycl::ext::onepi::exclusive_scan(__args...);
+#    else
     return sycl::ONEAPI::exclusive_scan(__args...);
+#    endif
 #endif
 }
 
