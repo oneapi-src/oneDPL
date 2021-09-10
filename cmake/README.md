@@ -46,9 +46,12 @@ For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` label
 ## How to use oneDPL from CMake
 ### Using oneDPL source files
 
-This way allows to integrate oneDPL source code into user project with the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_root_dir> [<oneDPL_output_dir>])`, where `<oneDPL_root_dir>` is a relative or absolute path to oneDPL root directory and `<oneDPL_output_dir>` is a relative or absolute path to directory for holding output files for oneDPL, adds oneDPL to the user project build. If `<oneDPL_root_dir>` is the relative path, then `<oneDPL_output_dir>` is optional.
+Using oneDPL source files allows you to integrate oneDPL source code into your project with the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_root_dir> [<oneDPL_output_dir>])` adds oneDPL to the user project build.
+* `<oneDPL_root_dir>` is a relative or absolute path to oneDPL root directory
+* `<oneDPL_output_dir>` is a relative or absolute path to directory for holding output files for oneDPL
+* If `<oneDPL_root_dir>` is the relative path, then `<oneDPL_output_dir>` is optional.
 
-Variables for oneDPL configuration from the table above can be specified before `add_subdirectory` call to customize oneDPL configuration and build.
+The variables from the table above can be specified before the `add_subdirectory` call to customize your oneDPL configuration and build.
 
 For example:
 
