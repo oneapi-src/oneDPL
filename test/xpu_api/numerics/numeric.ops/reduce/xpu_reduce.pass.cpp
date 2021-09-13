@@ -37,7 +37,7 @@ test(sycl::queue& deviceQueue)
 {
     using VT = typename std::iterator_traits<Iter>::value_type;
     int input[] = {1, 2, 3, 4, 5, 6};
-    int output[21];
+    int output[20];
     int ref[21] = {0, 1, 3, 21, 0, 1, 1, 3, 3, 6, 21, 25, 0, 1, 1, 2, 3, 6, 21, 2880, 27};
     sycl::range<1> numOfItems{6};
     {
