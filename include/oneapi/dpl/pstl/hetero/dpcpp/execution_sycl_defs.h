@@ -20,9 +20,6 @@
 #include "../../execution_defs.h"
 
 #include "sycl_defs.h"
-#if _ONEDPL_FPGA_DEVICE
-#    include <CL/sycl/INTEL/fpga_extensions.hpp>
-#endif
 
 namespace oneapi
 {
@@ -95,9 +92,9 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy()
         : base(sycl::queue(
 #    if _ONEDPL_FPGA_EMU
-              sycl::INTEL::fpga_emulator_selector {}
+              __dpl_sycl::__fpga_emulator_selector {}
 #    else
-              sycl::INTEL::fpga_selector {}
+              __dpl_sycl::__fpga_selector {}
 #    endif // _ONEDPL_FPGA_EMU
               ))
     {
@@ -361,15 +358,10 @@ template <typename _ExecutionPolicy>
 ::std::size_t
 __max_sub_group_size(_ExecutionPolicy&& __policy)
 {
-    // TODO: can get_info<sycl::info::device::sub_group_sizes>() return zero-size vector?
-    //       Spec does not say anything about that.
-    sycl::vector_class<::std::size_t> __supported_sg_sizes =
-        __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
+    auto __supported_sg_sizes = __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
 
-    // TODO: Since it is unknown if sycl::vector_class returned
-    //       by get_info<sycl::info::device::sub_group_sizes>() can be empty,
-    //       at() is used instead of operator[] for out of bound check
-    return __supported_sg_sizes.at(__supported_sg_sizes.size() - 1);
+    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty - the function returns 0;
+    return __supported_sg_sizes.empty() ? 0 : __supported_sg_sizes.back();
 }
 #endif
 
@@ -402,7 +394,9 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
-    const ::std::size_t __cpu_divisor = __device.is_cpu() ? 4 : 1;
+    ::std::size_t __cpu_divisor = 1;
+    if (__device.is_cpu() && __max_wg_size >= 4)
+        __cpu_divisor = 4;
 
     return __max_wg_size / __cpu_divisor;
 }

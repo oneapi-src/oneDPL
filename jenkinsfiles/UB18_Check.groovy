@@ -79,6 +79,7 @@ def runExample(String test_name, String cmake_flags = "") {
     }
 }
 
+String pipeline_name = "Jenkins/UB1804_Check (icpx_tbb_cxx_17)"
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
@@ -156,7 +157,7 @@ pipeline {
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
-                                githubStatus.setPending(this, "Jenkins/UB1804_Check")
+                                githubStatus.setPending(this, pipeline_name)
                             }
                             else {
                                 user_in_github_group = false
@@ -226,12 +227,12 @@ pipeline {
                                 try {
                                     retry(2) {
                                         sh script: """
-                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}                                         
+                                            bash /export/users/oneDPL_CI/generate_env_file.sh ${env.OneAPI_Package_Date}
                                             if [ ! -f ./envs_tobe_loaded.txt ]; then
                                                 echo "Environment file not generated."
                                                 exit -1
                                             fi
-                                            cd ${env.OneAPI_Package_Date} 
+                                            cd ${env.OneAPI_Package_Date}
                                             mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
                                             cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
                                         """, label: "Generate environment vars"
@@ -331,10 +332,10 @@ pipeline {
                 if (user_in_github_group) {
                     if (build_ok) {
                         currentBuild.result = "SUCCESS"
-                        githubStatus.setSuccess(this, "Jenkins/UB1804_Check")
+                        githubStatus.setSuccess(this, pipeline_name)
                     } else {
                         currentBuild.result = "FAILURE"
-                        githubStatus.setFailed(this, "Jenkins/UB1804_Check")
+                        githubStatus.setFailed(this, pipeline_name)
                     }
                 }
             }

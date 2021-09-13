@@ -48,9 +48,7 @@ std::int32_t statistics_check(int nsamples, IntType left, IntType right,
 }
 
 template<class IntType, class UIntType>
-int test(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dpl::internal::element_type_t<IntType> right, int nsamples) {
-
-    sycl::queue queue;
+int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dpl::internal::element_type_t<IntType> right, int nsamples) {
 
     // memory allocation
     std::vector<oneapi::dpl::internal::element_type_t<IntType>> samples(nsamples);
@@ -93,10 +91,8 @@ int test(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dpl::inter
 }
 
 template<class IntType, class UIntType>
-int test_portion(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dpl::internal::element_type_t<IntType> right,
+int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dpl::internal::element_type_t<IntType> right,
     int nsamples, unsigned int part) {
-
-    sycl::queue queue;
 
     // memory allocation
     std::vector<oneapi::dpl::internal::element_type_t<IntType>> samples(nsamples);
@@ -139,36 +135,37 @@ int test_portion(oneapi::dpl::internal::element_type_t<IntType> left, oneapi::dp
 }
 
 template<class IntType, class UIntType>
-int tests_set(int nsamples) {
+int tests_set(sycl::queue& queue, int nsamples) {
+
     constexpr int nparams = 2;
 
-    int left_array [nparams] = {0, -10};
-    int right_array [nparams] = {1000, 10};
+    oneapi::dpl::internal::element_type_t<IntType> left_array [nparams] = {0, -10};
+    oneapi::dpl::internal::element_type_t<IntType> right_array [nparams] = {1000, 10};
 
     // Test for all non-zero parameters
     for(int i = 0; i < nparams; ++i) {
         std::cout << "uniform_int_distribution test<type>, left = " << left_array[i] << ", right = " << right_array[i] <<
         ", nsamples = " << nsamples;
-        if(test<IntType, UIntType>(left_array[i], right_array[i], nsamples)) {
+        if(test<IntType, UIntType>(queue, left_array[i], right_array[i], nsamples)) {
             return 1;
         }
     }
-
     return 0;
 }
 
 template<class IntType, class UIntType>
-int tests_set_portion(int nsamples, unsigned int part) {
+int tests_set_portion(sycl::queue& queue, int nsamples, unsigned int part) {
+
     constexpr int nparams = 2;
 
-    int left_array [nparams] = {0, -10};
-    int right_array [nparams] = {1000, 10};
+    oneapi::dpl::internal::element_type_t<IntType> left_array [nparams] = {0, -10};
+    oneapi::dpl::internal::element_type_t<IntType> right_array [nparams] = {1000, 10};
 
     // Test for all non-zero parameters
     for(int i = 0; i < nparams; ++i) {
         std::cout << "uniform_int_distribution test<type>, left = " << left_array[i] << ", right = " << right_array[i] <<
         ", nsamples = " << nsamples <<  ", part = " << part;
-        if(test_portion<IntType, UIntType>(left_array[i], right_array[i], nsamples, part)) {
+        if(test_portion<IntType, UIntType>(queue, left_array[i], right_array[i], nsamples, part)) {
             return 1;
         }
     }
@@ -181,209 +178,193 @@ int main() {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
+    sycl::queue queue;
+
     constexpr int nsamples = 100;
     int err = 0;
 
-    // testing std::int32_t and std::uint32_t ... sycl::vec<std::uint32_t, 16>
-    std::cout << "--------------------------------------------------------" << std::endl;
-    std::cout << "std::int32_t, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
-    std::cout << "--------------------------------------------------------" << std::endl;
-    err += tests_set<std::int32_t, std::uint32_t>(nsamples);
+    // testing sycl::vec<int32_t, 1> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+    std::cout << "---------------------------------------------------------------------" << std::endl;
+    std::cout << "sycl::vec<int32_t,1>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
+    std::cout << "---------------------------------------------------------------------" << std::endl;
+    err = tests_set<sycl::vec<int32_t, 1>, std::uint32_t>(queue, nsamples);
 #if TEST_LONG_RUN
-    err += tests_set<std::int32_t, sycl::vec<std::uint32_t, 16>>(nsamples);
-    err += tests_set<std::int32_t, sycl::vec<std::uint32_t, 8>>(nsamples);
-    err += tests_set<std::int32_t, sycl::vec<std::uint32_t, 4>>(nsamples);
-    err += tests_set<std::int32_t, sycl::vec<std::uint32_t, 3>>(nsamples);
-    err += tests_set<std::int32_t, sycl::vec<std::uint32_t, 2>>(nsamples);
-    err += tests_set<std::int32_t, sycl::vec<std::uint32_t, 1>>(nsamples);
+    err += tests_set<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 16>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 8>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 4>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 3>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 2>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 1>>(queue, nsamples);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, std::uint32_t>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, std::uint32_t>(queue, 100, 2);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 3>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 2>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 1>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 16>>(queue, 100, 2);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 8>>(queue, 100, 2);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 4>>(queue, 100, 2);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 3>>(queue, 100, 2);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 2>>(queue, 100, 2);
+    err += tests_set_portion<sycl::vec<int32_t, 1>, sycl::vec<std::uint32_t, 1>>(queue, 100, 2);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing sycl::vec<std::int32_t, 1> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+    // testing sycl::vec<int32_t, 2> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "sycl::vec<std::int32_t,1>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
+    std::cout << "sycl::vec<int32_t,2>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = tests_set<sycl::vec<std::int32_t, 1>, std::uint32_t>(nsamples);
+    err = tests_set<sycl::vec<int32_t, 2>, std::uint32_t>(queue, nsamples);
 #if TEST_LONG_RUN
-    err += tests_set<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 16>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 8>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 4>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 3>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 2>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 1>>(nsamples);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, std::uint32_t>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, std::uint32_t>(100, 2);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 16>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 8>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 4>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 3>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 2>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 1>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 16>>(100, 2);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 8>>(100, 2);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 4>>(100, 2);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 3>>(100, 2);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 2>>(100, 2);
-    err += tests_set_portion<sycl::vec<std::int32_t, 1>, sycl::vec<std::uint32_t, 1>>(100, 2);
+    err += tests_set<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 16>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 8>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 4>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 3>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 2>>(queue, nsamples);
+    err += tests_set<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 1>>(queue, nsamples);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, std::uint32_t>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, std::uint32_t>(queue, 100, 3);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 16>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 8>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 4>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 3>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 2>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 1>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 16>>(queue, 100, 3);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 8>>(queue, 100, 3);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 4>>(queue, 100, 3);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 3>>(queue, 100, 3);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 2>>(queue, 100, 3);
+    err += tests_set_portion<sycl::vec<int32_t, 2>, sycl::vec<std::uint32_t, 1>>(queue, 100, 3);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing sycl::vec<std::int32_t, 2> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+    // testing sycl::vec<int32_t, 3> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "sycl::vec<std::int32_t,2>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
+    std::cout << "sycl::vec<int32_t,3>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = tests_set<sycl::vec<std::int32_t, 2>, std::uint32_t>(nsamples);
+    err = tests_set<sycl::vec<int32_t, 3>, std::uint32_t>(queue, 99);
 #if TEST_LONG_RUN
-    err += tests_set<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 16>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 8>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 4>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 3>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 2>>(nsamples);
-    err += tests_set<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 1>>(nsamples);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, std::uint32_t>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, std::uint32_t>(100, 3);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 16>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 8>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 4>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 3>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 2>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 1>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 16>>(100, 3);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 8>>(100, 3);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 4>>(100, 3);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 3>>(100, 3);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 2>>(100, 3);
-    err += tests_set_portion<sycl::vec<std::int32_t, 2>, sycl::vec<std::uint32_t, 1>>(100, 3);
+    err += tests_set<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 16>>(queue, 99);
+    err += tests_set<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 8>>(queue, 99);
+    err += tests_set<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 4>>(queue, 99);
+    err += tests_set<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 3>>(queue, 99);
+    err += tests_set<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 2>>(queue, 99);
+    err += tests_set<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 1>>(queue, 99);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, std::uint32_t>(queue, 99, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, std::uint32_t>(queue, 99, 4);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 16>>(queue, 99, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 8>>(queue, 99, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 4>>(queue, 99, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 3>>(queue, 99, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 2>>(queue, 99, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 1>>(queue, 99, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 16>>(queue, 99, 4);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 8>>(queue, 99, 4);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 4>>(queue, 99, 4);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 3>>(queue, 99, 4);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 2>>(queue, 99, 4);
+    err += tests_set_portion<sycl::vec<int32_t, 3>, sycl::vec<std::uint32_t, 1>>(queue, 99, 4);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing sycl::vec<std::int32_t, 3> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+    // testing sycl::vec<int32_t, 4> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "sycl::vec<std::int32_t,3>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
+    std::cout << "sycl::vec<int32_t,4>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = tests_set<sycl::vec<std::int32_t, 3>, std::uint32_t>(99);
+    err = tests_set<sycl::vec<int32_t, 4>, std::uint32_t>(queue, 100);
 #if TEST_LONG_RUN
-    err += tests_set<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 16>>(99);
-    err += tests_set<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 8>>(99);
-    err += tests_set<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 4>>(99);
-    err += tests_set<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 3>>(99);
-    err += tests_set<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 2>>(99);
-    err += tests_set<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 1>>(99);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, std::uint32_t>(99, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, std::uint32_t>(99, 4);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 16>>(99, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 8>>(99, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 4>>(99, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 3>>(99, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 2>>(99, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 1>>(99, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 16>>(99, 4);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 8>>(99, 4);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 4>>(99, 4);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 3>>(99, 4);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 2>>(99, 4);
-    err += tests_set_portion<sycl::vec<std::int32_t, 3>, sycl::vec<std::uint32_t, 1>>(99, 4);
+    err += tests_set<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 16>>(queue, 100);
+    err += tests_set<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 8>>(queue, 100);
+    err += tests_set<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 4>>(queue, 100);
+    err += tests_set<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 3>>(queue, 100);
+    err += tests_set<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 2>>(queue, 100);
+    err += tests_set<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 1>>(queue, 100);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, std::uint32_t>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, std::uint32_t>(queue, 100, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 16>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 8>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 4>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 3>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 2>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 1>>(queue, 100, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 16>>(queue, 100, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 8>>(queue, 100, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 4>>(queue, 100, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 3>>(queue, 100, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 2>>(queue, 100, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 4>, sycl::vec<std::uint32_t, 1>>(queue, 100, 5);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing sycl::vec<std::int32_t, 4> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+    // testing sycl::vec<int32_t, 8> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "sycl::vec<std::int32_t,4>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
+    std::cout << "sycl::vec<int32_t,8>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = tests_set<sycl::vec<std::int32_t, 4>, std::uint32_t>(100);
+    err = tests_set<sycl::vec<int32_t, 8>, std::uint32_t>(queue, 160);
 #if TEST_LONG_RUN
-    err += tests_set<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 16>>(100);
-    err += tests_set<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 8>>(100);
-    err += tests_set<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 4>>(100);
-    err += tests_set<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 3>>(100);
-    err += tests_set<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 2>>(100);
-    err += tests_set<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 1>>(100);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, std::uint32_t>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, std::uint32_t>(100, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 16>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 8>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 4>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 3>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 2>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 1>>(100, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 16>>(100, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 8>>(100, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 4>>(100, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 3>>(100, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 2>>(100, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 4>, sycl::vec<std::uint32_t, 1>>(100, 5);
+    err += tests_set<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 16>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 8>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 4>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 3>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 2>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 1>>(queue, 160);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, std::uint32_t>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, std::uint32_t>(queue, 160, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, std::uint32_t>(queue, 160, 9);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 16>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 8>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 4>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 3>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 2>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 1>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 16>>(queue, 160, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 8>>(queue, 160, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 4>>(queue, 160, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 3>>(queue, 160, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 2>>(queue, 160, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 1>>(queue, 160, 5);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 16>>(queue, 160, 9);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 8>>(queue, 160, 9);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 4>>(queue, 160, 9);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 3>>(queue, 160, 9);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 2>>(queue, 160, 9);
+    err += tests_set_portion<sycl::vec<int32_t, 8>, sycl::vec<std::uint32_t, 1>>(queue, 160, 9);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing sycl::vec<std::int32_t, 8> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
+    // testing sycl::vec<int32_t, 16> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "sycl::vec<std::int32_t,8>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
+    std::cout << "sycl::vec<int32_t,16>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = tests_set<sycl::vec<std::int32_t, 8>, std::uint32_t>(160);
+    err = tests_set<sycl::vec<int32_t, 16>, std::uint32_t>(queue, 160);
 #if TEST_LONG_RUN
-    err += tests_set<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 16>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 8>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 4>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 3>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 2>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 1>>(160);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, std::uint32_t>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, std::uint32_t>(160, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, std::uint32_t>(160, 9);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 16>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 8>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 4>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 3>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 2>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 1>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 16>>(160, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 8>>(160, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 4>>(160, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 3>>(160, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 2>>(160, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 1>>(160, 5);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 16>>(160, 9);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 8>>(160, 9);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 4>>(160, 9);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 3>>(160, 9);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 2>>(160, 9);
-    err += tests_set_portion<sycl::vec<std::int32_t, 8>, sycl::vec<std::uint32_t, 1>>(160, 9);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    // testing sycl::vec<std::int32_t, 16> and std::uint32_t ... sycl::vec<std::uint32_t, 16>
-    std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "sycl::vec<std::int32_t,16>, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
-    std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = tests_set<sycl::vec<std::int32_t, 16>, std::uint32_t>(160);
-#if TEST_LONG_RUN
-    err += tests_set<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 16>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 8>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 4>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 3>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 2>>(160);
-    err += tests_set<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 1>>(160);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, std::uint32_t>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, std::uint32_t>(140, 7);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, std::uint32_t>(160, 17);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 16>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 8>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 4>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 3>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 2>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 1>>(160, 1);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 16>>(140, 7);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 8>>(140, 7);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 4>>(140, 7);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 3>>(140, 7);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 2>>(140, 7);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 1>>(140, 7);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 16>>(160, 17);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 8>>(160, 17);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 4>>(160, 17);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 3>>(160, 17);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 2>>(160, 17);
-    err += tests_set_portion<sycl::vec<std::int32_t, 16>, sycl::vec<std::uint32_t, 1>>(160, 17);
+    err += tests_set<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 16>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 8>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 4>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 3>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 2>>(queue, 160);
+    err += tests_set<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 1>>(queue, 160);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, std::uint32_t>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, std::uint32_t>(queue, 140, 7);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, std::uint32_t>(queue, 160, 17);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 16>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 8>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 4>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 3>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 2>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 1>>(queue, 160, 1);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 16>>(queue, 140, 7);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 8>>(queue, 140, 7);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 4>>(queue, 140, 7);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 3>>(queue, 140, 7);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 2>>(queue, 140, 7);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 1>>(queue, 140, 7);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 16>>(queue, 160, 17);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 8>>(queue, 160, 17);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 4>>(queue, 160, 17);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 3>>(queue, 160, 17);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 2>>(queue, 160, 17);
+    err += tests_set_portion<sycl::vec<int32_t, 16>, sycl::vec<std::uint32_t, 1>>(queue, 160, 17);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 

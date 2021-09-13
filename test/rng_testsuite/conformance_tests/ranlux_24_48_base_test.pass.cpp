@@ -38,33 +38,47 @@ int main() {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
+    // Catch asynchronous exceptions
+    auto exception_handler = [] (sycl::exception_list exceptions) {
+        for (std::exception_ptr const& e : exceptions) {
+            try {
+                std::rethrow_exception(e);
+            } catch(sycl::exception const& e) {
+                std::cout << "Caught asynchronous SYCL exception during generation:\n"
+                << e.what() << std::endl;
+            }
+        }
+    };
+
+    sycl::queue queue(sycl::default_selector{}, exception_handler);
+
     // Reference values
     uint_fast32_t ranlux24_base_ref_sample = 7937952;
     uint_fast64_t ranlux48_base_ref_sample = 61839128582725;
     int err = 0;
 
     // Generate 10 000th element for ranlux24_base
-    err += test<oneapi::dpl::ranlux24_base,        10000, 1>()  != ranlux24_base_ref_sample;
+    err += test<oneapi::dpl::ranlux24_base,        10000, 1>(queue)  != ranlux24_base_ref_sample;
 #if TEST_LONG_RUN
-    err += test<oneapi::dpl::ranlux24_base_vec<1>, 10000, 1>()  != ranlux24_base_ref_sample;
-    err += test<oneapi::dpl::ranlux24_base_vec<2>, 10000, 2>()  != ranlux24_base_ref_sample;
+    err += test<oneapi::dpl::ranlux24_base_vec<1>, 10000, 1>(queue)  != ranlux24_base_ref_sample;
+    err += test<oneapi::dpl::ranlux24_base_vec<2>, 10000, 2>(queue)  != ranlux24_base_ref_sample;
     // In case of ranlux24_base_vec<3> engine generate 10002 values as 10000 % 3 != 0
-    err += test<oneapi::dpl::ranlux24_base_vec<3>, 10002, 3>()  != ranlux24_base_ref_sample;
-    err += test<oneapi::dpl::ranlux24_base_vec<4>, 10000, 4>()  != ranlux24_base_ref_sample;
-    err += test<oneapi::dpl::ranlux24_base_vec<8>, 10000, 8>()  != ranlux24_base_ref_sample;
-    err += test<oneapi::dpl::ranlux24_base_vec<16>,10000, 16>() != ranlux24_base_ref_sample;
+    err += test<oneapi::dpl::ranlux24_base_vec<3>, 10002, 3>(queue)  != ranlux24_base_ref_sample;
+    err += test<oneapi::dpl::ranlux24_base_vec<4>, 10000, 4>(queue)  != ranlux24_base_ref_sample;
+    err += test<oneapi::dpl::ranlux24_base_vec<8>, 10000, 8>(queue)  != ranlux24_base_ref_sample;
+    err += test<oneapi::dpl::ranlux24_base_vec<16>,10000, 16>(queue) != ranlux24_base_ref_sample;
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    err += test<oneapi::dpl::ranlux48_base,        10000, 1>()  != ranlux48_base_ref_sample;
+    err += test<oneapi::dpl::ranlux48_base,        10000, 1>(queue)  != ranlux48_base_ref_sample;
 #if TEST_LONG_RUN
-    err += test<oneapi::dpl::ranlux48_base_vec<1>, 10000, 1>()  != ranlux48_base_ref_sample;
-    err += test<oneapi::dpl::ranlux48_base_vec<2>, 10000, 2>()  != ranlux48_base_ref_sample;
+    err += test<oneapi::dpl::ranlux48_base_vec<1>, 10000, 1>(queue)  != ranlux48_base_ref_sample;
+    err += test<oneapi::dpl::ranlux48_base_vec<2>, 10000, 2>(queue)  != ranlux48_base_ref_sample;
     // In case of ranlux48_base_vec<3> engine generate 10002 values as 10000 % 3 != 0
-    err += test<oneapi::dpl::ranlux48_base_vec<3>, 10002, 3>()  != ranlux48_base_ref_sample;
-    err += test<oneapi::dpl::ranlux48_base_vec<4>, 10000, 4>()  != ranlux48_base_ref_sample;
-    err += test<oneapi::dpl::ranlux48_base_vec<8>, 10000, 8>()  != ranlux48_base_ref_sample;
-    err += test<oneapi::dpl::ranlux48_base_vec<16>,10000, 16>() != ranlux48_base_ref_sample;
+    err += test<oneapi::dpl::ranlux48_base_vec<3>, 10002, 3>(queue)  != ranlux48_base_ref_sample;
+    err += test<oneapi::dpl::ranlux48_base_vec<4>, 10000, 4>(queue)  != ranlux48_base_ref_sample;
+    err += test<oneapi::dpl::ranlux48_base_vec<8>, 10000, 8>(queue)  != ranlux48_base_ref_sample;
+    err += test<oneapi::dpl::ranlux48_base_vec<16>,10000, 16>(queue) != ranlux48_base_ref_sample;
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 

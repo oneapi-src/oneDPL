@@ -38,33 +38,47 @@ int main() {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
+    // Catch asynchronous exceptions
+    auto exception_handler = [] (sycl::exception_list exceptions) {
+        for (std::exception_ptr const& e : exceptions) {
+            try {
+                std::rethrow_exception(e);
+            } catch(sycl::exception const& e) {
+                std::cout << "Caught asynchronous SYCL exception during generation:\n"
+                << e.what() << std::endl;
+            }
+        }
+    };
+
+    sycl::queue queue(sycl::default_selector{}, exception_handler);
+
     // Reference values
     uint_fast32_t minstd_rand0_ref_sample = 1043618065;
     uint_fast32_t minstd_rand_ref_sample = 399268537;
     int err = 0;
 
     // Generate 10 000th element for minstd_rand0
-    err += test<oneapi::dpl::minstd_rand0,        10000, 1>()  != minstd_rand0_ref_sample;
+    err += test<oneapi::dpl::minstd_rand0,        10000, 1>(queue)  != minstd_rand0_ref_sample;
 #if TEST_LONG_RUN
-    err += test<oneapi::dpl::minstd_rand0_vec<1>, 10000, 1>()  != minstd_rand0_ref_sample;
-    err += test<oneapi::dpl::minstd_rand0_vec<2>, 10000, 2>()  != minstd_rand0_ref_sample;
+    err += test<oneapi::dpl::minstd_rand0_vec<1>, 10000, 1>(queue)  != minstd_rand0_ref_sample;
+    err += test<oneapi::dpl::minstd_rand0_vec<2>, 10000, 2>(queue)  != minstd_rand0_ref_sample;
     // In case of minstd_rand0_vec<3> engine generate 10002 values as 10000 % 3 != 0
-    err += test<oneapi::dpl::minstd_rand0_vec<3>, 10002, 3>()  != minstd_rand0_ref_sample;
-    err += test<oneapi::dpl::minstd_rand0_vec<4>, 10000, 4>()  != minstd_rand0_ref_sample;
-    err += test<oneapi::dpl::minstd_rand0_vec<8>, 10000, 8>()  != minstd_rand0_ref_sample;
-    err += test<oneapi::dpl::minstd_rand0_vec<16>,10000, 16>() != minstd_rand0_ref_sample;
+    err += test<oneapi::dpl::minstd_rand0_vec<3>, 10002, 3>(queue)  != minstd_rand0_ref_sample;
+    err += test<oneapi::dpl::minstd_rand0_vec<4>, 10000, 4>(queue)  != minstd_rand0_ref_sample;
+    err += test<oneapi::dpl::minstd_rand0_vec<8>, 10000, 8>(queue)  != minstd_rand0_ref_sample;
+    err += test<oneapi::dpl::minstd_rand0_vec<16>,10000, 16>(queue) != minstd_rand0_ref_sample;
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    err += test<oneapi::dpl::minstd_rand,        10000, 1>()  != minstd_rand_ref_sample;
+    err += test<oneapi::dpl::minstd_rand,        10000, 1>(queue)  != minstd_rand_ref_sample;
 #if TEST_LONG_RUN
-    err += test<oneapi::dpl::minstd_rand_vec<1>, 10000, 1>()  != minstd_rand_ref_sample;
-    err += test<oneapi::dpl::minstd_rand_vec<2>, 10000, 2>()  != minstd_rand_ref_sample;
+    err += test<oneapi::dpl::minstd_rand_vec<1>, 10000, 1>(queue)  != minstd_rand_ref_sample;
+    err += test<oneapi::dpl::minstd_rand_vec<2>, 10000, 2>(queue)  != minstd_rand_ref_sample;
     // In case of minstd_rand_vec<3> engine generate 10002 values as 10000 % 3 != 0
-    err += test<oneapi::dpl::minstd_rand_vec<3>, 10002, 3>()  != minstd_rand_ref_sample;
-    err += test<oneapi::dpl::minstd_rand_vec<4>, 10000, 4>()  != minstd_rand_ref_sample;
-    err += test<oneapi::dpl::minstd_rand_vec<8>, 10000, 8>()  != minstd_rand_ref_sample;
-    err += test<oneapi::dpl::minstd_rand_vec<16>,10000, 16>() != minstd_rand_ref_sample;
+    err += test<oneapi::dpl::minstd_rand_vec<3>, 10002, 3>(queue)  != minstd_rand_ref_sample;
+    err += test<oneapi::dpl::minstd_rand_vec<4>, 10000, 4>(queue)  != minstd_rand_ref_sample;
+    err += test<oneapi::dpl::minstd_rand_vec<8>, 10000, 8>(queue)  != minstd_rand_ref_sample;
+    err += test<oneapi::dpl::minstd_rand_vec<16>,10000, 16>(queue) != minstd_rand_ref_sample;
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 

@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Uniform Int Distribution
 
-#ifndef DPSTD_UNIFORM_INT_DISTRIBUTION
-#define DPSTD_UNIFORM_INT_DISTRIBUTION
+#ifndef _ONEDPL_UNIFORM_INT_DISTRIBUTION
+#define _ONEDPL_UNIFORM_INT_DISTRIBUTION
 
 namespace oneapi
 {
@@ -188,4 +188,4 @@ class uniform_int_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf DPSTD_UNIFORM_INT_DISTRIBUTION
+#endif // #ifndf _ONEDPL_UNIFORM_INT_DISTRIBUTION

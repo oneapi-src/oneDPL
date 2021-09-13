@@ -173,21 +173,38 @@ make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
     return iter_mode<outMode>()(__it);
 }
 
-// set of templated classes to name kernels
+// set of class templates to name kernels
+
+// The group of shortened names used in kernel generator to get smaller
+// mangled name and thus, improve compilation time.
+// Instead of those classes please use the corresponding aliases
 template <typename... _Name>
-class __parallel_reduce_kernel;
+class __prk;
 
 template <typename... _Name>
-class __parallel_scan_local_kernel;
+class __pslk;
 
 template <typename... _Name>
-class __parallel_scan_group_kernel;
+class __psgrk;
+
+template <typename... _Name>
+class __pfok;
+
+// Aliases for shortened kernel names added for readability.
+template <typename... _Name>
+using __parallel_reduce_kernel = __prk<_Name...>;
+
+template <typename... _Name>
+using __parallel_scan_local_kernel = __pslk<_Name...>;
+
+template <typename... _Name>
+using __parallel_scan_group_kernel = __psgrk<_Name...>;
+
+template <typename... _Name>
+using __parallel_find_or_kernel = __pfok<_Name...>;
 
 template <typename... _Name>
 class __parallel_scan_propagate_kernel;
-
-template <typename... _Name>
-class __parallel_find_or_kernel;
 
 template <typename... _Name>
 class __parallel_sort_leaf_kernel;
@@ -201,6 +218,10 @@ class __parallel_sort_copy_back_kernel;
 //------------------------------------------------------------------------
 // parallel_for - async pattern
 //------------------------------------------------------------------------
+
+// Use the trick with incomplete type and partial specialization to deduce the kernel name
+// as the parameter pack that can be empty (for unnamed kernels) or contain exactly one
+// type (for explicitly specified name by the user)
 template <typename _KernelName>
 struct __parallel_for_submitter;
 
@@ -243,11 +264,12 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 //------------------------------------------------------------------------
 // parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
-template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
+template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
           typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__par_backend_hetero::__future<_Tp>>
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
+                            _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
@@ -256,10 +278,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ReduceKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_reduce_kernel, _CustomName, _Up, _Cp,
-                                                                     _Rp, _Ranges...>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__parallel_reduce_kernel, _CustomName,
+                                                                               _Up, _LRp, _Rp, _Ranges...>;
 
     auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
+    // TODO: find a way to generalize getting of reliable work-group size
     ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __work_group_size according to local memory limit
     __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
@@ -274,6 +297,12 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     // distribution is ~1 work groups per compute init
     if (__exec.queue().get_device().is_cpu())
         __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
+    // __iters_per_work_item shows number of elements to reduce on global memory
+    // __work_group_size shows number of elements to reduce on local memory
+    // guarantee convergence of the reduction
+    if (__iters_per_work_item == 1 && __work_group_size == 1)
+        __iters_per_work_item = 2;
+
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
     _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
@@ -294,7 +323,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
     sycl::event __reduce_event;
     do
     {
-        __reduce_event = __exec.queue().submit([&](sycl::handler& __cgh) {
+        __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n, __n_items,
+                                                __n_groups](sycl::handler& __cgh) {
             __cgh.depends_on(__reduce_event);
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
@@ -315,15 +345,15 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                     // 1. Initialization (transform part). Fill local memory
                     if (__is_first)
                     {
-                        __u(__item_id, __n, __iters_per_work_item, __global_idx, __temp_local, __rngs...);
+                        __u(__item_id, __n, __iters_per_work_item, __global_idx, /*global_offset*/ 0, __temp_local,
+                            __rngs...);
                     }
                     else
                     {
-                        // TODO: check the approach when we use grainsize here too
-                        if (__global_idx < __n_items)
-                            __temp_local[__local_idx] = __temp_acc[__offset_2 + __global_idx];
-                        __dpl_sycl::__group_barrier(__item_id);
+                        __brick_leaf_reduce(__item_id, __n, __iters_per_work_item, __global_idx, __offset_2,
+                                            __temp_local, __temp_acc);
                     }
+                    __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory
                     _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
                     if (__local_idx == 0)
@@ -333,13 +363,12 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _
                 });
         });
         if (__is_first)
-        {
             __is_first = false;
-        }
         ::std::swap(__offset_1, __offset_2);
-        __n_items = __n_groups;
-        __n_groups = (__n_items - 1) / __work_group_size + 1;
-    } while (__n_items > 1);
+        __n = __n_groups;
+        __n_items = (__n - 1) / __iters_per_work_item + 1;
+        __n_groups = (__n - 1) / __size_per_work_group + 1;
+    } while (__n > 1);
     return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
 }
 
@@ -370,9 +399,12 @@ struct __global_scan_caller
     ::std::size_t __m_size_per_wg;
 };
 
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _CustomName, typename _PropagateScanName>
 struct __parallel_scan_submitter;
 
+// Even if this class submits three kernel optional name is allowed to be only for one of them
+// because for two others we have to provide the name to get the reliable work group size
 template <typename _CustomName, typename... _PropagateScanName>
 struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name<_PropagateScanName...>>
 {
@@ -383,17 +415,16 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
     {
         using _Type = typename _InitType::__value_type;
-        using _LocalScanKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_scan_local_kernel, _CustomName,
-                                                                         _Range1, _Range2, _Type, _LocalScan>;
-        using _GroupScanKernel =
-            oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_scan_group_kernel, _CustomName,
-                                                                         _Range1, _Range2, _Type, _GroupScan>;
+        using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            __parallel_scan_local_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
+        using _GroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            __parallel_scan_group_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
 
         auto __n = __rng1.size();
         assert(__n > 0);
 
         auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        // TODO: find a way to generalize getting of reliable work-group sizes
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
         // change __wgroup_size according to local memory limit
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
@@ -643,13 +674,15 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _AtomicType = typename _BrickTag::_AtomicType;
-    using _FindOrKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_find_or_kernel,
-                                                                                       _CustomName, _Brick, _Ranges...>;
+    using _FindOrKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__parallel_find_or_kernel, _CustomName,
+                                                                               _Brick, _Ranges...>;
 
     auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
 
+    // TODO: find a way to generalize getting of reliable work-group size
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernel =
@@ -1021,6 +1054,7 @@ struct __partial_merge_kernel
     }
 };
 
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _Name>
 struct __parallel_merge_submitter;
 
@@ -1092,6 +1126,7 @@ struct __leaf_sort_kernel
     }
 };
 
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_sort_submitter;
 
@@ -1247,6 +1282,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
 }
 
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_partial_sort_submitter;
 

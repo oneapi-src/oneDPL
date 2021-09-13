@@ -157,6 +157,9 @@ struct __composite_kernel_name
 {
 };
 
+// Compose kernel name by transforming the constexpr string to the sequence of chars
+// and instantiate template with variadic non-type template parameters.
+// This approach is required to get reliable work group size when kernel is unnamed
 #if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
 template <typename _Tp>
 class __kernel_name_composer
@@ -174,7 +177,7 @@ class __kernel_name_composer
 #endif // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
 
 template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
-using _KernelName_t =
+using __kernel_name_generator =
 #if __SYCL_UNNAMED_LAMBDA__
     typename ::std::conditional<_HasDefaultName<_CustomName>::value,
 #    if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
@@ -464,7 +467,7 @@ class __future : public __future_base
 
   public:
     __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
-        : __par_backend_hetero::__future_base(__e), __data(__b), __result_idx(__o)
+        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __data(__b)
     {
     }
 

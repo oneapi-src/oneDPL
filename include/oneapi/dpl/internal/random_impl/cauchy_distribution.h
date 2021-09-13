@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- weibull_distribution.h ------------------------------------------===//
+//===-- cauchy_distribution.h ------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,17 +15,17 @@
 //
 // Abstract:
 //
-// Public header file provides implementation for Weibull Distribution
+// Public header file provides implementation for Cauchy Distribution
 
-#ifndef _ONEDPL_WEIBULL_DISTRIBUTION
-#define _ONEDPL_WEIBULL_DISTRIBUTION
+#ifndef _ONEDPL_CAUCHY_DISTRIBUTION
+#define _ONEDPL_CAUCHY_DISTRIBUTION
 
 namespace oneapi
 {
 namespace dpl
 {
 template <class _RealType = double>
-class weibull_distribution
+class cauchy_distribution
 {
   public:
     // Distribution types
@@ -34,16 +34,16 @@ class weibull_distribution
 
     struct param_type
     {
-        param_type() : param_type(scalar_type{1.0}) {}
+        param_type() : param_type(scalar_type{0.0}) {}
         param_type(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a(__a), b(__b) {}
         scalar_type a;
         scalar_type b;
     };
 
     // Constructors
-    weibull_distribution() : weibull_distribution(scalar_type{1.0}) {}
-    explicit weibull_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
-    explicit weibull_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
+    cauchy_distribution() : cauchy_distribution(scalar_type{0.0}) {}
+    explicit cauchy_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
+    explicit cauchy_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
 
     // Reset function
     void
@@ -80,7 +80,7 @@ class weibull_distribution
     scalar_type
     min() const
     {
-        return scalar_type{};
+        return std::numeric_limits<scalar_type>::lowest();
     }
 
     scalar_type
@@ -124,7 +124,7 @@ class weibull_distribution
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,
-                  "oneapi::dpl::weibull_distribution. Error: unsupported data type");
+                  "oneapi::dpl::cauchy_distribution. Error: unsupported data type");
 
     // Distribution parameters
     scalar_type a_;
@@ -144,7 +144,7 @@ class weibull_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        return __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), scalar_type{1.0} / __params.a);
+        return __params.a + __params.b * sycl::tanpi(__u(__engine));
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -161,7 +161,8 @@ class weibull_distribution
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<sycl::vec<scalar_type, __N>> __distr;
-        return __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __distr(__engine)), result_type{1.0} / __params.a);
+        sycl::vec<scalar_type, __N> __u = __distr(__engine);
+        return __params.a + __params.b * sycl::tanpi(__u);
     }
 
     // Implementation for the N vector's elements generation
@@ -171,9 +172,8 @@ class weibull_distribution
     {
         result_type __res;
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        scalar_type __tmp = scalar_type{1.0} / __params.a;
         for (int i = 0; i < __N; i++)
-            __res[i] = __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), __tmp);
+            __res[i] = __params.a + __params.b * sycl::tanpi(__u(__engine));
         return __res;
     }
 
@@ -195,4 +195,4 @@ class weibull_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_WEIBULL_DISTRIBUTION
+#endif // #ifndf _ONEDPL_CAUCHY_DISTRIBUTION

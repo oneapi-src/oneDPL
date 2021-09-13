@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- weibull_distribution.h ------------------------------------------===//
+//===-- extreme_value_distribution.h ------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,17 +15,17 @@
 //
 // Abstract:
 //
-// Public header file provides implementation for Weibull Distribution
+// Public header file provides implementation for Extreme Value Distribution
 
-#ifndef _ONEDPL_WEIBULL_DISTRIBUTION
-#define _ONEDPL_WEIBULL_DISTRIBUTION
+#ifndef _ONEDPL_EXTREME_VALUE_DISTRIBUTION
+#define _ONEDPL_EXTREME_VALUE_DISTRIBUTION
 
 namespace oneapi
 {
 namespace dpl
 {
 template <class _RealType = double>
-class weibull_distribution
+class extreme_value_distribution
 {
   public:
     // Distribution types
@@ -34,16 +34,16 @@ class weibull_distribution
 
     struct param_type
     {
-        param_type() : param_type(scalar_type{1.0}) {}
+        param_type() : param_type(scalar_type{0.0}) {}
         param_type(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a(__a), b(__b) {}
         scalar_type a;
         scalar_type b;
     };
 
     // Constructors
-    weibull_distribution() : weibull_distribution(scalar_type{1.0}) {}
-    explicit weibull_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
-    explicit weibull_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
+    extreme_value_distribution() : extreme_value_distribution(scalar_type{0.0}) {}
+    explicit extreme_value_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
+    explicit extreme_value_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
 
     // Reset function
     void
@@ -80,7 +80,7 @@ class weibull_distribution
     scalar_type
     min() const
     {
-        return scalar_type{};
+        return std::numeric_limits<scalar_type>::lowest();
     }
 
     scalar_type
@@ -124,11 +124,26 @@ class weibull_distribution
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,
-                  "oneapi::dpl::weibull_distribution. Error: unsupported data type");
+                  "oneapi::dpl::extreme_value_distribution. Error: unsupported data type");
 
     // Distribution parameters
     scalar_type a_;
     scalar_type b_;
+
+    // Callback function
+    template <typename _Type = float>
+    inline scalar_type
+    callback()
+    {
+        return ((scalar_type*)(internal::gaussian_sp_table))[1];
+    }
+
+    template <>
+    inline scalar_type
+    callback<double>()
+    {
+        return ((scalar_type*)(internal::gaussian_dp_table))[1];
+    }
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
@@ -143,8 +158,10 @@ class weibull_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        return __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), scalar_type{1.0} / __params.a);
+        oneapi::dpl::exponential_distribution<scalar_type> __distr;
+        scalar_type __e = __distr(__engine);
+        result_type __res = (__e == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__e);
+        return __params.a - __params.b * __res;
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -160,8 +177,11 @@ class weibull_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        oneapi::dpl::uniform_real_distribution<sycl::vec<scalar_type, __N>> __distr;
-        return __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __distr(__engine)), result_type{1.0} / __params.a);
+        oneapi::dpl::exponential_distribution<result_type> __distr;
+        result_type __e = __distr(__engine);
+        result_type __res =
+            select(sycl::log(__e), result_type{callback<scalar_type>()}, sycl::isequal(__e, result_type{0.0}));
+        return __params.a - __params.b * __res;
     }
 
     // Implementation for the N vector's elements generation
@@ -170,10 +190,15 @@ class weibull_distribution
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
-        oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        scalar_type __tmp = scalar_type{1.0} / __params.a;
+        oneapi::dpl::exponential_distribution<scalar_type> __distr;
+        scalar_type __e = __distr(__engine);
         for (int i = 0; i < __N; i++)
-            __res[i] = __params.b * sycl::pow(-sycl::log(scalar_type{1.0} - __u(__engine)), __tmp);
+        {
+            scalar_type __e = __distr(__engine);
+            __res[i] = (__e == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__e);
+            __res[i] = __params.a - __params.b * __res[i];
+        }
+
         return __res;
     }
 
@@ -195,4 +220,4 @@ class weibull_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_WEIBULL_DISTRIBUTION
+#endif // #ifndf _ONEDPL_EXTREME_VALUE_DISTRIBUTION

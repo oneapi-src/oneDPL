@@ -63,7 +63,7 @@ def githubStatus = new GithubStatus(
         BUILD_URL: env.RUN_DISPLAY_URL
 )
 
-
+String pipeline_name = "Jenkins/UB20_Check (dpcpp_cpu_cxx_17, g++_tbb_cxx_11)"
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
@@ -141,7 +141,7 @@ pipeline {
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
-                                githubStatus.setPending(this, "Jenkins/UB20_Check")
+                                githubStatus.setPending(this, pipeline_name)
                             }
                             else {
                                 user_in_github_group = false
@@ -304,10 +304,10 @@ pipeline {
                 if (user_in_github_group) {
                     if (build_ok) {
                         currentBuild.result = "SUCCESS"
-                        githubStatus.setSuccess(this, "Jenkins/UB20_Check")
+                        githubStatus.setSuccess(this, pipeline_name)
                     } else {
                         currentBuild.result = "FAILURE"
-                        githubStatus.setFailed(this, "Jenkins/UB20_Check")
+                        githubStatus.setFailed(this, pipeline_name)
                     }
                 }
             }

@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Subtract with Carry Engine
 
-#ifndef DPSTD_SUBTRACT_WITH_CARRY_ENGINE
-#define DPSTD_SUBTRACT_WITH_CARRY_ENGINE
+#ifndef _ONEDPL_SUBTRACT_WITH_CARRY_ENGINE
+#define _ONEDPL_SUBTRACT_WITH_CARRY_ENGINE
 
 namespace oneapi
 {
@@ -180,4 +180,4 @@ class subtract_with_carry_engine
 } // namespace dpl
 } // namespace oneapi
 
-#endif // ifndef DPSTD_SUBTRACT_WITH_CARRY_ENGINE
+#endif // ifndef _ONEDPL_SUBTRACT_WITH_CARRY_ENGINE

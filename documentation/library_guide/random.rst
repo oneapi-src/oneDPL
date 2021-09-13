@@ -72,6 +72,13 @@ Distribution                   Description
 ``uniform_int_distribution``   Produces integer values evenly distributed across a range
 ``uniform_real_distribution``  Produces real values evenly distributed across a range
 ``normal_distribution``        Produces real values according to the Normal (Gaussian) distribution
+``exponential_distribution``   Produces real values according to the Exponential distribution
+``bernoulli_distribution``     Produces bool values according to the Bernoulli distribution
+``geometric_distribution``     Produces integer values according to the Geometric distribution
+``weibull_distribution``       Produces real values according to the Weibull distribution
+``lognormal_distribution``     Produces real values according to the Lognormal distribution
+``extreme_value_distribution`` Produces real values according to the Extreme value (Gumbel) distribution
+``cauchy_distribution``        Produces real values according to the Cauchy distribution
 ============================== =========================================================================================================
 
 Usage Model of |onedpl_short| Random Number Generation Functionality

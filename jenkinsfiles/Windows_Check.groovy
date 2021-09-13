@@ -69,7 +69,7 @@ def shell(String command, String label_string = "Bat Command") {
     return bat(returnStdout: true, script: "sh -x -c \"${command}\"", label: label_string).trim()
 }
 
-
+String pipeline_name = "Jenkins/Win_Check (dpcpp_gpu_cxx_17, cl_tbb_cxx_11)"
 build_ok = true
 fail_stage = ""
 user_in_github_group = false
@@ -166,7 +166,7 @@ pipeline {
                                 }
                                 echo "Oneapi package date is: " + env.OneAPI_Package_Date.toString()
                                 fill_task_name_description(env.OneAPI_Package_Date)
-                                githubStatus.setPending(this, "Jenkins/Win_Check")
+                                githubStatus.setPending(this, pipeline_name)
                             }
                             else {
                                 user_in_github_group = false
@@ -392,10 +392,10 @@ pipeline {
                 if (user_in_github_group) {
                     if (build_ok) {
                         currentBuild.result = "SUCCESS"
-                        githubStatus.setSuccess(this, "Jenkins/Win_Check")
+                        githubStatus.setSuccess(this, pipeline_name)
                     } else {
                         currentBuild.result = "FAILURE"
-                        githubStatus.setFailed(this, "Jenkins/Win_Check")
+                        githubStatus.setFailed(this, pipeline_name)
                     }
                 }
             }

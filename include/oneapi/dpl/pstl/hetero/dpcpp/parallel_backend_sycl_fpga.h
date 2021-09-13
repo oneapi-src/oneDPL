@@ -42,6 +42,7 @@ namespace __par_backend_hetero
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _Name>
 struct __parallel_for_fpga_submitter;
 
@@ -87,18 +88,19 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 // parallel_transform_reduce
 //------------------------------------------------------------------------
 
-template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _Cp,
+template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
           typename _Rp, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy,
                                                            oneapi::dpl::__par_backend_hetero::__future<_Tp>>
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _Cp __combine, _Rp __brick_reduce, _Ranges&&... __rngs)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
+                            _Ranges&&... __rngs)
 {
     // workaround until we implement more performant version for patterns
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, __grainsize>(
-        __device_policy, __u, __combine, __brick_reduce, ::std::forward<_Ranges>(__rngs)...);
+        __device_policy, __u, __brick_leaf_reduce, __brick_reduce, ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
