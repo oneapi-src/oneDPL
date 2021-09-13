@@ -15,9 +15,13 @@ The following async algorithms are currently supported:
 * ``fill_async``
 * ``for_each_async``
 * ``reduce_async``
+* ``sort_async``
+* ``inclusive_scan_async``
+* ``exclusive_scan_async``
 * ``transform_async``
 * ``transform_reduce_async``
-* ``sort_async``
+* ``transform_inclusive_scan_async``
+* ``transform_exclusive_scan_async``
 
 All the interfaces listed above are a subset of C++17 STL algorithms,
 where the suffix ``_async`` is added to the corresponding name (for example: ``reduce``, ``sort``, etc.).
