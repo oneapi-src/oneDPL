@@ -54,8 +54,8 @@ struct rebind_policy<oneapi::dpl::execution::fpga_policy<factor, KernelName>, Ne
 };
 #    endif
 
+using oneapi::dpl::__internal::is_hetero_iterator;
 using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
-using oneapi::dpl::__par_backend_hetero::__internal::is_hetero_iterator;
 #endif
 
 #if _ONEDPL_BACKEND_SYCL

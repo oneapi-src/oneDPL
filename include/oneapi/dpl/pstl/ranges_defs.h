@@ -19,6 +19,10 @@
 #include "ranges/nanorange.hpp"
 #include "ranges/nanorange_ext.h"
 
+#if _ONEDPL_BACKEND_SYCL
+#    include "hetero/dpcpp/utils_ranges_sycl.h"
+#endif
+
 namespace oneapi
 {
 namespace dpl

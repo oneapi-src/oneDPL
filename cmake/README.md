@@ -43,7 +43,30 @@ The following targets are available for build system after configuration:
 Sudirectories are added as labels for each test and can be used with `ctest -L <label>`.
 For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` labels.
 
-## How to use oneDPL package from CMake
+## How to use oneDPL from CMake
+### Using oneDPL source files
+
+Using oneDPL source files allows you to integrate oneDPL source code into your project with the [add_subdirectory](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command. `add_subdirectory(<oneDPL_root_dir> [<oneDPL_output_dir>])` adds oneDPL to the user project build.
+* `<oneDPL_root_dir>` is a relative or absolute path to oneDPL root directory
+* `<oneDPL_output_dir>` is a relative or absolute path to directory for holding output files for oneDPL
+* If `<oneDPL_root_dir>` is the relative path, then `<oneDPL_output_dir>` is optional.
+
+The variables from the table above can be specified before the `add_subdirectory` call to customize your oneDPL configuration and build.
+
+For example:
+
+```cmake
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Specify oneDPL backend
+set(ONEDPL_BACKEND tbb)
+
+# Add oneDPL to the build.
+add_subdirectory(/path/to/oneDPL build_oneDPL)
+```
+
+### Using oneDPL package
 
 oneDPLConfig.cmake and oneDPLConfigVersion.cmake are included into oneDPL distribution.
 
