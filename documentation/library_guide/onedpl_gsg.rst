@@ -1,9 +1,9 @@
 Get Started with the |onedpl_long|
 ##################################
 
-|onedpl_short| works with the `Intel® oneAPI DPC++/C++ Compiler <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_ to
-provide high-productivity APIs to developers, which can minimize |dpcpp_long| programming
-efforts across devices for high performance parallel applications.
+|onedpl_short| works with the `Intel® oneAPI DPC++/C++ Compiler <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
+to provide high-productivity APIs to developers, which can minimize |dpcpp_long|
+programming efforts across devices for high performance parallel applications.
 
 |onedpl_short| consists of the following components:
 
@@ -49,10 +49,14 @@ Each sample includes a readme with build instructions.
 oneapi/dpl/random Usage Example
 -------------------------------
 
-.. warning::
-    
-    We need some intro text on RANDOM sample. More to come here. Also RANDOM needs to be added to oneDPL Samples page. 
-    What is this an example of? How does it work with oneDPL?  What is it illustrating to the user?
+This example illustrates |onedpl_short| Random Number Generators (RNGs) usage.
+The sample below shows you how to create an RNG engine object (the source of pseudo-randomness),
+a distribution object (specifying the desired probability distribution), and how to generate
+the random numbers themselves. Random number generation is performed in a vectorized manner
+to improve the speed of your computations.
+
+This example performs its computations on your default DPC++ device. You can set the
+``SYCL_DEVICE_TYPE`` environment variable to CPU or GPU.
 
 .. code:: cpp
 
@@ -79,10 +83,17 @@ oneapi/dpl/random Usage Example
 oneDPL RNG Pi Benchmark Usage Example
 -------------------------------------
 
-.. warning::
+A Monte Carlo Pi Estimation uses a randomized method to estimate the value of π. 
+The basic idea is to generate random points within a square, and to check what
+fraction of these random points lie in a quarter-circle inscribed within that square.
+The expected value is the ratio of the areas of the quarter-circle and the square (π/4).
+You can take the observed fraction of points in the quarter-circle as an estimate of π/4.
 
-    We need some intro text on Pi Benchmark. More to come here. 
-    What is this an example of? How does it work with oneDPL? What is it illustrating to the user?
+This example shows you how to create an RNG engine object (the source of pseudo-randomness),
+a distribution object (specifying the desired probability distribution), generate the
+random numbers themselves and then perform a reduction to count quantity of points that
+fit into the square *S*. Random number generation is performed in scalar manner to simplify your code.
+
 
 .. figure:: images/pi_benchmark.png
    :alt: An image of pi chart.
@@ -102,7 +113,7 @@ oneDPL RNG Pi Benchmark Usage Example
                                           [=](int n){
                                               float local_sum = 0.0f;
                                               oneapi::dpl::minstd_rand engine(SEED, n * ITER * 2);
-                                              oneapi::dpl::uniform_real_distribution<float> distr(-1.0f,1.0f);
+                                              oneapi::dpl::uniform_real_distribution<float> distr;
                                               for(int i = 0; i < ITER; ++i) {
                                                   float x = distr(engine);
                                                   float y = distr(engine);
