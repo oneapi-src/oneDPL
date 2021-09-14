@@ -19,6 +19,8 @@
 #include "../algorithm_fwd.h"
 
 #include "../parallel_backend.h"
+#include "utils_hetero.h"
+
 #if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/execution_sycl_defs.h"
 #    include "dpcpp/parallel_backend_sycl_utils.h"
@@ -366,19 +368,6 @@ struct __brick_fill_n<_SourceT, _ExecutionPolicy,
 // min_element, max_element
 //------------------------------------------------------------------------
 
-template <typename _ReduceValueType>
-struct __acc_handler_minelement
-{
-
-    template <typename _GlobalIdx, typename _Acc>
-    _ReduceValueType
-    operator()(_GlobalIdx __gidx, _Acc __acc) const
-    {
-        // TODO: __acc is tuple<accessors...> when zip_iterators are passed
-        return _ReduceValueType{__gidx, __acc[__gidx]};
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
 __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
@@ -439,45 +428,6 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 //   However the solution requires use of custom pattern or substantial redesign of existing parallel_transform_reduce.
 //
 
-template <typename _ReduceValueType>
-struct __acc_handler_minmaxelement
-{
-
-    template <typename _GlobalIdx, typename _Acc>
-    _ReduceValueType
-    operator()(_GlobalIdx __gidx, _Acc __acc) const
-    {
-        // TODO: Doesn't work with `zip_iterator`.
-        //       In that case the first and the second arguments of `_ReduceValueType` will be
-        //       a `tuple` of `difference_type`, not the `difference_type` itself.
-        return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
-    }
-};
-
-template <typename _Compare>
-struct __identity_reduce_fn
-{
-    _Compare __comp;
-    template <typename _ReduceValueType>
-    _ReduceValueType
-    operator()(_ReduceValueType __a, _ReduceValueType __b) const
-    {
-        using ::std::get;
-        auto __chosen_for_min = __a;
-        auto __chosen_for_max = __b;
-        // if b "<" a or if b "==" a and b_index < a_index
-        if (__comp(get<2>(__b), get<2>(__a)) || (!__comp(get<2>(__a), get<2>(__b)) && get<0>(__b) < get<0>(__a)))
-            __chosen_for_min = __b;
-        // if a ">" b or if a "==" b and a_index > b_index
-        if (__comp(get<3>(__b), get<3>(__a)) || (!__comp(get<3>(__a), get<3>(__b)) && get<1>(__b) < get<1>(__a)))
-            __chosen_for_max = __a;
-        auto __result = _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
-                                         get<3>(__chosen_for_max)};
-
-        return __result;
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, ::std::pair<_Iterator, _Iterator>>
 __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
@@ -514,23 +464,6 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
 //------------------------------------------------------------------------
 // adjacent_find
 //------------------------------------------------------------------------
-
-template <typename _Predicate>
-struct adjacent_find_fn
-{
-    _Predicate __predicate;
-
-    // the functor is being used instead of a lambda because
-    // at this level we don't know what type we get during zip_iterator unpack
-    // whereas lambdas with auto in arg parameters are supported since C++14
-    template <typename _Pack>
-    bool
-    operator()(const _Pack& __packed_neighbor_values) const
-    {
-        using ::std::get;
-        return __predicate(get<0>(__packed_neighbor_values), get<1>(__packed_neighbor_values));
-    }
-};
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
@@ -594,21 +527,6 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 // count, count_if
 //------------------------------------------------------------------------
 
-template <typename _Predicate>
-struct acc_handler_count
-{
-    _Predicate __predicate;
-
-    // int is being implicitly casted to difference_type
-    // otherwise we can only pass the difference_type as a functor template parameter
-    template <typename _Acc, typename _GlobalIdx>
-    int
-    operator()(_GlobalIdx gidx, _Acc acc) const
-    {
-        return (__predicate(acc[gidx]) ? 1 : 0);
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<
     _ExecutionPolicy, typename ::std::iterator_traits<_Iterator>::difference_type>
@@ -665,20 +583,6 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
 //------------------------------------------------------------------------
 // equal
 //------------------------------------------------------------------------
-
-template <typename _Pred>
-struct equal_predicate
-{
-    _Pred __pred;
-
-    template <typename _Value>
-    bool
-    operator()(const _Value& __val) const
-    {
-        using ::std::get;
-        return !__pred(get<0>(__val), get<1>(__val));
-    }
-};
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
@@ -1011,26 +915,6 @@ __pattern_partition_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterato
 //------------------------------------------------------------------------
 // unique_copy
 //------------------------------------------------------------------------
-
-template <typename _Predicate, typename _ValueType>
-struct __create_mask_unique_copy
-{
-    _Predicate __predicate;
-
-    template <typename _Idx, typename _Acc>
-    _ValueType
-    operator()(_Idx __idx, _Acc& __acc) const
-    {
-        using ::std::get;
-
-        auto __predicate_result = 1;
-        if (__idx != 0)
-            __predicate_result = __predicate(get<0>(__acc[__idx]), get<0>(__acc[__idx + (-1)]));
-
-        get<1>(__acc[__idx]) = __predicate_result;
-        return _ValueType{__predicate_result};
-    }
-};
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>

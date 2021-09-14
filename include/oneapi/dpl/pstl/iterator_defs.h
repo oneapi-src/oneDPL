@@ -77,6 +77,34 @@ struct __is_random_access_iterator<_IteratorType> : __is_random_access_iterator_
 {
 };
 
+// struct for checking if iterator is heterogeneous or not
+template <typename Iter, typename Void = void> // for non-heterogeneous iterators
+struct is_hetero_iterator : ::std::false_type
+{
+};
+
+template <typename Iter> // for heterogeneous iterators
+struct is_hetero_iterator<Iter, typename ::std::enable_if<Iter::is_hetero::value, void>::type> : ::std::true_type
+{
+};
+// struct for checking if iterator should be passed directly to device or not
+template <typename Iter, typename Void = void> // for iterators that should not be passed directly
+struct is_passed_directly : ::std::false_type
+{
+};
+
+template <typename Iter> // for iterators defined as direct pass
+struct is_passed_directly<Iter, typename ::std::enable_if<Iter::is_passed_directly::value, void>::type>
+    : ::std::true_type
+{
+};
+
+template <typename Iter> // for pointers to objects on device
+struct is_passed_directly<Iter, typename ::std::enable_if<::std::is_pointer<Iter>::value, void>::type>
+    : ::std::true_type
+{
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
