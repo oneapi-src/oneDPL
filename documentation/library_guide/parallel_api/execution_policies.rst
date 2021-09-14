@@ -1,7 +1,36 @@
-Parallel STL Usage
+Execution policies
 ##################
 
-Follow these steps to add Parallel STL to your application:
+The implementation supports the |dpcpp_long| execution policies used to run the massive parallel
+computational model for heterogeneous systems. The policies are specified in
+the |onedpl_long| section of the `oneAPI Specification
+<https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy>`_.
+
+For any of the implemented algorithms, pass one of the execution policy objects as the first
+argument in a call to specify the desired execution behavior. The policies have
+the following meaning:
+
+================================= ==============================
+Execution policy value            Description
+================================= ==============================
+``seq``                           Sequential execution.
+--------------------------------- ------------------------------
+``unseq``                         Unsequenced SIMD execution. This policy requires that
+                                  all functions provided are SIMD-safe.
+--------------------------------- ------------------------------
+``par``                           Parallel execution by multiple threads.
+--------------------------------- ------------------------------
+``par_unseq``                     Combined effect of ``unseq`` and ``par``.
+--------------------------------- ------------------------------
+``dpcpp_default``                 Massive parallel execution on devices using |dpcpp_short|.
+--------------------------------- ------------------------------
+``dpcpp_fpga``                    Massive parallel execution on FPGA devices.
+================================= ==============================
+
+The implementation is based on Parallel STL from the
+`LLVM Project <https://github.com/llvm/llvm-project/tree/main/pstl>`_.
+
+Follow these steps to add Parallel API to your application:
 
 #. Add ``#include <oneapi/dpl/execution>`` to your code.
    Then include one or more of the following header files, depending on the algorithms you
@@ -12,7 +41,7 @@ Follow these steps to add Parallel STL to your application:
    #. ``#include <oneapi/dpl/memory>``
 
    For better coexistence with the C++ standard library,
-   include |onedpl_long| header files before the standard C++ header files.
+   include |onedpl_long| header files before the standard C++ ones.
 
 #. Pass a |onedpl_short| execution policy object, defined in the ``oneapi::dpl::execution``
    namespace, to a parallel algorithm.
@@ -51,14 +80,14 @@ It encapsulates a SYCL device or queue, and
 allows you to set an optional kernel name. |dpcpp_short| execution policies can be used with all
 standard C++ algorithms that support execution policies.
 
-To use the policy, create a policy object by providing a class type for a unique kernel name
-as a template argument, and one of the following constructor arguments:
+To create a policy object you may use one of the following constructor arguments:
 
 * A SYCL queue
 * A SYCL device
 * A SYCL device selector
 * An existing policy object with a different kernel name
 
+Kernel name is set via policy template argument.
 Providing a kernel name for a policy is optional if the used compiler supports implicit
 names for SYCL kernel functions. The |dpcpp_cpp| supports it by default;
 for other compilers it may need to be enabled with compilation options such as
@@ -66,10 +95,10 @@ for other compilers it may need to be enabled with compilation options such as
 
 The ``oneapi::dpl::execution::dpcpp_default`` object is a predefined object of
 the ``device_policy`` class. It is created with a default kernel name and a default queue.
-Use it to create customized policy objects, or pass directly when invoking an algorithm.
+Use it to construct customized policy objects, or pass directly when invoking an algorithm.
 
-If ``dpcpp_default`` is passed directly to more than one algorithm, you must enable implicit
-kernel names (see above) for compilation.
+If ``dpcpp_default`` is passed directly to more than one algorithm, you must ensure that the
+compiler you use supports implicit kernel names (see above) and this option is turned on.
 
 The ``make_device_policy`` function templates simplify ``device_policy`` creation.
 
@@ -126,8 +155,8 @@ Use the policy when you run the application on a FPGA hardware device or FPGA em
 
 #. Pass the created policy object to a parallel algorithm.
 
-The default constructor of ``fpga_policy`` creates an object with a
-SYCL queue constructed for ``fpga_selector``, or for ``fpga_emulator_selector``
+The default constructor of ``fpga_policy`` wraps a SYCL queue created
+for ``fpga_selector``, or for ``fpga_emulator_selector``
 if the ``ONEDPL_FPGA_EMULATOR`` is defined.
 
 ``oneapi::dpl::execution::dpcpp_fpga`` is a predefined object of
@@ -158,127 +187,6 @@ The code below assumes ``using namespace oneapi::dpl::execution;`` for policies 
   auto fpga_policy_b = make_fpga_policy(queue{intel::fpga_selector{}});
   auto fpga_policy_c = make_fpga_policy<unroll_factor, class FPGAPolicyC>();
 
-Pass Data to Algorithms
-=======================
-
-You can use one of the following ways to pass data to an algorithm executed with a |dpcpp_short| policy:
-
-* ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
-* Unified shared memory (USM) pointers and ``std::vector`` with USM allocators
-* Iterators of host-side ``std::vector``
-
-Use oneapi::dpl::begin and oneapi::dpl::end Functions
------------------------------------------------------
-
-``oneapi::dpl::begin`` and ``oneapi::dpl::end`` are special helper functions that
-allow you to pass SYCL buffers to parallel algorithms. These functions accept
-a SYCL buffer and return an object of an unspecified type that provides the following
-API:
-
-* It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``.
-* It gives the following valid expressions: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
-  are objects of the type, and ``n`` is an integer value. The effect of those operations is the same as the type
-  that satisfies the ``LegacyRandomAccessIterator``, a C++ named requirement.
-* It provides the ``get_buffer`` method, which returns the buffer passed to the ``begin`` and ``end`` functions.
-
-``begin`` and ``end`` can take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
-to explicitly mention which access mode should be applied to the buffer accessor when submitting a
-DPC++ kernel to a device. For example:
-
-.. code:: cpp
-
-  auto first1 = begin(buf, sycl::read_only);
-  auto first2 = begin(buf, sycl::write_only, sycl::no_init);
-  auto first3 = begin(buf, sycl::no_init);
-
-It allows you to control the access mode for the particular buffer passing to a parallel algorithm.
-
-To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code.
-
-Example:
-
-.. code:: cpp
-
-  #include <oneapi/dpl/execution>
-  #include <oneapi/dpl/algorithm>
-  #include <oneapi/dpl/iterator>
-  #include <CL/sycl.hpp>
-  int main(){
-    sycl::buffer<int> buf { 1000 };
-    auto buf_begin = oneapi::dpl::begin(buf);
-    auto buf_end   = oneapi::dpl::end(buf);
-    std::fill(oneapi::dpl::execution::dpcpp_default, buf_begin, buf_end, 42);
-    return 0;
-  }
-
-Use Unified Shared Memory
--------------------------
-
-The following examples demonstrate two ways to use the parallel algorithms with USM:
-
-* USM pointers
-* USM allocators
-
-If you have a USM-allocated buffer, pass the pointers to the start and past the end
-of the buffer to a parallel algorithm. Make sure that the execution policy and
-the buffer were created for the same queue.
-
-.. code:: cpp
-
-  #include <oneapi/dpl/execution>
-  #include <oneapi/dpl/algorithm>
-  #include <CL/sycl.hpp>
-  int main(){
-    sycl::queue q;
-    const int n = 1000;
-    int* d_head = sycl::malloc_device<int>(n, q);
-
-    std::fill(oneapi::dpl::execution::make_device_policy(q), d_head, d_head + n, 42);
-
-    sycl::free(d_head, q);
-    return 0;
-  }
-
-Alternatively, use ``std::vector`` with a USM allocator:
-
-.. code:: cpp
-
-  #include <oneapi/dpl/execution>
-  #include <oneapi/dpl/algorithm>
-  #include <CL/sycl.hpp>
-  int main(){
-    const int n = 1000;
-    auto policy = oneapi::dpl::execution::dpcpp_default;
-    sycl::usm_allocator<int, sycl::usm::alloc::shared> alloc(policy.queue());
-    std::vector<int, decltype(alloc)> vec(n, alloc);
-
-    std::fill(policy, vec.begin(), vec.end(), 42);
-
-    return 0;
-  }
-
-Use Host-Side std::vector
------------------------------
-
-|onedpl_short| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
-example below.
-In this case, a temporary SYCL buffer is created and the data is copied to this buffer.
-After processing of the temporary buffer on a device is complete, the data is copied back
-to the host. Working with SYCL buffers is recommended to reduce data copying between the host and device.
-
-Example:
-
-.. code:: cpp
-
-  #include <oneapi/dpl/execution>
-  #include <oneapi/dpl/algorithm>
-  #include <vector>
-  int main(){
-    std::vector<int> v( 1000 );
-    std::fill(oneapi::dpl::execution::dpcpp_default, v.begin(), v.end(), 42);
-    // each element of vec equals to 42
-    return 0;
-  }
 
 Error Handling with |dpcpp_short| Execution Policies
 ====================================================
@@ -299,38 +207,3 @@ In order to process |dpcpp_short| asynchronous errors, the queue associated with
 created with an error handler object. The predefined policy objects (``dpcpp_default``, etc.) have
 no error handlers; do not use them if you need to process asynchronous errors.
 
-Restrictions
-============
-
-When used with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as |dpcpp_short|
-does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
-
-* Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
-* Passing data types, which are not trivially constructible, is only allowed in USM,
-  but not in buffers or host-allocated containers.
-
-Known Limitations
-=================
-
-For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms result of
-unary operation should be convertible to the type of the initial value if one is provided,
-otherwise to the type of values in the processed data sequence
-(``std::iterator_traits<IteratorType>::value_type``).
-
-Build Your Code with |onedpl_short|
-===================================
-
-Use these steps to build your code with |onedpl_short|:
-
-#. To build with the |dpcpp_cpp|, see the `Get Started with the Intel® oneAPI DPC++/C++ Compiler
-   <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
-   for details.
-#. Set the environment for |onedpl_short| and |onetbb_short|.
-#. To avoid naming device policy objects explicitly, add the ``–fsycl-unnamed-lambda`` option.
-
-Below is an example of a command line used to compile code that contains
-|onedpl_short| parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):
-
-.. code:: cpp
-
-  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb] -o test
