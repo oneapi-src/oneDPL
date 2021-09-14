@@ -60,11 +60,7 @@ using __plus =
 #if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
     sycl::plus<_T>;
 #else
-#    if __LIBSYCL_VERSION >= 50400
-    sycl::ext::onepi::plus<_T>;
-#    else
     sycl::ONEAPI::plus<_T>;
-#    endif
 #endif
 
 template <typename _Buffer>
@@ -110,11 +106,7 @@ __group_broadcast(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::group_broadcast(__args...);
 #else
-#    if __LIBSYCL_VERSION >= 50400
-    return sycl::ext::onepi::broadcast(__args...);
-#    else
     return sycl::ONEAPI::broadcast(__args...);
-#    endif
 #endif
 }
 
@@ -125,11 +117,7 @@ __exclusive_scan_over_group(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::exclusive_scan_over_group(__args...);
 #else
-#    if __LIBSYCL_VERSION >= 50400
-    return sycl::ext::onepi::exclusive_scan(__args...);
-#    else
     return sycl::ONEAPI::exclusive_scan(__args...);
-#    endif
 #endif
 }
 
@@ -140,11 +128,7 @@ __inclusive_scan_over_group(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::inclusive_scan_over_group(__args...);
 #else
-#    if __LIBSYCL_VERSION >= 50400
-    return sycl::ext::onepi::inclusive_scan(__args...);
-#    else
     return sycl::ONEAPI::inclusive_scan(__args...);
-#    endif
 #endif
 }
 
@@ -155,11 +139,7 @@ __reduce_over_group(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::reduce_over_group(__args...);
 #else
-#    if __LIBSYCL_VERSION >= 50400
-    return sycl::ext::onepi::reduce(__args...);
-#    else
     return sycl::ONEAPI::reduce(__args...);
-#    endif
 #endif
 }
 
@@ -170,11 +150,7 @@ __joint_exclusive_scan(_Args... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_exclusive_scan(__args...);
 #else
-#    if __LIBSYCL_VERSION >= 50400
-    return sycl::ext::onepi::exclusive_scan(__args...);
-#    else
     return sycl::ONEAPI::exclusive_scan(__args...);
-#    endif
 #endif
 }
 
