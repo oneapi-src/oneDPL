@@ -80,8 +80,8 @@ class __future : public __par_backend_hetero::__future_base
 #if _ONEDPL_BACKEND_SYCL
 // Specialization for hetero iterator and usm pointer
 template <typename _T>
-class __future<_T, typename std::enable_if<__par_backend_hetero::__internal::is_hetero_iterator<_T>::value ||
-                                           __par_backend_hetero::__internal::is_passed_directly<_T>::value>::type>
+class __future<_T, typename std::enable_if<__internal::is_hetero_iterator<_T>::value ||
+                                           __internal::is_passed_directly<_T>::value>::type>
     : public __par_backend_hetero::__future_base
 {
     _T __data;

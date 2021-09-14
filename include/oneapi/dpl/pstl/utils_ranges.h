@@ -19,7 +19,9 @@
 #include <iterator>
 #include <type_traits>
 
+#include "iterator_defs.h"
 #include "iterator_impl.h"
+#include "execution_defs.h"
 
 namespace oneapi
 {

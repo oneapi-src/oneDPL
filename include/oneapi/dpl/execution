@@ -29,6 +29,7 @@
 
 #define _ONEDPL_EXECUTION_POLICIES_DEFINED 1
 
+// If the forward declarations have already been processed, pull the implementations
 #if _ONEDPL_ALGORITHM_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_algorithm_impl.h"
 
@@ -44,6 +45,14 @@
 
 #if _ONEDPL_NUMERIC_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
+#endif
+
+#if _ONEDPL_ALGORITHM_RANGES_FORWARD_DECLARED
+#    include "oneapi/dpl/pstl/glue_algorithm_ranges_impl.h"
+#endif
+
+#if _ONEDPL_NUMERIC_RANGES_FORWARD_DECLARED
+#    include "oneapi/dpl/pstl/glue_numeric_ranges_impl.h"
 #endif
 
 #if _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
