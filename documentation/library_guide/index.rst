@@ -13,10 +13,9 @@ efforts across devices for high performance parallel applications.
    :titlesonly:
    :glob:
 
+   onedpl_gsg
    overview
    parallel_api_main
    api_for_dpcpp_kernels_main
    macros
    notices_disclaimers
-
-   
