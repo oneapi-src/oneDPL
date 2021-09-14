@@ -1,10 +1,10 @@
 Special iterators
 #################
 
-The set of special iterators provides implement zip, transform, and permutation operations on other iterators,
+The set of special iterators implements zip, transform, and permutation operations on other iterators,
 and also include a counting iterator and a discard iterator.
 
-The definitions of the iterators provided in the Extension API are available through the ``oneapi/dpl/iterator``
+The definitions of the iterators are available through the ``oneapi/dpl/iterator``
 header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
 
 * ``counting_iterator``

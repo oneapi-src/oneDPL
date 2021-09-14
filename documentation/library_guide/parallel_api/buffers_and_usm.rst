@@ -74,7 +74,7 @@ the buffer were created for the same queue.
   int main(){
     sycl::queue q;
     const int n = 1000;
-    int* d_head = sycl::malloc_device<int>(n, q);
+    int* d_head = sycl::malloc_shared<int>(n, q);
 
     std::fill(oneapi::dpl::execution::make_device_policy(q), d_head, d_head + n, 42);
 

@@ -3,7 +3,7 @@ Additional set of algorithms
 
 The additional set of algorithms includes segmented reduce, segmented scan and vectorized search algorithms.
 
-The definitions of the algorithms provided in the Extension API are available through the ``oneapi/dpl/algorithm``
+The definitions of the algorithms listed above are available through the ``oneapi/dpl/algorithm``
 header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
 
 * ``reduce_by_segment``

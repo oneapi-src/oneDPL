@@ -6,8 +6,8 @@ computational model for heterogeneous systems. The policies are specified in
 the |onedpl_long| section of the `oneAPI Specification
 <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy>`_.
 
-For any of the implemented algorithms, pass one of the execution policies values as the first
-argument in a call to the algorithm to specify the desired execution policy. The policies have
+For any of the implemented algorithms, pass one of the execution policy objects as the first
+argument in a call to specify the desired execution behavior. The policies have
 the following meaning:
 
 ================================= ==============================
@@ -30,7 +30,7 @@ Execution policy value            Description
 The implementation is based on Parallel STL from the
 `LLVM Project <https://github.com/llvm/llvm-project/tree/main/pstl>`_.
 
-Follow these steps to add Parallel STL to your application:
+Follow these steps to add Parallel API to your application:
 
 #. Add ``#include <oneapi/dpl/execution>`` to your code.
    Then include one or more of the following header files, depending on the algorithms you
@@ -41,7 +41,7 @@ Follow these steps to add Parallel STL to your application:
    #. ``#include <oneapi/dpl/memory>``
 
    For better coexistence with the C++ standard library,
-   include |onedpl_long| header files before the standard C++ header files.
+   include |onedpl_long| header files before the standard C++ ones.
 
 #. Pass a |onedpl_short| execution policy object, defined in the ``oneapi::dpl::execution``
    namespace, to a parallel algorithm.
@@ -80,14 +80,14 @@ It encapsulates a SYCL device or queue, and
 allows you to set an optional kernel name. |dpcpp_short| execution policies can be used with all
 standard C++ algorithms that support execution policies.
 
-To use the policy, create a policy object by providing a class type for a unique kernel name
-as a template argument, and one of the following constructor arguments:
+To create a policy object you may use one of the following constructor arguments:
 
 * A SYCL queue
 * A SYCL device
 * A SYCL device selector
 * An existing policy object with a different kernel name
 
+Kernel name is set via policy template argument.
 Providing a kernel name for a policy is optional if the used compiler supports implicit
 names for SYCL kernel functions. The |dpcpp_cpp| supports it by default;
 for other compilers it may need to be enabled with compilation options such as
@@ -95,10 +95,10 @@ for other compilers it may need to be enabled with compilation options such as
 
 The ``oneapi::dpl::execution::dpcpp_default`` object is a predefined object of
 the ``device_policy`` class. It is created with a default kernel name and a default queue.
-Use it to create customized policy objects, or pass directly when invoking an algorithm.
+Use it to construct customized policy objects, or pass directly when invoking an algorithm.
 
-If ``dpcpp_default`` is passed directly to more than one algorithm, you must enable implicit
-kernel names (see above) for compilation.
+If ``dpcpp_default`` is passed directly to more than one algorithm, you must ensure that the
+compiler you use supports implicit kernel names (see above) and this option is turned on.
 
 The ``make_device_policy`` function templates simplify ``device_policy`` creation.
 
@@ -155,8 +155,8 @@ Use the policy when you run the application on a FPGA hardware device or FPGA em
 
 #. Pass the created policy object to a parallel algorithm.
 
-The default constructor of ``fpga_policy`` creates an object with a
-SYCL queue constructed for ``fpga_selector``, or for ``fpga_emulator_selector``
+The default constructor of ``fpga_policy`` wraps a SYCL queue created
+for ``fpga_selector``, or for ``fpga_emulator_selector``
 if the ``ONEDPL_FPGA_EMULATOR`` is defined.
 
 ``oneapi::dpl::execution::dpcpp_fpga`` is a predefined object of
