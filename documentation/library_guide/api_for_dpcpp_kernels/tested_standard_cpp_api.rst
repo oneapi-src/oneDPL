@@ -338,6 +338,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::find_if``                     Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::find_if_not``                 Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::for_each_n``                  Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

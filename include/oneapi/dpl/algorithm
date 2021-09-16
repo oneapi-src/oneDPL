@@ -19,6 +19,7 @@
 // ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
 #include <algorithm>
 #include "oneapi/dpl/pstl/onedpl_config.h"
+#include "oneapi/dpl/internal/serial_algorithm_impl.h"
 
 #if !_ONEDPL_ALGORITHM_FORWARD_DECLARED
 // If not declared, pull in forward declarations
