@@ -7,9 +7,9 @@ programming efforts across devices for high performance parallel applications.
 
 |onedpl_short| consists of the following components:
 
-* Parallel STL for DPC++
-* An additional set of library classes and functions (Extension API)
-* Tested standard C++ APIs
+* Parallel API
+* API for DPC++ Kernels
+* Macros
 
 
 For general information about |onedpl_short|, visit the `oneDPL GitHub* repository <https://github.com/oneapi-src/oneDPL>`_,
@@ -31,7 +31,7 @@ page for:
 Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://software.intel.com/en-us/oneapi/base-kit>`_
 to use |onedpl_short|.
 
-To use Parallel STL or the Extension API, include the corresponding header files in your source code.
+To use the Parallel API, include the corresponding header files in your source code.
 All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#include <oneapi/dpl/…>`` to include them.
 |onedpl_short| uses the namespace ``oneapi::dpl`` for most its classes and functions.
 
@@ -91,7 +91,7 @@ You can take the observed fraction of points in the quarter-circle as an estimat
 
 This example shows you how to create an RNG engine object (the source of pseudo-randomness),
 a distribution object (specifying the desired probability distribution), generate the
-random numbers themselves and then perform a reduction to count quantity of points that
+random numbers themselves, and then perform a reduction to count quantity of points that
 fit into the square *S*. Random number generation is performed in scalar manner to simplify your code.
 
 
@@ -137,7 +137,7 @@ Find More
    * - Resource Link
      - Description
    * - `Intel® oneAPI DPC++ Library (oneDPL) Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
-     - Refer to |onedpl_short| Library Guide for  more indepth information.
+     - Refer to |onedpl_short| Library Guide for  more in depth information.
    * - `System Requirements <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-system-requirements.html>`_
      - Check system requirements before you install |onedpl_short|.
    * - `Intel® oneAPI DPC++ Library (oneDPL) Release Notes <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
