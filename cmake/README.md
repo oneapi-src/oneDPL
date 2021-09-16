@@ -110,8 +110,10 @@ target_compile_definitions(foo PRIVATE ONEDPL_USE_TBB_BACKEND=0)
 
 ### oneDPLConfig files generation
 
-`cmake/script/generate_config.cmake` is provided to generate oneDPLConfig files for oneDPL package.
+This section is applicable for oneDPL packaging creation process, but not for usual development flow.
+
+`cmake/scripts/generate_config.cmake` is provided to generate oneDPLConfig files for oneDPL package.
 
 How to use:
 
-`cmake [-DOUTPUT_DIR=<output_dir>] -P cmake/script/generate_config.cmake`
+`cmake [-DOUTPUT_DIR=<output_dir>] -P cmake/scripts/generate_config.cmake`
