@@ -350,6 +350,14 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::copy_n``                      Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::is_permutation``              Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::fill``                        Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::fill_n``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::move``                        Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::move_backward``               Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
