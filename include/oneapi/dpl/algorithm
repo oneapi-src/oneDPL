@@ -59,11 +59,14 @@ using ::std::find;
 using ::std::find_if;
 using ::std::find_if_not;
 using ::std::for_each;
+using ::std::generate;
+using ::std::generate_n;
 using ::std::is_permutation;
 using ::std::lower_bound;
 using ::std::move;
 using ::std::move_backward;
 using ::std::none_of;
+using ::std::transform;
 using ::std::upper_bound;
 } // namespace dpl
 
