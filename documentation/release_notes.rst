@@ -32,7 +32,8 @@ Known Issues and Limitations
 
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- No new issues in this release.
+- The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
+  that makes it different for the host and the device. Otherwise, the behavior is undefined.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
