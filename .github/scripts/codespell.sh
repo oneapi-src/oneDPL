@@ -19,6 +19,7 @@ SKIP_PATTERN='*/.github/*'
 # Ignored cases
 IGNORE_COMMAND="sed -e /.*sycl_iterator.pass.cpp.*nd\\s*=.*/d \
 -e /.*nanorange.hpp.*copyable\\s*=.*/d \
+-e /.*overview.rst.*copyable\\s*=.*/d \
 -e /.*iterator_impl.h.*Copyable\\s*=.*/d \
 -e /.*windows.inc.*Od\\s*=.*/d \
 -e /.*README.md.*varN\\s*=.*/d"
