@@ -340,6 +340,14 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::find_if_not``                 Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::for_each_n``                  Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::copy``                        Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::copy_backward``               Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::copy_if``                     Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::copy_n``                      Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
