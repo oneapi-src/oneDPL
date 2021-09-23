@@ -54,7 +54,7 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
 
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
-* Passing data types, which are not trivially copiable, is only allowed via USM,
+* Passing data types, which are not trivially copyable, is only allowed via USM,
   but not via buffers or host-allocated containers.
 
 Known Limitations
