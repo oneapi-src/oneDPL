@@ -16,7 +16,7 @@ SCAN_TARGET=$1
 
 SKIP_PATTERN='*/.github/*'
 
-# # Ignored cases
+# Ignored cases
 IGNORE_COMMAND="sed -e /.*sycl_iterator.pass.cpp.*nd\\s*=.*/d \
 -e /.*windows.inc.*Od\\s*=.*/d \
 -e /.*README.md.*varN\\s*=.*/d"
