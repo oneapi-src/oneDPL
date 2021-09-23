@@ -226,7 +226,7 @@ class normal_distribution
         return __res;
     }
 
-    // Specialization of the vector generation with size = [1; 2; 3]
+    // Specialization of the vector generation with size = [1; 3]
     template <int __N, class _Engine>
     typename ::std::enable_if<(__N <= 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type __params)
@@ -274,12 +274,12 @@ class normal_distribution
             __res[0] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
                                             sycl::cos(pi2<scalar_type>() * saved_u2_));
 
-            for (int __i = 0, __j = 0; __i < __N; __i += 2, ++__j)
+            for (int __i = 1, __j = 0; __i < __N - 1; __i += 2, ++__j)
             {
-                __res[__i + 1] =
+                __res[__i] =
                     (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __sin[__j]) * __stddev +
                     __mean;
-                __res[__i + 2] =
+                __res[__i + 1] =
                     (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __cos[__j]) * __stddev +
                     __mean;
             }
@@ -353,19 +353,18 @@ class normal_distribution
 
             for (unsigned int __i = 1; __i < (__N - __tail); __i += 2)
             {
-                __u1 = __u[__i - 1];
-                __u2 = __u[__i];
-
                 __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
 
+                __u1 = __u[__i - 1];
+                __u2 = __u[__i];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __sin);
                 __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __cos);
             }
             if (__tail)
             {
-                __u1 = __u[__N - 2];
-                __u2 = __u[__N - 1];
+                __u1 = __u[__N - 1];
+                __u2 = __u[__N];
                 __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
                 __res[__N - 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
                                                       sycl::sin(pi2<scalar_type>() * __u2));
@@ -387,7 +386,7 @@ class normal_distribution
         if (__N == 0)
             return __part_vec;
         else if (__N >= _Ndistr)
-            return operator()(__engine, __params);
+            return operator()(__engine);
 
         __part_vec = generate_n_elems(__engine, __params, __N);
         return __part_vec;
