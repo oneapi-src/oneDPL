@@ -6,6 +6,59 @@ Overview
 
 The list of the most significant changes made over time in oneDPL.
 
+New in 2021.5
+=============
+
+New Features
+------------
+- Added new random number distributions: ``exponential_distribution``, ``bernoulli_distribution``,
+  ``geometric_distribution``, ``lognormal_distribution``, ``weibull_distribution``, ``cachy_distribution``, ``extreme_value_distribution``.
+- Added the serial-based versions of the following algorithms: ``all_of``, ``any_of``, 
+  ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
+  For the detailed list, please refer to `Tested Standard C++ API Reference`_. 
+- Improved performance of ``search`` and ``find_end`` algorithms on GPU devices.
+
+Fixed Issues
+------------
+- Fixed SYCL* 2020 features deprecation warnings.
+- Fixed some corner cases of ``normal_distribution`` functionality.
+- Fixed a floating point exception occurring on CPU devices when a program uses a lot of oneDPL algorithms and DPC++ kernels.
+- Fixed possible hanging and data races of the following algorithms used with DPC++ execution policies: ``count``, ``count_if``, ``is_partitioned``, ``lexicographical_compare``, ``max_element``, ``min_element``, ``minmax_element``,    ``reduce``, ``transform_reduce``.
+
+Known Issues and Limitations
+----------------------------
+
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
+  that makes it different for the host and the device. Otherwise, the behavior is undefined.
+
+New in 2021.4
+=============
+
+New Features
+------------
+-  Added the range-based versions of the following algorithms: ``any_of``, ``adjacent_find``,
+   ``copy_if``, ``none_of``, ``remove_copy_if``, ``remove_copy``, ``replace_copy``, 
+   ``replace_copy_if``, ``reverse``, ``reverse_copy``, ``rotate_copy``, ``swap_ranges``,
+   ``unique``, ``unique_copy``.
+-  Added new asynchronous algorithms: ``inclusive_scan_async``, ``exclusive_scan_async``,
+   ``transform_inclusive_scan_async``, ``transform_exclusive_scan_async``.
+-  Added structured binding support for ``zip_iterator::value_type``.
+
+Fixed Issues
+------------
+-  Fixed an issue with asynchronous algorithms returning ``future<ptr>`` with unified shared memory (USM).
+
+Known Issues and Limitations
+----------------------------
+
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+-  With Intel® oneAPI DPC++/C++ Compiler, ``unseq`` and ``par_unseq`` execution policies do not use OpenMP SIMD pragmas
+   due to compilation issues with the ``-fopenm-simd`` option, possibly resulting in suboptimal performance.
+-  The ``oneapi::dpl::experimental::ranges::reverse`` algorithm does not compile with ``-fno-sycl-unnamed-lambda`` option.
+
 New in 2021.3
 =============
 
