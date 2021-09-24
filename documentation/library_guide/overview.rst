@@ -1,7 +1,7 @@
 |onedpl_long| Overview
 #######################################
 
-A parallel API can be used with the `C++ Standard Execution
+Parallel API can be used with the `C++ Standard Execution
 Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_
 to enable parallelism on your host.
 
