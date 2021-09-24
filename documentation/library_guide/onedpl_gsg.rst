@@ -31,7 +31,8 @@ page for:
 Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://software.intel.com/en-us/oneapi/base-kit>`_
 to use |onedpl_short|.
 
-To use the Parallel API, include the corresponding header files in your source code.
+To use Parallel API, include the corresponding header files in your source code.
+
 All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#include <oneapi/dpl/…>`` to include them.
 |onedpl_short| uses the namespace ``oneapi::dpl`` for most its classes and functions.
 
