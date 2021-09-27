@@ -3,7 +3,7 @@
 
 Parallel API can be used with the `C++ Standard Execution
 Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_
-to enable parallelism on your host.
+to enable parallelism on the host.
 
 The |onedpl_long| is implemented in accordance with the `oneDPL
 Specification <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html>`_.
