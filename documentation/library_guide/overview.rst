@@ -73,7 +73,7 @@ Follow the steps below to build your code with |onedpl_short|:
 #. To build with the |dpcpp_cpp|, see the `Get Started with the Intel® oneAPI DPC++/C++ Compiler
    <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
    for details.
-#. Set the environments for |onedpl_short| and |onetbb_short|.
+#. Set the environment variables for |onedpl_short| and |onetbb_short|.
 #. To avoid naming device policy objects explicitly, add the ``-fsycl-unnamed-lambda`` option.
 
 Below is an example of a command line used to compile code that contains
