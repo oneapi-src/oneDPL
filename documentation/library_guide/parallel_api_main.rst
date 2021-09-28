@@ -22,7 +22,7 @@ The function object classes provide minimum, maximum, and identity operations
 that may be passed to algorithms such as reduce or transform.
 
 |onedpl_short| also includes an experimental implementation of range-based algorithms with their
-required ranges and an Async API.
+required ranges and Async API.
 
 .. toctree::
    :maxdepth: 2
