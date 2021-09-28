@@ -26,7 +26,7 @@ Predefined Random Number Engines
 --------------------------------
 
 Predefined random number engines are instantiations of random number engines class templates. 
-The types below are are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
+The types below are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
 
 ===================================================================== =========================================================================================================
 Type                                                                  Description
@@ -56,14 +56,14 @@ Type                                                                  Descriptio
 ``template<std::int32_t N> ranlux24_vec<N>``                          ``oneapi::dpl::discard_block_engine<ranlux24_base_vec<N>, 223, 23>``
                                                                       ranlux24 for a vector generation case
 ``template<std::int32_t N> ranlux48_vec<N>``                          ``oneapi::dpl::discard_block_engine<ranlux48_base_vec<N>, 389, 11>``
-                                                                      ranlux48 for vector genertion case
+                                                                      ranlux48 for vector generation case
 ===================================================================== =========================================================================================================
 
 Random Number Distributions
 ---------------------------
 
 Random number distributions process the output of random number engines in such a way that the
-resulting output is distributed according to a defined statistical probility density function. They
+resulting output is distributed according to a defined statistical probability density function. They
 are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
 
 ============================== =========================================================================================================
@@ -84,7 +84,7 @@ Distribution                   Description
 Usage Model of |onedpl_short| Random Number Generation Functionality
 --------------------------------------------------------------------
 
-Random number generation is available for |dpcpp_long| device-side and host-side code. Example:
+Random number generation is available for |dpcpp_long| device-side and host-side code. For example:
 
 .. code:: cpp
 
