@@ -1,10 +1,10 @@
-Asynchronous API algorithms
+Asynchronous API Algorithms
 ###########################
 
 The functions defined in the STL ``<algorithm>`` or ``<numeric>`` headers are traditionally blocking. |onedpl_short| extends the
-functionality of C++17 parallel algorithms by providing asynchronous algorithms with non-blocking behavior.
-This experimental feature enables you to express a concurrent control flow by building dependency chains and interleaving algorithm calls
-and interoperability with |dpcpp_short| and SYCL* kernels. 
+functionality of the C++17 parallel algorithms by providing asynchronous algorithms with non-blocking behavior.
+This experimental feature enables you to express a concurrent control flow by building dependency chains, interleaving algorithm calls,
+and interoperability with |dpcpp_long| and SYCL* kernels. 
 
 The current implementation for async algorithms is limited to |dpcpp_short| Execution Policies.
 All the functionality described below is available in the ``oneapi::dpl::experimental`` namespace.
@@ -23,23 +23,24 @@ The following async algorithms are currently supported:
 * ``transform_inclusive_scan_async``
 * ``transform_exclusive_scan_async``
 
-All the interfaces listed above are a subset of C++17 STL algorithms,
+All the interfaces listed above are a subset of the C++17 STL algorithms,
 where the suffix ``_async`` is added to the corresponding name (for example: ``reduce``, ``sort``, etc.).
 The behavior and signatures are overlapping with the C++17 STL algorithm with the following changes:
 
-* Do not block the execution.
-* Take an arbitrary number of events (including 0) as last arguments to allow expressing input dependencies.
-* Return future-like object that allows ``wait`` for completion and ``get`` the result.
+* They do not block the execution.
+* They take an arbitrary number of events (including 0) as last arguments to allow you to express input dependencies.
+* They return a future-like object that allows you to use ``wait`` for completion and ``get`` for the result.
 
-The type of the future-like object returned from asynchronous algorithm is unspecified. The following member functions are present:
+The type of the future-like object returned from an asynchronous algorithm is unspecified. The following member functions are present:
 
 * ``get()`` returns the result.
 * ``wait()`` waits for the result to become available.
 
-If the returned object is the result of an algorithm with device policy, it can be converted into a ``sycl::event``.
-Lifetime of any resources the algorithm allocates (for example: temporary storage) is bound to the lifetime of the returned object.
+If the returned object is the result of an algorithm with a device policy, it can be converted into a ``sycl::event``.
+The lifetime of any resources the algorithm allocates (for example: temporary storage) is bound to the lifetime of
+the returned object.
 
-Utility functions:
+The following utility functions are available:
 
 * ``wait_for_all(…)`` waits for an arbitrary number of objects that are convertible into ``sycl::event`` to become ready.
 
