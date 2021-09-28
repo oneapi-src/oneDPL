@@ -358,6 +358,10 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::move``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::move_backward``               Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::rotate``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::rotate_copy``                 Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
