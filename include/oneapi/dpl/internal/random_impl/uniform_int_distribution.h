@@ -32,15 +32,45 @@ class uniform_int_distribution
     // Distribution types
     using result_type = _IntType;
     using scalar_type = internal::element_type_t<result_type>;
-    using param_type = typename ::std::pair<scalar_type, scalar_type>;
+    class param_type
+    {
+      public:
+        typedef uniform_int_distribution<result_type> distribution_type;
+        param_type() : param_type(scalar_type{0}) {}
+        explicit param_type(scalar_type a, scalar_type b = ::std::numeric_limits<scalar_type>::max()) : a_(a), b_(b) {}
+        scalar_type
+        a() const
+        {
+            return a_;
+        }
+        scalar_type
+        b() const
+        {
+            return b_;
+        }
+        friend bool
+        operator==(const param_type& p1, const param_type& p2)
+        {
+            return p1.a_ == p2.a_ && p1.b_ == p2.b_;
+        }
+        friend bool
+        operator!=(const param_type& p1, const param_type& p2)
+        {
+            return !(p1 == p2);
+        }
+
+      private:
+        scalar_type a_;
+        scalar_type b_;
+    };
 
     // Constructors
-    uniform_int_distribution() : uniform_int_distribution(static_cast<scalar_type>(0)) {}
+    uniform_int_distribution() : uniform_int_distribution(scalar_type{0}) {}
     explicit uniform_int_distribution(scalar_type __a, scalar_type __b = ::std::numeric_limits<scalar_type>::max())
         : a_(__a), b_(__b)
     {
     }
-    explicit uniform_int_distribution(const param_type& __params) : a_(__params.first), b_(__params.second) {}
+    explicit uniform_int_distribution(const param_type& __params) : a_(__params.a()), b_(__params.b()) {}
 
     // Reset function
     void
@@ -68,10 +98,10 @@ class uniform_int_distribution
     }
 
     void
-    param(const param_type& __parm)
+    param(const param_type& __params)
     {
-        a_ = __parm.first;
-        b_ = __parm.second;
+        a_ = __params.a();
+        b_ = __params.b();
     }
 
     scalar_type
@@ -140,8 +170,8 @@ class uniform_int_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         RealType __res = uniform_real_distribution_(
-            __engine, ::std::pair<double, double>(static_cast<double>(__params.first),
-                                                  static_cast<double>(__params.second) + 1.0));
+            __engine, typename uniform_real_distribution<RealType>::param_type(
+                          static_cast<double>(__params.a()), static_cast<double>(__params.b()) + 1.0));
 
         result_type __res_ret;
         for (int __i = 0; __i < _Ndistr; ++__i)
@@ -155,8 +185,8 @@ class uniform_int_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         RealType __res = uniform_real_distribution_(
-            __engine, ::std::pair<double, double>(static_cast<double>(__params.first),
-                                                  static_cast<double>(__params.second) + 1.0));
+            __engine, typename uniform_real_distribution<RealType>::param_type(
+                          static_cast<double>(__params.a()), static_cast<double>(__params.b()) + 1.0));
 
         return static_cast<scalar_type>(__res);
     }
@@ -174,8 +204,8 @@ class uniform_int_distribution
 
         RealType __res =
             uniform_real_distribution_(__engine,
-                                       ::std::pair<double, double>(static_cast<double>(__params.first),
-                                                                   static_cast<double>(__params.second) + 1.0),
+                                       typename uniform_real_distribution<RealType>::param_type(
+                                           static_cast<double>(__params.a()), static_cast<double>(__params.b()) + 1.0),
                                        __N);
 
         for (unsigned int __i = 0; __i < __N; ++__i)

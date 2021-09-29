@@ -76,7 +76,7 @@ class lognormal_distribution
     void
     param(const param_type& __param)
     {
-        nd_.param(std::make_pair(__param.m, __param.s));
+        nd_.param(normal_distr_param_type(__param.m, __param.s));
     }
 
     scalar_type
@@ -126,6 +126,8 @@ class lognormal_distribution
 
     using normal_distr = oneapi::dpl::normal_distribution<
         typename ::std::conditional<(size_of_type_ <= 3), scalar_type, result_type>::type>;
+    using normal_distr_param_type = typename oneapi::dpl::normal_distribution<
+        typename ::std::conditional<(size_of_type_ <= 3), scalar_type, result_type>::type>::param_type;
 
     // Static asserts
     static_assert(::std::is_floating_point<scalar_type>::value,
@@ -147,7 +149,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
+        return sycl::exp(nd_(__engine, normal_distr_param_type(__params.m, __params.s)));
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -157,7 +159,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
+            __res[i] = sycl::exp(nd_(__engine, normal_distr_param_type(__params.m, __params.s)));
         return __res;
     }
 
@@ -166,7 +168,7 @@ class lognormal_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
+        return sycl::exp(nd_(__engine, normal_distr_param_type(__params.m, __params.s)));
     }
 
     // Implementation for the N vector's elements generation with size = [4; 8; 16]
@@ -174,7 +176,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr > 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
-        result_type __res = nd_(__engine, std::make_pair(__params.m, __params.s), __N);
+        result_type __res = nd_(__engine, normal_distr_param_type(__params.m, __params.s), __N);
         for (int i = 0; i < __N; i++)
             __res[i] = sycl::exp(__res[i]);
         return __res;
@@ -187,7 +189,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, std::make_pair(__params.m, __params.s)));
+            __res[i] = sycl::exp(nd_(__engine, normal_distr_param_type(__params.m, __params.s)));
         return __res;
     }
 

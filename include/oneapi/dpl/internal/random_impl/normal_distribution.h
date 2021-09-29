@@ -46,15 +46,45 @@ class normal_distribution
     // Distribution types
     using result_type = _RealType;
     using scalar_type = internal::element_type_t<result_type>;
-    using param_type = typename ::std::pair<scalar_type, scalar_type>;
+    class param_type
+    {
+      public:
+        typedef normal_distribution<result_type> distribution_type;
+        param_type() : param_type(scalar_type{0.0}) {}
+        explicit param_type(scalar_type mean, scalar_type stddev = scalar_type{1.0}) : mean_(mean), stddev_(stddev) {}
+        scalar_type
+        mean() const
+        {
+            return mean_;
+        }
+        scalar_type
+        stddev() const
+        {
+            return stddev_;
+        }
+        friend bool
+        operator==(const param_type& p1, const param_type& p2)
+        {
+            return p1.mean_ == p2.mean_ && p1.stddev_ == p2.stddev_;
+        }
+        friend bool
+        operator!=(const param_type& p1, const param_type& p2)
+        {
+            return !(p1 == p2);
+        }
+
+      private:
+        scalar_type mean_;
+        scalar_type stddev_;
+    };
 
     // Constructors
-    normal_distribution() : normal_distribution(static_cast<scalar_type>(0.0)) {}
-    explicit normal_distribution(scalar_type __mean, scalar_type __stddev = static_cast<scalar_type>(1.0))
+    normal_distribution() : normal_distribution(scalar_type{0.0}) {}
+    explicit normal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0})
         : mean_(__mean), stddev_(__stddev)
     {
     }
-    explicit normal_distribution(const param_type& __params) : mean_(__params.first), stddev_(__params.second) {}
+    explicit normal_distribution(const param_type& __params) : mean_(__params.mean()), stddev_(__params.stddev()) {}
 
     // Reset function
     void
@@ -83,10 +113,10 @@ class normal_distribution
     }
 
     void
-    param(const param_type& __parm)
+    param(const param_type& __params)
     {
-        mean_ = __parm.first;
-        stddev_ = __parm.second;
+        mean_ = __params.mean();
+        stddev_ = __params.stddev();
     }
 
     scalar_type
@@ -201,24 +231,24 @@ class normal_distribution
         if (!flag_)
         {
             result_type __u1 = uniform_real_distribution_(
-                __engine,
-                ::std::pair<scalar_type, scalar_type>(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)));
+                __engine, typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0},
+                                                                                              scalar_type{1.0}));
             result_type __u2 = uniform_real_distribution_(
-                __engine,
-                ::std::pair<scalar_type, scalar_type>(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)));
+                __engine, typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0},
+                                                                                              scalar_type{1.0}));
 
-            __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
+            __ln = (__u1 == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__u1);
 
-            __res = __params.first + __params.second * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                        sycl::sin(pi2<scalar_type>() * __u2));
+            __res = __params.mean() +
+                    __params.stddev() * (sycl::sqrt(-scalar_type{2.0} * __ln) * sycl::sin(pi2<scalar_type>() * __u2));
 
             saved_ln_ = __ln;
             saved_u2_ = __u2;
         }
         else
         {
-            __res = __params.first + __params.second * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
-                                                        sycl::cos(pi2<scalar_type>() * saved_u2_));
+            __res = __params.mean() + __params.stddev() * (sycl::sqrt(-scalar_type{2.0} * saved_ln_) *
+                                                           sycl::cos(pi2<scalar_type>() * saved_u2_));
         }
 
         flag_ = !flag_;
@@ -240,30 +270,31 @@ class normal_distribution
     generate_vec(_Engine& __engine, const param_type __params)
     {
         uniform_result_type __u;
-        scalar_type __mean = __params.first, __stddev = __params.second;
+        scalar_type __mean = __params.mean(), __stddev = __params.stddev();
         result_type __res;
 
         constexpr unsigned int __vec_size = __N / 2;
         sycl::vec<scalar_type, __vec_size> __sin, __cos;
         sycl::vec<scalar_type, __vec_size> __u1_transformed;
 
-        __u = uniform_real_distribution_(__engine,
-                                         param_type(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)), __N);
+        __u = uniform_real_distribution_(
+            __engine,
+            typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0}, scalar_type{1.0}),
+            __N);
 
         sycl::vec<scalar_type, __vec_size> __u1 = __u.even();
         sycl::vec<scalar_type, __vec_size> __u2 = __u.odd();
 
         // Calculate sycl::log with callback
-        __u1_transformed =
-            select(sycl::log(__u1), sycl::vec<scalar_type, __vec_size>{callback<scalar_type>()},
-                   sycl::isequal(__u1, sycl::vec<scalar_type, __vec_size>{static_cast<scalar_type>(0.0)}));
+        __u1_transformed = select(sycl::log(__u1), sycl::vec<scalar_type, __vec_size>{callback<scalar_type>()},
+                                  sycl::isequal(__u1, sycl::vec<scalar_type, __vec_size>{scalar_type{0.0}}));
 
         // Get sincos
         __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
 
         if (!flag_)
         {
-            __u1_transformed = sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed);
+            __u1_transformed = sycl::sqrt(scalar_type{-2.0} * __u1_transformed);
             __res.even() = __u1_transformed * __sin * __stddev + __mean;
             __res.odd() = __u1_transformed * __cos * __stddev + __mean;
 
@@ -271,23 +302,19 @@ class normal_distribution
         }
         else
         {
-            __res[0] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
+            __res[0] = __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * saved_ln_) *
                                             sycl::cos(pi2<scalar_type>() * saved_u2_));
 
             for (int __i = 1, __j = 0; __i < __N - 1; __i += 2, ++__j)
             {
-                __res[__i] =
-                    (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __sin[__j]) * __stddev +
-                    __mean;
+                __res[__i] = (sycl::sqrt(scalar_type{-2.0} * __u1_transformed[__j]) * __sin[__j]) * __stddev + __mean;
                 __res[__i + 1] =
-                    (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__j]) * __cos[__j]) * __stddev +
-                    __mean;
+                    (sycl::sqrt(scalar_type{-2.0} * __u1_transformed[__j]) * __cos[__j]) * __stddev + __mean;
             }
 
-            __res[__N - 1] = (sycl::sqrt(static_cast<scalar_type>(-2.0) * __u1_transformed[__vec_size - 1]) *
-                              __sin[__vec_size - 1]) *
-                                 __stddev +
-                             __mean;
+            __res[__N - 1] =
+                (sycl::sqrt(scalar_type{-2.0} * __u1_transformed[__vec_size - 1]) * __sin[__vec_size - 1]) * __stddev +
+                __mean;
 
             saved_ln_ = __u1_transformed[__vec_size - 1];
             saved_u2_ = __u2[__vec_size - 1];
@@ -306,14 +333,16 @@ class normal_distribution
         uniform_result_type __u;
         scalar_type __u1, __u2, __ln;
         scalar_type __sin, __cos;
-        scalar_type __mean = __params.first, __stddev = __params.second;
+        scalar_type __mean = __params.mean(), __stddev = __params.stddev();
         result_type __res;
 
         if (!flag_)
         {
             unsigned int __tail = __N % 2;
             __u = uniform_real_distribution_(
-                __engine, param_type(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)), __N + __tail);
+                __engine,
+                typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0}, scalar_type{1.0}),
+                __N + __tail);
 
             for (unsigned int __i = 0; __i < __N - __tail; __i += 2)
             {
@@ -322,17 +351,17 @@ class normal_distribution
 
                 __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
 
-                __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
-                __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __sin);
-                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __cos);
+                __ln = (__u1 == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__u1);
+                __res[__i] = __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * __ln) * __sin);
+                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * __ln) * __cos);
             }
             if (__tail)
             {
                 __u1 = __u[__N - 1];
                 __u2 = __u[__N];
-                __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
-                __res[__N - 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                      sycl::sin(pi2<scalar_type>() * __u2));
+                __ln = (__u1 == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__u1);
+                __res[__N - 1] =
+                    __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * __ln) * sycl::sin(pi2<scalar_type>() * __u2));
 
                 saved_ln_ = __ln;
                 saved_u2_ = __u2;
@@ -341,7 +370,7 @@ class normal_distribution
         }
         else
         {
-            __res[0] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * saved_ln_) *
+            __res[0] = __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * saved_ln_) *
                                             sycl::cos(pi2<scalar_type>() * saved_u2_));
 
             flag_ = false;
@@ -349,7 +378,9 @@ class normal_distribution
             unsigned int __tail = (__N - 1u) % 2u;
 
             __u = uniform_real_distribution_(
-                __engine, param_type(static_cast<scalar_type>(0.0), static_cast<scalar_type>(1.0)), __N - 1u + __tail);
+                __engine,
+                typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0}, scalar_type{1.0}),
+                __N - 1u + __tail);
 
             for (unsigned int __i = 1; __i < (__N - __tail); __i += 2)
             {
@@ -358,17 +389,17 @@ class normal_distribution
 
                 __sin = sycl::sincos(pi2<scalar_type>() * __u2, &__cos);
 
-                __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
-                __res[__i] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __sin);
-                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) * __cos);
+                __ln = (__u1 == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__u1);
+                __res[__i] = __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * __ln) * __sin);
+                __res[__i + 1] = __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * __ln) * __cos);
             }
             if (__tail)
             {
                 __u1 = __u[__N - 2];
                 __u2 = __u[__N - 1];
-                __ln = (__u1 == static_cast<scalar_type>(0.0)) ? callback<scalar_type>() : sycl::log(__u1);
-                __res[__N - 1] = __mean + __stddev * (sycl::sqrt(-static_cast<scalar_type>(2.0) * __ln) *
-                                                      sycl::sin(pi2<scalar_type>() * __u2));
+                __ln = (__u1 == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__u1);
+                __res[__N - 1] =
+                    __mean + __stddev * (sycl::sqrt(-scalar_type{2.0} * __ln) * sycl::sin(pi2<scalar_type>() * __u2));
 
                 saved_ln_ = __ln;
                 saved_u2_ = __u2;

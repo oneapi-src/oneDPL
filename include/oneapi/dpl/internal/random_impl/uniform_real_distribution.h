@@ -32,15 +32,42 @@ class uniform_real_distribution
     // Distribution types
     using result_type = _RealType;
     using scalar_type = internal::element_type_t<_RealType>;
-    using param_type = typename ::std::pair<scalar_type, scalar_type>;
+    class param_type
+    {
+      public:
+        typedef uniform_real_distribution<result_type> distribution_type;
+        param_type() : param_type(scalar_type{0.0}) {}
+        explicit param_type(scalar_type a, scalar_type b = scalar_type{1.0}) : a_(a), b_(b) {}
+        scalar_type
+        a() const
+        {
+            return a_;
+        }
+        scalar_type
+        b() const
+        {
+            return b_;
+        }
+        friend bool
+        operator==(const param_type& p1, const param_type& p2)
+        {
+            return p1.a_ == p2.a_ && p1.b_ == p2.b_;
+        }
+        friend bool
+        operator!=(const param_type& p1, const param_type& p2)
+        {
+            return !(p1 == p2);
+        }
+
+      private:
+        scalar_type a_;
+        scalar_type b_;
+    };
 
     // Constructors
-    uniform_real_distribution() : uniform_real_distribution(static_cast<scalar_type>(0.0)) {}
-    explicit uniform_real_distribution(scalar_type __a, scalar_type __b = static_cast<scalar_type>(1.0))
-        : a_(__a), b_(__b)
-    {
-    }
-    explicit uniform_real_distribution(const param_type& __params) : a_(__params.first), b_(__params.second) {}
+    uniform_real_distribution() : uniform_real_distribution(scalar_type{0.0}) {}
+    explicit uniform_real_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
+    explicit uniform_real_distribution(const param_type& __params) : a_(__params.a()), b_(__params.b()) {}
 
     // Reset function
     void
@@ -68,10 +95,10 @@ class uniform_real_distribution
     }
 
     void
-    param(const param_type& __parm)
+    param(const param_type& __params)
     {
-        a_ = __parm.first;
-        b_ = __parm.second;
+        a_ = __params.a();
+        b_ = __params.b();
     }
 
     scalar_type
@@ -141,8 +168,8 @@ class uniform_real_distribution
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
 
         __res = ((__res - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
         return __res;
     }
 
@@ -154,8 +181,8 @@ class uniform_real_distribution
         auto __res = static_cast<scalar_type>(__engine_output);
         __res = ((__res - static_cast<scalar_type>(__engine.min())) /
                  (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
         return __res;
     }
 
@@ -170,8 +197,8 @@ class uniform_real_distribution
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
             __res[__i] =
                 ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
         }
         return __res;
     }
@@ -182,8 +209,8 @@ class uniform_real_distribution
     {
         scalar_type __res = static_cast<scalar_type>(__engine(1)[0]);
         __res = ((__res - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
         return __res;
     }
 
@@ -200,8 +227,8 @@ class uniform_real_distribution
             auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
             __res_tmp =
                 ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
 
             for (int __j = 0; __j < _Nengine; ++__j)
                 __res[__i + __j] = __res_tmp[__j];
@@ -214,8 +241,8 @@ class uniform_real_distribution
             auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
             __res_tmp =
                 ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
             for (int __j = 0; __j < __tail_size; __j++)
                 __res[__i + __j] = __res_tmp[__j];
         }
@@ -232,8 +259,8 @@ class uniform_real_distribution
             __res[__i] = static_cast<scalar_type>(__engine());
             __res[__i] =
                 ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
         }
         return __res;
     }
@@ -250,8 +277,8 @@ class uniform_real_distribution
             __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
             __res[__i] =
                 ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
         }
         return __res;
     }
@@ -271,8 +298,8 @@ class uniform_real_distribution
                 __res[__i] = static_cast<scalar_type>(__engine_output[__i]);
                 __res[__i] =
                     ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                        (__params.second - __params.first) +
-                    __params.first;
+                        (__params.b() - __params.a()) +
+                    __params.a();
             }
         }
         else
@@ -284,8 +311,8 @@ class uniform_real_distribution
                 auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
                 __res_tmp =
                     ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                        (__params.second - __params.first) +
-                    __params.first;
+                        (__params.b() - __params.a()) +
+                    __params.a();
                 for (int __j = 0; __j < _Nengine; ++__j)
                 {
                     __res[__i + __j] = __res_tmp[__j];
@@ -298,8 +325,8 @@ class uniform_real_distribution
                 auto __res_tmp = __engine_output.template convert<scalar_type, sycl::rounding_mode::rte>();
                 __res_tmp =
                     ((__res_tmp - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                        (__params.second - __params.first) +
-                    __params.first;
+                        (__params.b() - __params.a()) +
+                    __params.a();
 
                 for (unsigned int __j = 0; __j < __tail_size; ++__j)
                 {
@@ -320,8 +347,8 @@ class uniform_real_distribution
             __res[__i] = static_cast<scalar_type>(__engine());
             __res[__i] =
                 ((__res[__i] - __engine.min()) / (1 + static_cast<scalar_type>(__engine.max() - __engine.min()))) *
-                    (__params.second - __params.first) +
-                __params.first;
+                    (__params.b() - __params.a()) +
+                __params.a();
         }
         return __res;
     }
