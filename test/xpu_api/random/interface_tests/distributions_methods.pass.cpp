@@ -140,7 +140,7 @@ check_params(oneapi::dpl::extreme_value_distribution<T>& distr)
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
+typename ::std::enable_if<::std::is_same<Distr,
         oneapi::dpl::uniform_int_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
@@ -195,7 +195,9 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 
 template <typename Distr>
 typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::lognormal_distribution<typename Distr::result_type>>::value, void>::type
+        oneapi::dpl::lognormal_distribution<typename Distr::result_type>>::value ||
+        ::std::is_same<Distr, oneapi::dpl::normal_distribution<typename Distr::result_type>>
+        ::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
