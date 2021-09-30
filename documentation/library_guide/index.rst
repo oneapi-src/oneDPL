@@ -16,3 +16,4 @@ efforts across devices for high performance parallel applications.
    parallel_api_main
    api_for_dpcpp_kernels_main
    macros
+   notices_disclaimers
