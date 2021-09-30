@@ -47,7 +47,7 @@ Macro                              Description
                                    intel-specific-pragma-reference/vector.html>`_.
                                    If the macro evaluates to a non-zero value,
                                    the use of ``#pragma vector nontemporal`` is enabled.
-                                   By default the macro is not defined.
+                                   By default, the macro is not defined.
 
                                    Using this macro may have the same effect on the implementation of parallel
                                    algorithms in the C++ standard libraries of GCC and LLVM.

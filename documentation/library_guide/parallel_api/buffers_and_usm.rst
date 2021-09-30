@@ -1,10 +1,10 @@
-How to work with buffers and USM
+Working with Buffers and USM
 ################################
 
 Pass Data to Algorithms
 =======================
 
-You can use one of the following ways to pass data to an algorithm executed with a |dpcpp_short| policy:
+You can use one of the following ways to pass data to an algorithm executed with a |dpcpp_long| policy:
 
 * ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
 * Unified shared memory (USM) pointers and ``std::vector`` with USM allocators
@@ -14,17 +14,17 @@ Use oneapi::dpl::begin and oneapi::dpl::end Functions
 -----------------------------------------------------
 
 ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` are special helper functions that
-allow you to pass SYCL buffers to parallel algorithms. These functions accept
-a SYCL buffer and return an object of an unspecified type that provides the following
-API:
+allow you to pass SYCL* buffers to parallel algorithms. These functions accept
+a SYCL buffer and return an object of an unspecified type that provides the following API:
 
-* It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with ``operator==`` and ``operator!=``.
+* It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with 
+  ``operator==`` and ``operator!=``.
 * It gives the following valid expressions: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
   are objects of the type, and ``n`` is an integer value. The effect of those operations is the same as for the type
   that satisfies the ``LegacyRandomAccessIterator``, a C++ named requirement.
 * It provides the ``get_buffer`` method, which returns the buffer passed to the ``begin`` and ``end`` functions.
 
-``begin`` and ``end`` can take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
+The ``begin`` and ``end`` functions can take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
 to explicitly mention which access mode should be applied to the buffer accessor when submitting a
 DPC++ kernel to a device. For example:
 
@@ -34,11 +34,9 @@ DPC++ kernel to a device. For example:
   auto first2 = begin(buf, sycl::write_only, sycl::no_init);
   auto first3 = begin(buf, sycl::no_init);
 
-It allows you to control the access mode for the particular buffer passing to a parallel algorithm.
+The example above allows you to control the access mode for the particular buffer passing to a parallel algorithm.
 
-To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code.
-
-Example:
+To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For example:
 
 .. code:: cpp
 
@@ -64,7 +62,7 @@ The following examples demonstrate two ways to use the parallel algorithms with 
 
 If you have a USM-allocated buffer, pass the pointers to the start and past the end
 of the buffer to a parallel algorithm. Make sure that the execution policy and
-the buffer were created for the same queue.
+the buffer were created for the same queue. For example:
 
 .. code:: cpp
 
@@ -82,7 +80,7 @@ the buffer were created for the same queue.
     return 0;
   }
 
-Alternatively, use ``std::vector`` with a USM allocator:
+Alternatively, use ``std::vector`` with a USM allocator. For example:
 
 .. code:: cpp
 
@@ -100,16 +98,15 @@ Alternatively, use ``std::vector`` with a USM allocator:
     return 0;
   }
 
-Use Host-Side std::vector
+Use Host-side std::vector
 -----------------------------
 
-|onedpl_short| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
+|onedpl_long| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
 example below.
-In this case, a temporary SYCL buffer is created and the data is copied to this buffer.
+In this case, a temporary SYCL buffer is created, and the data is copied to this buffer.
 After processing of the temporary buffer on a device is complete, the data is copied back
 to the host. Working with SYCL buffers is recommended to reduce data copying between the host and device.
-
-Example:
+For example:
 
 .. code:: cpp
 
