@@ -19,7 +19,7 @@ your change directly to the repository:
 
 # Coding Conventions
 
-A clang-format is required, except the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
+clang-format is required, except the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
 
 # License
 
