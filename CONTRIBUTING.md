@@ -1,11 +1,11 @@
-# How to contribute
+# How to Contribute
 
 We welcome community contributions to oneAPI DPC++ Library (oneDPL). You can:
 
 - Submit your changes directly with a [pull request](https://github.com/oneapi-src/oneDPL/pulls).
 - Log a bug or feedback with an [issue](https://github.com/oneapi-src/oneDPL/issues).
 
-# Pull requests
+# Pull Requests
 
 This project follows the
 [GitHub flow](https://guides.github.com/introduction/flow/index.html). To submit
@@ -17,9 +17,9 @@ your change directly to the repository:
   [pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) into the
   main branch. You may add a description of your contribution into [CREDITS.txt](https://github.com/oneapi-src/oneDPL/blob/main/CREDITS.txt).
 
-# Coding conventions
+# Coding Conventions
 
-clang-format is required except the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
+clang-format is required, except the [test folder](https://github.com/oneapi-src/oneDPL/tree/main/test).
 
 # License
 
@@ -27,12 +27,12 @@ oneDPL is licensed under the terms in [LICENSE](https://github.com/oneapi-src/on
 By contributing to the project, you agree to the license and copyright terms therein and
 release your contribution under these terms.
 
-# Sign your work
+# Sign Your Work
 
 Please use the sign-off line at the end of the patch. Your signature certifies
 that you wrote the patch or otherwise have the right to pass it on as an
-open-source patch. The rules are pretty simple: if you can certify
-the below (from [developercertificate.org](http://developercertificate.org/)):
+open-source patch. The rules are simple: If you can certify
+the content below (from [developercertificate.org](http://developercertificate.org/)):
 
 ```
 Developer Certificate of Origin
@@ -72,7 +72,7 @@ By making a contribution to this project, I certify that:
     this project or the open source license(s) involved.
 ```
 
-Then you just add a line to every git commit message:
+Then you can add a line to every git commit message:
 
     Signed-off-by: Name Surname <user@email.com>
 

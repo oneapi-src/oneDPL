@@ -14,7 +14,7 @@ programming efforts across devices for high performance parallel applications.
 
 For general information about |onedpl_short|, visit the `oneDPL GitHub* repository <https://github.com/oneapi-src/oneDPL>`_,
 or visit the `Intel® oneAPI DPC++ Library (oneDPL) Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
-and the `Intel® oneAPI DPC++ Library main page <https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html>`_. 
+and the `Intel® oneAPI DPC++ Library main page <https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html>`_.
 
 Before You Begin
 ================
@@ -43,8 +43,8 @@ and use the ``std`` namespace.
 Usage Examples
 ==============
 
-|onedpl_short| sample code is available from the 
-`oneAPI GitHub samples repository <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_. 
+|onedpl_short| sample code is available from the
+`oneAPI GitHub samples repository <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_.
 Each sample includes a readme with build instructions.
 
 oneapi/dpl/random Usage Example
@@ -84,7 +84,7 @@ This example performs its computations on your default DPC++ device. You can set
 oneDPL RNG Pi Benchmark Usage Example
 -------------------------------------
 
-A Monte Carlo Pi Estimation uses a randomized method to estimate the value of π. 
+A Monte Carlo Pi Estimation uses a randomized method to estimate the value of π.
 The basic idea is to generate random points within a square, and to check what
 fraction of these random points lie in a quarter-circle inscribed within that square.
 The expected value is the ratio of the areas of the quarter-circle and the square (π/4).
@@ -101,30 +101,30 @@ fit into the square *S*. Random number generation is performed in scalar manner 
 
 .. code:: cpp
 
-    float estimated_pi;
+    float estimated_pi;
     {
-        sycl::queue q(sycl::gpu_selector{});
-        auto policy = oneapi::dpl::execution::make_device_policy(q);
+        sycl::queue q(sycl::gpu_selector{});
+        auto policy = oneapi::dpl::execution::make_device_policy(q);
 
-        float sum = std::transform_reduce( policy,
-                                          oneapi::dpl::counting_iterator<int>(0),  
+        float sum = std::transform_reduce( policy,
+                                          oneapi::dpl::counting_iterator<int>(0),
                                           oneapi::dpl::counting_iterator<int>(N),
                                           0.0f,
                                           std::plus<float>{},
-                                          [=](int n){
-                                              float local_sum = 0.0f;
-                                              oneapi::dpl::minstd_rand engine(SEED, n * ITER * 2);
-                                              oneapi::dpl::uniform_real_distribution<float> distr;
-                                              for(int i = 0; i < ITER; ++i) {
-                                                  float x = distr(engine);
-                                                  float y = distr(engine);
-                                                  if (x * x + y * y <= 1.0)
-                                                      local_sum += 1.0;
-                                              }
-                                              return local_sum / (float)ITER;
-                                          }
+                                          [=](int n){
+                                              float local_sum = 0.0f;
+                                              oneapi::dpl::minstd_rand engine(SEED, n * ITER * 2);
+                                              oneapi::dpl::uniform_real_distribution<float> distr;
+                                              for(int i = 0; i < ITER; ++i) {
+                                                  float x = distr(engine);
+                                                  float y = distr(engine);
+                                                  if (x * x + y * y <= 1.0)
+                                                      local_sum += 1.0;
+                                              }
+                                              return local_sum / (float)ITER;
+                                          }
         );
-        estimated_pi = 4.0f * (float)sum / N;
+        estimated_pi = 4.0f * (float)sum / N;
     }
 
 
