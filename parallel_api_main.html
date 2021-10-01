@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>oneAPI DPC++ Library (oneDPL) Guide &#8212; oneDPL Documentation 2021.5 documentation</title>
+    <title>Parallel API &#8212; oneDPL Documentation 2021.5 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -36,7 +36,8 @@
     <link rel="shortcut icon" href="_static/favicons.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Get Started with the oneAPI DPC++ Library (oneDPL)" href="onedpl_gsg.html" />
+    <link rel="next" title="Execution Policies" href="parallel_api/execution_policies.html" />
+    <link rel="prev" title="oneAPI DPC++ Library (oneDPL) Overview" href="overview.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -53,7 +54,7 @@
 <div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
     
         <div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="#">
+    <a class="navbar-brand text-wrap" href="index.html">
       
         <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
         
@@ -70,7 +71,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item active">
-        <ul class="nav bd-sidenav">
+        <ul class="current nav bd-sidenav">
  <li class="toctree-l1">
   <a class="reference internal" href="onedpl_gsg.html">
    Get Started with the oneAPI DPC++ Library (oneDPL)
@@ -81,11 +82,11 @@
    oneAPI DPC++ Library (oneDPL) Overview
   </a>
  </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="parallel_api_main.html">
+ <li class="toctree-l1 current active has-children">
+  <a class="current reference internal" href="#">
    Parallel API
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
    <i class="fas fa-chevron-down">
    </i>
@@ -201,7 +202,7 @@
         <!-- ipynb file if we had a myst markdown file -->
         
         <!-- Download raw file -->
-        <a class="dropdown-buttons" href="_sources/index.rst.txt"><button type="button"
+        <a class="dropdown-buttons" href="_sources/parallel_api_main.rst.txt"><button type="button"
                 class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
                 data-placement="left">.rst</button></a>
         <!-- Download PDF via print -->
@@ -218,10 +219,10 @@
     <div class="dropdown-buttons sourcebuttons">
         
         <a class="issues-button"
-            href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Findex.html&body=Your%20issue%20content%20here."><button
+            href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api_main.html&body=Your%20issue%20content%20here."><button
                 type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
                 title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
-        <a class="edit-button" href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/index.rst"><button
+        <a class="edit-button" href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api_main.rst"><button
                 type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
                 title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
     </div>
@@ -249,11 +250,28 @@
         
               <div>
                 
-  <div class="section" id="onedpl-long-guide">
-<h1>oneAPI DPC++ Library (oneDPL) Guide<a class="headerlink" href="#onedpl-long-guide" title="Permalink to this headline">¶</a></h1>
-<p>oneAPI DPC++ Library (oneDPL) works with the Intel® oneAPI DPC++/C++ Compiler to
-provide high-productivity APIs to developers, which can minimize Data Parallel C++ (DPC++) programming
-efforts across devices for high performance parallel applications.</p>
+  <div class="section" id="parallel-api">
+<h1>Parallel API<a class="headerlink" href="#parallel-api" title="Permalink to this headline">¶</a></h1>
+<p>Parallel API is an implementation of the C++ standard libraries algorithms and execution
+policies, as specified in the ISO/IEC 14882:2017 standard (commonly called C++17). The implementation
+supports the unsequenced execution policy and the <code class="docutils literal notranslate"><span class="pre">shift_left</span></code>/<code class="docutils literal notranslate"><span class="pre">shift_right</span></code> algorithms, which are specified
+in the final draft of the C++ 20 standard (N4860). For more details see the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
+Policies</a>. oneAPI DPC++ Library (oneDPL) provides
+specific versions of the algorithms, including:</p>
+<ul class="simple">
+<li><p>Segmented reduce</p></li>
+<li><p>Segmented scan</p></li>
+<li><p>Vectorized search algorithms</p></li>
+</ul>
+<p>Parallel API offers support for the parallel and vectorized execution of
+algorithms on Intel® processors and heterogeneity support with DPC++ execution policies.
+For sequential execution, oneDPL relies on an available implementation of the C++ standard library.</p>
+<p>The utility API includes iterators and function object classes. The iterators implement
+zip, transform, complete permutation operations on other iterators, and include a counting and discard iterator.
+The function object classes provide minimum, maximum, and identity operations
+that may be passed to algorithms such as reduce or transform.</p>
+<p>oneDPL also includes an experimental implementation of range-based algorithms with their
+required ranges and Async API.</p>
 <div class="toctree-wrapper compound">
 </div>
 </div>
@@ -268,11 +286,20 @@ efforts across devices for high performance parallel applications.</p>
 
 <div class='prev-next-bottom'>
     
+    <div id="prev">
+        <a class="left-prev" href="overview.html" title="previous page">
+            <i class="prevnext-label fas fa-angle-left"></i>
+            <div class="prevnext-info">
+                <p class="prevnext-label">previous</p>
+                <p class="prevnext-title">oneAPI DPC++ Library (oneDPL) Overview</p>
+            </div>
+        </a>
+    </div>
      <div id="next">
-        <a class="right-next" href="onedpl_gsg.html" title="next page">
+        <a class="right-next" href="parallel_api/execution_policies.html" title="next page">
             <div class="prevnext-info">
                 <p class="prevnext-label">next</p>
-                <p class="prevnext-title">Get Started with the oneAPI DPC++ Library (oneDPL)</p>
+                <p class="prevnext-title">Execution Policies</p>
             </div>
             <i class="prevnext-label fas fa-angle-right"></i>
         </a>

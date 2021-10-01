@@ -26,7 +26,7 @@ Predefined Random Number Engines
 --------------------------------
 
 Predefined random number engines are instantiations of random number engines class templates. 
-The types below are are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
+The types below are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
 
 ===================================================================== =========================================================================================================
 Type                                                                  Description
@@ -56,14 +56,14 @@ Type                                                                  Descriptio
 ``template<std::int32_t N> ranlux24_vec<N>``                          ``oneapi::dpl::discard_block_engine<ranlux24_base_vec<N>, 223, 23>``
                                                                       ranlux24 for a vector generation case
 ``template<std::int32_t N> ranlux48_vec<N>``                          ``oneapi::dpl::discard_block_engine<ranlux48_base_vec<N>, 389, 11>``
-                                                                      ranlux48 for vector genertion case
+                                                                      ranlux48 for vector generation case
 ===================================================================== =========================================================================================================
 
 Random Number Distributions
 ---------------------------
 
 Random number distributions process the output of random number engines in such a way that the
-resulting output is distributed according to a defined statistical probility density function. They
+resulting output is distributed according to a defined statistical probability density function. They
 are defined in the header ``<oneapi/dpl/random>`` under the ``oneapi::dpl::`` namespace.
 
 ============================== =========================================================================================================
@@ -72,12 +72,19 @@ Distribution                   Description
 ``uniform_int_distribution``   Produces integer values evenly distributed across a range
 ``uniform_real_distribution``  Produces real values evenly distributed across a range
 ``normal_distribution``        Produces real values according to the Normal (Gaussian) distribution
+``exponential_distribution``   Produces real values according to the Exponential distribution
+``bernoulli_distribution``     Produces bool values according to the Bernoulli distribution
+``geometric_distribution``     Produces integer values according to the Geometric distribution
+``weibull_distribution``       Produces real values according to the Weibull distribution
+``lognormal_distribution``     Produces real values according to the Lognormal distribution
+``extreme_value_distribution`` Produces real values according to the Extreme value (Gumbel) distribution
+``cauchy_distribution``        Produces real values according to the Cauchy distribution
 ============================== =========================================================================================================
 
 Usage Model of |onedpl_short| Random Number Generation Functionality
 --------------------------------------------------------------------
 
-Random number generation is available for |dpcpp_long| device-side and host-side code. Example:
+Random number generation is available for |dpcpp_long| device-side and host-side code. For example:
 
 .. code:: cpp
 

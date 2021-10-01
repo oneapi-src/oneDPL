@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Range-based API Algorithms &#8212; oneDPL Documentation 2021.5 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css?digest=c3fdc42140077d1ad13ad2f1588a4309" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../_static/favicons.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Additional Algorithms" href="additional_algorithms.html" />
+    <link rel="prev" title="Asynchronous API Algorithms" href="async_api.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.5 documentation</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../onedpl_gsg.html">
+   Get Started with the oneAPI DPC++ Library (oneDPL)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../overview.html">
+   oneAPI DPC++ Library (oneDPL) Overview
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../parallel_api_main.html">
+   Parallel API
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="execution_policies.html">
+     Execution Policies
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="iterators.html">
+     Iterators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="async_api.html">
+     Asynchronous API Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Range-based API Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="additional_algorithms.html">
+     Additional Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="buffers_and_usm.html">
+     Working with Buffers and USM
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../api_for_dpcpp_kernels_main.html">
+   API for the DPC++ Kernels
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/random.html">
+     Random Number Generators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/tested_standard_cpp_api.html">
+     Tested Standard C++ APIs
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/utility_function_object_classes.html">
+     Utility Function Object Classes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../macros.html">
+   Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../notices_disclaimers.html">
+   Notices and Disclaimers
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/parallel_api/range_based_api.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        
+        <a class="issues-button"
+            href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api/range_based_api.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api/range_based_api.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav" aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#example-of-range-based-api-usage">
+   Example of Range-based API Usage
+  </a>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="range-based-api-algorithms">
+<h1>Range-based API Algorithms<a class="headerlink" href="#range-based-api-algorithms" title="Permalink to this headline">¶</a></h1>
+<p>C++20 introduces the Ranges library. C++20 standard splits ranges into two categories: factories and adaptors.
+A range factory does not have underlying data. An element is generated on success by an index or by dereferencing an iterator.
+A range adaptor, from the oneAPI DPC++ Library (oneDPL) perspective, is a utility that transforms the base range, or another adapted range,
+into a view with custom behavior.</p>
+<p>oneDPL supports an <code class="docutils literal notranslate"><span class="pre">iota_view</span></code> range factory.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> wrapped with <code class="docutils literal notranslate"><span class="pre">all_view</span></code> can be used as the range.</p>
+<p>oneDPL considers the supported factories and <code class="docutils literal notranslate"><span class="pre">all_view</span></code> as base ranges.
+The range adaptors may be combined into a pipeline with a <code class="docutils literal notranslate"><span class="pre">base</span></code> range at the beginning. For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">cl</span><span class="o">::</span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">cl</span><span class="o">::</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span><span class="w"></span>
+<span class="k">auto</span><span class="w"> </span><span class="n">range_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iota_view</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">views</span><span class="o">::</span><span class="n">reverse</span><span class="p">();</span><span class="w"></span>
+<span class="k">auto</span><span class="w"> </span><span class="n">range_2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">all_view</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">views</span><span class="o">::</span><span class="n">reverse</span><span class="p">();</span><span class="w"></span>
+</pre></div>
+</div>
+<p>For the range, based on the <code class="docutils literal notranslate"><span class="pre">all_view</span></code> factory, data access is permitted on a device only. <code class="docutils literal notranslate"><span class="pre">size()</span></code> and <code class="docutils literal notranslate"><span class="pre">empty()</span></code> methods are allowed
+to be called on both host and device.</p>
+<p>The following algorithms are available to use with the ranges:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">adjacent_find</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">all_of</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">any_of</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">copy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">copy_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equal</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exclusive_scan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find_if_not</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find_end</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">find_first_of</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">for_each</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inclusive_scan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_sorted</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_sorted_until</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_element</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_element</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">merge</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">minmax_element</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">move</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">none_of</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reduce</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove_copy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove_copy_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replace</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replace_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replace_copy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">replace_copy_if</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reverse</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reverse_copy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rotate_copy</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">search</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sort</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stable_sort</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">swap_ranges</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_reduce</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_inclusive_scan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unique</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unique_copy</span></code></p></li>
+</ul>
+<p>The signature example of the range-based algorithms looks like:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">ExecutionPolicy</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span> <span class="nc">Range1</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span> <span class="nc">Range2</span><span class="o">&gt;</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="n">copy</span><span class="p">(</span><span class="n">ExecutionPolicy</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">exec</span><span class="p">,</span><span class="w"> </span><span class="n">Range1</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">Range2</span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">destination</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">source</span></code> is used instead of two iterators to represent the input, and <code class="docutils literal notranslate"><span class="pre">destination</span></code> represents the output.</p>
+<p>These algorithms are declared in the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::ranges</span></code> namespace and implemented only for Data Parallel C++ (DPC++) policies.
+To make these algorithms available, the <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/ranges&gt;</span></code> header should be included (after <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/execution&gt;</span></code>).
+Use of the range-based API requires C++17 and the C++ standard libraries that come with GCC 8.1 (or higher) or Clang 7 (or higher).</p>
+<p>The following viewable ranges are declared in the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::experimental::ranges</span></code> namespace.
+Only the ranges shown below and <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> are available as ranges for range-based algorithms.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">views::iota</span></code>: A range factory that generates a sequence of N elements, which starts from an initial value and ends by final N-1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::all</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> underlying elements for reading and writing on a device.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::all_read</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> underlying elements for reading on a device.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::all_write</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> underlying elements for writing on a device.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::host_all</span></code>: A custom utility that represents a view of all or a part of <code class="docutils literal notranslate"><span class="pre">sycl::buffer</span></code> underlying elements for reading and writing on the host.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::subrange</span></code>: A utility that represents a view of united shared memory (USM) data range defined by a two USM pointers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::zip</span></code>: A custom range adapter that produces one <code class="docutils literal notranslate"><span class="pre">zip_view</span></code> from other several views.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::transform</span></code>: A range adapter that represents a view of a underlying sequence after applying a transformation to each element.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::reverse</span></code>: A range adapter that produces a reversed sequence of elements provided by another view.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::take</span></code>: A range adapter that produces a view of the first N elements from another view.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views::drop</span></code>: A range adapter that produces a view excluding the first N elements from another view.</p></li>
+</ul>
+<div class="section" id="example-of-range-based-api-usage">
+<h2>Example of Range-based API Usage<a class="headerlink" href="#example-of-range-based-api-usage" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="o">::</span><span class="nn">ranges</span><span class="p">;</span><span class="w"></span>
+
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">cl</span><span class="o">::</span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">A</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">cl</span><span class="o">::</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">max_n</span><span class="p">));</span><span class="w"></span>
+<span class="w">    </span><span class="n">cl</span><span class="o">::</span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">B</span><span class="p">(</span><span class="n">data2</span><span class="p">,</span><span class="w"> </span><span class="n">cl</span><span class="o">::</span><span class="n">sycl</span><span class="o">::</span><span class="n">range</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">max_n</span><span class="p">));</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">all_view</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">views</span><span class="o">::</span><span class="n">reverse</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">range_res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">all_view</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">cl</span><span class="o">::</span><span class="n">sycl</span><span class="o">::</span><span class="n">access</span><span class="o">::</span><span class="n">mode</span><span class="o">::</span><span class="n">write</span><span class="o">&gt;</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">copy</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">view</span><span class="p">,</span><span class="w"> </span><span class="n">range_res</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        
+            
+
+
+
+<div class='prev-next-bottom'>
+    
+    <div id="prev">
+        <a class="left-prev" href="async_api.html" title="previous page">
+            <i class="prevnext-label fas fa-angle-left"></i>
+            <div class="prevnext-info">
+                <p class="prevnext-label">previous</p>
+                <p class="prevnext-title">Asynchronous API Algorithms</p>
+            </div>
+        </a>
+    </div>
+     <div id="next">
+        <a class="right-next" href="additional_algorithms.html" title="next page">
+            <div class="prevnext-info">
+                <p class="prevnext-label">next</p>
+                <p class="prevnext-title">Additional Algorithms</p>
+            </div>
+            <i class="prevnext-label fas fa-angle-right"></i>
+        </a>
+     </div>
+
+</div>
+        
+        </div>
+    </div>
+    <footer class="footer">
+    <div class="container">
+      <p>
+        
+          By Intel<br/>
+        
+            &copy; Copyright Intel Corporation.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>
