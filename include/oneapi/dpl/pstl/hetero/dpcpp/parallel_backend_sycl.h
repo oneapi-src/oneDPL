@@ -282,17 +282,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                                                                                _Up, _LRp, _Rp, _Ranges...>;
 
     auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
-    // TODO: find a way to generalize getting of reliable work-group size
-    ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __work_group_size according to local memory limit
-    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Tp), __work_group_size);
-#if _ONEDPL_COMPILE_KERNEL
-    sycl::kernel __kernel =
-        __internal::__kernel_compiler<_ReduceKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                          ::std::forward<_ExecutionPolicy>(__exec), __kernel));
-#endif
+    __internal::__work_group_size_producer<_ExecutionPolicy, sizeof(_Tp), _ReduceKernel> __wg_size_producer;
+    ::std::size_t __work_group_size = __wg_size_producer.__get_work_group_size(__exec);
     ::std::size_t __iters_per_work_item = __grainsize;
     // distribution is ~1 work groups per compute init
     if (__exec.queue().get_device().is_cpu())
@@ -332,6 +323,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
             sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            sycl::kernel __kernel = __wg_size_producer.template __get_kernel();
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_ReduceKernel>(
@@ -424,24 +416,26 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         assert(__n > 0);
 
         auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
-        // TODO: find a way to generalize getting of reliable work-group sizes
-        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        // change __wgroup_size according to local memory limit
-        __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Type), __wgroup_size);
+//         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+//         // change __wgroup_size according to local memory limit
+//         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
+//                                                                              sizeof(_Type), __wgroup_size);
 
-#if _ONEDPL_COMPILE_KERNEL
-        auto __kernel_1 =
-            __internal::__kernel_compiler<_LocalScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-        auto __kernel_2 =
-            __internal::__kernel_compiler<_GroupScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-        auto __wgroup_size_kernel_1 =
-            oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
-        auto __wgroup_size_kernel_2 =
-            oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_2);
-        __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
-#endif
+// #if _ONEDPL_COMPILE_KERNEL
+//         auto __kernel_1 =
+//             __internal::__kernel_compiler<_LocalScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+//         auto __kernel_2 =
+//             __internal::__kernel_compiler<_GroupScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+//         auto __wgroup_size_kernel_1 =
+//             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
+//         auto __wgroup_size_kernel_2 =
+//             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_2);
+//         __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
+// #endif
 
+        __internal::__work_group_size_producer<_ExecutionPolicy, sizeof(_Type), 
+                                                _LocalScanKernel, _GroupScanKernel> __wg_size_producer;
+        ::std::size_t __wgroup_size = __wg_size_producer.__get_work_group_size(__exec);   
         // Practically this is the better value that was found
         constexpr decltype(__wgroup_size) __iters_per_witem = 16;
         auto __size_per_wg = __iters_per_witem * __wgroup_size;
@@ -458,6 +452,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
                 __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            auto __kernel_1 = __wg_size_producer.template __get_kernel(); 
             __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_LocalScanKernel>(
@@ -480,6 +475,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                 sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
                     __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+                auto __kernel_2 = __wg_size_producer.template __get_kernel<1>();
                 __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
 #endif
                 __cgh.parallel_for<_GroupScanKernel>(
@@ -681,15 +677,8 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
-
-    // TODO: find a way to generalize getting of reliable work-group size
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
-#if _ONEDPL_COMPILE_KERNEL
-    auto __kernel =
-        __internal::__kernel_compiler<_FindOrKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                  ::std::forward<_ExecutionPolicy>(__exec), __kernel));
-#endif
+    __internal::__work_group_size_producer<_ExecutionPolicy, 0, _FindOrKernel> __wg_size_producer;
+    ::std::size_t __wgroup_size =__wg_size_producer.__get_work_group_size(__exec);    
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
@@ -717,6 +706,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
             // create local accessor to connect atomic with
             sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            auto __kernel = __wg_size_producer.template __get_kernel();
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_FindOrKernel>(
