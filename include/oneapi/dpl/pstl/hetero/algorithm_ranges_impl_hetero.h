@@ -576,14 +576,14 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
 __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
                             _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
-    // The algorithm reduces values in [first2, first2 + (last1-first1)) where the
+    // The algorithm reduces values in __values where the
     // associated keys for the values are equal to the adjacent key.
     //
-    // Example: keys       = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first1, last1)
-    //          values     = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first2, first2+n)
+    // Example: __keys       = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 }
+    //          __values     = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 }
     //
-    //          out_keys   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
-    //          out_values = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
+    //          __out_keys   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 }
+    //          __out_values = { 1, 2, 3, 4, 2, 6, 2, 6, 0 }
 
     if (__keys.empty())
         return 0;
@@ -605,11 +605,10 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     //create two views over keys, the first with the first key removed for adjacent key comparison
     auto __k1 = oneapi::dpl::__ranges::drop_view_simple<_Range1, __diff_type>(__keys, 1);
-    auto __k2 = __keys;
 
     // view1 elements are a tuple of the element index and pairs of adjacent keys
     // view2 elements are a tuple of the elements where key-index pairs will be written by copy_if
-    auto __view1 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __n), __k1, __k2);
+    auto __view1 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __n), __k1, __keys);
     auto __view2 = experimental::ranges::zip_view(experimental::ranges::views::all_write(__tmp_out_keys),
                                                   experimental::ranges::views::all_write(__idx));
 
@@ -621,19 +620,19 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // element is copied if it is the last element (marks end of final segment), is in an index
     // evenly divisible by wg size (ensures segments are not long), or has a key not equal to the
-    // adjacenent element (marks end of real segments)
-    auto __res = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view1, __view2,
-                                   [__n, __binary_pred, __wgroup_size](const auto& __a) {
-                                       return ::std::get<0>(__a) == __n ||
-                                              ::std::get<0>(__a) % __wgroup_size == 0 ||              // segment size
-                                              !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
-                                   },
-                                   unseq_backend::__brick_assign{});
+    // adjacent element (marks end of real segments)
+    auto __result_end =
+        __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view1, __view2,
+                          [__n, __binary_pred, __wgroup_size](const auto& __a) {
+                              return ::std::get<0>(__a) % __wgroup_size == 0 ||              // segment size
+                                     !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
+                          },
+                          unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::__brick_reduce_idx<_BinaryOperator>{__binary_op},
-        __res, experimental::ranges::views::all_read(__idx), ::std::forward<_Range2>(__values),
+        __result_end, experimental::ranges::views::all_read(__idx), ::std::forward<_Range2>(__values),
         experimental::ranges::views::all_write(__tmp_out_values))
         .wait();
 
@@ -645,33 +644,32 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     auto __k3 = oneapi::dpl::__ranges::drop_view_simple<
         oneapi::dpl::__ranges::all_view<__key_type, __par_backend_hetero::access_mode::read_write>, __diff_type>(
         __new_keys, 1);
-    auto __k4 = __new_keys;
 
     // view3 elements are a tuple of the element index and pairs of adjacent keys
     // view4 elements are a tuple of the elements where key-index pairs will be written by copy_if
-    auto __view3 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __res), __k3, __k4);
+    auto __view3 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __result_end), __k3, __new_keys);
     auto __view4 = experimental::ranges::zip_view(experimental::ranges::views::all_write(__out_keys),
                                                   experimental::ranges::views::all_write(__idx));
 
     // element is copied if it is the last element (end of final segment), or has a key not equal to
-    // the adjacenent element (end of a segment). Artificial segments based on wg size are not created.
+    // the adjacent element (end of a segment). Artificial segments based on wg size are not created.
     using __new_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<_ExecutionPolicy, 1>;
     auto __new_exec = oneapi::dpl::execution::make_hetero_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
-    __res = __pattern_copy_if(__new_exec, __view3, __view4,
-                              [__res, __binary_pred](const auto& __a) {
-                                  return ::std::get<0>(__a) == __res ||
-                                         !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
-                              },
-                              unseq_backend::__brick_assign{});
+    __result_end =
+        __pattern_copy_if(__new_exec, __view3, __view4,
+                          [__result_end, __binary_pred](const auto& __a) {
+                              return !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
+                          },
+                          unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        __new_exec, unseq_backend::__brick_reduce_idx<_BinaryOperator>{__binary_op}, __res,
+        __new_exec, unseq_backend::__brick_reduce_idx<_BinaryOperator>{__binary_op}, __result_end,
         experimental::ranges::views::all_read(__idx), experimental::ranges::views::all_read(__tmp_out_values),
         ::std::forward<_Range4>(__out_values))
         .wait();
 
-    return __res;
+    return __result_end;
 }
 
 } // namespace __ranges
