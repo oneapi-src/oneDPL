@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Working with Buffers and USM &#8212; oneDPL Documentation 2021.5 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css?digest=c3fdc42140077d1ad13ad2f1588a4309" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../_static/favicons.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API for the DPC++ Kernels" href="../api_for_dpcpp_kernels_main.html" />
+    <link rel="prev" title="Additional Algorithms" href="additional_algorithms.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.5 documentation</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../onedpl_gsg.html">
+   Get Started with the oneAPI DPC++ Library (oneDPL)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../overview.html">
+   oneAPI DPC++ Library (oneDPL) Overview
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../parallel_api_main.html">
+   Parallel API
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="execution_policies.html">
+     Execution Policies
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="iterators.html">
+     Iterators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="async_api.html">
+     Asynchronous API Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="range_based_api.html">
+     Range-based API Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="additional_algorithms.html">
+     Additional Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Working with Buffers and USM
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../api_for_dpcpp_kernels_main.html">
+   API for the DPC++ Kernels
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/random.html">
+     Random Number Generators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/tested_standard_cpp_api.html">
+     Tested Standard C++ APIs
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/utility_function_object_classes.html">
+     Utility Function Object Classes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../macros.html">
+   Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../notices_disclaimers.html">
+   Notices and Disclaimers
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/parallel_api/buffers_and_usm.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        
+        <a class="issues-button"
+            href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api/buffers_and_usm.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api/buffers_and_usm.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav" aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pass-data-to-algorithms">
+   Pass Data to Algorithms
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#use-oneapi-dpl-begin-and-oneapi-dpl-end-functions">
+     Use oneapi::dpl::begin and oneapi::dpl::end Functions
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#use-unified-shared-memory">
+     Use Unified Shared Memory
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#use-host-side-std-vector">
+     Use Host-side std::vector
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+            </nav>
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="working-with-buffers-and-usm">
+<h1>Working with Buffers and USM<a class="headerlink" href="#working-with-buffers-and-usm" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pass-data-to-algorithms">
+<h2>Pass Data to Algorithms<a class="headerlink" href="#pass-data-to-algorithms" title="Permalink to this headline">¶</a></h2>
+<p>You can use one of the following ways to pass data to an algorithm executed with a Data Parallel C++ (DPC++) policy:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">oneapi:dpl::begin</span></code> and <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::end</span></code> functions</p></li>
+<li><p>Unified shared memory (USM) pointers and <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with USM allocators</p></li>
+<li><p>Iterators of host-side <code class="docutils literal notranslate"><span class="pre">std::vector</span></code></p></li>
+</ul>
+<div class="section" id="use-oneapi-dpl-begin-and-oneapi-dpl-end-functions">
+<h3>Use oneapi::dpl::begin and oneapi::dpl::end Functions<a class="headerlink" href="#use-oneapi-dpl-begin-and-oneapi-dpl-end-functions" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">oneapi::dpl::begin</span></code> and <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::end</span></code> are special helper functions that
+allow you to pass SYCL* buffers to parallel algorithms. These functions accept
+a SYCL buffer and return an object of an unspecified type that provides the following API:</p>
+<ul class="simple">
+<li><p>It satisfies <code class="docutils literal notranslate"><span class="pre">CopyConstructible</span></code> and <code class="docutils literal notranslate"><span class="pre">CopyAssignable</span></code> C++ named requirements and comparable with
+<code class="docutils literal notranslate"><span class="pre">operator==</span></code> and <code class="docutils literal notranslate"><span class="pre">operator!=</span></code>.</p></li>
+<li><p>It gives the following valid expressions: <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">+</span> <span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-</span> <span class="pre">n</span></code>, and <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-</span> <span class="pre">b</span></code>, where <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>
+are objects of the type, and <code class="docutils literal notranslate"><span class="pre">n</span></code> is an integer value. The effect of those operations is the same as for the type
+that satisfies the <code class="docutils literal notranslate"><span class="pre">LegacyRandomAccessIterator</span></code>, a C++ named requirement.</p></li>
+<li><p>It provides the <code class="docutils literal notranslate"><span class="pre">get_buffer</span></code> method, which returns the buffer passed to the <code class="docutils literal notranslate"><span class="pre">begin</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> functions.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">begin</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> functions can take SYCL 2020 deduction tags and <code class="docutils literal notranslate"><span class="pre">sycl::no_init</span></code> as arguments
+to explicitly mention which access mode should be applied to the buffer accessor when submitting a
+DPC++ kernel to a device. For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">first1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">read_only</span><span class="p">);</span><span class="w"></span>
+<span class="k">auto</span><span class="w"> </span><span class="n">first2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">write_only</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">no_init</span><span class="p">);</span><span class="w"></span>
+<span class="k">auto</span><span class="w"> </span><span class="n">first3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">no_init</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The example above allows you to control the access mode for the particular buffer passing to a parallel algorithm.</p>
+<p>To use the functions, add <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/iterator&gt;</span></code> to your code. For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/iterator&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;CL/sycl.hpp&gt;</span><span class="cp"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span><span class="w"></span>
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">buffer</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="p">};</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">buf_begin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">begin</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">buf_end</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">end</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">fill</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">buf_begin</span><span class="p">,</span><span class="w"> </span><span class="n">buf_end</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-unified-shared-memory">
+<h3>Use Unified Shared Memory<a class="headerlink" href="#use-unified-shared-memory" title="Permalink to this headline">¶</a></h3>
+<p>The following examples demonstrate two ways to use the parallel algorithms with USM:</p>
+<ul class="simple">
+<li><p>USM pointers</p></li>
+<li><p>USM allocators</p></li>
+</ul>
+<p>If you have a USM-allocated buffer, pass the pointers to the start and past the end
+of the buffer to a parallel algorithm. Make sure that the execution policy and
+the buffer were created for the same queue. For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;CL/sycl.hpp&gt;</span><span class="cp"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span><span class="w"></span>
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">malloc_shared</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">fill</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">make_device_policy</span><span class="p">(</span><span class="n">q</span><span class="p">),</span><span class="w"> </span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">d_head</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">free</span><span class="p">(</span><span class="n">d_head</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Alternatively, use <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> with a USM allocator. For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;CL/sycl.hpp&gt;</span><span class="cp"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">policy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">sycl</span><span class="o">::</span><span class="n">usm_allocator</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">usm</span><span class="o">::</span><span class="n">alloc</span><span class="o">::</span><span class="n">shared</span><span class="o">&gt;</span><span class="w"> </span><span class="n">alloc</span><span class="p">(</span><span class="n">policy</span><span class="p">.</span><span class="n">queue</span><span class="p">());</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="k">decltype</span><span class="p">(</span><span class="n">alloc</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vec</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">alloc</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">fill</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-host-side-std-vector">
+<h3>Use Host-side std::vector<a class="headerlink" href="#use-host-side-std-vector" title="Permalink to this headline">¶</a></h3>
+<p>oneAPI DPC++ Library (oneDPL) parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
+example below.
+In this case, a temporary SYCL buffer is created, and the data is copied to this buffer.
+After processing of the temporary buffer on a device is complete, the data is copied back
+to the host. Working with SYCL buffers is recommended to reduce data copying between the host and device.
+For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span><span class="cp"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(){</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">v</span><span class="p">(</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">fill</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="c1">// each element of vec equals to 42</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        
+            
+
+
+
+<div class='prev-next-bottom'>
+    
+    <div id="prev">
+        <a class="left-prev" href="additional_algorithms.html" title="previous page">
+            <i class="prevnext-label fas fa-angle-left"></i>
+            <div class="prevnext-info">
+                <p class="prevnext-label">previous</p>
+                <p class="prevnext-title">Additional Algorithms</p>
+            </div>
+        </a>
+    </div>
+     <div id="next">
+        <a class="right-next" href="../api_for_dpcpp_kernels_main.html" title="next page">
+            <div class="prevnext-info">
+                <p class="prevnext-label">next</p>
+                <p class="prevnext-title">API for the DPC++ Kernels</p>
+            </div>
+            <i class="prevnext-label fas fa-angle-right"></i>
+        </a>
+     </div>
+
+</div>
+        
+        </div>
+    </div>
+    <footer class="footer">
+    <div class="container">
+      <p>
+        
+          By Intel<br/>
+        
+            &copy; Copyright Intel Corporation.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>

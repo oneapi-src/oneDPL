@@ -1,0 +1,420 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iterators &#8212; oneDPL Documentation 2021.5 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css?digest=c3fdc42140077d1ad13ad2f1588a4309" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
+    <link rel="shortcut icon" href="../_static/favicons.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Asynchronous API Algorithms" href="async_api.html" />
+    <link rel="prev" title="Execution Policies" href="execution_policies.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.5 documentation</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../onedpl_gsg.html">
+   Get Started with the oneAPI DPC++ Library (oneDPL)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../overview.html">
+   oneAPI DPC++ Library (oneDPL) Overview
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../parallel_api_main.html">
+   Parallel API
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="execution_policies.html">
+     Execution Policies
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Iterators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="async_api.html">
+     Asynchronous API Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="range_based_api.html">
+     Range-based API Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="additional_algorithms.html">
+     Additional Algorithms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="buffers_and_usm.html">
+     Working with Buffers and USM
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../api_for_dpcpp_kernels_main.html">
+   API for the DPC++ Kernels
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/random.html">
+     Random Number Generators
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/tested_standard_cpp_api.html">
+     Tested Standard C++ APIs
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api_for_dpcpp_kernels/utility_function_object_classes.html">
+     Utility Function Object Classes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../macros.html">
+   Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../notices_disclaimers.html">
+   Notices and Disclaimers
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/parallel_api/iterators.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        
+        <a class="issues-button"
+            href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api/iterators.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api/iterators.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="iterators">
+<h1>Iterators<a class="headerlink" href="#iterators" title="Permalink to this headline">¶</a></h1>
+<p>The definitions of the iterators are available through the <code class="docutils literal notranslate"><span class="pre">oneapi/dpl/iterator</span></code>
+header.  All iterators are implemented in the <code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> namespace.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">counting_iterator</span></code>: a random-access iterator-like type whose dereferenced value is an integer
+counter. Instances of a <code class="docutils literal notranslate"><span class="pre">counting_iterator</span></code> provide read-only dereference operations. The counter of an
+<code class="docutils literal notranslate"><span class="pre">counting_iterator</span></code> instance changes according to the arithmetic of the random-access iterator type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">using</span> <span class="n">namespace</span> <span class="n">oneapi</span><span class="p">;</span>
+<span class="n">dpl</span><span class="p">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="n">count_a</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="n">dpl</span><span class="p">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="n">count_b</span> <span class="o">=</span> <span class="n">count_a</span> <span class="o">+</span> <span class="mi">10</span><span class="p">;</span>
+<span class="nb">int</span> <span class="n">init</span> <span class="o">=</span> <span class="n">count_a</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="o">//</span> <span class="n">OK</span><span class="p">:</span> <span class="n">init</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="o">*</span><span class="n">count_b</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="o">//</span> <span class="n">ERROR</span><span class="p">:</span> <span class="n">counting_iterator</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">provide</span> <span class="n">write</span> <span class="n">operations</span>
+<span class="n">auto</span> <span class="nb">sum</span> <span class="o">=</span> <span class="n">std</span><span class="p">::</span><span class="n">reduce</span><span class="p">(</span><span class="n">dpl</span><span class="p">::</span><span class="n">execution</span><span class="p">::</span><span class="n">dpcpp_default</span><span class="p">,</span>
+                       <span class="n">count_a</span><span class="p">,</span> <span class="n">count_b</span><span class="p">,</span> <span class="n">init</span><span class="p">);</span> <span class="o">//</span> <span class="nb">sum</span> <span class="ow">is</span> <span class="p">(</span><span class="mi">0</span> <span class="o">+</span> <span class="mi">0</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="o">...</span> <span class="o">+</span> <span class="mi">9</span><span class="p">)</span> <span class="o">=</span> <span class="mi">45</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code>: an iterator constructed with one or more iterators as input. The result of
+<code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> dereferencing is a tuple-like object of an unspecified type that holds the values
+returned by dereferencing the member iterators, which the <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> wraps. Arithmetic operations
+performed on a <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> instance are also applied to each of the member iterators.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">make_zip_iterator</span></code> function is provided to simplify the construction of <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> instances.
+The function returns <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> instances with all the arguments held as member iterators.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> is useful in defining by key algorithms where input iterators
+representing keys and values are processed as key-value pairs. The example below demonstrates a stable sort
+by key, where only the keys are compared but both keys and values are swapped:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">using</span> <span class="n">namespace</span> <span class="n">oneapi</span><span class="p">;</span>
+<span class="n">auto</span> <span class="n">zipped_begin</span> <span class="o">=</span> <span class="n">dpl</span><span class="p">::</span><span class="n">make_zip_iterator</span><span class="p">(</span><span class="n">keys_begin</span><span class="p">,</span> <span class="n">vals_begin</span><span class="p">);</span>
+<span class="n">std</span><span class="p">::</span><span class="n">stable_sort</span><span class="p">(</span><span class="n">dpl</span><span class="p">::</span><span class="n">execution</span><span class="p">::</span><span class="n">dpcpp_default</span><span class="p">,</span> <span class="n">zipped_begin</span><span class="p">,</span> <span class="n">zipped_begin</span> <span class="o">+</span> <span class="n">n</span><span class="p">,</span>
+    <span class="p">[](</span><span class="n">auto</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">auto</span> <span class="n">rhs</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">get</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lhs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">get</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">rhs</span><span class="p">);</span> <span class="p">});</span>
+</pre></div>
+</div>
+<p>The dereferenced object of <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> supports the <em>structured binding</em> feature (<a class="reference external" href="https://en.cppreference.com/w/cpp/language/structured_binding">C++17 and above</a>) for easier access to
+wrapped iterators values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">using</span> <span class="n">namespace</span> <span class="n">oneapi</span><span class="p">;</span>
+<span class="n">auto</span> <span class="n">zipped_begin</span> <span class="o">=</span> <span class="n">dpl</span><span class="p">::</span><span class="n">make_zip_iterator</span><span class="p">(</span><span class="n">sequence1</span><span class="o">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">sequence2</span><span class="o">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">sequence3</span><span class="o">.</span><span class="n">begin</span><span class="p">());</span>
+<span class="n">auto</span> <span class="n">found</span> <span class="o">=</span> <span class="n">std</span><span class="p">::</span><span class="n">find</span><span class="p">(</span><span class="n">dpl</span><span class="p">::</span><span class="n">execution</span><span class="p">::</span><span class="n">dpcpp_default</span><span class="p">,</span> <span class="n">zipped_begin</span><span class="p">,</span> <span class="n">zipped_begin</span> <span class="o">+</span> <span class="n">n</span><span class="p">,</span>
+    <span class="p">[](</span><span class="n">auto</span> <span class="n">tuple_like_obj</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">auto</span> <span class="p">[</span><span class="n">e1</span><span class="p">,</span> <span class="n">e2</span><span class="p">,</span> <span class="n">e3</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuple_like_obj</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">e1</span> <span class="o">==</span> <span class="n">e2</span> <span class="o">&amp;&amp;</span> <span class="n">e1</span> <span class="o">==</span> <span class="n">e3</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>Since dereferencing <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code> is semantically a tuple of references, the copying of such an object
+is supposed to be cheap. In the example above <code class="docutils literal notranslate"><span class="pre">e1</span></code>, <code class="docutils literal notranslate"><span class="pre">e2</span></code> and <code class="docutils literal notranslate"><span class="pre">e3</span></code> are references.</p>
+<p>For more examples with <code class="docutils literal notranslate"><span class="pre">zip_iterator</span></code>, see the code snippet provided for <code class="docutils literal notranslate"><span class="pre">discard_iterator</span></code> below.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">discard_iterator</span></code>: a random-access iterator-like type that provides write-only dereference
+operations that discard values passed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">discard_iterator</span></code> is useful in the implementation of stencil algorithms where the stencil is not part of the
+desired output. An example of this would be a <code class="docutils literal notranslate"><span class="pre">copy_if</span></code> algorithm that receives an input iterator range,
+a stencil iterator range, and copies the elements of the input whose corresponding stencil value is 1. Use
+<code class="docutils literal notranslate"><span class="pre">discard_iterator</span></code> so you do not declare a temporary allocation to store the copy of the stencil:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">using</span> <span class="n">namespace</span> <span class="n">oneapi</span><span class="p">;</span>
+<span class="n">auto</span> <span class="n">zipped_first</span> <span class="o">=</span> <span class="n">dpl</span><span class="p">::</span><span class="n">make_zip_iterator</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">stencil</span><span class="p">);</span>
+<span class="n">std</span><span class="p">::</span><span class="n">copy_if</span><span class="p">(</span><span class="n">dpl</span><span class="p">::</span><span class="n">execution</span><span class="p">::</span><span class="n">dpcpp_default</span><span class="p">,</span>
+             <span class="n">zipped_first</span><span class="p">,</span> <span class="n">zipped_first</span> <span class="o">+</span> <span class="p">(</span><span class="n">last</span> <span class="o">-</span> <span class="n">first</span><span class="p">),</span>
+             <span class="n">dpl</span><span class="p">::</span><span class="n">make_zip_iterator</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">dpl</span><span class="p">::</span><span class="n">discard_iterator</span><span class="p">()),</span>
+             <span class="p">[](</span><span class="n">auto</span> <span class="n">t</span><span class="p">){</span><span class="k">return</span> <span class="n">get</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">;}</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code>: an iterator defined over another iterator whose dereferenced value is the result
+of a function applied to the corresponding element of the original iterator. Both the type of the original
+iterator and the unary function applied during dereference operations are required template parameters of
+the <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> class. The <code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> class provides three constructors:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator()</span></code>: instantiates the iterator using a default constructed base iterator and unary functor.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator(iter)</span></code>: instantiates the iterator using the base iterator provided and a default constructed unary functor.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transform_iterator(iter,</span> <span class="pre">func)</span></code>: instantiates the iterator using the base iterator and unary functor provided.</p></li>
+</ul>
+<p>To simplify the construction of the iterator, <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::make_transform_iterator</span></code> is provided. The
+function receives the original iterator and transform operation instance as arguments, and constructs the
+<code class="docutils literal notranslate"><span class="pre">transform_iterator</span></code> instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">using</span> <span class="n">namespace</span> <span class="n">oneapi</span><span class="p">;</span>
+<span class="n">dpl</span><span class="p">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="n">first</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="n">dpl</span><span class="p">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span> <span class="n">last</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+<span class="n">auto</span> <span class="n">transform_first</span> <span class="o">=</span> <span class="n">dpl</span><span class="p">::</span><span class="n">make_transform_iterator</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">negate</span><span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span><span class="p">());</span>
+<span class="n">auto</span> <span class="n">transform_last</span> <span class="o">=</span> <span class="n">transform_first</span> <span class="o">+</span> <span class="p">(</span><span class="n">last</span> <span class="o">-</span> <span class="n">first</span><span class="p">);</span>
+<span class="n">auto</span> <span class="nb">sum</span> <span class="o">=</span> <span class="n">std</span><span class="p">::</span><span class="n">reduce</span><span class="p">(</span><span class="n">dpl</span><span class="p">::</span><span class="n">execution</span><span class="p">::</span><span class="n">dpcpp_default</span><span class="p">,</span>
+                       <span class="n">transform_first</span><span class="p">,</span> <span class="n">transform_last</span><span class="p">);</span> <span class="o">//</span> <span class="nb">sum</span> <span class="ow">is</span> <span class="p">(</span><span class="mi">0</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="o">...</span> <span class="o">+</span> <span class="o">-</span><span class="mi">9</span><span class="p">)</span> <span class="o">=</span> <span class="o">-</span><span class="mi">45</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">permutation_iterator</span></code>: an iterator whose dereferenced value set is defined by the source iterator
+provided, and whose iteration order over the dereferenced value set is defined by either another iterator or
+a functor whose index operator defines the mapping from the <code class="docutils literal notranslate"><span class="pre">permutation_iterator</span></code> index to the index of the
+source iterator. The <code class="docutils literal notranslate"><span class="pre">permutation_iterator</span></code> is useful in implementing applications where noncontiguous
+elements of data represented by an iterator need to be processed by an algorithm as though they were contiguous.
+An example is copying every other element to an output iterator.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">make_permutation_iterator</span></code> is provided to simplify construction of iterator instances. The function
+receives the source iterator and the iterator or function object representing the index map:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">multiply_index_by_two</span> <span class="p">{</span>
+    <span class="n">template</span> <span class="o">&lt;</span><span class="n">typename</span> <span class="n">Index</span><span class="o">&gt;</span>
+    <span class="n">Index</span> <span class="n">operator</span><span class="p">()(</span><span class="n">const</span> <span class="n">Index</span><span class="o">&amp;</span> <span class="n">i</span><span class="p">)</span>
+    <span class="p">{</span> <span class="k">return</span> <span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="o">//</span> <span class="n">first</span> <span class="ow">and</span> <span class="n">last</span> <span class="n">are</span> <span class="n">iterators</span> <span class="n">that</span> <span class="n">define</span> <span class="n">a</span> <span class="n">contiguous</span> <span class="nb">range</span> <span class="n">of</span> <span class="nb">input</span> <span class="n">elements</span>
+<span class="o">//</span> <span class="n">compute</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="n">elements</span> <span class="ow">in</span> <span class="n">the</span> <span class="nb">range</span> <span class="n">between</span> <span class="n">the</span> <span class="n">first</span> <span class="ow">and</span> <span class="n">last</span> <span class="n">that</span> <span class="n">are</span> <span class="n">accessed</span>
+<span class="o">//</span> <span class="n">by</span> <span class="n">the</span> <span class="n">permutation</span> <span class="n">iterator</span>
+<span class="n">size_t</span> <span class="n">num_elements</span> <span class="o">=</span> <span class="n">std</span><span class="p">::</span><span class="n">distance</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">std</span><span class="p">::</span><span class="n">distance</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">;</span>
+<span class="n">using</span> <span class="n">namespace</span> <span class="n">oneapi</span><span class="p">;</span>
+<span class="n">auto</span> <span class="n">permutation_first</span> <span class="o">=</span> <span class="n">dpl</span><span class="p">::</span><span class="n">make_permutation_iterator</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">multiply_index_by_two</span><span class="p">());</span>
+<span class="n">auto</span> <span class="n">permutation_last</span> <span class="o">=</span> <span class="n">permutation_first</span> <span class="o">+</span> <span class="n">num_elements</span><span class="p">;</span>
+<span class="n">std</span><span class="p">::</span><span class="n">copy</span><span class="p">(</span><span class="n">dpl</span><span class="p">::</span><span class="n">execution</span><span class="p">::</span><span class="n">dpcpp_default</span><span class="p">,</span> <span class="n">permutation_first</span><span class="p">,</span> <span class="n">permutation_last</span><span class="p">,</span> <span class="n">result</span><span class="p">);</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+
+
+              </div>
+              
+        
+            
+
+
+
+<div class='prev-next-bottom'>
+    
+    <div id="prev">
+        <a class="left-prev" href="execution_policies.html" title="previous page">
+            <i class="prevnext-label fas fa-angle-left"></i>
+            <div class="prevnext-info">
+                <p class="prevnext-label">previous</p>
+                <p class="prevnext-title">Execution Policies</p>
+            </div>
+        </a>
+    </div>
+     <div id="next">
+        <a class="right-next" href="async_api.html" title="next page">
+            <div class="prevnext-info">
+                <p class="prevnext-label">next</p>
+                <p class="prevnext-title">Asynchronous API Algorithms</p>
+            </div>
+            <i class="prevnext-label fas fa-angle-right"></i>
+        </a>
+     </div>
+
+</div>
+        
+        </div>
+    </div>
+    <footer class="footer">
+    <div class="container">
+      <p>
+        
+          By Intel<br/>
+        
+            &copy; Copyright Intel Corporation.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  
+  </body>
+</html>

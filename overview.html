@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>oneAPI DPC++ Library (oneDPL) Guide &#8212; oneDPL Documentation 2021.5 documentation</title>
+    <title>oneAPI DPC++ Library (oneDPL) Overview &#8212; oneDPL Documentation 2021.5 documentation</title>
     
   <link href="_static/css/theme.css" rel="stylesheet" />
   <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
@@ -36,7 +36,8 @@
     <link rel="shortcut icon" href="_static/favicons.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Get Started with the oneAPI DPC++ Library (oneDPL)" href="onedpl_gsg.html" />
+    <link rel="next" title="Parallel API" href="parallel_api_main.html" />
+    <link rel="prev" title="Get Started with the oneAPI DPC++ Library (oneDPL)" href="onedpl_gsg.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -53,7 +54,7 @@
 <div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
     
         <div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="#">
+    <a class="navbar-brand text-wrap" href="index.html">
       
         <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
         
@@ -70,14 +71,14 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item active">
-        <ul class="nav bd-sidenav">
+        <ul class="current nav bd-sidenav">
  <li class="toctree-l1">
   <a class="reference internal" href="onedpl_gsg.html">
    Get Started with the oneAPI DPC++ Library (oneDPL)
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="overview.html">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
    oneAPI DPC++ Library (oneDPL) Overview
   </a>
  </li>
@@ -201,7 +202,7 @@
         <!-- ipynb file if we had a myst markdown file -->
         
         <!-- Download raw file -->
-        <a class="dropdown-buttons" href="_sources/index.rst.txt"><button type="button"
+        <a class="dropdown-buttons" href="_sources/overview.rst.txt"><button type="button"
                 class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
                 data-placement="left">.rst</button></a>
         <!-- Download PDF via print -->
@@ -218,10 +219,10 @@
     <div class="dropdown-buttons sourcebuttons">
         
         <a class="issues-button"
-            href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Findex.html&body=Your%20issue%20content%20here."><button
+            href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Foverview.html&body=Your%20issue%20content%20here."><button
                 type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
                 title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
-        <a class="edit-button" href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/index.rst"><button
+        <a class="edit-button" href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/overview.rst"><button
                 type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
                 title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
     </div>
@@ -241,6 +242,39 @@
         <!-- Table of contents -->
         <div class="d-none d-md-block col-md-2 bd-toc show">
             
+            <div class="tocsection onthispage pt-5 pb-3">
+                <i class="fas fa-list"></i> Contents
+            </div>
+            <nav id="bd-toc-nav" aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#before-you-begin">
+   Before You Begin
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#prerequisites">
+   Prerequisites
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#restrictions">
+   Restrictions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#known-limitations">
+   Known Limitations
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#build-your-code-with-onedpl-short">
+   Build Your Code with oneDPL
+  </a>
+ </li>
+</ul>
+
+            </nav>
         </div>
     </div>
 </div>
@@ -249,12 +283,78 @@
         
               <div>
                 
-  <div class="section" id="onedpl-long-guide">
-<h1>oneAPI DPC++ Library (oneDPL) Guide<a class="headerlink" href="#onedpl-long-guide" title="Permalink to this headline">¶</a></h1>
-<p>oneAPI DPC++ Library (oneDPL) works with the Intel® oneAPI DPC++/C++ Compiler to
-provide high-productivity APIs to developers, which can minimize Data Parallel C++ (DPC++) programming
-efforts across devices for high performance parallel applications.</p>
-<div class="toctree-wrapper compound">
+  <div class="section" id="onedpl-long-overview">
+<h1>oneAPI DPC++ Library (oneDPL) Overview<a class="headerlink" href="#onedpl-long-overview" title="Permalink to this headline">¶</a></h1>
+<p>Parallel API can be used with the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
+Policies</a>
+to enable parallelism on the host.</p>
+<p>The oneAPI DPC++ Library (oneDPL) is implemented in accordance with the <a class="reference external" href="https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html">oneDPL
+Specification</a>.</p>
+<p>To support heterogeneity, oneDPL works with the Data Parallel C++ (DPC++) API. More information can be found in the
+<a class="reference external" href="https://spec.oneapi.com/versions/latest/elements/dpcpp/source/index.html#dpc">DPC++ Specification</a>.</p>
+<div class="section" id="before-you-begin">
+<h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">¶</a></h2>
+<p>Visit the oneAPI DPC++ Library (oneDPL) <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
+page for:</p>
+<ul class="simple">
+<li><p>Where to Find the Release</p></li>
+<li><p>Overview</p></li>
+<li><p>New Features</p></li>
+<li><p>Fixed Issues</p></li>
+<li><p>Known Issues and Limitations</p></li>
+</ul>
+<p>Install the <a class="reference external" href="https://software.intel.com/en-us/oneapi/base-kit">Intel® oneAPI Base Toolkit (Base Kit)</a>
+to use oneDPL.</p>
+<p>All oneDPL header files are in the <code class="docutils literal notranslate"><span class="pre">oneapi/dpl</span></code> directory. To use the oneDPL API,
+include the corresponding header in your source code with the <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/…&gt;</span></code> directive.
+oneDPL introduces the namespace <code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> for most its classes and functions.</p>
+<p>To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
+and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
+</div>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>C++11 is the minimal version of the C++ standard that oneDPL requires. That means, any use of oneDPL
+requires at least a C++11 compiler. Some APIs of the library may require a higher version of C++.
+To call Parallel API with the C++ standard policies, you need to install the following software:</p>
+<ul class="simple">
+<li><p>A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs</p></li>
+<li><p>oneAPI Threading Building Blocks (oneTBB) or Intel® Threading Building Blocks (Intel® TBB) 2019 and later</p></li>
+</ul>
+<p>To use Parallel API with the DPC++ execution policies, you need to install the following software:</p>
+<ul class="simple">
+<li><p>A C++ compiler with support for SYCL* 2020</p></li>
+</ul>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>When called with DPC++ execution policies, oneDPL algorithms apply the same restrictions as DPC++
+does (see the DPC++ specification and the SYCL specification for details), such as:</p>
+<ul class="simple">
+<li><p>Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.</p></li>
+<li><p>Passing data types, which are not trivially copyable, is only allowed via USM,
+but not via buffers or host-allocated containers.</p></li>
+</ul>
+</div>
+<div class="section" id="known-limitations">
+<h2>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">¶</a></h2>
+<p>For <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">transform_inclusive_scan</span></code> algorithms, the result of the unary operation should be
+convertible to the type of the initial value if (one is provided), otherwise it is convertible to the type of values
+in the processed data sequence: (<code class="docutils literal notranslate"><span class="pre">std::iterator_traits&lt;IteratorType&gt;::value_type</span></code>).</p>
+</div>
+<div class="section" id="build-your-code-with-onedpl-short">
+<h2>Build Your Code with oneDPL<a class="headerlink" href="#build-your-code-with-onedpl-short" title="Permalink to this headline">¶</a></h2>
+<p>Follow the steps below to build your code with oneDPL:</p>
+<ol class="arabic simple">
+<li><p>To build with the Intel® oneAPI DPC++/C++ Compiler, see the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html">Get Started with the Intel® oneAPI DPC++/C++ Compiler</a>
+for details.</p></li>
+<li><p>Set the environment variables for oneDPL and oneTBB.</p></li>
+<li><p>To avoid naming device policy objects explicitly, add the <code class="docutils literal notranslate"><span class="pre">-fsycl-unnamed-lambda</span></code> option.</p></li>
+</ol>
+<p>Below is an example of a command line used to compile code that contains
+oneDPL parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">fsycl</span><span class="o">-</span><span class="n">unnamed</span><span class="o">-</span><span class="n">lambda</span><span class="p">]</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">ltbb</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">test</span><span class="w"></span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -268,11 +368,20 @@ efforts across devices for high performance parallel applications.</p>
 
 <div class='prev-next-bottom'>
     
+    <div id="prev">
+        <a class="left-prev" href="onedpl_gsg.html" title="previous page">
+            <i class="prevnext-label fas fa-angle-left"></i>
+            <div class="prevnext-info">
+                <p class="prevnext-label">previous</p>
+                <p class="prevnext-title">Get Started with the oneAPI DPC++ Library (oneDPL)</p>
+            </div>
+        </a>
+    </div>
      <div id="next">
-        <a class="right-next" href="onedpl_gsg.html" title="next page">
+        <a class="right-next" href="parallel_api_main.html" title="next page">
             <div class="prevnext-info">
                 <p class="prevnext-label">next</p>
-                <p class="prevnext-title">Get Started with the oneAPI DPC++ Library (oneDPL)</p>
+                <p class="prevnext-title">Parallel API</p>
             </div>
             <i class="prevnext-label fas fa-angle-right"></i>
         </a>
