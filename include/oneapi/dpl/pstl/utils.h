@@ -162,7 +162,7 @@ class __pstl_assign
     void
     operator()(const _Xp& __x, _Yp&& __y) const
     {
-        __y = __x;
+        ::std::forward<_Yp>(__y) = __x;
     }
 };
 

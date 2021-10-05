@@ -593,8 +593,8 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
     // Round 1: reduce with extra indices added to avoid long segments
-    // TODO: Add a check of whether there are any long key subsequences, and skip a round of copy_if
-    // and reduces if there are none.
+    // TODO: At threshold points check if the key is equal to the key at the previous threshold point, indicating a long sequence.
+    // Skip a round of copy_if and reduces if there are none.
     auto __n = __keys.size();
     auto __idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n)
                      .get_buffer();
@@ -621,6 +621,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     // element is copied if it is the last element (marks end of final segment), is in an index
     // evenly divisible by wg size (ensures segments are not long), or has a key not equal to the
     // adjacent element (marks end of real segments)
+    // TODO: replace wgroup size with segment size based on platform specifics.
     auto __result_end =
         __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view1, __view2,
                           [__n, __binary_pred, __wgroup_size](const auto& __a) {
