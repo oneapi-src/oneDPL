@@ -105,7 +105,7 @@ test(sycl::queue& deviceQueue)
 int
 main(int, char**)
 {
-#if __cplusplus >= 201703L
+#if (__cplusplus > 201703L || (__cplusplus == 201703L && (_GLIBCXX_RELEASE > 9 || __GLIBCXX__ >= 20200312)))
     sycl::queue deviceQueue;
     test(deviceQueue);
 
