@@ -231,10 +231,10 @@ class normal_distribution
 
         if (!flag_)
         {
-            result_type __u1 = uniform_real_distribution_(
-                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}));
-            result_type __u2 = uniform_real_distribution_(
-                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}));
+            result_type __u1 =
+                uniform_real_distribution_(__engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}));
+            result_type __u2 =
+                uniform_real_distribution_(__engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}));
 
             __ln = (__u1 == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__u1);
 
@@ -276,9 +276,8 @@ class normal_distribution
         sycl::vec<scalar_type, __vec_size> __sin, __cos;
         sycl::vec<scalar_type, __vec_size> __u1_transformed;
 
-        __u = uniform_real_distribution_(
-            __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}),
-            __N);
+        __u = uniform_real_distribution_(__engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}),
+                                         __N);
 
         sycl::vec<scalar_type, __vec_size> __u1 = __u.even();
         sycl::vec<scalar_type, __vec_size> __u2 = __u.odd();
@@ -338,8 +337,7 @@ class normal_distribution
         {
             unsigned int __tail = __N % 2;
             __u = uniform_real_distribution_(
-                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}),
-                __N + __tail);
+                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}), __N + __tail);
 
             for (unsigned int __i = 0; __i < __N - __tail; __i += 2)
             {
@@ -375,8 +373,7 @@ class normal_distribution
             unsigned int __tail = (__N - 1u) % 2u;
 
             __u = uniform_real_distribution_(
-                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}),
-                __N - 1u + __tail);
+                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}), __N - 1u + __tail);
 
             for (unsigned int __i = 1; __i < (__N - __tail); __i += 2)
             {
