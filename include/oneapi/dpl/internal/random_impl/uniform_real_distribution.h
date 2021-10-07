@@ -35,7 +35,7 @@ class uniform_real_distribution
     class param_type
     {
       public:
-        typedef uniform_real_distribution<result_type> distribution_type;
+        using distribution_type = uniform_real_distribution<result_type>;
         param_type() : param_type(scalar_type{0.0}) {}
         explicit param_type(scalar_type a, scalar_type b = scalar_type{1.0}) : a_(a), b_(b) {}
         scalar_type

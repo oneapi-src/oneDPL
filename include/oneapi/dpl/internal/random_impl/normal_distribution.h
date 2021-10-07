@@ -49,7 +49,7 @@ class normal_distribution
     class param_type
     {
       public:
-        typedef normal_distribution<result_type> distribution_type;
+        using distribution_type = normal_distribution<result_type>;
         param_type() : param_type(scalar_type{0.0}) {}
         explicit param_type(scalar_type mean, scalar_type stddev = scalar_type{1.0}) : mean_(mean), stddev_(stddev) {}
         scalar_type
@@ -181,6 +181,7 @@ class normal_distribution
 
     // Real distribution for the conversion
     uniform_real_distribution<uniform_result_type> uniform_real_distribution_;
+    using uniform_real_distr_param_type = typename uniform_real_distribution<uniform_result_type>::param_type;
 
     // Callback function
     template <typename _Type = float>
@@ -231,11 +232,9 @@ class normal_distribution
         if (!flag_)
         {
             result_type __u1 = uniform_real_distribution_(
-                __engine, typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0},
-                                                                                              scalar_type{1.0}));
+                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}));
             result_type __u2 = uniform_real_distribution_(
-                __engine, typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0},
-                                                                                              scalar_type{1.0}));
+                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}));
 
             __ln = (__u1 == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__u1);
 
@@ -278,8 +277,7 @@ class normal_distribution
         sycl::vec<scalar_type, __vec_size> __u1_transformed;
 
         __u = uniform_real_distribution_(
-            __engine,
-            typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0}, scalar_type{1.0}),
+            __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}),
             __N);
 
         sycl::vec<scalar_type, __vec_size> __u1 = __u.even();
@@ -340,8 +338,7 @@ class normal_distribution
         {
             unsigned int __tail = __N % 2;
             __u = uniform_real_distribution_(
-                __engine,
-                typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0}, scalar_type{1.0}),
+                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}),
                 __N + __tail);
 
             for (unsigned int __i = 0; __i < __N - __tail; __i += 2)
@@ -378,8 +375,7 @@ class normal_distribution
             unsigned int __tail = (__N - 1u) % 2u;
 
             __u = uniform_real_distribution_(
-                __engine,
-                typename uniform_real_distribution<uniform_result_type>::param_type(scalar_type{0.0}, scalar_type{1.0}),
+                __engine, uniform_real_distr_param_type(scalar_type{0.0}, scalar_type{1.0}),
                 __N - 1u + __tail);
 
             for (unsigned int __i = 1; __i < (__N - __tail); __i += 2)

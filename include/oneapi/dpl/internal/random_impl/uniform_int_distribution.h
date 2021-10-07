@@ -35,7 +35,7 @@ class uniform_int_distribution
     class param_type
     {
       public:
-        typedef uniform_int_distribution<result_type> distribution_type;
+        using distribution_type = uniform_int_distribution<result_type>;
         param_type() : param_type(scalar_type{0}) {}
         explicit param_type(scalar_type a, scalar_type b = ::std::numeric_limits<scalar_type>::max()) : a_(a), b_(b) {}
         scalar_type
