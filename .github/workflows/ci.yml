@@ -132,6 +132,7 @@ jobs:
           source $CONDA/bin/activate
           export PATH=$CONDA/lib:$PATH
           export CPATH=$CONDA/include:$CPATH
+          export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
           if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
             echo "::warning::Compiler: $(dpcpp --version)"
           fi
@@ -202,6 +203,7 @@ jobs:
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           set INCLUDE=%CONDA_PREFIX%\Library\include;%INCLUDE%
           set LIB=%CONDA_PREFIX%\Library\lib;%LIB%
+          set CPATH=%CONDA_PREFIX%\include
           set OCL_ICD_FILENAMES=%CONDA_PREFIX%\Library\lib\intelocl64.dll
           cmake -G "Ninja" %toolchain_option% -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           ninja -j 2 -v %ninja_targets%
