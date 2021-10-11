@@ -184,7 +184,8 @@ class weibull_distribution
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<sycl::vec<scalar_type, __N>> __distr;
-        return __params.b() * sycl::pow(-sycl::log(scalar_type{1.0} - __distr(__engine)), result_type{1.0} / __params.a());
+        return __params.b() *
+               sycl::pow(-sycl::log(scalar_type{1.0} - __distr(__engine)), result_type{1.0} / __params.a());
     }
 
     // Implementation for the N vector's elements generation

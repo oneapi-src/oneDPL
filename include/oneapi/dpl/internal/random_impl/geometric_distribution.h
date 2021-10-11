@@ -57,7 +57,6 @@ class geometric_distribution
         double p_;
     };
 
-
     // Constructors
     geometric_distribution() : geometric_distribution(0.5) {}
     explicit geometric_distribution(double __p) : p_(__p) {}

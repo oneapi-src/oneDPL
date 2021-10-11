@@ -63,7 +63,6 @@ class lognormal_distribution
         scalar_type stddev_;
     };
 
-
     // Constructors
     lognormal_distribution() : lognormal_distribution(scalar_type{0.0}) {}
     explicit lognormal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : nd_(__mean, __stddev)
