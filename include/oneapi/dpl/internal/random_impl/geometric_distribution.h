@@ -31,18 +31,37 @@ class geometric_distribution
     // Distribution types
     using result_type = _IntType;
     using scalar_type = internal::element_type_t<_IntType>;
-
-    struct param_type
+    class param_type
     {
+      public:
+        using distribution_type = geometric_distribution<result_type>;
         param_type() : param_type(0.5) {}
-        param_type(double __p) : p(__p) {}
-        double p;
+        explicit param_type(double p) : p_(p) {}
+        double
+        p() const
+        {
+            return p_;
+        }
+        friend bool
+        operator==(const param_type& p1, const param_type& p2)
+        {
+            return p1.p_ == p2.p_;
+        }
+        friend bool
+        operator!=(const param_type& p1, const param_type& p2)
+        {
+            return !(p1 == p2);
+        }
+
+      private:
+        double p_;
     };
+
 
     // Constructors
     geometric_distribution() : geometric_distribution(0.5) {}
     explicit geometric_distribution(double __p) : p_(__p) {}
-    explicit geometric_distribution(const param_type& __params) : p_(__params.p) {}
+    explicit geometric_distribution(const param_type& __params) : p_(__params.p()) {}
 
     // Reset function
     void
@@ -64,9 +83,9 @@ class geometric_distribution
     }
 
     void
-    param(const param_type& __param)
+    param(const param_type& __params)
     {
-        p_ = __param.p;
+        p_ = __params.p();
     }
 
     scalar_type
@@ -135,7 +154,7 @@ class geometric_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<double> __u;
-        return sycl::floor(sycl::log(1.0 - __u(__engine)) / sycl::log(1.0 - __params.p));
+        return sycl::floor(sycl::log(1.0 - __u(__engine)) / sycl::log(1.0 - __params.p()));
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -153,7 +172,7 @@ class geometric_distribution
     {
         oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
         sycl::vec<double, __N> __u = __distr(__engine);
-        sycl::vec<double, __N> __res_double = sycl::floor(sycl::log(1.0 - __u) / sycl::log(1.0 - __params.p));
+        sycl::vec<double, __N> __res_double = sycl::floor(sycl::log(1.0 - __u) / sycl::log(1.0 - __params.p()));
         result_type __res = __res_double.template convert<scalar_type, sycl::rounding_mode::rtz>();
         return __res;
     }
@@ -165,7 +184,7 @@ class geometric_distribution
     {
         result_type __res;
         oneapi::dpl::uniform_real_distribution<double> __u;
-        double __tmp = sycl::log(1.0 - __params.p);
+        double __tmp = sycl::log(1.0 - __params.p());
         for (int i = 0; i < __N; i++)
             __res[i] = sycl::floor(sycl::log(1.0 - __u(__engine)) / __tmp);
         return __res;

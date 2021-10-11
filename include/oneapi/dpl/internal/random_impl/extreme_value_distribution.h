@@ -31,19 +31,42 @@ class extreme_value_distribution
     // Distribution types
     using result_type = _RealType;
     using scalar_type = internal::element_type_t<_RealType>;
-
-    struct param_type
+    class param_type
     {
+      public:
+        using distribution_type = extreme_value_distribution<result_type>;
         param_type() : param_type(scalar_type{0.0}) {}
-        param_type(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a(__a), b(__b) {}
-        scalar_type a;
-        scalar_type b;
+        explicit param_type(scalar_type a, scalar_type b = scalar_type{1.0}) : a_(a), b_(b) {}
+        scalar_type
+        a() const
+        {
+            return a_;
+        }
+        scalar_type
+        b() const
+        {
+            return b_;
+        }
+        friend bool
+        operator==(const param_type& p1, const param_type& p2)
+        {
+            return p1.a_ == p2.a_ && p1.b_ == p2.b_;
+        }
+        friend bool
+        operator!=(const param_type& p1, const param_type& p2)
+        {
+            return !(p1 == p2);
+        }
+
+      private:
+        scalar_type a_;
+        scalar_type b_;
     };
 
     // Constructors
     extreme_value_distribution() : extreme_value_distribution(scalar_type{0.0}) {}
     explicit extreme_value_distribution(scalar_type __a, scalar_type __b = scalar_type{1.0}) : a_(__a), b_(__b) {}
-    explicit extreme_value_distribution(const param_type& __params) : a_(__params.a), b_(__params.b) {}
+    explicit extreme_value_distribution(const param_type& __params) : a_(__params.a()), b_(__params.b()) {}
 
     // Reset function
     void
@@ -71,10 +94,10 @@ class extreme_value_distribution
     }
 
     void
-    param(const param_type& __param)
+    param(const param_type& __params)
     {
-        a_ = __param.a;
-        b_ = __param.b;
+        a_ = __params.a();
+        b_ = __params.b();
     }
 
     scalar_type
@@ -161,7 +184,7 @@ class extreme_value_distribution
         oneapi::dpl::exponential_distribution<scalar_type> __distr;
         scalar_type __e = __distr(__engine);
         result_type __res = (__e == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__e);
-        return __params.a - __params.b * __res;
+        return __params.a() - __params.b() * __res;
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -181,7 +204,7 @@ class extreme_value_distribution
         result_type __e = __distr(__engine);
         result_type __res =
             select(sycl::log(__e), result_type{callback<scalar_type>()}, sycl::isequal(__e, result_type{0.0}));
-        return __params.a - __params.b * __res;
+        return __params.a() - __params.b() * __res;
     }
 
     // Implementation for the N vector's elements generation
@@ -196,7 +219,7 @@ class extreme_value_distribution
         {
             scalar_type __e = __distr(__engine);
             __res[i] = (__e == scalar_type{0.0}) ? callback<scalar_type>() : sycl::log(__e);
-            __res[i] = __params.a - __params.b * __res[i];
+            __res[i] = __params.a() - __params.b() * __res[i];
         }
 
         return __res;
