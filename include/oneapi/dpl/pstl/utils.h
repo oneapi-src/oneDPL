@@ -155,9 +155,12 @@ class __reorder_pred
     }
 };
 
+//! custom assignment operator used in copy_if and other algorithms using predicates
 class __pstl_assign
 {
   public:
+	// rvalue reference used for output parameter to allow assignment of std::tuple of references.
+	// The output is the second argument because the output range is passed to the algorithm as the second range.
     template <typename _Xp, typename _Yp>
     void
     operator()(const _Xp& __x, _Yp&& __y) const
