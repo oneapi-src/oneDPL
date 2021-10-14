@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _DPSTD_iterator_impl_H
-#define _DPSTD_iterator_impl_H
+#ifndef _ONEDPL_ITERATOR_IMPL_H
+#define _ONEDPL_ITERATOR_IMPL_H
 
 namespace oneapi
 {

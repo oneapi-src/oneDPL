@@ -16,8 +16,8 @@
  *  limitations under the License.
  */
 
-#ifndef DPSTD_REDUCE_BY_KEY
-#define DPSTD_REDUCE_BY_KEY
+#ifndef _ONEDPL_REDUCE_BY_SEGMENT_IMPL_H
+#define _ONEDPL_REDUCE_BY_SEGMENT_IMPL_H
 
 #include "../pstl/iterator_impl.h"
 #include "function.h"
