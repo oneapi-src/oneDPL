@@ -1,0 +1,12 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskLabel": "env | grep tbb",
+      "appliesTo": "test/general/buffer_wrapper.pass.cpp",
+      "type": "remote",
+      "contextType": "build",
+      "command": "source /lib/oneapi-tbb/env/vars.sh && env"
+    }
+  ]
+}
