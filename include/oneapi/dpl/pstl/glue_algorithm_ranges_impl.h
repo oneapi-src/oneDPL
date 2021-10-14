@@ -663,8 +663,7 @@ reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __value
     return oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
         ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__keys)),
         views::all_read(::std::forward<_Range2>(__values)), views::all_write(::std::forward<_Range3>(__out_keys)),
-        views::all_write(::std::forward<_Range4>(__out_values)), ::std::forward<_BinaryPredicate>(__binary_pred),
-        ::std::forward<_BinaryOperator>(__binary_op));
+        views::all_write(::std::forward<_Range4>(__out_values)), __binary_pred, __binary_op);
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
@@ -676,7 +675,7 @@ reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __value
 {
     return reduce_by_segment(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys),
                              ::std::forward<_Range2>(__values), ::std::forward<_Range3>(__out_keys),
-                             ::std::forward<_Range4>(__out_values), ::std::forward<_BinaryPredicate>(__binary_pred),
+                             ::std::forward<_Range4>(__out_values), __binary_pred,
                              oneapi::dpl::__internal::__pstl_plus());
 }
 
