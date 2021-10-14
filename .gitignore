@@ -1,1 +1,4 @@
 _build
+/.vs
+/out
+/build
