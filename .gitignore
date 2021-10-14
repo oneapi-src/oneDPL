@@ -1,1 +1,6 @@
 _build
+/.vs
+/out
+/build
+/.vs/VSWorkspaceState.json
+/.vs/ProjectSettings.json
