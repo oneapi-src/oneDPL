@@ -193,6 +193,85 @@ void test_with_usm()
     sycl::free(key_res_head, q);
     sycl::free(val_res_head, q);
 }
+
+void test_with_device_mem()
+{
+    sycl::queue q;
+    int n = 13;
+
+    // Allocate space for data using USM.
+    uint64_t* key_head = static_cast<uint64_t*>(sycl::malloc_device(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_head = static_cast<uint64_t*>(sycl::malloc_device(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* key_res_head = static_cast<uint64_t*>(sycl::malloc_device(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_res_head = static_cast<uint64_t*>(sycl::malloc_device(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+
+    //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
+    //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
+
+    // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, 0};
+    // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, 0};
+
+    // Initialize data
+    for (int i = 0; i != 12; ++i) {
+        key_head[i] = i % 4 + 1;
+        val_head[i] = i % 4 + 1;
+        key_res_head[i] = 9;
+        val_res_head[i] = 1;
+        if (i > 3) {
+            ++i;
+            key_head[i] = key_head[i-1];
+            val_head[i] = val_head[i-1];
+            key_res_head[i] = 9;
+            val_res_head[i] = 1;
+        }
+    }
+    key_head[12] = 0;
+    val_head[12] = 0;
+
+    // call algorithm
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_3>(q);
+    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
+
+    // check values
+    n = std::distance(key_res_head, res1.first);
+    for (auto i = 0; i != n; ++i) {
+        if (i < 4) {
+            ASSERT_EQUAL(key_res_head[i], i+1);
+            ASSERT_EQUAL(val_res_head[i], i+1);
+        } else if (i == 4 || i == 6) {
+            ASSERT_EQUAL(key_res_head[i], 1);
+            ASSERT_EQUAL(val_res_head[i], 2);
+        } else if (i == 5 || i == 7) {
+            ASSERT_EQUAL(key_res_head[i], 3);
+            ASSERT_EQUAL(val_res_head[i], 6);
+        } else if (i == 8) {
+            ASSERT_EQUAL(key_res_head[i], 0);
+            ASSERT_EQUAL(val_res_head[i], 0);
+        } else {
+            std::cout << "fail: unexpected values in output range\n";
+        }
+    }
+
+    // call algorithm on single element range
+    key_res_head[0] = 9;
+    val_res_head[0] = 9;
+
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_4>(q);
+    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);
+
+    // check values
+    n = std::distance(key_res_head, res2.first);
+    ASSERT_EQUAL(n, 1);
+    ASSERT_EQUAL(key_res_head[0], 1);
+    ASSERT_EQUAL(val_res_head[0], 1);
+
+    // Deallocate memory
+    sycl::free(key_head, q);
+    sycl::free(val_head, q);
+    sycl::free(key_res_head, q);
+    sycl::free(val_res_head, q);
+}
+
 #endif
 
 void test_on_host() {
@@ -223,6 +302,7 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     test_with_buffers();
     test_with_usm();
+    test_with_device_mem();
 #endif
     test_on_host();
 
