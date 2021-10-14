@@ -132,8 +132,10 @@ struct shift_left_algo
 struct shift_right_algo
 {
     template <typename Policy, typename It>
-    typename ::std::enable_if<::std::is_base_of<::std::bidirectional_iterator_tag, It>::value
-                            || ::std::is_base_of<::std::random_access_iterator_tag, It>::value,
+    typename ::std::enable_if<::std::is_base_of<::std::bidirectional_iterator_tag, 
+                            typename ::std::iterator_traits<It>::iterator_category>::value
+                            || ::std::is_base_of<::std::random_access_iterator_tag, 
+                            typename ::std::iterator_traits<It>::iterator_category>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
@@ -141,8 +143,10 @@ struct shift_right_algo
     }
     //skip the test for non-bidirectional iterator (forward iterator, etc)
     template <typename Policy, typename It>
-    typename ::std::enable_if<!::std::is_base_of<::std::bidirectional_iterator_tag, It>::value
-                            && !::std::is_base_of<::std::random_access_iterator_tag, It>::value,
+    typename ::std::enable_if<!::std::is_base_of<::std::bidirectional_iterator_tag,
+                            typename ::std::iterator_traits<It>::iterator_category>::value
+                            && !::std::is_base_of<::std::random_access_iterator_tag, 
+                            typename ::std::iterator_traits<It>::iterator_category>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
@@ -150,8 +154,10 @@ struct shift_right_algo
     }
 
     template <typename It, typename ItExp>
-    typename ::std::enable_if<::std::is_base_of<::std::bidirectional_iterator_tag, It>::value
-                            || ::std::is_base_of<::std::random_access_iterator_tag, It>::value,
+    typename ::std::enable_if<::std::is_base_of<::std::bidirectional_iterator_tag, 
+                            typename ::std::iterator_traits<It>::iterator_category>::value
+                            || ::std::is_base_of<::std::random_access_iterator_tag, 
+                            typename ::std::iterator_traits<It>::iterator_category>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
@@ -172,8 +178,10 @@ struct shift_right_algo
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
     template <typename It, typename ItExp>
-    typename ::std::enable_if<!::std::is_base_of<::std::bidirectional_iterator_tag, It>::value
-                            && !::std::is_base_of<::std::random_access_iterator_tag, It>::value,
+    typename ::std::enable_if<!::std::is_base_of<::std::bidirectional_iterator_tag, 
+                            typename ::std::iterator_traits<It>::iterator_category>::value
+                            && !::std::is_base_of<::std::random_access_iterator_tag, 
+                            typename ::std::iterator_traits<It>::iterator_category>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
