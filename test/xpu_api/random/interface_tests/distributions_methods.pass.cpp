@@ -108,11 +108,11 @@ template <class T>
 std::int32_t
 check_params(oneapi::dpl::lognormal_distribution<T>& distr)
 {
-    Element_type<T> mean = Element_type<T>{0.0};
-    Element_type<T> stddev = Element_type<T>{1.0};
-    return ((distr.m() != mean) || (distr.s() != stddev) ||
+    Element_type<T> m = Element_type<T>{0.0};
+    Element_type<T> s = Element_type<T>{1.0};
+    return ((distr.m() != m) || (distr.s() != s) ||
             (distr.min() != 0) || (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
-            (distr.param().mean() != mean) || (distr.param().stddev() != stddev));
+            (distr.param().m() != m) || (distr.param().s() != s));
 }
 
 template <class T>

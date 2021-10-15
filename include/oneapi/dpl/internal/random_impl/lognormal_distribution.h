@@ -36,21 +36,21 @@ class lognormal_distribution
       public:
         using distribution_type = lognormal_distribution<result_type>;
         param_type() : param_type(scalar_type{0.0}) {}
-        explicit param_type(scalar_type mean, scalar_type stddev = scalar_type{1.0}) : mean_(mean), stddev_(stddev) {}
+        explicit param_type(scalar_type m, scalar_type s = scalar_type{1.0}) : m_(m), s_(s) {}
         scalar_type
-        mean() const
+        m() const
         {
-            return mean_;
+            return m_;
         }
         scalar_type
-        stddev() const
+        s() const
         {
-            return stddev_;
+            return s_;
         }
         friend bool
         operator==(const param_type& p1, const param_type& p2)
         {
-            return p1.mean_ == p2.mean_ && p1.stddev_ == p2.stddev_;
+            return p1.m_ == p2.m_ && p1.s_ == p2.s_;
         }
         friend bool
         operator!=(const param_type& p1, const param_type& p2)
@@ -59,8 +59,8 @@ class lognormal_distribution
         }
 
       private:
-        scalar_type mean_;
-        scalar_type stddev_;
+        scalar_type m_;
+        scalar_type s_;
     };
 
     // Constructors
@@ -68,7 +68,7 @@ class lognormal_distribution
     explicit lognormal_distribution(scalar_type __mean, scalar_type __stddev = scalar_type{1.0}) : nd_(__mean, __stddev)
     {
     }
-    explicit lognormal_distribution(const param_type& __params) : nd_(__params.mean(), __params.stddev()) {}
+    explicit lognormal_distribution(const param_type& __params) : nd_(__params.m(), __params.s()) {}
 
     // Reset function
     void
@@ -99,7 +99,7 @@ class lognormal_distribution
     void
     param(const param_type& __params)
     {
-        nd_.param(normal_distr_param_type(__params.mean(), __params.stddev()));
+        nd_.param(normal_distr_param_type(__params.m(), __params.s()));
     }
 
     scalar_type
@@ -171,7 +171,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr == 0), result_type>::type
     generate(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, normal_distr_param_type(__params.mean(), __params.stddev())));
+        return sycl::exp(nd_(__engine, normal_distr_param_type(__params.m(), __params.s())));
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -181,7 +181,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, normal_distr_param_type(__params.mean(), __params.stddev())));
+            __res[i] = sycl::exp(nd_(__engine, normal_distr_param_type(__params.m(), __params.s())));
         return __res;
     }
 
@@ -190,7 +190,7 @@ class lognormal_distribution
     typename ::std::enable_if<(__N > 3), result_type>::type
     generate_vec(_Engine& __engine, const param_type& __params)
     {
-        return sycl::exp(nd_(__engine, normal_distr_param_type(__params.mean(), __params.stddev())));
+        return sycl::exp(nd_(__engine, normal_distr_param_type(__params.m(), __params.s())));
     }
 
     // Implementation for the N vector's elements generation with size = [4; 8; 16]
@@ -198,7 +198,7 @@ class lognormal_distribution
     typename ::std::enable_if<(_Ndistr > 3), result_type>::type
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
-        result_type __res = nd_(__engine, normal_distr_param_type(__params.mean(), __params.stddev()), __N);
+        result_type __res = nd_(__engine, normal_distr_param_type(__params.m(), __params.s()), __N);
         for (int i = 0; i < __N; i++)
             __res[i] = sycl::exp(__res[i]);
         return __res;
@@ -211,7 +211,7 @@ class lognormal_distribution
     {
         result_type __res;
         for (int i = 0; i < __N; i++)
-            __res[i] = sycl::exp(nd_(__engine, normal_distr_param_type(__params.mean(), __params.stddev())));
+            __res[i] = sycl::exp(nd_(__engine, normal_distr_param_type(__params.m(), __params.s())));
         return __res;
     }
 
