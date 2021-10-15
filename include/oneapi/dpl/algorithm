@@ -57,6 +57,7 @@ using ::std::find;
 using ::std::find_if;
 using ::std::find_if_not;
 using ::std::for_each;
+using ::std::is_permutation;
 using ::std::lower_bound;
 using ::std::none_of;
 using ::std::upper_bound;

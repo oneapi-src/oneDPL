@@ -348,6 +348,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::copy_if``                     Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::copy_n``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::is_permutation``              Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
