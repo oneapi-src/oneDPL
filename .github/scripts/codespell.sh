@@ -18,12 +18,10 @@ SKIP_PATTERN='*/.github/*'
 
 # Ignored cases
 IGNORE_COMMAND="sed -e /.*sycl_iterator.pass.cpp.*nd\\s*=.*/d \
--e /.*nanorange.hpp.*copyable\\s*=.*/d \
--e /.*iterator_impl.h.*Copyable\\s*=.*/d \
 -e /.*windows.inc.*Od\\s*=.*/d \
 -e /.*README.md.*varN\\s*=.*/d"
 
-SCAN_RESULT=$(codespell --quiet-level=2 --skip "${SKIP_PATTERN}" ${SCAN_TARGET})
+SCAN_RESULT=$(codespell -I ${GITHUB_WORKSPACE}/.github/scripts/allowed_words.txt --quiet-level=2 --skip "${SKIP_PATTERN}" ${SCAN_TARGET})
 SCAN_RESULT=$(echo -e "${SCAN_RESULT}" | ${IGNORE_COMMAND})
 echo "${SCAN_RESULT}"
 

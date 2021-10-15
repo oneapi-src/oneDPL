@@ -17,7 +17,6 @@
 #define _ONEDPL_RANGES
 
 // TODO: Figure out the order of headers and add standard header version/ciso646 for library version macros.
-// Also, remove dependency on <execution> header.
 #if defined(_GLIBCXX_RELEASE)
 #    define _ONEDPL_CXX_STANDARD_LIBRARY_CHECK (_GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
 #elif defined(_LIBCPP_VERSION)
@@ -27,8 +26,8 @@
 #endif
 
 static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
-              "The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or "
-              "higher) or Clang 7 (or higher)");
+              "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+              "with GCC 8.1 (or higher) or Clang 7 (or higher)");
 
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"

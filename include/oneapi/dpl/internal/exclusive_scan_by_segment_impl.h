@@ -16,8 +16,8 @@
  *  limitations under the License.
  */
 
-#ifndef DPSTD_EXCLUSIVE_SCAN_BY_KEY
-#define DPSTD_EXCLUSIVE_SCAN_BY_KEY
+#ifndef _ONEDPL_EXCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
+#define _ONEDPL_EXCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
 
 #include "../pstl/parallel_backend.h"
 #include "function.h"

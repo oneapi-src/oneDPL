@@ -22,9 +22,6 @@
 #define _ONEDPL_sycl_defs_H
 
 #include <CL/sycl.hpp>
-#if _ONEDPL_FPGA_DEVICE
-#    include <CL/sycl/INTEL/fpga_extensions.hpp>
-#endif
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
@@ -32,6 +29,14 @@
         (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
 #else
 #    define __LIBSYCL_VERSION 0
+#endif
+
+#if _ONEDPL_FPGA_DEVICE
+#    if __LIBSYCL_VERSION >= 50400
+#        include <sycl/ext/intel/fpga_extensions.hpp>
+#    else
+#        include <CL/sycl/INTEL/fpga_extensions.hpp>
+#    endif
 #endif
 
 // Macros to check the new SYCL features

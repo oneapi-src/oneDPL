@@ -144,10 +144,10 @@ struct is_permutation<Iter, typename ::std::enable_if<Iter::is_permutation::valu
 };
 
 template <typename _Iter>
-using is_hetero_it = oneapi::dpl::__par_backend_hetero::__internal::is_hetero_iterator<_Iter>;
+using is_hetero_it = oneapi::dpl::__internal::is_hetero_iterator<_Iter>;
 
 template <typename _Iter>
-using is_passed_directly_it = oneapi::dpl::__par_backend_hetero::__internal::is_passed_directly<_Iter>;
+using is_passed_directly_it = oneapi::dpl::__internal::is_passed_directly<_Iter>;
 
 //struct for checking if it needs to create a temporary SYCL buffer or not
 

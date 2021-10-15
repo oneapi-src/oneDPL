@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef DPSTD_BINARY_SEARCH
-#define DPSTD_BINARY_SEARCH
+#ifndef _ONEDPL_BINARY_SEARCH_IMPL_H
+#define _ONEDPL_BINARY_SEARCH_IMPL_H
 
 #include "function.h"
 #include "binary_search_extension_defs.h"

@@ -19,6 +19,7 @@
 // ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
 #include <algorithm>
 #include "oneapi/dpl/pstl/onedpl_config.h"
+#include "oneapi/dpl/internal/serial_algorithm_impl.h"
 
 #if !_ONEDPL_ALGORITHM_FORWARD_DECLARED
 // If not declared, pull in forward declarations
@@ -45,6 +46,10 @@ namespace dpl
 using ::std::all_of;
 using ::std::any_of;
 using ::std::binary_search;
+using ::std::copy;
+using ::std::copy_backward;
+using ::std::copy_if;
+using ::std::copy_n;
 using ::std::count;
 using ::std::count_if;
 using ::std::equal_range;
@@ -52,6 +57,7 @@ using ::std::find;
 using ::std::find_if;
 using ::std::find_if_not;
 using ::std::for_each;
+using ::std::is_permutation;
 using ::std::lower_bound;
 using ::std::none_of;
 using ::std::upper_bound;
