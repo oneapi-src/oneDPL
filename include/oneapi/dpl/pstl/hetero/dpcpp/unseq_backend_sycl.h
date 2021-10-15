@@ -146,7 +146,9 @@ struct transform_init
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp
 #if _USE_GROUP_ALGOS
           ,
-          bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation1, _Tp>
+          bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation1, _Tp> &&
+                                   !std::is_same_v<_BinaryOperation1, std::multiplies<_Tp>> &&
+                                   !std::is_same_v<_BinaryOperation1, sycl::multiplies<_Tp>>
 #endif
           >
 struct reduce
@@ -503,7 +505,10 @@ template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperat
           typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType
 #if _USE_GROUP_ALGOS
           ,
-          bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation, typename _InitType::__value_type>
+          bool _HasKnownIdentity =
+              sycl::has_known_identity_v<_BinaryOperation, typename _InitType::__value_type> &&
+              !std::is_same_v<_BinaryOperation, std::multiplies<typename _InitType::__value_type>> &&
+              !std::is_same_v<_BinaryOperation, sycl::multiplies<typename _InitType::__value_type>>
 #endif
           >
 struct __scan
