@@ -13,6 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This include is needed for the correct definition of the value
+// of the _ENABLE_RANGES_TESTING macro
+#include <oneapi/dpl/utility>
+
 #include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
