@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DPCPP_INTERNAL_FUNCTION_H_
-#define DPCPP_INTERNAL_FUNCTION_H_
+#ifndef _ONEDPL_INTERNAL_FUNCTION_H
+#define _ONEDPL_INTERNAL_FUNCTION_H
 
 #include <utility>
 #if _ONEDPL_BACKEND_SYCL
