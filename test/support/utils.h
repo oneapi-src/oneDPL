@@ -916,30 +916,6 @@ test_algo_three_sequences()
     }
 }
 
-// Used with algorithms that have two input sequences and two output sequences
-template <typename Key, typename Value, typename TestName>
-void
-test_algo_four_sequences()
-{
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-    {
-        Sequence<Key> inout1(max_n + inout1_offset);
-        Sequence<Value> inout2(max_n + inout2_offset);
-        Sequence<Key> inout3(max_n + inout3_offset);
-        Sequence<Value> inout4(max_n + inout4_offset);
-
-        // create iterators
-        auto inout1_offset_first = std::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = std::begin(inout2) + inout2_offset;
-        auto inout3_offset_first = std::begin(inout3) + inout3_offset;
-        auto inout4_offset_first = std::begin(inout4) + inout4_offset;
-
-        invoke_on_all_host_policies()(TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first,
-                                      inout2_offset_first + n, inout3_offset_first, inout3_offset_first + n,
-                                      inout4_offset_first, inout4_offset_first + n, n);
-    }
-}
-
 template <typename Policy, typename F>
 static void
 invoke_if(Policy&&, F f)

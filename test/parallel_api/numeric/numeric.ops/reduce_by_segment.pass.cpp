@@ -21,208 +21,210 @@
 #include "support/test_config.h"
 #include "support/utils.h"
 
+#include <iostream>
+#include <iomanip>
+
+template<typename _T1, typename _T2>
+void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
+    if(X!=Y)
+        std::cout << "CHECK CORRECTNESS (REDUCE_BY_SEGMENT): fail (" << X << "," << Y << ")" << std::endl;
+}
+
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include <CL/sycl.hpp>
+#include <CL/sycl.hpp>
 
-using namespace oneapi::dpl::execution;
-#endif
-using namespace TestUtils;
-
-struct test_reduce_by_segment
+void test_with_buffers()
 {
-    // TODO: replace data generation with random data and update check to compare result to
-    // the result of a serial implementation of the algorithm
-    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename Size>
-    void
-    initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_key_res, Iterator4 host_val_res, Size n)
+    // create buffers
+    sycl::buffer<uint64_t, 1> key_buf{ sycl::range<1>(13) };
+    sycl::buffer<uint64_t, 1> val_buf{ sycl::range<1>(13) };
+    sycl::buffer<uint64_t, 1> key_res_buf{ sycl::range<1>(13) };
+    sycl::buffer<uint64_t, 1> val_res_buf{ sycl::range<1>(13) };
+
     {
-        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, ..., 0 };
-        //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, ..., 0 };
-        for (int i = 0; i < n - 1; ++i)
-        {
-            std::size_t fill_first = i + 1;
-            std::size_t fill_repeat = i % 4 < 2 ? 1 : 3;
-            std::size_t fill = i < 4 ? fill_first : fill_repeat;
+        auto keys    = key_buf.template get_access<sycl::access::mode::read_write>();
+        auto vals    = val_buf.template get_access<sycl::access::mode::read_write>();
+        auto keys_res    = key_res_buf.template get_access<sycl::access::mode::read_write>();
+        auto vals_res    = val_res_buf.template get_access<sycl::access::mode::read_write>();
 
-            host_keys[i] = fill;
-            host_vals[i] = fill;
-            host_key_res[i] = 9;
-            host_val_res[i] = 1;
-        }
-        host_keys[n - 1] = 0;
-        host_vals[n - 1] = 0;
-    }
+        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
+        //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
 
-    template <typename Iterator1, typename Iterator2, typename Size>
-    void
-    check_values(Iterator1 key_res, Iterator2 val_res, Size n)
-    {
-        // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, ..., 0};
-        // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, ..., 0};
+        // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, 0};
+        // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, 0};
 
-        for (auto i = 0; i != n; ++i)
-        {
-            if (i == n - 1)
-            {
-                EXPECT_TRUE(key_res[i] == 0, "wrong effect from reduce_by_segment");
-                EXPECT_TRUE(val_res[i] == 0, "wrong effect from reduce_by_segment");
-            }
-            else if (i < 4)
-            {
-                EXPECT_TRUE(key_res[i] == i + 1, "wrong effect from reduce_by_segment");
-                EXPECT_TRUE(val_res[i] == i + 1, "wrong effect from reduce_by_segment");
-            }
-            else if (i % 2 == 0)
-            {
-                EXPECT_TRUE(key_res[i] == 1, "wrong effect from reduce_by_segment");
-                EXPECT_TRUE(val_res[i] == 2 || (val_res[i] == 1 && i == n - 2), "wrong effect from reduce_by_segment");
-            }
-            else
-            {
-                EXPECT_TRUE(key_res[i] == 3, "wrong effect from reduce_by_segment");
-                EXPECT_TRUE(val_res[i] == 6 || val_res[i] == 3, "wrong effect from reduce_by_segment");
+        // Initialize data
+        for (int i = 0; i != 12; ++i) {
+            keys[i] = i % 4 + 1;
+            vals[i] = i % 4 + 1;
+            keys_res[i] = 9;
+            vals_res[i] = 1;
+            if (i > 3) {
+                ++i;
+                keys[i] = keys[i-1];
+                vals[i] = vals[i-1];
+                keys_res[i] = 9;
+                vals_res[i] = 1;
             }
         }
+        keys[12] = 0;
+        vals[12] = 0;
     }
 
-#if TEST_DPCPP_BACKEND_PRESENT
-    // specialization for hetero policy
-    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
-              typename Size>
-    typename ::std::enable_if<
-        oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
-        void>::type
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
-               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
+    // create sycl iterators
+    auto key_beg = oneapi::dpl::begin(key_buf);
+    auto key_end = oneapi::dpl::end(key_buf);
+    auto val_beg = oneapi::dpl::begin(val_buf);
+    auto key_res_beg = oneapi::dpl::begin(key_res_buf);
+    auto val_res_beg = oneapi::dpl::begin(val_res_buf);
+
+    // create named policy from existing one
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class ReduceBySegment>(
+        oneapi::dpl::execution::dpcpp_default);
+
+    // call algorithm
+    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_beg, key_end, val_beg, key_res_beg, val_res_beg);
+
     {
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
-
-        // call algorithm with no optional arguments
-        {
-            auto host_keys = get_host_access(keys_first);
-            auto host_vals = get_host_access(vals_first);
-            auto host_key_res = get_host_access(key_res_first);
-            auto host_val_res = get_host_access(val_res_first);
-
-            initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
+        // check values
+        auto keys_res    = key_res_buf.template get_access<sycl::access::mode::read_write>();
+        auto vals_res    = val_res_buf.template get_access<sycl::access::mode::read_write>();
+        int n = std::distance(key_res_beg, res1.first);
+        for (auto i = 0; i != n; ++i) {
+            if (i < 4) {
+                ASSERT_EQUAL(keys_res[i], i+1);
+                ASSERT_EQUAL(vals_res[i], i+1);
+            } else if (i == 4 || i == 6) {
+                ASSERT_EQUAL(keys_res[i], 1);
+                ASSERT_EQUAL(vals_res[i], 2);
+            } else if (i == 5 || i == 7) {
+                ASSERT_EQUAL(keys_res[i], 3);
+                ASSERT_EQUAL(vals_res[i], 6);
+            } else if (i == 8) {
+                ASSERT_EQUAL(keys_res[i], 0);
+                ASSERT_EQUAL(vals_res[i], 0);
+            } else {
+                std::cout << "fail: unexpected values in output range\n";
+            }
         }
 
-        auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        auto res1 =
-            oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-        new_policy.queue().wait_and_throw();
-        Size result_size = std::distance(key_res_first, res1.first);
-
-        {
-            auto host_key_res = get_host_access(key_res_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_key_res, host_val_res, result_size);
-        }
-
-        // call algorithm with equality comparator
-        {
-            auto host_keys = get_host_access(keys_first);
-            auto host_vals = get_host_access(vals_first);
-            auto host_key_res = get_host_access(key_res_first);
-            auto host_val_res = get_host_access(val_res_first);
-
-            initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
-        }
-
-        auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; });
-        new_policy2.queue().wait_and_throw();
-        result_size = std::distance(key_res_first, res2.first);
-
-        {
-            auto host_key_res = get_host_access(key_res_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_key_res, host_val_res, result_size);
-        }
-
-        // call algorithm with addition operator
-        {
-            auto host_keys = get_host_access(keys_first);
-            auto host_vals = get_host_access(vals_first);
-            auto host_key_res = get_host_access(key_res_first);
-            auto host_val_res = get_host_access(val_res_first);
-
-            initialize_data(host_keys, host_vals, host_key_res, host_val_res, n);
-        }
-
-        auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
-        auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; },
-                                                   [](ValT first, ValT second) { return first + second; });
-        new_policy3.queue().wait_and_throw();
-        result_size = std::distance(key_res_first, res3.first);
-
-        {
-            auto host_key_res = get_host_access(key_res_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_key_res, host_val_res, result_size);
+        // reset value_result for test using discard_iterator
+        for (auto i = 0; i != n; ++i) {
+            keys_res[i] = 0;
+            vals_res[i] = 0;
         }
     }
-#endif
+}
 
-    // specialization for host execution policies
-    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
-              typename Size>
-    typename ::std::enable_if<
-#if TEST_DPCPP_BACKEND_PRESENT
-        !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-#endif
-            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
-        void>::type
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
-               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
-    {
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
-
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-
-        auto res1 =
-            oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-        Size result_size = std::distance(key_res_first, res1.first);
-        check_values(key_res_first, val_res_first, result_size);
-
-        // call algorithm with equality comparator
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; });
-        result_size = std::distance(key_res_first, res2.first);
-        check_values(key_res_first, val_res_first, result_size);
-
-        // call algorithm with addition operator
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, [](KeyT first, KeyT second) { return first == second; },
-                                                   [](ValT first, ValT second) { return first + second; });
-        result_size = std::distance(key_res_first, res3.first);
-        check_values(key_res_first, val_res_first, result_size);
-    }
-
-    // specialization for non-random_access iterators
-    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
-              typename Size>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
-                              void>::type
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
-               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
-    {
-    }
-};
-
-int
-main()
+void test_with_usm()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
-    test4buffers<char, uint64_t, test_reduce_by_segment>();
+    sycl::queue q;
+    int n = 13;
+
+    // Allocate space for data using USM.
+    uint64_t* key_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* key_res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+
+    //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
+    //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
+
+    // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, 0};
+    // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, 0};
+
+    // Initialize data
+    for (int i = 0; i != 12; ++i) {
+        key_head[i] = i % 4 + 1;
+        val_head[i] = i % 4 + 1;
+        key_res_head[i] = 9;
+        val_res_head[i] = 1;
+        if (i > 3) {
+            ++i;
+            key_head[i] = key_head[i-1];
+            val_head[i] = val_head[i-1];
+            key_res_head[i] = 9;
+            val_res_head[i] = 1;
+        }
+    }
+    key_head[12] = 0;
+    val_head[12] = 0;
+
+    // call algorithm
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_1>(q);
+    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
+
+    // check values
+    n = std::distance(key_res_head, res1.first);
+    for (auto i = 0; i != n; ++i) {
+        if (i < 4) {
+            ASSERT_EQUAL(key_res_head[i], i+1);
+            ASSERT_EQUAL(val_res_head[i], i+1);
+        } else if (i == 4 || i == 6) {
+            ASSERT_EQUAL(key_res_head[i], 1);
+            ASSERT_EQUAL(val_res_head[i], 2);
+        } else if (i == 5 || i == 7) {
+            ASSERT_EQUAL(key_res_head[i], 3);
+            ASSERT_EQUAL(val_res_head[i], 6);
+        } else if (i == 8) {
+            ASSERT_EQUAL(key_res_head[i], 0);
+            ASSERT_EQUAL(val_res_head[i], 0);
+        } else {
+            std::cout << "fail: unexpected values in output range\n";
+        }
+    }
+
+    // call algorithm on single element range
+    key_res_head[0] = 9;
+    val_res_head[0] = 9;
+
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_2>(q);
+    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);
+
+    // check values
+    n = std::distance(key_res_head, res2.first);
+    ASSERT_EQUAL(n, 1);
+    ASSERT_EQUAL(key_res_head[0], 1);
+    ASSERT_EQUAL(val_res_head[0], 1);
+
+    // Deallocate memory
+    sycl::free(key_head, q);
+    sycl::free(val_head, q);
+    sycl::free(key_res_head, q);
+    sycl::free(val_res_head, q);
+}
 #endif
-    test_algo_four_sequences<uint64_t, int, test_reduce_by_segment>();
-    return done();
+
+void test_on_host() {
+    const int N = 7;
+    int A[N] = {1, 3, 3, 3, 2, 2, 1}; // input keys
+    int B[N] = {9, 8, 7, 6, 5, 4, 3}; // input values
+    int C[N];                         // output keys
+    int D[N];                         // output values
+
+    std::pair<int*,int*> new_end;
+    new_end = oneapi::dpl::reduce_by_segment(oneapi::dpl::execution::par, A, A + N, B, C, D, std::equal_to<int>(),
+                                    std::plus<int>());
+    // The first four keys in C are now {1, 3, 2, 1} and new_end.first - C is 4.
+    // The first four values in D are now {9, 21, 9, 3} and new_end.second - D is 4.
+    ASSERT_EQUAL(C[0], 1);
+    ASSERT_EQUAL(C[1], 3);
+    ASSERT_EQUAL(C[2], 2);
+    ASSERT_EQUAL(C[3], 1);
+    ASSERT_EQUAL(D[0], 9);
+    ASSERT_EQUAL(D[1], 21);
+    ASSERT_EQUAL(D[2], 9);
+    ASSERT_EQUAL(D[3], 3);
+    ASSERT_EQUAL(std::distance(C, new_end.first), 4);
+    ASSERT_EQUAL(std::distance(D, new_end.second), 4);
+}
+
+int main() {
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_with_buffers();
+    test_with_usm();
+#endif
+    test_on_host();
+
+    return TestUtils::done();
 }
