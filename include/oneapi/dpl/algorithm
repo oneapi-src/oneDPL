@@ -53,12 +53,16 @@ using ::std::copy_n;
 using ::std::count;
 using ::std::count_if;
 using ::std::equal_range;
+using ::std::fill;
+using ::std::fill_n;
 using ::std::find;
 using ::std::find_if;
 using ::std::find_if_not;
 using ::std::for_each;
 using ::std::is_permutation;
 using ::std::lower_bound;
+using ::std::move;
+using ::std::move_backward;
 using ::std::none_of;
 using ::std::upper_bound;
 } // namespace dpl
