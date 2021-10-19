@@ -220,7 +220,18 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
         ONEDPL_USE_TBB_BACKEND=0
         ONEDPL_USE_DPCPP_BACKEND=0
         )
-    message(STATUS "Compilation for CPU device due to serial backend")
+    message(STATUS "Compilation for the host due to serial backend")
+
+elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
+    find_package(OpenMP)
+    target_compile_options(oneDPL INTERFACE ${OpenMP_CXX_FLAGS})
+    target_link_libraries(oneDPL INTERFACE ${OpenMP_CXX_LIBRARIES})
+    target_compile_definitions(oneDPL INTERFACE
+            ONEDPL_USE_TBB_BACKEND=0
+            ONEDPL_USE_DPCPP_BACKEND=0
+            ONEDPL_USE_OPENMP_BACKEND=1
+            )
+    message(STATUS "Compilation for the host due to OpenMP backend")
 
 else()
     message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
