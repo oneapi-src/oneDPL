@@ -131,6 +131,58 @@ void test_with_usm()
     sycl::free(val_head, q);
     sycl::free(res_head, q);
 }
+
+void
+test_with_device_mem()
+{
+    sycl::queue q;
+    const int n = 10;
+
+    // Allocate space for data using USM.
+    uint64_t* key_head = static_cast<uint64_t*>(sycl::malloc_device(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* val_head = static_cast<uint64_t*>(sycl::malloc_device(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    uint64_t* res_head = static_cast<uint64_t*>(sycl::malloc_device(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+
+    // Initialize data
+    key_head[0] = 0; key_head[1] = 0; key_head[2] = 0; key_head[3] = 1; key_head[4] = 1;
+    key_head[5] = 2; key_head[6] = 3; key_head[7] = 3; key_head[8] = 3; key_head[9] = 3;
+
+    val_head[0] = 1; val_head[1] = 1; val_head[2] = 1; val_head[3] = 1; val_head[4] = 1;
+    val_head[5] = 1; val_head[6] = 1; val_head[7] = 1; val_head[8] = 1; val_head[9] = 1;
+
+    res_head[0] = 9; res_head[1] = 9; res_head[2] = 9; res_head[3] = 9; res_head[4] = 9;
+    res_head[5] = 9; res_head[6] = 9; res_head[7] = 9; res_head[8] = 9; res_head[9] = 9;
+
+    // call algorithm
+    auto new_policy = oneapi::dpl::execution::make_device_policy<class exclusive_scan_by_segment_3>(q);
+    oneapi::dpl::exclusive_scan_by_segment(new_policy, key_head, key_head+n, val_head, res_head,
+        (uint64_t)0, std::equal_to<uint64_t>(), std::plus<uint64_t>());
+    q.wait();
+
+    // check values
+    uint64_t check_value;
+    for (int i = 0; i != 10; ++i) {
+        if (i == 0 || key_head[i] != key_head[i-1])
+            check_value = 0;
+        else
+    	check_value += val_head[i-1];
+        ASSERT_EQUAL(check_value, res_head[i]);
+    }
+
+    // call algorithm on single element range
+    res_head[0] = 9;
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class exclusive_scan_by_segment_4>(q);
+    oneapi::dpl::exclusive_scan_by_segment(new_policy2, key_head, key_head+1, val_head, res_head,
+        (uint64_t)0);
+
+    // check values
+    ASSERT_EQUAL(0, res_head[0]);
+
+    // Deallocate memory
+    sycl::free(key_head, q);
+    sycl::free(val_head, q);
+    sycl::free(res_head, q);
+}
 #endif
 
 void test_on_host() {
@@ -158,6 +210,7 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     test_with_buffers();
     test_with_usm();
+    test_with_device_mem();
 #endif
     test_on_host();
 
