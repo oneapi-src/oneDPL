@@ -133,7 +133,7 @@ struct shift_right_algo
 {
     template <typename Policy, typename It>
     typename ::std::enable_if<::std::is_base_of<::std::bidirectional_iterator_tag, 
-                            typename ::std::iterator_traits<It>::iterator_category>::value>::value,
+                            typename ::std::iterator_traits<It>::iterator_category>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
