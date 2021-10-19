@@ -20,7 +20,6 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #   include "oneapi/dpl/async"
-#   include <CL/sycl.hpp>
 #endif
 
 #include <iostream>
@@ -28,6 +27,8 @@
 #include <numeric>
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#include "support/sycl_alloc_utils.h"
+
 void test1_with_buffers()
 {
     const int n = 100;
@@ -114,51 +115,63 @@ void test2_with_buffers()
         EXPECT_TRUE(fabs(result1-expected1) <= 0.001f && fabs(result2-expected1) <= 0.001f, "wrong effect from async test (II) with sycl buffer");
 }
 
-void test_with_usm()
+template <sycl::usm::alloc alloc_type>
+void
+test_with_usm()
 {
+    using SyclHelper = TestUtils::Helper<alloc_type, uint64_t>;
+
     cl::sycl::queue q;
-    const int n = 1024;
-    const int n_small = 13;
+    constexpr int n = 1024;
+    constexpr int n_small = 13;
 
     // ASYNC TEST USING USM //
     // TODO: Extend tests by checking true async behavior in more detail
     {
-        // Allocate space for data using USM.
-        uint64_t* data1 =
-            static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-        uint64_t* data2 =
-            static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+        // Initialize data
+        uint64_t data1_on_host[n] = {};
+        uint64_t data2_on_host[n] = {};
 
         // Initialize data
         for (int i = 0; i != n - 1; ++i)
         {
-            data1[i] = i % 4 + 1;
-            data2[i] = data1[i] + 1;
+            data1_on_host[i] = i % 4 + 1;
+            data2_on_host[i] = data1_on_host[i] + 1;
             if (i > 3 && i != n - 2)
             {
                 ++i;
-                data1[i] = data1[i - 1];
-                data2[i] = data2[i - 1];
+                data1_on_host[i] = data1_on_host[i - 1];
+                data2_on_host[i] = data2_on_host[i - 1];
             }
         }
-        data1[n - 1] = 0;
-        data2[n - 1] = 0;
+        data1_on_host[n - 1] = 0;
+        data2_on_host[n - 1] = 0;
+
+        // Allocate space for data using USM and copy data from host
+        uint64_t* data1 = SyclHelper::alloc(q, n);
+        uint64_t* data2 = SyclHelper::alloc(q, n);
+
+        SyclHelper::cpy_from_host(q, data1, data1_on_host, n);
+        SyclHelper::cpy_from_host(q, data2, data2_on_host, n);
 
         // compute reference values
         const uint64_t ref1 = std::inner_product(data2, data2 + n, data1, 0);
         const uint64_t ref2 = std::accumulate(data1, data1 + n_small, 0);
 
         // call first algorithm
-        auto new_policy1 = oneapi::dpl::execution::make_device_policy<class async1>(q);
+        using kernel_name_1 = TestUtils::unique_kernel_name<class async1, (::std::size_t)alloc_type>;
+        auto new_policy1 = oneapi::dpl::execution::make_device_policy<kernel_name_1>(q);
         auto fut1 = oneapi::dpl::experimental::transform_reduce_async(
             new_policy1, data2, data2 + n, data1, 0, std::plus<uint64_t>(), std::multiplies<uint64_t>());
 
         // call second algorithm and wait for result
-        auto new_policy2 = oneapi::dpl::execution::make_device_policy<class async2>(q);
+        using kernel_name_2 = TestUtils::unique_kernel_name<class async2, (::std::size_t)alloc_type>;
+        auto new_policy2 = oneapi::dpl::execution::make_device_policy<kernel_name_2>(q);
         auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1, data1 + n_small).get();
 
         // call third algorithm that has to wait for first to complete
-        auto new_policy3 = oneapi::dpl::execution::make_device_policy<class async3>(q);
+        using kernel_name_3 = TestUtils::unique_kernel_name<class async3, (::std::size_t)alloc_type>;
+        auto new_policy3 = oneapi::dpl::execution::make_device_policy<kernel_name_3>(q);
         oneapi::dpl::experimental::sort_async(new_policy3, data2, data2 + n, fut1);
 
         // check values
@@ -169,7 +182,8 @@ void test_with_usm()
         sycl::free(data1, q);
         sycl::free(data2, q);
     }
-}
+};
+
 #endif
 
 int
@@ -178,7 +192,8 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test1_with_buffers();
     test2_with_buffers();
-    test_with_usm();
+    test_with_usm<sycl::usm::alloc::shared>();
+    test_with_usm<sycl::usm::alloc::device>();
 #endif
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
