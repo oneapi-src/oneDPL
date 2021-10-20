@@ -19,7 +19,7 @@
 
 #include "support/test_config.h"
 #include "support/utils.h"
-#include "../binary_search_utils.h"
+#include "support/binary_search_utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include <CL/sycl.hpp>
