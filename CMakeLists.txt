@@ -224,6 +224,8 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
 
 elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
     set(_openmp_flag "-fopenmp")
+    set(_cmake_required_libraries ${CMAKE_REQUIRED_LIBRARIES})
+    set(CMAKE_REQUIRED_LIBRARIES ${_openmp_flag})
     check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
     if (_openmp_option)
         target_compile_options(oneDPL INTERFACE ${_openmp_flag})
@@ -238,6 +240,7 @@ elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
         message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${_openmp_flag} option.\n"
             "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
     endif()
+    set(CMAKE_REQUIRED_LIBRARIES ${_cmake_required_libraries})
 
 else()
     message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
