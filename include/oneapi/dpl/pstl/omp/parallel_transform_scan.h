@@ -35,6 +35,6 @@ __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _Up /* __u */, _Tp __i
 }
 
 } // namespace __omp_backend
-} // namespace dpl	
+} // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL_INTERNAL_OMP_PARALLEL_TRANSFORM_SCAN_H

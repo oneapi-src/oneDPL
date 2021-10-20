@@ -30,7 +30,7 @@ _Value
 __parallel_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __last, _Value __identity,
                        _RealBody __real_body, _Reduction __reduce)
 {
-    if(__last - __first < 2)
+    if (__last - __first < 2)
         return __real_body(__first, __last, __identity);
 
     auto __middle = __first + ((__last - __first) / 2);
@@ -57,7 +57,8 @@ __parallel_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAcce
     // just create tasks.
     if (omp_in_parallel())
     {
-        return oneapi::dpl::__omp_backend::__parallel_reduce_body(__first, __last, __identity, __real_body, __reduction);
+        return oneapi::dpl::__omp_backend::__parallel_reduce_body(__first, __last, __identity, __real_body,
+                                                                  __reduction);
     }
 
     // In any case (nested or non-nested) one parallel region is created and only
@@ -67,7 +68,8 @@ __parallel_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAcce
     _PSTL_PRAGMA(omp parallel)
     _PSTL_PRAGMA(omp single nowait)
     {
-        __res = oneapi::dpl::__omp_backend::__parallel_reduce_body(__first, __last, __identity, __real_body, __reduction);
+        __res =
+            oneapi::dpl::__omp_backend::__parallel_reduce_body(__first, __last, __identity, __real_body, __reduction);
     }
 
     return __res;

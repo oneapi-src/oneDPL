@@ -67,13 +67,11 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
     _PSTL_PRAGMA(omp taskloop shared(__accums))
     for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
-        oneapi::dpl::__omp_backend::__process_chunk(__policy, __first + __num_threads, __chunk,
-                                       [&](auto __chunk_first, auto __chunk_last)
-                                       {
-                                           auto __thread_num = omp_get_thread_num();
-                                           __accums[__thread_num] =
-                                               __reduction(__chunk_first, __chunk_last, __accums[__thread_num]);
-                                       });
+        oneapi::dpl::__omp_backend::__process_chunk(
+            __policy, __first + __num_threads, __chunk, [&](auto __chunk_first, auto __chunk_last) {
+                auto __thread_num = omp_get_thread_num();
+                __accums[__thread_num] = __reduction(__chunk_first, __chunk_last, __accums[__thread_num]);
+            });
     }
 
     // combine by accumulators
@@ -97,7 +95,7 @@ __parallel_transform_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _
         // We don't create a nested parallel region in an existing parallel
         // region: just create tasks
         __result = oneapi::dpl::__omp_backend::__transform_reduce_body(__first, __last, __unary_op, __init, __combiner,
-                                                                  __reduction);
+                                                                       __reduction);
     }
     else
     {
@@ -106,8 +104,8 @@ __parallel_transform_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _
         _PSTL_PRAGMA(omp parallel)
         _PSTL_PRAGMA(omp single nowait)
         {
-            __result = oneapi::dpl::__omp_backend::__transform_reduce_body(__first, __last, __unary_op, __init, __combiner,
-                                                                      __reduction);
+            __result = oneapi::dpl::__omp_backend::__transform_reduce_body(__first, __last, __unary_op, __init,
+                                                                           __combiner, __reduction);
         }
     }
 
@@ -115,6 +113,6 @@ __parallel_transform_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _
 }
 
 } // namespace __omp_backend
-} // namespace dpl	
+} // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL_INTERNAL_OMP_PARALLEL_TRANSFORM_REDUCE_H

@@ -98,8 +98,9 @@
 #endif
 
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
-#define _PSTL_CPP17_EXECUTION_POLICIES_PRESENT (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                          \
-    (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
+#define _PSTL_CPP17_EXECUTION_POLICIES_PRESENT                                                                         \
+    (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
+        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
 
 #define _PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                      \
     (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)

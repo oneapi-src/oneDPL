@@ -35,6 +35,6 @@ __parallel_stable_partial_sort(_RandomAccessIterator __xs, _RandomAccessIterator
 }
 
 } // namespace __omp_backend
-} // namespace dpl	
+} // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL_INTERNAL_OMP_PARALLEL_STABLE_PARTIAL_SORT_H
