@@ -47,7 +47,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
-    else if (n == 1)
+    if (n == 1)
     {
         *result = init;
         return result + 1;
@@ -106,7 +106,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
-    else if (n == 1)
+    if (n == 1)
     {
         auto result_acc = internal::get_access<sycl::access::mode::write>(policy, result);
         result_acc[0] = init;
