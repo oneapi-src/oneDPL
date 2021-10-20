@@ -144,11 +144,14 @@ struct transform_init
 
 // Reduce on local memory
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp
-#if _USE_GROUP_ALGOS
+#if _USE_GROUP_ALGOS && __LIBSYCL_VERSION >= 50200
           ,
-          bool _HasKnownIdentity = sycl::has_known_identity_v<_BinaryOperation1, _Tp> &&
-                                   !std::is_same_v<_BinaryOperation1, std::multiplies<_Tp>> &&
-                                   !std::is_same_v<_BinaryOperation1, sycl::multiplies<_Tp>>
+          bool _HasKnownIdentity = sycl::has_known_identity<_BinaryOperation1, _Tp>::value &&
+                                   (::std::is_same<_BinaryOperation1, std::plus<_Tp>>::value ||
+                                    ::std::is_same<_BinaryOperation1, sycl::plus<_Tp>>::value ||
+                                    ::std::is_same<_BinaryOperation1, sycl::minimum<_Tp>>::value ||
+                                    ::std::is_same<_BinaryOperation1, sycl::maximum<_Tp>>::value)
+
 #endif
           >
 struct reduce
@@ -503,12 +506,14 @@ struct __global_scan_functor
 
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
           typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType
-#if _USE_GROUP_ALGOS
+#if _USE_GROUP_ALGOS && __LIBSYCL_VERSION >= 50200
           ,
           bool _HasKnownIdentity =
-              sycl::has_known_identity_v<_BinaryOperation, typename _InitType::__value_type> &&
-              !std::is_same_v<_BinaryOperation, std::multiplies<typename _InitType::__value_type>> &&
-              !std::is_same_v<_BinaryOperation, sycl::multiplies<typename _InitType::__value_type>>
+              sycl::has_known_identity<_BinaryOperation, typename _InitType::__value_type>::value &&
+              (::std::is_same<_BinaryOperation, std::plus<typename _InitType::__value_type>>::value ||
+               ::std::is_same<_BinaryOperation, sycl::plus<typename _InitType::__value_type>>::value ||
+               ::std::is_same<_BinaryOperation, sycl::minimum<typename _InitType::__value_type>>::value ||
+               ::std::is_same<_BinaryOperation, sycl::maximum<typename _InitType::__value_type>>::value)
 #endif
           >
 struct __scan
@@ -618,10 +623,30 @@ template <typename _InitType,
 using __enable_if_arithmetic_init_type = _InitType;
 
 // Reduce on local memory with subgroups
-template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
-struct reduce<_ExecutionPolicy, _BinaryOperation1, _Tp, true>
+template <typename _ExecutionPolicy,
+#    if __LIBSYCL_VERSION >= 50200
+          typename _BinaryOperation1,
+#    endif
+          typename _Tp>
+struct reduce<_ExecutionPolicy,
+#    if __LIBSYCL_VERSION >= 50200
+              _BinaryOperation1
+#    else
+              ::std::plus<_Tp>
+#    endif
+              ,
+              _Tp
+#    if __LIBSYCL_VERSION >= 50200
+              ,
+              true
+#    endif
+              >
 {
+#    if __LIBSYCL_VERSION >= 50200
     _BinaryOperation1 __bin_op1;
+#    else
+    __dpl_sycl::__plus<_Tp> __bin_op1;
+#    endif
 
     template <typename _NDItem, typename _GlobalIdx, typename _GlobalSize, typename _LocalAcc>
     _Tp
@@ -632,19 +657,43 @@ struct reduce<_ExecutionPolicy, _BinaryOperation1, _Tp, true>
         {
             // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
             // for each work-item in sub-group
-            __local_mem[__local_id] = sycl::known_identity_v<_BinaryOperation1, _Tp>;
+            __local_mem[__local_id] =
+#    if __LIBSYCL_VERSION >= 50200
+                sycl::known_identity<_BinaryOperation1, _Tp>::value
+#    else
+                0 /*for plus only*/
+#    endif
+                ;
         }
         return __dpl_sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], __bin_op1);
     }
 };
 
-template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
-          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
-struct __scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryOp, _WgAssigner, _GlobalAssigner, _DataAccessor,
-              _InitType, true>
+template <typename _Inclusive, typename _ExecutionPolicy,
+#    if __LIBSYCL_VERSION >= 50200
+          typename _BinaryOperation,
+#    endif
+          typename _UnaryOp, typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
+struct __scan<_Inclusive, _ExecutionPolicy,
+#    if __LIBSYCL_VERSION >= 50200
+              _BinaryOperation
+#    else
+              ::std::plus<typename _InitType::__value_type>
+#    endif
+              ,
+              _UnaryOp, _WgAssigner, _GlobalAssigner, _DataAccessor, _InitType
+#    if __LIBSYCL_VERSION >= 50200
+              ,
+              true
+#    endif
+              >
 {
     using _Tp = typename _InitType::__value_type;
+#    if __LIBSYCL_VERSION >= 50200
     _BinaryOperation __bin_op;
+#    else
+    __dpl_sycl::__plus<_Tp> __bin_op;
+#    endif
     _UnaryOp __unary_op;
     _WgAssigner __wg_assigner;
     _GlobalAssigner __gl_assigner;
@@ -675,7 +724,14 @@ struct __scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryOp, _WgAssig
             if (__adjusted_global_id < __n)
                 __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc);
             else
-                __local_acc[__local_id] = _Tp{sycl::known_identity_v<_BinaryOperation, _Tp>};
+                __local_acc[__local_id] = _Tp
+                {
+#    if __LIBSYCL_VERSION >= 50200
+                    sycl::known_identity<_BinaryOperation, _Tp>::value
+#    else
+                    0 /*for plus only*/
+#    endif
+                };
 
             // the result of __unary_op must be convertible to _Tp
             _Tp __old_value = __unary_op(__local_id, __local_acc);
