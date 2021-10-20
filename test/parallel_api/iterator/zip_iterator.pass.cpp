@@ -668,68 +668,78 @@ struct test_counting_zip_transform
 };
 #endif
 
-int32_t
-main()
-{
 #if TEST_DPCPP_BACKEND_PRESENT
+template <sycl::usm::alloc alloc_type>
+void
+test_buffers()
+{
 #if defined(_PSTL_TEST_FOR_EACH)
     PRINT_DEBUG("test_for_each");
-    test1buffer<int32_t, test_for_each>();
+    test1buffer<alloc_type, int32_t, test_for_each>();
 #endif
 #if defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
     PRINT_DEBUG("test_for_each_structured_binding");
-    test1buffer<int32_t, test_for_each_structured_binding>();
+    test1buffer<alloc_type, int32_t, test_for_each_structured_binding>();
 #endif
 #if defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY)
     PRINT_DEBUG("test_transform_reduce_unary");
-    test1buffer<int32_t, test_transform_reduce_unary>();
+    test1buffer<alloc_type, int32_t, test_transform_reduce_unary>();
 #endif
 #if defined(_PSTL_TEST_TRANSFORM_REDUCE_BINARY)
     PRINT_DEBUG("test_transform_reduce_binary");
-    test2buffers<int32_t, test_transform_reduce_binary>();
+    test2buffers<alloc_type, int32_t, test_transform_reduce_binary>();
 #endif
 #if defined(_PSTL_TEST_COUNT_IF)
     PRINT_DEBUG("test_count_if");
-    test1buffer<int32_t, test_count_if>();
+    test1buffer<alloc_type, int32_t, test_count_if>();
 #endif
 #if defined(_PSTL_TEST_EQUAL)
     PRINT_DEBUG("test_equal");
-    test2buffers<int32_t, test_equal>();
+    test2buffers<alloc_type, int32_t, test_equal>();
 #endif
 #if defined(_PSTL_TEST_EQUAL_STRUCTURED_BINDING)
     PRINT_DEBUG("test_equal_structured_binding");
-    test2buffers<int32_t, test_equal_structured_binding>();
+    test2buffers<alloc_type, int32_t, test_equal_structured_binding>();
 #endif
 #if defined(_PSTL_TEST_INCLUSIVE_SCAN)
     PRINT_DEBUG("test_inclusive_scan");
-    test2buffers<int32_t, test_transform_inclusive_scan>();
+    test2buffers<alloc_type, int32_t, test_transform_inclusive_scan>();
 #endif
 #if defined(_PSTL_TEST_UNIQUE)
     PRINT_DEBUG("test_unique");
-    test1buffer<int32_t, test_unique>();
+    test1buffer<alloc_type, int32_t, test_unique>();
 #endif
 #if defined(_PSTL_TEST_UNIQUE_COPY)
     PRINT_DEBUG("test_unique_copy");
-    test2buffers<int32_t, test_unique_copy>();
+    test2buffers<alloc_type, int32_t, test_unique_copy>();
 #endif
 #if defined(_PSTL_TEST_MERGE)
     PRINT_DEBUG("test_merge");
-    test3buffers<int32_t, test_merge>();
+    test3buffers<alloc_type, int32_t, test_merge>();
 #endif
 // sorting with zip iterator does not meet limits of RAM usage on FPGA.
 // TODO: try to investigate and reduce RAM consumption
 #if defined(_PSTL_TEST_STABLE_SORT) && !ONEDPL_FPGA_DEVICE
     PRINT_DEBUG("test_stable_sort");
-    test2buffers<int32_t, test_stable_sort>();
+    test2buffers<alloc_type, int32_t, test_stable_sort>();
 #endif
 #if defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE)
     PRINT_DEBUG("test_lexicographical_compare");
-    test2buffers<int32_t, test_lexicographical_compare>();
+    test2buffers<alloc_type, int32_t, test_lexicographical_compare>();
 #endif
 #if defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
     PRINT_DEBUG("test_counting_zip_transform");
-    test2buffers<int32_t, test_counting_zip_transform>();
+    test2buffers<alloc_type, int32_t, test_counting_zip_transform>();
 #endif
+}
+#endif
+
+int32_t
+main()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_buffers<sycl::usm::alloc::shared>();
+    test_buffers<sycl::usm::alloc::device>();
 #endif
     return done(TEST_DPCPP_BACKEND_PRESENT);
 }
