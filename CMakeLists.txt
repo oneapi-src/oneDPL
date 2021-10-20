@@ -77,7 +77,7 @@ if (ONEDPL_ENABLE_SIMD)
         string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" DPCPP_VER ${VER})
     endif()
     if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$" OR NOT DPCPP_VER VERSION_LESS 2021.4)
-        foreach(_simd_flag -fiopenmp-simd /Qiopenmp-simd -fopenmp-simd -qopenmp-simd /Qopenmp-simd -openmp:experimental -openmp-simd)
+        foreach(_simd_flag -fopenmp-simd /Qopenmp-simd -fopenmp-simd -qopenmp-simd /Qopenmp-simd -openmp-simd)
             string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
             check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
             if (${FLAG_DISPLAY_NAME}_option)
@@ -223,15 +223,21 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
     message(STATUS "Compilation for the host due to serial backend")
 
 elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
-    find_package(OpenMP)
-    target_compile_options(oneDPL INTERFACE ${OpenMP_CXX_FLAGS})
-    target_link_libraries(oneDPL INTERFACE ${OpenMP_CXX_LIBRARIES})
-    target_compile_definitions(oneDPL INTERFACE
+    set(_openmp_flag "-fopenmp")
+	check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
+	if (_openmp_option)
+		target_compile_options(oneDPL INTERFACE ${_openmp_flag})
+		target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
+		target_compile_definitions(oneDPL INTERFACE
             ONEDPL_USE_TBB_BACKEND=0
             ONEDPL_USE_DPCPP_BACKEND=0
             ONEDPL_USE_OPENMP_BACKEND=1
             )
-    message(STATUS "Compilation for the host due to OpenMP backend")
+		message(STATUS "Compilation for the host due to OpenMP backend")
+	else()
+		message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${_openmp_flag} option.\n"
+            "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
+	endif()
 
 else()
     message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
