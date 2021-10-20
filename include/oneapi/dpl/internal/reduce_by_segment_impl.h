@@ -138,6 +138,23 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 }
 
 #if _ONEDPL_BACKEND_SYCL
+
+namespace
+{
+template <class T, class = void>
+struct value_type
+{
+    using type = typename ::std::remove_pointer<T>::type;
+};
+template <class T>
+struct value_type<T, ::std::void_t<typename T::value_type>>
+{
+    using type = typename T::value_type;
+};
+template <class T>
+using value_type_t = typename value_type<T>::type;
+} // namespace
+
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
