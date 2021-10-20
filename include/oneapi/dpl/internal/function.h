@@ -19,6 +19,7 @@
 #include <utility>
 #if _ONEDPL_BACKEND_SYCL
 #    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#    include "../pstl/hetero/dpcpp/sycl_defs.h"
 #endif
 #include "../functional"
 #include <tuple>
@@ -90,6 +91,102 @@ get_access(const Policy& policy, T* ptr)
     assert(sycl::get_pointer_type(ptr, policy.queue().get_context()) == sycl::usm::alloc::shared);
     return ptr;
 }
+
+template <typename ValueType, typename Policy, typename Iterator>
+ValueType
+get_data_0(Policy p, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+{
+    return get_access<sycl::access::mode::read>(p, i)[0];
+}
+
+template <typename ValueType, typename Policy, typename Iterator>
+ValueType
+get_data_0(Policy p, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+{
+    return get_access<sycl::access::mode::read>(p, i)[0];
+}
+
+template <typename ValueType, typename Policy, typename T>
+ValueType
+get_data_0(Policy p, counting_iterator<T> i)
+{
+    return get_access<sycl::access::mode::read>(p, i)[0];
+}
+
+template <typename ValueType, typename Policy, typename T>
+ValueType
+get_data_0(const Policy& policy, T* ptr)
+{
+    sycl::queue q = policy.queue();
+
+    switch (sycl::get_pointer_type(ptr, q.get_context()))
+    {
+    case sycl::usm::alloc::host:
+    case sycl::usm::alloc::shared:
+        return get_access<sycl::access::mode::read>(policy, ptr)[0];
+
+    case sycl::usm::alloc::device:
+    {
+        ValueType host_data;
+        q.memcpy(&host_data, ptr, sizeof(host_data));
+        q.wait();
+        return host_data;
+    }
+    break;
+
+    case sycl::usm::alloc::unknown:
+        assert(!"Unknown pointer type");
+    }
+
+    return {};
+}
+
+template <typename ValueType, typename Policy, typename Iterator>
+void
+set_data_0(Policy p, Iterator i, ValueType val,
+           typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+{
+    get_access<sycl::access::mode::write>(p, i)[0] = val;
+}
+
+template <typename ValueType, typename Policy, typename Iterator>
+void
+set_data_0(Policy p, Iterator i, ValueType val,
+           typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+{
+    get_access<sycl::access::mode::write>(p, i)[0] = val;
+}
+
+template <typename ValueType, typename Policy, typename T>
+void
+set_data_0(Policy p, counting_iterator<T> i, ValueType val)
+{
+    get_access<sycl::access::mode::write>(p, i)[0] = val;
+}
+
+template <typename ValueType, typename Policy, typename T>
+void
+set_data_0(const Policy& policy, T* ptr, ValueType val)
+{
+    sycl::queue q = policy.queue();
+
+    switch (sycl::get_pointer_type(ptr, q.get_context()))
+    {
+    case sycl::usm::alloc::host:
+    case sycl::usm::alloc::shared:
+        get_access<sycl::access::mode::read>(policy, ptr)[0] = val;
+        break;
+
+    case sycl::usm::alloc::device:
+        q.memcpy(ptr, &val, sizeof(val));
+        q.wait();
+        break;
+
+    case sycl::usm::alloc::unknown:
+        assert(!"Unknown pointer type");
+    }
+}
+
 #endif
 
 // struct for checking if iterator is a discard_iterator or not
