@@ -68,7 +68,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     if (n <= 0)
         return ::std::make_pair(result1, result2);
-    else if (n == 1)
+    if (n == 1)
     {
         *result1 = *first1;
         *result2 = *first2;
@@ -170,7 +170,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     const auto n = ::std::distance(first1, last1);
     if (n <= 0)
         return ::std::make_pair(result1, result2);
-    else if (n == 1)
+    if (n == 1)
     {
         auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
         auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
