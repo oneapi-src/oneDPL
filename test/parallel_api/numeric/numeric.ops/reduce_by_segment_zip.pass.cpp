@@ -17,10 +17,6 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
-#endif
-
 #include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(algorithm)
@@ -30,26 +26,32 @@
 #include <functional>
 #include <iostream>
 
-//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", as an example reported by a user; just "memory deallocation" added.
-int main()
-{
 #if TEST_DPCPP_BACKEND_PRESENT
+#include "support/sycl_alloc_utils.h"
+
+template <sycl::usm::alloc alloc_type>
+void
+test_with_usm()
+{
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, int>;
+
     sycl::queue q;
 
-    const int n = 9, n_res = 6;
+    constexpr int n = 9;
+    constexpr int n_res = 6;
 
     //shared memory allocation
-    int* d_keys1         = sycl::malloc_shared<int>(n, q);
-    int* d_keys2         = sycl::malloc_shared<int>(n, q);
-    int* d_values        = sycl::malloc_shared<int>(n, q);
-    int* d_output_keys1  = sycl::malloc_shared<int>(n, q);
-    int* d_output_keys2  = sycl::malloc_shared<int>(n, q);
-    int* d_output_values = sycl::malloc_shared<int>(n, q);
+    int* d_keys1         = SyclHelper::alloc(q, n);
+    int* d_keys2         = SyclHelper::alloc(q, n);
+    int* d_values        = SyclHelper::alloc(q, n);
+    int* d_output_keys1  = SyclHelper::alloc(q, n);
+    int* d_output_keys2  = SyclHelper::alloc(q, n);
+    int* d_output_values = SyclHelper::alloc(q, n);
 
     //data initialization
-    const int keys1[n] = {11, 11, 21, 20, 21, 21, 21, 37, 37};
-    const int keys2[n] = {11, 11, 20, 20, 20, 21, 21, 37, 37};
-    const int values[n] = {0,  1,  2,  3,  4,  5,  6,  7,  8};
+    const int keys1 [n] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
+    const int keys2 [n] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
+    const int values[n] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
     std::copy(keys1, keys1 + n, d_keys1);
     std::copy(keys2, keys2 + n, d_keys2);
     std::copy(values, values + n, d_values);
@@ -65,10 +67,18 @@ int main()
 
     q.wait();
 
+    int d_output_keys1_on_host [n] = { };
+    int d_output_keys2_on_host [n] = { };
+    int d_output_values_on_host[n] = { };
+
+    SyclHelper::copy_to_host(q, d_output_keys1_on_host,  d_output_keys1,  n);
+    SyclHelper::copy_to_host(q, d_output_keys2_on_host,  d_output_keys2,  n);
+    SyclHelper::copy_to_host(q, d_output_values_on_host, d_output_values, n);
+
 //Dump
 #if 0
     for(int i=0; i < n_res; i++) {
-      std::cout << "{" << d_output_keys1[i] << ", " << d_output_keys2[i] << "}: " << d_output_values[i] << std::endl;
+      std::cout << "{" << d_output_keys1_on_host[i] << ", " << d_output_keys2_on_host[i] << "}: " << d_output_values_on_host[i] << std::endl;
     }
 #endif
 
@@ -82,9 +92,9 @@ int main()
     const int exp_keys1[n_res] = {11, 21, 20, 21, 21,37};
     const int exp_keys2[n_res] = {11, 20, 20, 20, 21, 37};
     const int exp_values[n_res] = {1, 2, 3, 4, 11, 15};
-    EXPECT_EQ_N(exp_keys1, d_output_keys1, n_res, "wrong keys1 from reduce_by_segment");
-    EXPECT_EQ_N(exp_keys2, d_output_keys2, n_res, "wrong keys2 from reduce_by_segment");
-    EXPECT_EQ_N(exp_values, d_output_values, n_res, "wrong values from reduce_by_segment");
+    EXPECT_EQ_N(exp_keys1, d_output_keys1_on_host, n_res, "wrong keys1 from reduce_by_segment");
+    EXPECT_EQ_N(exp_keys2, d_output_keys2_on_host, n_res, "wrong keys2 from reduce_by_segment");
+    EXPECT_EQ_N(exp_values, d_output_values_on_host, n_res, "wrong values from reduce_by_segment");
 
     // Deallocate memory
     sycl::free(d_keys1, q);
@@ -93,7 +103,16 @@ int main()
     sycl::free(d_output_keys1, q);
     sycl::free(d_output_keys2, q);
     sycl::free(d_output_values, q);
-
+}
 #endif
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+
+//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", as an example reported by a user; just "memory deallocation" added.
+int main()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_with_usm<sycl::usm::alloc::shared>();
+    test_with_usm<sycl::usm::alloc::device>();
+#endif
+
+    return TestUtils::done();
 }

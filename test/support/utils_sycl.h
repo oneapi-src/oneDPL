@@ -34,6 +34,7 @@
 #include _PSTL_TEST_HEADER(iterator)
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 #include "iterator_utils.h"
+#include "sycl_alloc_utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
@@ -157,19 +158,19 @@ struct invoke_on_all_hetero_policies
     }
 };
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test1buffer()
 {
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
 
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(SyclHelper::alloc(queue, max_n + inout1_offset), sycl_deleter);
 
         // 2. create a pointer at first+offset
         T* inout1_offset_first = inout1_first.get() + inout1_offset;
@@ -202,21 +203,20 @@ test1buffer()
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test2buffers()
 {
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
+
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(SyclHelper::alloc(queue, max_n + inout1_offset), sycl_deleter);
+        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(SyclHelper::alloc(queue, max_n + inout2_offset), sycl_deleter);
 
         // 2. create pointers at first+offset
         T* inout1_offset_first = inout1_first.get() + inout1_offset;
@@ -254,25 +254,21 @@ test2buffers()
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test3buffers(int mult = 1)
 {
     const sycl::queue& queue = my_queue; // usm requires queue
+
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout3_first(
-            (T*)sycl::malloc_shared(mult * sizeof(T) * (max_n + inout3_offset), queue.get_device(),
-                                    queue.get_context()),
-            sycl_deleter);
+        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(SyclHelper::alloc(queue, max_n + inout1_offset), sycl_deleter);
+        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(SyclHelper::alloc(queue, max_n + inout2_offset), sycl_deleter);
+        ::std::unique_ptr<T, decltype(sycl_deleter)> inout3_first(SyclHelper::alloc(queue, max_n + inout3_offset), sycl_deleter);
 
         // 2. create pointers at first+offset
         T* inout1_offset_first = inout1_first.get() + inout1_offset;

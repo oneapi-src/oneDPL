@@ -138,6 +138,23 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 }
 
 #if _ONEDPL_BACKEND_SYCL
+
+namespace
+{
+template <class T, class = void>
+struct value_type
+{
+    using type = typename ::std::remove_pointer<T>::type;
+};
+template <class T>
+struct value_type<T, ::std::void_t<typename T::value_type>>
+{
+    using type = typename T::value_type;
+};
+template <class T>
+using value_type_t = typename value_type<T>::type;
+} // namespace
+
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
@@ -161,22 +178,15 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     namespace __bknd = __par_backend_hetero;
 
-    ValueType initial_value;
-    {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
-        initial_value = first2_acc[0];
-    }
+    ValueType initial_value = internal::get_data_0<ValueType>(policy, first2);
 
     const auto n = ::std::distance(first1, last1);
     if (n <= 0)
         return ::std::make_pair(result1, result2);
     if (n == 1)
     {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
-        result1_acc[0] = first1_acc[0];
-        result2_acc[0] = initial_value;
+        internal::set_data_0(policy, result1, internal::get_data_0<DerefValueType>(policy, first1));
+        internal::set_data_0(policy, result2, initial_value);
         return ::std::make_pair(result1 + 1, result2 + 1);
     }
 
