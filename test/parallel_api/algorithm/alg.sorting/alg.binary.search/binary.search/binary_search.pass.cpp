@@ -22,7 +22,7 @@
 #include "../binary_search_utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include <CL/sycl.hpp>
+#include "support/utils_sycl.h"
 
 using namespace oneapi::dpl::execution;
 #endif
@@ -132,7 +132,8 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<uint64_t, test_binary_search>();
+    test3buffers<sycl::usm::alloc::shared, uint64_t, test_binary_search>();
+    test3buffers<sycl::usm::alloc::device, uint64_t, test_binary_search>();
 #endif
     test_algo_three_sequences<uint64_t, test_binary_search>();
     return TestUtils::done();
