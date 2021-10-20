@@ -33,7 +33,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    using SyclHelper = TestUtils::Helper<alloc_type, int>;
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, int>;
 
     sycl::queue q;
 

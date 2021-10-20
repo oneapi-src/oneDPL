@@ -166,7 +166,7 @@ namespace TestUtils
     {
         const sycl::queue& queue = my_queue; // usm and allocator requires queue
 
-        using SyclHelper = TestUtils::Helper<alloc_type, T>;
+        using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
 
 #if _PSTL_SYCL_TEST_USM
         { // USM
@@ -211,7 +211,7 @@ namespace TestUtils
     {
         const sycl::queue& queue = my_queue; // usm and allocator requires queue
 
-        using SyclHelper = TestUtils::Helper<alloc_type, T>;
+        using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
 
 #if _PSTL_SYCL_TEST_USM
         { // USM
@@ -261,7 +261,7 @@ namespace TestUtils
     {
         const sycl::queue& queue = my_queue; // usm requires queue
 
-        using SyclHelper = TestUtils::Helper<alloc_type, T>;
+        using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
 
 #if _PSTL_SYCL_TEST_USM
         { // USM

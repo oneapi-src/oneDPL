@@ -30,7 +30,7 @@ namespace TestUtils
     using new_kernel_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<Policy, idx>;
 
     template <sycl::usm::alloc alloc_type, typename T>
-    class Helper
+    class sycl_operations_helper
     {
     public:
 
@@ -93,7 +93,7 @@ namespace TestUtils
         check_alloc_type()
         {
             static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
-                          "Invalid state of alloc_type param in Helper class");
+                          "Invalid state of alloc_type param in sycl_operations_helper class");
         }
     };
 

@@ -120,7 +120,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    using SyclHelper = TestUtils::Helper<alloc_type, uint64_t>;
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, uint64_t>;
 
     sycl::queue q;
     constexpr int n = 13;
