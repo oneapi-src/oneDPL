@@ -224,20 +224,20 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
 
 elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
     set(_openmp_flag "-fopenmp")
-	check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
-	if (_openmp_option)
-		target_compile_options(oneDPL INTERFACE ${_openmp_flag})
-		target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
-		target_compile_definitions(oneDPL INTERFACE
+    check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
+    if (_openmp_option)
+        target_compile_options(oneDPL INTERFACE ${_openmp_flag})
+        target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
+        target_compile_definitions(oneDPL INTERFACE
             ONEDPL_USE_TBB_BACKEND=0
             ONEDPL_USE_DPCPP_BACKEND=0
             ONEDPL_USE_OPENMP_BACKEND=1
             )
-		message(STATUS "Compilation for the host due to OpenMP backend")
-	else()
-		message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${_openmp_flag} option.\n"
+        message(STATUS "Compilation for the host due to OpenMP backend")
+    else()
+        message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${_openmp_flag} option.\n"
             "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
-	endif()
+    endif()
 
 else()
     message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
