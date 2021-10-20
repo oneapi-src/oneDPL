@@ -30,6 +30,9 @@ _Value
 __parallel_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __last, _Value __identity,
                        _RealBody __real_body, _Reduction __reduce)
 {
+    if(__last - __first < 2)
+        return __real_body(__first, __last, __identity);
+
     auto __middle = __first + ((__last - __first) / 2);
     _Value __v1(__identity), __v2(__identity);
     __parallel_invoke_body(
