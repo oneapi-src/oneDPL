@@ -94,21 +94,7 @@ get_access(const Policy& policy, T* ptr)
 
 template <typename ValueType, typename Policy, typename Iterator>
 ValueType
-get_data_0(Policy p, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-{
-    return get_access<sycl::access::mode::read>(p, i)[0];
-}
-
-template <typename ValueType, typename Policy, typename Iterator>
-ValueType
-get_data_0(Policy p, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-{
-    return get_access<sycl::access::mode::read>(p, i)[0];
-}
-
-template <typename ValueType, typename Policy, typename T>
-ValueType
-get_data_0(Policy p, counting_iterator<T> i)
+get_data_0(Policy p, Iterator i)
 {
     return get_access<sycl::access::mode::read>(p, i)[0];
 }
@@ -143,23 +129,7 @@ get_data_0(const Policy& policy, T* ptr)
 
 template <typename ValueType, typename Policy, typename Iterator>
 void
-set_data_0(Policy p, Iterator i, ValueType val,
-           typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-{
-    get_access<sycl::access::mode::write>(p, i)[0] = val;
-}
-
-template <typename ValueType, typename Policy, typename Iterator>
-void
-set_data_0(Policy p, Iterator i, ValueType val,
-           typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-{
-    get_access<sycl::access::mode::write>(p, i)[0] = val;
-}
-
-template <typename ValueType, typename Policy, typename T>
-void
-set_data_0(Policy p, counting_iterator<T> i, ValueType val)
+set_data_0(Policy p, Iterator i, ValueType val)
 {
     get_access<sycl::access::mode::write>(p, i)[0] = val;
 }
