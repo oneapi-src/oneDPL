@@ -17,6 +17,7 @@
 #define _ONEDPL_INTERNAL_OMP_PARALLEL_STABLE_SORT_H
 
 #include "util.h"
+#include "parallel_merge.h"
 
 namespace oneapi
 {
@@ -73,7 +74,7 @@ struct __move_range
     _OutputIterator
     operator()(_RandomAccessIterator __first1, _RandomAccessIterator __last1, _OutputIterator __d_first) const
     {
-        return __parallel_move_range(__first1, __last1, __d_first);
+        return oneapi::dpl::__omp_backend::__sort_details::__parallel_move_range(__first1, __last1, __d_first);
     }
 };
 } // namespace __sort_details
@@ -97,15 +98,16 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
     {
         std::size_t __size = __xe - __xs;
         auto __mid = __xs + (__size / 2);
-        __parallel_invoke_body([&]() { __parallel_stable_sort_body(__xs, __mid, __comp, __leaf_sort); },
-                               [&]() { __parallel_stable_sort_body(__mid, __xe, __comp, __leaf_sort); });
+        oneapi::dpl::__omp_backend::__parallel_invoke_body(
+            [&]() { __parallel_stable_sort_body(__xs, __mid, __comp, __leaf_sort); },
+            [&]() { __parallel_stable_sort_body(__mid, __xe, __comp, __leaf_sort); });
 
         // Perform a parallel merge of the sorted ranges into __output_data.
         _VecType __output_data(__size);
         _MoveValue __move_value;
         _MoveRange __move_range;
         __utils::__serial_move_merge __merge(__size);
-        __parallel_merge_body(
+        oneapi::dpl::__omp_backend::__parallel_merge_body(
             __mid - __xs, __xe - __mid, __xs, __mid, __mid, __xe, __output_data.begin(), __comp,
             [&__merge, &__move_value, &__move_range](_RandomAccessIterator __as, _RandomAccessIterator __ae,
                                                      _RandomAccessIterator __bs, _RandomAccessIterator __be,
@@ -138,11 +140,11 @@ __parallel_stable_sort(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator __xs
     {
         if (__count <= __nsort)
         {
-            __parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
+            oneapi::dpl::__omp_backend::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
         }
         else
         {
-            __parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
+            oneapi::dpl::__omp_backend::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
         }
     }
     else
@@ -151,11 +153,11 @@ __parallel_stable_sort(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator __xs
         _PSTL_PRAGMA(omp single nowait)
         if (__count <= __nsort)
         {
-            __parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
+            oneapi::dpl::__omp_backend::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
         }
         else
         {
-            __parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
+            oneapi::dpl::__omp_backend::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
         }
     }
 }
