@@ -18,6 +18,7 @@
 
 #ifdef TEST_DPCPP_BACKEND_PRESENT
 
+#include <memory>
 #include <algorithm>
 
 #include <CL/sycl.hpp>
@@ -36,9 +37,24 @@ namespace TestUtils
     {
     public:
 
+        template <typename _T>
+        struct __sycl_deleter
+        {
+            const sycl::queue q;
+
+            void
+            operator()(_T* __memory) const
+            {
+                sycl::free(__memory, q.get_context());
+            }
+        };
+
+        template <typename _T>
+        using unique_ptr = ::std::unique_ptr<_T, __sycl_deleter<_T> >;
+
         static
         T*
-        alloc(const sycl::queue& q, size_t count)
+        alloc(sycl::queue q, size_t count)
         {
             check_alloc_type();
 
@@ -50,6 +66,15 @@ namespace TestUtils
             {
                 return sycl::malloc_device<T>(count * sizeof(T), q.get_device(), q.get_context());
             }
+        }
+
+        static
+        unique_ptr<T>
+        alloc_ptr(sycl::queue q, size_t count)
+        {
+            check_alloc_type();
+
+            return unique_ptr<T>(alloc(q, count), __sycl_deleter<T>{ q });
         }
 
         static
