@@ -83,13 +83,14 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef typename ::std::decay<Policy>::type policy_type;
 
-    ValueType initial_value = internal::get_data_0<ValueType>(policy, first2);
-
     const auto n = ::std::distance(first1, last1);
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
-    else if (n == 1)
+
+    ValueType initial_value = internal::get_data_0<ValueType>(policy, first2);
+
+    if (n == 1)
     {
         internal::set_data_0(policy, result, initial_value);
         return result + 1;
