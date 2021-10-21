@@ -41,12 +41,18 @@ test_with_usm()
     constexpr int n_res = 6;
 
     //shared memory allocation
-    int* d_keys1         = SyclHelper::alloc(q, n);
-    int* d_keys2         = SyclHelper::alloc(q, n);
-    int* d_values        = SyclHelper::alloc(q, n);
-    int* d_output_keys1  = SyclHelper::alloc(q, n);
-    int* d_output_keys2  = SyclHelper::alloc(q, n);
-    int* d_output_values = SyclHelper::alloc(q, n);
+    auto d_keys1_ptr         = SyclHelper::alloc_ptr(q, n);
+    int* d_keys1             = d_keys1_ptr().get();
+    auto d_keys2_ptr         = SyclHelper::alloc_ptr(q, n);
+    int* d_keys2             = d_keys2_ptr().get();
+    auto d_values_ptr        = SyclHelper::alloc_ptr(q, n);
+    int* d_values            = d_values_ptr().get();
+    auto d_output_keys1_ptr  = SyclHelper::alloc_ptr(q, n);
+    int* d_output_keys1      = d_output_keys1_ptr().get();
+    auto d_output_keys2_ptr  = SyclHelper::alloc_ptr(q, n);
+    int* d_output_keys2      = d_output_keys2_ptr().get();
+    auto d_output_values_ptr = SyclHelper::alloc_ptr(q, n);
+    int* d_output_values     = d_output_values_ptr().get();
 
     //data initialization
     const int keys1 [n] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
@@ -95,14 +101,6 @@ test_with_usm()
     EXPECT_EQ_N(exp_keys1, d_output_keys1_on_host, n_res, "wrong keys1 from reduce_by_segment");
     EXPECT_EQ_N(exp_keys2, d_output_keys2_on_host, n_res, "wrong keys2 from reduce_by_segment");
     EXPECT_EQ_N(exp_values, d_output_values_on_host, n_res, "wrong values from reduce_by_segment");
-
-    // Deallocate memory
-    sycl::free(d_keys1, q);
-    sycl::free(d_keys2, q);
-    sycl::free(d_values, q);
-    sycl::free(d_output_keys1, q);
-    sycl::free(d_output_keys2, q);
-    sycl::free(d_output_values, q);
 }
 #endif
 
