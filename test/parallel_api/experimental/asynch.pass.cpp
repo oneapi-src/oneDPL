@@ -148,8 +148,10 @@ test_with_usm()
         data2_on_host[n - 1] = 0;
 
         // Allocate space for data using USM and copy data from host
-        uint64_t* data1 = SyclHelper::alloc(q, n);
-        uint64_t* data2 = SyclHelper::alloc(q, n);
+        auto data1_ptr = SyclHelper::alloc_ptr(q, n);
+        uint64_t* data1 = data1_ptr.get();
+        auto data2_ptr = SyclHelper::alloc_ptr(q, n);
+        uint64_t* data2 = data2_ptr.get();
 
         SyclHelper::copy_from_host(q, data1, data1_on_host, n);
         SyclHelper::copy_from_host(q, data2, data2_on_host, n);
@@ -178,9 +180,6 @@ test_with_usm()
         auto res1 = fut1.get();
         EXPECT_TRUE(res1 == ref1, "wrong effect from async transform reduce with usm");
         EXPECT_TRUE(res2 == ref2, "wrong effect from async reduce with usm");
-
-        sycl::free(data1, q);
-        sycl::free(data2, q);
     }
 };
 
