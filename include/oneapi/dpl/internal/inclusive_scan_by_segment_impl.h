@@ -87,6 +87,9 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
+
+    ValueType initial_value = internal::get_data_0<ValueType>(policy, first2);
+
     if (n == 1)
     {
         internal::copy_data_to(policy, first2, 0, result, 0);
