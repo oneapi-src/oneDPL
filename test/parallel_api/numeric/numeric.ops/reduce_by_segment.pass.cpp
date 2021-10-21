@@ -155,10 +155,14 @@ test_with_usm()
     val_head_on_host[12] = 0;
 
     // Allocate space for data using USM.
-    uint64_t* key_head     = SyclHelper::alloc(q, n);
-    uint64_t* val_head     = SyclHelper::alloc(q, n);
-    uint64_t* key_res_head = SyclHelper::alloc(q, n);
-    uint64_t* val_res_head = SyclHelper::alloc(q, n);
+    auto key_head_ptr      = SyclHelper::alloc_ptr(q, n);
+    uint64_t* key_head     = key_head_ptr.get();
+    auto val_head_ptr      = SyclHelper::alloc_ptr(q, n);
+    uint64_t* val_head     = val_head_ptr.get();
+    auto key_res_head_ptr  = SyclHelper::alloc_ptr(q, n);
+    uint64_t* key_res_head = key_res_head_ptr.get();
+    auto val_res_head_ptr  = SyclHelper::alloc_ptr(q, n);
+    uint64_t* val_res_head = val_res_head_ptr.get();
 
     SyclHelper::copy_from_host(q, key_head, key_head_on_host, n);
     SyclHelper::copy_from_host(q, val_head,     val_head_on_host,     n);
@@ -210,12 +214,6 @@ test_with_usm()
     ASSERT_EQUAL(n, 1);
     ASSERT_EQUAL(key_res_head_on_host[0], 1);
     ASSERT_EQUAL(val_res_head_on_host[0], 1);
-
-    // Deallocate memory
-    sycl::free(key_head, q);
-    sycl::free(val_head, q);
-    sycl::free(key_res_head, q);
-    sycl::free(val_res_head, q);
 }
 
 #endif
