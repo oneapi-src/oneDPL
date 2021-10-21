@@ -31,6 +31,10 @@
 #define _PSTL_TEST_SHIFT_RIGHT
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
+#include "support/utils_sycl.h"
+#endif
+
 template<typename Name>
 struct USM;
 
@@ -77,17 +81,38 @@ struct test_shift
         algo.check(first + res_idx, first, m, first_exp, n);
 
 #if _PSTL_SYCL_TEST_USM
-        //3.1 run a test with hetero policy and USM pointers
+        //3.1 run a test with hetero policy and USM shared memory pointers
         {
+            using SyclHelper = TestUtils::sycl_operations_helper<sycl::usm::alloc::shared, _ValueType>;
+
             // allocate USM memory
             auto queue = exec.queue();
             auto sycl_deleter = [queue](_ValueType* mem) { sycl::free(mem, queue.get_context()); };
-            ::std::unique_ptr<_ValueType, decltype(sycl_deleter)> ptr(
-                (_ValueType*)sycl::malloc_shared(sizeof(_ValueType)*m, queue.get_device(), queue.get_context()),
-                sycl_deleter);
+            ::std::unique_ptr<_ValueType, decltype(sycl_deleter)> ptr(SyclHelper::alloc(queue, m), sycl_deleter);
 
             //copying data to USM buffer
             ::std::copy_n(first, m, ptr.get());
+            // SyclHelper::copy_from_host(queue, ptr.get(), first, m);
+
+            auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
+            res_idx = het_res - ptr.get();
+
+            //3.2 check result
+            algo.check(ptr.get() + res_idx, ptr.get(), m, first_exp, n);
+        }
+
+        //3.2 run a test with hetero policy and USM device memory pointers
+        {
+            using SyclHelper = TestUtils::sycl_operations_helper<sycl::usm::alloc::device, _ValueType>;
+
+            // allocate USM memory
+            auto queue = exec.queue();
+            auto sycl_deleter = [queue](_ValueType* mem) { sycl::free(mem, queue.get_context()); };
+            ::std::unique_ptr<_ValueType, decltype(sycl_deleter)> ptr(SyclHelper::alloc(queue, m), sycl_deleter);
+
+            //copying data to USM buffer
+            ::std::copy_n(first, m, ptr.get());
+            // SyclHelper::copy_from_host(queue, ptr.get(), first, m);
 
             auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
             res_idx = het_res - ptr.get();
