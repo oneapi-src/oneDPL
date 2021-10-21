@@ -178,13 +178,13 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     namespace __bknd = __par_backend_hetero;
 
-    ValueType initial_value = internal::get_data_0<ValueType>(policy, first2);
-
     const auto n = ::std::distance(first1, last1);
     if (n <= 0)
         return ::std::make_pair(result1, result2);
     if (n == 1)
     {
+        ValueType initial_value = internal::get_data_0<ValueType>(policy, first2);
+
         internal::set_data_0(policy, result1, internal::get_data_0<DerefValueType>(policy, first1));
         internal::set_data_0(policy, result2, initial_value);
         return ::std::make_pair(result1 + 1, result2 + 1);
