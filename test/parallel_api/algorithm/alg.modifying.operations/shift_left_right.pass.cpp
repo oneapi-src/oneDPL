@@ -87,8 +87,7 @@ struct test_shift
 
             // allocate USM memory
             auto queue = exec.queue();
-            auto sycl_deleter = [queue](_ValueType* mem) { sycl::free(mem, queue.get_context()); };
-            ::std::unique_ptr<_ValueType, decltype(sycl_deleter)> ptr(SyclHelper::alloc(queue, m), sycl_deleter);
+            auto ptr = SyclHelper::alloc_ptr(queue, m);
 
             //copying data to USM buffer
             ::std::copy_n(first, m, ptr.get());
@@ -107,8 +106,7 @@ struct test_shift
 
             // allocate USM memory
             auto queue = exec.queue();
-            auto sycl_deleter = [queue](_ValueType* mem) { sycl::free(mem, queue.get_context()); };
-            ::std::unique_ptr<_ValueType, decltype(sycl_deleter)> ptr(SyclHelper::alloc(queue, m), sycl_deleter);
+            auto ptr = SyclHelper::alloc_ptr(queue, m);
 
             //copying data to USM buffer
             ::std::copy_n(first, m, ptr.get());
