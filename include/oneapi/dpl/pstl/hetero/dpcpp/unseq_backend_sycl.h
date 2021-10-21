@@ -36,7 +36,8 @@ template <typename _Tp>
 using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp>::type;
 
 #if _USE_GROUP_ALGOS
-//ToDo change __has_known_identity implementation when dpcpp issues related to std::multiplies and bit operations are fixed
+//TODO: To change __has_known_identity implementation as soon as the DPC++ compiler implementation issues related to
+//std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //Looks like std::logical_and and std::logical_or are not supposed to be used in sycl::__inclusive_scan_over_group and sycl::reduce_over_group
 template <typename BinaryOp, typename _Tp>
 using __has_known_identity =
