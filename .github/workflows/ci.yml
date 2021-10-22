@@ -82,6 +82,18 @@ jobs:
             build_type: release
             backend: tbb
             device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: dpcpp
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
+          - os: ubuntu-18.04
+            cxx_compiler: g++
+            std: 17
+            build_type: release
+            backend: omp
+            device_type: HOST
           - os: ubuntu-18.04
             cxx_compiler: g++
             std: 17
@@ -99,6 +111,12 @@ jobs:
             std: 17
             build_type: release
             backend: tbb
+            device_type: HOST
+          - os: ubuntu-20.04
+            cxx_compiler: clang++
+            std: 17
+            build_type: release
+            backend: omp
             device_type: HOST
           - os: ubuntu-18.04
             cxx_compiler: clang++
@@ -142,6 +160,7 @@ jobs:
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass"
           fi
           mkdir build && cd build
+          lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
