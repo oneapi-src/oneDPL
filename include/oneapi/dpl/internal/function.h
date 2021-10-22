@@ -94,14 +94,14 @@ get_access(const Policy& policy, T* ptr)
 
 template <typename ValueType, typename Policy, typename Iterator>
 ValueType
-get_data_0(Policy p, Iterator i)
+get_data_at(Policy p, Iterator i, size_t index)
 {
-    return get_access<sycl::access::mode::read>(p, i)[0];
+    return get_access<sycl::access::mode::read>(p, i)[index];
 }
 
 template <typename ValueType, typename Policy, typename T>
 ValueType
-get_data_0(const Policy& policy, T* ptr)
+get_data_at(const Policy& policy, T* ptr, size_t index)
 {
     sycl::queue q = policy.queue();
 
@@ -109,7 +109,7 @@ get_data_0(const Policy& policy, T* ptr)
     {
     case sycl::usm::alloc::host:
     case sycl::usm::alloc::shared:
-        return get_access<sycl::access::mode::read>(policy, ptr)[0];
+        return get_access<sycl::access::mode::read>(policy, ptr)[index];
 
     case sycl::usm::alloc::device:
     {
@@ -129,14 +129,14 @@ get_data_0(const Policy& policy, T* ptr)
 
 template <typename ValueType, typename Policy, typename Iterator>
 void
-set_data_0(Policy p, Iterator i, ValueType val)
+set_data_at(Policy p, Iterator i, size_t index, ValueType val)
 {
-    get_access<sycl::access::mode::write>(p, i)[0] = val;
+    get_access<sycl::access::mode::write>(p, i)[index] = val;
 }
 
 template <typename ValueType, typename Policy, typename T>
 void
-set_data_0(const Policy& policy, T* ptr, ValueType val)
+set_data_at(const Policy& policy, T* ptr, size_t index, ValueType val)
 {
     sycl::queue q = policy.queue();
 
@@ -144,7 +144,7 @@ set_data_0(const Policy& policy, T* ptr, ValueType val)
     {
     case sycl::usm::alloc::host:
     case sycl::usm::alloc::shared:
-        get_access<sycl::access::mode::read>(policy, ptr)[0] = val;
+        get_access<sycl::access::mode::read>(policy, ptr)[index] = val;
         break;
 
     case sycl::usm::alloc::device:
