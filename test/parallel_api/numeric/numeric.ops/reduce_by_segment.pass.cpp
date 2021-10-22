@@ -156,30 +156,27 @@ test_with_usm()
     val_head_on_host[12] = 0;
 
     // Allocate space for data using USM.
-    auto key_head_ptr      = SyclHelper::alloc_ptr(q, n);
-    uint64_t* key_head     = key_head_ptr.get();
-    auto val_head_ptr      = SyclHelper::alloc_ptr(q, n);
-    uint64_t* val_head     = val_head_ptr.get();
-    auto key_res_head_ptr  = SyclHelper::alloc_ptr(q, n);
-    uint64_t* key_res_head = key_res_head_ptr.get();
-    auto val_res_head_ptr  = SyclHelper::alloc_ptr(q, n);
-    uint64_t* val_res_head = val_res_head_ptr.get();
+    auto key_head     = SyclHelper::alloc_ptr(q, n);
+    auto val_head     = SyclHelper::alloc_ptr(q, n);
+    auto key_res_head = SyclHelper::alloc_ptr(q, n);
+    auto val_res_head = SyclHelper::alloc_ptr(q, n);
 
-    SyclHelper::copy_from_host(q, key_head,     key_head_on_host,     n);
-    SyclHelper::copy_from_host(q, val_head,     val_head_on_host,     n);
-    SyclHelper::copy_from_host(q, key_res_head, key_res_head_on_host, n);
-    SyclHelper::copy_from_host(q, val_res_head, val_res_head_on_host, n);
+    SyclHelper::copy_from_host(q, key_head.get(),     key_head_on_host,     n);
+    SyclHelper::copy_from_host(q, val_head.get(),     val_head_on_host,     n);
+    SyclHelper::copy_from_host(q, key_res_head.get(), key_res_head_on_host, n);
+    SyclHelper::copy_from_host(q, val_res_head.get(), val_res_head_on_host, n);
 
     // call algorithm
-    using kernel_name_3 = TestUtils::unique_kernel_name<class reduce_by_segment_3, (::std::size_t)alloc_type>;
-    auto new_policy = oneapi::dpl::execution::make_device_policy<kernel_name_3>(q);
-    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
+    auto new_policy = oneapi::dpl::execution::make_device_policy<
+        TestUtils::unique_kernel_name<class reduce_by_segment_3, alloc_type>>(q);
+    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head.get(), key_head.get() + n, val_head.get(), key_res_head.get(),
+                                               val_res_head.get());
 
-    SyclHelper::copy_to_host(q, key_res_head_on_host, key_res_head, n);
-    SyclHelper::copy_to_host(q, val_res_head_on_host, val_res_head, n);
+    SyclHelper::copy_to_host(q, key_res_head_on_host, key_res_head.get(), n);
+    SyclHelper::copy_to_host(q, val_res_head_on_host, val_res_head.get(), n);
 
     // check values
-    n = std::distance(key_res_head, res1.first);
+    n = std::distance(key_res_head.get(), res1.first);
     for (auto i = 0; i != n; ++i) {
         if (i < 4) {
             ASSERT_EQUAL(key_res_head_on_host[i], i+1);
@@ -202,18 +199,19 @@ test_with_usm()
     key_res_head_on_host[0] = 9;
     val_res_head_on_host[0] = 9;
 
-    SyclHelper::copy_from_host(q, key_res_head, key_res_head_on_host, n);
-    SyclHelper::copy_from_host(q, val_res_head, val_res_head_on_host, n);
+    SyclHelper::copy_from_host(q, key_res_head.get(), key_res_head_on_host, n);
+    SyclHelper::copy_from_host(q, val_res_head.get(), val_res_head_on_host, n);
 
     using kernel_name_4 = TestUtils::unique_kernel_name<class reduce_by_segment_4, (::std::size_t)alloc_type>;
     auto new_policy2 = oneapi::dpl::execution::make_device_policy<kernel_name_4>(q);
-    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);
+    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head.get(), key_head.get() + 1, val_head.get(),
+                                               key_res_head.get(), val_res_head.get());
 
-    SyclHelper::copy_to_host(q, key_res_head_on_host, key_res_head, n);
-    SyclHelper::copy_to_host(q, val_res_head_on_host, val_res_head, n);
+    SyclHelper::copy_to_host(q, key_res_head_on_host, key_res_head.get(), n);
+    SyclHelper::copy_to_host(q, val_res_head_on_host, val_res_head.get(), n);
 
     // check values
-    n = std::distance(key_res_head, res2.first);
+    n = std::distance(key_res_head.get(), res2.first);
     ASSERT_EQUAL(n, 1);
     ASSERT_EQUAL(key_res_head_on_host[0], 1);
     ASSERT_EQUAL(val_res_head_on_host[0], 1);

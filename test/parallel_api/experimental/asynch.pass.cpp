@@ -148,33 +148,31 @@ test_with_usm()
         data2_on_host[n - 1] = 0;
 
         // Allocate space for data using USM and copy data from host
-        auto data1_ptr = SyclHelper::alloc_ptr(q, n);
-        uint64_t* data1 = data1_ptr.get();
-        auto data2_ptr = SyclHelper::alloc_ptr(q, n);
-        uint64_t* data2 = data2_ptr.get();
+        auto data1 = SyclHelper::alloc_ptr(q, n);
+        auto data2 = SyclHelper::alloc_ptr(q, n);
 
-        SyclHelper::copy_from_host(q, data1, data1_on_host, n);
-        SyclHelper::copy_from_host(q, data2, data2_on_host, n);
+        SyclHelper::copy_from_host(q, data1.get(), data1_on_host, n);
+        SyclHelper::copy_from_host(q, data2.get(), data2_on_host, n);
 
         // compute reference values
-        const uint64_t ref1 = std::inner_product(data2, data2 + n, data1, 0);
-        const uint64_t ref2 = std::accumulate(data1, data1 + n_small, 0);
+        const uint64_t ref1 = std::inner_product(data2.get(), data2.get() + n, data1.get(), 0);
+        const uint64_t ref2 = std::accumulate(data1.get(), data1.get() + n_small, 0);
 
         // call first algorithm
         using kernel_name_1 = TestUtils::unique_kernel_name<class async1, (::std::size_t)alloc_type>;
         auto new_policy1 = oneapi::dpl::execution::make_device_policy<kernel_name_1>(q);
         auto fut1 = oneapi::dpl::experimental::transform_reduce_async(
-            new_policy1, data2, data2 + n, data1, 0, std::plus<uint64_t>(), std::multiplies<uint64_t>());
+            new_policy1, data2.get(), data2.get() + n, data1.get(), 0, std::plus<uint64_t>(), std::multiplies<uint64_t>());
 
         // call second algorithm and wait for result
         using kernel_name_2 = TestUtils::unique_kernel_name<class async2, (::std::size_t)alloc_type>;
         auto new_policy2 = oneapi::dpl::execution::make_device_policy<kernel_name_2>(q);
-        auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1, data1 + n_small).get();
+        auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1.get(), data1.get() + n_small).get();
 
         // call third algorithm that has to wait for first to complete
         using kernel_name_3 = TestUtils::unique_kernel_name<class async3, (::std::size_t)alloc_type>;
         auto new_policy3 = oneapi::dpl::execution::make_device_policy<kernel_name_3>(q);
-        oneapi::dpl::experimental::sort_async(new_policy3, data2, data2 + n, fut1);
+        oneapi::dpl::experimental::sort_async(new_policy3, data2.get(), data2.get() + n, fut1);
 
         // check values
         auto res1 = fut1.get();
