@@ -64,7 +64,7 @@ check_values(Iterator first, Iterator last, const T& val)
 }
 
 template <typename Op, ::std::size_t CallNumber>
-using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, CallNumber>;
+using unique_kernel_name_cn = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, CallNumber>;
 template <typename Policy, int idx>
 using new_kernel_name = oneapi::dpl::__par_backend_hetero::__new_kernel_name<Policy, idx>;
 
@@ -147,7 +147,7 @@ struct invoke_on_all_hetero_policies
         // For example, param<int*>. In this case the runtime interpreters it as a memory object and
         // performs some checks that fails. As a workaround, define for functors which have this issue
         // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
-        using kernel_name = unique_kernel_name<Op, CallNumber>;
+        using kernel_name = unique_kernel_name_cn<Op, CallNumber>;
         iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
 #if ONEDPL_FPGA_DEVICE
             oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(my_queue), op,
