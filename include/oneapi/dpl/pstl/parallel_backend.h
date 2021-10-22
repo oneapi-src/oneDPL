@@ -21,17 +21,24 @@
 #        include "hetero/dpcpp/parallel_backend_sycl_fpga.h"
 #    endif
 #endif
+
 #if defined(_ONEDPL_PAR_BACKEND_SERIAL)
 #    include "parallel_backend_serial.h"
 namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend
-{
-using namespace oneapi::dpl::__serial_backend;
+namespace __par_backend = __serial_backend;
 }
-} // namespace dpl
+} // namespace oneapi
+#elif defined(_ONEDPL_PAR_BACKEND_TBB)
+#    include "parallel_backend_tbb.h"
+namespace oneapi
+{
+namespace dpl
+{
+namespace __par_backend = __tbb_backend;
+}
 } // namespace oneapi
 #elif defined(_ONEDPL_PAR_BACKEND_OPENMP)
 #    include "parallel_backend_omp.h"
@@ -39,15 +46,11 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend
-{
-using namespace oneapi::dpl::__omp_backend;
+namespace __par_backend = __omp_backend;
 }
-} // namespace dpl
 } // namespace oneapi
-#elif defined(_ONEDPL_PAR_BACKEND_TBB)
-#    include "parallel_backend_tbb.h"
 #else
 _PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");
 #endif
+
 #endif /* _ONEDPL_PARALLEL_BACKEND_H */
