@@ -109,7 +109,7 @@ get_data_at(const Policy& policy, T* ptr, size_t index)
     {
     case sycl::usm::alloc::host:
     case sycl::usm::alloc::shared:
-        return get_access<sycl::access::mode::read>(policy, ptr)[index];
+        return ptr[index];
 
     case sycl::usm::alloc::device:
     {
@@ -144,7 +144,7 @@ set_data_at(const Policy& policy, T* ptr, size_t index, ValueType val)
     {
     case sycl::usm::alloc::host:
     case sycl::usm::alloc::shared:
-        get_access<sycl::access::mode::read>(policy, ptr)[index] = val;
+        ptr[index] = val;
         break;
 
     case sycl::usm::alloc::device:
