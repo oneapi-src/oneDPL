@@ -108,7 +108,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         return result;
     else if (n == 1)
     {
-        internal::set_data_0(policy, result, init);
+        internal::set_data_at(policy, result, 0, init);
         return result + 1;
     }
 
