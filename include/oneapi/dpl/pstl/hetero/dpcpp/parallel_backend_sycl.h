@@ -1213,7 +1213,8 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
             _Size __full_pairs_steps = __full_pairs * __chunks_in_sorted;
             _Size __steps = __full_pairs_steps + __incomplete_pair_steps;
 
-            __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
+            __event1 = __exec.queue().submit([&, __data_in_temp, __sorted, __sorted_pair, __chunk, __chunks_in_sorted,
+                                              __steps](sycl::handler& __cgh) {
                 __cgh.depends_on(__event1);
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __temp_acc = __temp.template get_access<__par_backend_hetero::access_mode::read_write>(__cgh);
@@ -1310,7 +1311,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
         sycl::event __event1;
         do
         {
-            __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
+            __event1 = __exec.queue().submit([&, __data_in_temp, __k](sycl::handler& __cgh) {
                 __cgh.depends_on(__event1);
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
