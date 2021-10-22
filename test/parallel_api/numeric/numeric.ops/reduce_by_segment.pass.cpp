@@ -167,10 +167,10 @@ test_with_usm()
     SyclHelper::copy_from_host(q, val_res_head.get(), val_res_head_on_host, n);
 
     // call algorithm
-    auto new_policy = oneapi::dpl::execution::make_device_policy<
-        TestUtils::unique_kernel_name<class reduce_by_segment_3, alloc_type>>(q);
-    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head.get(), key_head.get() + n, val_head.get(), key_res_head.get(),
-                                               val_res_head.get());
+    auto new_policy =
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, alloc_type>>(q);
+    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head.get(), key_head.get() + n, val_head.get(),
+                                               key_res_head.get(), val_res_head.get());
 
     SyclHelper::copy_to_host(q, key_res_head_on_host, key_res_head.get(), n);
     SyclHelper::copy_to_host(q, val_res_head_on_host, val_res_head.get(), n);
@@ -202,8 +202,8 @@ test_with_usm()
     SyclHelper::copy_from_host(q, key_res_head.get(), key_res_head_on_host, n);
     SyclHelper::copy_from_host(q, val_res_head.get(), val_res_head_on_host, n);
 
-    using kernel_name_4 = TestUtils::unique_kernel_name<class reduce_by_segment_4, (::std::size_t)alloc_type>;
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<kernel_name_4>(q);
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<
+        TestUtils::unique_kernel_name<class reduce_by_segment_4, alloc_type>>(q);
     auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head.get(), key_head.get() + 1, val_head.get(),
                                                key_res_head.get(), val_res_head.get());
 
