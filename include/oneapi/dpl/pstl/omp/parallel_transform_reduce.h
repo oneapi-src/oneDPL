@@ -35,7 +35,7 @@ namespace __omp_backend
 //------------------------------------------------------------------------
 
 template <class _RandomAccessIterator, class _UnaryOp, class _Value, class _Combiner, class _Reduction>
-auto
+_Value
 __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __last, _UnaryOp __unary_op, _Value __init,
                         _Combiner __combiner, _Reduction __reduction)
 {
