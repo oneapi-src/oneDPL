@@ -25,6 +25,9 @@
 
 namespace TestUtils
 {
+    template <typename Op, sycl::usm::alloc alloc_type>
+    using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, static_cast<::std::size_t>(alloc_type)>;
+
     template <sycl::usm::alloc alloc_type, typename T>
     class sycl_operations_helper
     {
