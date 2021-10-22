@@ -15,11 +15,11 @@ ________________________________________________________________________________
 
 1. LLVM libc++ 
    Copyright (c) 2017-2020 by the contributors listed in CREDITS.TXT
-   (https://github.com/llvm/llvm-project/blob/master/libcxx/CREDITS.TXT)
+   (https://github.com/llvm/llvm-project/blob/main/libcxx/CREDITS.TXT)
 
    LLVM PSTL
    Copyright (c) 2017-2020 by the contributors listed in CREDITS.TXT
-   (https://github.com/llvm/llvm-project/blob/master/pstl/CREDITS.txt)
+   (https://github.com/llvm/llvm-project/blob/main/pstl/CREDITS.txt)
 
 
 ==============================================================================
