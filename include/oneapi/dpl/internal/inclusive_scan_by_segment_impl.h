@@ -49,6 +49,9 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     if (n == 1)
     {
         *result = *first2;
+        // KSATODO read data through common access function
+        //*result = *internal::get_data_at<decltype(*result)>(policy, first2, 0);
+        
         return result + 1;
     }
 
@@ -88,7 +91,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     if (n <= 0)
         return result;
 
-    const ValueType initial_value = internal::get_data_0<ValueType>(policy, first2);
+    const ValueType initial_value = internal::get_data_at<ValueType>(policy, first2, 0);
 
     if (n == 1)
     {
