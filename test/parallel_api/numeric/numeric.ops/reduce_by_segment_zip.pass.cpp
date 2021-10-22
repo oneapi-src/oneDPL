@@ -41,35 +41,30 @@ test_with_usm()
     constexpr int n_res = 6;
 
     //shared memory allocation
-    auto d_keys1_ptr         = SyclHelper::alloc_ptr(q, n);
-    int* d_keys1             = d_keys1_ptr().get();
-    auto d_keys2_ptr         = SyclHelper::alloc_ptr(q, n);
-    int* d_keys2             = d_keys2_ptr().get();
-    auto d_values_ptr        = SyclHelper::alloc_ptr(q, n);
-    int* d_values            = d_values_ptr().get();
-    auto d_output_keys1_ptr  = SyclHelper::alloc_ptr(q, n);
-    int* d_output_keys1      = d_output_keys1_ptr().get();
-    auto d_output_keys2_ptr  = SyclHelper::alloc_ptr(q, n);
-    int* d_output_keys2      = d_output_keys2_ptr().get();
-    auto d_output_values_ptr = SyclHelper::alloc_ptr(q, n);
-    int* d_output_values     = d_output_values_ptr().get();
+    auto d_keys1         = SyclHelper::alloc_ptr(q, n);
+    auto d_keys2         = SyclHelper::alloc_ptr(q, n);
+    auto d_values        = SyclHelper::alloc_ptr(q, n);
+    auto d_output_keys1  = SyclHelper::alloc_ptr(q, n);
+    auto d_output_keys2  = SyclHelper::alloc_ptr(q, n);
+    auto d_output_values = SyclHelper::alloc_ptr(q, n);
 
     //data initialization
     const int keys1 [n] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
     const int keys2 [n] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
     const int values[n] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
-    std::copy(keys1, keys1 + n, d_keys1);
-    std::copy(keys2, keys2 + n, d_keys2);
-    std::copy(values, values + n, d_values);
+    std::copy(keys1, keys1 + n, d_keys1.get());
+    std::copy(keys2, keys2 + n, d_keys2.get());
+    std::copy(values, values + n, d_values.get());
 
     //make zip iterators
-    auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1, d_keys2);
-    auto end_keys_in   = oneapi::dpl::make_zip_iterator(d_keys1 + n, d_keys2 + n);
-    auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1, d_output_keys2);
+    auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1.get(), d_keys2.get());
+    auto end_keys_in   = oneapi::dpl::make_zip_iterator(d_keys1.get() + n, d_keys2.get() + n);
+    auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1.get(), d_output_keys2.get());
 
     //run reduce_by_segment algorithm 
-    auto new_last = oneapi::dpl::reduce_by_segment(oneapi::dpl::execution::make_device_policy(q),
-        begin_keys_in, end_keys_in, d_values, begin_keys_out, d_output_values);
+    auto new_last = oneapi::dpl::reduce_by_segment(
+        oneapi::dpl::execution::make_device_policy(q), begin_keys_in,
+        end_keys_in, d_values.get(), begin_keys_out, d_output_values.get());
 
     q.wait();
 
@@ -77,9 +72,9 @@ test_with_usm()
     int d_output_keys2_on_host [n] = { };
     int d_output_values_on_host[n] = { };
 
-    SyclHelper::copy_to_host(q, d_output_keys1_on_host,  d_output_keys1,  n);
-    SyclHelper::copy_to_host(q, d_output_keys2_on_host,  d_output_keys2,  n);
-    SyclHelper::copy_to_host(q, d_output_values_on_host, d_output_values, n);
+    SyclHelper::copy_to_host(q, d_output_keys1_on_host,  d_output_keys1.get(),  n);
+    SyclHelper::copy_to_host(q, d_output_keys2_on_host,  d_output_keys2.get(),  n);
+    SyclHelper::copy_to_host(q, d_output_values_on_host, d_output_values.get(), n);
 
 //Dump
 #if 0
