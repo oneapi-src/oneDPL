@@ -134,7 +134,9 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    // Run tests for USM shared memory
     test3buffers<sycl::usm::alloc::shared, uint64_t, test_upper_bound>();
+    // Run tests for USM device memory
     test3buffers<sycl::usm::alloc::device, uint64_t, test_upper_bound>();
 #endif
     test_algo_three_sequences<uint64_t, test_upper_bound>();

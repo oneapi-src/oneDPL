@@ -190,7 +190,9 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test1_with_buffers();
     test2_with_buffers();
+    // Run tests for USM shared memory
     test_with_usm<sycl::usm::alloc::shared>();
+    // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device>();
 #endif
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
