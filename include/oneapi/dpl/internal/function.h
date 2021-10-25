@@ -114,7 +114,7 @@ get_data_at(const Policy& policy, T* ptr, size_t index)
     case sycl::usm::alloc::device:
     {
         ValueType host_data;
-        q.memcpy(&host_data, ptr, sizeof(host_data));
+        q.copy(ptr, &host_data, 1);
         q.wait();
         return host_data;
     }
@@ -148,7 +148,7 @@ set_data_at(const Policy& policy, T* ptr, size_t index, ValueType val)
         break;
 
     case sycl::usm::alloc::device:
-        q.memcpy(ptr, &val, sizeof(val));
+        q.copy(&val, ptr, 1);
         q.wait();
         break;
 
