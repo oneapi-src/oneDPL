@@ -3346,10 +3346,12 @@ int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    // Run tests for USM shared memory
     test_1_buffer <sycl::usm::alloc::shared>();
     test_2_buffers<sycl::usm::alloc::shared>();
     test_3_buffers<sycl::usm::alloc::shared>();
 
+    // Run tests for USM device memory
     test_1_buffer <sycl::usm::alloc::device>();
     test_2_buffers<sycl::usm::alloc::device>();
     test_3_buffers<sycl::usm::alloc::device>();
