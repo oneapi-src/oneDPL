@@ -738,7 +738,9 @@ int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    // Run tests for USM shared memory
     test_buffers<sycl::usm::alloc::shared>();
+    // Run tests for USM device memory
     test_buffers<sycl::usm::alloc::device>();
 #endif
     return done(TEST_DPCPP_BACKEND_PRESENT);
