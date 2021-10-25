@@ -58,14 +58,10 @@ namespace TestUtils
         alloc(sycl::queue q, size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
-            {
-                return sycl::malloc_shared<T>(count * sizeof(T), q.get_device(), q.get_context());
-            }
-            else
-            {
-                assert(alloc_type == sycl::usm::alloc::device);
-                return sycl::malloc_device<T>(count * sizeof(T), q.get_device(), q.get_context());
-            }
+                return sycl::malloc_shared<T>(count, q.get_device(), q.get_context());
+
+            assert(alloc_type == sycl::usm::alloc::device);
+            return sycl::malloc_device<T>(count, q.get_device(), q.get_context());
         }
 
         static
