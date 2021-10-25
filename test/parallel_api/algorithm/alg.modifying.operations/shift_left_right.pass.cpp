@@ -52,6 +52,60 @@ struct test_shift
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+#if _PSTL_SYCL_TEST_USM
+
+    template <sycl::usm::alloc alloc_type, typename _ValueType, typename It>
+    void
+    copy_data(sycl::queue& q, _ValueType* dest_ptr, It first, typename ::std::iterator_traits<It>::difference_type m)
+    {
+        static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
+                      "Invalid alloc_type patam value");
+
+        if (m < 1)
+            return;
+
+        if constexpr (alloc_type == sycl::usm::alloc::shared)
+        {
+            ::std::copy_n(first, m, dest_ptr);
+        }
+        else
+        {
+            using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, _ValueType>;
+
+            const auto& val = *first;
+
+            SyclHelper::copy_from_host(q, dest_ptr, &val, m);
+        }
+    }
+
+    template <sycl::usm::alloc alloc_type, typename Policy, typename It, typename Algo>
+    void
+    test_usm(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m, It first_exp,
+        typename ::std::iterator_traits<It>::difference_type n, Algo algo)
+    {
+        using _ValueType = typename ::std::iterator_traits<It>::value_type;
+        using _DiffType = typename ::std::iterator_traits<It>::difference_type;
+
+        using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, _ValueType>;
+
+        // allocate USM memory
+        auto queue = exec.queue();
+        auto ptr = SyclHelper::alloc_ptr(queue, m);
+
+        //copying data to USM buffer
+        copy_data<alloc_type>(queue, ptr.get(), first, m);
+
+        auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
+                            ptr.get(), ptr.get() + m, n);
+        _DiffType res_idx = het_res - ptr.get();
+
+        //3.2 check result
+        algo.check(ptr.get() + res_idx, ptr.get(), m, first_exp, n);
+    };
+
+#endif
+
     template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
@@ -81,43 +135,9 @@ struct test_shift
         algo.check(first + res_idx, first, m, first_exp, n);
 
 #if _PSTL_SYCL_TEST_USM
-        //3.1 run a test with hetero policy and USM shared memory pointers
-        {
-            using SyclHelper = TestUtils::sycl_operations_helper<sycl::usm::alloc::shared, _ValueType>;
-
-            // allocate USM memory
-            auto queue = exec.queue();
-            auto ptr = SyclHelper::alloc_ptr(queue, m);
-
-            //copying data to USM buffer
-            ::std::copy_n(first, m, ptr.get());
-            // SyclHelper::copy_from_host(queue, ptr.get(), first, m);
-
-            auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
-            res_idx = het_res - ptr.get();
-
-            //3.2 check result
-            algo.check(ptr.get() + res_idx, ptr.get(), m, first_exp, n);
-        }
-
-        //3.2 run a test with hetero policy and USM device memory pointers
-        {
-            using SyclHelper = TestUtils::sycl_operations_helper<sycl::usm::alloc::device, _ValueType>;
-
-            // allocate USM memory
-            auto queue = exec.queue();
-            auto ptr = SyclHelper::alloc_ptr(queue, m);
-
-            //copying data to USM buffer
-            ::std::copy_n(first, m, ptr.get());
-            // SyclHelper::copy_from_host(queue, ptr.get(), first, m);
-
-            auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
-            res_idx = het_res - ptr.get();
-
-            //3.2 check result
-            algo.check(ptr.get() + res_idx, ptr.get(), m, first_exp, n);
-        }
+        //3. run a test with hetero policy and USM shared/device memory pointers
+        test_usm<sycl::usm::alloc::shared>(exec, first, m, first_exp, n, algo);
+        test_usm<sycl::usm::alloc::device>(exec, first, m, first_exp, n, algo);
 #endif
     }
 #endif
