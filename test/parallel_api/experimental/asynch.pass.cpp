@@ -151,8 +151,8 @@ test_with_usm()
         auto data1 = SyclHelper::alloc_ptr(q, n);
         auto data2 = SyclHelper::alloc_ptr(q, n);
 
-        SyclHelper::copy_from_host(q, data1.get(), data1_on_host, n);
-        SyclHelper::copy_from_host(q, data2.get(), data2_on_host, n);
+        SyclHelper::copy_from_host(q, data1_on_host, data1.get(), n);
+        SyclHelper::copy_from_host(q, data2_on_host, data2.get(), n);
 
         // compute reference values
         const uint64_t ref1 = std::inner_product(data2.get(), data2.get() + n, data1.get(), 0);
