@@ -171,7 +171,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     if (n == 1)
     {
         internal::set_data_at(policy, result1, 0, internal::get_data_at<DerefValueType>(policy, first1, 0));
-        internal::set_data_at(policy, result2, 0, internal::get_data_at<ValueType>     (policy, first2, 0));
+        internal::set_data_at(policy, result2, 0, internal::get_data_at<ValueType>(policy, first2, 0));
         return ::std::make_pair(result1 + 1, result2 + 1);
     }
 
