@@ -85,6 +85,7 @@ namespace TestUtils
             }
             else
             {
+                assert(alloc_type == sycl::usm::alloc::device);
                 q.copy(src_ptr, dest_ptr, count);
                 q.wait();
             }
