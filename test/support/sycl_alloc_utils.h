@@ -85,7 +85,7 @@ namespace TestUtils
             }
             else
             {
-                q.memcpy(dest_ptr, src_ptr, count * sizeof(T));
+                q.copy(src_ptr, dest_ptr, count);
                 q.wait();
             }
         }
@@ -102,7 +102,7 @@ namespace TestUtils
             }
             else
             {
-                q.memcpy(dest_ptr, src_ptr, count * sizeof(T));
+                q.copy(src_ptr, dest_ptr, count);
                 q.wait();
             }
         }
