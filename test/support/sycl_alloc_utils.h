@@ -75,7 +75,7 @@ namespace TestUtils
 
         static
         void
-        copy_from_host(sycl::queue& q, T* dest_ptr, const T* src_ptr, size_t count)
+        copy_from_host(sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
@@ -91,7 +91,7 @@ namespace TestUtils
 
         static
         void
-        copy_to_host(sycl::queue& q, T* dest_ptr, const T* src_ptr, size_t count)
+        copy_to_host(sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {

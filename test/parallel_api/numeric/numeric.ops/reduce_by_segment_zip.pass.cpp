@@ -72,9 +72,9 @@ test_with_usm()
     int d_output_keys2_on_host [n] = { };
     int d_output_values_on_host[n] = { };
 
-    SyclHelper::copy_to_host(q, d_output_keys1_on_host,  d_output_keys1.get(),  n);
-    SyclHelper::copy_to_host(q, d_output_keys2_on_host,  d_output_keys2.get(),  n);
-    SyclHelper::copy_to_host(q, d_output_values_on_host, d_output_values.get(), n);
+    SyclHelper::copy_to_host(q, d_output_keys1.get(),  d_output_keys1_on_host,  n);
+    SyclHelper::copy_to_host(q, d_output_keys2.get(),  d_output_keys2_on_host,  n);
+    SyclHelper::copy_to_host(q, d_output_values.get(), d_output_values_on_host, n);
 
 //Dump
 #if 0

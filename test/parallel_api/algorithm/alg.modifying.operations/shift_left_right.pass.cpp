@@ -75,7 +75,7 @@ struct test_shift
 
             const auto& val = *first;
 
-            SyclHelper::copy_from_host(q, dest_ptr, &val, m);
+            SyclHelper::copy_from_host(q, &val, dest_ptr, m);
         }
     }
 
