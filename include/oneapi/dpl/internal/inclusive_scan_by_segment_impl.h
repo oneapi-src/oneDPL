@@ -49,9 +49,6 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     else if (n == 1)
     {
         *result = *first2;
-        // KSATODO read data through common access function
-        //*result = *internal::get_data_at<decltype(*result)>(policy, first2, 0);
-        
         return result + 1;
     }
 
