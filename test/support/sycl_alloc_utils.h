@@ -31,10 +31,7 @@ namespace TestUtils
     template <sycl::usm::alloc alloc_type, typename T>
     class sycl_operations_helper
     {
-    public:
-
-        static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
-                      "Invalid state of alloc_type param in sycl_operations_helper class");
+    private:
 
         template <typename _T>
         struct __sycl_deleter
@@ -47,6 +44,11 @@ namespace TestUtils
                 sycl::free(__memory, q.get_context());
             }
         };
+
+    public:
+
+        static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
+                      "Invalid state of alloc_type param in sycl_operations_helper class");
 
         template <typename _T>
         using unique_ptr = ::std::unique_ptr<_T, __sycl_deleter<_T> >;
