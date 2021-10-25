@@ -103,7 +103,9 @@ test_with_usm()
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    // Run tests for USM shared memory
     test_with_usm<sycl::usm::alloc::shared>();
+    // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device>();
 #endif
 
