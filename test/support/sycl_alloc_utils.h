@@ -33,6 +33,9 @@ namespace TestUtils
     {
     public:
 
+        static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
+                      "Invalid state of alloc_type param in sycl_operations_helper class");
+
         template <typename _T>
         struct __sycl_deleter
         {
@@ -52,14 +55,13 @@ namespace TestUtils
         T*
         alloc(sycl::queue q, size_t count)
         {
-            check_alloc_type();
-
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
                 return sycl::malloc_shared<T>(count * sizeof(T), q.get_device(), q.get_context());
             }
             else
             {
+                assert(alloc_type == sycl::usm::alloc::device);
                 return sycl::malloc_device<T>(count * sizeof(T), q.get_device(), q.get_context());
             }
         }
@@ -68,8 +70,6 @@ namespace TestUtils
         unique_ptr<T>
         alloc_ptr(sycl::queue q, size_t count)
         {
-            check_alloc_type();
-
             return unique_ptr<T>(alloc(q, count), __sycl_deleter<T>{ q });
         }
 
@@ -77,8 +77,6 @@ namespace TestUtils
         void
         copy_from_host(sycl::queue& q, T* dest_ptr, const T* src_ptr, size_t count)
         {
-            check_alloc_type();
-
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
                 ::std::copy_n(src_ptr, count, dest_ptr);
@@ -95,27 +93,16 @@ namespace TestUtils
         void
         copy_to_host(sycl::queue& q, T* dest_ptr, const T* src_ptr, size_t count)
         {
-            check_alloc_type();
-
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
                 ::std::copy_n(src_ptr, count, dest_ptr);
             }
             else
             {
+                assert(alloc_type == sycl::usm::alloc::device);
                 q.copy(src_ptr, dest_ptr, count);
                 q.wait();
             }
-        }
-
-    private:
-
-        static
-        void
-        check_alloc_type()
-        {
-            static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
-                          "Invalid state of alloc_type param in sycl_operations_helper class");
         }
     };
 
