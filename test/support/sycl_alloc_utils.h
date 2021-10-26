@@ -33,6 +33,8 @@ namespace TestUtils
     {
     private:
 
+        sycl::queue my_queue;
+
         template <typename _T>
         struct __sycl_deleter
         {
@@ -51,29 +53,30 @@ namespace TestUtils
                       "Invalid state of alloc_type param in sycl_operations_helper class");
 
         template <typename _T>
-        using unique_ptr = ::std::unique_ptr<_T, __sycl_deleter<_T> >;
+        using unique_ptr = ::std::unique_ptr<_T, __sycl_deleter<_T>>;
 
-        static
+        sycl_operations_helper(sycl::queue q) : my_queue(std::move(q))
+        {
+        }
+
         T*
-        alloc(sycl::queue q, size_t count)
+        alloc(size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
-                return sycl::malloc_shared<T>(count, q.get_device(), q.get_context());
+                return sycl::malloc_shared<T>(count, my_queue.get_device(), my_queue.get_context());
 
             assert(alloc_type == sycl::usm::alloc::device);
-            return sycl::malloc_device<T>(count, q.get_device(), q.get_context());
+            return sycl::malloc_device<T>(count, my_queue.get_device(), my_queue.get_context());
         }
 
-        static
         unique_ptr<T>
-        alloc_ptr(sycl::queue q, size_t count)
+        alloc_ptr(size_t count)
         {
-            return unique_ptr<T>(alloc(q, count), __sycl_deleter<T>{ q });
+            return unique_ptr<T>(alloc(count), __sycl_deleter<T>{my_queue});
         }
 
-        static
         void
-        copy_from_host(sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
+        copy_from_host(const T* src_ptr, T* dest_ptr, size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
@@ -82,14 +85,13 @@ namespace TestUtils
             else
             {
                 assert(alloc_type == sycl::usm::alloc::device);
-                q.copy(src_ptr, dest_ptr, count);
-                q.wait();
+                my_queue.copy(src_ptr, dest_ptr, count);
+                my_queue.wait();
             }
         }
 
-        static
         void
-        copy_to_host(sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
+        copy_to_host(const T* src_ptr, T* dest_ptr, size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
@@ -98,8 +100,8 @@ namespace TestUtils
             else
             {
                 assert(alloc_type == sycl::usm::alloc::device);
-                q.copy(src_ptr, dest_ptr, count);
-                q.wait();
+                my_queue.copy(src_ptr, dest_ptr, count);
+                my_queue.wait();
             }
         }
     };

@@ -71,11 +71,11 @@ struct test_shift
         }
         else
         {
-            using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, _ValueType>;
+            TestUtils::sycl_operations_helper<alloc_type, _ValueType> sycl_helper(q);
 
             const auto& val = *first;
 
-            SyclHelper::copy_from_host(q, &val, dest_ptr, m);
+            sycl_helper.copy_from_host(&val, dest_ptr, m);
         }
     }
 
@@ -87,11 +87,12 @@ struct test_shift
         using _ValueType = typename ::std::iterator_traits<It>::value_type;
         using _DiffType = typename ::std::iterator_traits<It>::difference_type;
 
-        using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, _ValueType>;
+        auto queue = exec.queue();
+
+        TestUtils::sycl_operations_helper<alloc_type, _ValueType> sycl_helper(queue);
 
         // allocate USM memory
-        auto queue = exec.queue();
-        auto ptr = SyclHelper::alloc_ptr(queue, m);
+        auto ptr = sycl_helper.alloc_ptr(m);
 
         //copying data to USM buffer
         copy_data<alloc_type>(queue, ptr.get(), first, m);
