@@ -52,7 +52,7 @@ namespace TestUtils
         static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
                       "Invalid state of alloc_type param in sycl_operations_helper class");
 
-        template <typename _T>
+        template <typename _T = T>
         using unique_ptr = ::std::unique_ptr<_T, __sycl_deleter<_T>>;
 
         sycl_operations_helper(sycl::queue q) : my_queue(std::move(q))
@@ -80,7 +80,8 @@ namespace TestUtils
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
-                ::std::copy_n(src_ptr, count, dest_ptr);
+                assert(!"We shoudn't copy data from host to USM shared memory");
+                //::std::copy_n(src_ptr, count, dest_ptr);
             }
             else
             {
@@ -95,7 +96,8 @@ namespace TestUtils
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
             {
-                ::std::copy_n(src_ptr, count, dest_ptr);
+                assert(!"We shoudn't copy data from USM shared memory to host");
+                //::std::copy_n(src_ptr, count, dest_ptr);
             }
             else
             {

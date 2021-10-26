@@ -35,7 +35,8 @@ test_with_usm()
 {
     sycl::queue q;
 
-    TestUtils::sycl_operations_helper<alloc_type, int> sycl_helper(q);
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, int>;
+    SyclHelper sycl_helper(q);
 
     constexpr int n = 9;
     constexpr int n_res = 6;
@@ -49,13 +50,38 @@ test_with_usm()
     auto d_output_values = sycl_helper.alloc_ptr(n);
 
     //data initialization
-    const int keys1 [n] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
-    const int keys2 [n] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
-    const int values[n] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
+    auto prepare_data = [](int n, int* keys1, int* keys2, int* values)
+        {
+            constexpr int items_count = 9;
 
-    sycl_helper.copy_from_host(keys1, d_keys1.get(), n);
-    sycl_helper.copy_from_host(keys2, d_keys2.get(), n);
-    sycl_helper.copy_from_host(values, d_values.get(), n);
+            const int src_keys1 [items_count] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
+            const int src_keys2 [items_count] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
+            const int src_values[items_count] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
+
+            ::std::copy_n(src_keys1, items_count, keys1);
+            ::std::copy_n(src_keys2, items_count, keys2);
+            ::std::copy_n(src_values, items_count, values);
+        };
+
+    // Initialize data
+    if constexpr (alloc_type == sycl::usm::alloc::shared)
+    {
+        prepare_data(n, d_keys1.get(), d_keys2.get(), d_values.get());
+    }
+    else
+    {
+        assert(alloc_type == sycl::usm::alloc::device);
+
+        int d_keys1_host [n] = {};
+        int d_keys2_host [n] = {};
+        int d_values_host[n] = {};
+
+        prepare_data(n, d_keys1_host, d_keys2_host, d_values_host);
+
+        sycl_helper.copy_from_host(d_keys1_host, d_keys1.get(), n);
+        sycl_helper.copy_from_host(d_keys2_host, d_keys2.get(), n);
+        sycl_helper.copy_from_host(d_values_host, d_values.get(), n);
+    }
 
     //make zip iterators
     auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1.get(), d_keys2.get());
@@ -69,13 +95,35 @@ test_with_usm()
 
     q.wait();
 
-    int d_output_keys1_on_host [n] = { };
-    int d_output_keys2_on_host [n] = { };
-    int d_output_values_on_host[n] = { };
+    // Copy results
+    int* d_output_keys1_on_host  = nullptr;
+    int* d_output_keys2_on_host  = nullptr;
+    int* d_output_values_on_host = nullptr;
 
-    sycl_helper.copy_to_host(d_output_keys1.get(),  d_output_keys1_on_host,  n);
-    sycl_helper.copy_to_host(d_output_keys2.get(),  d_output_keys2_on_host,  n);
-    sycl_helper.copy_to_host(d_output_values.get(), d_output_values_on_host, n);
+    using SyclHelperShared = TestUtils::sycl_operations_helper<sycl::usm::alloc::shared, int>;
+    SyclHelperShared sycl_helper_shared(q);
+    auto d_output_keys1_on_host_ptr  = sycl_helper_shared.alloc_ptr(n);
+    auto d_output_keys2_on_host_ptr  = sycl_helper_shared.alloc_ptr(n);
+    auto d_output_values_on_host_ptr = sycl_helper_shared.alloc_ptr(n);
+
+    if constexpr (alloc_type == sycl::usm::alloc::shared)
+    {
+        d_output_keys1_on_host  = d_output_keys1.get();
+        d_output_keys2_on_host  = d_output_keys2.get();
+        d_output_values_on_host = d_output_values.get();
+    }
+    else
+    {
+        assert(alloc_type == sycl::usm::alloc::device);
+
+        sycl_helper.copy_to_host(d_output_keys1.get(),  d_output_keys1_on_host_ptr.get(),  n);
+        sycl_helper.copy_to_host(d_output_keys2.get(),  d_output_keys2_on_host_ptr.get(),  n);
+        sycl_helper.copy_to_host(d_output_values.get(), d_output_values_on_host_ptr.get(), n);
+
+        d_output_keys1_on_host  = d_output_keys1_on_host_ptr.get();
+        d_output_keys2_on_host  = d_output_keys2_on_host_ptr.get(); 
+        d_output_values_on_host = d_output_values_on_host_ptr.get();
+    }
 
 //Dump
 #if 0
