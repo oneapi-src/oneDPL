@@ -33,20 +33,20 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, int>;
-
     sycl::queue q;
+
+    TestUtils::sycl_operations_helper<alloc_type, int> sycl_helper(q);
 
     constexpr int n = 9;
     constexpr int n_res = 6;
 
     //shared memory allocation
-    auto d_keys1         = SyclHelper::alloc_ptr(q, n);
-    auto d_keys2         = SyclHelper::alloc_ptr(q, n);
-    auto d_values        = SyclHelper::alloc_ptr(q, n);
-    auto d_output_keys1  = SyclHelper::alloc_ptr(q, n);
-    auto d_output_keys2  = SyclHelper::alloc_ptr(q, n);
-    auto d_output_values = SyclHelper::alloc_ptr(q, n);
+    auto d_keys1         = sycl_helper.alloc_ptr(n);
+    auto d_keys2         = sycl_helper.alloc_ptr(n);
+    auto d_values        = sycl_helper.alloc_ptr(n);
+    auto d_output_keys1  = sycl_helper.alloc_ptr(n);
+    auto d_output_keys2  = sycl_helper.alloc_ptr(n);
+    auto d_output_values = sycl_helper.alloc_ptr(n);
 
     //data initialization
     const int keys1 [n] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
@@ -72,9 +72,9 @@ test_with_usm()
     int d_output_keys2_on_host [n] = { };
     int d_output_values_on_host[n] = { };
 
-    SyclHelper::copy_to_host(q, d_output_keys1.get(),  d_output_keys1_on_host,  n);
-    SyclHelper::copy_to_host(q, d_output_keys2.get(),  d_output_keys2_on_host,  n);
-    SyclHelper::copy_to_host(q, d_output_values.get(), d_output_values_on_host, n);
+    sycl_helper.copy_to_host(d_output_keys1.get(),  d_output_keys1_on_host,  n);
+    sycl_helper.copy_to_host(d_output_keys2.get(),  d_output_keys2_on_host,  n);
+    sycl_helper.copy_to_host(d_output_values.get(), d_output_values_on_host, n);
 
 //Dump
 #if 0

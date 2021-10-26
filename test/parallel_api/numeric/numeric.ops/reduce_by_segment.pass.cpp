@@ -120,9 +120,10 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, uint64_t>;
-
     sycl::queue q;
+
+    TestUtils::sycl_operations_helper<alloc_type, uint64_t> sycl_helper(q);
+
     constexpr int nd = 13;
     int n = nd;
 
@@ -156,15 +157,15 @@ test_with_usm()
     val_head_on_host[12] = 0;
 
     // Allocate space for data using USM.
-    auto key_head     = SyclHelper::alloc_ptr(q, n);
-    auto val_head     = SyclHelper::alloc_ptr(q, n);
-    auto key_res_head = SyclHelper::alloc_ptr(q, n);
-    auto val_res_head = SyclHelper::alloc_ptr(q, n);
+    auto key_head     = sycl_helper.alloc_ptr(n);
+    auto val_head     = sycl_helper.alloc_ptr(n);
+    auto key_res_head = sycl_helper.alloc_ptr(n);
+    auto val_res_head = sycl_helper.alloc_ptr(n);
 
-    SyclHelper::copy_from_host(q, key_head_on_host,     key_head.get(),     n);
-    SyclHelper::copy_from_host(q, val_head_on_host,     val_head.get(),     n);
-    SyclHelper::copy_from_host(q, key_res_head_on_host, key_res_head.get(), n);
-    SyclHelper::copy_from_host(q, val_res_head_on_host, val_res_head.get(), n);
+    sycl_helper.copy_from_host(key_head_on_host,     key_head.get(),     n);
+    sycl_helper.copy_from_host(val_head_on_host,     val_head.get(),     n);
+    sycl_helper.copy_from_host(key_res_head_on_host, key_res_head.get(), n);
+    sycl_helper.copy_from_host(val_res_head_on_host, val_res_head.get(), n);
 
     // call algorithm
     auto new_policy =
@@ -172,8 +173,8 @@ test_with_usm()
     auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head.get(), key_head.get() + n, val_head.get(),
                                                key_res_head.get(), val_res_head.get());
 
-    SyclHelper::copy_to_host(q, key_res_head.get(), key_res_head_on_host, n);
-    SyclHelper::copy_to_host(q, val_res_head.get(), val_res_head_on_host, n);
+    sycl_helper.copy_to_host(key_res_head.get(), key_res_head_on_host, n);
+    sycl_helper.copy_to_host(val_res_head.get(), val_res_head_on_host, n);
 
     // check values
     n = std::distance(key_res_head.get(), res1.first);
@@ -199,16 +200,16 @@ test_with_usm()
     key_res_head_on_host[0] = 9;
     val_res_head_on_host[0] = 9;
 
-    SyclHelper::copy_from_host(q, key_res_head_on_host, key_res_head.get(), n);
-    SyclHelper::copy_from_host(q, val_res_head_on_host, val_res_head.get(), n);
+    sycl_helper.copy_from_host(key_res_head_on_host, key_res_head.get(), n);
+    sycl_helper.copy_from_host(val_res_head_on_host, val_res_head.get(), n);
 
     auto new_policy2 = oneapi::dpl::execution::make_device_policy<
         TestUtils::unique_kernel_name<class reduce_by_segment_4, alloc_type>>(q);
     auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head.get(), key_head.get() + 1, val_head.get(),
                                                key_res_head.get(), val_res_head.get());
 
-    SyclHelper::copy_to_host(q, key_res_head.get(), key_res_head_on_host, n);
-    SyclHelper::copy_to_host(q, val_res_head.get(), val_res_head_on_host, n);
+    sycl_helper.copy_to_host(key_res_head.get(), key_res_head_on_host, n);
+    sycl_helper.copy_to_host(val_res_head.get(), val_res_head_on_host, n);
 
     // check values
     n = std::distance(key_res_head.get(), res2.first);
