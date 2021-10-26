@@ -119,9 +119,10 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, uint64_t>;
-
     cl::sycl::queue q;
+
+    TestUtils::sycl_operations_helper<alloc_type, uint64_t> sycl_helper(q);
+
     constexpr int n = 1024;
     constexpr int n_small = 13;
 
@@ -148,11 +149,11 @@ test_with_usm()
         data2_on_host[n - 1] = 0;
 
         // Allocate space for data using USM and copy data from host
-        auto data1 = SyclHelper::alloc_ptr(q, n);
-        auto data2 = SyclHelper::alloc_ptr(q, n);
+        auto data1 = sycl_helper.alloc_ptr(n);
+        auto data2 = sycl_helper.alloc_ptr(n);
 
-        SyclHelper::copy_from_host(q, data1_on_host, data1.get(), n);
-        SyclHelper::copy_from_host(q, data2_on_host, data2.get(), n);
+        sycl_helper.copy_from_host(data1_on_host, data1.get(), n);
+        sycl_helper.copy_from_host(data2_on_host, data2.get(), n);
 
         // compute reference values
         const uint64_t ref1 = std::inner_product(data2.get(), data2.get() + n, data1.get(), 0);
