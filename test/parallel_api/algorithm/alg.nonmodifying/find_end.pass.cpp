@@ -101,7 +101,7 @@ test(const ::std::size_t bits)
             for (auto r : res)
             {
                 ::std::size_t i = r, isub = 0;
-                for (; i < n1 & isub < n2; ++i, ++isub)
+                for (; i < n1 && isub < n2; ++i, ++isub)
                     in[i] = sub[isub];
 #ifdef _PSTL_TEST_FIND_END
                 invoke_on_all_policies<0>()(test_find_end<T>(), in.begin(), in.begin() + n1, sub.begin(),
