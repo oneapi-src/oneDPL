@@ -40,7 +40,7 @@ test_with_usm()
     constexpr int n = 9;
     constexpr int n_res = 6;
 
-    //shared memory allocation
+    // USM memory allocation
     auto d_keys1         = sycl_helper.alloc_ptr(n);
     auto d_keys2         = sycl_helper.alloc_ptr(n);
     auto d_values        = sycl_helper.alloc_ptr(n);
@@ -52,9 +52,10 @@ test_with_usm()
     const int keys1 [n] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
     const int keys2 [n] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
     const int values[n] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
-    std::copy(keys1, keys1 + n, d_keys1.get());
-    std::copy(keys2, keys2 + n, d_keys2.get());
-    std::copy(values, values + n, d_values.get());
+
+    sycl_helper.copy_from_host(keys1, d_keys1.get(), n);
+    sycl_helper.copy_from_host(keys2, d_keys2.get(), n);
+    sycl_helper.copy_from_host(values, d_values.get(), n);
 
     //make zip iterators
     auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1.get(), d_keys2.get());
