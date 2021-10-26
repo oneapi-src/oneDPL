@@ -57,7 +57,9 @@ struct test_shift
 
     template <sycl::usm::alloc alloc_type, typename _ValueType, typename It>
     void
-    copy_data(sycl::queue& q, _ValueType* dest_ptr, It first, typename ::std::iterator_traits<It>::difference_type m)
+    copy_from_host(TestUtils::sycl_operations_helper<alloc_type, _ValueType>& sycl_helper,
+                   It first, _ValueType* dest_ptr,
+                   typename ::std::iterator_traits<It>::difference_type m)
     {
         static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
                       "Invalid alloc_type patam value");
@@ -67,12 +69,12 @@ struct test_shift
 
         if constexpr (alloc_type == sycl::usm::alloc::shared)
         {
+            // copying data to USM shared memory
             ::std::copy_n(first, m, dest_ptr);
         }
         else
         {
-            TestUtils::sycl_operations_helper<alloc_type, _ValueType> sycl_helper(q);
-
+            // copying data to USM device memory
             const auto& val = *first;
 
             sycl_helper.copy_from_host(&val, dest_ptr, m);
@@ -94,8 +96,8 @@ struct test_shift
         // allocate USM memory
         auto ptr = sycl_helper.alloc_ptr(m);
 
-        //copying data to USM buffer
-        copy_data<alloc_type>(queue, ptr.get(), first, m);
+        // copying data to USM shared/device memory
+        copy_from_host<alloc_type>(sycl_helper, first, ptr.get(), m);
 
         auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
                             ptr.get(), ptr.get() + m, n);
