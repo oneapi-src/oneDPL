@@ -25,6 +25,42 @@
 
 namespace TestUtils
 {
+    namespace
+    {
+        struct DeviceTag{ };
+        struct SharedTag{ };
+
+        template<typename T>
+        void
+        copy_from_host_impl(DeviceTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
+        {
+            q.copy(src_ptr, dest_ptr, count);
+            q.wait();
+        }
+
+        //template <typename T>
+        //void
+        //copy_from_host_impl(SharedTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
+        //{
+        //    static_assert(false, "!!!");
+        //}
+
+        template <typename T>
+        void
+        copy_to_host_impl(DeviceTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
+        {
+            q.copy(src_ptr, dest_ptr, count);
+            q.wait();
+        }
+
+        //template <typename T>
+        //void
+        //copy_to_host_impl(SharedTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
+        //{
+        //    static_assert(false, "!!!");
+        //}
+    }
+
     template <typename Op, sycl::usm::alloc alloc_type>
     using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, static_cast<::std::size_t>(alloc_type)>;
 
@@ -79,32 +115,18 @@ namespace TestUtils
         copy_from_host(const T* src_ptr, T* dest_ptr, size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
-            {
-                assert(!"We shoudn't copy data from host to USM shared memory");
-                //::std::copy_n(src_ptr, count, dest_ptr);
-            }
+                copy_from_host_impl(SharedTag(), my_queue, src_ptr, dest_ptr, count);
             else
-            {
-                assert(alloc_type == sycl::usm::alloc::device);
-                my_queue.copy(src_ptr, dest_ptr, count);
-                my_queue.wait();
-            }
+                copy_from_host_impl(DeviceTag(), my_queue, src_ptr, dest_ptr, count);
         }
 
         void
         copy_to_host(const T* src_ptr, T* dest_ptr, size_t count)
         {
             if constexpr (alloc_type == sycl::usm::alloc::shared)
-            {
-                assert(!"We shoudn't copy data from USM shared memory to host");
-                //::std::copy_n(src_ptr, count, dest_ptr);
-            }
+                copy_to_host_impl(SharedTag(), my_queue, src_ptr, dest_ptr, count);
             else
-            {
-                assert(alloc_type == sycl::usm::alloc::device);
-                my_queue.copy(src_ptr, dest_ptr, count);
-                my_queue.wait();
-            }
+                copy_to_host_impl(DeviceTag(), my_queue, src_ptr, dest_ptr, count);
         }
     };
 
