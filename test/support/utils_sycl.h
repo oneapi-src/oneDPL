@@ -164,12 +164,12 @@ test1buffer()
 {
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
 
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
+    TestUtils::sycl_operations_helper<alloc_type, T> sycl_helper(queue);
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto inout1_first = SyclHelper::alloc_ptr(queue, max_n + inout1_offset);
+        auto inout1_first = sycl_helper.alloc_ptr(max_n + inout1_offset);
 
         // 2. create a pointer at first+offset
         T* inout1_offset_first = inout1_first.get() + inout1_offset;
@@ -208,13 +208,13 @@ test2buffers()
 {
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
 
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
+    TestUtils::sycl_operations_helper<alloc_type, T> sycl_helper(queue);
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto inout1_first = SyclHelper::alloc_ptr(queue, max_n + inout1_offset);
-        auto inout2_first = SyclHelper::alloc_ptr(queue, max_n + inout2_offset);
+        auto inout1_first = sycl_helper.alloc_ptr(max_n + inout1_offset);
+        auto inout2_first = sycl_helper.alloc_ptr(max_n + inout2_offset);
 
         // 2. create pointers at first+offset
         T* inout1_offset_first = inout1_first.get() + inout1_offset;
@@ -258,14 +258,14 @@ test3buffers(int mult = 1)
 {
     const sycl::queue& queue = my_queue; // usm requires queue
 
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, T>;
+    TestUtils::sycl_operations_helper<alloc_type, T> sycl_helper(queue);
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto inout1_first = SyclHelper::alloc_ptr(queue, max_n + inout1_offset);
-        auto inout2_first = SyclHelper::alloc_ptr(queue, max_n + inout2_offset);
-        auto inout3_first = SyclHelper::alloc_ptr(queue, max_n + inout3_offset);
+        auto inout1_first = sycl_helper.alloc_ptr(max_n + inout1_offset);
+        auto inout2_first = sycl_helper.alloc_ptr(max_n + inout2_offset);
+        auto inout3_first = sycl_helper.alloc_ptr(max_n + inout3_offset);
 
         // 2. create pointers at first+offset
         T* inout1_offset_first = inout1_first.get() + inout1_offset;
