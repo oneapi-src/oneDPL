@@ -121,7 +121,8 @@ test_with_usm()
 {
     cl::sycl::queue q;
 
-    TestUtils::sycl_operations_helper<alloc_type, uint64_t> sycl_helper(q);
+    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, uint64_t>;
+    SyclHelper sycl_helper(q);
 
     constexpr int n = 1024;
     constexpr int n_small = 13;
@@ -129,31 +130,45 @@ test_with_usm()
     // ASYNC TEST USING USM //
     // TODO: Extend tests by checking true async behavior in more detail
     {
-        // Initialize data
-        uint64_t data1_on_host[n] = {};
-        uint64_t data2_on_host[n] = {};
-
-        // Initialize data
-        for (int i = 0; i != n - 1; ++i)
-        {
-            data1_on_host[i] = i % 4 + 1;
-            data2_on_host[i] = data1_on_host[i] + 1;
-            if (i > 3 && i != n - 2)
-            {
-                ++i;
-                data1_on_host[i] = data1_on_host[i - 1];
-                data2_on_host[i] = data2_on_host[i - 1];
-            }
-        }
-        data1_on_host[n - 1] = 0;
-        data2_on_host[n - 1] = 0;
-
-        // Allocate space for data using USM and copy data from host
+        // Allocate space for data using USM
         auto data1 = sycl_helper.alloc_ptr(n);
         auto data2 = sycl_helper.alloc_ptr(n);
 
-        sycl_helper.copy_from_host(data1_on_host, data1.get(), n);
-        sycl_helper.copy_from_host(data2_on_host, data2.get(), n);
+        auto prepare_data = [](int n, uint64_t* data1, uint64_t* data2)
+            {
+                for (int i = 0; i != n - 1; ++i)
+                {
+                    data1[i] = i % 4 + 1;
+                    data2[i] = data1[i] + 1;
+                    if (i > 3 && i != n - 2)
+                    {
+                        ++i;
+                        data1[i] = data1[i - 1];
+                        data2[i] = data2[i - 1];
+                    }
+                }
+                data1[n - 1] = 0;
+                data2[n - 1] = 0;
+            };
+
+        // Initialize data
+        if constexpr (alloc_type == sycl::usm::alloc::shared)
+        {
+            prepare_data(n, data1.get(), data2.get());
+        }
+        else
+        {
+            assert(alloc_type == sycl::usm::alloc::device);
+
+            uint64_t data1_on_host[n] = {};
+            uint64_t data2_on_host[n] = {};
+
+            // Initialize data
+            prepare_data(n, data1_on_host, data2_on_host);
+
+            sycl_helper.copy_from_host(data1_on_host, data1.get(), n);
+            sycl_helper.copy_from_host(data2_on_host, data2.get(), n);
+        }
 
         // compute reference values
         const uint64_t ref1 = std::inner_product(data2.get(), data2.get() + n, data1.get(), 0);
