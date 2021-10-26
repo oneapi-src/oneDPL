@@ -124,14 +124,14 @@ test_with_usm()
 
     TestUtils::sycl_operations_helper<alloc_type, uint64_t> sycl_helper(q);
 
-    constexpr int nd = 13;
-    int n = nd;
+    constexpr int items_count = 13;
+    int n = items_count;
 
     // Allocate space for data using USM.
-    uint64_t key_head_on_host    [nd] = { };
-    uint64_t val_head_on_host    [nd] = { };
-    uint64_t key_res_head_on_host[nd] = { };
-    uint64_t val_res_head_on_host[nd] = { };
+    uint64_t key_head_on_host    [items_count] = { };
+    uint64_t val_head_on_host    [items_count] = { };
+    uint64_t key_res_head_on_host[items_count] = { };
+    uint64_t val_res_head_on_host[items_count] = { };
 
     //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
     //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
