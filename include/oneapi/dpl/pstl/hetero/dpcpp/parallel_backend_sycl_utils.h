@@ -202,7 +202,7 @@ class __kernel_compiler
         auto __kernel_id = sycl::get_kernel_id<_DerivedKernelName>();
         auto __kernel_bundle =
             sycl::get_kernel_bundle<sycl::bundle_state::executable>(__exec.queue().get_context(), {__kernel_id});
-        return __kernel_bundle.get_kernel(__kernel_id);        
+        return __kernel_bundle.get_kernel(__kernel_id);
 #else
         sycl::program __program(__exec.queue().get_context());
 
