@@ -89,10 +89,10 @@ Use `ONEDPL_PAR_BACKEND` variable before the invocation of `find_package(oneDPL 
 
 - Supported values:
   - `tbb` for oneTBB backend;
-  - `omp` for OpenMP backend;
+  - `openmp` for OpenMP backend;
   - `serial` for serial backend.
 - If this variable is not set then the first suitable backend is chosen among oneTBB, OpenMP and serial, they are considered in the order as specified.
-- `oneDPL_FOUND` is set to `FALSE` if `ONEDPL_PAR_BACKEND` is specified, but not found or not supported.
+- oneDPL is considered as not found (`oneDPL_FOUND=FALSE`) if `ONEDPL_PAR_BACKEND` is specified, but not found or not supported.
 - Macro `ONEDPL_USE_OPENMP_BACKEND` is set to `0` if oneTBB backend is chosen.
 - Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if OpenMP backend is chosen.
 - Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` and `ONEDPL_USE_OPENMP_BACKEND` is set to `0` if serial backend is chosen.
