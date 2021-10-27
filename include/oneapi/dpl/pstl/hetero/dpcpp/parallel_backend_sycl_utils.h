@@ -213,57 +213,65 @@ class __kernel_compiler
 };
 
 template <typename _ExecutionPolicy, ::std::size_t _size_type = 0, typename... _KernelType>
-class __work_group_size_producer{
-private:
-    using _KernelTypeTuple= ::std::tuple<_KernelType...>;
+class __work_group_size_producer
+{
+  private:
+    using _KernelTypeTuple = ::std::tuple<_KernelType...>;
     ::std::map<int, ::std::shared_ptr<sycl::kernel>> __kernels_vector;
-    
+
     template <::std::size_t s_t = 0>
-    typename ::std::enable_if<std::bool_constant<(0 < s_t)>::value,
-                            ::std::size_t>::type
-    __update_wgroup_depending_memory(_ExecutionPolicy&& __exec,
-                                            ::std::size_t __work_group_size)
+    typename ::std::enable_if<std::bool_constant<(0 < s_t)>::value, ::std::size_t>::type
+    __update_wgroup_depending_memory(_ExecutionPolicy&& __exec, ::std::size_t __work_group_size)
     {
         return oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                                _size_type, __work_group_size);
+                                                                    _size_type, __work_group_size);
     }
 
     template <::std::size_t s_t = 0>
-    typename ::std::enable_if<std::bool_constant<(0 == s_t)>::value,
-                            ::std::size_t>::type
-    __update_wgroup_depending_memory(_ExecutionPolicy&& __exec, 
-                                        ::std::size_t __work_group_size)
+    typename ::std::enable_if<std::bool_constant<(0 == s_t)>::value, ::std::size_t>::type
+    __update_wgroup_depending_memory(_ExecutionPolicy&& __exec, ::std::size_t __work_group_size)
     {
-                 return __work_group_size;
+        return __work_group_size;
     }
 
-    template<std::size_t I = 0>
+    template <std::size_t I = 0>
     typename std::enable_if<I == sizeof...(_KernelType), void>::type
-        __update_wgroup_depending_kernels( _ExecutionPolicy&& __exec, ::std::size_t& __work_group_size)
-    { }
-
-    template<std::size_t I = 0>
-    typename std::enable_if<I < sizeof...(_KernelType), void>::type
-    __update_wgroup_depending_kernels( _ExecutionPolicy&& __exec, ::std::size_t& __work_group_size)
+    __update_wgroup_depending_kernels(_ExecutionPolicy&& __exec, ::std::size_t& __work_group_size)
     {
-        __kernels_vector[I] =  std::make_unique<sycl::kernel>(__internal::__kernel_compiler<std::tuple_element_t<I, _KernelTypeTuple>>
-                                                ::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec)));
-        __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                            ::std::forward<_ExecutionPolicy>(__exec), *(__kernels_vector[I])));
+    }
+
+    template <std::size_t I = 0>
+        typename std::enable_if <
+        I<sizeof...(_KernelType), void>::type
+        __update_wgroup_depending_kernels(_ExecutionPolicy&& __exec, ::std::size_t& __work_group_size)
+    {
+        __kernels_vector[I] = std::make_unique<sycl::kernel>(
+            __internal::__kernel_compiler<std::tuple_element_t<I, _KernelTypeTuple>>::__compile_kernel(
+                ::std::forward<_ExecutionPolicy>(__exec)));
+        __work_group_size =
+            ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
+                                              ::std::forward<_ExecutionPolicy>(__exec), *(__kernels_vector[I])));
         __update_wgroup_depending_kernels<I + 1>(::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
     }
-public:
-    ::std::size_t __get_work_group_size( _ExecutionPolicy&& __exec){
-        ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
+
+  public:
+    ::std::size_t
+    __get_work_group_size(_ExecutionPolicy&& __exec)
+    {
+        ::std::size_t __work_group_size =
+            oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
         // change __work_group_size according to local memory limit
-        __work_group_size = __update_wgroup_depending_memory<_size_type>(::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
+        __work_group_size =
+            __update_wgroup_depending_memory<_size_type>(::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
 #if _ONEDPL_COMPILE_KERNEL
         __update_wgroup_depending_kernels(::std::forward<_ExecutionPolicy>(__exec), __work_group_size);
 #endif
         return __work_group_size;
     }
-    template<std::size_t I = 0>
-    auto& __get_kernel(){
+    template <std::size_t I = 0>
+    auto&
+    __get_kernel()
+    {
         return __kernels_vector[I];
     }
 };

@@ -284,9 +284,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
     auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
     __internal::__work_group_size_producer<_ExecutionPolicy, sizeof(_Tp), _ReduceKernel> __wg_s_prod;
     ::std::size_t __work_group_size = __wg_s_prod.__get_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
- #if _ONEDPL_COMPILE_KERNEL    
-    ::std::shared_ptr<sycl::kernel> __kernel =  __wg_s_prod.template __get_kernel();
- #endif
+#if _ONEDPL_COMPILE_KERNEL
+    ::std::shared_ptr<sycl::kernel> __kernel = __wg_s_prod.template __get_kernel();
+#endif
     ::std::size_t __iters_per_work_item = __grainsize;
     // distribution is ~1 work groups per compute init
     if (__exec.queue().get_device().is_cpu())
@@ -418,12 +418,13 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         assert(__n > 0);
 
         auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
-         __internal::__work_group_size_producer<_ExecutionPolicy, sizeof(_Type), _LocalScanKernel, _GroupScanKernel> __wg_s_prod;
+        __internal::__work_group_size_producer<_ExecutionPolicy, sizeof(_Type), _LocalScanKernel, _GroupScanKernel>
+            __wg_s_prod;
         ::std::size_t __wgroup_size = __wg_s_prod.__get_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
- #if _ONEDPL_COMPILE_KERNEL    
+#if _ONEDPL_COMPILE_KERNEL
         ::std::shared_ptr<sycl::kernel> __kernel_1 = __wg_s_prod.template __get_kernel<0>();
         ::std::shared_ptr<sycl::kernel> __kernel_2 = __wg_s_prod.template __get_kernel<1>();
- #endif
+#endif
 
         // Practically this is the better value that was found
         constexpr decltype(__wgroup_size) __iters_per_witem = 16;
@@ -667,9 +668,9 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
 
     __internal::__work_group_size_producer<_ExecutionPolicy, 0, _FindOrKernel> __wg_s_prod;
     ::std::size_t __wgroup_size = __wg_s_prod.__get_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
- #if _ONEDPL_COMPILE_KERNEL    
+#if _ONEDPL_COMPILE_KERNEL
     ::std::shared_ptr<sycl::kernel> __kernel = __wg_s_prod.template __get_kernel();
- #endif
+#endif
     auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
