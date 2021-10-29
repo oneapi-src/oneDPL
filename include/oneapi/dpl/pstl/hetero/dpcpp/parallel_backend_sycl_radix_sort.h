@@ -622,6 +622,8 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     ::std::size_t __block_size = __max_sg_size;
     ::std::size_t __reorder_sg_size = __max_sg_size;
+
+    // correct __block_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
     auto __count_kernel =
         __internal::__kernel_compiler<_RadixCountKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
