@@ -122,21 +122,7 @@ test_with_usm()
 {
     sycl::queue q;
 
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, uint64_t>;
-    SyclHelper sycl_helper(q);
-
-    using SyclHelperShared = TestUtils::sycl_operations_helper<sycl::usm::alloc::shared, uint64_t>;
-    SyclHelperShared sycl_helper_shared(q);
-
-    constexpr int items_count = 13;
-    int n = items_count;
-
-    // Allocate space for data using USM.
-    auto key_head     = sycl_helper.alloc_ptr(n);
-    auto val_head     = sycl_helper.alloc_ptr(n);
-    auto key_res_head = sycl_helper.alloc_ptr(n);
-    auto val_res_head = sycl_helper.alloc_ptr(n);
-
+    // Initialize data
     //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
     //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
 
@@ -164,61 +150,35 @@ test_with_usm()
             val_head[n - 1] = 0;
         };
 
-    // Initialize data
-    if constexpr (alloc_type == sycl::usm::alloc::shared)
-    {
-        prepare_data(n,
-                     key_head.get(), val_head.get(),
-                     key_res_head.get(), val_res_head.get());
-    }
-    else
-    {
-        assert(alloc_type == sycl::usm::alloc::device);
+    constexpr int n = 13;
+    uint64_t key_head_on_host[n] = {};
+    uint64_t val_head_on_host[n] = {};
+    uint64_t key_res_head_on_host[n] = {};
+    uint64_t val_res_head_on_host[n] = {};
 
-        auto key_head_shared     = sycl_helper_shared.alloc_ptr(n);
-        auto val_head_shared     = sycl_helper_shared.alloc_ptr(n);
-        auto key_res_head_shared = sycl_helper_shared.alloc_ptr(n);
-        auto val_res_head_shared = sycl_helper_shared.alloc_ptr(n);
+    prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
 
-        prepare_data(n,
-                     key_head_shared.get(), val_head_shared.get(),
-                     key_res_head_shared.get(), val_res_head_shared.get());
-
-        sycl_helper.copy_from_host(key_head_shared.get(),     key_head.get(),     n);
-        sycl_helper.copy_from_host(val_head_shared.get(),     val_head.get(),     n);
-        sycl_helper.copy_from_host(key_res_head_shared.get(), key_res_head.get(), n);
-        sycl_helper.copy_from_host(val_res_head_shared.get(), val_res_head.get(), n);
-    }
+    // allocate USM memory and copying data to USM shared/device memory
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc1(q, key_head_on_host, n);
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc2(q, val_head_on_host, n);
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc3(q, key_res_head_on_host, n);
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc4(q, val_res_head_on_host, n);
+    auto key_head     = alloc1.get_data();
+    auto val_head     = alloc2.get_data();
+    auto key_res_head = alloc3.get_data();
+    auto val_res_head = alloc4.get_data();
 
     // call algorithm
     auto new_policy =
         oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, alloc_type>>(q);
-    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head.get(), key_head.get() + n, val_head.get(),
-                                               key_res_head.get(), val_res_head.get());
+    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head,
+                                               key_res_head, val_res_head);
 
-    uint64_t* key_res_head_on_host = nullptr;
-    uint64_t* val_res_head_on_host = nullptr;
-    auto key_res_head_on_host_ptr = sycl_helper_shared.alloc_ptr(n);
-    auto val_res_head_on_host_ptr = sycl_helper_shared.alloc_ptr(n);
-
-    if constexpr (alloc_type == sycl::usm::alloc::shared)
-    {
-        key_res_head_on_host = key_res_head.get();
-        val_res_head_on_host = val_res_head.get();
-    }
-    else
-    {
-        assert(alloc_type == sycl::usm::alloc::device);
-
-        key_res_head_on_host = key_res_head_on_host_ptr.get();
-        val_res_head_on_host = val_res_head_on_host_ptr.get();
-
-        sycl_helper.copy_to_host(key_res_head.get(), key_res_head_on_host, n);
-        sycl_helper.copy_to_host(val_res_head.get(), val_res_head_on_host, n);
-    }
+    //retrive result on the host and check the result
+    alloc3.retrive_data(key_res_head_on_host), alloc4.retrive_data(val_res_head_on_host);
 
     // check values
-    n = std::distance(key_res_head.get(), res1.first);
+    n = std::distance(key_res_head, res1.first);
     for (auto i = 0; i != n; ++i) {
         if (i < 4) {
             ASSERT_EQUAL(key_res_head_on_host[i], i+1);
@@ -241,35 +201,16 @@ test_with_usm()
     key_res_head_on_host[0] = 9;
     val_res_head_on_host[0] = 9;
 
-    if constexpr (alloc_type == sycl::usm::alloc::shared)
-    {
-    }
-    else
-    {
-        assert(alloc_type == sycl::usm::alloc::device);
-
-        sycl_helper.copy_from_host(key_res_head_on_host, key_res_head.get(), n);
-        sycl_helper.copy_from_host(val_res_head_on_host, val_res_head.get(), n);
-    }
-
     auto new_policy2 = oneapi::dpl::execution::make_device_policy<
         TestUtils::unique_kernel_name<class reduce_by_segment_4, alloc_type>>(q);
-    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head.get(), key_head.get() + 1, val_head.get(),
-                                               key_res_head.get(), val_res_head.get());
+    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head,
+                                               key_res_head, val_res_head);
 
-    if constexpr (alloc_type == sycl::usm::alloc::shared)
-    {
-    }
-    else
-    {
-        assert(alloc_type == sycl::usm::alloc::device);
-
-        sycl_helper.copy_to_host(key_res_head.get(), key_res_head_on_host, n);
-        sycl_helper.copy_to_host(val_res_head.get(), val_res_head_on_host, n);
-    }
+    //retrive result on the host and check the result
+    alloc3.retrive_data(key_res_head_on_host), alloc4.retrive_data(val_res_head_on_host);
 
     // check values
-    n = std::distance(key_res_head.get(), res2.first);
+    n = std::distance(key_res_head, res2.first);
     ASSERT_EQUAL(n, 1);
     ASSERT_EQUAL(key_res_head_on_host[0], 1);
     ASSERT_EQUAL(val_res_head_on_host[0], 1);
