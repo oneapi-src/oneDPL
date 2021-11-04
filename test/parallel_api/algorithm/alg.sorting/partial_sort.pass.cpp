@@ -58,7 +58,7 @@ template <typename Type>
 struct test_brick_partial_sort
 {
     template <typename Policy, typename InputIterator, typename Compare>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<is_base_of_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
                             void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last, Compare compare)
@@ -102,7 +102,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator, typename Compare>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!is_base_of_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
                             void>::type
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */, Compare /* compare */)
@@ -110,7 +110,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
+    typename ::std::enable_if<is_base_of_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
                               can_use_default_less_operator<Type>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last)
@@ -131,7 +131,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
+    typename ::std::enable_if<!is_base_of_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
                               !can_use_default_less_operator<Type>::value, void>::type
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */)
