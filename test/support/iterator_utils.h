@@ -356,8 +356,8 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<::std::is_base_of<::std::bidirectional_iterator_tag, 
-                                            typename ::std::iterator_traits<Iterator>::iterator_category>::value, void>::type
+    typename ::std::enable_if<is_base_of_iterator_category<Iterator, 
+                                            ::std::bidirectional_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, 
         Iterator expected, Rest&&... rest)
     {
@@ -469,7 +469,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<Iterator, ::std::bidirectional_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::bidirectional_iterator_tag>::value, void>::type
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected, Rest&&... rest)
     {
         if (n <= sizeLimit)
