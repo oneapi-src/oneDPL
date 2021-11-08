@@ -16,8 +16,8 @@
  *  limitations under the License.
  */
 
-#ifndef DPCPP_INCLUSIVE_SCAN_BY_KEY_IMPL_H_
-#define DPCPP_INCLUSIVE_SCAN_BY_KEY_IMPL_H_
+#ifndef _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
+#define _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
 
 #include "../pstl/glue_numeric_impl.h"
 #include "../pstl/parallel_backend.h"

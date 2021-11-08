@@ -34,8 +34,15 @@
 
 #define _SKIP_RETURN_CODE 77
 
+// Test data ranges other than those that start at the beginning of an input.
+const int max_n = 100000;
+const int inout1_offset = 3;
+const int inout2_offset = 5;
+const int inout3_offset = 7;
+const int inout4_offset = 9;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-#include "utils_sycl.h"
+#    include "utils_sycl.h"
 #endif
 
 namespace TestUtils
@@ -59,14 +66,15 @@ class Sequence;
 #define EXPECT_FALSE(condition, message) ::TestUtils::expect(false, condition, __FILE__, __LINE__, message)
 
 // Check that expected and actual are equal and have the same type.
-#define EXPECT_EQ(expected, actual, message) ::TestUtils::expect_equal_val(expected, actual, __FILE__, __LINE__, message)
+#define EXPECT_EQ(expected, actual, message)                                                                           \
+    ::TestUtils::expect_equal_val(expected, actual, __FILE__, __LINE__, message)
 
 // Check that sequences started with expected and actual and have had size n are equal and have the same type.
 #define EXPECT_EQ_N(expected, actual, n, message)                                                                      \
     ::TestUtils::expect_equal(expected, actual, n, __FILE__, __LINE__, message)
 
 // Check the expected and actual ranges are equal.
-#define EXPECT_EQ_RANGES(expected, actual, message)                                                                      \
+#define EXPECT_EQ_RANGES(expected, actual, message)                                                                    \
     ::TestUtils::expect_equal(expected, actual, __FILE__, __LINE__, message)
 
 // Issue error message from outstr, adding a newline.
@@ -169,7 +177,8 @@ fill_data(Iterator first, Iterator last, F f)
     }
 }
 
-struct MemoryChecker {
+struct MemoryChecker
+{
     // static counters and state tags
     static ::std::atomic<::std::size_t> alive_object_counter; // initialized outside
     // since it can truncate the value on 32-bit platforms
@@ -178,10 +187,11 @@ struct MemoryChecker {
     static constexpr ::std::size_t dead_state = 0; // only used as a set value to cancel alive_state
 
     ::std::int32_t _value; // object value used for algorithms
-    ::std::size_t  _state; // state tag used for checks
+    ::std::size_t _state;  // state tag used for checks
 
     // ctors, dtors, assign ops
-    explicit MemoryChecker(::std::int32_t value = 0) : _value(value) {
+    explicit MemoryChecker(::std::int32_t value = 0) : _value(value)
+    {
         // check for EXPECT_TRUE(state() != alive_state, ...) has not been done since we cannot guarantee that
         // raw memory for object being constructed does not have a bit sequence being equal to alive_state
 
@@ -189,63 +199,110 @@ struct MemoryChecker {
         inc_alive_objects();
         _state = alive_state;
     }
-    MemoryChecker(MemoryChecker&& other) : _value(other.value()) {
+    MemoryChecker(MemoryChecker&& other) : _value(other.value())
+    {
         // check for EXPECT_TRUE(state() != alive_state, ...) has not been done since
         // compiler can optimize out the move ctor call that results in false positive failure
-        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker(MemoryChecker&&): attempt to construct an object from non-existing object");
+        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker(MemoryChecker&&): attempt to "
+                                                  "construct an object from non-existing object");
         // set constructed state and increment counter for living object
         inc_alive_objects();
         _state = alive_state;
     }
-    MemoryChecker(const MemoryChecker& other) : _value(other.value()) {
+    MemoryChecker(const MemoryChecker& other) : _value(other.value())
+    {
         // check for EXPECT_TRUE(state() != alive_state, ...) has not been done since
         // compiler can optimize out the copy ctor call that results in false positive failure
-        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker(const MemoryChecker&): attempt to construct an object from non-existing object");
+        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker(const MemoryChecker&): attempt to "
+                                                  "construct an object from non-existing object");
         // set constructed state and increment counter for living object
         inc_alive_objects();
         _state = alive_state;
     }
-    MemoryChecker& operator=(MemoryChecker&& other) {
+    MemoryChecker&
+    operator=(MemoryChecker&& other)
+    {
         // check if we do not assign over uninitialized memory
-        EXPECT_TRUE(state() == alive_state, "wrong effect from MemoryChecker::operator=(MemoryChecker&& other): attempt to assign to non-existing object");
-        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker::operator=(MemoryChecker&& other): attempt to assign from non-existing object");
+        EXPECT_TRUE(state() == alive_state, "wrong effect from MemoryChecker::operator=(MemoryChecker&& other): "
+                                            "attempt to assign to non-existing object");
+        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker::operator=(MemoryChecker&& other): "
+                                                  "attempt to assign from non-existing object");
         // just assign new value, counter is the same, state is the same
         _value = other.value();
 
         return *this;
     }
-    MemoryChecker& operator=(const MemoryChecker& other) {
+    MemoryChecker&
+    operator=(const MemoryChecker& other)
+    {
         // check if we do not assign over uninitialized memory
-        EXPECT_TRUE(state() == alive_state, "wrong effect from MemoryChecker::operator=(const MemoryChecker& other): attempt to assign to non-existing object");
-        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker::operator=(const MemoryChecker& other): attempt to assign from non-existing object");
+        EXPECT_TRUE(state() == alive_state, "wrong effect from MemoryChecker::operator=(const MemoryChecker& other): "
+                                            "attempt to assign to non-existing object");
+        EXPECT_TRUE(other.state() == alive_state, "wrong effect from MemoryChecker::operator=(const MemoryChecker& "
+                                                  "other): attempt to assign from non-existing object");
         // just assign new value, counter is the same, state is the same
         _value = other.value();
 
         return *this;
     }
-    ~MemoryChecker() {
+    ~MemoryChecker()
+    {
         // check if we do not double destruct the object
-        EXPECT_TRUE(state() == alive_state, "wrong effect from ~MemoryChecker(): attempt to destroy non-existing object");
+        EXPECT_TRUE(state() == alive_state,
+                    "wrong effect from ~MemoryChecker(): attempt to destroy non-existing object");
         // set destructed state and decrement counter for living object
         static_cast<volatile ::std::size_t&>(_state) = dead_state;
         dec_alive_objects();
     }
 
     // getters
-    ::std::int32_t value() const { return _value; }
-    ::std::size_t state() const { return _state; }
-    static ::std::size_t alive_objects() { return alive_object_counter.load(); }
-private:
+    ::std::int32_t
+    value() const
+    {
+        return _value;
+    }
+    ::std::size_t
+    state() const
+    {
+        return _state;
+    }
+    static ::std::size_t
+    alive_objects()
+    {
+        return alive_object_counter.load();
+    }
+
+  private:
     // setters
-    void inc_alive_objects() { alive_object_counter.fetch_add(1); }
-    void dec_alive_objects() { alive_object_counter.fetch_sub(1); }
+    void
+    inc_alive_objects()
+    {
+        alive_object_counter.fetch_add(1);
+    }
+    void
+    dec_alive_objects()
+    {
+        alive_object_counter.fetch_sub(1);
+    }
 };
 
 ::std::atomic<::std::size_t> MemoryChecker::alive_object_counter{0};
 
-::std::ostream& operator<<(::std::ostream& os, const MemoryChecker& val) { return (os << val.value()); }
-bool operator==(const MemoryChecker& v1, const MemoryChecker& v2) { return v1.value() == v2.value(); }
-bool operator<(const MemoryChecker& v1, const MemoryChecker& v2) { return v1.value() < v2.value(); }
+::std::ostream&
+operator<<(::std::ostream& os, const MemoryChecker& val)
+{
+    return (os << val.value());
+}
+bool
+operator==(const MemoryChecker& v1, const MemoryChecker& v2)
+{
+    return v1.value() == v2.value();
+}
+bool
+operator<(const MemoryChecker& v1, const MemoryChecker& v2)
+{
+    return v1.value() < v2.value();
+}
 
 // Sequence<T> is a container of a sequence of T with lots of kinds of iterators.
 // Prefixes on begin/end mean:
@@ -600,7 +657,8 @@ operator==(const Matrix2x2<T>& left, const Matrix2x2<T>& right)
 template <typename T>
 struct multiply_matrix
 {
-    Matrix2x2<T> operator()(const Matrix2x2<T>& left, const Matrix2x2<T>& right) const
+    Matrix2x2<T>
+    operator()(const Matrix2x2<T>& left, const Matrix2x2<T>& right) const
     {
         Matrix2x2<T> result;
         result.a00 = left.a00 * right.a00 + left.a01 * right.a10;
@@ -614,9 +672,9 @@ struct multiply_matrix
 
 // Check that Intel(R) Threading Building Blocks header files are not used when parallel policies are off
 #if !_ONEDPL_USE_PAR_POLICIES
-#if defined(TBB_INTERFACE_VERSION)
+#    if defined(TBB_INTERFACE_VERSION)
 #        error The parallel backend is used while it should not (_ONEDPL_USE_PAR_POLICIES==0)
-#endif
+#    endif
 #endif
 
 // Invoke op(policy,rest...) for each non-hetero policy.
@@ -651,7 +709,6 @@ struct invoke_on_all_policies
 #if TEST_DPCPP_BACKEND_PRESENT
         invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
 #endif
-
     }
 };
 
@@ -798,7 +855,7 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
 int
 done(int is_done = 1)
 {
-    if(is_done)
+    if (is_done)
     {
 #if _PSTL_TEST_SUCCESSFUL_KEYWORD
         ::std::cout << "done\n";
@@ -809,7 +866,7 @@ done(int is_done = 1)
     }
     else
     {
-        ::std::cout <<"Skipped\n";
+        ::std::cout << "Skipped\n";
         return _SKIP_RETURN_CODE;
     }
 }
@@ -838,6 +895,27 @@ test_algo_basic_double(F&& f)
     invoke_on_all_host_policies()(::std::forward<F>(f), in.begin(), out.begin());
 }
 
+// Used with algorithms that have two input sequences and one output sequences
+template <typename T, typename TestName>
+void
+test_algo_three_sequences()
+{
+    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
+        Sequence<T> inout1(max_n + inout1_offset);
+        Sequence<T> inout2(max_n + inout2_offset);
+        Sequence<T> inout3(max_n + inout3_offset);
+
+        // create iterators
+        auto inout1_offset_first = std::begin(inout1) + inout1_offset;
+        auto inout2_offset_first = std::begin(inout2) + inout2_offset;
+        auto inout3_offset_first = std::begin(inout3) + inout3_offset;
+
+        invoke_on_all_host_policies()(TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first,
+                                      inout2_offset_first + n, inout3_offset_first, inout3_offset_first + n, n);
+    }
+}
+
 template <typename Policy, typename F>
 static void
 invoke_if(Policy&&, F f)
@@ -845,10 +923,14 @@ invoke_if(Policy&&, F f)
     f();
 }
 
-template<typename T, typename = bool>
-struct can_use_default_less_operator: ::std::false_type {};
+template <typename T, typename = bool>
+struct can_use_default_less_operator : ::std::false_type
+{
+};
 
-template<typename T>
-struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::declval<T>())>: ::std::true_type {};
+template <typename T>
+struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::declval<T>())> : ::std::true_type
+{
+};
 
 } /* namespace TestUtils */

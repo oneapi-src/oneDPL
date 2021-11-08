@@ -20,143 +20,178 @@
 #include "support/test_config.h"
 #include "support/utils.h"
 
-#include <iostream>
-#include <iomanip>
-
-template<typename _T1, typename _T2>
-void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
-    if(X!=Y)
-        std::cout << "CHECK CORRECTNESS (INCLUSIVE_SCAN_BY_SEGMENT): fail (" << X << "," << Y << ")" << std::endl;
-}
-
 #if TEST_DPCPP_BACKEND_PRESENT
 #include <CL/sycl.hpp>
 
-void test_with_buffers()
-{
-    // create a buffer, being responsible for moving data around and counting dependencies
-    sycl::buffer<uint64_t, 1> _key_buf{ sycl::range<1>(10) };
-    sycl::buffer<uint64_t, 1> _val_buf{ sycl::range<1>(10) };
-    sycl::buffer<uint64_t, 1> _res_buf{ sycl::range<1>(10) };
+using namespace oneapi::dpl::execution;
+#endif
+using namespace TestUtils;
 
+struct test_inclusive_scan_by_segment
+{
+    // TODO: replace data generation with random data and update check to compare result to
+    // the result of a serial implementation of the algorithm
+    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    void
+    initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_val_res, Size n)
     {
-    auto key_buf = _key_buf.template get_access<sycl::access::mode::read_write>();
-    auto val_buf = _val_buf.template get_access<sycl::access::mode::read_write>();
-    auto res_buf = _res_buf.template get_access<sycl::access::mode::read_write>();
+        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
+        //T vals[n1] = { 1, 1, 1, ... };
 
-    // Initialize data
-    key_buf[0] = 0; key_buf[1] = 0; key_buf[2] = 0; key_buf[3] = 1; key_buf[4] = 1;
-    key_buf[5] = 2; key_buf[6] = 3; key_buf[7] = 3; key_buf[8] = 3; key_buf[9] = 3;
-
-    val_buf[0] = 1; val_buf[1] = 1; val_buf[2] = 1; val_buf[3] = 1; val_buf[4] = 1;
-    val_buf[5] = 1; val_buf[6] = 1; val_buf[7] = 1; val_buf[8] = 1; val_buf[9] = 1;
-
-    res_buf[0] = 9; res_buf[1] = 9; res_buf[2] = 9; res_buf[3] = 9; res_buf[4] = 9;
-    res_buf[5] = 9; res_buf[6] = 9; res_buf[7] = 9; res_buf[8] = 9; res_buf[9] = 9;
-    }
-    // create sycl iterators
-    auto key_beg = oneapi::dpl::begin(_key_buf);
-    auto key_end = oneapi::dpl::end(_key_buf);
-    auto val_beg = oneapi::dpl::begin(_val_buf);
-    auto res_beg = oneapi::dpl::begin(_res_buf);
-
-    // create named policy from existing one
-    auto new_policy = oneapi::dpl::execution::make_device_policy<class InclusiveScanBySegment>(oneapi::dpl::execution::dpcpp_default);
-    // call algorithm
-    oneapi::dpl::inclusive_scan_by_segment(new_policy, key_beg, key_end, val_beg, res_beg,
-        std::equal_to<uint64_t>(), std::plus<uint64_t>());
-
-    // check values
-    auto key_acc = _key_buf.get_access<sycl::access::mode::read>();
-    auto val_acc = _val_buf.get_access<sycl::access::mode::read>();
-    auto res_acc = _res_buf.get_access<sycl::access::mode::read>();
-    uint64_t check_value;
-    for (int i = 0; i != 10; ++i) {
-        if (i == 0 || key_acc[i] != key_acc[i-1])
-            check_value = val_acc[i];
-        else
-            check_value += val_acc[i];
-        ASSERT_EQUAL(check_value, res_acc[i]);
-    }
-}
-
-void test_with_usm()
-{
-    sycl::queue q;
-    const int n = 10;
-
-    // Allocate space for data using USM.
-    uint64_t* key_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* val_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-
-    // Initialize data
-    key_head[0] = 0; key_head[1] = 0; key_head[2] = 0; key_head[3] = 1; key_head[4] = 1;
-    key_head[5] = 2; key_head[6] = 3; key_head[7] = 3; key_head[8] = 3; key_head[9] = 3;
-
-    val_head[0] = 1; val_head[1] = 1; val_head[2] = 1; val_head[3] = 1; val_head[4] = 1;
-    val_head[5] = 1; val_head[6] = 1; val_head[7] = 1; val_head[8] = 1; val_head[9] = 1;
-
-    res_head[0] = 9; res_head[1] = 9; res_head[2] = 9; res_head[3] = 9; res_head[4] = 9;
-    res_head[5] = 9; res_head[6] = 9; res_head[7] = 9; res_head[8] = 9; res_head[9] = 9;
-
-    // call algorithm
-    auto new_policy = oneapi::dpl::execution::make_device_policy<class inclusive_scan_by_segment_1>(q);
-    oneapi::dpl::inclusive_scan_by_segment(new_policy, key_head, key_head+n, val_head, res_head,
-        std::equal_to<uint64_t>(), std::plus<uint64_t>());
-
-    // check values
-    uint64_t check_value;
-    for (int i = 0; i != 10; ++i) {
-        if (i == 0 || key_head[i] != key_head[i-1])
-            check_value = val_head[i];
-        else
-    	check_value += val_head[i];
-        ASSERT_EQUAL(check_value, res_head[i]);
+        int segment_length = 1;
+        int i = 0;
+        while (i != n)
+        {
+          for (int j = 0; j != 4*segment_length && i != n; ++j)
+          {
+              host_keys[i] = j/segment_length + 1;
+              host_vals[i] = 1;
+              host_val_res[i] = 0;
+              ++i;
+          }
+          ++segment_length;
+        }
     }
 
-    // call algorithm on single element range
-    res_head[0] = 9;
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class inclusive_scan_by_segment_2>(q);
-    oneapi::dpl::inclusive_scan_by_segment(new_policy2, key_head, key_head+1, val_head, res_head);
+    template <typename Iterator1, typename Iterator2, typename Size>
+    void
+    check_values(Iterator1 host_keys, Iterator2 val_res, Size n)
+    {
+        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
+        //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
 
-    // check values
-    ASSERT_EQUAL(1, res_head[0]);
+        int segment_length = 1;
+        auto expected_segment_sum = 1;
+        auto current_key = host_keys[0];
+        auto current_sum = 0;
+        for (int i = 0; i != n; ++i)
+        {
+            if (current_key == host_keys[i])
+            {
+              current_sum += val_res[i];
+            } else {
+                EXPECT_TRUE(current_sum == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
+                current_sum = val_res[i];
+                current_key = host_keys[i];
+                if (current_key == 1) {
+                    ++segment_length;
+                    expected_segment_sum = segment_length * (segment_length + 1) / 2;
+                }
+            }
+        }
+    }
 
-    // Deallocate memory
-    sycl::free(key_head, q);
-    sycl::free(val_head, q);
-    sycl::free(res_head, q);
-}
+#if TEST_DPCPP_BACKEND_PRESENT
+    // specialization for hetero policy
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<
+        oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
+    {
+        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
+
+        // call algorithm with no optional arguments
+        {
+            auto host_keys = get_host_access(keys_first);
+            auto host_vals = get_host_access(vals_first);
+            auto host_val_res = get_host_access(val_res_first);
+
+            initialize_data(host_keys, host_vals, host_val_res, n);
+        }
+
+        auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
+        auto res1 = oneapi::dpl::inclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
+        exec.queue().wait_and_throw();
+
+        {
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, n);
+
+            // call algorithm with equality comparator
+            auto host_vals = get_host_access(vals_first);
+
+            initialize_data(host_keys, host_vals, host_val_res, n);
+        }
+
+        auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
+        auto res2 = oneapi::dpl::inclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
+                                                           [](KeyT first, KeyT second) { return first == second; });
+        exec.queue().wait_and_throw();
+        {
+            auto host_keys = get_host_access(keys_first);
+            auto host_val_res = get_host_access(val_res_first);
+            check_values(host_keys, host_val_res, n);
+
+            // call algorithm with addition operator
+            auto host_vals = get_host_access(vals_first);
+
+            initialize_data(host_keys, host_vals, host_val_res, n);
+        }
+
+        auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
+        auto res3 = oneapi::dpl::inclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
+                                                           [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
+        exec.queue().wait_and_throw();
+        auto host_keys = get_host_access(keys_first);
+        auto host_val_res = get_host_access(val_res_first);
+        check_values(host_keys, host_val_res, n);
+    }
 #endif
 
-void test_on_host()
-{
-    int data[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    int keys[10] = {0, 0, 0, 1, 1, 2, 3, 3, 3, 3};
-    int result[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    // specialization for host execution policies
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<
+#if TEST_DPCPP_BACKEND_PRESENT
+        !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+#endif
+            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
+    {
+        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-    oneapi::dpl::inclusive_scan_by_segment(oneapi::dpl::execution::par, keys, keys + 10, data, result, std::equal_to<int>(), std::plus<int>());
+        // call algorithm with no optional arguments
+        initialize_data(keys_first, vals_first, val_res_first, n);
+        auto res1 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
+        check_values(keys_first, val_res_first, n);
 
-    // data is now {1, 2, 3, 1, 2, 1, 1, 2, 3, 4};
-    ASSERT_EQUAL(result[0], 1);
-    ASSERT_EQUAL(result[1], 2);
-    ASSERT_EQUAL(result[2], 3);
-    ASSERT_EQUAL(result[3], 1);
-    ASSERT_EQUAL(result[4], 2);
-    ASSERT_EQUAL(result[5], 1);
-    ASSERT_EQUAL(result[6], 1);
-    ASSERT_EQUAL(result[7], 2);
-    ASSERT_EQUAL(result[8], 3);
-    ASSERT_EQUAL(result[9], 4);
-}
+        // call algorithm with equality comparator
+        initialize_data(keys_first, vals_first, val_res_first, n);
+        auto res2 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
+                                                           [](KeyT first, KeyT second) { return first == second; });
+        check_values(keys_first, val_res_first, n);
+
+        // call algorithm with addition operator
+        initialize_data(keys_first, vals_first, val_res_first, n);
+        auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
+                                                           [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
+        check_values(keys_first, val_res_first, n);
+
+    }
+
+    // specialization for non-random_access iterators
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<!is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+                              void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
+    {
+    }
+};
 
 int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_with_buffers();
-    test_with_usm();
+    test3buffers<uint64_t, test_inclusive_scan_by_segment>();
 #endif
-    test_on_host();
-
+    test_algo_three_sequences<uint64_t, test_inclusive_scan_by_segment>();
     return TestUtils::done();
 }

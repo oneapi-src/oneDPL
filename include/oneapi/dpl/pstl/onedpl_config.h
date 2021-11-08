@@ -24,7 +24,7 @@
 #endif
 
 #define ONEDPL_VERSION_MAJOR 2021
-#define ONEDPL_VERSION_MINOR 5
+#define ONEDPL_VERSION_MINOR 6
 #define ONEDPL_VERSION_PATCH 0
 
 #if defined(ONEDPL_USE_DPCPP_BACKEND)
@@ -73,13 +73,25 @@
 #    define _ONEDPL_USE_PAR_POLICIES 1
 #endif
 
+#if defined(ONEDPL_USE_OPENMP_BACKEND)
+#    undef _ONEDPL_USE_PAR_POLICIES
+#    define _ONEDPL_USE_PAR_POLICIES ONEDPL_USE_OPENMP_BACKEND
+// Check the internal macro for parallel policies
+#elif !defined(_ONEDPL_USE_PAR_POLICIES)
+#    define _ONEDPL_USE_PAR_POLICIES 1
+#endif
+
 #if _ONEDPL_USE_PAR_POLICIES
-#    if !defined(_ONEDPL_PAR_BACKEND_TBB)
+#    if defined(ONEDPL_USE_OPENMP_BACKEND)
+#        undef _ONEDPL_PAR_BACKEND_SERIAL
+#        define _ONEDPL_PAR_BACKEND_OPENMP 1
+#    elif !defined(_ONEDPL_PAR_BACKEND_TBB)
 #        undef _ONEDPL_PAR_BACKEND_SERIAL
 #        define _ONEDPL_PAR_BACKEND_TBB 1
 #    endif
 #else
 #    undef _ONEDPL_PAR_BACKEND_TBB
+#    undef _ONEDPL_PAR_BACKEND_OPENMP
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
 

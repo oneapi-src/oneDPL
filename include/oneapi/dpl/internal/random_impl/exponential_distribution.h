@@ -31,18 +31,36 @@ class exponential_distribution
     // Distribution types
     using result_type = _RealType;
     using scalar_type = internal::element_type_t<_RealType>;
-
-    struct param_type
+    class param_type
     {
-        param_type() : param_type(1.0) {}
-        param_type(scalar_type __lambda) : lambda(__lambda) {}
-        scalar_type lambda;
+      public:
+        using distribution_type = exponential_distribution<result_type>;
+        param_type() : param_type(scalar_type{1.0}) {}
+        explicit param_type(scalar_type lambda) : lambda_(lambda) {}
+        scalar_type
+        lambda() const
+        {
+            return lambda_;
+        }
+        friend bool
+        operator==(const param_type& p1, const param_type& p2)
+        {
+            return p1.lambda_ == p2.lambda_;
+        }
+        friend bool
+        operator!=(const param_type& p1, const param_type& p2)
+        {
+            return !(p1 == p2);
+        }
+
+      private:
+        scalar_type lambda_;
     };
 
     // Constructors
     exponential_distribution() : exponential_distribution(scalar_type{1.0}) {}
     explicit exponential_distribution(scalar_type __lambda) : lambda_(__lambda) {}
-    explicit exponential_distribution(const param_type& __params) : lambda_(__params.lambda) {}
+    explicit exponential_distribution(const param_type& __params) : lambda_(__params.lambda()) {}
 
     // Reset function
     void
@@ -64,9 +82,9 @@ class exponential_distribution
     }
 
     void
-    param(const param_type& __param)
+    param(const param_type& __params)
     {
-        lambda_ = __param.lambda;
+        lambda_ = __params.lambda();
     }
 
     scalar_type
@@ -136,7 +154,7 @@ class exponential_distribution
     {
         result_type __res;
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
-        __res = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
+        __res = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda();
         return __res;
     }
 
@@ -156,7 +174,7 @@ class exponential_distribution
         oneapi::dpl::uniform_real_distribution<result_type> __u;
         result_type __res;
         __res = __u(__engine);
-        __res = -sycl::log(scalar_type{1.0} - __res) / __params.lambda;
+        __res = -sycl::log(scalar_type{1.0} - __res) / __params.lambda();
         return __res;
     }
 
@@ -169,7 +187,7 @@ class exponential_distribution
         oneapi::dpl::uniform_real_distribution<scalar_type> __u;
         for (int i = 0; i < __N; i++)
         {
-            __res[i] = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda;
+            __res[i] = -sycl::log(scalar_type{1.0} - __u(__engine)) / __params.lambda();
         }
         return __res;
     }

@@ -85,28 +85,17 @@ find_package(oneDPL REQUIRED)
 target_link_libraries(foo oneDPL)
 ```
 
-Availability of DPC++ and oneTBB backends is automatically checked during the invocation of `find_package(oneDPL <options>)`:
+Use `ONEDPL_PAR_BACKEND` variable before the invocation of `find_package(oneDPL <options>)` to control standard host (par) backend:
 
-- macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if oneTBB is not available;
-- macro `ONEDPL_USE_DPCPP_BACKEND` is set to `0` if DPC++ is not available.
-
-Detailed description of these and other macros is available in the [documentation](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top/parallel-stl-overview/macros.html). The macros can be explicitly set from user project.
-
-For example:
-
-```cmake
-project(Foo)
-add_executable(foo foo.cpp)
-
-# Search for oneDPL
-find_package(oneDPL REQUIRED)
-
-# Connect oneDPL to foo
-target_link_libraries(foo oneDPL)
-
-# Disable TBB backend in oneDPL
-target_compile_definitions(foo PRIVATE ONEDPL_USE_TBB_BACKEND=0)
-```
+- Supported values:
+  - `tbb` for oneTBB backend;
+  - `openmp` for OpenMP backend;
+  - `serial` for serial backend.
+- If this variable is not set then the first suitable backend is chosen among oneTBB, OpenMP and serial, they are considered in the order as specified.
+- oneDPL is considered as not found (`oneDPL_FOUND=FALSE`) if `ONEDPL_PAR_BACKEND` is specified, but not found or not supported.
+- Macro `ONEDPL_USE_OPENMP_BACKEND` is set to `0` if oneTBB backend is chosen.
+- Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if OpenMP backend is chosen.
+- Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` and `ONEDPL_USE_OPENMP_BACKEND` is set to `0` if serial backend is chosen.
 
 ### oneDPLConfig files generation
 

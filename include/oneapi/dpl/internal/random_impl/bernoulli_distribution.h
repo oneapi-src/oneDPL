@@ -31,18 +31,36 @@ class bernoulli_distribution
     // Distribution types
     using result_type = _BoolType;
     using scalar_type = internal::element_type_t<_BoolType>;
-
-    struct param_type
+    class param_type
     {
+      public:
+        using distribution_type = bernoulli_distribution<result_type>;
         param_type() : param_type(0.5) {}
-        param_type(double __p) : p(__p) {}
-        double p;
+        explicit param_type(double p) : p_(p) {}
+        double
+        p() const
+        {
+            return p_;
+        }
+        friend bool
+        operator==(const param_type& p1, const param_type& p2)
+        {
+            return p1.p_ == p2.p_;
+        }
+        friend bool
+        operator!=(const param_type& p1, const param_type& p2)
+        {
+            return !(p1 == p2);
+        }
+
+      private:
+        double p_;
     };
 
     // Constructors
     bernoulli_distribution() : bernoulli_distribution(0.5) {}
     explicit bernoulli_distribution(double __p) : p_(__p) {}
-    explicit bernoulli_distribution(const param_type& __params) : p_(__params.p) {}
+    explicit bernoulli_distribution(const param_type& __params) : p_(__params.p()) {}
 
     // Reset function
     void
@@ -64,9 +82,9 @@ class bernoulli_distribution
     }
 
     void
-    param(const param_type& __param)
+    param(const param_type& __params)
     {
-        p_ = __param.p;
+        p_ = __params.p();
     }
 
     scalar_type
@@ -135,7 +153,7 @@ class bernoulli_distribution
     generate(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<double> __distr;
-        return __distr(__engine) < __params.p;
+        return __distr(__engine) < __params.p();
     }
 
     // Specialization of the vector generation with size = [1; 2; 3]
@@ -153,7 +171,7 @@ class bernoulli_distribution
     {
         oneapi::dpl::uniform_real_distribution<sycl::vec<double, __N>> __distr;
         sycl::vec<double, __N> __u = __distr(__engine);
-        sycl::vec<int64_t, __N> __res_int64 = __u < sycl::vec<double, __N>{__params.p};
+        sycl::vec<int64_t, __N> __res_int64 = __u < sycl::vec<double, __N>{__params.p()};
         result_type __res;
         for (int i = 0; i < __N; i++)
             __res[i] = static_cast<bool>(__res_int64[i]);
@@ -168,7 +186,7 @@ class bernoulli_distribution
         result_type __res;
         oneapi::dpl::uniform_real_distribution<double> __distr;
         for (int i = 0; i < __N; i++)
-            __res[i] = __distr(__engine) < __params.p;
+            __res[i] = __distr(__engine) < __params.p();
         return __res;
     }
 

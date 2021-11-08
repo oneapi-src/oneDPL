@@ -875,7 +875,8 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __la
     using _ReduceOp = ::std::plus<_It1DifferenceType>;
 
     unseq_backend::__create_mask<_Predicate, _It1DifferenceType> __create_mask_op{__pred};
-    unseq_backend::__copy_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+    unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type, 1>
+        __copy_by_mask_op;
 
     auto __result = __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
                                         __create_mask_op, __copy_by_mask_op);
@@ -922,7 +923,9 @@ __pattern_unique_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 
                       _BinaryPredicate __pred, /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
-    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, oneapi::dpl::__internal::__pstl_assign,
+                                  /*inclusive*/ ::std::true_type, 1>
+        __copy_by_mask_op;
     __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
         __not_pred<_BinaryPredicate>{__pred}};
 
@@ -1645,7 +1648,8 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     _ReduceOp __reduce_op;
     _Assigner __assign_op;
     _DataAcc __get_data_op;
-    unseq_backend::__copy_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type, 2> __copy_by_mask_op;
+    unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type, 2>
+        __copy_by_mask_op;
     unseq_backend::__brick_set_op<_ExecutionPolicy, _Compare, _Size1, _Size2, _IsOpDifference> __create_mask_op{
         __comp, __n1, __n2};
 

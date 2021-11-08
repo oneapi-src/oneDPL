@@ -44,6 +44,9 @@ ifeq ($(backend), tbb)
     DYN_LDFLAGS += $(LINK_KEY)$(TBB_LIB_NAME)
 endif
 
+ifeq ($(backend), omp)
+    DYN_LDFLAGS += $(KEY)fopenmp
+endif
 
 ifeq ($(arch),intel64)
     PSTL_ARCH = $(MACHINE_KEY)64

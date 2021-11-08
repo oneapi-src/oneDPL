@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_COMMON_CONFIG
-#define _ONEDPL_COMMON_CONFIG
+#ifndef _ONEDPL_COMMON_CONFIG_H
+#define _ONEDPL_COMMON_CONFIG_H
 // Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
 #if __cplusplus >= 201703L
 #    if __has_include(<tbb/version.h>)

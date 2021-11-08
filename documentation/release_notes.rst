@@ -61,6 +61,7 @@ Existing Issues
 - Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
   (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 
 New in 2021.4
 =============

@@ -16,8 +16,8 @@
  *  limitations under the License.
  */
 
-#ifndef DPCPP_BINARY_SEARCH_EXTENSION_DEFS_H_
-#define DPCPP_BINARY_SEARCH_EXTENSION_DEFS_H_
+#ifndef _ONEDPL_BINARY_SEARCH_EXTENSION_DEFS_H
+#define _ONEDPL_BINARY_SEARCH_EXTENSION_DEFS_H
 
 #include "../pstl/onedpl_config.h"
 

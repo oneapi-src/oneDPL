@@ -28,7 +28,11 @@ You can also view the [Security Policy](SECURITY.md).
 See [CONTRIBUTING.md](https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/CONTRIBUTING.md) for details.
 
 ## Documentation
+<<<<<<< HEAD
 See the full documentation set for [oneDPL](https://docs.oneapi.io/versions/latest/onedpl/index.html).
+=======
+See the full documentation set for [oneDPL](https://oneapi-src.github.io/oneDPL).
+>>>>>>> 0c7b89af81b0b92884f92852493f23591404dbb7
 
 ## Samples
 You can find oneDPL samples at the [oneDPL Samples](https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL) page.
