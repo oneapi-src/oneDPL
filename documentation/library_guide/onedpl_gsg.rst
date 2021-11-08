@@ -145,3 +145,5 @@ Find More
      - Refer to release notes to learn about new updates in the latest release.
    * - `oneDPL Samples <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_
      - Learn how to use |onedpl_short| with samples.
+   * - `Layers for Yocto* Project <https://www.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-iot-linux/top/adding-oneapi-components-to-yocto-project-builds.html>`_
+     - Add oneAPI components to a Yocto project build using the meta-intel layers.
