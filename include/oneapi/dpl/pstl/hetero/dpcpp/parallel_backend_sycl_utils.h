@@ -216,6 +216,7 @@ template <typename _ExecutionPolicy, ::std::size_t _size_type = 0, typename... _
 class __work_group_size_producer
 {
   private:
+
     using _KernelTypeTuple = ::std::tuple<_KernelType...>;
     ::std::map<int, ::std::shared_ptr<sycl::kernel>> __kernels_vector;
 
