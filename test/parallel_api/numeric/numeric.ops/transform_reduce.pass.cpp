@@ -163,9 +163,11 @@ main()
                             [](const float32_t& a, const float32_t& b) -> float32_t { return a + b; },
                             [](const float32_t& x) -> float32_t { return x + 2; },
                             [](::std::size_t) -> float32_t { return rand() % 1000; });
+// MyClass must not be used with DPC++ policies since it is not device copyable
+#if !TEST_DPCPP_BACKEND_PRESENT
     test_by_type<MyClass>(MyClass(), ::std::plus<MyClass>(), ::std::multiplies<MyClass>(),
         [](const MyClass& x) { return MyClass(-x.my_field); },
         [](::std::size_t) -> MyClass { return MyClass(rand() % 1000); });
-
+#endif
     return done();
 }
