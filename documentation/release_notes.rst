@@ -22,10 +22,10 @@ New Features
 
 Fixed Issues
 ------------
--	Fixed ``param_type`` API of random number distributions to satisfy C++ ``RandomNumberDistribution`` named requirement.
-  Please note that the changes may cause API/ABI backward compatibility issues in cases when ``param_type`` is explicitly used.
 - Fixed hangs and errors when oneDPL is used together with oneMKL in DPC++ programs.
 - Fixed possible data races in the following algorithms used with DPC++ execution policies: ``sort``, ``stable_sort``, ``partial_sort``,``nth_element``.
+- Fixed ``param_type`` API of random number distributions to satisfy C++ ``RandomNumberDistribution`` named requirement.
+  Please note that the changes may cause API/ABI backward compatibility issues in cases when ``param_type`` is explicitly used.
 
 Known Issues and Limitations
 ----------------------------
