@@ -179,7 +179,7 @@ struct test_sort_with_compare
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Compare>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value,
                             void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator /* last */, Size n, Compare compare)
@@ -207,7 +207,7 @@ struct test_sort_with_compare
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename Compare>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value,
                             void>::type
     operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */, OutputIterator2 /* expected_first */,
                OutputIterator2 /* expected_last */, InputIterator /* first */, InputIterator /* last */, Size /* n */, Compare /* compare */)
@@ -219,7 +219,7 @@ template<typename T>
 struct test_sort_without_compare
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value &&
                             can_use_default_less_operator<T>::value, void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator /* last */, Size n)
@@ -246,7 +246,7 @@ struct test_sort_without_compare
         EXPECT_EQ(count0, count1, "key cleanup error");
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value ||
                             !can_use_default_less_operator<T>::value, void>::type
     operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */, OutputIterator2 /* expected_first */,
                OutputIterator2 /* expected_last */, InputIterator /* first */, InputIterator /* last */, Size /* n */)
