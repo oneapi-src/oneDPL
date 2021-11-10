@@ -8,6 +8,59 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2021.6
+=============
+
+New Features
+------------
+- Added one more thread parallel backend. It is based on OpenMP 5.0. To enable the OpenMP backend, please define macro ``ONEDPL_USE_OPENMP_BACKEND`` into 1.
+- Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of the iterator-based ``reduce_by_segment`` APIs.
+  Please note that the use of the ``reduce_by_segment`` algorithms requires C++17.
+- Added the serial-based versions of the following algorithms: ``all_of``, ``any_of``, 
+  ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
+  For the detailed list, please refer to `Tested Standard C++ API Reference`_. 
+
+Fixed Issues
+------------
+-	Fixed ``param_type`` API of random number distributions to satisfy C++ ``RandomNumberDistribution`` named requirement.
+  Please note that the changes may cause API/ABI backward compatibility issues in cases when ``param_type`` is explicitly used.
+- Fixed hangs and errors when oneDPL is used together with oneMKL in DPC++ programs.
+- Fixed possible data races in the following algorithms used with DPC++ execution policies: ``sort``, ``stable_sort``, ``partial_sort``,``nth_element``.
+
+Known Issues and Limitations
+----------------------------
+- No new issues in this release. 
+
+Existing Issues
+^^^^^^^^^^^^^^^
+- The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
+  that makes it different for the host and the device. Otherwise, the behavior is undefined.
+- ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with vector execution policies
+  when building a program with GCC 10 and using -O0 option.
+- Some algorithms may hang when a program is built with -O0 option, executed on GPU devices and large number of elements is to be processed.
+- The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
+  compilation errors (caused by oneTBB API changes).
+  To overcome these issues, include oneDPL header files before the standard C++ header files,
+  or disable parallel algorithms support in the standard library.
+  For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+- The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
+  with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
+  ``oneapi::dpl`` namespace, or create a namespace alias.
+- The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
+- The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
+  or Clang 7 (or higher).
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects
+  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
+- ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
+  use ``std::array::operator[]`` instead.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
+  (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
+  for double precision.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+
 New in 2021.5
 =============
 
@@ -274,4 +327,5 @@ Known Issues and Limitations
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`the oneDPL User Guide`: https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
-.. _`Tested Standard C++ API Reference`: https://github.com/oneapi-src/oneDPL/blob/release/2021.5/documentation/library_guide/tested_standard_cpp_api.rst#tested-standard-c-api-reference
+.. _`Tested Standard C++ API Reference`: https://github.com/oneapi-src/oneDPL/blob/release/2021.6/documentation/library_guide/api_for_dpcpp_kernels/tested_standard_cpp_api.rst#tested-standard-c-api-reference
+
