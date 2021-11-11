@@ -14,7 +14,7 @@ New in 2021.6
 New Features
 ------------
 - Added one more thread parallel backend. It is based on OpenMP 5.0. To enable the OpenMP backend, please define macro ``ONEDPL_USE_OPENMP_BACKEND`` into 1.
-- Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of the iterator-based ``reduce_by_segment`` APIs.
+- Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of the iterator-based ``reduce_by_segment`` APIs. 
   Please note that the use of the ``reduce_by_segment`` algorithms requires C++17.
 - Added the serial-based versions of the following algorithms: ``all_of``, ``any_of``, 
   ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
@@ -22,10 +22,10 @@ New Features
 
 Fixed Issues
 ------------
--	Fixed ``param_type`` API of random number distributions to satisfy C++ ``RandomNumberDistribution`` named requirement.
-  Please note that the changes may cause API/ABI backward compatibility issues in cases when ``param_type`` is explicitly used.
 - Fixed hangs and errors when oneDPL is used together with oneMKL in DPC++ programs.
 - Fixed possible data races in the following algorithms used with DPC++ execution policies: ``sort``, ``stable_sort``, ``partial_sort``,``nth_element``.
+- Fixed ``param_type`` API of random number distributions to satisfy C++ ``RandomNumberDistribution`` named requirement.
+  Please note that the changes may cause API/ABI backward compatibility issues in cases when ``param_type`` is explicitly used.
 
 Known Issues and Limitations
 ----------------------------
@@ -34,6 +34,7 @@ Known Issues and Limitations
 Existing Issues
 ^^^^^^^^^^^^^^^
 Description of several issues was moved to :ref:`Known Issues and Limitations` section of oneDPL Library Guide. 
+
 - Some algorithms may hang when a program is built with -O0 option, executed on GPU devices and large number of elements is to be processed.
 - The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
