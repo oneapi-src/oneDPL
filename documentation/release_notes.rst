@@ -35,7 +35,6 @@ Existing Issues
 ^^^^^^^^^^^^^^^
 Description of several issues was moved to :ref:`Known Issues and Limitations` section of oneDPL Library Guide. 
 
-- Some algorithms may hang when a program is built with -O0 option, executed on GPU devices and large number of elements is to be processed.
 - The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
 - When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects
