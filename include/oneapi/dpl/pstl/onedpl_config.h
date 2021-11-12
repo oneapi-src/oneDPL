@@ -64,16 +64,16 @@
 #    define _DPSTD_DEPRECATED_MSG(msg)
 #endif
 
-#define _ONEDPL_PAR_BACKEND_SERIAL 1
-
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND)
-#    undef _ONEDPL_PAR_BACKEND_SERIAL
 #    define _ONEDPL_PAR_BACKEND_TBB 1
 #endif
 
 #if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && defined(_OPENMP))
-#    undef _ONEDPL_PAR_BACKEND_SERIAL
 #    define _ONEDPL_PAR_BACKEND_OPENMP 1
+#endif
+
+#if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
+#    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
 
 // TODO: This is the define to support use-cases in tests. It is not really required
