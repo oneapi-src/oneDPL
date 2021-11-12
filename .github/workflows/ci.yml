@@ -234,6 +234,7 @@ jobs:
     name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
