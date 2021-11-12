@@ -11,7 +11,9 @@ on:
 
 env:
   BUILD_CONCURRENCY: 2
+  MACOS_BUILD_CONCURRENCY: 3
   TEST_TIMEOUT: 360
+  MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18212/m_cpp-compiler-classic_p_2021.4.0.248_offline.dmg
 
 jobs:
   clang-format:
@@ -227,3 +229,38 @@ jobs:
           cmake -G "Ninja" %toolchain_option% -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           ninja -j 2 -v %ninja_targets%
           ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags%
+
+  macos-testing:
+    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-11
+            cxx_compiler: icpc
+            std: 17
+            build_type: release
+            backend: omp
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Intel® oneAPI C++ Compiler Classic and Intel® oneAPI Threading Building Blocks
+        run: |
+          wget ${MACOS_ONEAPI_DOWNLOAD_LINK}
+          mkdir installer
+          hdiutil attach -mountpoint ./installer/ m_cpp-compiler*.dmg
+          sudo ./installer/bootstrapper.app/Contents/MacOS/install.sh -c --action install --eula accept
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          source /opt/intel/oneapi/setvars.sh
+          if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
+            echo "::warning::Compiler: $(icpc --version)"
+          fi
+          mkdir build && cd build
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
+          make VERBOSE=1 -j${MACOS_BUILD_CONCURRENCY}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure
