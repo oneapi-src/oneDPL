@@ -22,16 +22,7 @@
 #    endif
 #endif
 
-#if defined(_ONEDPL_PAR_BACKEND_SERIAL)
-#    include "parallel_backend_serial.h"
-namespace oneapi
-{
-namespace dpl
-{
-namespace __par_backend = __serial_backend;
-}
-} // namespace oneapi
-#elif defined(_ONEDPL_PAR_BACKEND_TBB)
+#if _ONEDPL_PAR_BACKEND_TBB
 #    include "parallel_backend_tbb.h"
 namespace oneapi
 {
@@ -40,13 +31,22 @@ namespace dpl
 namespace __par_backend = __tbb_backend;
 }
 } // namespace oneapi
-#elif defined(_ONEDPL_PAR_BACKEND_OPENMP)
+#elif _ONEDPL_PAR_BACKEND_OPENMP
 #    include "parallel_backend_omp.h"
 namespace oneapi
 {
 namespace dpl
 {
 namespace __par_backend = __omp_backend;
+}
+} // namespace oneapi
+#elif _ONEDPL_PAR_BACKEND_SERIAL
+#    include "parallel_backend_serial.h"
+namespace oneapi
+{
+namespace dpl
+{
+namespace __par_backend = __serial_backend;
 }
 } // namespace oneapi
 #else

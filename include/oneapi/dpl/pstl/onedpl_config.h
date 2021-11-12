@@ -64,36 +64,22 @@
 #    define _DPSTD_DEPRECATED_MSG(msg)
 #endif
 
-// Check the user-defined macro for parallel policies
-#if defined(ONEDPL_USE_TBB_BACKEND)
-#    undef _ONEDPL_USE_PAR_POLICIES
-#    define _ONEDPL_USE_PAR_POLICIES ONEDPL_USE_TBB_BACKEND
-// Check the internal macro for parallel policies
-#elif !defined(_ONEDPL_USE_PAR_POLICIES)
-#    define _ONEDPL_USE_PAR_POLICIES 1
+#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND)
+#    define _ONEDPL_PAR_BACKEND_TBB 1
 #endif
 
-#if defined(ONEDPL_USE_OPENMP_BACKEND)
-#    undef _ONEDPL_USE_PAR_POLICIES
-#    define _ONEDPL_USE_PAR_POLICIES ONEDPL_USE_OPENMP_BACKEND
-// Check the internal macro for parallel policies
-#elif !defined(_ONEDPL_USE_PAR_POLICIES)
-#    define _ONEDPL_USE_PAR_POLICIES 1
+#if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && defined(_OPENMP))
+#    define _ONEDPL_PAR_BACKEND_OPENMP 1
 #endif
 
-#if _ONEDPL_USE_PAR_POLICIES
-#    if defined(ONEDPL_USE_OPENMP_BACKEND)
-#        undef _ONEDPL_PAR_BACKEND_SERIAL
-#        define _ONEDPL_PAR_BACKEND_OPENMP 1
-#    elif !defined(_ONEDPL_PAR_BACKEND_TBB)
-#        undef _ONEDPL_PAR_BACKEND_SERIAL
-#        define _ONEDPL_PAR_BACKEND_TBB 1
-#    endif
-#else
-#    undef _ONEDPL_PAR_BACKEND_TBB
-#    undef _ONEDPL_PAR_BACKEND_OPENMP
+#if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
+
+// TODO: This is the define to support use-cases in tests. It is not really required
+// to be defined with new approach. However keep if for now until we figure out
+// what is the right behavior of tests.
+#define _ONEDPL_USE_PAR_POLICIES (_ONEDPL_PAR_BACKEND_TBB || _ONEDPL_PAR_BACKEND_OPENMP)
 
 #if (__cplusplus >= 201703L)
 #    define _ONEDPL_CONSTEXPR_FUN constexpr
