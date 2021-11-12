@@ -33,7 +33,7 @@ Known Issues and Limitations
 
 Existing Issues
 ^^^^^^^^^^^^^^^
-Description of several issues was moved to :ref:`Known-Issues-and-Limitations` section of oneDPL Library Guide. 
+Description of several issues was moved to :ref:`known_issues` section of oneDPL Library Guide. 
 
 - The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
