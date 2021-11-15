@@ -162,17 +162,16 @@ template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test1buffer()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
-
-    TestUtils::sycl_operations_helper<alloc_type, T> sycl_helper(queue);
+    sycl::queue& queue = my_queue; // usm and allocator requires queue
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto inout1_first = sycl_helper.alloc_ptr(max_n + inout1_offset);
+        TestUtils::sycl_usm_alloc<alloc_type, T> alloc(queue, max_n + inout1_offset);
+        auto inout1_first = alloc.get_data();
 
         // 2. create a pointer at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -206,19 +205,19 @@ template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test2buffers()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
-
-    TestUtils::sycl_operations_helper<alloc_type, T> sycl_helper(queue);
+    sycl::queue& queue = my_queue; // usm and allocator requires queue
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto inout1_first = sycl_helper.alloc_ptr(max_n + inout1_offset);
-        auto inout2_first = sycl_helper.alloc_ptr(max_n + inout2_offset);
+        TestUtils::sycl_usm_alloc<alloc_type, T> alloc1(queue, max_n + inout1_offset);
+        TestUtils::sycl_usm_alloc<alloc_type, T> alloc2(queue, max_n + inout2_offset);
+        auto inout1_first = alloc1.get_data();
+        auto inout2_first = alloc2.get_data();
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
+        T* inout2_offset_first = inout2_first + inout2_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -256,21 +255,22 @@ template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test3buffers(int mult = 1)
 {
-    const sycl::queue& queue = my_queue; // usm requires queue
-
-    TestUtils::sycl_operations_helper<alloc_type, T> sycl_helper(queue);
+    sycl::queue& queue = my_queue; // usm requires queue
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto inout1_first = sycl_helper.alloc_ptr(max_n + inout1_offset);
-        auto inout2_first = sycl_helper.alloc_ptr(max_n + inout2_offset);
-        auto inout3_first = sycl_helper.alloc_ptr(max_n + inout3_offset);
+        TestUtils::sycl_usm_alloc<alloc_type, T> alloc1(queue, max_n + inout1_offset);
+        TestUtils::sycl_usm_alloc<alloc_type, T> alloc2(queue, max_n + inout2_offset);
+        TestUtils::sycl_usm_alloc<alloc_type, T> alloc3(queue, max_n + inout3_offset);
+        auto inout1_first = alloc1.get_data();
+        auto inout2_first = alloc2.get_data();
+        auto inout3_first = alloc3.get_data();
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
-        T* inout3_offset_first = inout3_first.get() + inout3_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
+        T* inout2_offset_first = inout2_first + inout2_offset;
+        T* inout3_offset_first = inout3_first + inout3_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
