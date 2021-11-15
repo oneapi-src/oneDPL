@@ -103,8 +103,8 @@ class  sycl_usm_alloc
     }
 
 private:
-    _DifferenceType __count;
-    _ValueType* __ptr;
+    _DifferenceType __count = 0;
+    _ValueType* __ptr = nullptr;
     sycl::queue& __queue;
 };
 
