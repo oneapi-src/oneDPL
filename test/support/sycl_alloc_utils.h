@@ -73,12 +73,6 @@ class  sycl_usm_alloc
         auto __src = std::addressof(*__it);
         assert(std::addressof(*(__it + __count)) - __src == __count);
 
-        // https://intel.github.io/llvm-docs/doxygen/classcl_1_1sycl_1_1queue.html#aa9e7a90764212f61d5eb70b545f15855
-        // https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#_queue_interface
-        // event cl::sycl::queue::copy(const T* Src, T* Dest, size_t Count)
-        //    Src is a USM pointer to the source memory.
-        //    Dest is a USM pointer to the destination memory.
-        //    Count is a number of elements of type T to copy.
         __queue.copy(__src, __ptr, __count);
         __queue.wait();
     }
