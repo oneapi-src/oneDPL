@@ -121,81 +121,62 @@ test_with_usm()
 {
     cl::sycl::queue q;
 
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, uint64_t>;
-    SyclHelper sycl_helper(q);
-
     constexpr int n = 1024;
     constexpr int n_small = 13;
 
-    // ASYNC TEST USING USM //
-    // TODO: Extend tests by checking true async behavior in more detail
-    {
-        // Allocate space for data using USM
-        auto data1 = sycl_helper.alloc_ptr(n);
-        auto data2 = sycl_helper.alloc_ptr(n);
-
-        auto prepare_data = [](int n, uint64_t* data1, uint64_t* data2)
+    // Initialize data
+    auto prepare_data = [](int n, uint64_t* data1, uint64_t* data2)
+        {
+            for (int i = 0; i != n - 1; ++i)
             {
-                for (int i = 0; i != n - 1; ++i)
+                data1[i] = i % 4 + 1;
+                data2[i] = data1[i] + 1;
+                if (i > 3 && i != n - 2)
                 {
-                    data1[i] = i % 4 + 1;
-                    data2[i] = data1[i] + 1;
-                    if (i > 3 && i != n - 2)
-                    {
-                        ++i;
-                        data1[i] = data1[i - 1];
-                        data2[i] = data2[i - 1];
-                    }
+                    ++i;
+                    data1[i] = data1[i - 1];
+                    data2[i] = data2[i - 1];
                 }
-                data1[n - 1] = 0;
-                data2[n - 1] = 0;
-            };
+            }
+            data1[n - 1] = 0;
+            data2[n - 1] = 0;
+        };
 
-        // Initialize data
-        if constexpr (alloc_type == sycl::usm::alloc::shared)
-        {
-            prepare_data(n, data1.get(), data2.get());
-        }
-        else
-        {
-            assert(alloc_type == sycl::usm::alloc::device);
+    uint64_t data1_on_host[n] = {};
+    uint64_t data2_on_host[n] = {};
+    prepare_data(n, data1_on_host, data2_on_host);
 
-            uint64_t data1_on_host[n] = {};
-            uint64_t data2_on_host[n] = {};
+    // allocate USM memory and copying data to USM shared/device memory
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc1(q, data1_on_host, n);
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc2(q, data2_on_host, n);
+    auto data1 = alloc1.get_data();
+    auto data2 = alloc2.get_data();
 
-            // Initialize data
-            prepare_data(n, data1_on_host, data2_on_host);
+    // compute reference values
+    const uint64_t ref1 = std::inner_product(data2.get(), data2.get() + n, data1.get(), 0);
+    const uint64_t ref2 = std::accumulate(data1.get(), data1.get() + n_small, 0);
 
-            sycl_helper.copy_from_host(data1_on_host, data1.get(), n);
-            sycl_helper.copy_from_host(data2_on_host, data2.get(), n);
-        }
+    // call first algorithm
+    auto new_policy1 =
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, alloc_type>>(q);
+    auto fut1 =
+        oneapi::dpl::experimental::transform_reduce_async(new_policy1, data2.get(), data2.get() + n, data1.get(), 0,
+                                                          std::plus<uint64_t>(), std::multiplies<uint64_t>());
 
-        // compute reference values
-        const uint64_t ref1 = std::inner_product(data2.get(), data2.get() + n, data1.get(), 0);
-        const uint64_t ref2 = std::accumulate(data1.get(), data1.get() + n_small, 0);
+    // call second algorithm and wait for result
+    auto new_policy2 =
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async2, alloc_type>>(q);
+    auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1.get(), data1.get() + n_small).get();
 
-        // call first algorithm
-        auto new_policy1 =
-            oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, alloc_type>>(q);
-        auto fut1 =
-            oneapi::dpl::experimental::transform_reduce_async(new_policy1, data2.get(), data2.get() + n, data1.get(), 0,
-                                                              std::plus<uint64_t>(), std::multiplies<uint64_t>());
+    // call third algorithm that has to wait for first to complete
+    auto new_policy3 =
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async3, alloc_type>>(q);
+    oneapi::dpl::experimental::sort_async(new_policy3, data2.get(), data2.get() + n, fut1);
 
-        // call second algorithm and wait for result
-        auto new_policy2 =
-            oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async2, alloc_type>>(q);
-        auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1.get(), data1.get() + n_small).get();
-
-        // call third algorithm that has to wait for first to complete
-        auto new_policy3 =
-            oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async3, alloc_type>>(q);
-        oneapi::dpl::experimental::sort_async(new_policy3, data2.get(), data2.get() + n, fut1);
-
-        // check values
-        auto res1 = fut1.get();
-        EXPECT_TRUE(res1 == ref1, "wrong effect from async transform reduce with usm");
-        EXPECT_TRUE(res2 == ref2, "wrong effect from async reduce with usm");
-    }
+    // check values
+    auto res1 = fut1.get();
+    EXPECT_TRUE(res1 == ref1, "wrong effect from async transform reduce with usm");
+    EXPECT_TRUE(res2 == ref2, "wrong effect from async reduce with usm");
 };
 
 #endif

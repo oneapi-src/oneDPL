@@ -18,117 +18,95 @@
 
 #ifdef TEST_DPCPP_BACKEND_PRESENT
 
-#include <memory>
-#include <algorithm>
-
-#include <CL/sycl.hpp>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 
 namespace TestUtils
 {
-    namespace
+
+// RAII service class to allocate shared/device memory (USM)
+// Usage model"
+// 1. allocate USM memory and copying data to USM:
+//    sycl_usm_alloc<alloc_type, _ValueType> alloc(queue, first, count); 
+// or just allocate USM memory"
+//    sycl_usm_alloc<alloc_type, _ValueType> alloc(queue, count); 
+// 2. get a USM pointer by sycl_usm_alloc::get_data() and passed one into a parallel algorithm with dpc++ policy.
+// 3. Retrive data back (in case of device allocation type) to the host for further checking result.
+//    alloc.retrive_data(dest_host);
+template<sycl::usm::alloc _alloc_type, typename _ValueType>
+class  sycl_usm_alloc
+{
+    static_assert(_alloc_type == sycl::usm::alloc::shared || _alloc_type == sycl::usm::alloc::device,
+                      "Invalid allocation type for sycl_usm_alloc class");
+
+    using _DifferenceType = typename ::std::iterator_traits<_ValueType*>::difference_type;
+
+    template<sycl::usm::alloc __type>
+    using _AllocType = ::std::integral_constant<sycl::usm::alloc, __type>;
+    using _SharedType = _AllocType<sycl::usm::alloc::shared>;
+    using _DeviceType = _AllocType<sycl::usm::alloc::device>;
+
+    template<typename _Size>
+    _ValueType* allocate( _Size __sz, _SharedType)
     {
-        struct DeviceTag{ };
-        struct SharedTag{ };
-
-        template<typename T>
-        void
-        copy_from_host_impl(DeviceTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
-        {
-            q.copy(src_ptr, dest_ptr, count);
-            q.wait();
-        }
-
-        //template <typename T>
-        //void
-        //copy_from_host_impl(SharedTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
-        //{
-        //    static_assert(false, "!!!");
-        //}
-
-        template <typename T>
-        void
-        copy_to_host_impl(DeviceTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
-        {
-            q.copy(src_ptr, dest_ptr, count);
-            q.wait();
-        }
-
-        //template <typename T>
-        //void
-        //copy_to_host_impl(SharedTag, sycl::queue& q, const T* src_ptr, T* dest_ptr, size_t count)
-        //{
-        //    static_assert(false, "!!!");
-        //}
+        return sycl::malloc_shared<_ValueType>(__sz, __queue);
+    }
+    template<typename _Size>
+    _ValueType* allocate( _Size __sz, _DeviceType)
+    {
+        return sycl::malloc_device<_ValueType>(__sz, __queue);
     }
 
-    template <typename Op, sycl::usm::alloc alloc_type>
-    using unique_kernel_name = oneapi::dpl::__par_backend_hetero::__unique_kernel_name<Op, static_cast<::std::size_t>(alloc_type)>;
-
-    template <sycl::usm::alloc alloc_type, typename T>
-    class sycl_operations_helper
+  public:
+    template<typename _Size>
+    sycl_usm_alloc(sycl::queue& __q, _Size __sz): __queue(__q), __count(__sz)
     {
-    private:
+        __ptr = allocate(__count, _AllocType<_alloc_type>{});
+        assert(__ptr);
+    }
+    template<typename _Iterator, typename _Size>
+    sycl_usm_alloc(sycl::queue& __q, _Iterator __it, _Size __sz): __queue(__q), __count(__sz)
+    {
+        __ptr = allocate(__count, _AllocType<_alloc_type>{});
+        assert(__ptr);
 
-        sycl::queue my_queue;
+        //TODO: support copying data provided by non-contiguous iterator
+        auto __src = std::addressof(*__it);
+        assert(std::addressof(*(__it + __count)) - __src == __count);
 
-        template <typename _T>
-        struct __sycl_deleter
-        {
-            const sycl::queue q;
+        __queue.copy(__ptr, __src, __count);
+        __queue.wait();
+    }
+    ~sycl_usm_alloc()
+    {
+        assert(__ptr);
+        assert(__count > 0);
 
-            void
-            operator()(_T* __memory) const
-            {
-                sycl::free(__memory, q.get_context());
-            }
-        };
+        sycl::free(__ptr, __queue);
+    }
 
-    public:
+    _ValueType* get_data() const
+    {
+        return __ptr;
+    }
+    template<typename _Iterator>
+    void retrive_data(_Iterator __it)
+    {
+        assert(__ptr);
+        assert(__count > 0);
 
-        static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
-                      "Invalid state of alloc_type param in sycl_operations_helper class");
+        //TODO: support copying data provided by non-contiguous iterator
+        auto __dst = std::addressof(*__it);
+        assert(std::addressof(*(__it + __count)) - __dst == __count);
 
-        template <typename _T = T>
-        using unique_ptr = ::std::unique_ptr<_T, __sycl_deleter<_T>>;
+        __queue.copy(__dst, __ptr, __count);
+        __queue.wait();
+    }
 
-        sycl_operations_helper(sycl::queue q) : my_queue(std::move(q))
-        {
-        }
-
-        T*
-        alloc(size_t count)
-        {
-            if constexpr (alloc_type == sycl::usm::alloc::shared)
-                return sycl::malloc_shared<T>(count, my_queue.get_device(), my_queue.get_context());
-
-            assert(alloc_type == sycl::usm::alloc::device);
-            return sycl::malloc_device<T>(count, my_queue.get_device(), my_queue.get_context());
-        }
-
-        unique_ptr<T>
-        alloc_ptr(size_t count)
-        {
-            return unique_ptr<T>(alloc(count), __sycl_deleter<T>{my_queue});
-        }
-
-        void
-        copy_from_host(const T* src_ptr, T* dest_ptr, size_t count)
-        {
-            if constexpr (alloc_type == sycl::usm::alloc::shared)
-                copy_from_host_impl(SharedTag(), my_queue, src_ptr, dest_ptr, count);
-            else
-                copy_from_host_impl(DeviceTag(), my_queue, src_ptr, dest_ptr, count);
-        }
-
-        void
-        copy_to_host(const T* src_ptr, T* dest_ptr, size_t count)
-        {
-            if constexpr (alloc_type == sycl::usm::alloc::shared)
-                copy_to_host_impl(SharedTag(), my_queue, src_ptr, dest_ptr, count);
-            else
-                copy_to_host_impl(DeviceTag(), my_queue, src_ptr, dest_ptr, count);
-        }
-    };
+private:
+    _DifferenceType __count;
+    _ValueType* __ptr;
+    sycl::queue& __queue;
+};
 
 } // namespace TestUtils
 

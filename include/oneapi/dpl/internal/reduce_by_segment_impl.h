@@ -159,6 +159,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
+    typedef typename ::std::iterator_traits<InputIterator1>::value_type DerefValueType;
 
     namespace __bknd = __par_backend_hetero;
 
