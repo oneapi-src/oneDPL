@@ -87,7 +87,9 @@ test_with_usm()
     q.wait();
 
     //retrieve result on the host and check the result
-    alloc4.retrieve_data(output_keys1), alloc5.retrieve_data(output_keys2), alloc6.retrieve_data(output_values);
+    alloc4.retrieve_data(output_keys1);
+    alloc5.retrieve_data(output_keys2);
+    alloc6.retrieve_data(output_values);
 
 //Dump
 #if 0
