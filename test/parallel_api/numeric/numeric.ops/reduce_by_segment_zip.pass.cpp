@@ -62,7 +62,7 @@ test_with_usm()
 
     // allocate USM memory and copying data to USM shared/device memory
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc1(q, keys1, n);
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc2(q, keys2 n);
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc2(q, keys2, n);
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc3(q, values, n);
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc4(q, output_keys1, n);
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc5(q, output_keys2, n);
