@@ -35,20 +35,6 @@ test_with_usm()
 {
     sycl::queue q;
 
-    using SyclHelper = TestUtils::sycl_operations_helper<alloc_type, int>;
-    SyclHelper sycl_helper(q);
-
-    constexpr int n = 9;
-    constexpr int n_res = 6;
-
-    // USM memory allocation
-    auto d_keys1         = sycl_helper.alloc_ptr(n);
-    auto d_keys2         = sycl_helper.alloc_ptr(n);
-    auto d_values        = sycl_helper.alloc_ptr(n);
-    auto d_output_keys1  = sycl_helper.alloc_ptr(n);
-    auto d_output_keys2  = sycl_helper.alloc_ptr(n);
-    auto d_output_values = sycl_helper.alloc_ptr(n);
-
     //data initialization
     auto prepare_data = [](int n, int* keys1, int* keys2, int* values)
         {
@@ -63,25 +49,30 @@ test_with_usm()
             ::std::copy_n(src_values, items_count, values);
         };
 
-    // Initialize data
-    if constexpr (alloc_type == sycl::usm::alloc::shared)
-    {
-        prepare_data(n, d_keys1.get(), d_keys2.get(), d_values.get());
-    }
-    else
-    {
-        assert(alloc_type == sycl::usm::alloc::device);
+    constexpr int n = 9;
+    constexpr int n_res = 6;
+    int keys1[n] = {};
+    int keys2[n] = {};
+    int values[n] = {};
+    int output_keys1[n] = {};
+    int output_keys2[n] = {};
+    int output_values[n] = {};
 
-        int d_keys1_host [n] = {};
-        int d_keys2_host [n] = {};
-        int d_values_host[n] = {};
+    prepare_data(n, keys1, keys2, values);
 
-        prepare_data(n, d_keys1_host, d_keys2_host, d_values_host);
-
-        sycl_helper.copy_from_host(d_keys1_host, d_keys1.get(), n);
-        sycl_helper.copy_from_host(d_keys2_host, d_keys2.get(), n);
-        sycl_helper.copy_from_host(d_values_host, d_values.get(), n);
-    }
+    // allocate USM memory and copying data to USM shared/device memory
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc1(q, keys1, n);
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc2(q, keys2 n);
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc3(q, values, n);
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc4(q, output_keys1, n);
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc5(q, output_keys2, n);
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc6(q, output_values, n);
+    auto d_keys1         = alloc1.get_data();
+    auto d_keys2         = alloc2.get_data();
+    auto d_values        = alloc3.get_data();
+    auto d_output_keys1  = alloc4.get_data();
+    auto d_output_keys2  = alloc5.get_data();
+    auto d_output_values = alloc6.get_data();
 
     //make zip iterators
     auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1.get(), d_keys2.get());
@@ -91,44 +82,17 @@ test_with_usm()
     //run reduce_by_segment algorithm 
     auto new_last = oneapi::dpl::reduce_by_segment(
         oneapi::dpl::execution::make_device_policy(q), begin_keys_in,
-        end_keys_in, d_values.get(), begin_keys_out, d_output_values.get());
+        end_keys_in, d_values, begin_keys_out, d_output_values);
 
     q.wait();
 
-    // Copy results
-    int* d_output_keys1_on_host  = nullptr;
-    int* d_output_keys2_on_host  = nullptr;
-    int* d_output_values_on_host = nullptr;
-
-    using SyclHelperShared = TestUtils::sycl_operations_helper<sycl::usm::alloc::shared, int>;
-    SyclHelperShared sycl_helper_shared(q);
-    auto d_output_keys1_on_host_ptr  = sycl_helper_shared.alloc_ptr(n);
-    auto d_output_keys2_on_host_ptr  = sycl_helper_shared.alloc_ptr(n);
-    auto d_output_values_on_host_ptr = sycl_helper_shared.alloc_ptr(n);
-
-    if constexpr (alloc_type == sycl::usm::alloc::shared)
-    {
-        d_output_keys1_on_host  = d_output_keys1.get();
-        d_output_keys2_on_host  = d_output_keys2.get();
-        d_output_values_on_host = d_output_values.get();
-    }
-    else
-    {
-        assert(alloc_type == sycl::usm::alloc::device);
-
-        sycl_helper.copy_to_host(d_output_keys1.get(),  d_output_keys1_on_host_ptr.get(),  n);
-        sycl_helper.copy_to_host(d_output_keys2.get(),  d_output_keys2_on_host_ptr.get(),  n);
-        sycl_helper.copy_to_host(d_output_values.get(), d_output_values_on_host_ptr.get(), n);
-
-        d_output_keys1_on_host  = d_output_keys1_on_host_ptr.get();
-        d_output_keys2_on_host  = d_output_keys2_on_host_ptr.get(); 
-        d_output_values_on_host = d_output_values_on_host_ptr.get();
-    }
+    //retrive result on the host and check the result
+    alloc4.retrive_data(output_keys1), alloc5.retrive_data(output_keys2), alloc6.retrive_data(output_values);
 
 //Dump
 #if 0
     for(int i=0; i < n_res; i++) {
-      std::cout << "{" << d_output_keys1_on_host[i] << ", " << d_output_keys2_on_host[i] << "}: " << d_output_values_on_host[i] << std::endl;
+      std::cout << "{" << output_keys1[i] << ", " << output_keys2[i] << "}: " << output_values[i] << std::endl;
     }
 #endif
 
@@ -142,9 +106,9 @@ test_with_usm()
     const int exp_keys1[n_res] = {11, 21, 20, 21, 21,37};
     const int exp_keys2[n_res] = {11, 20, 20, 20, 21, 37};
     const int exp_values[n_res] = {1, 2, 3, 4, 11, 15};
-    EXPECT_EQ_N(exp_keys1, d_output_keys1_on_host, n_res, "wrong keys1 from reduce_by_segment");
-    EXPECT_EQ_N(exp_keys2, d_output_keys2_on_host, n_res, "wrong keys2 from reduce_by_segment");
-    EXPECT_EQ_N(exp_values, d_output_values_on_host, n_res, "wrong values from reduce_by_segment");
+    EXPECT_EQ_N(exp_keys1, output_keys1, n_res, "wrong keys1 from reduce_by_segment");
+    EXPECT_EQ_N(exp_keys2, output_keys2, n_res, "wrong keys2 from reduce_by_segment");
+    EXPECT_EQ_N(exp_values, output_values, n_res, "wrong values from reduce_by_segment");
 }
 #endif
 
