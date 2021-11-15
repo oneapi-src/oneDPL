@@ -177,8 +177,7 @@ test_with_usm()
     auto res1 = fut1.get();
     EXPECT_TRUE(res1 == ref1, "wrong effect from async transform reduce with usm");
     EXPECT_TRUE(res2 == ref2, "wrong effect from async reduce with usm");
-};
-
+}
 #endif
 
 int
