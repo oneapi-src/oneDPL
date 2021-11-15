@@ -73,6 +73,11 @@ class  sycl_usm_alloc
         auto __src = std::addressof(*__it);
         assert(std::addressof(*(__it + __count)) - __src == __count);
 
+        // https://intel.github.io/llvm-docs/doxygen/classcl_1_1sycl_1_1queue.html#aa9e7a90764212f61d5eb70b545f15855
+        // event cl::sycl::queue::copy(const T* Src, T* Dest, size_t Count)
+        //    Src is a USM pointer to the source memory.
+        //    Dest is a USM pointer to the destination memory.
+        //    Count is a number of elements of type T to copy.
         __queue.copy(__ptr, __src, __count);
         __queue.wait();
     }
@@ -98,6 +103,11 @@ class  sycl_usm_alloc
         auto __dst = std::addressof(*__it);
         assert(std::addressof(*(__it + __count)) - __dst == __count);
 
+        // https://intel.github.io/llvm-docs/doxygen/classcl_1_1sycl_1_1queue.html#aa9e7a90764212f61d5eb70b545f15855
+        // event cl::sycl::queue::copy(const T* Src, T* Dest, size_t Count)
+        //    Src is a USM pointer to the source memory.
+        //    Dest is a USM pointer to the destination memory.
+        //    Count is a number of elements of type T to copy.
         __queue.copy(__dst, __ptr, __count);
         __queue.wait();
     }
