@@ -30,8 +30,8 @@ namespace TestUtils
 // or just allocate USM memory"
 //    sycl_usm_alloc<alloc_type, _ValueType> alloc(queue, count); 
 // 2. get a USM pointer by sycl_usm_alloc::get_data() and passed one into a parallel algorithm with dpc++ policy.
-// 3. Retrive data back (in case of device allocation type) to the host for further checking result.
-//    alloc.retrive_data(dest_host);
+// 3. Retrieve data back (in case of device allocation type) to the host for further checking result.
+//    alloc.retrieve_data(dest_host);
 template<sycl::usm::alloc _alloc_type, typename _ValueType>
 class  sycl_usm_alloc
 {
@@ -89,7 +89,7 @@ class  sycl_usm_alloc
         return __ptr;
     }
     template<typename _Iterator>
-    void retrive_data(_Iterator __it)
+    void retrieve_data(_Iterator __it)
     {
         assert(__ptr);
         assert(__count > 0);

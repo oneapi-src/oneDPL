@@ -73,7 +73,7 @@ struct test_shift
         _DiffType res_idx = het_res - ptr;
 
         //3.2 check result
-        alloc.retrive_data(first);
+        alloc.retrieve_data(first);
         algo.check(first + res_idx, first, m, first_exp, n);
     };
 

@@ -174,8 +174,8 @@ test_with_usm()
     auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head,
                                                key_res_head, val_res_head);
 
-    //retrive result on the host and check the result
-    alloc3.retrive_data(key_res_head_on_host), alloc4.retrive_data(val_res_head_on_host);
+    //retrieve result on the host and check the result
+    alloc3.retrieve_data(key_res_head_on_host), alloc4.retrieve_data(val_res_head_on_host);
 
     // check values
     auto count = std::distance(key_res_head, res1.first);
@@ -206,8 +206,8 @@ test_with_usm()
     auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head,
                                                key_res_head, val_res_head);
 
-    //retrive result on the host and check the result
-    alloc3.retrive_data(key_res_head_on_host), alloc4.retrive_data(val_res_head_on_host);
+    //retrieve result on the host and check the result
+    alloc3.retrieve_data(key_res_head_on_host), alloc4.retrieve_data(val_res_head_on_host);
 
     // check values
     count = std::distance(key_res_head, res2.first);
