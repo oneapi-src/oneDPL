@@ -54,33 +54,6 @@ struct test_shift
 #if TEST_DPCPP_BACKEND_PRESENT
 
 #if _PSTL_SYCL_TEST_USM
-
-    template <sycl::usm::alloc alloc_type, typename _ValueType, typename It>
-    void
-    copy_from_host(TestUtils::sycl_operations_helper<alloc_type, _ValueType>& sycl_helper,
-                   It first, _ValueType* dest_ptr,
-                   typename ::std::iterator_traits<It>::difference_type m)
-    {
-        static_assert(alloc_type == sycl::usm::alloc::shared || alloc_type == sycl::usm::alloc::device,
-                      "Invalid alloc_type patam value");
-
-        if (m < 1)
-            return;
-
-        if constexpr (alloc_type == sycl::usm::alloc::shared)
-        {
-            // copying data to USM shared memory
-            ::std::copy_n(first, m, dest_ptr);
-        }
-        else
-        {
-            // copying data to USM device memory
-            const auto& val = *first;
-
-            sycl_helper.copy_from_host(&val, dest_ptr, m);
-        }
-    }
-
     template <sycl::usm::alloc alloc_type, typename Policy, typename It, typename Algo>
     void
     test_usm(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m, It first_exp,
@@ -91,20 +64,17 @@ struct test_shift
 
         auto queue = exec.queue();
 
-        TestUtils::sycl_operations_helper<alloc_type, _ValueType> sycl_helper(queue);
+        // allocate USM memory and copying data to USM shared/device memory
+        TestUtils::sycl_usm_alloc<alloc_type, _ValueType> alloc(queue, first, m);
 
-        // allocate USM memory
-        auto ptr = sycl_helper.alloc_ptr(m);
-
-        // copying data to USM shared/device memory
-        copy_from_host<alloc_type>(sycl_helper, first, ptr.get(), m);
-
+        auto ptr = alloc.get_data();
         auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
-                            ptr.get(), ptr.get() + m, n);
-        _DiffType res_idx = het_res - ptr.get();
+                            ptr, ptr + m, n);
+        _DiffType res_idx = het_res - ptr;
 
         //3.2 check result
-        algo.check(ptr.get() + res_idx, ptr.get(), m, first_exp, n);
+        alloc.retrieve_data(first);
+        algo.check(first + res_idx, first, m, first_exp, n);
     };
 
 #endif
