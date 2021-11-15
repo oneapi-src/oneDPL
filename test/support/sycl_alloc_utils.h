@@ -79,7 +79,7 @@ class  sycl_usm_alloc
         //    Src is a USM pointer to the source memory.
         //    Dest is a USM pointer to the destination memory.
         //    Count is a number of elements of type T to copy.
-        __queue.copy(__ptr, __src, __count);
+        __queue.copy(__src, __ptr, __count);
         __queue.wait();
     }
     ~sycl_usm_alloc()
