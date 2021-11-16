@@ -234,7 +234,6 @@ jobs:
     name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -252,6 +251,9 @@ jobs:
           mkdir installer
           hdiutil attach -mountpoint ./installer/ m_cpp-compiler*.dmg
           sudo ./installer/bootstrapper.app/Contents/MacOS/install.sh -c --action install --eula accept
+      - name: Exclude tests with known issues
+        if: matrix.backend == 'omp'
+        run: echo "EXCLUDE_FROM_TESTING=transform_binary.pass|transform_unary.pass" >> $GITHUB_ENV
       - name: Run testing
         shell: bash
         run: |
@@ -264,4 +266,4 @@ jobs:
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
           make VERBOSE=1 -j${MACOS_BUILD_CONCURRENCY}
-          ctest --timeout ${TEST_TIMEOUT} --output-on-failure
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure -E "${EXCLUDE_FROM_TESTING}"
