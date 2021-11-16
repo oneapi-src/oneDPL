@@ -119,6 +119,10 @@ void test_with_buffers()
 void test_with_usm()
 {
     sycl::queue q;
+
+    if (!q.get_device().has(sycl::aspect::usm_shared_allocations))
+        return;
+
     int n = 13;
 
     // Allocate space for data using USM.

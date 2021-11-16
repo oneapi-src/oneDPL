@@ -36,6 +36,9 @@ int main()
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue q;
 
+    if (!q.get_device().has(sycl::aspect::usm_shared_allocations))
+        return TestUtils::done(0);
+
     const int n = 9, n_res = 6;
 
     //shared memory allocation
@@ -59,7 +62,7 @@ int main()
     auto end_keys_in   = oneapi::dpl::make_zip_iterator(d_keys1 + n, d_keys2 + n);
     auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1, d_output_keys2);
 
-    //run reduce_by_segment algorithm 
+    //run reduce_by_segment algorithm
     auto new_last = oneapi::dpl::reduce_by_segment(oneapi::dpl::execution::make_device_policy(q),
         begin_keys_in, end_keys_in, d_values, begin_keys_out, d_output_values);
 

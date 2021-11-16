@@ -164,6 +164,7 @@ test1buffer()
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
 
 #if _PSTL_SYCL_TEST_USM
+    if (queue.get_device().has(sycl::aspect::usm_shared_allocations))
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
@@ -208,6 +209,7 @@ test2buffers()
 {
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
 #if _PSTL_SYCL_TEST_USM
+    if (queue.get_device().has(sycl::aspect::usm_shared_allocations))
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
@@ -260,6 +262,7 @@ test3buffers(int mult = 1)
 {
     const sycl::queue& queue = my_queue; // usm requires queue
 #if _PSTL_SYCL_TEST_USM
+    if (queue.get_device().has(sycl::aspect::usm_shared_allocations))
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
