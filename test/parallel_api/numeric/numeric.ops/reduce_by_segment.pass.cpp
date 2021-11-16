@@ -170,7 +170,7 @@ test_with_usm()
 
     // call algorithm
     auto new_policy =
-        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, alloc_type>>(q);
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, (::std::size_t)alloc_type>>(q);
     auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head,
                                                key_res_head, val_res_head);
 
@@ -203,7 +203,7 @@ test_with_usm()
     val_res_head_on_host[0] = 9;
 
     auto new_policy2 = oneapi::dpl::execution::make_device_policy<
-        TestUtils::unique_kernel_name<class reduce_by_segment_4, alloc_type>>(q);
+        TestUtils::unique_kernel_name<class reduce_by_segment_4, (::std::size_t)alloc_type>>(q);
     auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head,
                                                key_res_head, val_res_head);
 

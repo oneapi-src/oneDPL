@@ -158,19 +158,19 @@ test_with_usm()
 
     // call first algorithm
     auto new_policy1 =
-        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name_cn<class async1, (::std::size_t)alloc_type>>(q);
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, (::std::size_t)alloc_type>>(q);
     auto fut1 =
         oneapi::dpl::experimental::transform_reduce_async(new_policy1, data2, data2 + n, data1, 0,
                                                           std::plus<uint64_t>(), std::multiplies<uint64_t>());
 
     // call second algorithm and wait for result
     auto new_policy2 =
-        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name_cn<class async2, (::std::size_t)alloc_type>>(q);
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async2, (::std::size_t)alloc_type>>(q);
     auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1, data1 + n_small).get();
 
     // call third algorithm that has to wait for first to complete
     auto new_policy3 =
-        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name_cn<class async3, (::std::size_t)alloc_type>>(q);
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async3, (::std::size_t)alloc_type>>(q);
     oneapi::dpl::experimental::sort_async(new_policy3, data2, data2 + n, fut1);
 
     // check values
