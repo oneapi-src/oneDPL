@@ -94,7 +94,7 @@ get_access(const Policy& policy, T* ptr)
 
 template <typename ValueType, typename Policy, typename Iterator>
 ValueType
-get_data_at(Policy p, Iterator i, size_t index)
+get_data_at(const Policy& p, Iterator i, size_t index)
 {
     return get_access<sycl::access::mode::read>(p, i)[index];
 }
@@ -129,7 +129,7 @@ get_data_at(const Policy& policy, T* ptr, size_t index)
 
 template <typename ValueType, typename Policy, typename Iterator>
 void
-set_data_at(Policy p, Iterator i, size_t index, ValueType val)
+set_data_at(const Policy& p, Iterator i, size_t index, ValueType val)
 {
     get_access<sycl::access::mode::write>(p, i)[index] = val;
 }
