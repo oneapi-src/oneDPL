@@ -49,7 +49,6 @@ class MyClass
     int32_t my_field;
     MyClass() { my_field = 0; }
     MyClass(int32_t in) { my_field = in; }
-    MyClass(const MyClass& in) { my_field = in.my_field; }
 
     friend MyClass
     operator+(const MyClass& x, const MyClass& y)
@@ -166,6 +165,5 @@ main()
     test_by_type<MyClass>(MyClass(), ::std::plus<MyClass>(), ::std::multiplies<MyClass>(),
         [](const MyClass& x) { return MyClass(-x.my_field); },
         [](::std::size_t) -> MyClass { return MyClass(rand() % 1000); });
-
     return done();
 }
