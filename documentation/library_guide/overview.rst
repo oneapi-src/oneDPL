@@ -44,7 +44,12 @@ While some APIs of the library may accidentally work with earlier versions of th
 To call Parallel API with the C++ standard policies, you need to install the following software:
 
 * A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
-* |onetbb_long| or |tbb_long| 2019 and later
+* Depending on what parallel backend you want to use install either:
+  
+  * |onetbb_long| or |tbb_long| 2019 and later
+  * A C++ compiler with support for OpenMP* 4.5 (or higher)
+
+For more information about parallel backends please see :doc:`Execution Policies <parallel_api/execution_policies>`
 
 To use Parallel API with the |dpcpp_short| execution policies, you need to install the following software:
 
@@ -102,6 +107,6 @@ Below is an example of a command line used to compile code that contains
 
 .. code:: cpp
 
-  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb] -o test
+  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb|-fopenmp] -o test
 
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html

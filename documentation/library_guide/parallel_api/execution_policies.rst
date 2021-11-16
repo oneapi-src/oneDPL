@@ -30,6 +30,14 @@ Execution Policy Value            Description
 The implementation is based on Parallel STL from the
 `LLVM Project <https://github.com/llvm/llvm-project/tree/main/pstl>`_.
 
+Execution with ``par`` and ``par_unseq`` policies supports two parallel backends:
+
+#. `TBB backend` (enabled by default). Means that the algorithms are parallelized with either
+   |onetbb_long| or |tbb_long|.
+
+#. `OpenMP backend`. In that case algorithms are parallelized with OpenMP*. Visit
+   :doc:`Macros <../macros>` for the information how to enable OpenMP* backend.
+
 Follow these steps to add Parallel API to your application:
 
 #. Add ``#include <oneapi/dpl/execution>`` to your code.
@@ -48,7 +56,10 @@ Follow these steps to add Parallel API to your application:
 #. Use the C++ Standard Execution Policies:
 
    #. Compile the code with options that enable OpenMP* vectorization pragmas.
-   #. Link with the |onetbb_long| or |tbb_long| dynamic library for parallelism.
+   #. Either:
+      
+      * Link with |onetbb_long| or |tbb_long| dynamic library for `TBB backend`
+      * Enable OpenMP* with the dedicated compiler option for `OpenMP backend`
 
 #. Use the |dpcpp_short| Execution Policies:
 
