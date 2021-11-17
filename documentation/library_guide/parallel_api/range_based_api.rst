@@ -53,6 +53,7 @@ The following algorithms are available to use with the ranges:
 * ``move``
 * ``none_of``
 * ``reduce``
+* ``reduce_by_segment``
 * ``remove``
 * ``remove_if``
 * ``remove_copy``
