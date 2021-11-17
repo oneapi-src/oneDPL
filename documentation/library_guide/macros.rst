@@ -74,7 +74,7 @@ Macro                              Description
                                    parallel policies are executed using the |onetbb_short| or |tbb_short| library unless another
                                    parallel backend is explicitly enabled.
 
-                                   `TBB backend` has higher priority than `OpenMP backend`
+                                   *TBB backend* has higher priority than *OpenMP backend*
 
                                    Please note that if all parallel backend macros are set to 0, algorithms with
                                    the ``par`` and ``par_unseq`` policies are executed by the calling thread.
@@ -83,12 +83,12 @@ Macro                              Description
                                    When the macro is set to 0, algorithms with the ``par`` and ``par_unseq`` policies do not
                                    use this backend and try to find the "next" backend according to the priority.
                                    When the macro evaluates to a non-zero value the algorithms with the ``par`` and ``par_unseq``
-                                   are executed using OpenMP* unless the backend with higher priority is explicitly enabled.
+                                   are executed using OpenMP unless the backend with higher priority is explicitly enabled.
                                    When this macro is not defined (by default) the algorithms with the ``par`` and ``par_unseq``
-                                   are executed on OpenMP* if dedicated compiler option enables OpenMP (e.g. -fopenmp) and
+                                   are executed on OpenMP if dedicated compiler option enables OpenMP (e.g. -fopenmp) and
                                    the backend with higher priority is explictly disabled.
 
-                                   `OpenMP backend` has lower priority than `TBB backend`.
+                                   *OpenMP backend* has lower priority than *TBB backend*.
 
                                    Please note that if all parallel backend macros are set to 0, algorithms with
                                    the ``par`` and ``par_unseq`` policies are executed by the calling thread.

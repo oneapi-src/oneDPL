@@ -45,9 +45,9 @@ To call Parallel API with the C++ standard policies, you need to install the fol
 
 * A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
 * Depending on what parallel backend you want to use install either:
-  
+
   * |onetbb_long| or |tbb_long| 2019 and later
-  * A C++ compiler with support for OpenMP* 4.5 (or higher)
+  * A C++ compiler with support for OpenMP 4.5 (or higher)
 
 For more information about parallel backends please see :doc:`Execution Policies <parallel_api/execution_policies>`
 
