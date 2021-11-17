@@ -113,8 +113,7 @@ _ONEDPL_CONSTEXPR_VAR
 all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all_read;
 
 _ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
-    all_write;
+all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all_write;
 
 _ONEDPL_CONSTEXPR_VAR
 all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target::host_buffer, sycl::access::placeholder::false_t>
