@@ -16,8 +16,8 @@ New Features
 - Added one more thread parallel backend. It is based on OpenMP 5.0. To enable the OpenMP backend, please define macro ``ONEDPL_USE_OPENMP_BACKEND`` into 1.
 - Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of the iterator-based ``reduce_by_segment`` APIs. 
   Please note that the use of the ``reduce_by_segment`` algorithms requires C++17.
-- Added the serial-based versions of the following algorithms: ``all_of``, ``any_of``, 
-  ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
+- Added the serial-based versions of the following algorithms: ``for_each_n``, ``copy``,
+  ``copy_backward``, ``copy_if``, ``copy_n``, ``is_permutation``, ``fill``, ``fill_n``, ``move``, ``move_backward``.
   For the detailed list, please refer to `Tested Standard C++ API Reference`_. 
 
 Changes affecting backward compatibility
