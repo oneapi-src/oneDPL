@@ -66,11 +66,9 @@ class  sycl_usm_alloc
     }
 
     template<typename _Iterator, typename _Size>
-    sycl_usm_alloc(sycl::queue& __q, _Iterator __it, _Size __sz): __queue(__q), __count(__sz)
+    sycl_usm_alloc(sycl::queue& __q, _Iterator __it, _Size __sz)
+        : sycl_usm_alloc(__q, __sz)
     {
-        __ptr = allocate(__count, _AllocType<_alloc_type>{});
-        assert(__ptr);
-
         //TODO: support copying data provided by non-contiguous iterator
         auto __src = std::addressof(*__it);
         assert(std::addressof(*(__it + __count)) - __src == __count);
