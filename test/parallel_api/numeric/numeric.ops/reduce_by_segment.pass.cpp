@@ -159,10 +159,10 @@ test_with_usm()
     prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc1(q, key_head_on_host, n);
-    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc2(q, val_head_on_host, n);
-    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc3(q, key_res_head_on_host, n);
-    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc4(q, val_res_head_on_host, n);
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc1(q, std::begin(key_head_on_host),     std::end(key_head_on_host));
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc2(q, std::begin(val_head_on_host),     std::end(val_head_on_host));
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc3(q, std::begin(key_res_head_on_host), std::end(key_res_head_on_host));
+    TestUtils::sycl_usm_alloc<alloc_type, uint64_t> alloc4(q, std::begin(val_res_head_on_host), std::end(val_res_head_on_host));
     auto key_head     = alloc1.get_data();
     auto val_head     = alloc2.get_data();
     auto key_res_head = alloc3.get_data();
