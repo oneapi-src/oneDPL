@@ -39,7 +39,7 @@ Known Issues and Limitations
 
 Existing Issues
 ^^^^^^^^^^^^^^^
-See the oneDPL Library Guide for other `known limitations`_.
+See the oneDPL Library Guide for other `restrictions and known limitations`_.
 
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
 - ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
@@ -311,6 +311,6 @@ Known Issues and Limitations
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`the oneDPL Library Guide`: https://oneapi-src.github.io/oneDPL/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
-.. _`known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#known-limitations
+.. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html##restrictions
 .. _`the Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
-.. _`Macros` page: https://oneapi-src.github.io/oneDPL/macros.html
+.. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
