@@ -39,12 +39,7 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
-//-----------------------------------------------------------------------
-// sycl::access::mode and sycl::access::target helpers
-//-----------------------------------------------------------------------
-
 // aliases for faster access to modes
-using access_target = sycl::access::target;
 using access_mode = sycl::access_mode;
 
 template <typename _T>

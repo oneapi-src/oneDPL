@@ -332,7 +332,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-            sycl::accessor<_Tp, 1, access_mode::read_write, sycl::access::target::local> __temp_local(
+            sycl::accessor<_Tp, 1, access_mode::read_write, __dpl_sycl::__target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -458,7 +458,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::discard_write>(__cgh);
-            sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
+            sycl::accessor<_Type, 1, access_mode::discard_read_write, __dpl_sycl::__target::local> __local_acc(
                 __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
@@ -480,7 +480,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
                 __cgh.depends_on(__submit_event);
                 auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read_write>(__cgh);
-                sycl::accessor<_Type, 1, access_mode::discard_read_write, sycl::access::target::local> __local_acc(
+                sycl::accessor<_Type, 1, access_mode::discard_read_write, __dpl_sycl::__target::local> __local_acc(
                     __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
@@ -718,7 +718,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
 
             // create local accessor to connect atomic with
-            sycl::accessor<_AtomicType, 1, access_mode::read_write, sycl::access::target::local> __temp_local(1, __cgh);
+            sycl::accessor<_AtomicType, 1, access_mode::read_write, __dpl_sycl::__target::local> __temp_local(1, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif

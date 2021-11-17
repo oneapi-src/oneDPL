@@ -315,7 +315,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         oneapi::dpl::__ranges::__require_access(__hdl, __val_rng,
                                                 __count_rng); //get an access to data under SYCL buffer
         // an accessor per work-group with value counters from each work-item
-        auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, access_target::local>(
+        auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, __dpl_sycl::__target::local>(
             __block_size * __radix_states, __hdl);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());

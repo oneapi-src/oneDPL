@@ -83,7 +83,7 @@ struct __accessor_traits_impl
 {
 };
 
-template <typename _T, int _Dim, sycl::access::mode _AccMode, sycl::access::target _AccTarget,
+template <typename _T, int _Dim, sycl::access::mode _AccMode, __dpl_sycl::__target _AccTarget,
           sycl::access::placeholder _Placeholder>
 struct __accessor_traits_impl<sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>>
 {

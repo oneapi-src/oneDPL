@@ -117,7 +117,7 @@ all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access
     all_write;
 
 _ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::read_write, sycl::access::target::host_buffer, sycl::access::placeholder::false_t>
+all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target::host_buffer, sycl::access::placeholder::false_t>
     host_all;
 } // namespace views
 
