@@ -57,19 +57,19 @@ does (see the |dpcpp_short| specification and the SYCL specification for details
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
 * Passing data types, which are not trivially copyable, is only allowed via USM,
   but not via buffers or host-allocated containers.
+* The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
+  that makes it different for the host and the device. Otherwise, the behavior is undefined.
+* When used within DPC++ kernels or transferred to/from a device, a container class can only hold objects
+  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively. 
 
 Known Limitations
 =================
 
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms, the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
-  in the processed data sequence: (``std::iterator_traits<IteratorType>::value_type``).
-* The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
-  that makes it different for the host and the device. Otherwise, the behavior is undefined.
+  in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   vector execution policies when building a program with GCC 10 and using -O0 option.
-* When used within DPC++ kernels or transferred to/from a device, a container class can only hold objects
-  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively. 
 * The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes). 
   To overcome these issues, include oneDPL header files before the standard C++ header files,
