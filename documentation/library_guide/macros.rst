@@ -85,7 +85,7 @@ Macro                              Description
                                    When the macro evaluates to a non-zero value the algorithms with the ``par`` and ``par_unseq``
                                    are executed using OpenMP unless the backend with higher priority is explicitly enabled.
                                    When this macro is not defined (by default) the algorithms with the ``par`` and ``par_unseq``
-                                   are executed on OpenMP if dedicated compiler option enables OpenMP (e.g. -fopenmp) and
+                                   are executed on OpenMP if dedicated compiler option enables OpenMP (e.g. ``-fopenmp``) and
                                    the backend with higher priority is explictly disabled.
 
                                    *OpenMP backend* has lower priority than *TBB backend*.
@@ -107,7 +107,7 @@ Macro                              Description
                                    without arguments, when ``make_device_policy()``,
                                    ``make_fpga_policy()``, are not available.
 ---------------------------------- ------------------------------
-``ONEDPL_ALLOW_DEFERRED_WAITING``  This macro allows waiting for completion of certain algorithms executed with 
+``ONEDPL_ALLOW_DEFERRED_WAITING``  This macro allows waiting for completion of certain algorithms executed with
                                    |dpcpp_short| policies to be deferred. (Disabled by default.)
 ---------------------------------- ------------------------------
 ``ONEDPL_FPGA_DEVICE``             Use this macro to build your code containing |onedpl_short| parallel

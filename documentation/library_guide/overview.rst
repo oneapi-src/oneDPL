@@ -76,7 +76,7 @@ Known Limitations
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
-  vector execution policies when building a program with GCC 10 and using -O0 option.
+  vector execution policies when building a program with GCC 10 and using ``-O0`` option.
 * The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes). 
   To overcome these issues, include oneDPL header files before the standard C++ header files,
