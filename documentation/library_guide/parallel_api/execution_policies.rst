@@ -34,7 +34,7 @@ The implementation is based on Parallel STL from the
 
 #. *TBB backend* (enabled by default) uses |onetbb_long| or |tbb_long| for parallel execution.
 
-#. *OpenMP backend*. uses OpenMP* pragmas for parallel execution. Visit
+#. *OpenMP backend* uses OpenMP* pragmas for parallel execution. Visit
    :doc:`Macros <../macros>` for the information how to enable the OpenMP backend.
 
 Follow these steps to add Parallel API to your application:
@@ -54,8 +54,8 @@ Follow these steps to add Parallel API to your application:
    namespace, to a parallel algorithm.
 #. Use the C++ Standard Execution Policies:
 
-   # Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
-   # Link with the |onetbb_long| or |tbb_long| dynamic library for TBB-based parallelism.
+   #. Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
+   #. Link with the |onetbb_long| or |tbb_long| dynamic library for TBB-based parallelism.
 
 #. Use the |dpcpp_short| Execution Policies:
 
