@@ -29,7 +29,7 @@ Changes affecting backward compatibility
 Fixed Issues
 ------------
 - Fixed hangs and errors when oneDPL is used together with oneMKL in DPC++ programs.
-- Fixed possible data races in the following algorithms used with DPC++ execution policies: ``sort``, ``stable_sort``, ``partial_sort``,``nth_element``.
+- Fixed possible data races in the following algorithms used with DPC++ execution policies: ``sort``, ``stable_sort``, ``partial_sort``, ``nth_element``.
 
 Known Issues and Limitations
 ----------------------------
