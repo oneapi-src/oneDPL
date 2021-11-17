@@ -62,7 +62,7 @@ Known Limitations
 =================
 
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms, the result of the unary operation should be
-  convertible to the type of the initial value if (one is provided), otherwise it is convertible to the type of values
+  convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: (``std::iterator_traits<IteratorType>::value_type``).
 * The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
   that makes it different for the host and the device. Otherwise, the behavior is undefined.
