@@ -1,5 +1,9 @@
 Range-based API Algorithms
 ##########################
+.. Note::
+
+  The use of the range-based API requires C++17 and the C++ standard libraries coming with GCC 8.1 (or higher)
+  or Clang 7 (or higher).
 
 C++20 introduces the Ranges library. C++20 standard splits ranges into two categories: factories and adaptors.
 A range factory does not have underlying data. An element is generated on success by an index or by dereferencing an iterator.

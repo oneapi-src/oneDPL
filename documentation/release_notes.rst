@@ -20,12 +20,16 @@ New Features
   ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
   For the detailed list, please refer to `Tested Standard C++ API Reference`_. 
 
+Changes affecting backward compatibility
+----------------------------------------
+- Fixed ``param_type`` API of random number distributions to satisfy C++ standard requirements.
+  The new definitions of param_type are not compatible with incorrect definitions in previous library versions.
+  Recompilation is recommended for all codes that might use param_type
+
 Fixed Issues
 ------------
 - Fixed hangs and errors when oneDPL is used together with oneMKL in DPC++ programs.
 - Fixed possible data races in the following algorithms used with DPC++ execution policies: ``sort``, ``stable_sort``, ``partial_sort``,``nth_element``.
-- Fixed ``param_type`` API of random number distributions to satisfy C++ ``RandomNumberDistribution`` named requirement.
-  Please note that the changes may cause API/ABI backward compatibility issues in cases when ``param_type`` is explicitly used.
 
 Known Issues and Limitations
 ----------------------------
@@ -33,12 +37,9 @@ Known Issues and Limitations
 
 Existing Issues
 ^^^^^^^^^^^^^^^
-Description of several issues was moved to :ref:`known_issues` section of oneDPL Library Guide. 
+Description of several issues was moved to `Known Limitations`_ section of oneDPL Library Guide. 
 
-- The implementation does not yet provide ``namespace oneapi::std`` as defined in `the oneDPL Specification`_.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
-- When used within DPC++ kernels or transferred to/from a device, ``std::array`` can only hold objects
-  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
 - ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
   in the Microsoft* Visual C++ standard library.
 - The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
@@ -307,7 +308,8 @@ Known Issues and Limitations
 .. [#fnote1] The sorting algorithms in oneDPL use Radix sort for arithmetic data types compared with
    ``std::less`` or ``std::greater``, otherwise Merge sort.
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
-.. _`the oneDPL User Guide`: https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html
+.. _`the oneDPL User Guide`: https://oneapi-src.github.io/oneDPL/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
-.. _`Tested Standard C++ API Reference`: https://github.com/oneapi-src/oneDPL/blob/release/2021.6/documentation/library_guide/api_for_dpcpp_kernels/tested_standard_cpp_api.rst#tested-standard-c-api-reference
+.. _`Known Limitations`: https://oneapi-src.github.io/oneDPL/overview.html#known-limitations
+.. _`Tested Standard C++ API Reference`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 
