@@ -57,12 +57,14 @@ class  sycl_usm_alloc
     }
 
   public:
+
     template<typename _Size>
     sycl_usm_alloc(sycl::queue& __q, _Size __sz): __queue(__q), __count(__sz)
     {
         __ptr = allocate(__count, _AllocType<_alloc_type>{});
         assert(__ptr);
     }
+
     template<typename _Iterator, typename _Size>
     sycl_usm_alloc(sycl::queue& __q, _Iterator __it, _Size __sz): __queue(__q), __count(__sz)
     {
@@ -88,6 +90,7 @@ class  sycl_usm_alloc
     {
         return __ptr;
     }
+
     template<typename _Iterator>
     void retrieve_data(_Iterator __it)
     {
