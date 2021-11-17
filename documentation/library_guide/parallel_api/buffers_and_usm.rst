@@ -98,11 +98,8 @@ Alternatively, use ``std::vector`` with a USM allocator. For example:
     return 0;
   }
 
-.. Note::
-
-   When using device USM allocations, e.g. via ``malloc_device``, manually copy data to the device
-   before calling oneDPL algorithms and copy them back once the algorithms finished execution.
-   For more information regarding USM, please refer to SYCL™ 2020 Specification.
+When using device USM, such as allocated by ``malloc_device``, manually copy data to this memory
+before calling oneDPL algorithms, and copy it back once the algorithms have finished execution.
 
 Use Host-side std::vector
 -----------------------------
