@@ -32,10 +32,10 @@ The implementation is based on Parallel STL from the
 
 Execution with ``par`` and ``par_unseq`` policies supports two parallel backends:
 
-#. `TBB backend` (enabled by default). Means that the algorithms are parallelized with either
+#. `TBB backend` (enabled by default). When chosen the algorithms are parallelized with either
    |onetbb_long| or |tbb_long|.
 
-#. `OpenMP backend`. In that case algorithms are parallelized with OpenMP*. Visit
+#. `OpenMP backend`. When chosen algorithms are parallelized with OpenMP*. Visit
    :doc:`Macros <../macros>` for the information how to enable OpenMP* backend.
 
 Follow these steps to add Parallel API to your application:
