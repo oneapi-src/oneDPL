@@ -37,8 +37,12 @@ and use the ``std`` namespace.
 Prerequisites
 =============
 
-C++11 is the minimal version of the C++ standard that |onedpl_short| requires. That means, any use of |onedpl_short|
-requires at least a C++11 compiler. Some APIs of the library may require a higher version of C++.
+Since oneDPL 2021.6 C++17 is the minimal version of the C++ standard that |onedpl_short| requires. 
+That means, any use of |onedpl_short| requires at least a C++17 compiler.
+Some APIs of the library may not work with lower version of C++.
+For previous |onedpl_short| versions C++11 is the minimal version of the C++ standard.
+Some APIs of the library may require a higher version of C++. 
+ 
 To call Parallel API with the C++ standard policies, you need to install the following software:
 
 * A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
