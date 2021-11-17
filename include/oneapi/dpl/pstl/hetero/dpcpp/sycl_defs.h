@@ -193,6 +193,20 @@ using __fpga_selector = sycl::INTEL::fpga_selector;
 #    endif
 #endif // _ONEDPL_FPGA_DEVICE
 
+using __target =
+#if __LIBSYCL_VERSION >= 50400
+    sycl::target;
+#else
+    sycl::access::target;
+#endif
+
+constexpr __target __target_device =
+#if __LIBSYCL_VERSION >= 50400
+    __target::device;
+#else
+    __target::global_buffer;
+#endif
+
 } // namespace __dpl_sycl
 
 #endif /* _ONEDPL_sycl_defs_H */

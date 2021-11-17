@@ -33,7 +33,7 @@ namespace __ranges
 
 //A SYCL range over SYCL buffer
 template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read,
-          sycl::access::target _Target = sycl::access::target::global_buffer,
+          __dpl_sycl::__target _Target = __dpl_sycl::__target_device,
           sycl::access::placeholder _Placeholder = sycl::access::placeholder::true_t>
 class all_view
 {
@@ -84,7 +84,7 @@ class all_view
 };
 
 template <sycl::access::mode AccMode = sycl::access::mode::read_write,
-          sycl::access::target _Target = sycl::access::target::global_buffer,
+          __dpl_sycl::__target _Target = __dpl_sycl::__target_device,
           sycl::access::placeholder _Placeholder = sycl::access::placeholder::true_t>
 struct all_view_fn
 {
@@ -107,13 +107,13 @@ struct all_view_fn
 namespace views
 {
 _ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t> all;
+all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all;
 
 _ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t> all_read;
+all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all_read;
 
 _ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>
+all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
     all_write;
 
 _ONEDPL_CONSTEXPR_VAR
