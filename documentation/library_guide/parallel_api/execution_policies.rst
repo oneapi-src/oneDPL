@@ -32,9 +32,9 @@ The implementation is based on Parallel STL from the
 
 |onedpl_short| supports two parallel backends for execution with ``par`` and ``par_unseq`` policies:
 
-#. *TBB backend* (enabled by default) uses |onetbb_long| or |tbb_long| for parallel execution.
+#. TBB backend (enabled by default) uses |onetbb_long| or |tbb_long| for parallel execution.
 
-#. *OpenMP backend* uses OpenMP* pragmas for parallel execution. Visit
+#. OpenMP backend uses OpenMP* pragmas for parallel execution. Visit
    :doc:`Macros <../macros>` for the information how to enable the OpenMP backend.
 
 Follow these steps to add Parallel API to your application:

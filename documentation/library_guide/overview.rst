@@ -49,7 +49,7 @@ To call Parallel API with the C++ standard policies, you need to install the fol
   * |onetbb_long| or |tbb_long| 2019 and later
   * A C++ compiler with support for OpenMP 4.5 (or higher)
 
-For more information about parallel backends please see :doc:`Execution Policies <parallel_api/execution_policies>`
+For more information about parallel backends, see :doc:`Execution Policies <parallel_api/execution_policies>`
 
 To use Parallel API with the |dpcpp_short| execution policies, you need to install the following software:
 

@@ -47,8 +47,8 @@ Usage Examples
 `oneAPI GitHub samples repository <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_.
 Each sample includes a readme with build instructions.
 
-``<oneapi/dpl/random>`` Usage Example
--------------------------------------
+\<oneapi/dpl/random\> Header Usage Example
+------------------------------------------
 
 This example illustrates |onedpl_short| Random Number Generators (RNGs) usage.
 The sample below shows you how to create an RNG engine object (the source of pseudo-randomness),
