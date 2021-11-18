@@ -37,12 +37,19 @@ and use the ``std`` namespace.
 Prerequisites
 =============
 
-C++11 is the minimal version of the C++ standard that |onedpl_short| requires. That means, any use of |onedpl_short|
-requires at least a C++11 compiler. Some APIs of the library may require a higher version of C++.
+Since |onedpl_short| 2021.6, C++17 is the minimal supported version of the C++ standard.
+That means, any use of |onedpl_short| may require a C++17 compiler.
+While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.
+ 
 To call Parallel API with the C++ standard policies, you need to install the following software:
 
 * A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
-* |onetbb_long| or |tbb_long| 2019 and later
+* Depending on what parallel backend you want to use install either:
+
+  * |onetbb_long| or |tbb_long| 2019 and later
+  * A C++ compiler with support for OpenMP 4.5 (or higher)
+
+For more information about parallel backends, see :doc:`Execution Policies <parallel_api/execution_policies>`
 
 To use Parallel API with the |dpcpp_short| execution policies, you need to install the following software:
 
@@ -57,13 +64,33 @@ does (see the |dpcpp_short| specification and the SYCL specification for details
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
 * Passing data types, which are not trivially copyable, is only allowed via USM,
   but not via buffers or host-allocated containers.
+* The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
+  that makes it different for the host and the device. Otherwise, the behavior is undefined.
+* When used within DPC++ kernels or transferred to/from a device, a container class can only hold objects
+  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
+* Calling the API that throws exception is not allowed within callable objects passed to an algorithm.
 
 Known Limitations
 =================
 
-For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms, the result of the unary operation should be
-convertible to the type of the initial value if (one is provided), otherwise it is convertible to the type of values
-in the processed data sequence: (``std::iterator_traits<IteratorType>::value_type``).
+* For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms, the result of the unary operation should be
+  convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
+  in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
+* ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
+  vector execution policies when building a program with GCC 10 and using ``-O0`` option.
+* The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
+  compilation errors (caused by oneTBB API changes). 
+  To overcome these issues, include oneDPL header files before the standard C++ header files,
+  or disable parallel algorithms support in the standard library. 
+  For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+* The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
+  with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
+  ``oneapi::dpl`` namespace, or create a namespace alias. 
+* ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
+  use ``std::array::operator[]`` instead.
+* Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
+  (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
+  for double precision. 
 
 Build Your Code with |onedpl_short|
 ===================================
@@ -81,5 +108,6 @@ Below is an example of a command line used to compile code that contains
 
 .. code:: cpp
 
-  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb] -o test
+  dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb|-fopenmp] -o test
 
+.. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
