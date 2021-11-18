@@ -67,7 +67,8 @@ does (see the |dpcpp_short| specification and the SYCL specification for details
 * The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
   that makes it different for the host and the device. Otherwise, the behavior is undefined.
 * When used within DPC++ kernels or transferred to/from a device, a container class can only hold objects
-  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively. 
+  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
+* Calling the API that throws exception is not allowed within callable objects passed to an algorithm.
 
 Known Limitations
 =================
