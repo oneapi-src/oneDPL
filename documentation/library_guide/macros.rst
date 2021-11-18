@@ -62,13 +62,30 @@ Macro                              Description
                                    Using this macro may have the same effect on the implementation of parallel
                                    algorithms in the C++ standard libraries of GCC and LLVM.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_TBB_BACKEND``         This macro controls the use of |onetbb_long| or
-                                   |tbb_long| for parallel policies.
-                                   When the macro is set to 0, algorithms with the ``par`` and ``par_unseq`` policies are only
-                                   executed by the calling thread. This is recommended for code that should not depend on the
-                                   presence of the |onetbb_short| or |tbb_short| library. When the macro is not defined (by default)
-                                   or evaluates to a non-zero value,
-                                   parallel policies are executed using the |onetbb_short| or |tbb_short| library.
+``ONEDPL_USE_TBB_BACKEND``         This macro controls the use of |onetbb_long| or |tbb_long| for parallel
+                                   execution policies (``par`` and ``par_unseq``).
+
+                                   When the macro evaluates to a non-zero value, or when it is not defined (by default)
+                                   and no other parallel backends are explicitly chosen, algorithms with parallel policies
+                                   are executed using the |onetbb_short| or |tbb_short| library.
+                                   Setting the macro to 0 disables use of TBB API for parallel execution and is recommended
+                                   for code that should not depend on the presence of the |onetbb_short| or |tbb_short| library.
+
+                                   If all parallel backends are disabled by setting respective macros to 0, algorithms
+                                   with parallel policies are executed sequentially by the calling thread.
+---------------------------------- ------------------------------
+``ONEDPL_USE_OPENMP_BACKEND``      This macro controls the use of OpenMP* for parallel execution policies (``par`` and ``par_unseq``).
+
+                                   When the macro evaluates to a non-zero value, algorithms with parallel policies are executed
+                                   using OpenMP unless the TBB backend is explicitly enabled (that is, the TBB backend takes
+                                   precedence over the OpenMP backend).
+                                   When the macro is not defined (by default) and no other parallel backends are chosen,
+                                   a dedicated compiler option to enable OpenMP (such as ``-fopenmp``) also enables its use
+                                   for algorithms with parallel policies.
+                                   Setting the macro to 0 disables use of OpenMP for parallel execution.
+
+                                   If all parallel backends are disabled by setting respective macros to 0, algorithms
+                                   with parallel policies are executed sequentially by the calling thread.
 ---------------------------------- ------------------------------
 ``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of the |dpcpp_short| policies.
                                    When the macro is not defined (by default)
@@ -84,7 +101,7 @@ Macro                              Description
                                    without arguments, when ``make_device_policy()``,
                                    ``make_fpga_policy()``, are not available.
 ---------------------------------- ------------------------------
-``ONEDPL_ALLOW_DEFERRED_WAITING``  This macro allows waiting for completion of certain algorithms executed with 
+``ONEDPL_ALLOW_DEFERRED_WAITING``  This macro allows waiting for completion of certain algorithms executed with
                                    |dpcpp_short| policies to be deferred. (Disabled by default.)
 ---------------------------------- ------------------------------
 ``ONEDPL_FPGA_DEVICE``             Use this macro to build your code containing |onedpl_short| parallel
