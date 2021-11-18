@@ -14,7 +14,8 @@ New in 2021.6
 New Features
 ------------
 - Added a new implementation for ``par`` and ``par_unseq`` execution policies based on OpenMP* 4.5 pragmas.
-  It can be enabled with the ``ONEDPL_USE_OPENMP_BACKEND`` macro. For more details, see `the Macros`_ page.
+  It can be enabled with the ``ONEDPL_USE_OPENMP_BACKEND`` macro.
+  For more details, see `the Macros`_ page in the oneDPL Library Guide.
 - Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of
   the iterator-based ``reduce_by_segment`` APIs. 
   Please note that the use of the ``reduce_by_segment`` algorithm requires C++17.

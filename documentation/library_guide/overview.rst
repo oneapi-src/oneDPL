@@ -37,11 +37,9 @@ and use the ``std`` namespace.
 Prerequisites
 =============
 
-Since oneDPL 2021.6 C++17 is the minimal version of the C++ standard that |onedpl_short| requires. 
-That means, any use of |onedpl_short| requires at least a C++17 compiler.
-Some APIs of the library may not work with lower version of C++.
-For previous |onedpl_short| versions C++11 is the minimal version of the C++ standard.
-Some APIs of the library may require a higher version of C++. 
+Since |onedpl_short| 2021.6, C++17 is the minimal supported version of the C++ standard.
+That means, any use of |onedpl_short| may require a C++17 compiler.
+While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.
  
 To call Parallel API with the C++ standard policies, you need to install the following software:
 
