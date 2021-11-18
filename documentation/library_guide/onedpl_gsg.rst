@@ -47,8 +47,8 @@ Usage Examples
 `oneAPI GitHub samples repository <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_.
 Each sample includes a readme with build instructions.
 
-oneapi/dpl/random Usage Example
--------------------------------
+\<oneapi/dpl/random\> Header Usage Example
+------------------------------------------
 
 This example illustrates |onedpl_short| Random Number Generators (RNGs) usage.
 The sample below shows you how to create an RNG engine object (the source of pseudo-randomness),
@@ -63,22 +63,19 @@ This example performs its computations on your default DPC++ device. You can set
 
     template<int VecSize>
     void random_fill(float* usmptr, std::size_t n) {
-
         auto zero = oneapi::dpl::counting_iterator<std::size_t>(0);
 
         std::for_each(oneapi::dpl::execution::dpcpp_default,
-    zero, zero + n/VecSize,
-          [usmptr](std::size_t i){
+            zero, zero + n/VecSize,
+            [usmptr](std::size_t i) {
+                auto offset = i * VecSize;
 
-            auto offset = i * VecSize;
+                oneapi::dpl::minstd_rand_vec<VecSize> engine(seed, offset);
+                oneapi::dpl::uniform_real_distribution<sycl::vec<float, VecSize>> distr;
 
-            oneapi::dpl::minstd_rand_vec<VecSize> engine(seed, offset);
-            oneapi::dpl::uniform_real_distribution<sycl::vec<float, VecSize>> distr;
-
-            auto res = distr(engine);
-            res.store(i, sycl::global_ptr<float>(usmptr));
-
-           });
+                auto res = distr(engine);
+                res.store(i, sycl::global_ptr<float>(usmptr));
+            });
     }
 
 oneDPL RNG Pi Benchmark Usage Example
