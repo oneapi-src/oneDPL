@@ -62,36 +62,30 @@ Macro                              Description
                                    Using this macro may have the same effect on the implementation of parallel
                                    algorithms in the C++ standard libraries of GCC and LLVM.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_TBB_BACKEND``         This macro controls the use of |onetbb_long| or
-                                   |tbb_long| for parallel policies (``par`` and ``par_unseq``)
-                                   When the macro is set to 0, algorithms with parallel policies do not
-                                   use this backend and try to find the next backend according to the priority.
-                                   This is recommended for code that should not depend on the
-                                   presence of the |onetbb_short| or |tbb_short| library.
-                                   When the macro evaluates to a non-zero value, algorithms with parallel policies
+``ONEDPL_USE_TBB_BACKEND``         This macro controls the use of |onetbb_long| or |tbb_long| for parallel
+                                   execution policies (``par`` and ``par_unseq``).
+
+                                   When the macro evaluates to a non-zero value, or when it is not defined (by default)
+                                   and no other parallel backends are explicitly chosen, algorithms with parallel policies
                                    are executed using the |onetbb_short| or |tbb_short| library.
-                                   When the macro is not defined (by default) algorithms with parallel policies
-                                   are executed using the |onetbb_short| or |tbb_short| library unless another
-                                   parallel backend is explicitly enabled.
+                                   Setting the macro to 0 disables use of TBB API for parallel execution and is recommended
+                                   for code that should not depend on the presence of the |onetbb_short| or |tbb_short| library.
 
-                                   TBB backend has higher priority than OpenMP backend
-
-                                   .. note:: If all parallel backend macros are set to 0, algorithms with
-                                             parallel policies are executed by the calling thread.
+                                   If all parallel backends are disabled by setting respective macros to 0, algorithms
+                                   with parallel policies are executed sequentially by the calling thread.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_OPENMP_BACKEND``      This macro controls the use of OpenMP* for parallel policies (``par`` and ``par_unseq``)
-                                   When the macro is set to 0, algorithms with parallel policies do not
-                                   use this backend and try to find the next backend according to the priority.
-                                   When the macro evaluates to a non-zero value the algorithms with parallel policies
-                                   are executed using OpenMP unless the backend with higher priority is explicitly enabled.
-                                   When this macro is not defined (by default) the algorithms with parallel policies
-                                   are executed on OpenMP if dedicated compiler option enables OpenMP (example: ``-fopenmp``)
-                                   and the backend with higher priority is explictly disabled.
+``ONEDPL_USE_OPENMP_BACKEND``      This macro controls the use of OpenMP* for parallel execution policies (``par`` and ``par_unseq``).
 
-                                   OpenMP backend has lower priority than TBB backend.
+                                   When the macro evaluates to a non-zero value, algorithms with parallel policies are executed
+                                   using OpenMP unless the TBB backend is explicitly enabled (that is, the TBB backend takes
+                                   precedence over the OpenMP backend).
+                                   When the macro is not defined (by default) and no other parallel backends are chosen,
+                                   a dedicated compiler option to enable OpenMP (such as ``-fopenmp``) also enables its use
+                                   for algorithms with parallel policies.
+                                   Setting the macro to 0 disables use of OpenMP for parallel execution.
 
-                                   .. note:: If all parallel backend macros are set to 0, algorithms with
-                                             parallel policies are executed by the calling thread.
+                                   If all parallel backends are disabled by setting respective macros to 0, algorithms
+                                   with parallel policies are executed sequentially by the calling thread.
 ---------------------------------- ------------------------------
 ``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of the |dpcpp_short| policies.
                                    When the macro is not defined (by default)
