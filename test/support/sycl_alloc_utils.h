@@ -64,7 +64,7 @@ class  sycl_usm_alloc
     sycl_usm_alloc(sycl::queue& __q, _Size __sz): __queue(__q), __count(__sz)
     {
         __ptr = allocate(__count, _AllocType<_alloc_type>{});
-        assert(__ptr);
+        assert(__ptr != nullptr || __sz == 0);
     }
 
     template<typename _Iterator, typename _Size>
@@ -75,8 +75,11 @@ class  sycl_usm_alloc
         auto __src = std::addressof(*__it);
         assert(std::addressof(*(__it + __count)) - __src == __count);
 
-        __queue.copy(__src, __ptr, __count);
-        __queue.wait();
+        if (__count > 0)
+        {
+            __queue.copy(__src, __ptr, __count);
+            __queue.wait();
+        }
     }
 
     template<typename _Iterator>
@@ -87,8 +90,7 @@ class  sycl_usm_alloc
 
     ~sycl_usm_alloc()
     {
-        assert(__ptr);
-        assert(__count > 0);
+        assert((__ptr != nullptr && __count > 0) || (__ptr == nullptr && __count == 0));
 
         sycl::free(__ptr, __queue);
     }
@@ -101,21 +103,17 @@ class  sycl_usm_alloc
     template<typename _Iterator>
     void retrieve_data(_Iterator __it)
     {
-        assert(__ptr);
-        assert(__count > 0);
+        assert((__ptr != nullptr && __count > 0) || (__ptr == nullptr && __count == 0));
 
-        //TODO: support copying data provided by non-contiguous iterator
-        auto __dst = std::addressof(*__it);
-        assert(std::addressof(*(__it + __count)) - __dst == __count);
+        if (__count > 0)
+        {
+            //TODO: support copying data provided by non-contiguous iterator
+            auto __dst = std::addressof(*__it);
+            assert(std::addressof(*(__it + __count)) - __dst == __count);
 
-        // https://intel.github.io/llvm-docs/doxygen/classcl_1_1sycl_1_1queue.html#aa9e7a90764212f61d5eb70b545f15855
-        // https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#_queue_interface
-        // event cl::sycl::queue::copy(const T* Src, T* Dest, size_t Count)
-        //    Src is a USM pointer to the source memory.
-        //    Dest is a USM pointer to the destination memory.
-        //    Count is a number of elements of type T to copy.
-        __queue.copy(__ptr, __dst, __count);
-        __queue.wait();
+            __queue.copy(__ptr, __dst, __count);
+            __queue.wait();
+        }
     }
 
 private:
