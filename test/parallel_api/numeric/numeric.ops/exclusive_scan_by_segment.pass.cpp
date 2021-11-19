@@ -87,7 +87,7 @@ struct test_exclusive_scan_by_segment
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     typename ::std::enable_if<
         oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
@@ -163,7 +163,7 @@ struct test_exclusive_scan_by_segment
 #if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
 #endif
-            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
@@ -200,7 +200,7 @@ struct test_exclusive_scan_by_segment
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
                               void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
