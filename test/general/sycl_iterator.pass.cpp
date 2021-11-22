@@ -122,9 +122,7 @@ struct test_uninitialized_copy
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{-1});
 
         ::std::uninitialized_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value), "wrong effect from uninitialized_copy");
     }
@@ -144,9 +142,7 @@ struct test_uninitialized_copy_n
         ::std::fill_n(host_first2, n, IteratorValueType{0});
 
         ::std::uninitialized_copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value), "wrong effect from uninitialized_copy_n");
     }
@@ -166,9 +162,7 @@ struct test_uninitialized_move
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{-1});
 
         ::std::uninitialized_move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value), "wrong effect from uninitialized_move");
     }
@@ -188,9 +182,7 @@ struct test_uninitialized_move_n
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{-1});
 
         ::std::uninitialized_move_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value), "wrong effect from uninitialized_move_n");
     }
@@ -207,9 +199,7 @@ struct test_uninitialized_fill
 
         ::std::uninitialized_fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
                                 value);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1 + (n / 3), host_first1 + (n / 2), value),
                     "wrong effect from uninitialized_fill");
@@ -226,9 +216,7 @@ struct test_uninitialized_fill_n
         auto value = T1(2);
 
         ::std::uninitialized_fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from uninitialized_fill_n");
     }
@@ -248,9 +236,7 @@ struct test_uninitialized_default_construct
 
         ::std::uninitialized_default_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                              first1 + (n / 3), first1 + (n / 2));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1 + (n / 3), host_first1 + (n / 2), exp_value),
                     "wrong effect from uninitialized_default_construct");
@@ -271,9 +257,7 @@ struct test_uninitialized_default_construct_n
 
         ::std::uninitialized_default_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1,
                                                n);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, exp_value),
                     "wrong effect from uninitialized_default_construct_n");
@@ -293,9 +277,7 @@ struct test_uninitialized_value_construct
 
         ::std::uninitialized_value_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                            first1 + (n / 3), first1 + (n / 2));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1 + (n / 3), host_first1 + (n / 2), T1{}),
                     "wrong effect from uninitialized_value_construct");
@@ -314,9 +296,7 @@ struct test_uninitialized_value_construct_n
         ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::uninitialized_value_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, T1{}),
                     "wrong effect from uninitialized_value_construct_n");
@@ -338,9 +318,7 @@ struct test_destroy
             first1 + (n / 3), first1 + (n / 2));
         if(!::std::is_trivially_destructible<T1>::value)
             value = T1{-2};
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1 + (n / 3), host_first1 + (n / 2), value), "wrong effect from destroy");
     }
@@ -360,9 +338,7 @@ struct test_destroy_n
         ::std::destroy_n(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1, n);
         if(!::std::is_trivially_destructible<T1>::value)
             value = T1{-2};
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value), "wrong effect from destroy_n");
     }
@@ -378,9 +354,7 @@ struct test_fill
         auto value = T1(2);
 
         ::std::fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), value);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1 + (n / 3), host_first1 + (n / 2), value), "wrong effect from fill");
     }
@@ -396,9 +370,7 @@ struct test_fill_n
         auto value = T1(2);
 
         ::std::fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from fill_n");
     }
@@ -415,9 +387,7 @@ struct test_generate
 
         ::std::generate(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
                       Generator_count<T1>(value));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1 + (n / 3), host_first1 + (n / 2), value), "wrong effect from generate");
     }
@@ -432,9 +402,7 @@ struct test_generate_n
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(4);
         ::std::generate_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Generator_count<T1>(value + 1));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from generate_n");
     }
@@ -454,9 +422,7 @@ struct test_for_each
         ::std::fill(host_first1 + (n / 3), host_first1 + (n / 2), value - 1);
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), Inc());
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         // We call due to SYCL 1.2.1: 4.7.2.3.
         // If the host memory is modified by the host,
         // or mapped to another buffer or image during the lifetime of this buffer,
@@ -478,9 +444,7 @@ struct test_for_each_n
         ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::for_each_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Inc());
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from for_each_n");
     }
@@ -499,9 +463,7 @@ struct test_transform_unary
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, value + 1);
         ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + n / 2, last1, first2 + n / 2, Flip(7));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
 
         host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n / 2, value + 1), "wrong effect from transform_unary (1)");
@@ -522,9 +484,7 @@ struct test_transform_binary
         ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first1, first2, Plus());
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, T1(6)), "wrong effect from transform_binary");
     }
@@ -542,9 +502,7 @@ struct test_replace
         ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::replace(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, value, T1(value + 1));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from replace");
     }
@@ -563,9 +521,7 @@ struct test_replace_if
 
         ::std::replace_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
                         oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first1 = get_host_pointer(first1);
         EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from replace_if");
     }
@@ -583,9 +539,7 @@ struct test_replace_copy
         ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::replace_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, value, T1(value + 1));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value + 1), "wrong effect from replace_copy");
     }
@@ -604,9 +558,7 @@ struct test_replace_copy_if
 
         ::std::replace_copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2,
                              oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         auto host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value + 1), "wrong effect from replace_copy_if");
     }
@@ -626,9 +578,7 @@ struct test_copy
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{0});
 
         ::std::copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value), "wrong effect from copy");
     }
@@ -648,9 +598,7 @@ struct test_copy_n
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{0});
 
         ::std::copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
-#if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
         host_first2 = get_host_pointer(first2);
         EXPECT_TRUE(check_values(host_first2, host_first2 + n, value), "wrong effect from copy_n");
     }

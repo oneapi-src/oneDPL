@@ -157,14 +157,27 @@ struct invoke_on_all_hetero_policies
     }
 };
 
+bool has_aspect(const sycl::device& device, sycl::aspect aspect)
+{
+    try
+    {
+        return device.has(aspect);
+    }
+    catch(sycl::exception&)
+    {
+        // the exception indicates that the aspect has not been implemented yet
+    }
+    // let's avoid using a feature that can not be checked for availability
+    return false;
+}
+
 template <typename T, typename TestName>
 void
 test1buffer()
 {
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
 
-#if _PSTL_SYCL_TEST_USM
-    if (queue.get_device().has(sycl::aspect::usm_shared_allocations))
+    if(has_aspect(queue.get_device(), sycl::aspect::usm_shared_allocations))
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
@@ -184,7 +197,6 @@ test1buffer()
             invoke_on_all_hetero_policies<0>()(TestName(), inout1_offset_first, inout1_offset_first + n, n);
         }
     }
-#endif
     { // sycl::buffer
         // 1. create buffers
         sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
@@ -208,8 +220,7 @@ void
 test2buffers()
 {
     const sycl::queue& queue = my_queue; // usm and allocator requires queue
-#if _PSTL_SYCL_TEST_USM
-    if (queue.get_device().has(sycl::aspect::usm_shared_allocations))
+    if(has_aspect(queue.get_device(), sycl::aspect::usm_shared_allocations))
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
@@ -234,7 +245,6 @@ test2buffers()
                                                inout2_offset_first, inout2_offset_first + n, n);
         }
     }
-#endif
     { // sycl::buffer
         // 1. create buffers
         sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
@@ -261,8 +271,7 @@ void
 test3buffers(int mult = 1)
 {
     const sycl::queue& queue = my_queue; // usm requires queue
-#if _PSTL_SYCL_TEST_USM
-    if (queue.get_device().has(sycl::aspect::usm_shared_allocations))
+    if(has_aspect(queue.get_device(), sycl::aspect::usm_shared_allocations))
     { // USM
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
@@ -293,7 +302,6 @@ test3buffers(int mult = 1)
                                                inout3_offset_first + n, n);
         }
     }
-#endif
     { // sycl::buffer
         // 1. create buffers
         sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};

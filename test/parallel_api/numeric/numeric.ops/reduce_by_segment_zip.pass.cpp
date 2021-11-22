@@ -36,7 +36,7 @@ int main()
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue q;
 
-    if (!q.get_device().has(sycl::aspect::usm_shared_allocations))
+    if(!TestUtils::has_aspect(q.get_device(), sycl::aspect::usm_shared_allocations))
         return TestUtils::done(0);
 
     const int n = 9, n_res = 6;

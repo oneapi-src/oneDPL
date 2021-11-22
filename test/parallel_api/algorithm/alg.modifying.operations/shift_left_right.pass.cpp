@@ -53,8 +53,6 @@ struct test_shift
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
-
-#if _PSTL_SYCL_TEST_USM
     template <sycl::usm::alloc alloc_type, typename Policy, typename It, typename Algo>
     void
     test_usm(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m, It first_exp,
@@ -65,7 +63,7 @@ struct test_shift
 
         auto queue = exec.queue();
 
-        if (queue.get_device().has(alloc_type))
+        if (queue.get_device().has(TestUtils::usm_aspect<alloc_type>()))
         {
             // allocate USM memory and copying data to USM shared/device memory
             TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, m);
@@ -80,8 +78,6 @@ struct test_shift
             algo.check(first + res_idx, first, m, first_exp, n);
         }
     };
-
-#endif
 
     template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
@@ -111,11 +107,9 @@ struct test_shift
         //2.2 check result
         algo.check(first + res_idx, first, m, first_exp, n);
 
-#if _PSTL_SYCL_TEST_USM
         //3. run a test with hetero policy and USM shared/device memory pointers
         test_usm<sycl::usm::alloc::shared>(exec, first, m, first_exp, n, algo);
         test_usm<sycl::usm::alloc::device>(exec, first, m, first_exp, n, algo);
-#endif
     }
 #endif
 };

@@ -121,7 +121,7 @@ void
 test_with_usm()
 {
     cl::sycl::queue q;
-    if (q.get_device().has(TestUtils::usm_apect<alloc_type>::type))
+    if (q.get_device().has(TestUtils::usm_apect<alloc_type>()))
     {
 
         constexpr int n = 1024;

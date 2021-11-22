@@ -120,7 +120,7 @@ void test_with_usm()
 {
     sycl::queue q;
 
-    if (!q.get_device().has(sycl::aspect::usm_shared_allocations))
+    if(!TestUtils::has_aspect(q.get_device(), sycl::aspect::usm_shared_allocations))
         return;
 
     int n = 13;
