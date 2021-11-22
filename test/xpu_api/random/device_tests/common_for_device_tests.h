@@ -52,14 +52,8 @@ int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
             }
         } else {
             auto diff = std::fabs(r0[i] - r1[i]);
-            auto norm = std::min((std::fabs(r0[i]) + std::fabs(r1[i])), std::numeric_limits<Fp>::max());
-            if constexpr (std::is_same<Fp, float>::value) {
-                coeff = 5000.0f;
-            } else {
-                coeff = 800000000.0;
-            }
-            if (diff > std::max(std::numeric_limits<Fp>::min(), norm * coeff *
-                        std::numeric_limits<Fp>::epsilon())) {
+            auto norm = std::fmax(fabs(r0[i]), fabs(r1[i]));
+            if (diff > norm * 1000 * 16 * std::numeric_limits<Fp>::epsilon()) {
                 std::cout <<  "mismatch in " << i << " element: "  << std::endl;
                 std::cout << std::setprecision (15) << r0[i]  << std::endl; 
                 std::cout << std::setprecision (15) << r1[i] << std::endl; 
@@ -71,7 +65,7 @@ int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
 }
 
 template<class Distr, class Engine>
-int test(sycl::queue& queue) {
+int device_copyable_test(sycl::queue& queue) {
 
     using result_type = typename Distr::result_type;
     using scalar_type = typename Distr::scalar_type;
@@ -97,7 +91,7 @@ int test(sycl::queue& queue) {
         queue.submit([&](sycl::handler& cgh) {
             sycl::accessor acc(buffer, cgh, sycl::write_only);
 
-            cgh.parallel_for<>(sycl::range<1>(N / num_elems), [=](sycl::item<1> idx) {
+            cgh.parallel_for(sycl::range<1>(N / num_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * num_elems;
                 Engine device_engine(engine);
                 Distr device_distr(distr);
