@@ -38,20 +38,20 @@ class sycl_usm_helper
     static_assert(_alloc_type == sycl::usm::alloc::shared || _alloc_type == sycl::usm::alloc::device,
                       "Invalid allocation type for sycl_usm_helper class");
 
-    using _DifferenceType = typename ::std::iterator_traits<_ValueType*>::difference_type;
+    using __difference_type = typename ::std::iterator_traits<_ValueType*>::difference_type;
 
     template<sycl::usm::alloc __type>
-    using _AllocType = ::std::integral_constant<sycl::usm::alloc, __type>;
-    using _SharedType = _AllocType<sycl::usm::alloc::shared>;
-    using _DeviceType = _AllocType<sycl::usm::alloc::device>;
+    using __alloc_type = ::std::integral_constant<sycl::usm::alloc, __type>;
+    using __shared_alloc_type = __alloc_type<sycl::usm::alloc::shared>;
+    using __device_alloc_type = __alloc_type<sycl::usm::alloc::device>;
 
     template<typename _Size>
-    _ValueType* allocate( _Size __sz, _SharedType)
+    _ValueType* allocate( _Size __sz, __shared_alloc_type)
     {
         return sycl::malloc_shared<_ValueType>(__sz, __queue);
     }
     template<typename _Size>
-    _ValueType* allocate( _Size __sz, _DeviceType)
+    _ValueType* allocate( _Size __sz, __device_alloc_type)
     {
         return sycl::malloc_device<_ValueType>(__sz, __queue);
     }
@@ -61,7 +61,7 @@ class sycl_usm_helper
     template<typename _Size>
     sycl_usm_helper(sycl::queue& __q, _Size __sz) : __queue(__q), __count(__sz)
     {
-        __ptr = allocate(__count, _AllocType<_alloc_type>{});
+        __ptr = allocate(__count, __alloc_type<_alloc_type>{});
         assert(__ptr != nullptr || __sz == 0);
     }
 
@@ -109,7 +109,7 @@ class sycl_usm_helper
     }
 
 private:
-    _DifferenceType __count = 0;
+    __difference_type __count = 0;
     _ValueType* __ptr = nullptr;
     sycl::queue& __queue;
 };
