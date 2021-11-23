@@ -61,12 +61,12 @@ test_with_usm()
     prepare_data(n, keys1, keys2, values);
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc1(q, keys1, n);
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc2(q, keys2, n);
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc3(q, values, n);
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc4(q, output_keys1, n);
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc5(q, output_keys2, n);
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc6(q, output_values, n);
+    TestUtils::sycl_usm_helper<alloc_type, int> alloc1(q, keys1, n);
+    TestUtils::sycl_usm_helper<alloc_type, int> alloc2(q, keys2, n);
+    TestUtils::sycl_usm_helper<alloc_type, int> alloc3(q, values, n);
+    TestUtils::sycl_usm_helper<alloc_type, int> alloc4(q, output_keys1, n);
+    TestUtils::sycl_usm_helper<alloc_type, int> alloc5(q, output_keys2, n);
+    TestUtils::sycl_usm_helper<alloc_type, int> alloc6(q, output_values, n);
     auto d_keys1         = alloc1.get_data();
     auto d_keys2         = alloc2.get_data();
     auto d_values        = alloc3.get_data();
