@@ -65,15 +65,15 @@ struct test_shift
         auto queue = exec.queue();
 
         // allocate USM memory and copying data to USM shared/device memory
-        TestUtils::sycl_usm_helper<alloc_type, _ValueType> alloc(queue, first, m);
+        TestUtils::usm_data_transfer_helper<alloc_type, _ValueType> dtHelper(queue, first, m);
 
-        auto ptr = alloc.get_data();
+        auto ptr = dtHelper.get_data();
         auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
                             ptr, ptr + m, n);
         _DiffType res_idx = het_res - ptr;
 
         //3.2 check result
-        alloc.retrieve_data(first);
+        dtHelper.retrieve_data(first);
         algo.check(first + res_idx, first, m, first_exp, n);
     };
 
