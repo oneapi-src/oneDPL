@@ -16,7 +16,7 @@
 #ifndef __TEST_SYCL_ALLOC_UTILS_H
 #define __TEST_SYCL_ALLOC_UTILS_H
 
-#ifdef TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 
 #include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 
