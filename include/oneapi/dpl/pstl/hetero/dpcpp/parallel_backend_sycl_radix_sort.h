@@ -450,8 +450,8 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
         const ::std::size_t __global_scan_begin = __dpl_sycl::__get_buffer_size(__count_buf) - __radix_states;
 
         // 1. Local scan: produces local offsets using count values
-        // compilation of the kernel prevents out of resources issue,
-        // which may occur due to usage of collective algorithms even if local memory is not explicitly requested
+        // compilation of the kernel prevents out of resources issue, which may occur due to usage of
+        // collective algorithms such as joint_exclusive_scan even if local memory is not explicitly requested
         sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
             __hdl.depends_on(__dependency_event);
             // an accessor with value counter from each work_group
