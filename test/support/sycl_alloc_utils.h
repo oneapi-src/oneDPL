@@ -26,17 +26,17 @@ namespace TestUtils
 // RAII service class to allocate shared/device memory (USM)
 // Usage model"
 // 1. allocate USM memory and copying data to USM:
-//    sycl_usm_helper<alloc_type, _ValueType> alloc(queue, first, count); 
+//    usm_data_transfer_helper<alloc_type, _ValueType> dtHelper(queue, first, count); 
 // or just allocate USM memory"
-//    sycl_usm_helper<alloc_type, _ValueType> alloc(queue, count); 
-// 2. get a USM pointer by sycl_usm_helper::get_data() and passed one into a parallel algorithm with dpc++ policy.
+//    usm_data_transfer_helper<alloc_type, _ValueType> dtHelper(queue, count); 
+// 2. get a USM pointer by usm_data_transfer_helper::get_data() and passed one into a parallel algorithm with dpc++ policy.
 // 3. Retrieve data back (in case of device allocation type) to the host for further checking result.
 //    alloc.retrieve_data(dest_host);
 template<sycl::usm::alloc _alloc_type, typename _ValueType>
-class sycl_usm_helper
+class usm_data_transfer_helper
 {
     static_assert(_alloc_type == sycl::usm::alloc::shared || _alloc_type == sycl::usm::alloc::device,
-                      "Invalid allocation type for sycl_usm_helper class");
+                      "Invalid allocation type for usm_data_transfer_helper class");
 
     using __difference_type = typename ::std::iterator_traits<_ValueType*>::difference_type;
 
@@ -59,15 +59,15 @@ class sycl_usm_helper
   public:
 
     template<typename _Size>
-    sycl_usm_helper(sycl::queue& __q, _Size __sz) : __queue(__q), __count(__sz)
+    usm_data_transfer_helper(sycl::queue& __q, _Size __sz) : __queue(__q), __count(__sz)
     {
         __ptr = allocate(__count, __alloc_type<_alloc_type>{});
         assert(__ptr != nullptr || __sz == 0);
     }
 
     template<typename _Iterator, typename _Size>
-    sycl_usm_helper(sycl::queue& __q, _Iterator __it, _Size __sz)
-        : sycl_usm_helper(__q, __sz)
+    usm_data_transfer_helper(sycl::queue& __q, _Iterator __it, _Size __sz)
+        : usm_data_transfer_helper(__q, __sz)
     {
         //TODO: support copying data provided by non-contiguous iterator
         auto __src = std::addressof(*__it);
@@ -80,7 +80,7 @@ class sycl_usm_helper
         }
     }
 
-    ~sycl_usm_helper()
+    ~usm_data_transfer_helper()
     {
         assert((__ptr != nullptr && __count > 0) || (__ptr == nullptr && __count == 0));
 

@@ -61,18 +61,18 @@ test_with_usm()
     prepare_data(n, keys1, keys2, values);
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::sycl_usm_helper<alloc_type, int> alloc1(q, keys1, n);
-    TestUtils::sycl_usm_helper<alloc_type, int> alloc2(q, keys2, n);
-    TestUtils::sycl_usm_helper<alloc_type, int> alloc3(q, values, n);
-    TestUtils::sycl_usm_helper<alloc_type, int> alloc4(q, output_keys1, n);
-    TestUtils::sycl_usm_helper<alloc_type, int> alloc5(q, output_keys2, n);
-    TestUtils::sycl_usm_helper<alloc_type, int> alloc6(q, output_values, n);
-    auto d_keys1         = alloc1.get_data();
-    auto d_keys2         = alloc2.get_data();
-    auto d_values        = alloc3.get_data();
-    auto d_output_keys1  = alloc4.get_data();
-    auto d_output_keys2  = alloc5.get_data();
-    auto d_output_values = alloc6.get_data();
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper1(q, keys1, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper2(q, keys2, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper3(q, values, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper4(q, output_keys1, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper5(q, output_keys2, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper6(q, output_values, n);
+    auto d_keys1         = dtHelper1.get_data();
+    auto d_keys2         = dtHelper2.get_data();
+    auto d_values        = dtHelper3.get_data();
+    auto d_output_keys1  = dtHelper4.get_data();
+    auto d_output_keys2  = dtHelper5.get_data();
+    auto d_output_values = dtHelper6.get_data();
 
     //make zip iterators
     auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1, d_keys2);
@@ -87,9 +87,9 @@ test_with_usm()
     q.wait();
 
     //retrieve result on the host and check the result
-    alloc4.retrieve_data(output_keys1);
-    alloc5.retrieve_data(output_keys2);
-    alloc6.retrieve_data(output_values);
+    dtHelper4.retrieve_data(output_keys1);
+    dtHelper5.retrieve_data(output_keys2);
+    dtHelper6.retrieve_data(output_values);
 
 //Dump
 #if 0
