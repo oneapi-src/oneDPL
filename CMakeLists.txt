@@ -219,6 +219,7 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
     target_compile_definitions(oneDPL INTERFACE
         ONEDPL_USE_TBB_BACKEND=0
         ONEDPL_USE_DPCPP_BACKEND=0
+        ONEDPL_USE_OPENMP_BACKEND=0
         )
     message(STATUS "Compilation for the host due to serial backend")
 
