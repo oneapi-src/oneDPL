@@ -27,8 +27,6 @@ namespace TestUtils
 // Usage model"
 // 1. allocate USM memory and copying data to USM:
 //    sycl_usm_alloc<alloc_type, _ValueType> alloc(queue, first, count); 
-// or 
-//    sycl_usm_alloc<alloc_type, _ValueType> alloc(queue, std::begin(data), std::end(data));
 // or just allocate USM memory"
 //    sycl_usm_alloc<alloc_type, _ValueType> alloc(queue, count); 
 // 2. get a USM pointer by sycl_usm_alloc::get_data() and passed one into a parallel algorithm with dpc++ policy.
@@ -80,12 +78,6 @@ class  sycl_usm_alloc
             __queue.copy(__src, __ptr, __count);
             __queue.wait();
         }
-    }
-
-    template<typename _Iterator>
-    sycl_usm_alloc(sycl::queue& __q, _Iterator __itBegin, _Iterator __itEnd)
-        : sycl_usm_alloc(__q, __itBegin, ::std::distance(__itBegin, __itEnd))
-    {
     }
 
     ~sycl_usm_alloc()
