@@ -159,14 +159,14 @@ test_with_usm()
     prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::sycl_usm_helper<alloc_type, uint64_t> alloc1(q, key_head_on_host, n);
-    TestUtils::sycl_usm_helper<alloc_type, uint64_t> alloc2(q, val_head_on_host, n);
-    TestUtils::sycl_usm_helper<alloc_type, uint64_t> alloc3(q, key_res_head_on_host, n);
-    TestUtils::sycl_usm_helper<alloc_type, uint64_t> alloc4(q, val_res_head_on_host, n);
-    auto key_head     = alloc1.get_data();
-    auto val_head     = alloc2.get_data();
-    auto key_res_head = alloc3.get_data();
-    auto val_res_head = alloc4.get_data();
+    TestUtils::usm_data_transfer_helper<alloc_type, uint64_t> dtHelper1(q, key_head_on_host, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, uint64_t> dtHelper2(q, val_head_on_host, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, uint64_t> dtHelper3(q, key_res_head_on_host, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, uint64_t> dtHelper4(q, val_res_head_on_host, n);
+    auto key_head     = dtHelper1.get_data();
+    auto val_head     = dtHelper2.get_data();
+    auto key_res_head = dtHelper3.get_data();
+    auto val_res_head = dtHelper4.get_data();
 
     // call algorithm
     auto new_policy =
@@ -175,8 +175,8 @@ test_with_usm()
                                                key_res_head, val_res_head);
 
     //retrieve result on the host and check the result
-    alloc3.retrieve_data(key_res_head_on_host);
-    alloc4.retrieve_data(val_res_head_on_host);
+    dtHelper3.retrieve_data(key_res_head_on_host);
+    dtHelper4.retrieve_data(val_res_head_on_host);
 
     // check values
     auto count = std::distance(key_res_head, res1.first);
@@ -208,8 +208,8 @@ test_with_usm()
                                                key_res_head, val_res_head);
 
     //retrieve result on the host and check the result
-    alloc3.retrieve_data(key_res_head_on_host);
-    alloc4.retrieve_data(val_res_head_on_host);
+    dtHelper3.retrieve_data(key_res_head_on_host);
+    dtHelper4.retrieve_data(val_res_head_on_host);
 
     // check values
     count = std::distance(key_res_head, res2.first);
