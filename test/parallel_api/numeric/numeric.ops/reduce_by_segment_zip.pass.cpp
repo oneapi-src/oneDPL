@@ -61,12 +61,12 @@ test_with_usm()
     prepare_data(n, keys1, keys2, values);
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper1(q, keys1, n);
-    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper2(q, keys2, n);
-    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper3(q, values, n);
-    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper4(q, output_keys1, n);
-    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper5(q, output_keys2, n);
-    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper6(q, output_values, n);
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper1(q, std::begin(keys1),         std::end(keys1));
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper2(q, std::begin(keys2),         std::end(keys2));
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper3(q, std::begin(values),        std::end(values));
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper4(q, std::begin(output_keys1),  std::end(output_keys1));
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper5(q, std::begin(output_keys2),  std::end(output_keys2));
+    TestUtils::usm_data_transfer_helper<alloc_type, int> dtHelper6(q, std::begin(output_values), std::end(output_values));
     auto d_keys1         = dtHelper1.get_data();
     auto d_keys2         = dtHelper2.get_data();
     auto d_values        = dtHelper3.get_data();
