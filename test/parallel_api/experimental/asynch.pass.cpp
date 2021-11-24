@@ -115,6 +115,7 @@ void test2_with_buffers()
         EXPECT_TRUE(fabs(result1-expected1) <= 0.001f && fabs(result2-expected1) <= 0.001f, "wrong effect from async test (II) with sycl buffer");
 }
 
+// TODO: Extend tests by checking true async behavior in more detail
 template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
