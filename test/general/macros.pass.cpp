@@ -17,29 +17,27 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-#include <oneapi/dpl/pstl/onedpl_config.h>
-
 #include "support/utils.h"
 
-#if  !_ONEDPL_PAR_BACKEND_SERIAL
+#if !_ONEDPL_PAR_BACKEND_SERIAL
     #ifdef _ONEDPL_PARALLEL_BACKEND_SERIAL_H
         #error The parallel serial backend is used while it should not (_ONEDPL_PAR_BACKEND_SERIAL==0)
     #endif
 #endif
 
-#if  !_ONEDPL_PAR_BACKEND_OPENMP
+#if !_ONEDPL_PAR_BACKEND_OPENMP
     #ifdef _ONEDPL_PARALLEL_BACKEND_OMP_H
         #error The parallel omp backend is used while it should not (_ONEDPL_PAR_BACKEND_OPENMP==0)
     #endif
 #endif
 
-#if  !_ONEDPL_PAR_BACKEND_TBB
+#if !_ONEDPL_PAR_BACKEND_TBB
     #ifdef _ONEDPL_PARALLEL_BACKEND_TBB_H
         #error The parallel tbb backend is used while it should not (_ONEDPL_PAR_BACKEND_TBB==0)
     #endif
 #endif
 
-#if  !_ONEDPL_BACKEND_SYCL
+#if !_ONEDPL_BACKEND_SYCL
     #ifdef _ONEDPL_parallel_backend_sycl_H
         #error The parallel sycl backend is used while it should not (_ONEDPL_BACKEND_SYCL==0)
     #endif
