@@ -157,6 +157,57 @@ set_data_at(const Policy& policy, T* ptr, size_t index, ValueType val)
     }
 }
 
+template <typename Policy, typename IteratorSrc, typename IteratorDest>
+void
+copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
+{
+    auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
+    auto accWrite = get_access<sycl::access::mode::write>(p, itDest);
+
+    accWrite[indexDest] = accRead[indexSrc];
+}
+
+template <typename Policy, typename IteratorSrc, typename T>
+void
+copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, T* ptrDest, size_t indexDest)
+{
+    auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
+    set_data_at(p, ptrDest, indexDest, accRead[indexSrc]);
+}
+
+template <typename Policy, typename T, typename IteratorDest>
+void
+copy_data_to(const Policy& p, T* ptrSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
+{
+    set_data_at(p, itDest, indexDest, get_data_at(p, ptrSrc, indexSrc));
+}
+
+template <typename Policy, typename T>
+void
+copy_data_to(const Policy& p, T* ptrSrc, size_t indexSrc, T* ptrDest, size_t indexDest)
+{
+    sycl::queue q = p.queue();
+
+    const auto srcPtrType = sycl::get_pointer_type(ptrSrc, q.get_context());
+    const auto destPtrType = sycl::get_pointer_type(ptrDest, q.get_context());
+
+    assert(srcPtrType != sycl::usm::alloc::unknown);
+    assert(destPtrType != sycl::usm::alloc::unknown);
+
+    if ((srcPtrType == sycl::usm::alloc::host || srcPtrType == sycl::usm::alloc::shared) &&
+        (destPtrType == sycl::usm::alloc::host || destPtrType == sycl::usm::alloc::shared))
+    {
+        // For USM host-memory and USM shared-memory we use operator[] for read/write data
+        ptrDest[indexDest] = ptrSrc[indexSrc];
+    }
+    else if (srcPtrType == sycl::usm::alloc::device || destPtrType == sycl::usm::alloc::device)
+    {
+        // For USM device-memory we copy data through sycl::queue::copy function
+        q.copy(ptrSrc + indexSrc, ptrDest + indexDest, 1);
+        q.wait();
+    }
+}
+
 #endif
 
 // struct for checking if iterator is a discard_iterator or not
