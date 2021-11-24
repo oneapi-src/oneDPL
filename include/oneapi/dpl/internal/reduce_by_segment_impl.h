@@ -159,7 +159,6 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
-    typedef typename ::std::iterator_traits<InputIterator1>::value_type DerefValueType;
 
     namespace __bknd = __par_backend_hetero;
 
@@ -168,8 +167,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
         return ::std::make_pair(result1, result2);
     if (n == 1)
     {
-        internal::set_data_at(policy, result1, 0, internal::get_data_at<DerefValueType>(policy, first1, 0));
-        internal::set_data_at(policy, result2, 0, internal::get_data_at<ValueType>(policy, first2, 0));
+        internal::copy_data_to(policy, first1, 0, result1, 0);
+        internal::copy_data_to(policy, first2, 0, result2, 0);
+
         return ::std::make_pair(result1 + 1, result2 + 1);
     }
 
