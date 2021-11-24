@@ -27,6 +27,8 @@ namespace TestUtils
 // Usage model"
 // 1. allocate USM memory and copying data to USM:
 //    usm_data_transfer_helper<alloc_type, _ValueType> dtHelper(queue, first, count); 
+// or 
+//    usm_data_transfer_helper<alloc_type, _ValueType> dtHelper(queue, std::begin(data), std::end(data));
 // or just allocate USM memory"
 //    usm_data_transfer_helper<alloc_type, _ValueType> dtHelper(queue, count); 
 // 2. get a USM pointer by usm_data_transfer_helper::get_data() and passed one into a parallel algorithm with dpc++ policy.
@@ -59,7 +61,8 @@ class usm_data_transfer_helper
   public:
 
     template<typename _Size>
-    usm_data_transfer_helper(sycl::queue& __q, _Size __sz) : __queue(__q), __count(__sz)
+    usm_data_transfer_helper(sycl::queue& __q, _Size __sz)
+        : __queue(__q), __count(__sz)
     {
         __ptr = allocate(__count, __alloc_type<_alloc_type>{});
         assert(__ptr != nullptr || __sz == 0);
@@ -78,6 +81,12 @@ class usm_data_transfer_helper
             __queue.copy(__src, __ptr, __count);
             __queue.wait();
         }
+    }
+
+    template<typename _Iterator>
+    usm_data_transfer_helper(sycl::queue& __q, _Iterator __itBegin, _Iterator __itEnd)
+        : usm_data_transfer_helper(__q, __itBegin, ::std::distance(__itBegin, __itEnd))
+    {
     }
 
     ~usm_data_transfer_helper()
