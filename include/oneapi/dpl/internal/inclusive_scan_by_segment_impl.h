@@ -88,13 +88,13 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     if (n <= 0)
         return result;
 
-    const ValueType initial_value = internal::get_data_at<ValueType>(policy, first2, 0);
-
     if (n == 1)
     {
-        internal::set_data_at(policy, result, 0, initial_value);
+        internal::copy_data_to(policy, first2, 0, result, 0);
         return result + 1;
     }
+
+    const ValueType initial_value = internal::get_data_at<ValueType>(policy, first2, 0);
 
     FlagType initial_mask = 1;
 
