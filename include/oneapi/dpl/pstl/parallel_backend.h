@@ -15,14 +15,6 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_H
 #define _ONEDPL_PARALLEL_BACKEND_H
 #include "onedpl_config.h"
-
-// Macros below are responsible for enabling a specific parallel backend:
-// _ONEDPL_PAR_BACKEND_TBB     -    tbb backend,
-// _ONEDPL_PAR_BACKEND_OPENMP  -    omp backend,
-// _ONEDPL_PAR_BACKEND_SERIAL  -    serial backend,
-// _ONEDPL_BACKEND_SYCL        -    SYCL backend for FPGA.
-// Be careful when changing the value of these macros. This can change
-// the behavior of the product.
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/parallel_backend_sycl.h"
 #    if _ONEDPL_FPGA_DEVICE

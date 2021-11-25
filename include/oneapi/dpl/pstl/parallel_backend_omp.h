@@ -13,6 +13,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+// The definition of _ONEDPL_PARALLEL_BACKEND_OMP_H means the inclusion of this
+// file and therefore the parallel OpenMP backend. Be careful when changing the value
+// of this macro. This can change the behavior  of the product.
 #ifndef _ONEDPL_PARALLEL_BACKEND_OMP_H
 #define _ONEDPL_PARALLEL_BACKEND_OMP_H
 

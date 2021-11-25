@@ -14,6 +14,10 @@
 //===----------------------------------------------------------------------===//
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
+
+// The definition of _ONEDPL_parallel_backend_sycl_fpga_H means the inclusion
+// of this file and therefore the parallel SYCL* backend for the FPGA. Be careful
+// when changing the value of this macro. This can change the behavior of the product.
 #ifndef _ONEDPL_parallel_backend_sycl_fpga_H
 #define _ONEDPL_parallel_backend_sycl_fpga_H
 
@@ -262,4 +266,4 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_parallel_backend_sycl_H */
+#endif /* _ONEDPL_parallel_backend_sycl_fpga_H */
