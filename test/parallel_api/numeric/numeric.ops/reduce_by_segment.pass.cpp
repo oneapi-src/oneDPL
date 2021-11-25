@@ -159,14 +159,14 @@ test_with_usm()
     prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::usm_data_transfer<alloc_type, uint64_t> dtHelper1(q, std::begin(key_head_on_host),     std::end(key_head_on_host));
-    TestUtils::usm_data_transfer<alloc_type, uint64_t> dtHelper2(q, std::begin(val_head_on_host),     std::end(val_head_on_host));
-    TestUtils::usm_data_transfer<alloc_type, uint64_t> dtHelper3(q, std::begin(key_res_head_on_host), std::end(key_res_head_on_host));
-    TestUtils::usm_data_transfer<alloc_type, uint64_t> dtHelper4(q, std::begin(val_res_head_on_host), std::end(val_res_head_on_host));
-    auto key_head     = dtHelper1.get_data();
-    auto val_head     = dtHelper2.get_data();
-    auto key_res_head = dtHelper3.get_data();
-    auto val_res_head = dtHelper4.get_data();
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper1(q, std::begin(key_head_on_host),     std::end(key_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper2(q, std::begin(val_head_on_host),     std::end(val_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper3(q, std::begin(key_res_head_on_host), std::end(key_res_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper4(q, std::begin(val_res_head_on_host), std::end(val_res_head_on_host));
+    auto key_head     = dt_helper1.get_data();
+    auto val_head     = dt_helper2.get_data();
+    auto key_res_head = dt_helper3.get_data();
+    auto val_res_head = dt_helper4.get_data();
 
     // call algorithm
     auto new_policy =
@@ -175,8 +175,8 @@ test_with_usm()
                                                key_res_head, val_res_head);
 
     //retrieve result on the host and check the result
-    dtHelper3.retrieve_data(key_res_head_on_host);
-    dtHelper4.retrieve_data(val_res_head_on_host);
+    dt_helper3.retrieve_data(key_res_head_on_host);
+    dt_helper4.retrieve_data(val_res_head_on_host);
 
     // check values
     auto count = std::distance(key_res_head, res1.first);
@@ -208,8 +208,8 @@ test_with_usm()
                                                key_res_head, val_res_head);
 
     //retrieve result on the host and check the result
-    dtHelper3.retrieve_data(key_res_head_on_host);
-    dtHelper4.retrieve_data(val_res_head_on_host);
+    dt_helper3.retrieve_data(key_res_head_on_host);
+    dt_helper4.retrieve_data(val_res_head_on_host);
 
     // check values
     count = std::distance(key_res_head, res2.first);
