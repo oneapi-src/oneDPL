@@ -167,7 +167,7 @@ test1buffer()
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        TestUtils::usm_data_transfer_helper<alloc_type, T> dtHelper(queue, max_n + inout1_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dtHelper(queue, max_n + inout1_offset);
         auto inout1_first = dtHelper.get_data();
 
         // 2. create a pointer at first+offset
@@ -210,8 +210,8 @@ test2buffers()
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        TestUtils::usm_data_transfer_helper<alloc_type, T> dtHelper1(queue, max_n + inout1_offset);
-        TestUtils::usm_data_transfer_helper<alloc_type, T> dtHelper2(queue, max_n + inout2_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dtHelper1(queue, max_n + inout1_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dtHelper2(queue, max_n + inout2_offset);
         auto inout1_first = dtHelper1.get_data();
         auto inout2_first = dtHelper2.get_data();
 
@@ -260,9 +260,9 @@ test3buffers(int mult = 1)
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        TestUtils::usm_data_transfer_helper<alloc_type, T> dtHelper1(queue, max_n + inout1_offset);
-        TestUtils::usm_data_transfer_helper<alloc_type, T> dtHelper2(queue, max_n + inout2_offset);
-        TestUtils::usm_data_transfer_helper<alloc_type, T> dtHelper3(queue, max_n + inout3_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dtHelper1(queue, max_n + inout1_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dtHelper2(queue, max_n + inout2_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dtHelper3(queue, max_n + inout3_offset);
         auto inout1_first = dtHelper1.get_data();
         auto inout2_first = dtHelper2.get_data();
         auto inout3_first = dtHelper3.get_data();
