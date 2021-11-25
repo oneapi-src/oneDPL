@@ -20,7 +20,9 @@
 #include "support/utils.h"
 #include <iostream>
 
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #include "common_for_device_tests.h"
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 int
 main()
