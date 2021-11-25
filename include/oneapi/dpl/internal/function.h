@@ -113,6 +113,12 @@ get_data_at(const Policy& policy, T* ptr, size_t index)
 
     case sycl::usm::alloc::device:
     {
+        // https://intel.github.io/llvm-docs/doxygen/classcl_1_1sycl_1_1queue.html#aa9e7a90764212f61d5eb70b545f15855
+        // https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#_queue_interface
+        // event cl::sycl::queue::copy(const T* Src, T* Dest, size_t Count)	
+        //    Src is a USM pointer to the source memory.
+        //    Dest is a USM pointer to the destination memory.
+        //    Count is a number of elements of type T to copy.
         ValueType host_data;
         q.copy(ptr, &host_data, 1);
         q.wait();
@@ -148,6 +154,12 @@ set_data_at(const Policy& policy, T* ptr, size_t index, ValueType val)
         break;
 
     case sycl::usm::alloc::device:
+        // https://intel.github.io/llvm-docs/doxygen/classcl_1_1sycl_1_1queue.html#aa9e7a90764212f61d5eb70b545f15855
+        // https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#_queue_interface
+        // event cl::sycl::queue::copy(const T* Src, T* Dest, size_t Count)
+        //    Src is a USM pointer to the source memory.
+        //    Dest is a USM pointer to the destination memory.
+        //    Count is a number of elements of type T to copy.
         q.copy(&val, ptr, 1);
         q.wait();
         break;
