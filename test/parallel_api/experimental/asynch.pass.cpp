@@ -148,10 +148,10 @@ test_with_usm()
     prepare_data(n, data1_on_host, data2_on_host);
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::usm_data_transfer<alloc_type, uint64_t> dtHelper1(q, std::begin(data1_on_host), std::end(data1_on_host));
-    TestUtils::usm_data_transfer<alloc_type, uint64_t> dtHelper2(q, std::begin(data2_on_host), std::end(data2_on_host));
-    auto data1 = dtHelper1.get_data();
-    auto data2 = dtHelper2.get_data();
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper1(q, std::begin(data1_on_host), std::end(data1_on_host));
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper2(q, std::begin(data2_on_host), std::end(data2_on_host));
+    auto data1 = dt_helper1.get_data();
+    auto data2 = dt_helper2.get_data();
 
     // compute reference values
     const uint64_t ref1 = std::inner_product(data2, data2 + n, data1, 0);
