@@ -85,7 +85,7 @@ class usm_data_transfer_helper
 
     template<typename _Iterator>
     usm_data_transfer_helper(sycl::queue& __q, _Iterator __itBegin, _Iterator __itEnd)
-        : usm_data_transfer_helper(__q, __itBegin, ::std::distance(__itBegin, __itEnd))
+        : usm_data_transfer_helper(__q, __itBegin, __itEnd - __itBegin)
     {
     }
 
