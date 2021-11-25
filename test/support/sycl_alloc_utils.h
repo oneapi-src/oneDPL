@@ -34,6 +34,11 @@ namespace TestUtils
 // 2. get a USM pointer by usm_data_transfer::get_data() and passed one into a parallel algorithm with dpc++ policy.
 // 3. Retrieve data back (in case of device allocation type) to the host for further checking result.
 //    alloc.retrieve_data(dest_host);
+//
+// Count of elements may be zero. In this case no USM memory will be allocated.
+// Also retrieve_data function will do nothing in this case.
+// This behavior is implemented based on tests use cases.
+//
 template<sycl::usm::alloc _alloc_type, typename _ValueType>
 class usm_data_transfer
 {
