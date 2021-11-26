@@ -214,7 +214,6 @@ class extreme_value_distribution
     {
         result_type __res;
         oneapi::dpl::exponential_distribution<scalar_type> __distr;
-        scalar_type __e = __distr(__engine);
         for (int i = 0; i < __N; i++)
         {
             scalar_type __e = __distr(__engine);
