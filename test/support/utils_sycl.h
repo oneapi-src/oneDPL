@@ -332,7 +332,61 @@ template <typename T>
 T*
 get_host_pointer(T* data)
 {
+    auto srvc = usm_data_transfer_service::instance();
+    assert(srvc);
+
+    auto pUsmDataTransferBase = srvc->get_usm_data_transfer_base(data);
+
+    if (pUsmDataTransferBase != nullptr
+        && sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
+    {
+        return srvc->get_host_pointer(pUsmDataTransferBase, data);
+    }
+
     return data;
+}
+
+template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
+typename ::std::iterator_traits<Iter>::pointer
+refresh_usm_from_host_pointer(Iter, Iter, ::std::size_t)
+{
+    // No actions required here
+}
+
+template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
+          sycl::access::placeholder Placeholder>
+void
+//refresh_usm_from_host_pointer(T*, sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>&, ::std::size_t)
+refresh_usm_from_host_pointer(T*, sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>&, ::std::size_t)
+{
+    // No actions required here
+}
+
+// for USM pointers
+template <typename T1, typename T2, typename TSize>
+void
+refresh_usm_from_host_pointer(T1 it1, T2 it2, TSize)
+{
+    // No actions required here ??? // TODO required to check
+}
+
+template <typename T>
+void
+refresh_usm_from_host_pointer(T* __host_ptr, T* __usm_ptr, ::std::size_t __count)
+{
+    if (__host_ptr == __usm_ptr)
+        return;
+
+    auto srvc = usm_data_transfer_service::instance();
+    assert(srvc);
+
+    auto pUsmDataTransferBase = srvc->get_usm_data_transfer_base(__usm_ptr);
+
+    if (pUsmDataTransferBase != nullptr
+        && sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
+    {
+        srvc->refresh_usm_from_host_pointer(pUsmDataTransferBase, __host_ptr, __usm_ptr, __count);
+    }
 }
 
 template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>

@@ -120,6 +120,8 @@ struct test_uninitialized_copy
         auto value = IteratorValueType(42);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{-1});
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::uninitialized_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -142,6 +144,8 @@ struct test_uninitialized_copy_n
         auto value = IteratorValueType(42);
         ::std::fill_n(host_first1, n, value);
         ::std::fill_n(host_first2, n, IteratorValueType{0});
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::uninitialized_copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -164,6 +168,8 @@ struct test_uninitialized_move
         auto value = IteratorValueType(42);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{-1});
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::uninitialized_move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -186,6 +192,8 @@ struct test_uninitialized_move_n
         auto value = IteratorValueType(42);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{-1});
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::uninitialized_move_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -245,6 +253,7 @@ struct test_uninitialized_default_construct
         auto value = T1{2};
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::uninitialized_default_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                              first1 + (n / 3), first1 + (n / 2));
@@ -268,6 +277,7 @@ struct test_uninitialized_default_construct_n
         auto value = T1{2};
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::uninitialized_default_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1,
                                                n);
@@ -290,6 +300,7 @@ struct test_uninitialized_value_construct
         auto value = T1(2);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::uninitialized_value_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                            first1 + (n / 3), first1 + (n / 2));
@@ -312,6 +323,7 @@ struct test_uninitialized_value_construct_n
         auto value = T1(2);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::uninitialized_value_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
 #if _PSTL_SYCL_TEST_USM
@@ -333,6 +345,7 @@ struct test_destroy
         auto value = T1{2};
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::destroy(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec),
             first1 + (n / 3), first1 + (n / 2));
@@ -356,6 +369,7 @@ struct test_destroy_n
         auto value = T1{2};
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::destroy_n(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1, n);
         if(!::std::is_trivially_destructible<T1>::value)
@@ -452,6 +466,7 @@ struct test_for_each
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first1 + (n / 3), host_first1 + (n / 2), value - 1);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), Inc());
 #if _PSTL_SYCL_TEST_USM
@@ -476,6 +491,7 @@ struct test_for_each_n
         auto value = T1(6);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::for_each_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Inc());
 #if _PSTL_SYCL_TEST_USM
@@ -498,6 +514,9 @@ struct test_transform_unary
         auto host_first2 = get_host_pointer(first2);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, value + 1);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + n / 2, last1, first2 + n / 2, Flip(7));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -520,6 +539,7 @@ struct test_transform_binary
         auto value = T1(3);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first1, first2, Plus());
 #if _PSTL_SYCL_TEST_USM
@@ -540,6 +560,7 @@ struct test_replace
         auto value = T1(5);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::replace(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, value, T1(value + 1));
 #if _PSTL_SYCL_TEST_USM
@@ -560,6 +581,7 @@ struct test_replace_if
         auto value = T1(6);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::replace_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
                         oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
@@ -581,6 +603,7 @@ struct test_replace_copy
         auto value = T1(5);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::replace_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, value, T1(value + 1));
 #if _PSTL_SYCL_TEST_USM
@@ -601,6 +624,7 @@ struct test_replace_copy_if
         auto value = T1(6);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::replace_copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2,
                              oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
@@ -624,6 +648,8 @@ struct test_copy
         auto host_first2 = get_host_pointer(first2);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{0});
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -646,6 +672,8 @@ struct test_copy_n
         auto host_first2 = get_host_pointer(first2);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{0});
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -668,6 +696,8 @@ struct test_move
         auto host_first2 = get_host_pointer(first2);
         ::std::fill(host_first1, host_first1 + n, value);
         ::std::fill(host_first2, host_first2 + n, IteratorValueType{0});
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -699,6 +729,10 @@ struct test_adjacent_difference
 
         // test with custom functor
         ::std::fill(host_first2, host_first2 + n, blank_value);
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         ::std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, __f);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -714,6 +748,8 @@ struct test_adjacent_difference
 
         // test with default functor
         ::std::fill(host_first2, host_first2 + n, blank_value);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         ::std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -740,6 +776,7 @@ struct test_reduce
         auto value = T1(2);
         ::std::fill(host_first1, host_first1 + n, T1(0));
         ::std::fill(host_first1 + (n / 3), host_first1 + (n / 2), value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         // without initial value
         auto result1 = ::std::reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2));
@@ -768,6 +805,7 @@ struct test_transform_reduce_unary
         auto host_first1 = get_host_pointer(first1);
         auto value = T1(1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto result = ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, T1(42),
                                             Plus(), ::std::negate<T1>());
@@ -788,6 +826,7 @@ struct test_transform_reduce_binary
         auto host_first1 = get_host_pointer(first1);
         auto value = T1(1);
         ::std::fill(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto result =
             ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first1, T1(42));
@@ -811,6 +850,7 @@ struct test_min_element
         auto host_first1 = get_host_pointer(first);
         ::std::for_each(host_first1, host_first1 + n,
                       [&fill_value](IteratorValueType& it) { it = fill_value-- % 10 + 1; });
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         ::std::size_t min_dis = n;
         if (min_dis)
@@ -847,6 +887,8 @@ struct test_adjacent_find
 
         ValueType fill_value{0};
         ::std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = fill_value++ % 10; });
+
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // check with no adjacent equal elements
         Iterator result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
@@ -885,6 +927,8 @@ struct test_adjacent_find
             it = Iterator{first + /*max_idx*/ max_dis / 2};
             *(host_first1 + max_dis / 2) = *(host_first1 + max_dis / 2 - 1);
         }
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         expected = max_dis > 1 ? it - 1 : last;
 #if _PSTL_SYCL_TEST_USM
@@ -910,7 +954,11 @@ struct test_adjacent_find
         max_dis = n;
         host_first1 = get_host_pointer(first);
         if (max_dis > 1)
+        {
             *(host_first1 + 1) = *host_first1;
+            refresh_usm_from_host_pointer(host_first1 + 1, first + 1, 1);
+        }
+
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         expected = max_dis > 1 ? first : last;
 #if _PSTL_SYCL_TEST_USM
@@ -937,6 +985,7 @@ struct test_max_element
         auto host_first1 = get_host_pointer(first);
         ::std::for_each(host_first1, host_first1 + n,
                       [&fill_value](IteratorValueType& it) { it = fill_value-- % 10 + 1; });
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         ::std::size_t max_dis = n;
         if (max_dis)
@@ -973,6 +1022,7 @@ struct test_is_sorted_until
         ValueType fill_value{0};
         auto host_first1 = get_host_pointer(first);
         ::std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = ++fill_value; });
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // check sorted
         Iterator result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
@@ -990,7 +1040,11 @@ struct test_is_sorted_until
         ::std::size_t max_dis = n;
         host_first1 = get_host_pointer(first);
         if (max_dis > 1)
-            *(host_first1 + n - 1) = ValueType{0};
+        {
+            *(host_first1 + n - 1) = ValueType{ 0 };
+            refresh_usm_from_host_pointer(host_first1 + n - 1, first + n - 1, 1);
+        }
+
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, comp);
         expected = max_dis > 1 ? last - 1 : last;
 #if _PSTL_SYCL_TEST_USM
@@ -1011,7 +1065,9 @@ struct test_is_sorted_until
         {
             it = Iterator{first + /*max_idx*/ max_dis / 2};
             *(host_first1 + /*max_idx*/ max_dis / 2) = ValueType{0};
+            refresh_usm_from_host_pointer(host_first1 + /*max_idx*/ max_dis / 2, first + /*max_idx*/ max_dis / 2, 1);
         }
+
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last, comp);
         expected = it;
 #if _PSTL_SYCL_TEST_USM
@@ -1039,7 +1095,11 @@ struct test_is_sorted_until
         // check unsorted: the first element
         host_first1 = get_host_pointer(first);
         if (n > 1)
-            *(host_first1 + 1) = ValueType{0};
+        {
+            *(host_first1 + 1) = ValueType{ 0 };
+            refresh_usm_from_host_pointer(host_first1 + 1, first + 1, 1);
+        }
+
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 4>>(exec), first, last, comp);
         expected = n > 1 ? first + 1 : last;
 #if _PSTL_SYCL_TEST_USM
@@ -1065,6 +1125,7 @@ struct test_minmax_element
         auto host_first = get_host_pointer(first);
         IteratorValueType fill_value = IteratorValueType{0};
         ::std::for_each(host_first, host_first + n, [&fill_value](IteratorValueType& it) { it = fill_value++ % 10 + 1; });
+        refresh_usm_from_host_pointer(host_first, first, n);
 
         ::std::size_t dis = n;
         if (dis > 1)
@@ -1114,6 +1175,8 @@ struct test_is_sorted
         ValueType fill_value{0};
         ::std::for_each(host_first, host_first + n, [&fill_value](ValueType& value) { value = ++fill_value; });
 
+        refresh_usm_from_host_pointer(host_first, first, n);
+
         // check sorted
         bool result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, comp);
         bool expected_bool = true;
@@ -1129,7 +1192,11 @@ struct test_is_sorted
         // check unsorted: the last element
         ::std::size_t max_dis = n;
         if (max_dis > 1)
+        {
             *(host_first + n - 1) = ValueType{0};
+            refresh_usm_from_host_pointer(host_first, first, n);
+        }
+
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, comp);
         expected_bool = max_dis > 1 ? false : true;
 #if _PSTL_SYCL_TEST_USM
@@ -1148,7 +1215,9 @@ struct test_is_sorted
         {
             host_first = get_host_pointer(first);
             *(host_first + max_dis / 2) = ValueType{0};
+            refresh_usm_from_host_pointer(host_first, first, n);
         }
+
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last, comp);
         expected_bool = max_dis > 1 ? false : true;
 #if _PSTL_SYCL_TEST_USM
@@ -1178,7 +1247,9 @@ struct test_is_sorted
         {
             host_first = get_host_pointer(first);
             *(host_first + 1) = ValueType{0};
+            refresh_usm_from_host_pointer(host_first, first, n);
         }
+
         result_bool = ::std::is_sorted(make_new_policy<new_kernel_name<Policy, 4>>(exec), first, last, comp);
         expected_bool = max_dis > 1 ? false : true;
 #if _PSTL_SYCL_TEST_USM
@@ -1205,6 +1276,7 @@ struct test_count
         auto host_first1 = get_host_pointer(first);
         ValueType fill_value{0};
         ::std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = fill_value++ % 10; });
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // check when arbitrary should be counted
         ReturnType expected = (n - 1) / 10 + 1;
@@ -1231,6 +1303,8 @@ struct test_count
         // check when all should be counted
         host_first1 = get_host_pointer(first);
         ::std::fill(host_first1, host_first1 + n, ValueType{7});
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         expected = n;
         result = ::std::count(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, ValueType{7});
 #if _PSTL_SYCL_TEST_USM
@@ -1255,6 +1329,7 @@ struct test_count_if
         auto host_first1 = get_host_pointer(first);
         ValueType fill_value{0};
         ::std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = fill_value++ % 10; });
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // check when arbitrary should be counted
         ReturnType expected = (n - 1) / 10 + 1;
@@ -1308,6 +1383,8 @@ struct test_is_partitioned
         auto host_first1 = get_host_pointer(first);
         ValueType fill_value{0};
         ::std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = ++fill_value; });
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         // check sorted
         auto less_than = [](const ValueType& value) -> bool { return value < 10; };
         bool result_bool = ::std::is_partitioned(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, less_than);
@@ -1330,6 +1407,7 @@ struct test_is_partitioned
             auto host_access = get_host_access(first);
             host_first1 = get_host_pointer(host_access);
             ::std::partition(host_first1, host_first1 + n, is_odd);
+            refresh_usm_from_host_pointer(host_access, first, n);
         }
         result_bool = ::std::is_partitioned(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last, is_odd);
         expected_bool = ::std::is_partitioned(host_first1, host_first1 + n, is_odd);
@@ -1349,6 +1427,7 @@ struct test_any_all_none_of
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
         ::std::iota(host_first1, host_first1 + n, T1(0));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         // empty sequence case
         if (n == 1)
@@ -1421,6 +1500,9 @@ struct test_equal
         ::std::fill(host_first2, host_first2 + n, T{0});
         ::std::fill(host_first2 + new_start, host_first2 + new_end, value);
 
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         auto expected  = new_end - new_start > 0;
         auto result =
             ::std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + new_start, first1 + new_end, first2 + new_start);
@@ -1446,6 +1528,8 @@ struct test_find_if
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
         ::std::iota(host_first1, host_first1 + n, T1(0));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+
         // empty sequence case
         if (n == 1)
         {
@@ -1503,11 +1587,13 @@ struct test_find_first_of
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
         ::std::fill(host_first1, host_first1 + n, T1(0));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         if (n < 2)
         {
             {
                 ::std::iota(host_first2, host_first2 + n, T1(5));
+                refresh_usm_from_host_pointer(host_first2, first2, n);
 
                 auto res =
                     ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, first1, first2, last2);
@@ -1532,6 +1618,7 @@ struct test_find_first_of
             {
                 host_first2 = get_host_pointer(first2);
                 ::std::iota(host_first2, host_first2 + n, T1(5));
+                refresh_usm_from_host_pointer(host_first2, first2, n);
 
                 auto res =
                     ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2, last2);
@@ -1564,6 +1651,7 @@ struct test_find_first_of
             {
                 host_first1 = get_host_pointer(first1);
                 ::std::iota(host_first1 + pos1, host_first1 + pos1 + num, T1(6));
+                refresh_usm_from_host_pointer(host_first1, first1, n);
 
                 auto res =
                     ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1, first2, last2);
@@ -1587,6 +1675,9 @@ struct test_search
         auto host_first2 = get_host_pointer(first2);
         ::std::iota(host_first1, host_first1 + n, T1(5));
         ::std::iota(host_first2, host_first2 + n, T1(0));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         // empty sequence case
         if (n == 1)
         {
@@ -1641,6 +1732,7 @@ struct test_search_n
         typedef typename ::std::iterator_traits<Iterator>::value_type T;
         auto host_first1 = get_host_pointer(first);
         ::std::iota(host_first1, host_first1 + n, T(5));
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // Search for sequence at the end
         {
@@ -1659,6 +1751,8 @@ struct test_search_n
             auto end = (n > 3) ? (n / 3 * 2) : n;
             host_first1 = get_host_pointer(first);
             ::std::fill(host_first1 + start, host_first1 + end, T(22));
+            refresh_usm_from_host_pointer(host_first1, first, n);
+
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, end - start, T(22));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
@@ -1678,6 +1772,8 @@ struct test_search_n
             auto end = n / 3;
             host_first1 = get_host_pointer(first);
             ::std::fill(host_first1, host_first1 + end, T(33));
+            refresh_usm_from_host_pointer(host_first1, first, n);
+
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last, end, T(33));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
@@ -1688,6 +1784,8 @@ struct test_search_n
         {
             host_first1 = get_host_pointer(first);
             ::std::fill(host_first1, host_first1 + n, T(44));
+            refresh_usm_from_host_pointer(host_first1, first, n);
+
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 4>>(exec), first, last, n, T(44));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
@@ -1729,6 +1827,7 @@ struct test_search_n
             host_first1 = get_host_pointer(first);
             ::std::fill(host_first1 + start1, host_first1 + end1, T(66));
             ::std::fill(host_first1 + start2, host_first1 + end2, T(66));
+            refresh_usm_from_host_pointer(host_first1, first, n);
 
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 8>>(exec), first, last,
                                      ::std::min(end1 - start1, end2 - start2), T(66));
@@ -1744,6 +1843,8 @@ struct test_search_n
             host_first1 = get_host_pointer(first);
             // Should fail when searching for sequence which is placed before our first iterator.
             ::std::fill(host_first1, host_first1 + seq_len, T(77));
+            refresh_usm_from_host_pointer(host_first1, first, n);
+
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 9>>(exec), first + 1, last, seq_len, T(77));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
@@ -1764,6 +1865,9 @@ struct test_mismatch
         auto host_first2 = get_host_pointer(first2);
         ::std::iota(host_first1, host_first1 + n, T1(5));
         ::std::iota(host_first2, host_first2 + n, T1(0));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         // empty sequence case
         if (n == 1)
         {
@@ -1802,6 +1906,7 @@ struct test_transform_inclusive_scan
         auto value = T1(333);
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, T1(1));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto res1 = ::std::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2,
                                                   ::std::plus<T1>(), [](T1 x) { return x * 2; }, value);
@@ -1851,6 +1956,7 @@ struct test_transform_exclusive_scan
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
         ::std::fill(host_first1, host_first1 + n, T1(1));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto res1 =
             ::std::transform_exclusive_scan(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2,
@@ -1883,6 +1989,7 @@ struct test_copy_if
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
         ::std::iota(host_first1, host_first1 + n, T1(222));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto res1 =
             ::std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, [](T1 x) { return x > -1; });
@@ -1928,6 +2035,8 @@ struct test_remove
         typedef typename ::std::iterator_traits<Iterator>::value_type T1;
         auto host_first1 = get_host_pointer(first);
         ::std::iota(host_first1, host_first1 + n, T1(222));
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         auto pos = (last - first) / 2;
         auto res1 = ::std::remove(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, T1(222 + pos));
 #if _PSTL_SYCL_TEST_USM
@@ -1958,6 +2067,8 @@ struct test_remove_if
         typedef typename ::std::iterator_traits<Iterator>::value_type T1;
         auto host_first1 = get_host_pointer(first);
         ::std::iota(host_first1, host_first1 + n, T1(222));
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         auto pos = (last - first) / 2;
         auto res1 = ::std::remove_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last,
                                    [=](T1 x) { return x == T1(222 + pos); });
@@ -1995,8 +2106,10 @@ struct test_unique_copy
         // init
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
-
         ::std::fill(host_first2, host_first2 + n, Iterator1ValueType{-1});
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         // invoke
         auto result_first = first2;
@@ -2045,6 +2158,8 @@ struct test_unique
         // init
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](IteratorValueType& value) { value = (index++ + 4) / 4; });
+
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // invoke
         auto result_last = ::std::unique(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, f);
@@ -2097,6 +2212,10 @@ struct test_partition_copy
         ::std::iota(host_first1, host_first1 + n, Iterator1ValueType{0});
         ::std::fill(host_first2, host_first2 + n, Iterator2ValueType{-1});
         ::std::fill(host_first3, host_first3 + n, Iterator3ValueType{-2});
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+        refresh_usm_from_host_pointer(host_first3, first3, n);
 
         // invoke
         auto res =
@@ -2167,6 +2286,7 @@ struct test_partition
 
         // init
         ::std::iota(host_first1, host_first1 + n, IteratorValueType{0});
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // invoke partition
         auto res = ::std::partition(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, unary_op);
@@ -2179,6 +2299,8 @@ struct test_partition
                     "wrong effect from partition");
         // init
         ::std::iota(host_first1, host_first1 + n, IteratorValueType{0});
+
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         // invoke stable_partition
         res = ::std::stable_partition(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, unary_op);
@@ -2205,8 +2327,9 @@ struct test_is_heap_until
         using ValueType = typename ::std::iterator_traits<Iterator>::value_type;
         auto host_first1 = get_host_pointer(first);
         ::std::iota(host_first1, host_first1 + n, ValueType(0));
-
         ::std::make_heap(host_first1, host_first1);
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         auto actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -2216,8 +2339,11 @@ struct test_is_heap_until
 
         if (n <= 5)
             return;
+
         host_first1 = get_host_pointer(first);
         ::std::make_heap(host_first1, host_first1 + n / 2);
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -2226,6 +2352,8 @@ struct test_is_heap_until
 
         host_first1 = get_host_pointer(first);
         ::std::make_heap(host_first1, host_first1 + n);
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -2243,6 +2371,8 @@ struct test_is_heap
         using ValueType = typename ::std::iterator_traits<Iterator>::value_type;
         auto host_first1 = get_host_pointer(first);
         ::std::iota(host_first1, host_first1 + n, ValueType(0));
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         {
             ::std::make_heap(host_first1, host_first1);
 
@@ -2267,6 +2397,7 @@ struct test_is_heap
             host_first1 = get_host_pointer(first);
             auto end = first + n / 2;
             ::std::make_heap(host_first1, host_first1 + n / 2);
+            refresh_usm_from_host_pointer(host_first1, first, n);
 
             auto actual = ::std::is_heap(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
@@ -2284,6 +2415,8 @@ struct test_is_heap
         {
             host_first1 = get_host_pointer(first);
             ::std::make_heap(host_first1, host_first1 + n);
+            refresh_usm_from_host_pointer(host_first1, first, n);
+
             auto actual = ::std::is_heap(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
@@ -2307,6 +2440,7 @@ struct test_inplace_merge
         ::std::iota(exp.begin(), exp.end(), value);
 
         auto middle = ::std::stable_partition(host_first1, host_first1 + n, [](const T& x) { return x % 2; });
+        refresh_usm_from_host_pointer(host_first1, first, n);
 
         ::std::inplace_merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + (middle - host_first1), last);
 #if _PSTL_SYCL_TEST_USM
@@ -2342,6 +2476,9 @@ struct test_merge
         ::std::iota(host_first1, host_first1 + n, value);
         ::std::iota(host_first2, host_first2 + n, T2(value));
         ::std::vector<T3> exp(2 * n);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         auto res1 = ::std::merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, first2 + x, first3);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -2372,6 +2509,7 @@ struct test_sort
         auto value = T1(333);
         auto host_first1 = get_host_pointer(first1);
         ::std::iota(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1);
 #if _PSTL_SYCL_TEST_USM
@@ -2419,6 +2557,7 @@ struct test_stable_sort
         auto value = T1(333);
         auto host_first1 = get_host_pointer(first1);
         ::std::iota(host_first1, host_first1 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1);
 #if _PSTL_SYCL_TEST_USM
@@ -2472,6 +2611,7 @@ struct test_partial_sort
         auto init = value;
         auto host_first1 = get_host_pointer(first1);
         ::std::generate(host_first1, host_first1 + n, [&init]() { return init--; });
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto end_idx = ((n < 3) ? 1 : n / 3);
         // Sort a subrange
@@ -2520,6 +2660,7 @@ struct test_partial_sort_copy
         auto init = value;
         auto host_first1 = get_host_pointer(first1);
         ::std::generate(host_first1, host_first1 + n, [&init]() { return init--; });
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto end_idx = ((n < 3) ? 1 : n / 3);
         // Sort a subrange
@@ -2576,10 +2717,12 @@ struct test_find_end
         auto host_first2 = get_host_pointer(first2);
         // Reset after previous run
         ::std::fill(host_first1, host_first1 + n, T1(0));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         if (n <= 2)
         {
             ::std::iota(host_first2, host_first2 + n, T2(10));
+            refresh_usm_from_host_pointer(host_first2, first2, n);
 
             // Empty subsequence
             auto res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, first2);
@@ -2608,6 +2751,8 @@ struct test_find_end
             // Whole sequence is matched
             host_first1 = get_host_pointer(first1);
             ::std::iota(host_first1, host_first1 + n, T1(10));
+            refresh_usm_from_host_pointer(host_first1, first1, n);
+
             res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
@@ -2641,8 +2786,9 @@ struct test_find_end
                 host_first1 = get_host_pointer(first1);
                 auto start = host_first1 + 2 * n / 5;
                 auto end = host_first1 + 3 * n / 5;
-
                 ::std::iota(start, end, T1(20));
+                refresh_usm_from_host_pointer(host_first1, first1, n);
+
                 auto res =
                     ::std::find_end(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1, first2, first2 + n / 5);
 #if _PSTL_SYCL_TEST_USM
@@ -2656,8 +2802,9 @@ struct test_find_end
                 host_first1 = get_host_pointer(first1);
                 auto start = host_first1 + 4 * n / 5;
                 auto end = host_first1 + n;
-
                 ::std::iota(start, end, T1(20));
+                refresh_usm_from_host_pointer(host_first1, first1, n);
+
                 auto res =
                     ::std::find_end(make_new_policy<new_kernel_name<Policy, 5>>(exec), first1, last1, first2, first2 + n / 5);
 #if _PSTL_SYCL_TEST_USM
@@ -2685,6 +2832,9 @@ struct test_lexicographical_compare
         ::std::for_each(host_first1, host_first1 + n, [&fill_value1](ValueType& value) { value = fill_value1++ % 10; });
         ValueType fill_value2{0};
         ::std::for_each(host_first2, host_first2 + n, [&fill_value2](ValueType& value) { value = fill_value2++ % 10; });
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         auto comp = [](ValueType const& first, ValueType const& second) { return first < second; };
 
@@ -2720,7 +2870,10 @@ struct test_lexicographical_compare
 
         host_first2 = get_host_pointer(first2);
         if (n > 1)
+        {
             *(host_first2 + n - 2) = 222;
+            refresh_usm_from_host_pointer(host_first2 + n - 2, first2 + n - 2, 1);
+        }
 
         // CHECK 2.1: S1 < S2 (PRE-LAST ELEMENT) && len(S1) == len(S2)
         is_less_res = ::std::lexicographical_compare(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1, first2,
@@ -2747,7 +2900,10 @@ struct test_lexicographical_compare
 
         host_first1 = get_host_pointer(first1);
         if (n > 1)
+        {
             *(host_first1 + n - 2) = 333;
+            refresh_usm_from_host_pointer(host_first1 + n - 2, first1 + n - 2, 1);
+        }
 
         // CHECK 3.1: S1 > S2 (PRE-LAST ELEMENT) && len(S1) == len(S2)
         is_less_res = ::std::lexicographical_compare(make_new_policy<new_kernel_name<Policy, 5>>(exec), first1, last1, first2,
@@ -2773,6 +2929,7 @@ struct test_lexicographical_compare
                     "wrong effect from lex_compare Test 3.2: S1 > S2 (PRE-LAST) && len(S1) < len(S2)");
         host_first2 = get_host_pointer(first2);
         *host_first2 = 444;
+        refresh_usm_from_host_pointer(host_first2, first2, 1);
 
         // CHECK 4.1: S1 < S2 (FIRST ELEMENT) && len(S1) == len(S2)
         is_less_res = ::std::lexicographical_compare(make_new_policy<new_kernel_name<Policy, 7>>(exec), first1, last1, first2,
@@ -2836,6 +2993,9 @@ struct test_swap_ranges
         ::std::iota(host_first1, host_first1 + n, value_type(0));
         ::std::iota(host_first2, host_first2 + n, value_type(n));
 
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         Iterator2 actual_return = ::std::swap_ranges(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 
 #if _PSTL_SYCL_TEST_USM
@@ -2875,6 +3035,9 @@ struct test_nth_element
         auto value2 = T2(0);
         ::std::for_each(host_first1, host_first1 + n, [&value1](T1& val) { val = (value1++ % 10) + 1; });
         ::std::for_each(host_first2, host_first2 + n, [&value2](T2& val) { val = (value2++ % 10) + 1; });
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         auto middle1 = first1 + n / 2;
         // invoke
@@ -3004,7 +3167,7 @@ struct test_includes
 {
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size /* n */)
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
@@ -3013,6 +3176,9 @@ struct test_includes
         last2 = first2 + nb;
         ::std::copy(a, a + na, host_first1);
         ::std::copy(b, b + nb, host_first2);
+        refresh_usm_from_host_pointer(host_first1, first1, na);
+        refresh_usm_from_host_pointer(host_first2, first2, nb);
+
         auto result = ::std::includes(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -3021,6 +3187,8 @@ struct test_includes
 
         host_first2 = get_host_pointer(first2);
         ::std::copy(c, c + nc, host_first2);
+        refresh_usm_from_host_pointer(host_first2, first2, nc);
+
         result = ::std::includes(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
@@ -3035,7 +3203,7 @@ struct test_set_intersection
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3,
-               Iterator3 last3, Size /* n */)
+               Iterator3 last3, Size n)
     {
         auto host_first1 = get_host_pointer(first1);
         auto host_first2 = get_host_pointer(first2);
@@ -3044,6 +3212,8 @@ struct test_set_intersection
         last2 = first2 + nb;
         ::std::copy(a, a + na, host_first1);
         ::std::copy(b, b + nb, host_first2);
+        refresh_usm_from_host_pointer(host_first1, first1, na);
+        refresh_usm_from_host_pointer(host_first2, first2, nb);
 
         last3 = ::std::set_intersection(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2,
                                       first3);
@@ -3071,6 +3241,9 @@ struct test_set_intersection
             ::std::copy(a, a + na, host_first1);
             ::std::copy(d, d + nd, host_first2);
 
+            refresh_usm_from_host_pointer(host_first1, first1, na);
+            refresh_usm_from_host_pointer(host_first2, first2, nb);
+
             last3 = ::std::set_intersection(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2,
                                           last2, first3);
 #if _PSTL_SYCL_TEST_USM
@@ -3096,6 +3269,8 @@ struct test_set_difference
         last2 = first2 + nb;
         ::std::copy(a, a + na, host_first1);
         ::std::copy(b, b + nb, host_first2);
+        refresh_usm_from_host_pointer(host_first1, first1, na);
+        refresh_usm_from_host_pointer(host_first2, first2, nb);
 
         last3 = ::std::set_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2, first3);
 #if _PSTL_SYCL_TEST_USM
@@ -3122,6 +3297,8 @@ struct test_set_union
         last2 = first2 + nb;
         ::std::copy(a, a + na, host_first1);
         ::std::copy(b, b + nb, host_first2);
+        refresh_usm_from_host_pointer(host_first1, first1, na);
+        refresh_usm_from_host_pointer(host_first2, first2, nb);
 
         last3 = ::std::set_union(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2, first3);
 #if _PSTL_SYCL_TEST_USM
@@ -3148,6 +3325,8 @@ struct test_set_symmetric_difference
         last2 = first2 + nb;
         ::std::copy(a, a + na, host_first1);
         ::std::copy(b, b + nb, host_first2);
+        refresh_usm_from_host_pointer(host_first1, first1, na);
+        refresh_usm_from_host_pointer(host_first2, first2, nb);
 
         last3 = ::std::set_symmetric_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
                                               first2, last2, first3);
