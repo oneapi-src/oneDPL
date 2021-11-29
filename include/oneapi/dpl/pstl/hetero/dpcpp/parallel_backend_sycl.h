@@ -15,9 +15,8 @@
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 
-// The definition of _ONEDPL_parallel_backend_sycl_H means the inclusion of this
-// file and therefore the parallel SYCL* backend. Be careful when changing the value
-// of this macro. This can change the behavior of the product.
+// This header guard is used to check inclusion of DPC++ backend.
+// Changing this macro may result in broken tests.
 #ifndef _ONEDPL_parallel_backend_sycl_H
 #define _ONEDPL_parallel_backend_sycl_H
 

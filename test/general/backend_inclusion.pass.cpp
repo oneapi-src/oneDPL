@@ -39,13 +39,13 @@
 
 #if !_ONEDPL_BACKEND_SYCL
 #   ifdef _ONEDPL_parallel_backend_sycl_H
-#       error The parallel SYCL* backend is used while it should not (_ONEDPL_BACKEND_SYCL==0)
+#       error The parallel DPC++ backend is used while it should not (_ONEDPL_BACKEND_SYCL==0)
 #   endif
 #endif
 
 #if !_ONEDPL_FPGA_DEVICE
 #   ifdef _ONEDPL_parallel_backend_sycl_fpga_H
-#       error The FPGA device is used while it should not (_ONEDPL_FPGA_DEVICE==0)
+#       error The DPC++ backend for the FPGA is used while it should not, because FPGA device isn't used (_ONEDPL_FPGA_DEVICE==0)
 #   endif
 #endif
 
