@@ -39,9 +39,11 @@ public:
 
     virtual sycl::queue& get_queue() const = 0;
 
+    virtual void* get_usm_buf() const = 0;
+
     virtual size_t get_usm_buf_size() const = 0;
 
-    virtual void* get_usm_buf() const = 0;
+    virtual size_t get_usm_buf_count() const = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -164,11 +166,6 @@ class usm_data_transfer : public usm_data_transfer_base
         return __count > 0 && __ptr <= __usm_ptr && __usm_ptr < (__ptr + __count);
     }
 
-    virtual size_t get_usm_buf_size() const override
-    {
-        return __count * sizeof(_ValueType);
-    }
-
     virtual sycl::queue& get_queue() const override
     {
         return __queue;
@@ -177,6 +174,16 @@ class usm_data_transfer : public usm_data_transfer_base
     virtual void* get_usm_buf() const override
     {
         return __ptr;
+    }
+
+    virtual size_t get_usm_buf_size() const override
+    {
+        return __count * sizeof(_ValueType);
+    }
+
+    virtual size_t get_usm_buf_count() const override
+    {
+        return __count;
     }
 
 private:
@@ -288,6 +295,12 @@ namespace
     {
         return reinterpret_cast<::std::byte*>(ptr);
     }
+
+    template <typename T, typename Data>
+    T* get_t_ptr(Data* pData)
+    {
+        return reinterpret_cast<T*>(pData);
+    }
 };
 
 //----------------------------------------------------------------------------//
@@ -387,13 +400,32 @@ usm_data_transfer_service::get_host_pointer(
         const auto buf_size = pUsmDataTransferBase->get_usm_buf_size();
         assert(buf_size > 0);
 
-        const auto host_mem = p_dt_info->alloc_host_mem(buf_size);
-        assert(host_mem != nullptr);
+        void* host_mem = nullptr;
+        if (p_dt_info->__host_mem.empty())
+        {
+            host_mem = p_dt_info->alloc_host_mem(buf_size);
+            assert(host_mem != nullptr);
+        }
+        else
+        {
 
+            const auto& hmInfo = p_dt_info->__host_mem.front();
+            assert(buf_size == hmInfo.__host_buf_size);
+
+            host_mem = hmInfo.__host_buf;
+        }
+
+        // Copy data from USM-allocated memory to host memory
+        sycl::queue& queue = pUsmDataTransferBase->get_queue();
+        const auto count = pUsmDataTransferBase->get_usm_buf_count();
+        queue.copy(get_t_ptr<T>(pUsmDataTransferBase->get_usm_buf()), get_t_ptr<T>(host_mem), count);
+        queue.wait();
+
+        // Calculate and return pointer to host memory buffer
         const auto usm_buf_offset = get_byte_ptr(data) - get_byte_ptr(pUsmDataTransferBase->get_usm_buf());
         assert(usm_buf_offset >= 0);
 
-        return reinterpret_cast<T*>(get_byte_ptr(host_mem) + usm_buf_offset);
+        return get_t_ptr<T>(get_byte_ptr(host_mem) + usm_buf_offset);
     }
 
     assert(!"Invalid value of pUsmDataTransferBase param");
@@ -420,7 +452,7 @@ usm_data_transfer_service::refresh_usm_from_host_pointer(
 
             sycl::queue& queue = pUsmDataTransferBase->get_queue();
 
-            queue.copy(__host_ptr, reinterpret_cast<T*>(get_byte_ptr(__usm_ptr) + host_offset), __count);
+            queue.copy(__host_ptr, get_t_ptr<T>(get_byte_ptr(__usm_ptr) /*+ host_offset*/), __count);
             queue.wait();
         }
         else

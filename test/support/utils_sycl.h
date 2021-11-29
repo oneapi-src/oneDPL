@@ -374,7 +374,7 @@ template <typename T>
 void
 refresh_usm_from_host_pointer(T* __host_ptr, T* __usm_ptr, ::std::size_t __count)
 {
-    if (__host_ptr == __usm_ptr)
+    if (__host_ptr == __usm_ptr || __count == 0)
         return;
 
     auto srvc = usm_data_transfer_service::instance();
