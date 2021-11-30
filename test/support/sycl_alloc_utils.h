@@ -58,7 +58,7 @@ public:
 //    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, count); 
 // 2. get a USM pointer by usm_data_transfer::get_data() and passed one into a parallel algorithm with dpc++ policy.
 // 3. Retrieve data back (in case of device allocation type) to the host for further checking result.
-//    alloc.retrieve_data(dest_host);
+//    dt_helper.retrieve_data(dest_host);
 //
 // Count of elements may be zero. In this case no USM memory will be allocated.
 // Also retrieve_data function will do nothing in this case.
