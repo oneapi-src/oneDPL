@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- macros.pass.cpp --------------------------------------------------===//
+//===-- backend_inclusion.pass.cpp ----------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -45,7 +45,7 @@
 
 #if !_ONEDPL_FPGA_DEVICE
 #   ifdef _ONEDPL_parallel_backend_sycl_fpga_H
-#       error The DPC++ backend for the FPGA is used while it should not, because FPGA device isn't used (_ONEDPL_FPGA_DEVICE==0)
+#       error The DPC++ backend for the FPGA is used while it should not (_ONEDPL_FPGA_DEVICE==0)
 #   endif
 #endif
 
