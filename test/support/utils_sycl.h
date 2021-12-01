@@ -355,13 +355,16 @@ refresh_usm_from_host_pointer(T* __host_ptr, T* __usm_ptr, TSize __count)
     if (__host_ptr == __usm_ptr || __count == 0)
         return;
 
+    assert(__host_ptr);
+    assert(__usm_ptr);
+
     auto srvc = usm_data_transfer_service::instance();
     assert(srvc);
 
     auto pUsmDataTransferBase = srvc->get_usm_data_transfer_base(__usm_ptr);
+    assert(pUsmDataTransferBase);
 
-    if (pUsmDataTransferBase != nullptr
-        && sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
+    if (sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
     {
         srvc->refresh_usm_from_host_pointer(pUsmDataTransferBase, __host_ptr, __usm_ptr, __count);
     }
