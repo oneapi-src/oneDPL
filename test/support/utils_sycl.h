@@ -399,7 +399,7 @@ template <typename T>
 T*
 get_host_access(T* data)
 {
-    return data;
+    return get_host_pointer(data);
 }
 } /* namespace TestUtils */
 #endif
