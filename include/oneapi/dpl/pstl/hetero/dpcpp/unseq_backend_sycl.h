@@ -549,12 +549,7 @@ struct __global_scan_functor
 };
 
 template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
-          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType
-#if _USE_GROUP_ALGOS
-          ,
-          bool _HasKnownIdentity = __has_known_identity<_BinaryOperation, typename _InitType::__value_type>::value
-#endif
-          >
+          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
 struct __scan
 {
     using _Tp = typename _InitType::__value_type;
@@ -571,7 +566,6 @@ struct __scan
                     _ItersPerWG __iters_per_wg,
                     _InitType __init, std::false_type /*has_known_identity*/) const
     {
-        using _Tp = typename _InitType::__value_type;
         ::std::size_t __group_id = __item.get_group(0);
         ::std::size_t __global_id = __item.get_global_id(0);
         ::std::size_t __local_id = __item.get_local_id(0);
