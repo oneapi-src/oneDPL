@@ -154,8 +154,8 @@ test_with_usm()
     auto data2 = dt_helper2.get_data();
 
     // compute reference values
-    const uint64_t ref1 = std::inner_product(data2, data2 + n, data1, 0);
-    const uint64_t ref2 = std::accumulate(data1, data1 + n_small, 0);
+    const uint64_t ref1 = std::inner_product(data2_on_host, data2_on_host + n, data1_on_host, 0);
+    const uint64_t ref2 = std::accumulate(data1_on_host, data1_on_host + n_small, 0);
 
     // call first algorithm
     auto new_policy1 =
