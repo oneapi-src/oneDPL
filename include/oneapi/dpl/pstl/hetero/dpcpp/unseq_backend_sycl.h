@@ -55,6 +55,12 @@ using __has_known_identity =
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::plus<_Tp>>>>;
 #    endif
 
+#else
+
+using __has_known_identity = std::false_type;
+
+#endif
+
 template <typename BinaryOp, typename _Tp>
 inline constexpr _Tp __known_identity =
 #    if __LIBSYCL_VERSION >= 50200
@@ -62,8 +68,6 @@ inline constexpr _Tp __known_identity =
 #    else
     0; //for plus only
 #    endif
-
-#endif
 
 // a way to get value_type from both accessors and USM that is needed for transform_init
 template <typename _Unknown>
@@ -173,19 +177,27 @@ struct transform_init
 };
 
 // Reduce on local memory
-template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp
-#if _USE_GROUP_ALGOS
-          ,
-          bool _HasKnownIdentity = __has_known_identity<_BinaryOperation1, _Tp>::value
-#endif
-          >
+template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
 struct reduce
 {
     _BinaryOperation1 __bin_op1;
 
+    // Reduce on local memory with subgroups
     template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal>
-    _Tp
-    operator()(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem) const
+    _Tp reduce_impl(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem, std::true_type /*has_known_identity*/) const
+    {
+        auto __local_id = __item_id.get_local_id(0);
+        if (__global_idx >= __n)
+        {
+            // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
+            // for each work-item in sub-group
+            __local_mem[__local_id] = __known_identity<_BinaryOperation1, _Tp>;
+        }
+        return __dpl_sycl::__reduce_over_group(__item_id.get_group(), __local_mem[__local_id], __bin_op1);
+    }
+
+    template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal>
+    _Tp reduce_impl(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem, std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __group_size = __item_id.get_local_range().size();
@@ -203,6 +215,13 @@ struct reduce
             __k *= 2;
         } while (__k < __group_size);
         return __local_mem[__local_idx];
+    }
+
+    template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal>
+    _Tp
+    operator()(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem) const
+    {
+        return reduce_impl(__item_id, __global_idx, __n, __local_mem, __has_known_identity<_BinaryOperation1, _Tp>{});
     }
 };
 
@@ -538,6 +557,7 @@ template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperat
           >
 struct __scan
 {
+    using _Tp = typename _InitType::__value_type;
     _BinaryOperation __bin_op;
     _UnaryOp __unary_op;
     _WgAssigner __wg_assigner;
@@ -546,10 +566,10 @@ struct __scan
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
               typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
-    void operator()(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
+    void scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
                     _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
                     _ItersPerWG __iters_per_wg,
-                    _InitType __init = __scan_no_init<typename _InitType::__value_type>{}) const
+                    _InitType __init, std::false_type /*has_known_identity*/) const
     {
         using _Tp = typename _InitType::__value_type;
         ::std::size_t __group_id = __item.get_group(0);
@@ -630,56 +650,13 @@ struct __scan
         if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
             __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
     }
-};
-
-#if _USE_GROUP_ALGOS
-
-template <typename _Tp, typename = typename ::std::enable_if<::std::is_arithmetic<_Tp>::value, void>::type>
-using __enable_if_arithmetic = _Tp;
-
-template <typename _InitType,
-          typename =
-              typename ::std::enable_if<::std::is_arithmetic<typename _InitType::__value_type>::value, void>::type>
-using __enable_if_arithmetic_init_type = _InitType;
-
-// Reduce on local memory with subgroups
-template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
-struct reduce<_ExecutionPolicy, _BinaryOperation1, _Tp, true>
-{
-    _BinaryOperation1 __bin_op1;
-
-    template <typename _NDItem, typename _GlobalIdx, typename _GlobalSize, typename _LocalAcc>
-    _Tp
-    operator()(_NDItem __item, _GlobalIdx __global_id, _GlobalSize __n, _LocalAcc __local_mem) const
-    {
-        auto __local_id = __item.get_local_id(0);
-        if (__global_id >= __n)
-        {
-            // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
-            // for each work-item in sub-group
-            __local_mem[__local_id] = __known_identity<_BinaryOperation1, _Tp>;
-        }
-        return __dpl_sycl::__reduce_over_group(__item.get_group(), __local_mem[__local_id], __bin_op1);
-    }
-};
-
-template <typename _Inclusive, typename _ExecutionPolicy, typename _BinaryOperation, typename _UnaryOp,
-          typename _WgAssigner, typename _GlobalAssigner, typename _DataAccessor, typename _InitType>
-struct __scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryOp, _WgAssigner, _GlobalAssigner, _DataAccessor,
-              _InitType, true>
-{
-    using _Tp = typename _InitType::__value_type;
-    _BinaryOperation __bin_op;
-    _UnaryOp __unary_op;
-    _WgAssigner __wg_assigner;
-    _GlobalAssigner __gl_assigner;
-    _DataAccessor __data_acc;
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
               typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
-    void operator()(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
-                    const _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
-                    _ItersPerWG __iters_per_wg, _InitType __init = __scan_no_init<_Tp>{}) const
+    void scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
+                    _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
+                    _ItersPerWG __iters_per_wg,
+                    _InitType __init, std::true_type /*has_known_identity*/) const
     {
         auto __group_id = __item.get_group(0);
         auto __global_id = __item.get_global_id(0);
@@ -725,9 +702,18 @@ struct __scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryOp, _WgAssig
         if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
             __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
     }
-};
 
-#endif
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
+              typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
+    void operator()(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
+                    _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
+                    _ItersPerWG __iters_per_wg,
+                    _InitType __init = __scan_no_init<typename _InitType::__value_type>{}) const
+    {
+        scan_impl(__item, __n, __local_acc, __acc, __out_acc, __wg_sums_acc, __size_per_wg, __wgroup_size,
+                  __iters_per_wg, __init, __has_known_identity<_BinaryOperation, _Tp>{});
+    }
+};
 
 //------------------------------------------------------------------------
 // __brick_includes
