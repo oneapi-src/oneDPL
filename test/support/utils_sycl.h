@@ -382,6 +382,15 @@ refresh_usm_from_host_pointer(T*, sycl::accessor<T, Dim, AccMode, AccTarget, Pla
     // No actions required here
 }
 
+template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
+          sycl::access::placeholder Placeholder,
+          typename TIterator,
+          typename TSize>
+void
+refresh_usm_from_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>&, TIterator&, TSize)
+{
+    // No actions required here
+}
 
 template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
 auto
