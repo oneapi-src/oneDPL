@@ -72,6 +72,11 @@ struct test_upper_bound
             auto host_result = get_host_access(result_first);
 
             initialize_data(host_first, host_val_first, host_result, n);
+
+            // Accessor, iterator, n
+            refresh_usm_from_host_pointer(host_first, first, n);
+            refresh_usm_from_host_pointer(host_val_first, value_first, n);
+            refresh_usm_from_host_pointer(host_result, result_first, n);
         }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
@@ -80,7 +85,11 @@ struct test_upper_bound
         {
             auto host_val_first = get_host_access(value_first);
             auto host_result = get_host_access(result_first);
+
             check_and_clean(host_result, host_val_first, n);
+
+            refresh_usm_from_host_pointer(host_result, result_first, n);
+            refresh_usm_from_host_pointer(host_val_first, value_first, n);
         }
 
         // call algorithm with comparator
@@ -91,7 +100,11 @@ struct test_upper_bound
         {
             auto host_val_first = get_host_access(value_first);
             auto host_result = get_host_access(result_first);
+
             check_and_clean(host_result, host_val_first, n);
+
+            refresh_usm_from_host_pointer(host_result, result_first, n);
+            refresh_usm_from_host_pointer(host_val_first, value_first, n);
         }
     }
 #endif
