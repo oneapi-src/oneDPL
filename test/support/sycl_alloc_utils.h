@@ -433,7 +433,7 @@ usm_data_transfer_service::get_host_pointer(
     return nullptr;
 }
 
-////----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 template <typename T>
 void
 usm_data_transfer_service::refresh_usm_from_host_pointer(
@@ -444,26 +444,9 @@ usm_data_transfer_service::refresh_usm_from_host_pointer(
     assert(__count > 0);
     assert(pUsmDataTransferBase != nullptr);
 
-    if (dt_info* p_dt_info = find_dt_info(pUsmDataTransferBase))
-    {
-        if (const host_mem_info* hm_info = p_dt_info->find_host_mem_info(__host_ptr))
-        {
-            const ::std::size_t host_offset = get_byte_ptr(__host_ptr) - get_byte_ptr(hm_info->__host_buf);
-
-            sycl::queue& queue = pUsmDataTransferBase->get_queue();
-
-            queue.copy(__host_ptr, get_t_ptr<T>(get_byte_ptr(__usm_ptr) /*+ host_offset*/), __count);
-            queue.wait();
-        }
-        else
-        {
-            assert(!"Probably that __usm_ptr allocated without ussage of usm_data_transfer class");
-        }
-    }
-    else
-    {
-        assert(!"Invalid value of pUsmDataTransferBase param");
-    }
+    sycl::queue& queue = pUsmDataTransferBase->get_queue();
+    queue.copy(__host_ptr, get_t_ptr<T>(get_byte_ptr(__usm_ptr)), __count);
+    queue.wait();
 }
 
 //----------------------------------------------------------------------------//
