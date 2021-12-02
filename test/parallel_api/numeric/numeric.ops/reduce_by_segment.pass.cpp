@@ -31,7 +31,7 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 
 void test_with_buffers()
 {

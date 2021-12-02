@@ -20,7 +20,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #   include "oneapi/dpl/async"
-#   include <CL/sycl.hpp>
+#   include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #endif
 
 #include <iostream>
@@ -116,7 +116,7 @@ void test2_with_buffers()
 
 void test_with_usm()
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     const int n = 1024;
     const int n_small = 13;
 
@@ -125,9 +125,9 @@ void test_with_usm()
     {
         // Allocate space for data using USM.
         uint64_t* data1 =
-            static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+            static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
         uint64_t* data2 =
-            static_cast<uint64_t*>(cl::sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+            static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
 
         // Initialize data
         for (int i = 0; i != n - 1; ++i)

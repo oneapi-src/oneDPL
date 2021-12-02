@@ -21,8 +21,8 @@
 #define DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON
 
 #include <vector>
-#include <CL/sycl.hpp>
 #include <random>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 
 constexpr auto REF_SAMPLE_ID = 9999;
 

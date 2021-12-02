@@ -27,7 +27,7 @@
 #include "support/test_config.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #endif
 
 template <typename Policy, typename NewName>
@@ -53,7 +53,7 @@ using oneapi::dpl::make_zip_iterator;
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    cl::sycl::buffer<int, 1> buf{ cl::sycl::range<1>(10) };
+    sycl::buffer<int, 1> buf{ sycl::range<1>(10) };
 
     auto b = oneapi::dpl::begin(buf);
     auto e = oneapi::dpl::end(buf);

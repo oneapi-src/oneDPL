@@ -17,7 +17,7 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 
 struct eq
 {

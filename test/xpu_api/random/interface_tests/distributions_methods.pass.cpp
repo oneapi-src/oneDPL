@@ -23,8 +23,9 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <CL/sycl.hpp>
 #include <oneapi/dpl/random>
+
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 
 constexpr auto SEED = 777;
 constexpr auto N_GEN = 960;

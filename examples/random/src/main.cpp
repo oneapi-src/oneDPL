@@ -16,7 +16,7 @@
 // oneDPL headers should be included before standard headers
 #include <oneapi/dpl/random>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <iostream>
 #include <vector>
 
