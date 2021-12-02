@@ -178,8 +178,8 @@ test_with_usm()
     alloc3.retrive_data(key_res_head_on_host), alloc4.retrive_data(val_res_head_on_host);
 
     // check values
-    n = std::distance(key_res_head.get(), res1.first);
-    for (auto i = 0; i != n; ++i) {
+    auto count = std::distance(key_res_head, res1.first);
+    for (auto i = 0; i != count; ++i) {
         if (i < 4) {
             ASSERT_EQUAL(key_res_head_on_host[i], i+1);
             ASSERT_EQUAL(val_res_head_on_host[i], i+1);
@@ -210,8 +210,8 @@ test_with_usm()
     alloc3.retrive_data(key_res_head_on_host), alloc4.retrive_data(val_res_head_on_host);
 
     // check values
-    n = std::distance(key_res_head.get(), res2.first);
-    ASSERT_EQUAL(n, 1);
+    count = std::distance(key_res_head, res2.first);
+    ASSERT_EQUAL(count, 1);
     ASSERT_EQUAL(key_res_head_on_host[0], 1);
     ASSERT_EQUAL(val_res_head_on_host[0], 1);
 }

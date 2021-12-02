@@ -62,7 +62,7 @@ test_with_usm()
 
     // allocate USM memory and copying data to USM shared/device memory
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc1(q, keys1, n);
-    TestUtils::sycl_usm_alloc<alloc_type, int> alloc2(q, keys2 n);
+    TestUtils::sycl_usm_alloc<alloc_type, int> alloc2(q, keys2, n);
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc3(q, values, n);
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc4(q, output_keys1, n);
     TestUtils::sycl_usm_alloc<alloc_type, int> alloc5(q, output_keys2, n);
@@ -75,9 +75,9 @@ test_with_usm()
     auto d_output_values = alloc6.get_data();
 
     //make zip iterators
-    auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1.get(), d_keys2.get());
-    auto end_keys_in   = oneapi::dpl::make_zip_iterator(d_keys1.get() + n, d_keys2.get() + n);
-    auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1.get(), d_output_keys2.get());
+    auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1, d_keys2);
+    auto end_keys_in   = oneapi::dpl::make_zip_iterator(d_keys1 + n, d_keys2 + n);
+    auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1, d_output_keys2);
 
     //run reduce_by_segment algorithm 
     auto new_last = oneapi::dpl::reduce_by_segment(
