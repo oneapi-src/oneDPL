@@ -332,13 +332,15 @@ template <typename T>
 T*
 get_host_pointer(T* data)
 {
+    assert(data);
+
     auto srvc = usm_data_transfer_service::instance();
     assert(srvc);
 
     auto pUsmDataTransferBase = srvc->get_usm_data_transfer_base(data);
+    assert(pUsmDataTransferBase);
 
-    if (pUsmDataTransferBase != nullptr
-        && sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
+    if (sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
     {
         return srvc->get_host_pointer(pUsmDataTransferBase, data);
     }
