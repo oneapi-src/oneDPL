@@ -161,22 +161,14 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     namespace __bknd = __par_backend_hetero;
 
-    ValueType initial_value;
-    {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
-        initial_value = first2_acc[0];
-    }
-
     const auto n = ::std::distance(first1, last1);
     if (n <= 0)
         return ::std::make_pair(result1, result2);
     if (n == 1)
     {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
-        result1_acc[0] = first1_acc[0];
-        result2_acc[0] = initial_value;
+        internal::copy_data_to(policy, first1, 0, result1, 0);
+        internal::copy_data_to(policy, first2, 0, result2, 0);
+
         return ::std::make_pair(result1 + 1, result2 + 1);
     }
 

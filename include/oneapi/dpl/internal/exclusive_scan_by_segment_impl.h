@@ -108,8 +108,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         return result;
     if (n == 1)
     {
-        auto result_acc = internal::get_access<sycl::access::mode::write>(policy, result);
-        result_acc[0] = init;
+        internal::set_data_at(policy, result, 0, init);
         return result + 1;
     }
 

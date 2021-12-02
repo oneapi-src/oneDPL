@@ -83,22 +83,17 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef typename ::std::decay<Policy>::type policy_type;
 
-    ValueType initial_value;
-    {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
-        initial_value = first2_acc[0];
-    }
-
     const auto n = ::std::distance(first1, last1);
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
     if (n == 1)
     {
-        auto result_acc = internal::get_access<sycl::access::mode::write>(policy, result);
-        result_acc[0] = initial_value;
+        internal::copy_data_to(policy, first2, 0, result, 0);
         return result + 1;
     }
+
+    const ValueType initial_value = internal::get_data_at<ValueType>(policy, first2, 0);
 
     FlagType initial_mask = 1;
 
