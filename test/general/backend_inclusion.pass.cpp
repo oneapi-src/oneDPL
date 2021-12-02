@@ -25,21 +25,21 @@
 #   endif
 #endif
 
-#if !_ONEDPL_PAR_BACKEND_OPENMP
+#if defined(ONEDPL_USE_OPENMP_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND
 #   ifdef _ONEDPL_PARALLEL_BACKEND_OMP_H
-#       error The parallel OpenMP backend is used while it should not (_ONEDPL_PAR_BACKEND_OPENMP==0)
+#       error The parallel OpenMP backend is used while it should not (ONEDPL_USE_OPENMP_BACKEND==0)
 #   endif
 #endif
 
-#if !_ONEDPL_PAR_BACKEND_TBB
+#if defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_TBB_BACKEND
 #   ifdef _ONEDPL_PARALLEL_BACKEND_TBB_H
-#       error The parallel TBB backend is used while it should not (_ONEDPL_PAR_BACKEND_TBB==0)
+#       error The parallel TBB backend is used while it should not (ONEDPL_USE_TBB_BACKEND==0)
 #   endif
 #endif
 
-#if !_ONEDPL_BACKEND_SYCL
+#if defined(ONEDPL_USE_DPCPP_BACKEND) && !ONEDPL_USE_DPCPP_BACKEND
 #   ifdef _ONEDPL_parallel_backend_sycl_H
-#       error The parallel DPC++ backend is used while it should not (_ONEDPL_BACKEND_SYCL==0)
+#       error The parallel DPC++ backend is used while it should not (ONEDPL_USE_DPCPP_BACKEND==0)
 #   endif
 #endif
 
