@@ -71,6 +71,10 @@ struct test_binary_search
             auto host_result = get_host_access(result_first);
 
             initialize_data(host_first, host_val_first, host_result, n);
+
+            refresh_usm_from_host_pointer(host_first, first, n);
+            refresh_usm_from_host_pointer(host_val_first, value_first, n);
+            refresh_usm_from_host_pointer(host_result, result_first, n);
         }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
@@ -79,6 +83,7 @@ struct test_binary_search
         {
             auto host_result = get_host_access(result_first);
             check_and_clean(host_result, n);
+            refresh_usm_from_host_pointer(host_result, result_first, n);
         }
 
         // call algorithm with comparator
@@ -89,6 +94,7 @@ struct test_binary_search
         {
             auto host_result = get_host_access(result_first);
             check_and_clean(host_result, n);
+            refresh_usm_from_host_pointer(host_result, result_first, n);
         }
     }
 #endif
@@ -134,6 +140,8 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run tests for USM shared memory
     test3buffers<sycl::usm::alloc::shared, std::uint64_t, test_binary_search>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, std::uint64_t, test_binary_search>();
 #endif
     test_algo_three_sequences<std::uint64_t, test_binary_search>();
     return TestUtils::done();
