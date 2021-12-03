@@ -3164,173 +3164,200 @@ struct test_set_symmetric_difference
 };
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
+template <sycl::usm::alloc alloc_type>
+void
+test_1_buffer()
+{
+    PRINT_DEBUG("test_for_each");
+    test1buffer<alloc_type, std::int32_t, test_for_each>();
+    PRINT_DEBUG("test_for_each_n");
+    test1buffer<alloc_type, std::int32_t, test_for_each_n>();
+    PRINT_DEBUG("test_replace");
+    test1buffer<alloc_type, std::int32_t, test_replace>();
+    PRINT_DEBUG("test_replace_if");
+    test1buffer<alloc_type, std::int32_t, test_replace_if>();
+    PRINT_DEBUG("test_fill");
+    test1buffer<alloc_type, std::int32_t, test_fill>();
+    PRINT_DEBUG("test_fill_n");
+    test1buffer<alloc_type, std::int32_t, test_fill_n>();
+    PRINT_DEBUG("test_generate");
+    test1buffer<alloc_type, std::int32_t, test_generate>();
+    PRINT_DEBUG("test_generate_n");
+    test1buffer<alloc_type, std::int32_t, test_generate_n>();
+    PRINT_DEBUG("test_reduce");
+    test1buffer<alloc_type, std::int32_t, test_reduce>();
+    PRINT_DEBUG("test_transform_reduce_unary");
+    test1buffer<alloc_type, std::int32_t, test_transform_reduce_unary>();
+    PRINT_DEBUG("test_any_all_none_of");
+    test1buffer<alloc_type, std::int32_t, test_any_all_none_of>();
+    PRINT_DEBUG("test_is_sorted");
+    test1buffer<alloc_type, std::int32_t, test_is_sorted>();
+    PRINT_DEBUG("test_count");
+    test1buffer<alloc_type, std::int32_t, test_count>();
+    PRINT_DEBUG("test_count_if");
+    test1buffer<alloc_type, std::int32_t, test_count_if>();
+    PRINT_DEBUG("test_is_partitioned");
+    test1buffer<alloc_type, std::int32_t, test_is_partitioned>();
+    PRINT_DEBUG("test_sort");
+    test1buffer<alloc_type, std::int32_t, test_sort>();
+    PRINT_DEBUG("test_min_element");
+    test1buffer<alloc_type, std::int32_t, test_min_element>();
+    PRINT_DEBUG("test_max_element");
+    test1buffer<alloc_type, std::int32_t, test_max_element>();
+    PRINT_DEBUG("test_minmax_element");
+    test1buffer<alloc_type, std::int32_t, test_minmax_element>();
+    PRINT_DEBUG("test_inplace_merge");
+    test1buffer<alloc_type, std::int32_t, test_inplace_merge>();
+    PRINT_DEBUG("test_reverse");
+    test1buffer<alloc_type, std::int32_t, test_reverse>();
+    PRINT_DEBUG("test_rotate");
+    test1buffer<alloc_type, std::int32_t, test_rotate>();
+    PRINT_DEBUG("test_partition");
+    test1buffer<alloc_type, std::int32_t, test_partition>();
+    PRINT_DEBUG("test_is_heap");
+    test1buffer<alloc_type, std::int32_t, test_is_heap>();
+    PRINT_DEBUG("test_find_if");
+    test1buffer<alloc_type, std::int32_t, test_find_if>();
+    PRINT_DEBUG("test_adjacent_find");
+    test1buffer<alloc_type, std::int32_t, test_adjacent_find>();
+    PRINT_DEBUG("test_is_sorted_until");
+    test1buffer<alloc_type, std::int32_t, test_is_sorted_until>();
+    PRINT_DEBUG("test_search_n");
+    test1buffer<alloc_type, std::int32_t, test_search_n>();
+    PRINT_DEBUG("test_remove");
+    test1buffer<alloc_type, std::int32_t, test_remove>();
+    PRINT_DEBUG("test_remove_if");
+    test1buffer<alloc_type, std::int32_t, test_remove_if>();
+    PRINT_DEBUG("test_stable_sort");
+    test1buffer<alloc_type, std::int32_t, test_stable_sort>();
+    PRINT_DEBUG("test_unique");
+    test1buffer<alloc_type, std::int32_t, test_unique>();
+    PRINT_DEBUG("test_is_heap_until");
+    test1buffer<alloc_type, std::int32_t, test_is_heap_until>();
+    PRINT_DEBUG("test_uninitialized_fill");
+    test1buffer<alloc_type, std::int32_t, test_uninitialized_fill>();
+    PRINT_DEBUG("test_uninitialized_fill_n");
+    test1buffer<alloc_type, std::int32_t, test_uninitialized_fill_n>();
+    PRINT_DEBUG("test_uninitialized_default_construct");
+    test1buffer<alloc_type, SyclTypeWrapper<std::int32_t>, test_uninitialized_default_construct>();
+    PRINT_DEBUG("test_uninitialized_default_construct_n");
+    test1buffer<alloc_type, SyclTypeWrapper<std::int32_t>, test_uninitialized_default_construct_n>();
+    PRINT_DEBUG("test_uninitialized_value_construct");
+    test1buffer<alloc_type, std::int32_t, test_uninitialized_value_construct>();
+    PRINT_DEBUG("test_uninitialized_value_construct_n");
+    test1buffer<alloc_type, std::int32_t, test_uninitialized_value_construct_n>();
+    print_debug("test_is_heap");
+    test1buffer<alloc_type, std::int32_t, test_is_heap>();
+    PRINT_DEBUG("test_destroy");
+    test1buffer<alloc_type, SyclTypeWrapper<std::int32_t>, test_destroy>();
+    test1buffer<alloc_type, std::int32_t, test_destroy>();
+    PRINT_DEBUG("test_destroy_n");
+    test1buffer<alloc_type, SyclTypeWrapper<std::int32_t>, test_destroy_n>();
+    test1buffer<alloc_type, std::int32_t, test_destroy_n>();
+}
+
+template <sycl::usm::alloc alloc_type>
+void
+test_2_buffers()
+{
+    PRINT_DEBUG("test_nth_element");
+    test2buffers<alloc_type, std::int32_t, test_nth_element>();
+    PRINT_DEBUG("test_replace_copy");
+    test2buffers<alloc_type, std::int32_t, test_replace_copy>();
+    PRINT_DEBUG("test_replace_copy_if");
+    test2buffers<alloc_type, std::int32_t, test_replace_copy_if>();
+    PRINT_DEBUG("test_transform_unary");
+    test2buffers<alloc_type, std::int32_t, test_transform_unary>();
+    PRINT_DEBUG("test_transform_binary");
+    test2buffers<alloc_type, std::int32_t, test_transform_binary>();
+    PRINT_DEBUG("test_copy");
+    test2buffers<alloc_type, std::int32_t, test_copy>();
+    PRINT_DEBUG("test_copy_n");
+    test2buffers<alloc_type, std::int32_t, test_copy_n>();
+    PRINT_DEBUG("test_move");
+    test2buffers<alloc_type, std::int32_t, test_move>();
+    PRINT_DEBUG("test_adjacent_difference");
+    test2buffers<alloc_type, std::int32_t, test_adjacent_difference>();
+    PRINT_DEBUG("test_transform_reduce_binary");
+    test2buffers<alloc_type, std::int32_t, test_transform_reduce_binary>();
+    PRINT_DEBUG("test_equal");
+    test2buffers<alloc_type, std::int32_t, test_equal>();
+    PRINT_DEBUG("test_mismatch");
+    test2buffers<alloc_type, std::int32_t, test_mismatch>();
+    PRINT_DEBUG("test_swap_ranges");
+    test2buffers<alloc_type, std::int32_t, test_swap_ranges>();
+    PRINT_DEBUG("test_reverse_copy");
+    test2buffers<alloc_type, std::int32_t, test_reverse_copy>();
+    PRINT_DEBUG("test rotate_copy");
+    test2buffers<alloc_type, std::int32_t, test_rotate_copy>();
+    PRINT_DEBUG("test_uninitialized_copy");
+    test2buffers<alloc_type, std::int32_t, test_uninitialized_copy>();
+    PRINT_DEBUG("test_uninitialized_copy_n");
+    test2buffers<alloc_type, std::int32_t, test_uninitialized_copy_n>();
+    PRINT_DEBUG("test_uninitialized_move");
+    test2buffers<alloc_type, std::int32_t, test_uninitialized_move>();
+    PRINT_DEBUG("test_uninitialized_move_n");
+    test2buffers<alloc_type, std::int32_t, test_uninitialized_move_n>();
+    PRINT_DEBUG("test_lexicographical_compare");
+    test2buffers<alloc_type, std::int32_t, test_lexicographical_compare>();
+    PRINT_DEBUG("test_partial_sort");
+    test2buffers<alloc_type, std::int32_t, test_partial_sort>();
+    PRINT_DEBUG("test_partial_sort_copy");
+    test2buffers<alloc_type, std::int32_t, test_partial_sort_copy>();
+    PRINT_DEBUG("test_search");
+    test2buffers<alloc_type, std::int32_t, test_search>();
+    PRINT_DEBUG("test_transform_inclusive_scan");
+    test2buffers<alloc_type, std::int32_t, test_transform_inclusive_scan>();
+    PRINT_DEBUG("test_transform_exclusive_scan");
+    test2buffers<alloc_type, std::int32_t, test_transform_exclusive_scan>();
+    PRINT_DEBUG("test_copy_if");
+    test2buffers<alloc_type, std::int32_t, test_copy_if>();
+    PRINT_DEBUG("test_unique_copy");
+    test2buffers<alloc_type, std::int32_t, test_unique_copy>();
+    PRINT_DEBUG("test_find_end");
+    test2buffers<alloc_type, std::int32_t, test_find_end>();
+    PRINT_DEBUG("test_find_first_of");
+    test2buffers<alloc_type, std::int32_t, test_find_first_of>();
+    PRINT_DEBUG("test_includes");
+    test2buffers<alloc_type, std::int32_t, test_includes>();
+}
+
+template <sycl::usm::alloc alloc_type>
+void
+test_3_buffers()
+{
+    PRINT_DEBUG("test_partition_copy");
+    test3buffers<alloc_type, std::int32_t, test_partition_copy>();
+    PRINT_DEBUG("test_set_symmetric_difference");
+    test3buffers<alloc_type, std::int32_t, test_set_symmetric_difference>();
+    PRINT_DEBUG("test_set_union");
+    test3buffers<alloc_type, std::int32_t, test_set_union>();
+    PRINT_DEBUG("test_set_difference");
+    test3buffers<alloc_type, std::int32_t, test_set_difference>();
+    PRINT_DEBUG("test_set_intersection");
+    test3buffers<alloc_type, std::int32_t, test_set_intersection>();
+    PRINT_DEBUG("test_merge");
+    test3buffers<alloc_type, std::int32_t, test_merge>(2);
+}
+#endif
+
 std::int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    // test1buffer
-    PRINT_DEBUG("test_for_each");
-    test1buffer<std::int32_t, test_for_each>();
-    PRINT_DEBUG("test_for_each_n");
-    test1buffer<std::int32_t, test_for_each_n>();
-    PRINT_DEBUG("test_replace");
-    test1buffer<std::int32_t, test_replace>();
-    PRINT_DEBUG("test_replace_if");
-    test1buffer<std::int32_t, test_replace_if>();
-    PRINT_DEBUG("test_fill");
-    test1buffer<std::int32_t, test_fill>();
-    PRINT_DEBUG("test_fill_n");
-    test1buffer<std::int32_t, test_fill_n>();
-    PRINT_DEBUG("test_generate");
-    test1buffer<std::int32_t, test_generate>();
-    PRINT_DEBUG("test_generate_n");
-    test1buffer<std::int32_t, test_generate_n>();
-    PRINT_DEBUG("test_reduce");
-    test1buffer<std::int32_t, test_reduce>();
-    PRINT_DEBUG("test_transform_reduce_unary");
-    test1buffer<std::int32_t, test_transform_reduce_unary>();
-    PRINT_DEBUG("test_any_all_none_of");
-    test1buffer<std::int32_t, test_any_all_none_of>();
-    PRINT_DEBUG("test_is_sorted");
-    test1buffer<std::int32_t, test_is_sorted>();
-    PRINT_DEBUG("test_count");
-    test1buffer<std::int32_t, test_count>();
-    PRINT_DEBUG("test_count_if");
-    test1buffer<std::int32_t, test_count_if>();
-    PRINT_DEBUG("test_is_partitioned");
-    test1buffer<std::int32_t, test_is_partitioned>();
-    PRINT_DEBUG("test_sort");
-    test1buffer<std::int32_t, test_sort>();
-    PRINT_DEBUG("test_min_element");
-    test1buffer<std::int32_t, test_min_element>();
-    PRINT_DEBUG("test_max_element");
-    test1buffer<std::int32_t, test_max_element>();
-    PRINT_DEBUG("test_minmax_element");
-    test1buffer<std::int32_t, test_minmax_element>();
-    PRINT_DEBUG("test_inplace_merge");
-    test1buffer<std::int32_t, test_inplace_merge>();
-    PRINT_DEBUG("test_reverse");
-    test1buffer<std::int32_t, test_reverse>();
-    PRINT_DEBUG("test_rotate");
-    test1buffer<std::int32_t, test_rotate>();
-    PRINT_DEBUG("test_partition");
-    test1buffer<std::int32_t, test_partition>();
-    PRINT_DEBUG("test_is_heap");
-    test1buffer<std::int32_t, test_is_heap>();
-    PRINT_DEBUG("test_find_if");
-    test1buffer<std::int32_t, test_find_if>();
-    PRINT_DEBUG("test_adjacent_find");
-    test1buffer<std::int32_t, test_adjacent_find>();
-    PRINT_DEBUG("test_is_sorted_until");
-    test1buffer<std::int32_t, test_is_sorted_until>();
-    PRINT_DEBUG("test_search_n");
-    test1buffer<std::int32_t, test_search_n>();
-    PRINT_DEBUG("test_remove");
-    test1buffer<std::int32_t, test_remove>();
-    PRINT_DEBUG("test_remove_if");
-    test1buffer<std::int32_t, test_remove_if>();
-    PRINT_DEBUG("test_stable_sort");
-    test1buffer<std::int32_t, test_stable_sort>();
-    PRINT_DEBUG("test_unique");
-    test1buffer<std::int32_t, test_unique>();
-    PRINT_DEBUG("test_is_heap_until");
-    test1buffer<std::int32_t, test_is_heap_until>();
-    PRINT_DEBUG("test_uninitialized_fill");
-    test1buffer<std::int32_t, test_uninitialized_fill>();
-    PRINT_DEBUG("test_uninitialized_fill_n");
-    test1buffer<std::int32_t, test_uninitialized_fill_n>();
-    PRINT_DEBUG("test_uninitialized_default_construct");
-    test1buffer<SyclTypeWrapper<std::int32_t>, test_uninitialized_default_construct>();
-    PRINT_DEBUG("test_uninitialized_default_construct_n");
-    test1buffer<SyclTypeWrapper<std::int32_t>, test_uninitialized_default_construct_n>();
-    PRINT_DEBUG("test_uninitialized_value_construct");
-    test1buffer<std::int32_t, test_uninitialized_value_construct>();
-    PRINT_DEBUG("test_uninitialized_value_construct_n");
-    test1buffer<std::int32_t, test_uninitialized_value_construct_n>();
-    print_debug("test_is_heap");
-    test1buffer<std::int32_t, test_is_heap>();
-    PRINT_DEBUG("test_destroy");
-    test1buffer<SyclTypeWrapper<std::int32_t>, test_destroy>();
-    test1buffer<std::int32_t, test_destroy>();
-    PRINT_DEBUG("test_destroy_n");
-    test1buffer<SyclTypeWrapper<std::int32_t>, test_destroy_n>();
-    test1buffer<std::int32_t, test_destroy_n>();
-
-    //test2buffers
-    PRINT_DEBUG("test_nth_element");
-    test2buffers<std::int32_t, test_nth_element>();
-    PRINT_DEBUG("test_replace_copy");
-    test2buffers<std::int32_t, test_replace_copy>();
-    PRINT_DEBUG("test_replace_copy_if");
-    test2buffers<std::int32_t, test_replace_copy_if>();
-    PRINT_DEBUG("test_transform_unary");
-    test2buffers<std::int32_t, test_transform_unary>();
-    PRINT_DEBUG("test_transform_binary");
-    test2buffers<std::int32_t, test_transform_binary>();
-    PRINT_DEBUG("test_copy");
-    test2buffers<std::int32_t, test_copy>();
-    PRINT_DEBUG("test_copy_n");
-    test2buffers<std::int32_t, test_copy_n>();
-    PRINT_DEBUG("test_move");
-    test2buffers<std::int32_t, test_move>();
-    PRINT_DEBUG("test_adjacent_difference");
-    test2buffers<std::int32_t, test_adjacent_difference>();
-    PRINT_DEBUG("test_transform_reduce_binary");
-    test2buffers<std::int32_t, test_transform_reduce_binary>();
-    PRINT_DEBUG("test_equal");
-    test2buffers<std::int32_t, test_equal>();
-    PRINT_DEBUG("test_mismatch");
-    test2buffers<std::int32_t, test_mismatch>();
-    PRINT_DEBUG("test_swap_ranges");
-    test2buffers<std::int32_t, test_swap_ranges>();
-    PRINT_DEBUG("test_reverse_copy");
-    test2buffers<std::int32_t, test_reverse_copy>();
-    PRINT_DEBUG("test rotate_copy");
-    test2buffers<std::int32_t, test_rotate_copy>();
-    PRINT_DEBUG("test_uninitialized_copy");
-    test2buffers<std::int32_t, test_uninitialized_copy>();
-    PRINT_DEBUG("test_uninitialized_copy_n");
-    test2buffers<std::int32_t, test_uninitialized_copy_n>();
-    PRINT_DEBUG("test_uninitialized_move");
-    test2buffers<std::int32_t, test_uninitialized_move>();
-    PRINT_DEBUG("test_uninitialized_move_n");
-    test2buffers<std::int32_t, test_uninitialized_move_n>();
-    PRINT_DEBUG("test_lexicographical_compare");
-    test2buffers<std::int32_t, test_lexicographical_compare>();
-    PRINT_DEBUG("test_partial_sort");
-    test2buffers<std::int32_t, test_partial_sort>();
-    PRINT_DEBUG("test_partial_sort_copy");
-    test2buffers<std::int32_t, test_partial_sort_copy>();
-    PRINT_DEBUG("test_search");
-    test2buffers<std::int32_t, test_search>();
-    PRINT_DEBUG("test_transform_inclusive_scan");
-    test2buffers<std::int32_t, test_transform_inclusive_scan>();
-    PRINT_DEBUG("test_transform_exclusive_scan");
-    test2buffers<std::int32_t, test_transform_exclusive_scan>();
-    PRINT_DEBUG("test_copy_if");
-    test2buffers<std::int32_t, test_copy_if>();
-    PRINT_DEBUG("test_unique_copy");
-    test2buffers<std::int32_t, test_unique_copy>();
-    PRINT_DEBUG("test_find_end");
-    test2buffers<std::int32_t, test_find_end>();
-    PRINT_DEBUG("test_find_first_of");
-    test2buffers<std::int32_t, test_find_first_of>();
-    PRINT_DEBUG("test_includes");
-    test2buffers<std::int32_t, test_includes>();
-
-    //test3buffers
-    PRINT_DEBUG("test_partition_copy");
-    test3buffers<std::int32_t, test_partition_copy>();
-    PRINT_DEBUG("test_set_symmetric_difference");
-    test3buffers<std::int32_t, test_set_symmetric_difference>();
-    PRINT_DEBUG("test_set_union");
-    test3buffers<std::int32_t, test_set_union>();
-    PRINT_DEBUG("test_set_difference");
-    test3buffers<std::int32_t, test_set_difference>();
-    PRINT_DEBUG("test_set_intersection");
-    test3buffers<std::int32_t, test_set_intersection>();
-    PRINT_DEBUG("test_merge");
-    test3buffers<std::int32_t, test_merge>(2);
+    try
+    {
+        // Run tests for USM shared memory
+        test_1_buffer <sycl::usm::alloc::shared>();
+        test_2_buffers<sycl::usm::alloc::shared>();
+        test_3_buffers<sycl::usm::alloc::shared>();
+    }
+    catch (const ::std::exception& exc)
+    {
+        PRINT_DEBUG(exc.what());
+        exit(-1);
+    }
 
 #endif
 
