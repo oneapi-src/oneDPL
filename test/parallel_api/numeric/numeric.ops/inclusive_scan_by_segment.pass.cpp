@@ -192,6 +192,8 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run tests for USM shared memory
     test3buffers<sycl::usm::alloc::shared, std::uint64_t, test_inclusive_scan_by_segment>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, std::uint64_t, test_inclusive_scan_by_segment>();
 #endif
     test_algo_three_sequences<std::uint64_t, test_inclusive_scan_by_segment>();
     return TestUtils::done();
