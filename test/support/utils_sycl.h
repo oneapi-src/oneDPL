@@ -308,6 +308,35 @@ test3buffers(int mult = 1)
     }
 }
 
+// For backward compatibility with old test code
+template <typename T, typename TestName>
+void
+test1buffer()
+{
+    test1buffer<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test2buffers()
+{
+    test2buffers<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test3buffers()
+{
+    test3buffers<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test3buffers(int mult)
+{
+    test3buffers<sycl::usm::alloc::shared, T, TestName>(mult);
+}
+
 // use the function carefully due to temporary accessor creation.
 // Race condition between host and device may be occurred
 // if we work with the buffer host memory when kernel is invoked on device
