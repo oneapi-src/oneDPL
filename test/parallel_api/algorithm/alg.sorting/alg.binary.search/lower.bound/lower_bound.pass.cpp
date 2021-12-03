@@ -22,7 +22,7 @@
 #include "support/binary_search_utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include <CL/sycl.hpp>
+#include "support/utils_sycl.h"
 #endif
 
 #include <cmath>
@@ -129,7 +129,10 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<std::uint64_t, test_lower_bound>();
+    // Run tests for USM shared memory
+    test3buffers<sycl::usm::alloc::shared, std::uint64_t, test_lower_bound>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, std::uint64_t, test_lower_bound>();
 #endif
     test_algo_three_sequences<std::uint64_t, test_lower_bound>();
     return TestUtils::done();
