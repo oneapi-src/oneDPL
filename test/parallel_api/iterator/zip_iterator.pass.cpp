@@ -117,6 +117,8 @@ struct test_for_each
         auto f = [](T1& val) { ++val; };
         ::std::fill(host_first1, host_first1 + n, value);
 
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                       TuplePredicate<decltype(f), 0>{f});
 #if _PSTL_SYCL_TEST_USM
@@ -142,6 +144,8 @@ struct test_for_each_structured_binding
         auto value = T1(6);
         auto f = [](T1& val) { ++val; };
         ::std::fill(host_first1, host_first1 + n, value);
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                         [f](auto value) {
@@ -172,6 +176,8 @@ struct test_transform_reduce_unary
         auto value = T1(1);
         ::std::fill(host_first1, host_first1 + n, value);
 
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+
         ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                                   ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
 #if _PSTL_SYCL_TEST_USM
@@ -193,6 +199,8 @@ struct test_transform_reduce_binary
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto value = T1(1);
         ::std::fill(host_first1, host_first1 + n, value);
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
                                   tuple_last1, tuple_first1, ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
@@ -224,6 +232,8 @@ struct test_min_element
             *(host_first1 + n - 1) = IteratorValueType{/*2nd min*/ 0};
         }
 
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
 
@@ -254,6 +264,8 @@ struct test_count_if
         ValueType fill_value{0};
         ::std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = fill_value++ % 10; });
 
+        refresh_usm_from_host_pointer(host_first1, first, n);
+
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
 
@@ -282,6 +294,8 @@ struct test_equal
         auto host_first2 = get_host_pointer(first2);
         ::std::iota(host_first1, host_first1 + n, value);
         ::std::iota(host_first2, host_first2 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -296,6 +310,8 @@ struct test_equal
 
         host_first2 = get_host_pointer(first2);
         *(host_first2 + n - 1) = T{0};
+        refresh_usm_from_host_pointer(host_first2 + n - 1, first2 + n - 1, 1);
+
         is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 1>>(exec), tuple_first1, tuple_last1, tuple_first2,
                               TuplePredicate<::std::equal_to<T>, 0>{::std::equal_to<T>{}});
 #if _PSTL_SYCL_TEST_USM
@@ -318,6 +334,8 @@ struct test_equal_structured_binding
         auto host_first2 = get_host_pointer(first2);
         ::std::iota(host_first1, host_first1 + n, value);
         ::std::iota(host_first2, host_first2 + n, value);
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -345,6 +363,8 @@ struct test_equal_structured_binding
 
         host_first2 = get_host_pointer(first2);
         *(host_first2 + n - 1) = T{0};
+        refresh_usm_from_host_pointer(host_first2 + n - 1, first2 + n - 1, 1);
+
         is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 1>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                 compare);
         EXPECT_TRUE(!is_equal, "wrong effect from equal(tuple with use of structured binding) 2");
@@ -361,6 +381,7 @@ struct test_find_if
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
         ::std::iota(host_first1, host_first1 + n, T1(0));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -407,6 +428,7 @@ struct test_transform_inclusive_scan
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         auto host_first1 = get_host_pointer(first1);
         ::std::fill(host_first1, host_first1 + n, T1(1));
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -439,6 +461,8 @@ struct test_unique
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
         std::int64_t expected_size = (n - 1) / 4 + 1;
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
 
         auto tuple_lastnew =
             ::std::unique(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
@@ -475,7 +499,11 @@ struct test_unique_copy
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
         ::std::fill(host_first2, host_first2 + n, Iterator1ValueType{-1});
-        std::int64_t expected_size = (n - 1) / 4 + 1;
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
+        const std::int64_t expected_size = (n - 1) / 4 + 1;
 
         auto tuple_last2 =
             ::std::unique_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
@@ -523,6 +551,10 @@ struct test_merge
         });
         ::std::fill(host_first3, host_first3 + n, T3{-1});
 
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+        refresh_usm_from_host_pointer(host_first3, first3, n);
+
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(first1 + size1, first1 + size1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
@@ -561,6 +593,9 @@ struct test_stable_sort
         auto host_first2 = get_host_pointer(first2);
         ::std::iota(host_first1, host_first1 + n, value);
         ::std::copy_n(host_first1, n, host_first2);
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), oneapi::dpl::make_zip_iterator(first1, first2),
                          oneapi::dpl::make_zip_iterator(last1, last2),
@@ -603,6 +638,9 @@ struct test_lexicographical_compare
         if (n > 1)
             *(host_first2 + n - 2) = 222;
 
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
+
         bool is_less_exp = n > 1 ? 1 : 0;
         bool is_less_res =
             ::std::lexicographical_compare(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
@@ -644,6 +682,9 @@ struct test_counting_zip_transform
         ::std::fill(host_first2, host_first2 + n, ValueType{0});
         *(host_first1 + (n / 3)) = 10;
         *(host_first1 + (n / 3 * 2)) = 100;
+
+        refresh_usm_from_host_pointer(host_first1, first1, n);
+        refresh_usm_from_host_pointer(host_first2, first2, n);
 
         auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
         auto start = oneapi::dpl::make_zip_iterator(idx, first1);
@@ -740,6 +781,8 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run tests for USM shared memory
     test_buffers<sycl::usm::alloc::shared>();
+    // Run tests for USM device memory
+    test_buffers<sycl::usm::alloc::device>();
 #endif
     return done(TEST_DPCPP_BACKEND_PRESENT);
 }
