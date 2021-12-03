@@ -31,7 +31,7 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include "support/sycl_alloc_utils.h"
 
 void test_with_buffers()
 {
@@ -116,83 +116,108 @@ void test_with_buffers()
     }
 }
 
-void test_with_usm()
+template <sycl::usm::alloc alloc_type>
+void
+test_with_usm()
 {
     sycl::queue q;
-    int n = 13;
 
-    // Allocate space for data using USM.
-    std::uint64_t* key_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
-    std::uint64_t* val_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
-    std::uint64_t* key_res_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
-    std::uint64_t* val_res_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
-
+    // Initialize data
     //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
     //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
 
     // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, 0};
     // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, 0};
 
-    // Initialize data
-    for (int i = 0; i != 12; ++i) {
-        key_head[i] = i % 4 + 1;
-        val_head[i] = i % 4 + 1;
-        key_res_head[i] = 9;
-        val_res_head[i] = 1;
-        if (i > 3) {
-            ++i;
-            key_head[i] = key_head[i-1];
-            val_head[i] = val_head[i-1];
-            key_res_head[i] = 9;
-            val_res_head[i] = 1;
-        }
-    }
-    key_head[12] = 0;
-    val_head[12] = 0;
+    auto prepare_data = [](int n, uint64_t* key_head, uint64_t* val_head, uint64_t* key_res_head, uint64_t* val_res_head)
+        {
+            for (int i = 0; i < (n - 1); ++i)
+            {
+                key_head[i] = i % 4 + 1;
+                val_head[i] = i % 4 + 1;
+                key_res_head[i] = 9;
+                val_res_head[i] = 1;
+                if (i > 3) {
+                    ++i;
+                    key_head[i] = key_head[i-1];
+                    val_head[i] = val_head[i-1];
+                    key_res_head[i] = 9;
+                    val_res_head[i] = 1;
+                }
+            }
+
+            key_head[n - 1] = 0;
+            val_head[n - 1] = 0;
+        };
+
+    constexpr int n = 13;
+    std::uint64_t key_head_on_host[n] = {};
+    std::uint64_t val_head_on_host[n] = {};
+    std::uint64_t key_res_head_on_host[n] = {};
+    std::uint64_t val_res_head_on_host[n] = {};
+
+    prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
+
+    // allocate USM memory and copying data to USM shared/device memory
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper1(q, std::begin(key_head_on_host),     std::end(key_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper2(q, std::begin(val_head_on_host),     std::end(val_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper3(q, std::begin(key_res_head_on_host), std::end(key_res_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, uint64_t> dt_helper4(q, std::begin(val_res_head_on_host), std::end(val_res_head_on_host));
+    auto key_head     = dt_helper1.get_data();
+    auto val_head     = dt_helper2.get_data();
+    auto key_res_head = dt_helper3.get_data();
+    auto val_res_head = dt_helper4.get_data();
 
     // call algorithm
-    auto new_policy = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_1>(q);
-    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
+    auto new_policy =
+        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, (::std::size_t)alloc_type>>(q);
+    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head,
+                                               key_res_head, val_res_head);
+
+    //retrieve result on the host and check the result
+    dt_helper3.retrieve_data(key_res_head_on_host);
+    dt_helper4.retrieve_data(val_res_head_on_host);
 
     // check values
-    n = std::distance(key_res_head, res1.first);
-    for (auto i = 0; i != n; ++i) {
+    auto count = std::distance(key_res_head, res1.first);
+    for (auto i = 0; i != count; ++i) {
         if (i < 4) {
-            ASSERT_EQUAL(key_res_head[i], i+1);
-            ASSERT_EQUAL(val_res_head[i], i+1);
+            ASSERT_EQUAL(key_res_head_on_host[i], i+1);
+            ASSERT_EQUAL(val_res_head_on_host[i], i+1);
         } else if (i == 4 || i == 6) {
-            ASSERT_EQUAL(key_res_head[i], 1);
-            ASSERT_EQUAL(val_res_head[i], 2);
+            ASSERT_EQUAL(key_res_head_on_host[i], 1);
+            ASSERT_EQUAL(val_res_head_on_host[i], 2);
         } else if (i == 5 || i == 7) {
-            ASSERT_EQUAL(key_res_head[i], 3);
-            ASSERT_EQUAL(val_res_head[i], 6);
+            ASSERT_EQUAL(key_res_head_on_host[i], 3);
+            ASSERT_EQUAL(val_res_head_on_host[i], 6);
         } else if (i == 8) {
-            ASSERT_EQUAL(key_res_head[i], 0);
-            ASSERT_EQUAL(val_res_head[i], 0);
+            ASSERT_EQUAL(key_res_head_on_host[i], 0);
+            ASSERT_EQUAL(val_res_head_on_host[i], 0);
         } else {
             std::cout << "fail: unexpected values in output range\n";
         }
     }
 
     // call algorithm on single element range
-    key_res_head[0] = 9;
-    val_res_head[0] = 9;
+    key_res_head_on_host[0] = 9;
+    val_res_head_on_host[0] = 9;
 
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<class reduce_by_segment_2>(q);
-    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<
+        TestUtils::unique_kernel_name<class reduce_by_segment_4, (::std::size_t)alloc_type>>(q);
+    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head,
+                                               key_res_head, val_res_head);
+
+    //retrieve result on the host and check the result
+    dt_helper3.retrieve_data(key_res_head_on_host);
+    dt_helper4.retrieve_data(val_res_head_on_host);
 
     // check values
-    n = std::distance(key_res_head, res2.first);
-    ASSERT_EQUAL(n, 1);
-    ASSERT_EQUAL(key_res_head[0], 1);
-    ASSERT_EQUAL(val_res_head[0], 1);
-
-    // Deallocate memory
-    sycl::free(key_head, q);
-    sycl::free(val_head, q);
-    sycl::free(key_res_head, q);
-    sycl::free(val_res_head, q);
+    count = std::distance(key_res_head, res2.first);
+    ASSERT_EQUAL(count, 1);
+    ASSERT_EQUAL(key_res_head_on_host[0], 1);
+    ASSERT_EQUAL(val_res_head_on_host[0], 1);
 }
+
 #endif
 
 void test_on_host() {
@@ -222,7 +247,10 @@ void test_on_host() {
 int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     test_with_buffers();
-    test_with_usm();
+    // Run tests for USM shared memory
+    test_with_usm<sycl::usm::alloc::shared>();
+    // Run tests for USM device memory
+    test_with_usm<sycl::usm::alloc::device>();
 #endif
     test_on_host();
 
