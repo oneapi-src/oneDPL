@@ -93,15 +93,15 @@ get_access(const Policy& policy, T* ptr)
 }
 
 template <typename ValueType, typename Policy, typename Iterator>
-ValueType
-get_data_at(const Policy& p, Iterator i, size_t index)
+void
+get_data_at(const Policy& p, Iterator i, size_t index, ValueType& val)
 {
-    return get_access<sycl::access::mode::read>(p, i)[index];
+    val = get_access<sycl::access::mode::read>(p, i)[index];
 }
 
 template <typename ValueType, typename Policy, typename T>
-ValueType
-get_data_at(const Policy& policy, T* ptr, size_t index)
+void
+get_data_at(const Policy& policy, T* ptr, size_t index, ValueType& val)
 {
     sycl::queue q = policy.queue();
 
@@ -109,22 +109,17 @@ get_data_at(const Policy& policy, T* ptr, size_t index)
     {
     case sycl::usm::alloc::host:
     case sycl::usm::alloc::shared:
-        return ptr[index];
+        val = ptr[index];
+        break;
 
     case sycl::usm::alloc::device:
-    {
-        ValueType host_data;
-        q.copy(ptr + index, &host_data, 1);
+        q.copy(ptr + index, &val, 1);
         q.wait();
-        return host_data;
-    }
-    break;
+        break;
 
     case sycl::usm::alloc::unknown:
         assert(!"Unknown pointer type");
     }
-
-    return {};
 }
 
 template <typename ValueType, typename Policy, typename Iterator>
@@ -179,7 +174,9 @@ template <typename Policy, typename T, typename IteratorDest>
 void
 copy_data_to(const Policy& p, T* ptrSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
 {
-    set_data_at(p, itDest, indexDest, get_data_at(p, ptrSrc, indexSrc));
+    T val;
+    get_data_at(p, ptrSrc, indexSrc, val);
+    set_data_at(p, itDest, indexDest, val);
 }
 
 template <typename Policy, typename T>
