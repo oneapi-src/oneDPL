@@ -1414,8 +1414,7 @@ struct test_is_partitioned
 
         // The code as below was added to prevent accessor destruction working with host memory
         {
-            auto host_access = get_host_access(first);
-            host_first1 = get_host_pointer(host_access);
+            host_first1 = get_host_pointer(first);
             ::std::partition(host_first1, host_first1 + n, is_odd);
             refresh_usm_from_host_pointer(host_first1, first, n);
         }
