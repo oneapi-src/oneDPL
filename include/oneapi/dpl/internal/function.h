@@ -64,45 +64,39 @@ using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
 // algorithm from either a SYCL iterator or a USM pointer.
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 auto
-get_access_at(Policy, Iterator i, size_t offset,
-              typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-    -> decltype(i.get_buffer().template get_access<Mode>(sycl::range<1>(1), sycl::id<1>(offset)))
+get_access(Policy, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+    -> decltype(i.get_buffer().template get_access<Mode>())
 {
-    using _BufferType = typename ::std::decay<decltype(i.get_buffer())>::type;
-
-    auto buf = i.get_buffer();
-
-    return _BufferType(buf, sycl::id<1>(offset), sycl::range<1>(1)).template get_access<Mode>();
+    return i.get_buffer().template get_access<Mode>();
 }
 
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 Iterator
-get_access_at(Policy, Iterator i, size_t offset,
-              typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+get_access(Policy, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
 {
-    return i + offset;
+    return i;
 }
 
 template <sycl::access::mode Mode, typename Policy, typename T>
 counting_iterator<T>
-get_access_at(Policy, counting_iterator<T> i, size_t offset)
+get_access(Policy, counting_iterator<T> i)
 {
-    return i + offset;
+    return i;
 }
 
 template <sycl::access::mode Mode, typename Policy, typename T>
 T*
-get_access_at(const Policy& policy, T* ptr, size_t offset)
+get_access(const Policy& policy, T* ptr)
 {
     assert(sycl::get_pointer_type(ptr, policy.queue().get_context()) == sycl::usm::alloc::shared);
-    return ptr + offset;
+    return ptr;
 }
 
 template <typename ValueType, typename Policy, typename Iterator>
 void
 get_data_at(const Policy& p, Iterator i, size_t index, ValueType& val)
 {
-    val = get_access_at<sycl::access::mode::read>(p, i, index)[0];
+    val = get_access<sycl::access::mode::read>(p, i)[index];
 }
 
 template <typename ValueType, typename Policy, typename T>
@@ -132,7 +126,7 @@ template <typename ValueType, typename Policy, typename Iterator>
 void
 set_data_at(const Policy& p, Iterator i, size_t index, ValueType val)
 {
-    get_access_at<sycl::access::mode::write>(p, i, index)[0] = val;
+    get_access<sycl::access::mode::write>(p, i)[index] = val;
 }
 
 template <typename ValueType, typename Policy, typename T>
@@ -162,18 +156,18 @@ template <typename Policy, typename IteratorSrc, typename IteratorDest>
 void
 copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
 {
-    auto accRead = get_access_at<sycl::access::mode::read>(p, itSrc, indexSrc);
-    auto accWrite = get_access_at<sycl::access::mode::write>(p, itDest, indexDest);
+    auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
+    auto accWrite = get_access<sycl::access::mode::write>(p, itDest);
 
-    accWrite[0] = accRead[0];
+    accWrite[indexDest] = accRead[indexSrc];
 }
 
 template <typename Policy, typename IteratorSrc, typename T>
 void
 copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, T* ptrDest, size_t indexDest)
 {
-    auto accRead = get_access_at<sycl::access::mode::read>(p, itSrc, indexSrc);
-    set_data_at(p, ptrDest, indexDest, accRead[0]);
+    auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
+    set_data_at(p, ptrDest, indexDest, accRead[indexSrc]);
 }
 
 template <typename Policy, typename T, typename IteratorDest>
