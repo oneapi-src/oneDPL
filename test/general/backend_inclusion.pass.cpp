@@ -41,11 +41,24 @@
 #   ifdef _ONEDPL_parallel_backend_sycl_H
 #       error The parallel DPC++ backend is used while it should not (ONEDPL_USE_DPCPP_BACKEND==0)
 #   endif
+#   ifdef _ONEDPL_parallel_backend_sycl_fpga_H
+#       error The DPC++ backend for the FPGA is used while it should not (ONEDPL_USE_DPCPP_BACKEND==0)
+#   endif
 #endif
 
-#if !_ONEDPL_FPGA_DEVICE
+#if !ONEDPL_FPGA_DEVICE
 #   ifdef _ONEDPL_parallel_backend_sycl_fpga_H
-#       error The DPC++ backend for the FPGA is used while it should not (_ONEDPL_FPGA_DEVICE==0)
+#       error The DPC++ backend for the FPGA is used while it should not (ONEDPL_FPGA_DEVICE==0)
+#   endif
+#endif
+
+#if defined(ONEDPL_USE_TBB_BACKEND) && ONEDPL_USE_TBB_BACKEND
+#   if !defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
+#       error The parallel TBB backend is not used while it should (ONEDPL_USE_TBB_BACKEND==1)
+#   endif
+#elif defined(ONEDPL_USE_OPENMP_BACKEND) && ONEDPL_USE_OPENMP_BACKEND
+#   if !defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
+#       error The parallel OpenMP backend is not used while it should (ONEDPL_USE_OPENMP_BACKEND==1)
 #   endif
 #endif
 
