@@ -4,6 +4,7 @@ _build
 build/*
 
 # -------- IDE --------
+.vscode/*
 .vs/*
 out/*
 CMakeSettings.json
