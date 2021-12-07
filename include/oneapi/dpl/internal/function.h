@@ -174,9 +174,7 @@ template <typename Policy, typename T, typename IteratorDest>
 void
 copy_data_to(const Policy& p, T* ptrSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
 {
-    T val;
-    get_data_at(p, ptrSrc, indexSrc, val);
-    set_data_at(p, itDest, indexDest, val);
+    copy_data_to(p, ptrSrc, indexSrc, ::std::addressof(*(itDest + indexDest), 0));
 }
 
 template <typename Policy, typename T>
