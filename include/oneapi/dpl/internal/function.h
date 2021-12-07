@@ -64,7 +64,7 @@ using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
 // algorithm from either a SYCL iterator or a USM pointer.
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 auto
-get_access(Policy, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+get_access(Policy, const Iterator& i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
     -> decltype(i.get_buffer().template get_access<Mode>())
 {
     return i.get_buffer().template get_access<Mode>();
@@ -126,7 +126,7 @@ get_buffer_for(const Policy& policy, T* ptr)
 
 template <typename ValueType, typename Policy, typename Iterator>
 void
-get_data_at(const Policy& p, Iterator i, size_t index, ValueType& val)
+get_data_at(const Policy& p, const Iterator& i, size_t index, ValueType& val)
 {
     sycl::queue queue = p.queue();
 
@@ -175,7 +175,7 @@ get_data_at(const Policy& policy, T* ptr, size_t index, ValueType& val)
 
 template <typename ValueType, typename Policy, typename Iterator>
 void
-set_data_at(const Policy& p, Iterator i, size_t index, ValueType val)
+set_data_at(const Policy& p, const Iterator& i, size_t index, ValueType val)
 {
     sycl::queue queue = p.queue();
 
@@ -224,7 +224,7 @@ set_data_at(const Policy& policy, T* ptr, size_t index, ValueType val)
 
 template <typename Policy, typename IteratorSrc, typename IteratorDest>
 void
-copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
+copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, const IteratorDest& itDest, size_t indexDest)
 {
     sycl::queue queue = p.queue();
 
@@ -250,7 +250,7 @@ copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, IteratorDest i
 
 template <typename Policy, typename IteratorSrc, typename T>
 void
-copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, T* ptrDest, size_t indexDest)
+copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, T* ptrDest, size_t indexDest)
 {
     sycl::queue queue = p.queue();
 
@@ -276,7 +276,7 @@ copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, T* ptrDest, si
 
 template <typename Policy, typename T, typename IteratorDest>
 void
-copy_data_to(const Policy& p, T* ptrSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
+copy_data_to(const Policy& p, T* ptrSrc, size_t indexSrc, const IteratorDest& itDest, size_t indexDest)
 {
     copy_data_to(p, ptrSrc, indexSrc, ::std::addressof(*(itDest + indexDest), 0));
 }
