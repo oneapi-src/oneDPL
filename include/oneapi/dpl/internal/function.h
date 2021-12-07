@@ -88,9 +88,9 @@ get_access(Policy, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Ite
 template <typename Policy, typename Iterator>
 auto
 get_buffer_for(Policy, const Iterator& i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-    -> decltype(sycl::buffer(::std::addressof(*i), 1))
+    -> sycl::buffer<typename Iterator::value_type, 1>
 {
-    return sycl::buffer(::std::addressof(*i), 1);
+    return sycl::buffer<typename Iterator::value_type, 1>(i, i + 1);
 }
 
 template <sycl::access::mode Mode, typename Policy, typename T>
@@ -107,14 +107,6 @@ get_access(Policy, counting_iterator<T> i)
 //{
 //    return sycl::buffer(::std::addressof(*i), 1);
 //}
-
-template <typename Policy, typename Iterator>
-auto
-get_buffer_for(Policy, const Iterator& i)
-    -> typename ::std::enable_if<oneapi::dpl::__ranges::is_zip<Iterator>::value, sycl::buffer<typename Iterator::value_type, 1>>::type
-{
-    return sycl::buffer<typename Iterator::value_type, 1>(i, i + 1);
-}
 
 template <sycl::access::mode Mode, typename Policy, typename T>
 T*
