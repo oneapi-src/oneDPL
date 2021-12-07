@@ -226,18 +226,52 @@ template <typename Policy, typename IteratorSrc, typename IteratorDest>
 void
 copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, IteratorDest itDest, size_t indexDest)
 {
-    auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
-    auto accWrite = get_access<sycl::access::mode::write>(p, itDest);
+    sycl::queue queue = p.queue();
 
-    accWrite[indexDest] = accRead[indexSrc];
+    auto src_buffer = get_buffer_for(p, itSrc);
+    auto dest_buffer = get_buffer_for(p, itDest);
+
+    queue.submit(
+        [&](sycl::handler& cgh)
+        {
+            auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
+            auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
+
+            cgh.parallel_for(sycl::range<1>(1),
+                [=](sycl::item<1> idx)
+                {
+                    dest_buffer_acc[idx + indexDest] = src_buffer_acc[idx + indexSrc];
+                });
+        });
+    queue.wait_and_throw();
+
+    assert(get_access<sycl::access::mode::read>(p, itSrc)[indexSrc] == get_access<sycl::access::mode::read>(p, itDest)[indexDest]);
 }
 
 template <typename Policy, typename IteratorSrc, typename T>
 void
 copy_data_to(const Policy& p, IteratorSrc itSrc, size_t indexSrc, T* ptrDest, size_t indexDest)
 {
-    auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
-    set_data_at(p, ptrDest, indexDest, accRead[indexSrc]);
+    sycl::queue queue = p.queue();
+
+    auto src_buffer = get_buffer_for(p, itSrc);
+    auto dest_buffer = get_buffer_for(p, ptrDest);
+
+    queue.submit(
+        [&](sycl::handler& cgh)
+        {
+            auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
+            auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
+
+            cgh.parallel_for(sycl::range<1>(1),
+                [=](sycl::item<1> idx)
+                {
+                    dest_buffer_acc[idx + indexDest] = src_buffer_acc[idx + indexSrc];
+                });
+        });
+    queue.wait_and_throw();
+
+    assert(get_access<sycl::access::mode::read>(p, itSrc)[indexSrc] == get_access<sycl::access::mode::read>(p, ptrDest)[indexDest]);
 }
 
 template <typename Policy, typename T, typename IteratorDest>
