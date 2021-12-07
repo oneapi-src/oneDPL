@@ -131,11 +131,7 @@ get_data_at(const Policy& p, const Iterator& i, size_t index, ValueType& val)
             auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
             auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::write>(cgh);
 
-            cgh.parallel_for(sycl::range<1>(1),
-                             [=](sycl::item<1> idx)
-                             {
-                                 host_buffer_acc[idx] = src_buffer_acc[idx + index];
-                             });
+            cgh.single_task([=]() { host_buffer_acc[0] = src_buffer_acc[index]; });
         });
     queue.wait_and_throw();
 }
@@ -178,11 +174,7 @@ set_data_at(const Policy& p, const Iterator& i, size_t index, ValueType val)
             auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::read>(cgh);
             auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
 
-            cgh.parallel_for(sycl::range<1>(1),
-                [=](sycl::item<1> idx)
-                {
-                    dest_buffer_acc[idx + index] = host_buffer_acc[idx];
-                });
+            cgh.single_task([=]() { dest_buffer_acc[index] = host_buffer_acc[0]; });
         });
     queue.wait_and_throw();
 }
@@ -225,11 +217,7 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, const I
             auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
             auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
 
-            cgh.parallel_for(sycl::range<1>(1),
-                [=](sycl::item<1> idx)
-                {
-                    dest_buffer_acc[idx + indexDest] = src_buffer_acc[idx + indexSrc];
-                });
+            cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
         });
     queue.wait_and_throw();
 }
@@ -249,11 +237,7 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, T* ptrD
             auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
             auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
 
-            cgh.parallel_for(sycl::range<1>(1),
-                [=](sycl::item<1> idx)
-                {
-                    dest_buffer_acc[idx + indexDest] = src_buffer_acc[idx + indexSrc];
-                });
+            cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
         });
     queue.wait_and_throw();
 }
