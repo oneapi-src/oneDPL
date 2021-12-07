@@ -100,14 +100,6 @@ get_access(Policy, counting_iterator<T> i)
     return i;
 }
 
-//template <typename Policy, typename T>
-//auto
-//get_buffer_for(Policy, counting_iterator<T> i)
-//    -> decltype(sycl::buffer(::std::addressof(*i), 1))
-//{
-//    return sycl::buffer(::std::addressof(*i), 1);
-//}
-
 template <sycl::access::mode Mode, typename Policy, typename T>
 T*
 get_access(const Policy& policy, T* ptr)
