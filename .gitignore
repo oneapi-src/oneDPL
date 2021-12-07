@@ -6,3 +6,4 @@ build/*
 # -------- IDE --------
 .vs/*
 out/*
+CMakeSettings.json
