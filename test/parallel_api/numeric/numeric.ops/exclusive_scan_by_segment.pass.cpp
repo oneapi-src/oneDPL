@@ -104,6 +104,10 @@ struct test_exclusive_scan_by_segment
             auto host_val_res = get_host_access(val_res_first);
 
             initialize_data(host_keys, host_vals, host_val_res, n);
+
+            refresh_usm_from_host_pointer(host_keys, keys_first, n);
+            refresh_usm_from_host_pointer(host_vals, vals_first, n);
+            refresh_usm_from_host_pointer(host_val_res, val_res_first, n);
         }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
@@ -118,6 +122,10 @@ struct test_exclusive_scan_by_segment
             auto host_vals = get_host_access(vals_first);
 
             initialize_data(host_keys, host_vals, host_val_res, n);
+
+            refresh_usm_from_host_pointer(host_keys, keys_first, n);
+            refresh_usm_from_host_pointer(host_vals, vals_first, n);
+            refresh_usm_from_host_pointer(host_val_res, val_res_first, n);
         }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
@@ -133,6 +141,10 @@ struct test_exclusive_scan_by_segment
             auto host_vals = get_host_access(vals_first);
 
             initialize_data(host_keys, host_vals, host_val_res, n);
+
+            refresh_usm_from_host_pointer(host_keys, keys_first, n);
+            refresh_usm_from_host_pointer(host_vals, vals_first, n);
+            refresh_usm_from_host_pointer(host_val_res, val_res_first, n);
         }
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
