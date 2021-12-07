@@ -108,6 +108,14 @@ get_access(Policy, counting_iterator<T> i)
 //    return sycl::buffer(::std::addressof(*i), 1);
 //}
 
+template <typename Policy, typename Iterator>
+auto
+get_buffer_for(Policy, const Iterator& i)
+    -> typename ::std::enable_if<oneapi::dpl::__ranges::is_zip<Iterator>::value, sycl::buffer<typename Iterator::value_type, 1>>::type
+{
+    return sycl::buffer<typename Iterator::value_type, 1>(i, i + 1);
+}
+
 template <sycl::access::mode Mode, typename Policy, typename T>
 T*
 get_access(const Policy& policy, T* ptr)
@@ -246,6 +254,11 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, const I
     queue.wait_and_throw();
 
     assert(get_access<sycl::access::mode::read>(p, itSrc)[indexSrc] == get_access<sycl::access::mode::read>(p, itDest)[indexDest]);
+
+    //auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
+    //auto accWrite = get_access<sycl::access::mode::write>(p, itDest);
+    //
+    //accWrite[indexDest] = accRead[indexSrc];
 }
 
 template <typename Policy, typename IteratorSrc, typename T>
