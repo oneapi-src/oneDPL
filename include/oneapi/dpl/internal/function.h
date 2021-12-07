@@ -70,11 +70,27 @@ get_access(Policy, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iter
     return i.get_buffer().template get_access<Mode>();
 }
 
+template <typename Policy, typename Iterator>
+auto
+get_buffer_for(Policy, const Iterator& i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+    -> decltype(i.get_buffer())
+{
+    return i.get_buffer();
+}
+
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 Iterator
 get_access(Policy, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
 {
     return i;
+}
+
+template <typename Policy, typename Iterator>
+auto
+get_buffer_for(Policy, const Iterator& i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+    -> decltype(sycl::buffer(::std::addressof(*i), 1))
+{
+    return sycl::buffer(::std::addressof(*i), 1);
 }
 
 template <sycl::access::mode Mode, typename Policy, typename T>
@@ -84,6 +100,14 @@ get_access(Policy, counting_iterator<T> i)
     return i;
 }
 
+//template <typename Policy, typename T>
+//auto
+//get_buffer_for(Policy, counting_iterator<T> i)
+//    -> decltype(sycl::buffer(::std::addressof(*i), 1))
+//{
+//    return sycl::buffer(::std::addressof(*i), 1);
+//}
+
 template <sycl::access::mode Mode, typename Policy, typename T>
 T*
 get_access(const Policy& policy, T* ptr)
@@ -92,11 +116,38 @@ get_access(const Policy& policy, T* ptr)
     return ptr;
 }
 
+template <typename Policy, typename T>
+auto
+get_buffer_for(const Policy& policy, T* ptr)
+    -> decltype(sycl::buffer(ptr, 1))
+{
+    return sycl::buffer(ptr, 1);
+}
+
 template <typename ValueType, typename Policy, typename Iterator>
 void
 get_data_at(const Policy& p, Iterator i, size_t index, ValueType& val)
 {
-    val = get_access<sycl::access::mode::read>(p, i)[index];
+    sycl::queue queue = p.queue();
+
+    sycl::buffer<ValueType, 1> host_buffer(&val, 1);
+    auto src_buffer = get_buffer_for(p, i);
+
+    queue.submit(
+        [&](sycl::handler& cgh)
+        {
+            auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
+            auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+            cgh.parallel_for(sycl::range<1>(1),
+                             [=](sycl::item<1> idx)
+                             {
+                                 host_buffer_acc[idx] = src_buffer_acc[idx + index];
+                             });
+        });
+    queue.wait_and_throw();
+
+    assert(val == get_access<sycl::access::mode::read>(p, i)[index]);
 }
 
 template <typename ValueType, typename Policy, typename T>
@@ -126,7 +177,26 @@ template <typename ValueType, typename Policy, typename Iterator>
 void
 set_data_at(const Policy& p, Iterator i, size_t index, ValueType val)
 {
-    get_access<sycl::access::mode::write>(p, i)[index] = val;
+    sycl::queue queue = p.queue();
+
+    sycl::buffer<ValueType, 1> host_buffer(&val, 1);
+    auto dest_buffer = get_buffer_for(p, i);
+
+    queue.submit(
+        [&](sycl::handler& cgh)
+        {
+            auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::read>(cgh);
+            auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
+
+            cgh.parallel_for(sycl::range<1>(1),
+                [=](sycl::item<1> idx)
+                {
+                    dest_buffer_acc[idx + index] = host_buffer_acc[idx];
+                });
+        });
+    queue.wait_and_throw();
+
+    assert(val == get_access<sycl::access::mode::read>(p, i)[index]);
 }
 
 template <typename ValueType, typename Policy, typename T>
