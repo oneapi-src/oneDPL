@@ -146,8 +146,6 @@ get_data_at(const Policy& p, const Iterator& i, size_t index, ValueType& val)
                              });
         });
     queue.wait_and_throw();
-
-    assert(val == get_access<sycl::access::mode::read>(p, i)[index]);
 }
 
 template <typename ValueType, typename Policy, typename T>
@@ -195,8 +193,6 @@ set_data_at(const Policy& p, const Iterator& i, size_t index, ValueType val)
                 });
         });
     queue.wait_and_throw();
-
-    assert(val == get_access<sycl::access::mode::read>(p, i)[index]);
 }
 
 template <typename ValueType, typename Policy, typename T>
@@ -244,13 +240,6 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, const I
                 });
         });
     queue.wait_and_throw();
-
-    assert(get_access<sycl::access::mode::read>(p, itSrc)[indexSrc] == get_access<sycl::access::mode::read>(p, itDest)[indexDest]);
-
-    //auto accRead = get_access<sycl::access::mode::read>(p, itSrc);
-    //auto accWrite = get_access<sycl::access::mode::write>(p, itDest);
-    //
-    //accWrite[indexDest] = accRead[indexSrc];
 }
 
 template <typename Policy, typename IteratorSrc, typename T>
@@ -275,8 +264,6 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, T* ptrD
                 });
         });
     queue.wait_and_throw();
-
-    assert(get_access<sycl::access::mode::read>(p, itSrc)[indexSrc] == get_access<sycl::access::mode::read>(p, ptrDest)[indexDest]);
 }
 
 template <typename Policy, typename T, typename IteratorDest>
