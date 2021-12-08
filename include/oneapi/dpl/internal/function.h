@@ -127,14 +127,12 @@ get_data_at(const Policy& p, const Iterator& i, size_t index, ValueType& val)
     sycl::buffer<ValueType, 1> host_buffer(&val, 1);
     auto src_buffer = get_buffer_for(p, i);
 
-    queue.submit(
-        [&](sycl::handler& cgh)
-        {
-            auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
-            auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::write>(cgh);
+    queue.submit([&](sycl::handler& cgh) {
+        auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
+        auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::write>(cgh);
 
-            cgh.single_task([=]() { host_buffer_acc[0] = src_buffer_acc[index]; });
-        });
+        cgh.single_task([=]() { host_buffer_acc[0] = src_buffer_acc[index]; });
+    });
     queue.wait();
 }
 
@@ -170,14 +168,12 @@ set_data_at(const Policy& p, const Iterator& i, size_t index, ValueType val)
     sycl::buffer<ValueType, 1> host_buffer(&val, 1);
     auto dest_buffer = get_buffer_for(p, i);
 
-    queue.submit(
-        [&](sycl::handler& cgh)
-        {
-            auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::read>(cgh);
-            auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
+    queue.submit([&](sycl::handler& cgh) {
+        auto host_buffer_acc = host_buffer.template get_access<sycl::access::mode::read>(cgh);
+        auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
 
-            cgh.single_task([=]() { dest_buffer_acc[index] = host_buffer_acc[0]; });
-        });
+        cgh.single_task([=]() { dest_buffer_acc[index] = host_buffer_acc[0]; });
+    });
     queue.wait();
 }
 
@@ -213,14 +209,12 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, const I
     auto src_buffer = get_buffer_for(p, itSrc);
     auto dest_buffer = get_buffer_for(p, itDest);
 
-    queue.submit(
-        [&](sycl::handler& cgh)
-        {
-            auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
-            auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
+    queue.submit([&](sycl::handler& cgh) {
+        auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
+        auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
 
-            cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
-        });
+        cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
+    });
     queue.wait();
 }
 
@@ -233,14 +227,12 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, T* ptrD
     auto src_buffer = get_buffer_for(p, itSrc);
     auto dest_buffer = get_buffer_for(p, ptrDest);
 
-    queue.submit(
-        [&](sycl::handler& cgh)
-        {
-            auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
-            auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
+    queue.submit([&](sycl::handler& cgh) {
+        auto dest_buffer_acc = dest_buffer.template get_access<sycl::access::mode::write>(cgh);
+        auto src_buffer_acc = src_buffer.template get_access<sycl::access::mode::read>(cgh);
 
-            cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
-        });
+        cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
+    });
     queue.wait();
 }
 
