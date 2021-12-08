@@ -135,7 +135,7 @@ get_data_at(const Policy& p, const Iterator& i, size_t index, ValueType& val)
 
             cgh.single_task([=]() { host_buffer_acc[0] = src_buffer_acc[index]; });
         });
-    queue.wait_and_throw();
+    queue.wait();
 }
 
 template <typename ValueType, typename Policy, typename T>
@@ -178,7 +178,7 @@ set_data_at(const Policy& p, const Iterator& i, size_t index, ValueType val)
 
             cgh.single_task([=]() { dest_buffer_acc[index] = host_buffer_acc[0]; });
         });
-    queue.wait_and_throw();
+    queue.wait();
 }
 
 template <typename ValueType, typename Policy, typename T>
@@ -221,7 +221,7 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, const I
 
             cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
         });
-    queue.wait_and_throw();
+    queue.wait();
 }
 
 template <typename Policy, typename IteratorSrc, typename T>
@@ -241,7 +241,7 @@ copy_data_to(const Policy& p, const IteratorSrc& itSrc, size_t indexSrc, T* ptrD
 
             cgh.single_task([=]() { dest_buffer_acc[indexDest] = src_buffer_acc[indexSrc]; });
         });
-    queue.wait_and_throw();
+    queue.wait();
 }
 
 template <typename Policy, typename T, typename IteratorDest>
