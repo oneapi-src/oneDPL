@@ -64,7 +64,8 @@ using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
 // algorithm from either a SYCL iterator or a USM pointer.
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 auto
-get_access(Policy, const Iterator& i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+get_access(Policy, const Iterator& i,
+           typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
     -> decltype(i.get_buffer().template get_access<Mode>())
 {
     return i.get_buffer().template get_access<Mode>();
@@ -72,7 +73,8 @@ get_access(Policy, const Iterator& i, typename ::std::enable_if<is_hetero_iterat
 
 template <typename Policy, typename Iterator>
 auto
-get_buffer_for(Policy, const Iterator& i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+get_buffer_for(Policy, const Iterator& i,
+               typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
     -> decltype(i.get_buffer())
 {
     return i.get_buffer();
@@ -87,7 +89,8 @@ get_access(Policy, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Ite
 
 template <typename Policy, typename Iterator>
 auto
-get_buffer_for(Policy, const Iterator& i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
+get_buffer_for(Policy, const Iterator& i,
+               typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
     -> sycl::buffer<typename Iterator::value_type, 1>
 {
     return sycl::buffer<typename Iterator::value_type, 1>(i, i + 1);
@@ -110,8 +113,7 @@ get_access(const Policy& policy, T* ptr)
 
 template <typename Policy, typename T>
 auto
-get_buffer_for(const Policy& policy, T* ptr)
-    -> decltype(sycl::buffer(ptr, 1))
+get_buffer_for(const Policy& policy, T* ptr) -> decltype(sycl::buffer(ptr, 1))
 {
     return sycl::buffer(ptr, 1);
 }
