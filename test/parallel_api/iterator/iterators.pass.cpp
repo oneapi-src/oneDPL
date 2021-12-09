@@ -25,6 +25,7 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <limits>
 #include <type_traits>
 #include <forward_list>
 

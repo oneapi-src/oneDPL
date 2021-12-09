@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_parallel_backend_sycl_radix_sort_H
 #define _ONEDPL_parallel_backend_sycl_radix_sort_H
 
-#include <climits>
+#include <limits>
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
@@ -159,7 +159,7 @@ __convert_to_ordered(_T __value)
 {
     __ordered_t<_T> __uvalue = *reinterpret_cast<__ordered_t<_T>*>(&__value);
     // check if value negative
-    __ordered_t<_T> __is_negative = __uvalue >> (sizeof(_T) * CHAR_BIT - 1);
+    __ordered_t<_T> __is_negative = __uvalue >> (sizeof(_T) * std::numeric_limits<unsigned char>::digits - 1);
     // for positive: 00..00 -> 00..00 -> 10..00
     // for negative: 00..01 -> 11..11 -> 11..11
     __ordered_t<_T> __ordered_mask =
@@ -205,7 +205,7 @@ template <typename _T>
 constexpr ::std::uint32_t
 __get_buckets_in_type(::std::uint32_t __radix_bits)
 {
-    return (sizeof(_T) * CHAR_BIT) / __radix_bits;
+    return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
 }
 
 // required for descending comparator support
