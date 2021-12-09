@@ -16,14 +16,14 @@
 #ifndef _ONEDPL_COMMON_CONFIG_H
 #define _ONEDPL_COMMON_CONFIG_H
 // Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
-#if __cplusplus >= 201703L && _ONEDPL_PAR_BACKEND_TBB
+#if __cplusplus >= 201703L
+#    ifndef PSTL_USE_PARALLEL_POLICIES
+#        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#    endif
 #    if __has_include(<tbb/version.h>)
-#        ifndef PSTL_USE_PARALLEL_POLICIES
-#            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
-#        endif
 #        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
-#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
-#        endif
+#            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 11)
+#        endif              
 #    endif // __has_include(<tbb/version.h>)
 #endif     // __cplusplus >= 201703L
 
