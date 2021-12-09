@@ -73,20 +73,23 @@ public:
     usm_data_transfer(sycl::queue& __q, _Size __sz)
         : __queue(__q), __count(__sz)
     {
-        __ptr = allocate(__count, __alloc_type<_alloc_type>{});
-        assert(__ptr != nullptr || __sz == 0);
+        if (__count > 0)
+        {
+            __ptr = allocate(__count, __alloc_type<_alloc_type>{});
+            assert(__ptr != nullptr);
+        }
     }
 
     template<typename _Iterator, typename _Size>
     usm_data_transfer(sycl::queue& __q, _Iterator __it, _Size __sz)
         : usm_data_transfer(__q, __sz)
     {
-        //TODO: support copying data provided by non-contiguous iterator
-        auto __src = std::addressof(*__it);
-        assert(std::addressof(*(__it + __count)) - __src == __count);
-
         if (__count > 0)
         {
+            //TODO: support copying data provided by non-contiguous iterator
+            auto __src = std::addressof(*__it);
+            assert(std::addressof(*(__it + __count)) - __src == __count);
+
             __queue.copy(__src, __ptr, __count);
             __queue.wait();
         }
@@ -100,9 +103,11 @@ public:
 
     ~usm_data_transfer()
     {
-        assert((__ptr != nullptr && __count > 0) || (__ptr == nullptr && __count == 0));
-
-        sycl::free(__ptr, __queue);
+        if (__count > 0)
+        {
+            assert(__ptr != nullptr);
+            sycl::free(__ptr, __queue);
+        }
     }
 
     _ValueType* get_data() const
@@ -113,10 +118,10 @@ public:
     template<typename _Iterator>
     void retrieve_data(_Iterator __it)
     {
-        assert((__ptr != nullptr && __count > 0) || (__ptr == nullptr && __count == 0));
-
         if (__count > 0)
         {
+            assert(__ptr != nullptr);
+
             //TODO: support copying data provided by non-contiguous iterator
             auto __dst = std::addressof(*__it);
             assert(std::addressof(*(__it + __count)) - __dst == __count);
