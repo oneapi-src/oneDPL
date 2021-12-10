@@ -29,7 +29,7 @@ namespace __internal
 
 // Internal wrapper around ::std::iterator_traits as it is required to be
 // SFINAE-friendly(not produce "hard" error when _Ip is not an iterator)
-// only starting with C++17. Alghough many standard library implementations
+// only starting with C++17. Although many standard library implementations
 // provide it for older versions, we cannot rely on that.
 template <typename _Ip, typename = void>
 struct __iterator_traits
