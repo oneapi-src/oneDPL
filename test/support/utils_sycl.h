@@ -323,7 +323,7 @@ typename ::std::iterator_traits<Iter>::pointer
 get_host_pointer(Iter it)
 {
     auto temp_idx = it - oneapi::dpl::begin(it.get_buffer());
-    return it.get_buffer().template get_access<mode>().get_pointer() + temp_idx;
+    return &it.get_buffer().template get_access<mode>()[0] + temp_idx;
 }
 
 template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
@@ -331,7 +331,7 @@ template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target 
 T*
 get_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>& acc)
 {
-    return acc.get_pointer();
+    return &acc[0];
 }
 
 // for USM pointers
