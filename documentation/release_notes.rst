@@ -15,7 +15,7 @@ New Features
 ------------
 - Added a new implementation for ``par`` and ``par_unseq`` execution policies based on OpenMP* 4.5 pragmas.
   It can be enabled with the ``ONEDPL_USE_OPENMP_BACKEND`` macro.
-  For more details, see `the Macros`_ page in the oneDPL Library Guide.
+  For more details, see the `the Macros`_ page in the Library Guide.
 - Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of
   the iterator-based ``reduce_by_segment`` APIs. 
   Please note that the use of the ``reduce_by_segment`` algorithm requires C++17.
@@ -40,7 +40,7 @@ Known Issues and Limitations
 
 Existing Issues
 ^^^^^^^^^^^^^^^
-See the oneDPL Library Guide for other `restrictions and known limitations`_.
+See the Library Guide for other `restrictions and known limitations`_.
 
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
 - ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
@@ -277,7 +277,7 @@ Key Features
 - A subset of the standard C++ libraries for Microsoft* Visual C++, GCC, and Clang is supported
   in DPC++ kernels, including ``<array>``, ``<complex>``, ``<functional>``, ``<tuple>``,
   ``<type_traits>``, ``<utility>`` and other standard library API.
-  For the detailed list, please refer to `the oneDPL Library Guide`_.
+  For the detailed list, please refer to `the Library Guide`_.
 - Standard C++ random number generators and distributions for use in DPC++ kernels.
 
 
@@ -310,7 +310,7 @@ Known Issues and Limitations
 .. [#fnote1] The sorting algorithms in oneDPL use Radix sort for arithmetic data types compared with
    ``std::less`` or ``std::greater``, otherwise Merge sort.
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
-.. _`the oneDPL Library Guide`: https://oneapi-src.github.io/oneDPL/index.html
+.. _`the Library Guide`: https://oneapi-src.github.io/oneDPL/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
 .. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
 .. _`the Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
