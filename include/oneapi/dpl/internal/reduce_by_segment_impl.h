@@ -162,8 +162,6 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     namespace __bknd = __par_backend_hetero;
 
     const auto n = ::std::distance(first1, last1);
-    if (n <= 0)
-        return ::std::make_pair(result1, result2);
 
     auto keep_keys = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto key_buf = keep_keys(first1, last1);
