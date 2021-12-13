@@ -212,7 +212,7 @@ main()
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
-    test_uninitialized_copy_move_by_type<Wrapper<int8_t>>();
+    test_uninitialized_copy_move_by_type<Wrapper<std::int8_t>>();
 #endif
 
     return done();

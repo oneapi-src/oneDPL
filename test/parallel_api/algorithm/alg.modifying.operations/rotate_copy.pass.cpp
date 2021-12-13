@@ -125,7 +125,7 @@ test()
 int
 main()
 {
-    test<int32_t, int8_t>();
+    test<int32_t, std::int8_t>();
     test<uint16_t, float32_t>();
     test<float64_t, int64_t>();
 #if !TEST_DPCPP_BACKEND_PRESENT

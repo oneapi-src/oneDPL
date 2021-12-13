@@ -205,7 +205,7 @@ main()
 #endif
 
     // for trivial types
-    test_uninit_construct_by_type<int8_t>();
+    test_uninit_construct_by_type<std::int8_t>();
     test_uninit_construct_by_type<float64_t>();
 
     return done();
