@@ -381,7 +381,7 @@ main()
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_set<Num<int64_t>, Num<std::int32_t>>([](const Num<int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
+    test_set<Num<std::int64_t>, Num<std::int32_t>>([](const Num<std::int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
 
     test_set<MemoryChecker, MemoryChecker>([](const MemoryChecker& val1, const MemoryChecker& val2) -> bool {
         return val1.value() < val2.value();

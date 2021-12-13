@@ -137,10 +137,10 @@ main()
 
 
 #ifdef FOR_EACH
-    test_algo_basic_single<int64_t>(run_for_rnd_fw<test_non_const_for_each>());
+    test_algo_basic_single<std::int64_t>(run_for_rnd_fw<test_non_const_for_each>());
 #endif
 #ifdef FOR_EACH_N
-    test_algo_basic_single<int64_t>(run_for_rnd_fw<test_non_const_for_each_n>());
+    test_algo_basic_single<std::int64_t>(run_for_rnd_fw<test_non_const_for_each_n>());
 #endif
 
     return done();

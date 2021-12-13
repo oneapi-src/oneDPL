@@ -155,9 +155,9 @@ main()
 {
     test_by_type<std::int32_t>(42, ::std::plus<std::int32_t>(), ::std::multiplies<std::int32_t>(), ::std::negate<std::int32_t>(),
                           [](::std::size_t) -> std::int32_t { return std::int32_t(rand() % 1000); });
-    test_by_type<int64_t>(0, [](const int64_t& a, const int64_t& b) -> int64_t { return a | b; }, XOR(),
-                          [](const int64_t& x) -> int64_t { return x * 2; },
-                          [](::std::size_t) -> int64_t { return int64_t(rand() % 1000); });
+    test_by_type<std::int64_t>(0, [](const std::int64_t& a, const std::int64_t& b) -> std::int64_t { return a | b; }, XOR(),
+                          [](const std::int64_t& x) -> std::int64_t { return x * 2; },
+                          [](::std::size_t) -> std::int64_t { return std::int64_t(rand() % 1000); });
     test_by_type<float32_t>(1.0f, ::std::multiplies<float32_t>(),
                             [](const float32_t& a, const float32_t& b) -> float32_t { return a + b; },
                             [](const float32_t& x) -> float32_t { return x + 2; },

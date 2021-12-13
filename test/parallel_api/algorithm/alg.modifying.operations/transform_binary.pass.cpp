@@ -116,7 +116,7 @@ main()
     //non-const operator()
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<std::int32_t, float32_t, float32_t>(non_const(TheOperation<std::int32_t, float32_t, float32_t>(1.5)));
-    test<int64_t, float64_t, float32_t>(non_const(TheOperation<int64_t, float64_t, float32_t>(1.5)));
+    test<std::int64_t, float64_t, float32_t>(non_const(TheOperation<std::int64_t, float64_t, float32_t>(1.5)));
 #endif
     // lambda
     //TODO: wrong value in output sentence with std::int8_t

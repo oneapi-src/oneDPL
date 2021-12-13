@@ -438,7 +438,7 @@ struct test_unique
 
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
-        int64_t expected_size = (n - 1) / 4 + 1;
+        std::int64_t expected_size = (n - 1) / 4 + 1;
 
         auto tuple_lastnew =
             ::std::unique(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
@@ -475,7 +475,7 @@ struct test_unique_copy
         int index = 0;
         ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
         ::std::fill(host_first2, host_first2 + n, Iterator1ValueType{-1});
-        int64_t expected_size = (n - 1) / 4 + 1;
+        std::int64_t expected_size = (n - 1) / 4 + 1;
 
         auto tuple_last2 =
             ::std::unique_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,

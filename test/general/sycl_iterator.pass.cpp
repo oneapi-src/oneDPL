@@ -2007,7 +2007,7 @@ struct test_unique_copy
 #endif
         auto result_size = result_last - result_first;
 
-        int64_t expected_size = (n - 1) / 4 + 1;
+        std::int64_t expected_size = (n - 1) / 4 + 1;
 
         // check
         bool is_correct = result_size == expected_size;
@@ -2053,7 +2053,7 @@ struct test_unique
 #endif
         auto result_size = result_last - first;
 
-        int64_t expected_size = (n - 1) / 4 + 1;
+        std::int64_t expected_size = (n - 1) / 4 + 1;
 
         // check
         bool is_correct = result_size == expected_size;
