@@ -164,7 +164,7 @@ test(Pred pred)
 int
 main()
 {
-    test<uint8_t, uint32_t>([](uint32_t a, uint32_t b) { return a - b; });
+    test<std::uint8_t, uint32_t>([](uint32_t a, uint32_t b) { return a - b; });
     test<std::int32_t, std::int64_t>([](std::int64_t a, std::int64_t b) { return a / (b + 1); });
     test<std::int64_t, float32_t>([](float32_t a, float32_t b) { return (a + b) / 2; });
 #if !TEST_DPCPP_BACKEND_PRESENT
