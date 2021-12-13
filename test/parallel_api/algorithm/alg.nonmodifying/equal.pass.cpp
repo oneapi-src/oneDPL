@@ -179,7 +179,7 @@ int
 main()
 {
     test<std::int32_t>(8 * sizeof(std::int32_t),   [](const std::int32_t& a, const std::int32_t& b)     { return a == b; });
-    test<uint16_t>(8 * sizeof(uint16_t), [](const uint16_t& a, const uint16_t& b)   { return a == b; });
+    test<std::uint16_t>(8 * sizeof(std::uint16_t), [](const std::uint16_t& a, const std::uint16_t& b)   { return a == b; });
     test<float64_t>(53,                  [](const float64_t& a, const float64_t& b) { return a == b; });
     test<bool>(1,                        [](const bool& a, const bool& b)           { return a == b; });
     test<UserType>(256,                  [](const UserType& a, const UserType& b)   { return a == b; });

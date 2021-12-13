@@ -101,7 +101,7 @@ main()
 {
     test<std::int32_t>();
 #if !ONEDPL_FPGA_DEVICE
-    test<uint16_t>();
+    test<std::uint16_t>();
 #endif
     test<float64_t>();
     test<bool>();

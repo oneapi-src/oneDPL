@@ -171,7 +171,7 @@ struct test_non_const
 int
 main()
 {
-    test<uint16_t, float64_t>(::std::less<float64_t>());
+    test<std::uint16_t, float64_t>(::std::less<float64_t>());
 
 #if !ONEDPL_FPGA_DEVICE
     test<float32_t, std::int32_t>(::std::greater<float32_t>());

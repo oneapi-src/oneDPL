@@ -79,7 +79,7 @@ main()
 {
     test<float64_t>([](const float64_t x) { return x < 0; });
     test<std::int32_t>([](const std::int32_t x) { return x > 1000; });
-    test<uint16_t>([](const uint16_t x) { return x % 5 < 3; });
+    test<std::uint16_t>([](const std::uint16_t x) { return x % 5 < 3; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT && !_PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN &&               \
     !_PSTL_ICC_19_TEST_IS_PARTITIONED_RELEASE_BROKEN

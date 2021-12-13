@@ -90,7 +90,7 @@ main()
 {
     test<std::int32_t, std::int32_t>();
     test<std::int32_t, float32_t>();
-    test<uint16_t, float32_t>();
+    test<std::uint16_t, float32_t>();
     test<float32_t, float64_t>();
     test<float64_t, float64_t>();
 

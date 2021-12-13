@@ -119,7 +119,7 @@ main()
 {
     test<std::int32_t>(::std::equal_to<std::int32_t>());
 #if !ONEDPL_FPGA_DEVICE
-    test<uint16_t>(::std::not_equal_to<uint16_t>());
+    test<std::uint16_t>(::std::not_equal_to<std::uint16_t>());
 #endif
     test<float64_t>([](const float64_t x, const float64_t y) { return x * x == y * y; });
 
