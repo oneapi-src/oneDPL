@@ -306,8 +306,8 @@ main()
 
     // Since the implicit "+" forms of the scan delegate to the generic forms,
     // there's little point in using a highly restricted type, so just use double.
-    test_with_plus<float64_t>(0.0, -666.0, [](uint32_t k) { return float64_t((k % 991 + 1) ^ (k % 997 + 2)); });
-    test_with_plus<std::int32_t>(0.0, -666.0, [](uint32_t k) { return std::int32_t((k % 991 + 1) ^ (k % 997 + 2)); });
+    test_with_plus<float64_t>(0.0, -666.0, [](std::uint32_t k) { return float64_t((k % 991 + 1) ^ (k % 997 + 2)); });
+    test_with_plus<std::int32_t>(0.0, -666.0, [](std::uint32_t k) { return std::int32_t((k % 991 + 1) ^ (k % 997 + 2)); });
 
     return done();
 }

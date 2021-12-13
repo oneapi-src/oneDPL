@@ -192,7 +192,7 @@ struct test_non_const_copy_if
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         copy_if(exec, input_iter, input_iter, out_iter, non_const(is_even));
@@ -206,7 +206,7 @@ struct test_non_const_remove_copy_if
         operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         invoke_if(exec, [&]() { remove_copy_if(exec, input_iter, input_iter, out_iter, non_const(is_even)); });

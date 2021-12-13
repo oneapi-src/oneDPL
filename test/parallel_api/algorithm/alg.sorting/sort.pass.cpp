@@ -42,7 +42,7 @@ static bool Stable;
 static ::std::atomic<std::int32_t> KeyCount;
 
 //! One more than highest index in array to be sorted.
-static uint32_t LastIndex;
+static std::uint32_t LastIndex;
 
 //! Keeping Equal() static and a friend of ParanoidKey class (C++, paragraphs 3.5/7.1.1)
 class ParanoidKey;
@@ -66,7 +66,7 @@ class ParanoidKey
     bool
     isLive() const
     {
-        return (uint32_t)(index) < LastIndex;
+        return (std::uint32_t)(index) < LastIndex;
     }
     // True if key object has been constructed.
     bool

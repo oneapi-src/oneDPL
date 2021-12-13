@@ -89,7 +89,7 @@ struct test_non_const_find_if
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
 
@@ -106,7 +106,7 @@ struct test_non_const_find_if_not
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
 

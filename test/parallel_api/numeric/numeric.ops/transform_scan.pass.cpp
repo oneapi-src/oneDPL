@@ -130,7 +130,7 @@ struct test_transform_inclusive_scan
     }
 };
 
-const uint32_t encryption_mask = 0x314;
+const std::uint32_t encryption_mask = 0x314;
 
 template <typename InputIterator, typename OutputIterator, typename UnaryOperation, typename T,
           typename BinaryOperation>
@@ -261,7 +261,7 @@ main()
                                                         Matrix2x2<std::int32_t>(), multiply_matrix<std::int32_t>(),
                                                         Matrix2x2<std::int32_t>(-666, 666));
 #endif
-    test<std::int32_t, uint32_t>([](std::int32_t x) { return x++; }, -123, [](std::int32_t x, std::int32_t y) { return x + y; }, 666);
+    test<std::int32_t, std::uint32_t>([](std::int32_t x) { return x++; }, -123, [](std::int32_t x, std::int32_t y) { return x + y; }, 666);
 
     return done();
 }

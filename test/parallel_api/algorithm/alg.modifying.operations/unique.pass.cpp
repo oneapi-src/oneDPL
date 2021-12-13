@@ -127,8 +127,8 @@ main()
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test<LocalWrapper<uint32_t>>([](size_t j) { return LocalWrapper<uint32_t>(j); },
-                                 [](const LocalWrapper<uint32_t>& val1, const LocalWrapper<uint32_t>& val2) {
+    test<LocalWrapper<std::uint32_t>>([](size_t j) { return LocalWrapper<std::uint32_t>(j); },
+                                 [](const LocalWrapper<std::uint32_t>& val1, const LocalWrapper<std::uint32_t>& val2) {
                                      return val1.my_val != val2.my_val;
                                  });
     test<MemoryChecker>(

@@ -101,7 +101,7 @@ struct test_non_const
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
 
@@ -113,7 +113,7 @@ int
 main()
 {
 #if !_PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN
-    test<uint32_t>(666, 42, [](uint32_t) { return true; }, [](size_t j) { return j; });
+    test<std::uint32_t>(666, 42, [](std::uint32_t) { return true; }, [](size_t j) { return j; });
 #endif
 
     test<std::int32_t>(666, 2001, [](const std::int32_t& val) { return val != 2001; },

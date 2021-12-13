@@ -46,9 +46,9 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
 
     std::size_t size = 1000;
-    sycl::buffer<uint32_t> buf{size};
+    sycl::buffer<std::uint32_t> buf{size};
     test_buffer_wrapper test{};
-    auto data_ptr = sycl::host_accessor<uint32_t, 1, sycl::access_mode::read>(buf).get_pointer();
+    auto data_ptr = sycl::host_accessor<std::uint32_t, 1, sycl::access_mode::read>(buf).get_pointer();
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);

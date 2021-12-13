@@ -105,7 +105,7 @@ struct test_non_const
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
 
