@@ -27,7 +27,7 @@ struct UserType
     size_t key;
     float32_t f;
     float64_t d;
-    int32_t i;
+    std::int32_t i;
 
     bool
     operator()(UserType a, UserType b)
@@ -178,13 +178,13 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t>(8 * sizeof(int32_t),   [](const int32_t& a, const int32_t& b)     { return a == b; });
+    test<std::int32_t>(8 * sizeof(std::int32_t),   [](const std::int32_t& a, const std::int32_t& b)     { return a == b; });
     test<uint16_t>(8 * sizeof(uint16_t), [](const uint16_t& a, const uint16_t& b)   { return a == b; });
     test<float64_t>(53,                  [](const float64_t& a, const float64_t& b) { return a == b; });
     test<bool>(1,                        [](const bool& a, const bool& b)           { return a == b; });
     test<UserType>(256,                  [](const UserType& a, const UserType& b)   { return a == b; });
 
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
     return done();
 }

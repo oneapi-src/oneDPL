@@ -88,7 +88,7 @@ issue_error_message(::std::stringstream& outstr)
 }
 
 inline void
-expect(bool expected, bool condition, const char* file, int32_t line, const char* message)
+expect(bool expected, bool condition, const char* file, std::int32_t line, const char* message)
 {
     if (condition != expected)
     {
@@ -102,7 +102,7 @@ expect(bool expected, bool condition, const char* file, int32_t line, const char
 // Function must be able to detect const differences between expected and actual.
 template <typename T>
 void
-expect_equal_val(T& expected, T& actual, const char* file, int32_t line, const char* message)
+expect_equal_val(T& expected, T& actual, const char* file, std::int32_t line, const char* message)
 {
     if (!(expected == actual))
     {
@@ -115,7 +115,7 @@ expect_equal_val(T& expected, T& actual, const char* file, int32_t line, const c
 
 template <typename R1, typename R2>
 void
-expect_equal(const R1& expected, const R2& actual, const char* file, int32_t line, const char* message)
+expect_equal(const R1& expected, const R2& actual, const char* file, std::int32_t line, const char* message)
 {
     size_t n = expected.size();
     size_t m = actual.size();
@@ -143,14 +143,14 @@ expect_equal(const R1& expected, const R2& actual, const char* file, int32_t lin
 
 template <typename T>
 void
-expect_equal_val(Sequence<T>& expected, Sequence<T>& actual, const char* file, int32_t line, const char* message)
+expect_equal_val(Sequence<T>& expected, Sequence<T>& actual, const char* file, std::int32_t line, const char* message)
 {
     expect_equal(expected, actual, file, line, message);
 }
 
 template <typename Iterator1, typename Iterator2, typename Size>
 void
-expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const char* file, int32_t line,
+expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const char* file, std::int32_t line,
              const char* message)
 {
     size_t error_count = 0;
@@ -490,7 +490,7 @@ HashBits(size_t i, size_t bits)
 template <typename T, typename U>
 class Complement
 {
-    int32_t val;
+    std::int32_t val;
 
   public:
     Complement(T v) : val(v) {}
@@ -513,7 +513,7 @@ class Sum;
 // Typically used as value type in tests.
 class Number
 {
-    int32_t value;
+    std::int32_t value;
     friend class Add;
     friend class Sum;
     friend class IsMultiple;
@@ -522,7 +522,7 @@ class Number
     operator+(const Sum& x, const Sum& y);
 
   public:
-    Number(int32_t val, OddTag) : value(val) {}
+    Number(std::int32_t val, OddTag) : value(val) {}
     friend bool
     operator==(const Number& x, const Number& y)
     {

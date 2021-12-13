@@ -30,9 +30,9 @@ using namespace TestUtils;
 // This class is needed to check the self-copying
 struct copy_int
 {
-    int32_t value;
-    int32_t copied_times = 0;
-    explicit copy_int(int32_t val = 0) { value = val; }
+    std::int32_t value;
+    std::int32_t copied_times = 0;
+    explicit copy_int(std::int32_t val = 0) { value = val; }
 
     copy_int&
     operator=(const copy_int& other)
@@ -170,12 +170,12 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t, float32_t>(oneapi::dpl::__internal::__equal_value<int32_t>(666));
+    test<std::int32_t, float32_t>(oneapi::dpl::__internal::__equal_value<std::int32_t>(666));
     test<uint16_t, uint8_t>([](const uint16_t& elem) { return elem % 3 < 2; });
     test<float64_t, int64_t>([](const float64_t& elem) { return elem * elem - 3.5 * elem > 10; });
     //test<copy_int, copy_int>([](const copy_int& val) { return val.value / 5 > 2; });
 
-    //test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    //test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 #ifdef _PSTL_TEST_REPLACE_IF
     test_algo_basic_single<std::int16_t>(run_for_rnd_fw<test_non_const<std::int16_t>>());
 #endif

@@ -40,7 +40,7 @@ struct test_buffer_wrapper
 };
 #endif
 
-int32_t
+std::int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT

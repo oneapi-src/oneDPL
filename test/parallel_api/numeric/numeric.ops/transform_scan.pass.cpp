@@ -257,11 +257,11 @@ int
 main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
-    test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>([](const Matrix2x2<int32_t> x) { return x; },
-                                                        Matrix2x2<int32_t>(), multiply_matrix<int32_t>(),
-                                                        Matrix2x2<int32_t>(-666, 666));
+    test_matrix<Matrix2x2<std::int32_t>, Matrix2x2<std::int32_t>>([](const Matrix2x2<std::int32_t> x) { return x; },
+                                                        Matrix2x2<std::int32_t>(), multiply_matrix<std::int32_t>(),
+                                                        Matrix2x2<std::int32_t>(-666, 666));
 #endif
-    test<int32_t, uint32_t>([](int32_t x) { return x++; }, -123, [](int32_t x, int32_t y) { return x + y; }, 666);
+    test<std::int32_t, uint32_t>([](std::int32_t x) { return x++; }, -123, [](std::int32_t x, std::int32_t y) { return x + y; }, 666);
 
     return done();
 }

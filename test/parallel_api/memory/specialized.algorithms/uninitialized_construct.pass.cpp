@@ -200,7 +200,7 @@ main()
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
-    test_uninit_construct_by_type<Wrapper<int32_t>>();
+    test_uninit_construct_by_type<Wrapper<std::int32_t>>();
     test_uninit_construct_by_type<Wrapper<::std::vector<::std::string>>>();
 #endif
 

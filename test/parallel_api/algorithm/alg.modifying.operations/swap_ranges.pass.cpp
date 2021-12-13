@@ -132,7 +132,7 @@ main()
 {
     test<wrapper<uint16_t>>();
     test<wrapper<float64_t>>();
-    test<int32_t>();
+    test<std::int32_t>();
     test<float32_t>();
 
     return done();

@@ -372,7 +372,7 @@ main()
 #if !ONEDPL_FPGA_DEVICE
         float64_t;
 #else
-        int32_t;
+        std::int32_t;
 #endif
 
     test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less(),false);
@@ -381,7 +381,7 @@ main()
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_set<Num<int64_t>, Num<int32_t>>([](const Num<int64_t>& x, const Num<int32_t>& y) { return x < y; }, true);
+    test_set<Num<int64_t>, Num<std::int32_t>>([](const Num<int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
 
     test_set<MemoryChecker, MemoryChecker>([](const MemoryChecker& val1, const MemoryChecker& val2) -> bool {
         return val1.value() < val2.value();
@@ -390,16 +390,16 @@ main()
 #endif
 
 #ifdef _PSTL_TEST_SET_DIFFERENCE
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_difference<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_difference<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_SET_INTERSECTION
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_intersection<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_intersection<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_symmetric_difference<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_symmetric_difference<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_SET_UNION
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_set_union<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_union<std::int32_t>>());
 #endif
 
     return done();

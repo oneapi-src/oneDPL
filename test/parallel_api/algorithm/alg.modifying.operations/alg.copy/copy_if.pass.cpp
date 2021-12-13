@@ -225,16 +225,16 @@ main()
 #endif // ONEDPL_FPGA_DEVICE
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
+    test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](std::int32_t j) { return Number(j, OddTag()); });
 #endif
-    test<int32_t>(-666, [](const int32_t&) { return true; }, [](size_t j) { return j; }, false);
+    test<std::int32_t>(-666, [](const std::int32_t&) { return true; }, [](size_t j) { return j; }, false);
 
 #if defined(_PSTL_TEST_REMOVE_COPY_IF)
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_remove_copy_if>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_remove_copy_if>());
 #endif
 
 #if defined(_PSTL_TEST_COPY_IF)
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
 #endif
 
     return done();

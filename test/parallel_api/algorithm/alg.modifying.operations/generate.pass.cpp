@@ -123,7 +123,7 @@ struct test_non_const_generate_n
 int
 main()
 {
-    test_generate_by_type<int32_t>();
+    test_generate_by_type<std::int32_t>();
     test_generate_by_type<float64_t>();
 
 

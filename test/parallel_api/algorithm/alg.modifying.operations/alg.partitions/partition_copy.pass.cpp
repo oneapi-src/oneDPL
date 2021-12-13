@@ -105,8 +105,8 @@ struct test_non_const
 int
 main()
 {
-    test<std::int16_t>([](const int32_t value) { return value % 2 == 0; });
-    test<int32_t>([](const int32_t) { return true; });
+    test<std::int16_t>([](const std::int32_t value) { return value % 2 == 0; });
+    test<std::int32_t>([](const std::int32_t) { return true; });
 
 #if !ONEDPL_FPGA_DEVICE
     test<float64_t>([](const float64_t value) { return value > 2 << 6; });
@@ -116,7 +116,7 @@ main()
     test<Wrapper<float64_t>>([](const Wrapper<float64_t>& value) -> bool { return value.get_my_field() != nullptr; });
 #endif
 
-    test_algo_basic_double<int32_t>(run_for_rnd_bi<test_non_const>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_bi<test_non_const>());
 
     return done();
 }

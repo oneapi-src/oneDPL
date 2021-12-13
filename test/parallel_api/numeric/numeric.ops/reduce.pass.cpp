@@ -42,7 +42,7 @@ test_long_form(T init, BinaryOp binary_op, F f)
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         T expected(init);
-        Sequence<T> in(n, [n, f](size_t k) { return f((int32_t(k ^ n) % 1000 - 500)); });
+        Sequence<T> in(n, [n, f](size_t k) { return f((std::int32_t(k ^ n) % 1000 - 500)); });
         for (size_t k = 0; k < n; ++k)
             expected = binary_op(expected, in[k]);
 
@@ -90,7 +90,7 @@ test_short_forms()
     {
         Sum init(42, OddTag());
         Sum expected(init);
-        Sequence<Sum> in(n, [n](size_t k) { return Sum((int32_t(k ^ n) % 1000 - 500), OddTag()); });
+        Sequence<Sum> in(n, [n](size_t k) { return Sum((std::int32_t(k ^ n) % 1000 - 500), OddTag()); });
         for (size_t k = 0; k < n; ++k)
             expected = expected + in[k];
         invoke_on_all_policies<2>()(test_short_reduce(), in.begin(), in.end(), init, expected);
@@ -105,14 +105,14 @@ int
 main()
 {
     // Test for popular types
-    test_long_form(42, ::std::plus<int32_t>(), [](int32_t x) { return x; });
+    test_long_form(42, ::std::plus<std::int32_t>(), [](std::int32_t x) { return x; });
     test_long_form(42.0, ::std::plus<float64_t>(), [](float64_t x) { return x; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // Test for strict types
     // Creation of temporary buffer from const iterators requires default ctor of Number
     // TODO: fix it
-    test_long_form<Number>(Number(42, OddTag()), Add(OddTag()), [](int32_t x) { return Number(x, OddTag()); });
+    test_long_form<Number>(Number(42, OddTag()), Add(OddTag()), [](std::int32_t x) { return Number(x, OddTag()); });
 #endif
 
     // Short forms are just facade for long forms, so just test with a single type.

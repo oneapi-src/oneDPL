@@ -206,7 +206,7 @@ int
 main()
 {
     // for trivial types
-    test_uninitialized_fill_destroy_by_type<int32_t>();
+    test_uninitialized_fill_destroy_by_type<std::int32_t>();
     test_uninitialized_fill_destroy_by_type<float64_t>();
 
 #if !TEST_DPCPP_BACKEND_PRESENT

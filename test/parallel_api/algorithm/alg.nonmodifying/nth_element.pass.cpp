@@ -28,7 +28,7 @@ using namespace TestUtils;
 template <typename T>
 struct DataType
 {
-    explicit DataType(int32_t k) : my_val(k) {}
+    explicit DataType(std::int32_t k) : my_val(k) {}
     DataType(DataType&& input)
     {
         my_val = ::std::move(input.my_val);
@@ -186,20 +186,20 @@ int
 main()
 {
 #if !ONEDPL_FPGA_DEVICE
-    test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, ::std::less<int32_t>());
-    test_by_type<int32_t>([](int32_t) { return 0; }, [](int32_t) { return 0; }, ::std::less<int32_t>());
+    test_by_type<std::int32_t>([](std::int32_t i) { return 10 * i; }, [](std::int32_t i) { return i + 1; }, ::std::less<std::int32_t>());
+    test_by_type<std::int32_t>([](std::int32_t) { return 0; }, [](std::int32_t) { return 0; }, ::std::less<std::int32_t>());
 #endif
 
-    test_by_type<float64_t>([](int32_t i) { return -2 * i; }, [](int32_t i) { return -(2 * i + 1); },
+    test_by_type<float64_t>([](std::int32_t i) { return -2 * i; }, [](std::int32_t i) { return -(2 * i + 1); },
                             [](const float64_t x, const float64_t y) { return x > y; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test_by_type<DataType<float32_t>>(
-        [](int32_t i) { return DataType<float32_t>(2 * i + 1); }, [](int32_t i) { return DataType<float32_t>(2 * i); },
+        [](std::int32_t i) { return DataType<float32_t>(2 * i + 1); }, [](std::int32_t i) { return DataType<float32_t>(2 * i); },
         [](const DataType<float32_t>& x, const DataType<float32_t>& y) { return x.get_val() < y.get_val(); });
 #endif
 
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const<std::int32_t>>());
 
     return done();
 }

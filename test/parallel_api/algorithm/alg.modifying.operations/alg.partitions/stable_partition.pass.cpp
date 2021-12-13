@@ -29,7 +29,7 @@ using namespace TestUtils;
 template <typename T>
 struct DataType
 {
-    explicit DataType(int32_t k) : my_val(k) {}
+    explicit DataType(std::int32_t k) : my_val(k) {}
     DataType(DataType&& input) { my_val = ::std::move(input.my_val); }
     DataType&
     operator=(DataType&& input)
@@ -129,16 +129,16 @@ struct test_non_const_stable_partition
 int
 main()
 {
-    test_by_type<int32_t>([](int32_t i) { return i; }, [](int32_t) { return true; });
-    test_by_type<float64_t>([](int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
-    test_by_type<int64_t>([](int32_t i) { return i + 1; }, [](int64_t x) { return x % 3 == 0; });
+    test_by_type<std::int32_t>([](std::int32_t i) { return i; }, [](std::int32_t) { return true; });
+    test_by_type<float64_t>([](std::int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
+    test_by_type<int64_t>([](std::int32_t i) { return i + 1; }, [](int64_t x) { return x % 3 == 0; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_by_type<DataType<float32_t>>([](int32_t i) { return DataType<float32_t>(2 * i + 1); },
+    test_by_type<DataType<float32_t>>([](std::int32_t i) { return DataType<float32_t>(2 * i + 1); },
                                       [](const DataType<float32_t>& x) { return x.get_val() < 0; });
 #endif
 
-    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const_stable_partition>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_bi<test_non_const_stable_partition>());
 
     return done();
 }

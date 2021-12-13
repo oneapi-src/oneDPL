@@ -116,18 +116,18 @@ main()
     test<uint32_t>(666, 42, [](uint32_t) { return true; }, [](size_t j) { return j; });
 #endif
 
-    test<int32_t>(666, 2001, [](const int32_t& val) { return val != 2001; },
-                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? 2001 : -1 - int32_t(j); });
+    test<std::int32_t>(666, 2001, [](const std::int32_t& val) { return val != 2001; },
+                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? 2001 : -1 - std::int32_t(j); });
     test<float64_t>(-666.0, 8.5, [](const float64_t& val) { return val != 8.5; },
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Number(-666, OddTag()), Number(42, OddTag()), IsMultiple(3, OddTag()),
-                 [](int32_t j) { return Number(j, OddTag()); });
+                 [](std::int32_t j) { return Number(j, OddTag()); });
 #endif
 
 #ifdef _PSTL_TEST_REMOVE_IF
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const>());
 #endif
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<MemoryChecker>(MemoryChecker{0}, MemoryChecker{1},

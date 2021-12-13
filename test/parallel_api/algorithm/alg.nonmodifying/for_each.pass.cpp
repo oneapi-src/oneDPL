@@ -40,8 +40,8 @@ struct Gen
 template <typename T>
 struct Flip
 {
-    int32_t val;
-    Flip(int32_t y) : val(y) {}
+    std::int32_t val;
+    Flip(std::int32_t y) : val(y) {}
     T
     operator()(T& x) const
     {
@@ -131,7 +131,7 @@ struct test_non_const_for_each_n
 int
 main()
 {
-    test<int32_t>();
+    test<std::int32_t>();
     test<uint16_t>();
     test<float64_t>();
 

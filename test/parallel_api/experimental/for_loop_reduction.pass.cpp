@@ -193,10 +193,10 @@ test_predef()
     test_predefined({1.f, 20.f, -14.f, 0.f, -100.f, 150.f});
 }
 
-int32_t
+std::int32_t
 main()
 {
-    test<int32_t>();
+    test<std::int32_t>();
     test<float64_t>();
 
     test_predef();

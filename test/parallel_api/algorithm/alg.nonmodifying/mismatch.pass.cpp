@@ -181,15 +181,15 @@ int
 main()
 {
 
-    test_mismatch_by_type<int32_t>();
+    test_mismatch_by_type<std::int32_t>();
 #if !ONEDPL_FPGA_DEVICE
     test_mismatch_by_type<float64_t>();
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_mismatch_by_type<Wrapper<int32_t>>();
+    test_mismatch_by_type<Wrapper<std::int32_t>>();
 #endif
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
     return done();
 }

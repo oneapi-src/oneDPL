@@ -119,8 +119,8 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t>([](size_t j) { return j / 3; },
-                  [](const int32_t& val1, const int32_t& val2) { return val1 * val1 == val2 * val2; });
+    test<std::int32_t>([](size_t j) { return j / 3; },
+                  [](const std::int32_t& val1, const std::int32_t& val2) { return val1 * val1 == val2 * val2; });
 #if !ONEDPL_FPGA_DEVICE
     test<float64_t>([](size_t) { return float64_t(1); },
                     [](const float64_t& val1, const float64_t& val2) { return val1 != val2; });
@@ -136,7 +136,7 @@ main()
         [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() == val2.value(); });
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from unique: number of ctor and dtor calls is not equal");
 #endif
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
     return done();
 }

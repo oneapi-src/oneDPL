@@ -161,16 +161,16 @@ struct test_non_const_search
 int
 main()
 {
-    test<int32_t>(8 * sizeof(int32_t));
+    test<std::int32_t>(8 * sizeof(std::int32_t));
     test<uint16_t>(8 * sizeof(uint16_t));
     test<float64_t>(53);
     test<bool>(1);
 
 #ifdef _PSTL_TEST_FIND_END
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_find_end<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_find_end<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_SEARCH
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_search<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_search<std::int32_t>>());
 #endif
 
     return done();

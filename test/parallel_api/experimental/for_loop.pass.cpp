@@ -34,8 +34,8 @@ struct Gen
 template <typename T>
 struct Flip
 {
-    int32_t val;
-    Flip(int32_t y) : val(y) {}
+    std::int32_t val;
+    Flip(std::int32_t y) : val(y) {}
     T
     operator()(T& x) const
     {
@@ -329,10 +329,10 @@ test()
     test_for_loop_strided<T>();
 }
 
-int32_t
+std::int32_t
 main()
 {
-    test<int32_t>();
+    test<std::int32_t>();
     test<float64_t>();
 
     return done();

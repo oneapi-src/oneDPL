@@ -174,20 +174,20 @@ main()
     test<uint16_t, float64_t>(::std::less<float64_t>());
 
 #if !ONEDPL_FPGA_DEVICE
-    test<float32_t, int32_t>(::std::greater<float32_t>());
+    test<float32_t, std::int32_t>(::std::greater<float32_t>());
 #if !_PSTL_ICC_18_TEST_EARLY_EXIT_AVX_RELEASE_BROKEN
-    test<float64_t, int32_t>([](const float64_t x, const int32_t y) { return x * x < y * y; });
+    test<float64_t, std::int32_t>([](const float64_t x, const std::int32_t y) { return x * x < y * y; });
 #endif
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test<LocalWrapper<int32_t>, LocalWrapper<int32_t>>(
-        [](const LocalWrapper<int32_t>& x, const LocalWrapper<int32_t>& y) { return x < y; });
+    test<LocalWrapper<std::int32_t>, LocalWrapper<std::int32_t>>(
+        [](const LocalWrapper<std::int32_t>& x, const LocalWrapper<std::int32_t>& y) { return x < y; });
 
     test_string([](const char x, const char y) { return x < y; });
 #endif
 
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
     return done();
 }

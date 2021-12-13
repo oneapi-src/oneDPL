@@ -58,12 +58,12 @@ test_adjacent_find_by_type()
 {
     auto custom_pred = [](T x, T y){return (x - y)*(x - y) == 4; };
     size_t counts[] = {2, 3, 500};
-    for (int32_t c = 0; c < const_size(counts); ++c)
+    for (std::int32_t c = 0; c < const_size(counts); ++c)
     {
 
-        for (int32_t e = 0; e < (counts[c] >= 64 ? 64 : (counts[c] == 2 ? 1 : 2)); ++e)
+        for (std::int32_t e = 0; e < (counts[c] >= 64 ? 64 : (counts[c] == 2 ? 1 : 2)); ++e)
         {
-            Sequence<T> in(counts[c], [](int32_t v) -> T { return T(v); }); //fill 0...n
+            Sequence<T> in(counts[c], [](std::int32_t v) -> T { return T(v); }); //fill 0...n
             in[e] = in[e + 1]+2;                                         //make an adjacent pair
 
             auto i = ::std::adjacent_find(in.cbegin(), in.cend(), custom_pred);
@@ -79,9 +79,9 @@ test_adjacent_find_by_type()
     }
 
     //special cases: size=0, size=1;
-    for (int32_t expect = 0; expect < 1; ++expect)
+    for (std::int32_t expect = 0; expect < 1; ++expect)
     {
-        Sequence<T> in(expect, [](int32_t v) -> T { return T(v); }); //fill 0...n
+        Sequence<T> in(expect, [](std::int32_t v) -> T { return T(v); }); //fill 0...n
         auto i = ::std::adjacent_find(in.cbegin(), in.cend(), custom_pred);
         EXPECT_TRUE(i == in.cbegin() + expect, "::std::adjacent_find returned wrong result");
 
@@ -145,10 +145,10 @@ main()
 {
 
 #if !ONEDPL_FPGA_DEVICE
-    test_adjacent_find_by_type<int32_t>();
+    test_adjacent_find_by_type<std::int32_t>();
 #endif
     test_adjacent_find_by_type<float64_t>();
-    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_bi<test_non_const<std::int32_t>>());
 
     return done();
 }

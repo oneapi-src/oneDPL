@@ -37,93 +37,93 @@ main()
     sycl::queue queue(exception_handler);
     int err = 0;
 
-    // testing oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>> oneapi::dpl::linear_congruential_engine
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<sycl::vec<int32_t, 1>> linear_congruential_engine" << std::endl;
+    std::cout << "geometric_distribution<sycl::vec<std::int32_t, 1>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>> oneapi::dpl::linear_congruential_engine
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<sycl::vec<int32_t, 2>> linear_congruential_engine" << std::endl;
+    std::cout << "geometric_distribution<sycl::vec<std::int32_t, 2>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>> oneapi::dpl::linear_congruential_engine
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<sycl::vec<int32_t, 3>> linear_congruential_engine" << std::endl;
+    std::cout << "geometric_distribution<sycl::vec<std::int32_t, 3>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>> oneapi::dpl::linear_congruential_engine
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<sycl::vec<int32_t, 4>> linear_congruential_engine" << std::endl;
+    std::cout << "geometric_distribution<sycl::vec<std::int32_t, 4>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>> oneapi::dpl::linear_congruential_engine
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<sycl::vec<int32_t, 8>> linear_congruential_engine" << std::endl;
+    std::cout << "geometric_distribution<sycl::vec<std::int32_t, 8>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>> oneapi::dpl::linear_congruential_engine
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<sycl::vec<int32_t, 16>> linear_congruential_engine" << std::endl;
+    std::cout << "geometric_distribution<sycl::vec<std::int32_t, 16>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
