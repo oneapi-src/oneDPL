@@ -34,7 +34,7 @@ int main()
 
     const int n = 1000;
     const int k = 1000;
-    using T = uint64_t;
+    using T = std::uint64_t;
 
     sycl::buffer<T> key_buf{sycl::range<1>(n)};
     sycl::buffer<T> val_buf{sycl::range<1>(n)};

@@ -217,7 +217,7 @@ main()
 {
     test_is_heap_by_type<float32_t>(::std::greater<float32_t>());
     test_is_heap_by_type<WithCmpOp>(::std::less<WithCmpOp>());
-    test_is_heap_by_type<uint64_t>([](uint64_t x, uint64_t y) { return x % 100 < y % 100; });
+    test_is_heap_by_type<std::uint64_t>([](std::uint64_t x, std::uint64_t y) { return x % 100 < y % 100; });
 
 #ifdef _PSTL_TEST_IS_HEAP
     test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const_is_heap<std::int32_t>>());
