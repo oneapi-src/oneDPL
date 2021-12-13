@@ -128,10 +128,10 @@ main()
 
 
 #ifdef _PSTL_TEST_GENERATE
-	test_algo_basic_single<int16_t>(run_for_rnd_fw<test_non_const_generate<int16_t>>());
+	test_algo_basic_single<std::int16_t>(run_for_rnd_fw<test_non_const_generate<std::int16_t>>());
 #endif
 #ifdef _PSTL_TEST_GENERATE_N
-    test_algo_basic_single<int16_t>(run_for_rnd_fw<test_non_const_generate_n<int16_t>>());
+    test_algo_basic_single<std::int16_t>(run_for_rnd_fw<test_non_const_generate_n<std::int16_t>>());
 #endif
 
     return done();

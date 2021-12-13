@@ -107,7 +107,7 @@ struct test_non_const
 int
 main()
 {
-    test<int16_t>(42, IsEqual<int16_t>(50, OddTag()), [](int16_t j) { return j; });
+    test<std::int16_t>(42, IsEqual<std::int16_t>(50, OddTag()), [](std::int16_t j) { return j; });
     test<int32_t>(42, [](const int32_t&) { return true; }, [](int32_t j) { return j; });
     test<float64_t>(42, IsEqual<float64_t>(50, OddTag()), [](int32_t j) { return float64_t(j); });
 #if !TEST_DPCPP_BACKEND_PRESENT

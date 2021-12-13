@@ -123,7 +123,7 @@ main()
     //test<std::int8_t, float64_t, std::int8_t>([](const std::int8_t& x, const float64_t& y) { return std::int8_t(std::int8_t(1.5) + x - y); });
     test<int32_t, float64_t, int32_t>([](const int32_t& x, const float64_t& y) { return int32_t(int32_t(1.5) + x - y); });
 
-    test_algo_basic_double<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
+    test_algo_basic_double<std::int16_t>(run_for_rnd_fw<test_non_const<std::int16_t>>());
 
     return done();
 }

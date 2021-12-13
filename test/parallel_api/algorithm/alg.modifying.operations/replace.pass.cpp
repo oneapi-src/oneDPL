@@ -177,7 +177,7 @@ main()
 
     //test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 #ifdef _PSTL_TEST_REPLACE_IF
-    test_algo_basic_single<int16_t>(run_for_rnd_fw<test_non_const<int16_t>>());
+    test_algo_basic_single<std::int16_t>(run_for_rnd_fw<test_non_const<std::int16_t>>());
 #endif
 
     return done();

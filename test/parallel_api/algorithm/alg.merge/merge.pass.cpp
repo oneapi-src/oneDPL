@@ -160,8 +160,8 @@ main()
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // Wrapper has atomic increment in ctor. It's not allowed in kernel
-    test_merge_by_type<Wrapper<int16_t>>([](size_t v) { return Wrapper<int16_t>(v % 100); },
-                                         [](size_t v) { return Wrapper<int16_t>(v % 10); });
+    test_merge_by_type<Wrapper<std::int16_t>>([](size_t v) { return Wrapper<std::int16_t>(v % 100); },
+                                         [](size_t v) { return Wrapper<std::int16_t>(v % 10); });
     test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
 #endif
 

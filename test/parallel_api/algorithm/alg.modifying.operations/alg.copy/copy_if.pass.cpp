@@ -220,8 +220,8 @@ main()
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
 
 #if !ONEDPL_FPGA_DEVICE
-    test<int16_t>(-666, [](const int16_t& x) { return x != 42; },
-                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? int16_t(j + 1) : 42; });
+    test<std::int16_t>(-666, [](const std::int16_t& x) { return x != 42; },
+                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? std::int16_t(j + 1) : 42; });
 #endif // ONEDPL_FPGA_DEVICE
 
 #if !TEST_DPCPP_BACKEND_PRESENT

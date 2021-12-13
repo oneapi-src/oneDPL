@@ -207,7 +207,7 @@ main()
 {
 
     // for trivial types
-    test_uninitialized_copy_move_by_type<int16_t>();
+    test_uninitialized_copy_move_by_type<std::int16_t>();
     test_uninitialized_copy_move_by_type<float64_t>();
 
 #if !TEST_DPCPP_BACKEND_PRESENT

@@ -105,7 +105,7 @@ struct test_non_const
 int
 main()
 {
-    test<int16_t>([](const int32_t value) { return value % 2 == 0; });
+    test<std::int16_t>([](const int32_t value) { return value % 2 == 0; });
     test<int32_t>([](const int32_t) { return true; });
 
 #if !ONEDPL_FPGA_DEVICE
