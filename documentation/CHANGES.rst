@@ -28,8 +28,7 @@ Changes affecting backward compatibility
 
 Fixed Issues
 ------------
-- Fixed hangs and errors when oneDPL is used together with oneAPI Math Kernel Library (oneMKL) in
-  Data Parallel C++ (DPC++) programs.
+- Fixed hangs and errors when oneDPL is used together with oneAPI Math Kernel Library (oneMKL) in DPC++ programs.
 - Fixed possible data races in the following algorithms used with DPC++ execution
   policies: ``sort``, ``stable_sort``, ``partial_sort``, ``nth_element``.
 
@@ -46,7 +45,7 @@ New Features
   ``geometric_distribution``, ``lognormal_distribution``, ``weibull_distribution``, ``cachy_distribution``, ``extreme_value_distribution``.
 - Added the serial-based versions of the following algorithms: ``all_of``, ``any_of``, 
   ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
-  For the detailed list, please refer to `Tested Standard C++ API Reference`_. 
+  For the detailed list, please refer to `Tested Standard C++ API`_. 
 - Improved performance of ``search`` and ``find_end`` algorithms on GPU devices.
 
 Fixed Issues
