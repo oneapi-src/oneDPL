@@ -48,4 +48,14 @@ configure_file("${ONEDPL_ROOT}/cmake/templates/oneDPLConfigVersion.cmake.in"
                "${OUTPUT_DIR}/oneDPLConfigVersion.cmake"
                @ONLY)
 
+set(_onedpl_headers_subdir windows)
+configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in"
+               "${OUTPUT_DIR}/pkgconfig-win/dpl.pc"
+               @ONLY)
+
+set(_onedpl_headers_subdir linux)
+configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in"
+               "${OUTPUT_DIR}/pkgconfig-lin/dpl.pc"
+               @ONLY)
+
 message(STATUS "oneDPL ${PROJECT_VERSION} configuration files were created in '${OUTPUT_DIR}'")
