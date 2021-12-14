@@ -19,6 +19,7 @@
 
 #include "support/utils.h"
 
+// The following test suites verify that the unused backend is disabled.
 #if !_ONEDPL_PAR_BACKEND_SERIAL
 #   ifdef _ONEDPL_PARALLEL_BACKEND_SERIAL_H
 #        error The parallel serial backend is used while it should not (_ONEDPL_PAR_BACKEND_SERIAL==0)
@@ -52,6 +53,7 @@
 #   endif
 #endif
 
+// The following test suites verify that the required backend is enabled.
 #if defined(ONEDPL_USE_TBB_BACKEND) && ONEDPL_USE_TBB_BACKEND
 #   if !defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
 #       error The parallel TBB backend is not used while it should (ONEDPL_USE_TBB_BACKEND==1)
