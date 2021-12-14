@@ -13,11 +13,11 @@ New Features
 ------------
 - Added a new implementation for ``par`` and ``par_unseq`` execution policies based on OpenMP* 4.5 pragmas.
   It can be enabled with the ``ONEDPL_USE_OPENMP_BACKEND`` macro.
-  For more details, see `the Macros`_ page in the Library Guide.
+  For more details, see `Macros`_ page in oneDPL Guide.
 - Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of
   the iterator-based ``reduce_by_segment`` APIs. 
   Please note that the use of the ``reduce_by_segment`` algorithm requires C++17.
-- Added the following algorithms (serial versions) to `the Tested Standard C++ API`_: ``for_each_n``, ``copy``,
+- Added the following algorithms (serial versions) to `Tested Standard C++ API`_: ``for_each_n``, ``copy``,
   ``copy_backward``, ``copy_if``, ``copy_n``, ``is_permutation``, ``fill``, ``fill_n``, ``move``, ``move_backward``.
 
 Changes affecting backward compatibility
@@ -28,7 +28,8 @@ Changes affecting backward compatibility
 
 Fixed Issues
 ------------
-- Fixed hangs and errors when oneDPL is used together with oneMKL in DPC++ programs.
+- Fixed hangs and errors when oneDPL is used together with oneAPI Math Kernel Library (oneMKL) in
+  Data Parallel C++ (DPC++) programs.
 - Fixed possible data races in the following algorithms used with DPC++ execution
   policies: ``sort``, ``stable_sort``, ``partial_sort``, ``nth_element``.
 
@@ -544,6 +545,6 @@ Known Issues and Limitations
    ``std::less`` or ``std::greater``, otherwise Merge sort.
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
-.. _`the Library Guide`: https://oneapi-src.github.io/oneDPL/index.html
-.. _`the Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
-.. _`the Macros`: https://oneapi-src.github.io/oneDPL/macros.html
+.. _`oneDPL Guide`: https://oneapi-src.github.io/oneDPL/index.html
+.. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
+.. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
