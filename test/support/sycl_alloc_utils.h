@@ -57,86 +57,158 @@ class usm_data_transfer
     using __device_alloc_type = __alloc_type<sycl::usm::alloc::device>;
 
     template<typename _Size>
-    _ValueType* allocate( _Size __sz, __shared_alloc_type)
-    {
-        return sycl::malloc_shared<_ValueType>(__sz, __queue);
-    }
+    _ValueType* allocate( _Size __sz, __shared_alloc_type);
+
     template<typename _Size>
-    _ValueType* allocate( _Size __sz, __device_alloc_type)
-    {
-        return sycl::malloc_device<_ValueType>(__sz, __queue);
-    }
+    _ValueType* allocate( _Size __sz, __device_alloc_type);
 
 public:
 
+    /// Constructor
+    /**
+     * @param sycl::queue& __q - sycl queue
+     * @param _Size __sz - objects count
+     */
     template<typename _Size>
-    usm_data_transfer(sycl::queue& __q, _Size __sz)
-        : __queue(__q), __count(__sz)
-    {
-        if (__count > 0)
-        {
-            __ptr = allocate(__count, __alloc_type<_alloc_type>{});
-            assert(__ptr != nullptr);
-        }
-    }
+    usm_data_transfer(sycl::queue& __q, _Size __sz);
 
+    /// Constructor
+    /**
+     * @param sycl::queue& __q - sycl queue
+     * @param_Iterator __it - source iterator to copy from
+     * @param _Size __sz - objects count
+     */
     template<typename _Iterator, typename _Size>
-    usm_data_transfer(sycl::queue& __q, _Iterator __it, _Size __sz)
-        : usm_data_transfer(__q, __sz)
-    {
-        if (__count > 0)
-        {
-            //TODO: support copying data provided by non-contiguous iterator
-            auto __src = std::addressof(*__it);
-            assert(std::addressof(*(__it + __count)) - __src == __count);
+    usm_data_transfer(sycl::queue& __q, _Iterator __it, _Size __sz);
 
-            __queue.copy(__src, __ptr, __count);
-            __queue.wait();
-        }
-    }
-
+    /// Constructor
+    /**
+     * @param sycl::queue& __q - sycl queue
+     * @param_Iterator __it_from - source iterator to copy from
+     * @param_Iterator __it_to - source iterator to copy till
+     */
     template<typename _Iterator>
-    usm_data_transfer(sycl::queue& __q, _Iterator __itBegin, _Iterator __itEnd)
-        : usm_data_transfer(__q, __itBegin, __itEnd - __itBegin)
-    {
-    }
+    usm_data_transfer(sycl::queue& __q, _Iterator __it_from, _Iterator __it_to);
 
-    ~usm_data_transfer()
-    {
-        if (__count > 0)
-        {
-            assert(__ptr != nullptr);
-            sycl::free(__ptr, __queue);
-        }
-    }
+    /// Destructor
+    ~usm_data_transfer();
 
-    _ValueType* get_data() const
-    {
-        return __ptr;
-    }
+    /// Get USM pointer
+    /**
+     * @returun _ValueType* - pointer to USM shared/device allocated memory
+     */
+    _ValueType* get_data() const;
 
+    /// Copy data to host buffer
+    /**
+     * Copy data from USM shared/device allocated memory into host buffer
+     *
+     *  @param _Iterator __it - pointer to host buffer.
+     */
     template<typename _Iterator>
-    void retrieve_data(_Iterator __it)
-    {
-        if (__count > 0)
-        {
-            assert(__ptr != nullptr);
-
-            //TODO: support copying data provided by non-contiguous iterator
-            auto __dst = std::addressof(*__it);
-            assert(std::addressof(*(__it + __count)) - __dst == __count);
-
-            __queue.copy(__ptr, __dst, __count);
-            __queue.wait();
-        }
-    }
+    void retrieve_data(_Iterator __it);
 
 private:
 
-    sycl::queue& __queue;
-    __difference_type __count = 0;
-    _ValueType* __ptr = nullptr;
+    sycl::queue& __queue;               //< SYCL queue
+    __difference_type __count = 0;      //< Count of objects in SYCL memory
+    _ValueType* __ptr = nullptr;        //< Pointer to USM shared/device allocated memory
 };
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+template <typename _Size>
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue& __q, _Size __sz)
+    : __queue(__q), __count(__sz)
+{
+    if (__count > 0)
+    {
+        __ptr = allocate(__count, __alloc_type<_alloc_type>{});
+        assert(__ptr != nullptr);
+    }
+}
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+template <typename _Iterator, typename _Size>
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue& __q, _Iterator __it, _Size __sz)
+    : usm_data_transfer(__q, __sz)
+{
+    if (__count > 0)
+    {
+        //TODO: support copying data provided by non-contiguous iterator
+        auto __src = std::addressof(*__it);
+        assert(std::addressof(*(__it + __count)) - __src == __count);
+
+        __queue.copy(__src, __ptr, __count);
+        __queue.wait();
+    }
+}
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+template <typename _Iterator>
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue& __q, _Iterator __it_from,
+                                                                         _Iterator __it_to)
+    : usm_data_transfer(__q, __it_from, __it_to - __it_from)
+{
+}
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::~usm_data_transfer()
+{
+    if (__count > 0)
+    {
+        assert(__ptr != nullptr);
+        sycl::free(__ptr, __queue);
+    }
+}
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+template <typename _Size>
+_ValueType*
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::allocate(_Size __sz, __shared_alloc_type)
+{
+    return sycl::malloc_shared<_ValueType>(__sz, __queue);
+}
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+template <typename _Size>
+_ValueType*
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::allocate(_Size __sz, __device_alloc_type)
+{
+    return sycl::malloc_device<_ValueType>(__sz, __queue);
+}
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+_ValueType*
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::get_data() const
+{
+    return __ptr;
+}
+
+//----------------------------------------------------------------------------//
+template <sycl::usm::alloc _alloc_type, typename _ValueType>
+template <typename _Iterator>
+void
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::retrieve_data(_Iterator __it)
+{
+    if (__count > 0)
+    {
+        assert(__ptr != nullptr);
+
+        //TODO: support copying data provided by non-contiguous iterator
+        auto __dst = std::addressof(*__it);
+        assert(std::addressof(*(__it + __count)) - __dst == __count);
+
+        __queue.copy(__ptr, __dst, __count);
+        __queue.wait();
+    }
+}
 
 } // namespace TestUtils
 
