@@ -19,6 +19,7 @@
 
 // Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
 
+#include <iterator>
 #include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #if _ONEDPL_FPGA_DEVICE
 #    if __LIBSYCL_VERSION >= 50400
@@ -36,8 +37,6 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-#include <map>
-#include <iterator>
 
 namespace TestUtils
 {
@@ -176,18 +175,18 @@ bool has_aspect(const sycl::device& device, sycl::aspect aspect)
 
 sycl::aspect get_usm_aspect(sycl::usm::alloc alloc)
 {
-    static std::map<sycl::usm::alloc, sycl::aspect> _m_map = {
-        {sycl::usm::alloc::host, sycl::aspect::usm_host_allocations},
-        {sycl::usm::alloc::device, sycl::aspect::usm_device_allocations},
-        {sycl::usm::alloc::shared, sycl::aspect::usm_shared_allocations}
-    };
-    auto search = _m_map.find(alloc);
-    if(search == _m_map.end())
+    switch (alloc)
     {
-        std::cerr << "Unexpected type of a USM allocation" << std::endl;
-        std::exit(EXIT_FAILURE);
+        case sycl::usm::alloc::host:
+            return sycl::aspect::usm_host_allocations;
+        case sycl::usm::alloc::device:
+            return sycl::aspect::usm_device_allocations;
+        case sycl::usm::alloc::shared:
+            return sycl::aspect::usm_shared_allocations;
+        default:
+            std::cerr << "Unexpected type of a USM allocation" << std::endl;
+            std::exit(EXIT_FAILURE);
     }
-    return search->second;
 }
 
 template <typename T, typename TestName>

@@ -119,12 +119,9 @@ void test_with_buffers()
 void test_with_usm()
 {
     sycl::queue q;
-
     if(TestUtils::has_aspect(q.get_device(), sycl::aspect::usm_shared_allocations))
     {
         int n = 13;
-
-    int n = 13;
 
         // Allocate space for data using USM.
         std::uint64_t* key_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
