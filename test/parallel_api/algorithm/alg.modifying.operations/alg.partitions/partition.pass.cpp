@@ -29,7 +29,7 @@ using namespace TestUtils;
 template <typename T>
 struct DataType
 {
-    explicit DataType(int32_t k) : my_val(k) {}
+    explicit DataType(std::int32_t k) : my_val(k) {}
     DataType(DataType&& input) { my_val = ::std::move(input.my_val); }
     DataType&
     operator=(DataType&& input)
@@ -113,7 +113,7 @@ struct test_non_const_partition
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         invoke_if(exec, [&]() {
@@ -125,18 +125,18 @@ struct test_non_const_partition
 int
 main()
 {
-    test_by_type<int32_t>([](int32_t i) { return i; }, [](int32_t) { return true; });
-    test_by_type<float64_t>([](int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
+    test_by_type<std::int32_t>([](std::int32_t i) { return i; }, [](std::int32_t) { return true; });
+    test_by_type<float64_t>([](std::int32_t i) { return -i; }, [](const float64_t x) { return x < 0; });
 #if !ONEDPL_FPGA_DEVICE
-    test_by_type<int64_t>([](int32_t i) { return i + 1; }, [](int64_t x) { return x % 3 == 0; });
+    test_by_type<std::int64_t>([](std::int32_t i) { return i + 1; }, [](std::int64_t x) { return x % 3 == 0; });
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_by_type<DataType<float32_t>>([](int32_t i) { return DataType<float32_t>(2 * i + 1); },
+    test_by_type<DataType<float32_t>>([](std::int32_t i) { return DataType<float32_t>(2 * i + 1); },
                                       [](const DataType<float32_t>& x) { return x.get_val() < 0; });
 #endif
 
-    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const_partition>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_bi<test_non_const_partition>());
 
     return done();
 }

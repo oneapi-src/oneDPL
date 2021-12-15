@@ -221,9 +221,9 @@ test_by_type(::std::size_t n)
 // should provide minimal requirements only
 struct OnlyLessCompare
 {
-    int32_t val;
+    std::int32_t val;
     OnlyLessCompare() : val(0) {}
-    OnlyLessCompare(int32_t val_) : val(val_) {}
+    OnlyLessCompare(std::int32_t val_) : val(val_) {}
     bool
     operator<(const OnlyLessCompare& other) const
     {
@@ -273,20 +273,20 @@ main()
     for (::std::size_t n = 0; n < N; n = n < 16 ? n + 1 : size_t(3.14159 * n))
     {
 #if !ONEDPL_FPGA_DEVICE
-        test_by_type<int32_t>(n);
+        test_by_type<std::int32_t>(n);
 #endif
         test_by_type<float64_t>(n);
         test_by_type<OnlyLessCompare>(n);
     }
 
 #ifdef _PSTL_TEST_MIN_ELEMENT
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_min_element<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_min_element<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_MAX_ELEMENT
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_max_element<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_max_element<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_MINMAX_ELEMENT
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_minmax_element<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_minmax_element<std::int32_t>>());
 #endif
 
     return done();

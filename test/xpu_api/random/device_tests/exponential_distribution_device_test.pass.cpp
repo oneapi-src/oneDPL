@@ -41,7 +41,7 @@ main()
     std::cout << "-------------------------------------------------------------------------" << std::endl;
     std::cout << "exponential_distribution<sycl::vec<double, 1>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
@@ -56,7 +56,7 @@ main()
     std::cout << "-------------------------------------------------------------------------" << std::endl;
     std::cout << "exponential_distribution<sycl::vec<double, 2>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
@@ -71,7 +71,7 @@ main()
     std::cout << "-------------------------------------------------------------------------" << std::endl;
     std::cout << "exponential_distribution<sycl::vec<double, 3>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
@@ -86,7 +86,7 @@ main()
     std::cout << "-------------------------------------------------------------------------" << std::endl;
     std::cout << "exponential_distribution<sycl::vec<double, 4>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
@@ -101,7 +101,7 @@ main()
     std::cout << "-------------------------------------------------------------------------" << std::endl;
     std::cout << "exponential_distribution<sycl::vec<double, 8>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
@@ -116,7 +116,7 @@ main()
     std::cout << "-------------------------------------------------------------------------" << std::endl;
     std::cout << "exponential_distribution<sycl::vec<double, 16>> linear_congruential_engine" << std::endl;
     std::cout << "-------------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<uint32_t,  a, c, m>>(queue);
+    err = device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
 #if TEST_LONG_RUN
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
     err += device_copyable_test<oneapi::dpl::exponential_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);

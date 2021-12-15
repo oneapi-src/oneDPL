@@ -89,7 +89,7 @@ struct test_non_const_find_if
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
 
@@ -106,7 +106,7 @@ struct test_non_const_find_if_not
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
 
@@ -121,8 +121,8 @@ main()
 {
 #if !TEST_DPCPP_BACKEND_PRESENT
     // Note that the "hit" and "miss" functions here avoid overflow issues.
-    test<Number>(IsMultiple(5, OddTag()), [](int32_t j) { return Number(j - j % 5, OddTag()); }, // hit
-                 [](int32_t j) { return Number(j % 5 == 0 ? j ^ 1 : j, OddTag()); });            // miss
+    test<Number>(IsMultiple(5, OddTag()), [](std::int32_t j) { return Number(j - j % 5, OddTag()); }, // hit
+                 [](std::int32_t j) { return Number(j % 5 == 0 ? j ^ 1 : j, OddTag()); });            // miss
 #endif
 
     // Try type for which algorithm can really be vectorized.
@@ -130,10 +130,10 @@ main()
                     [](float32_t j) { return -1 - j * j; });
 
 #ifdef _PSTL_TEST_FIND_IF
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_find_if>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_find_if>());
 #endif
 #ifdef _PSTL_TEST_FIND_IF_NOT
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_find_if_not>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_find_if_not>());
 #endif
 
     return done();

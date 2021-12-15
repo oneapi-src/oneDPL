@@ -50,7 +50,7 @@ class ForwardIterator
         ++my_iterator;
         return *this;
     }
-    ForwardIterator operator++(int32_t)
+    ForwardIterator operator++(std::int32_t)
     {
         auto retval = *this;
         my_iterator++;
@@ -96,13 +96,13 @@ class BidirectionalIterator : public ForwardIterator<Iterator, IteratorTag>
         --base_type::my_iterator;
         return *this;
     }
-    BidirectionalIterator operator++(int32_t)
+    BidirectionalIterator operator++(std::int32_t)
     {
         auto retval = *this;
         base_type::my_iterator++;
         return retval;
     }
-    BidirectionalIterator operator--(int32_t)
+    BidirectionalIterator operator--(std::int32_t)
     {
         auto retval = *this;
         base_type::my_iterator--;

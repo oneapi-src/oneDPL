@@ -39,10 +39,10 @@ using namespace TestUtils;
 static bool Stable;
 
 //! Number of extant keys
-static ::std::atomic<int32_t> KeyCount;
+static ::std::atomic<std::int32_t> KeyCount;
 
 //! One more than highest index in array to be sorted.
-static uint32_t LastIndex;
+static std::uint32_t LastIndex;
 
 //! Keeping Equal() static and a friend of ParanoidKey class (C++, paragraphs 3.5/7.1.1)
 class ParanoidKey;
@@ -55,18 +55,18 @@ Equal(const ParanoidKey& x, const ParanoidKey& y);
 class ParanoidKey
 {
     //! Value used by comparator
-    int32_t value;
+    std::int32_t value;
     //! Original position or special value (Empty or Dead)
-    int32_t index;
+    std::int32_t index;
     //! Special value used to mark object without a comparable value, e.g. after being moved from.
-    static const int32_t Empty = -1;
+    static const std::int32_t Empty = -1;
     //! Special value used to mark destroyed objects.
-    static const int32_t Dead = -2;
+    static const std::int32_t Dead = -2;
     // True if key object has comparable value
     bool
     isLive() const
     {
-        return (uint32_t)(index) < LastIndex;
+        return (std::uint32_t)(index) < LastIndex;
     }
     // True if key object has been constructed.
     bool
@@ -102,7 +102,7 @@ class ParanoidKey
         index = k.index;
         return *this;
     }
-    ParanoidKey(int32_t index, int32_t value, OddTag) : value(value), index(index) {}
+    ParanoidKey(std::int32_t index, std::int32_t value, OddTag) : value(value), index(index) {}
     ParanoidKey(ParanoidKey&& k) : value(k.value), index(k.index)
     {
         EXPECT_TRUE(k.isConstructed(), "source for move-construction is dead");
@@ -169,7 +169,7 @@ Equal(float32_t x, float32_t y)
 }
 
 static bool
-Equal(int32_t x, int32_t y)
+Equal(std::int32_t x, std::int32_t y)
 {
     return x == y;
 }
@@ -191,7 +191,7 @@ struct test_sort_with_compare
             ::std::stable_sort(expected_first + 1, expected_last - 1, compare);
         else
             ::std::sort(expected_first + 1, expected_last - 1, compare);
-        int32_t count0 = KeyCount;
+        std::int32_t count0 = KeyCount;
         if (Stable)
             stable_sort(exec, tmp_first + 1, tmp_last - 1, compare);
         else
@@ -202,7 +202,7 @@ struct test_sort_with_compare
             // Check that expected[i] is equal to tmp[i]
             EXPECT_TRUE(Equal(*expected_first, *tmp_first), "wrong result from sort without predicate");
         }
-        int32_t count1 = KeyCount;
+        std::int32_t count1 = KeyCount;
         EXPECT_EQ(count0, count1, "key cleanup error");
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
@@ -231,7 +231,7 @@ struct test_sort_without_compare
             ::std::stable_sort(expected_first + 1, expected_last - 1);
         else
             ::std::sort(expected_first + 1, expected_last - 1);
-        int32_t count0 = KeyCount;
+        std::int32_t count0 = KeyCount;
         if (Stable)
             stable_sort(exec, tmp_first + 1, tmp_last - 1);
         else
@@ -242,7 +242,7 @@ struct test_sort_without_compare
             // Check that expected[i] is equal to tmp[i]
             EXPECT_TRUE(Equal(*expected_first, *tmp_first), "wrong result from sort with predicate");
         }
-        int32_t count1 = KeyCount;
+        std::int32_t count1 = KeyCount;
         EXPECT_EQ(count0, count1, "key cleanup error");
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
@@ -297,15 +297,15 @@ int
 main()
 {
     ::std::srand(42);
-    int32_t start = 0;
-    int32_t end = 2;
+    std::int32_t start = 0;
+    std::int32_t end = 2;
 #ifndef _PSTL_TEST_SORT
     start = 1;
 #endif
 #ifndef _PSTL_TEST_STABLE_SORT
     end = 1;
 #endif
-    for (int32_t kind = start; kind < end; ++kind)
+    for (std::int32_t kind = start; kind < end; ++kind)
     {
         Stable = kind != 0;
 
@@ -319,13 +319,13 @@ main()
         test_sort<float32_t>([](float32_t x, float32_t y) { return x < y; },
                              [](size_t, size_t val) { return float32_t(val); });
 #endif
-        test_sort<int32_t>(
-            [](int32_t x, int32_t y) { return x > y; }, // Reversed so accidental use of < will be detected.
-            [](size_t, size_t val) { return int32_t(val); });
+        test_sort<std::int32_t>(
+            [](std::int32_t x, std::int32_t y) { return x > y; }, // Reversed so accidental use of < will be detected.
+            [](size_t, size_t val) { return std::int32_t(val); });
     }
 
 #if !ONEDPL_FPGA_DEVICE
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const<std::int32_t>>());
 #endif
 
     return done();

@@ -132,14 +132,14 @@ template <typename T>
 void
 test()
 {
-    const int32_t max_len = 100000;
+    const std::int32_t max_len = 100000;
 
     Sequence<T> actual(max_len, [](::std::size_t i) { return T(i); });
     Sequence<T> data(max_len, [](::std::size_t i) { return T(i); });
 
-    for (int32_t len = 0; len < max_len; len = len <= 16 ? len + 1 : int32_t(3.1415 * len))
+    for (std::int32_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::int32_t(3.1415 * len))
     {
-        int32_t shifts[] = {0, 1, 2, len / 3, (2 * len) / 3, len - 1};
+        std::int32_t shifts[] = {0, 1, 2, len / 3, (2 * len) / 3, len - 1};
         for (auto shift : shifts)
         {
             if (shift >= 0 && shift < len)
@@ -154,7 +154,7 @@ test()
 int
 main()
 {
-    test<int32_t>();
+    test<std::int32_t>();
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<wrapper<float64_t>>();
     test<MemoryChecker>();

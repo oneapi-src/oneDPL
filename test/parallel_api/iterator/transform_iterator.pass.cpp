@@ -139,7 +139,7 @@ void test_multi_transform_copy(size_t buffer_size) {
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-int32_t main() {
+std::int32_t main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     size_t max_n = 10000;
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {

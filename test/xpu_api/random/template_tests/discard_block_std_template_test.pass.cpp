@@ -138,7 +138,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<typen
 template<class Engine, class StdEngine>
 int tests_set(sycl::queue& queue, int nsamples) {
     const int nseeds = 2;
-    int64_t seed_array [nseeds] = {0, 19780503u};
+    std::int64_t seed_array [nseeds] = {0, 19780503u};
 
     int err;
     for(int i = 0; i < nseeds; ++i) {
@@ -155,7 +155,7 @@ int tests_set(sycl::queue& queue, int nsamples) {
 template<class Engine, class StdEngine>
 int tests_set_portion(sycl::queue& queue, int nsamples, unsigned int part) {
     const int nseeds = 1;
-    int64_t seed_array [nseeds] = {19780503u};
+    std::int64_t seed_array [nseeds] = {19780503u};
 
     int err;
     for(int i = 0; i < nseeds; ++i) {

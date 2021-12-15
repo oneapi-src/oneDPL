@@ -61,7 +61,7 @@ test()
 {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<Tin> in(n, [](int32_t k) { return k % 5 != 1 ? 3 * k - 7 : 0; });
+        Sequence<Tin> in(n, [](std::int32_t k) { return k % 5 != 1 ? 3 * k - 7 : 0; });
 
         Sequence<Tout> out(n);
         const auto flip = Complement<Tin, Tout>(1);
@@ -88,14 +88,14 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t, int32_t>();
-    test<int32_t, float32_t>();
-    test<uint16_t, float32_t>();
+    test<std::int32_t, std::int32_t>();
+    test<std::int32_t, float32_t>();
+    test<std::uint16_t, float32_t>();
     test<float32_t, float64_t>();
     test<float64_t, float64_t>();
 
-    //test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
-    test_algo_basic_double<int64_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    //test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
+    test_algo_basic_double<std::int64_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
     return done();
 }

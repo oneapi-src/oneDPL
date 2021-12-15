@@ -67,7 +67,7 @@ struct test_non_const
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         invoke_if(exec, [&]() { is_partitioned(exec, iter, iter, non_const(is_even)); });
@@ -78,13 +78,13 @@ int
 main()
 {
     test<float64_t>([](const float64_t x) { return x < 0; });
-    test<int32_t>([](const int32_t x) { return x > 1000; });
-    test<uint16_t>([](const uint16_t x) { return x % 5 < 3; });
+    test<std::int32_t>([](const std::int32_t x) { return x > 1000; });
+    test<std::uint16_t>([](const std::uint16_t x) { return x % 5 < 3; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT && !_PSTL_ICC_18_TEST_EARLY_EXIT_MONOTONIC_RELEASE_BROKEN &&               \
     !_PSTL_ICC_19_TEST_IS_PARTITIONED_RELEASE_BROKEN
     test<LocalWrapper<float64_t>>([](const LocalWrapper<float64_t>& x) { return true; });
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const>());
 #endif
 
     return done();
