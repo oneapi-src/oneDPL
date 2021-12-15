@@ -121,9 +121,8 @@ void
 test_with_usm()
 {
     cl::sycl::queue q;
-    if (q.get_device().has(TestUtils::usm_apect<alloc_type>()))
+    if (TestUtils::has_aspect(q.get_device(), TestUtils::get_usm_aspect(alloc_type)))
     {
-
         constexpr int n = 1024;
         constexpr int n_small = 13;
 

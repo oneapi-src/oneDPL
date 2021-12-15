@@ -19,7 +19,6 @@
 
 // Do not #include <algorithm>, because if we do we will not detect accidental dependencies.
 
-#include <iterator>
 #include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #if _ONEDPL_FPGA_DEVICE
 #    if __LIBSYCL_VERSION >= 50400
@@ -36,6 +35,9 @@
 #include "iterator_utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
+
+#include <map>
+#include <iterator>
 
 namespace TestUtils
 {
@@ -163,12 +165,29 @@ bool has_aspect(const sycl::device& device, sycl::aspect aspect)
     {
         return device.has(aspect);
     }
-    catch(sycl::exception&)
+    catch(const sycl::exception& ex)
     {
+        std::cout << "Caught asynchronous SYCL exception during getting device aspect:\n" << ex.what() << std::endl;
         // the exception indicates that the aspect has not been implemented yet
     }
     // let's avoid using a feature that can not be checked for availability
     return false;
+}
+
+sycl::aspect get_usm_aspect(sycl::usm::alloc alloc)
+{
+    static std::map<sycl::usm::alloc, sycl::aspect> _m_map = {
+        {sycl::usm::alloc::host, sycl::aspect::usm_host_allocations}
+        {sycl::usm::alloc::device, sycl::aspect::usm_device_allocations},
+        {sycl::usm::alloc::shared, sycl::aspect::usm_shared_allocations},
+    };
+    auto search = _m_map.find(alloc);
+    if(search == _m_map.end())
+    {
+        std::cerr << "Unexpected type of a USM allocation" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    return search->second;
 }
 
 template <typename T, typename TestName>

@@ -62,8 +62,7 @@ struct test_shift
         using _DiffType = typename ::std::iterator_traits<It>::difference_type;
 
         auto queue = exec.queue();
-
-        if (queue.get_device().has(TestUtils::usm_aspect<alloc_type>()))
+        if (TestUtils::has_aspect(queue.get_device(), TestUtils::get_usm_aspect(alloc_type)))
         {
             // allocate USM memory and copying data to USM shared/device memory
             TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, m);
