@@ -53,8 +53,6 @@ struct test_shift
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
-
-#if _PSTL_SYCL_TEST_USM
     template <sycl::usm::alloc alloc_type, typename Policy, typename It, typename Algo>
     void
     test_usm(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m, It first_exp,
@@ -64,21 +62,21 @@ struct test_shift
         using _DiffType = typename ::std::iterator_traits<It>::difference_type;
 
         auto queue = exec.queue();
+        if (TestUtils::has_aspect(queue.get_device(), TestUtils::get_usm_aspect(alloc_type)))
+        {
+            // allocate USM memory and copying data to USM shared/device memory
+            TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, m);
 
-        // allocate USM memory and copying data to USM shared/device memory
-        TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, m);
+            auto ptr = dt_helper.get_data();
+            auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
+                                ptr, ptr + m, n);
+            _DiffType res_idx = het_res - ptr;
 
-        auto ptr = dt_helper.get_data();
-        auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
-                            ptr, ptr + m, n);
-        _DiffType res_idx = het_res - ptr;
-
-        //3.2 check result
-        dt_helper.retrieve_data(first);
-        algo.check(first + res_idx, first, m, first_exp, n);
+            //3.2 check result
+            dt_helper.retrieve_data(first);
+            algo.check(first + res_idx, first, m, first_exp, n);
+        }
     };
-
-#endif
 
     template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
@@ -108,11 +106,9 @@ struct test_shift
         //2.2 check result
         algo.check(first + res_idx, first, m, first_exp, n);
 
-#if _PSTL_SYCL_TEST_USM
         //3. run a test with hetero policy and USM shared/device memory pointers
         test_usm<sycl::usm::alloc::shared>(exec, first, m, first_exp, n, algo);
         test_usm<sycl::usm::alloc::device>(exec, first, m, first_exp, n, algo);
-#endif
     }
 #endif
 };
@@ -149,7 +145,7 @@ struct shift_left_algo
 struct shift_right_algo
 {
     template <typename Policy, typename It>
-    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
                             It>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
@@ -158,7 +154,7 @@ struct shift_right_algo
     }
     //skip the test for non-bidirectional iterator (forward iterator, etc)
     template <typename Policy, typename It>
-    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
                             It>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
@@ -167,7 +163,7 @@ struct shift_right_algo
     }
 
     template <typename It, typename ItExp>
-    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
                             It>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
@@ -189,7 +185,7 @@ struct shift_right_algo
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
     template <typename It, typename ItExp>
-    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
                             It>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,

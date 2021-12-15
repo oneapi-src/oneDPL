@@ -52,8 +52,6 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 
-#define _PSTL_SYCL_TEST_USM 1
-
 // Enable test when the DPC++ backend is available
 #if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
 #define TEST_DPCPP_BACKEND_PRESENT 1
