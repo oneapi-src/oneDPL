@@ -177,9 +177,9 @@ bool has_aspect(const sycl::device& device, sycl::aspect aspect)
 sycl::aspect get_usm_aspect(sycl::usm::alloc alloc)
 {
     static std::map<sycl::usm::alloc, sycl::aspect> _m_map = {
-        {sycl::usm::alloc::host, sycl::aspect::usm_host_allocations}
+        {sycl::usm::alloc::host, sycl::aspect::usm_host_allocations},
         {sycl::usm::alloc::device, sycl::aspect::usm_device_allocations},
-        {sycl::usm::alloc::shared, sycl::aspect::usm_shared_allocations},
+        {sycl::usm::alloc::shared, sycl::aspect::usm_shared_allocations}
     };
     auto search = _m_map.find(alloc);
     if(search == _m_map.end())
