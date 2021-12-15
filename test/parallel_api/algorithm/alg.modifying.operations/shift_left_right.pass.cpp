@@ -220,7 +220,7 @@ main()
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
     {
-       test_shift_by_type<int32_t>(m, n);
+       test_shift_by_type<std::int32_t>(m, n);
     }
 
     return TestUtils::done();

@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-int32_t
+std::int32_t
 main()
 {
 

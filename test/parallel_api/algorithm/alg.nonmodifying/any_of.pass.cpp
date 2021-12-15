@@ -84,7 +84,7 @@ struct test_non_const
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         any_of(exec, iter, iter, non_const(is_even));
@@ -94,11 +94,11 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t>(8 * sizeof(int32_t));
-    test<uint16_t>(8 * sizeof(uint16_t));
+    test<std::int32_t>(8 * sizeof(std::int32_t));
+    test<std::uint16_t>(8 * sizeof(std::uint16_t));
     test<float64_t>(53);
     test<bool>(1);
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const>());
 
     return done();
 }

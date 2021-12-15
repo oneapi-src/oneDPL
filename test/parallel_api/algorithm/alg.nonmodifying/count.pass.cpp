@@ -97,7 +97,7 @@ struct test_non_const
     operator()(Policy&& exec, Iterator iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         count_if(exec, iter, iter, non_const(is_even));
@@ -107,15 +107,15 @@ struct test_non_const
 int
 main()
 {
-    test<int16_t>(42, IsEqual<int16_t>(50, OddTag()), [](int16_t j) { return j; });
-    test<int32_t>(42, [](const int32_t&) { return true; }, [](int32_t j) { return j; });
-    test<float64_t>(42, IsEqual<float64_t>(50, OddTag()), [](int32_t j) { return float64_t(j); });
+    test<std::int16_t>(42, IsEqual<std::int16_t>(50, OddTag()), [](std::int16_t j) { return j; });
+    test<std::int32_t>(42, [](const std::int32_t&) { return true; }, [](std::int32_t j) { return j; });
+    test<float64_t>(42, IsEqual<float64_t>(50, OddTag()), [](std::int32_t j) { return float64_t(j); });
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Number(42, OddTag()), IsEqual<Number>(Number(50, OddTag()), OddTag()),
-                 [](int32_t j) { return Number(j, OddTag()); });
+                 [](std::int32_t j) { return Number(j, OddTag()); });
 #endif
 #ifdef _PSTL_TEST_COUNT_IF
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const>());
 #endif
 
     return done();

@@ -33,10 +33,10 @@ using namespace TestUtils;
 
 struct WithCmpOp
 {
-    int32_t _first;
-    int32_t _second;
+    std::int32_t _first;
+    std::int32_t _second;
     WithCmpOp() : _first(0), _second(0){};
-    explicit WithCmpOp(int32_t x) : _first(x), _second(x){};
+    explicit WithCmpOp(std::int32_t x) : _first(x), _second(x){};
     bool
     operator<(const WithCmpOp& rhs) const
     {
@@ -217,13 +217,13 @@ main()
 {
     test_is_heap_by_type<float32_t>(::std::greater<float32_t>());
     test_is_heap_by_type<WithCmpOp>(::std::less<WithCmpOp>());
-    test_is_heap_by_type<uint64_t>([](uint64_t x, uint64_t y) { return x % 100 < y % 100; });
+    test_is_heap_by_type<std::uint64_t>([](std::uint64_t x, std::uint64_t y) { return x % 100 < y % 100; });
 
 #ifdef _PSTL_TEST_IS_HEAP
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const_is_heap<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const_is_heap<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_IS_HEAP_UNTIL
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const_is_heap_until<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const_is_heap_until<std::int32_t>>());
 #endif
 
     return done();

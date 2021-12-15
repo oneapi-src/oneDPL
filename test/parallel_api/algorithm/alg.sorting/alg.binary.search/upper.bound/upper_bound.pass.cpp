@@ -134,8 +134,8 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<uint64_t, test_upper_bound>();
+    test3buffers<std::uint64_t, test_upper_bound>();
 #endif
-    test_algo_three_sequences<uint64_t, test_upper_bound>();
+    test_algo_three_sequences<std::uint64_t, test_upper_bound>();
     return TestUtils::done();
 }

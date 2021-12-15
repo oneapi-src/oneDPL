@@ -225,19 +225,19 @@ struct test_non_const_is_sorted_until
 int
 main()
 {
-    test_is_sorted_by_type<int32_t>();
+    test_is_sorted_by_type<std::int32_t>();
 #if !ONEDPL_FPGA_DEVICE
     test_is_sorted_by_type<float64_t>();
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_is_sorted_by_type<Wrapper<int32_t>>();
+    test_is_sorted_by_type<Wrapper<std::int32_t>>();
 #endif
 #ifdef _PSTL_TEST_IS_SORTED
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_is_sorted<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_is_sorted<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_IS_SORTED_UNTIL
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const_is_sorted_until<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const_is_sorted_until<std::int32_t>>());
 #endif
 
     return done();
