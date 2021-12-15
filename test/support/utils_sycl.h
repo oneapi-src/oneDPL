@@ -316,14 +316,14 @@ test3buffers(int mult = 1)
 }
 
 // use the function carefully due to temporary accessor creation.
-// Race conditiion between host and device may be occurred
+// Race condition between host and device may be occurred
 // if we work with the buffer host memory when kernel is invoked on device
 template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
 typename ::std::iterator_traits<Iter>::pointer
 get_host_pointer(Iter it)
 {
     auto temp_idx = it - oneapi::dpl::begin(it.get_buffer());
-    return it.get_buffer().template get_access<mode>().get_pointer() + temp_idx;
+    return &it.get_buffer().template get_access<mode>()[0] + temp_idx;
 }
 
 template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
@@ -331,7 +331,7 @@ template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target 
 T*
 get_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>& acc)
 {
-    return acc.get_pointer();
+    return &acc[0];
 }
 
 // for USM pointers

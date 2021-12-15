@@ -192,7 +192,7 @@ struct test_non_const_copy_if
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         copy_if(exec, input_iter, input_iter, out_iter, non_const(is_even));
@@ -206,7 +206,7 @@ struct test_non_const_remove_copy_if
         operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
         invoke_if(exec, [&]() { remove_copy_if(exec, input_iter, input_iter, out_iter, non_const(is_even)); });
@@ -220,21 +220,21 @@ main()
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
 
 #if !ONEDPL_FPGA_DEVICE
-    test<int16_t>(-666, [](const int16_t& x) { return x != 42; },
-                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? int16_t(j + 1) : 42; });
+    test<std::int16_t>(-666, [](const std::int16_t& x) { return x != 42; },
+                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? std::int16_t(j + 1) : 42; });
 #endif // ONEDPL_FPGA_DEVICE
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](int32_t j) { return Number(j, OddTag()); });
+    test<Number>(Number(42, OddTag()), IsMultiple(3, OddTag()), [](std::int32_t j) { return Number(j, OddTag()); });
 #endif
-    test<int32_t>(-666, [](const int32_t&) { return true; }, [](size_t j) { return j; }, false);
+    test<std::int32_t>(-666, [](const std::int32_t&) { return true; }, [](size_t j) { return j; }, false);
 
 #if defined(_PSTL_TEST_REMOVE_COPY_IF)
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_remove_copy_if>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_remove_copy_if>());
 #endif
 
 #if defined(_PSTL_TEST_COPY_IF)
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_copy_if>());
 #endif
 
     return done();

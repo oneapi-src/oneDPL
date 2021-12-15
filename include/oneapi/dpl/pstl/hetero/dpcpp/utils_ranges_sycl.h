@@ -52,7 +52,7 @@ class all_view
     return_t*
     begin() const
     {
-        return m_acc.get_pointer();
+        return &m_acc[0];
     } //or “honest” iterator over an accessor and a sentinel
 
     return_t*

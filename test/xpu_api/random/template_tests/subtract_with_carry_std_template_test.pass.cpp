@@ -139,7 +139,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<UIntT
 template<class Type>
 int tests_set(sycl::queue& queue, int nsamples) {
     constexpr int nseeds = 2;
-    int64_t seed_array [nseeds] = {0, 19780503u};
+    std::int64_t seed_array [nseeds] = {0, 19780503u};
 
     int err;
     // Test for all non-zero parameters
@@ -166,7 +166,7 @@ int tests_set(sycl::queue& queue, int nsamples) {
 template<class Type>
 int tests_set_portion(sycl::queue& queue, int nsamples, unsigned int part) {
     constexpr int nseeds = 1;
-    int64_t seed_array [nseeds] = {19780503u};
+    std::int64_t seed_array [nseeds] = {19780503u};
 
     int err;
     // Test for all non-zero parameters

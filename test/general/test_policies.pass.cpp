@@ -47,7 +47,7 @@ void test_policy_instance(const Policy& policy)
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-int32_t
+std::int32_t
 main()
 {
     using namespace oneapi::dpl::execution;

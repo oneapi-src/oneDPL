@@ -190,8 +190,8 @@ struct test_inclusive_scan_by_segment
 
 int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<uint64_t, test_inclusive_scan_by_segment>();
+    test3buffers<std::uint64_t, test_inclusive_scan_by_segment>();
 #endif
-    test_algo_three_sequences<uint64_t, test_inclusive_scan_by_segment>();
+    test_algo_three_sequences<std::uint64_t, test_inclusive_scan_by_segment>();
     return TestUtils::done();
 }

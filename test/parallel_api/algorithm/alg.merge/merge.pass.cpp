@@ -153,16 +153,16 @@ struct test_non_const
 int
 main()
 {
-    test_merge_by_type<int32_t>([](size_t v) { return (v % 2 == 0 ? v : -v) * 3; }, [](size_t v) { return v * 2; });
+    test_merge_by_type<std::int32_t>([](size_t v) { return (v % 2 == 0 ? v : -v) * 3; }, [](size_t v) { return v * 2; });
 #if !ONEDPL_FPGA_DEVICE
     test_merge_by_type<float64_t>([](size_t v) { return float64_t(v); }, [](size_t v) { return float64_t(v - 100); });
 #endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // Wrapper has atomic increment in ctor. It's not allowed in kernel
-    test_merge_by_type<Wrapper<int16_t>>([](size_t v) { return Wrapper<int16_t>(v % 100); },
-                                         [](size_t v) { return Wrapper<int16_t>(v % 10); });
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    test_merge_by_type<Wrapper<std::int16_t>>([](size_t v) { return Wrapper<std::int16_t>(v % 100); },
+                                         [](size_t v) { return Wrapper<std::int16_t>(v % 10); });
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 #endif
 
     return done();

@@ -132,8 +132,8 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<uint64_t, test_binary_search>();
+    test3buffers<std::uint64_t, test_binary_search>();
 #endif
-    test_algo_three_sequences<uint64_t, test_binary_search>();
+    test_algo_three_sequences<std::uint64_t, test_binary_search>();
     return TestUtils::done();
 }

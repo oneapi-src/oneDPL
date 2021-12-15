@@ -25,8 +25,8 @@
 using namespace TestUtils;
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-static ::std::atomic<int32_t> count_val;
-static ::std::atomic<int32_t> count_comp;
+static ::std::atomic<std::int32_t> count_val;
+static ::std::atomic<std::int32_t> count_comp;
 
 template <typename T>
 struct Num
@@ -183,10 +183,10 @@ main()
     EXPECT_TRUE(count_val == 0, "cleanup error");
 #endif
 
-    test_partial_sort<int32_t>(
-        [](int32_t x, int32_t y) { return x > y; }); // Reversed so accidental use of < will be detected.
+    test_partial_sort<std::int32_t>(
+        [](std::int32_t x, std::int32_t y) { return x > y; }); // Reversed so accidental use of < will be detected.
 
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const<std::int32_t>>());
 
     return done();
 }

@@ -1,1 +1,11 @@
+# ----- Documentation build ------
 _build
+
+# -------- CMake --------
+build/*
+
+# -------- IDE --------
+.vscode/*
+.vs/*
+out/*
+CMakeSettings.json

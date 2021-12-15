@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-int32_t
+std::int32_t
 main()
 {
 #if _ENABLE_RANGES_TESTING

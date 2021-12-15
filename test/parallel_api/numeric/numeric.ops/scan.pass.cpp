@@ -139,7 +139,7 @@ test_with_plus(T init, T trash, Convert convert)
     {
         Sequence<T> in(n, convert);
         Sequence<T> expected(in);
-        Sequence<T> out(n, [&](int32_t) { return trash; });
+        Sequence<T> out(n, [&](std::int32_t) { return trash; });
 
 #ifdef _PSTL_TEST_INCLUSIVE_SCAN
 
@@ -169,7 +169,7 @@ test_with_plus(T init, T trash, Convert convert)
 
     Sequence<T> in(n, convert);
     Sequence<T> expected(in);
-    Sequence<T> out(n, [&](int32_t) { return trash; });
+    Sequence<T> out(n, [&](std::int32_t) { return trash; });
 #ifdef _PSTL_TEST_INCLUSIVE_SCAN
     invoke_on_all_hetero_policies<4>()(test_inclusive_scan_with_plus<T>(), in.begin(), in.end(), out.begin(), out.end(),
                                 expected.begin(), expected.end(), in.size(), init, trash);
@@ -300,14 +300,14 @@ main()
 {
 #if !_PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN
     // Test with highly restricted type and associative but not commutative operation
-    test_matrix<Matrix2x2<int32_t>, Matrix2x2<int32_t>>(Matrix2x2<int32_t>(), multiply_matrix<int32_t>(),
-                                                            Matrix2x2<int32_t>(-666, 666));
+    test_matrix<Matrix2x2<std::int32_t>, Matrix2x2<std::int32_t>>(Matrix2x2<std::int32_t>(), multiply_matrix<std::int32_t>(),
+                                                            Matrix2x2<std::int32_t>(-666, 666));
 #endif
 
     // Since the implicit "+" forms of the scan delegate to the generic forms,
     // there's little point in using a highly restricted type, so just use double.
-    test_with_plus<float64_t>(0.0, -666.0, [](uint32_t k) { return float64_t((k % 991 + 1) ^ (k % 997 + 2)); });
-    test_with_plus<int32_t>(0.0, -666.0, [](uint32_t k) { return int32_t((k % 991 + 1) ^ (k % 997 + 2)); });
+    test_with_plus<float64_t>(0.0, -666.0, [](std::uint32_t k) { return float64_t((k % 991 + 1) ^ (k % 997 + 2)); });
+    test_with_plus<std::int32_t>(0.0, -666.0, [](std::uint32_t k) { return std::int32_t((k % 991 + 1) ^ (k % 997 + 2)); });
 
     return done();
 }

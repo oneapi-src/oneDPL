@@ -25,6 +25,7 @@
 #include <iostream>
 #include <algorithm>
 #include <numeric>
+#include <limits>
 #include <type_traits>
 #include <forward_list>
 
@@ -350,11 +351,11 @@ int main() {
     const auto n1 = 1000;
     const auto n2 = 100000;
 
-    test_iterator_by_type<int16_t, int16_t>(n1);
-    test_iterator_by_type<int16_t, int64_t>(n2);
+    test_iterator_by_type<std::int16_t, std::int16_t>(n1);
+    test_iterator_by_type<std::int16_t, std::int64_t>(n2);
 
-    test_iterator_by_type<double, int16_t>(n1);
-    test_iterator_by_type<double, int64_t>(n2);
+    test_iterator_by_type<double, std::int16_t>(n1);
+    test_iterator_by_type<double, std::int64_t>(n2);
 
     return done();
 }

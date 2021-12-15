@@ -99,14 +99,14 @@ struct test_non_const
 int
 main()
 {
-    test<int32_t>();
+    test<std::int32_t>();
 #if !ONEDPL_FPGA_DEVICE
-    test<uint16_t>();
+    test<std::uint16_t>();
 #endif
     test<float64_t>();
     test<bool>();
 
-    test_algo_basic_single<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
     return done();
 }

@@ -36,10 +36,10 @@ void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
 void test_with_buffers()
 {
     // create buffers
-    sycl::buffer<uint64_t, 1> key_buf{ sycl::range<1>(13) };
-    sycl::buffer<uint64_t, 1> val_buf{ sycl::range<1>(13) };
-    sycl::buffer<uint64_t, 1> key_res_buf{ sycl::range<1>(13) };
-    sycl::buffer<uint64_t, 1> val_res_buf{ sycl::range<1>(13) };
+    sycl::buffer<std::uint64_t, 1> key_buf{ sycl::range<1>(13) };
+    sycl::buffer<std::uint64_t, 1> val_buf{ sycl::range<1>(13) };
+    sycl::buffer<std::uint64_t, 1> key_res_buf{ sycl::range<1>(13) };
+    sycl::buffer<std::uint64_t, 1> val_res_buf{ sycl::range<1>(13) };
 
     {
         auto keys    = key_buf.template get_access<sycl::access::mode::read_write>();
@@ -122,10 +122,10 @@ void test_with_usm()
     int n = 13;
 
     // Allocate space for data using USM.
-    uint64_t* key_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* val_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* key_res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
-    uint64_t* val_res_head = static_cast<uint64_t*>(sycl::malloc_shared(n * sizeof(uint64_t), q.get_device(), q.get_context()));
+    std::uint64_t* key_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
+    std::uint64_t* val_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
+    std::uint64_t* key_res_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
+    std::uint64_t* val_res_head = static_cast<std::uint64_t*>(sycl::malloc_shared(n * sizeof(std::uint64_t), q.get_device(), q.get_context()));
 
     //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
     //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
