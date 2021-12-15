@@ -45,29 +45,6 @@ rreadlink() (
   fi
 )
 
-
-# ############################################################################
-
-# Determine if we are being executed or sourced. Need to detect being sourced
-# within an executed script, which can happen on a CI system. We also must
-# detect being sourced at a shell prompt (CLI). The setvars.sh script will
-# always source this script, but this script can also be called directly.
-
-# We are assuming we know the name of this script, which is a reasonable
-# assumption. This script _must_ be named "vars.sh" or it will not work
-# with the top-level setvars.sh script. Making this assumption simplifies
-# the process of detecting if the script has been sourced or executed. It
-# also simplifies the process of detecting the location of this script.
-
-# Using `readlink` to remove possible symlinks in the name of the script.
-# Also, "ps -o comm=" is limited to a 15 character result, but it works
-# fine here, because we are only looking for the name of this script or the
-# name of the execution shell, both always fit into fifteen characters.
-
-# TODO: Edge cases exist when executed by way of "/bin/sh setvars.sh"
-# Most shells detect or fall thru to error message, sometimes ksh does not.
-# This is an odd and unusual situation; not a high priority issue.
-
 _vars_get_proc_name() {
   # shellcheck disable=2031
   if [ -n "${ZSH_VERSION:-}" ] ; then
