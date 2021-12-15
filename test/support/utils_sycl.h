@@ -37,7 +37,6 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-
 namespace TestUtils
 {
 
