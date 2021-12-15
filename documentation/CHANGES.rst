@@ -6,6 +6,36 @@ Overview
 
 The list of the most significant changes made over time in oneDPL.
 
+New in 2021.6
+=============
+
+New Features
+------------
+- Added a new implementation for ``par`` and ``par_unseq`` execution policies based on OpenMP* 4.5 pragmas.
+  It can be enabled with the ``ONEDPL_USE_OPENMP_BACKEND`` macro.
+  For more details, see `Macros`_ page in oneDPL Guide.
+- Added the range-based version of the ``reduce_by_segment`` algorithm and improved performance of
+  the iterator-based ``reduce_by_segment`` APIs. 
+  Please note that the use of the ``reduce_by_segment`` algorithm requires C++17.
+- Added the following algorithms (serial versions) to `Tested Standard C++ API`_: ``for_each_n``, ``copy``,
+  ``copy_backward``, ``copy_if``, ``copy_n``, ``is_permutation``, ``fill``, ``fill_n``, ``move``, ``move_backward``.
+
+Changes affecting backward compatibility
+----------------------------------------
+- Fixed ``param_type`` API of random number distributions to satisfy C++ standard requirements.
+  The new definitions of ``param_type`` are not compatible with incorrect definitions in previous library versions.
+  Recompilation is recommended for all codes that might use ``param_type``.
+
+Fixed Issues
+------------
+- Fixed hangs and errors when oneDPL is used together with oneAPI Math Kernel Library (oneMKL) in DPC++ programs.
+- Fixed possible data races in the following algorithms used with DPC++ execution
+  policies: ``sort``, ``stable_sort``, ``partial_sort``, ``nth_element``.
+
+Known Issues and Limitations
+----------------------------
+- No new issues in this release.
+
 New in 2021.5
 =============
 
@@ -15,7 +45,7 @@ New Features
   ``geometric_distribution``, ``lognormal_distribution``, ``weibull_distribution``, ``cachy_distribution``, ``extreme_value_distribution``.
 - Added the serial-based versions of the following algorithms: ``all_of``, ``any_of``, 
   ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
-  For the detailed list, please refer to `Tested Standard C++ API Reference`_. 
+  For the detailed list, please refer to `Tested Standard C++ API`_. 
 - Improved performance of ``search`` and ``find_end`` algorithms on GPU devices.
 
 Fixed Issues
@@ -514,3 +544,6 @@ Known Issues and Limitations
    ``std::less`` or ``std::greater``, otherwise Merge sort.
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
+.. _`oneDPL Guide`: https://oneapi-src.github.io/oneDPL/index.html
+.. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
+.. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
