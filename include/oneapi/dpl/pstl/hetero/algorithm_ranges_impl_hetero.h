@@ -594,6 +594,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     {
         __brick_copy<_ExecutionPolicy> __copy_range{};
 
+        // We use 2 and 3 as the kernel names because 0 and 1 are already used by other kernel calls in algorithm implementation
         oneapi::dpl::__internal::__ranges::__pattern_walk_n<2>(::std::forward<_ExecutionPolicy>(__exec), __copy_range,
                                                                ::std::forward<_Range1>(__keys),
                                                                ::std::forward<_Range3>(__out_keys));
