@@ -48,26 +48,33 @@ using __has_known_identity =
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::plus<_Tp>>,
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::minimum<_Tp>>,
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::maximum<_Tp>>>>;
-#    else
+#    else //__LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<typename ::std::decay<BinaryOp>::type, ::std::plus<_Tp>>,
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::plus<_Tp>>>>;
-#    endif
+#    endif //__LIBSYCL_VERSION >= 50200
 
-#else
+#else //_USE_GROUP_ALGOS
 
 using __has_known_identity = std::false_type;
 
-#endif
+#endif //_USE_GROUP_ALGOS
+
+template <typename BinaryOp, typename _Tp>
+struct __known_identity_for_plus
+{
+    static_assert(std::is_same_v<BinaryOp, std::plus<_Tp>>);
+    constexpr static _Tp value = 0;
+};
 
 template <typename BinaryOp, typename _Tp>
 inline constexpr _Tp __known_identity =
-#    if __LIBSYCL_VERSION >= 50200
+#if __LIBSYCL_VERSION >= 50200
     sycl::known_identity<BinaryOp, _Tp>::value;
-#    else
-    0; //for plus only
-#    endif
+#else //__LIBSYCL_VERSION >= 50200
+    __known_identity_for_plus<BinaryOp, _Tp>::value; //for plus only
+#endif //__LIBSYCL_VERSION >= 50200
 
 // a way to get value_type from both accessors and USM that is needed for transform_init
 template <typename _Unknown>
