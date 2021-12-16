@@ -585,8 +585,26 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     //          __out_keys   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 }
     //          __out_values = { 1, 2, 3, 4, 2, 6, 2, 6, 0 }
 
-    if (__keys.empty())
+    const auto __n = __keys.size();
+
+    if (__n == 0)
         return 0;
+
+    if (__n == 1)
+    {
+        __brick_copy<_ExecutionPolicy> __copy_range{};
+
+        // We use 2 and 3 as the kernel names because 0 and 1 are already used by other kernel calls in algorithm implementation
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n<2>(::std::forward<_ExecutionPolicy>(__exec), __copy_range,
+                                                               ::std::forward<_Range1>(__keys),
+                                                               ::std::forward<_Range3>(__out_keys));
+
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n<3>(::std::forward<_ExecutionPolicy>(__exec), __copy_range,
+                                                               ::std::forward<_Range2>(__values),
+                                                               ::std::forward<_Range4>(__out_values));
+
+        return 1;
+    }
 
     using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
     using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
@@ -595,7 +613,6 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     // Round 1: reduce with extra indices added to avoid long segments
     // TODO: At threshold points check if the key is equal to the key at the previous threshold point, indicating a long sequence.
     // Skip a round of copy_if and reduces if there are none.
-    auto __n = __keys.size();
     auto __idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n)
                      .get_buffer();
     auto __tmp_out_keys =
