@@ -98,28 +98,30 @@
 #       if !defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
 #           error The parallel serial backend is not used while it should (Serial backend in priority)
 #       endif
-#   elif defined(_OPENMP)
-#       if !defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
-#           error The parallel TBB backend is not used while it should (TBB backend in priority)
-#       endif
-#       if defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
-#           error The parallel OpenMP backend is used while it should not (TBB backend in priority)
-#       endif
-#       if defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
-#           error The parallel serial backend is used while it should not (TBB backend in priority)
-#       endif
-#    else
-#       if defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
-#           error The parallel TBB backend is used while it should not (Serial backend in priority)
-#       endif
-#       if defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
-#           error The parallel OpenMP backend is used while it should not (Serial backend in priority)
-#       endif
-#       if !defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
-#           error The parallel serial backend is not used while it should (Serial backend in priority)
-#       endif
+#   elif !ONEDPL_USE_OPENMP_BACKEND 
+#           if defined(_OPENMP)
+#               if defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
+#                   error The parallel TBB backend is used while it should not (OpenMP backend in priority)
+#               endif
+#               if !defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
+#                   error The parallel OpenMP backend is not used while it should (OpenMP backend in priority)
+#               endif
+#               if defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
+#                   error The parallel serial backend is used while it should not (OpenMP backend in priority)
+#               endif
+#           else
+#               if defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
+#                   error The parallel TBB backend is used while it should not (Serial backend in priority)
+#               endif
+#               if defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
+#                   error The parallel OpenMP backend is used while it should not (Serial backend in priority)
+#               endif
+#               if !defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
+#                   error The parallel serial backend is not used while it should (Serial backend in priority)
+#               endif
+#           endif
 #   endif
-#else
+#elif !ONEDPL_USE_TBB_BACKEND && !ONEDPL_USE_OPENMP_BACKEND
 #   if !defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
 #       error The parallel TBB backend is not used while it should (TBB backend in priority)
 #   endif
