@@ -174,29 +174,36 @@ Equal(std::int32_t x, std::int32_t y)
     return x == y;
 }
 
+
 template <typename T>
-struct test_sort_with_compare
+struct sort_body
 {
+    template <typename ...Args>
+    void run_algo(Args... args)
+    {
+       if (Stable)
+            std::stable_sort(args...);
+        else
+            std::sort(args...);
+    }
+
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename Compare>
+              typename ...Compare>
     typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value,
                             void>::type
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
-               OutputIterator2 expected_last, InputIterator first, InputIterator /* last */, Size n, Compare compare)
+               OutputIterator2 expected_last, InputIterator first, InputIterator /* last */, Size n, Compare... compare)
     {
-        using namespace std;
-        copy_n(first, n, expected_first);
-        copy_n(first, n, tmp_first);
-        if (Stable)
-            ::std::stable_sort(expected_first + 1, expected_last - 1, compare);
-        else
-            ::std::sort(expected_first + 1, expected_last - 1, compare);
-        std::int32_t count0 = KeyCount;
-        if (Stable)
-            stable_sort(exec, tmp_first + 1, tmp_last - 1, compare);
-        else
-            sort(exec, tmp_first + 1, tmp_last - 1, compare);
+        //keep the original data
+        std::copy_n(first, n, tmp_first);        
 
+	//run a tested algorithm
+        std::int32_t count0 = KeyCount;
+        run_algo(exec, tmp_first + 1, tmp_last - 1, compare...);
+        
+        //generate exam(expected) and check result
+        std::copy_n(first, n, expected_first);
+        run_algo(expected_first + 1, expected_last - 1, compare...);
         for (size_t i = 0; i < n; ++i, ++expected_first, ++tmp_first)
         {
             // Check that expected[i] is equal to tmp[i]
@@ -206,50 +213,11 @@ struct test_sort_with_compare
         EXPECT_EQ(count0, count1, "key cleanup error");
     }
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename Compare>
+              typename ...Compare>
     typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value,
                             void>::type
     operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */, OutputIterator2 /* expected_first */,
-               OutputIterator2 /* expected_last */, InputIterator /* first */, InputIterator /* last */, Size /* n */, Compare /* compare */)
-    {
-    }
-};
-
-template<typename T>
-struct test_sort_without_compare
-{
-    template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value &&
-                            can_use_default_less_operator<T>::value, void>::type
-    operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
-               OutputIterator2 expected_last, InputIterator first, InputIterator /* last */, Size n)
-    {
-        using namespace std;
-        copy_n(first, n, expected_first);
-        copy_n(first, n, tmp_first);
-        if (Stable)
-            ::std::stable_sort(expected_first + 1, expected_last - 1);
-        else
-            ::std::sort(expected_first + 1, expected_last - 1);
-        std::int32_t count0 = KeyCount;
-        if (Stable)
-            stable_sort(exec, tmp_first + 1, tmp_last - 1);
-        else
-            sort(exec, tmp_first + 1, tmp_last - 1);
-
-        for (size_t i = 0; i < n; ++i, ++expected_first, ++tmp_first)
-        {
-            // Check that expected[i] is equal to tmp[i]
-            EXPECT_TRUE(Equal(*expected_first, *tmp_first), "wrong result from sort with predicate");
-        }
-        std::int32_t count1 = KeyCount;
-        EXPECT_EQ(count0, count1, "key cleanup error");
-    }
-    template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size>
-    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value ||
-                            !can_use_default_less_operator<T>::value, void>::type
-    operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */, OutputIterator2 /* expected_first */,
-               OutputIterator2 /* expected_last */, InputIterator /* first */, InputIterator /* last */, Size /* n */)
+               OutputIterator2 /* expected_last */, InputIterator /* first */, InputIterator /* last */, Size /* n */, Compare... /* compare */)
     {
     }
 };
@@ -267,11 +235,11 @@ test_sort(Compare compare, Convert convert)
         Sequence<T> expected(in);
         Sequence<T> tmp(in);
 #ifdef _PSTL_TEST_WITHOUT_PREDICATE
-        invoke_on_all_policies<0>()(test_sort_without_compare<T>(), tmp.begin(), tmp.end(), expected.begin(),
+        invoke_on_all_policies<0>()(sort_body<T>(), tmp.begin(), tmp.end(), expected.begin(),
                                     expected.end(), in.begin(), in.end(), in.size());
 #endif
 #ifdef _PSTL_TEST_WITH_PREDICATE
-        invoke_on_all_policies<1>()(test_sort_with_compare<T>(), tmp.begin(), tmp.end(), expected.begin(),
+        invoke_on_all_policies<1>()(sort_body<T>(), tmp.begin(), tmp.end(), expected.begin(),
                                     expected.end(), in.begin(), in.end(), in.size(), compare);
 #endif
     }
