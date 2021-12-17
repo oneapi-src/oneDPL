@@ -67,7 +67,7 @@ struct __known_identity_for_plus
 {
 
     static_assert(std::is_same_v<typename std::decay<BinaryOp>::type, std::plus<_Tp>>);
-    constexpr static _Tp value = 0;
+    static constexpr _Tp value = 0;
 };
 
 template <typename BinaryOp, typename _Tp>
