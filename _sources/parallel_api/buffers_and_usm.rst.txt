@@ -17,7 +17,7 @@ Use oneapi::dpl::begin and oneapi::dpl::end Functions
 allow you to pass SYCL* buffers to parallel algorithms. These functions accept
 a SYCL buffer and return an object of an unspecified type that provides the following API:
 
-* It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with 
+* It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with
   ``operator==`` and ``operator!=``.
 * It gives the following valid expressions: ``a + n``, ``a - n``, and ``a - b``, where ``a`` and ``b``
   are objects of the type, and ``n`` is an integer value. The effect of those operations is the same as for the type
@@ -98,6 +98,9 @@ Alternatively, use ``std::vector`` with a USM allocator. For example:
     return 0;
   }
 
+When using device USM, such as allocated by ``malloc_device``, manually copy data to this memory
+before calling oneDPL algorithms, and copy it back once the algorithms have finished execution.
+
 Use Host-side std::vector
 -----------------------------
 
@@ -114,8 +117,8 @@ For example:
   #include <oneapi/dpl/algorithm>
   #include <vector>
   int main(){
-    std::vector<int> v( 1000 );
-    std::fill(oneapi::dpl::execution::dpcpp_default, v.begin(), v.end(), 42);
+    std::vector<int> vec( 1000 );
+    std::fill(oneapi::dpl::execution::dpcpp_default, vec.begin(), vec.end(), 42);
     // each element of vec equals to 42
     return 0;
   }

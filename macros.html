@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Macros &#8212; oneDPL Documentation 2021.5 documentation</title>
     
-  <link href="_static/css/theme.css" rel="stylesheet" />
-  <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+  <link href="_static/css/theme.css" rel="stylesheet">
+  <link href="_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="_static/sphinx-book-theme.css?digest=c3fdc42140077d1ad13ad2f1588a4309" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
-  <link rel="preload" as="script" href="_static/js/index.1c5a1a01449ed65a7b51.js">
+  <link rel="preload" as="script" href="_static/js/index.be7d3bbb2ef33a8344ce.js">
 
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
@@ -39,7 +39,10 @@
     <link rel="next" title="Notices and Disclaimers" href="notices_disclaimers.html" />
     <link rel="prev" title="Utility Function Object Classes" href="api_for_dpcpp_kernels/utility_function_object_classes.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="en" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
     
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -352,15 +355,31 @@ algorithms in the C++ standard libraries of GCC and LLVM.</p>
 </td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_USE_TBB_BACKEND</span></code></p></td>
-<td><p>This macro controls the use of oneAPI Threading Building Blocks (oneTBB) or
-Intel® Threading Building Blocks (Intel® TBB) for parallel policies.
-When the macro is set to 0, algorithms with the <code class="docutils literal notranslate"><span class="pre">par</span></code> and <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code> policies are only
-executed by the calling thread. This is recommended for code that should not depend on the
-presence of the oneTBB or Intel® TBB library. When the macro is not defined (by default)
-or evaluates to a non-zero value,
-parallel policies are executed using the oneTBB or Intel® TBB library.</p></td>
+<td><p>This macro controls the use of oneAPI Threading Building Blocks (oneTBB) or Intel® Threading Building Blocks (Intel® TBB) for parallel
+execution policies (<code class="docutils literal notranslate"><span class="pre">par</span></code> and <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code>).</p>
+<p>When the macro evaluates to a non-zero value, or when it is not defined (by default)
+and no other parallel backends are explicitly chosen, algorithms with parallel policies
+are executed using the oneTBB or Intel® TBB library.
+Setting the macro to 0 disables use of TBB API for parallel execution and is recommended
+for code that should not depend on the presence of the oneTBB or Intel® TBB library.</p>
+<p>If all parallel backends are disabled by setting respective macros to 0, algorithms
+with parallel policies are executed sequentially by the calling thread.</p>
+</td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_USE_DPCPP_BACKEND</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_USE_OPENMP_BACKEND</span></code></p></td>
+<td><p>This macro controls the use of OpenMP* for parallel execution policies (<code class="docutils literal notranslate"><span class="pre">par</span></code> and <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code>).</p>
+<p>When the macro evaluates to a non-zero value, algorithms with parallel policies are executed
+using OpenMP unless the TBB backend is explicitly enabled (that is, the TBB backend takes
+precedence over the OpenMP backend).
+When the macro is not defined (by default) and no other parallel backends are chosen,
+a dedicated compiler option to enable OpenMP (such as <code class="docutils literal notranslate"><span class="pre">-fopenmp</span></code>) also enables its use
+for algorithms with parallel policies.
+Setting the macro to 0 disables use of OpenMP for parallel execution.</p>
+<p>If all parallel backends are disabled by setting respective macros to 0, algorithms
+with parallel policies are executed sequentially by the calling thread.</p>
+</td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_USE_DPCPP_BACKEND</span></code></p></td>
 <td><p>This macro enables the use of the DPC++ policies.
 When the macro is not defined (by default)
 or evaluates to non-zero, DPC++ policies are enabled.
@@ -368,7 +387,7 @@ When the macro is set to 0 there is no dependency on
 the Intel® oneAPI DPC++/C++ Compiler and runtime libraries.
 Trying to use DPC++ policies will lead to compilation errors.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_USE_PREDEFINED_POLICIES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_USE_PREDEFINED_POLICIES</span></code></p></td>
 <td><p>This macro enables the use of predefined policies objects,
 (for example <code class="docutils literal notranslate"><span class="pre">dpcpp_default</span></code> or <code class="docutils literal notranslate"><span class="pre">dpcpp_fpga</span></code>). When the macro is not defined (by default)
 or evaluates to non-zero, predefined policies objects can be used.
@@ -376,15 +395,15 @@ When the macro is set to 0, predefined policies objects and make functions
 without arguments, when <code class="docutils literal notranslate"><span class="pre">make_device_policy()</span></code>,
 <code class="docutils literal notranslate"><span class="pre">make_fpga_policy()</span></code>, are not available.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_ALLOW_DEFERRED_WAITING</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_ALLOW_DEFERRED_WAITING</span></code></p></td>
 <td><p>This macro allows waiting for completion of certain algorithms executed with
 DPC++ policies to be deferred. (Disabled by default.)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_DEVICE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_DEVICE</span></code></p></td>
 <td><p>Use this macro to build your code containing oneDPL parallel
 algorithms for FPGA devices. (Disabled by default.)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_EMULATOR</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_EMULATOR</span></code></p></td>
 <td><p>Use this macro to build your code containing Parallel STL
 algorithms for FPGA emulation device. (Disabled by default.)</p>
 <div class="admonition note">
@@ -404,31 +423,22 @@ Define only the <code class="docutils literal notranslate"><span class="pre">ONE
               </div>
               
         
-            
-
-
-
-<div class='prev-next-bottom'>
-    
-    <div id="prev">
-        <a class="left-prev" href="api_for_dpcpp_kernels/utility_function_object_classes.html" title="previous page">
-            <i class="prevnext-label fas fa-angle-left"></i>
-            <div class="prevnext-info">
-                <p class="prevnext-label">previous</p>
-                <p class="prevnext-title">Utility Function Object Classes</p>
-            </div>
-        </a>
+            <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="api_for_dpcpp_kernels/utility_function_object_classes.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Utility Function Object Classes</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="notices_disclaimers.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Notices and Disclaimers</p>
     </div>
-     <div id="next">
-        <a class="right-next" href="notices_disclaimers.html" title="next page">
-            <div class="prevnext-info">
-                <p class="prevnext-label">next</p>
-                <p class="prevnext-title">Notices and Disclaimers</p>
-            </div>
-            <i class="prevnext-label fas fa-angle-right"></i>
-        </a>
-     </div>
-
+    <i class="fas fa-angle-right"></i>
+    </a>
 </div>
         
         </div>
@@ -449,8 +459,7 @@ Define only the <code class="docutils literal notranslate"><span class="pre">ONE
       </div>
     </div>
   
-  <script src="_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+  <script src="_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
 
-  
   </body>
 </html>

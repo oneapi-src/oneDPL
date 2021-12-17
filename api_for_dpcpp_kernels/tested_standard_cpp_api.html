@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tested Standard C++ APIs &#8212; oneDPL Documentation 2021.5 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+  <link href="../_static/css/theme.css" rel="stylesheet">
+  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="../_static/sphinx-book-theme.css?digest=c3fdc42140077d1ad13ad2f1588a4309" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -39,7 +39,10 @@
     <link rel="next" title="Utility Function Object Classes" href="utility_function_object_classes.html" />
     <link rel="prev" title="Random Number Generators" href="random.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="en" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
     
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -1019,13 +1022,63 @@ must be included. Currently, Tested Standard C++ APIs can be used in two ways:</
 <td><p>Tested</p></td>
 <td><p>Tested</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">std::for_each_n</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::copy</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">std::copy_backward</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::copy_if</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">std::copy_n</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::is_permutation</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">std::fill</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::fill_n</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">std::move</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">std::move_backward</span></code></p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+<td><p>Tested</p></td>
+</tr>
 </tbody>
 </table>
 <p>These tests were done for the following versions of the standard C++ library:</p>
 <table class="table">
 <colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
+<col style="width: 49%" />
+<col style="width: 51%" />
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p>libstdc++(GNU)</p></td>
@@ -1035,8 +1088,17 @@ must be included. Currently, Tested Standard C++ APIs can be used in two ways:</
 <td><p>Provided with Clang*-11.0</p></td>
 </tr>
 <tr class="row-odd"><td><p>Microsoft Visual C++* (MSVC) Standard Library</p></td>
-<td><p>Provided with Microsoft Visual Studio* 2017,
-and Microsoft Visual Studio 2019</p></td>
+<td><p>Provided with Microsoft Visual Studio* 2017;
+Microsoft Visual Studio 2019; and Microsoft
+Visual Studio 2022, version 17.0, preview 4.1.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Support for Microsoft Visual Studio 2017 is
+deprecated as of the Intel® oneAPI 2022.1
+release, and will be removed in a future
+release.</p>
+</div>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1047,31 +1109,22 @@ and Microsoft Visual Studio 2019</p></td>
               </div>
               
         
-            
-
-
-
-<div class='prev-next-bottom'>
-    
-    <div id="prev">
-        <a class="left-prev" href="random.html" title="previous page">
-            <i class="prevnext-label fas fa-angle-left"></i>
-            <div class="prevnext-info">
-                <p class="prevnext-label">previous</p>
-                <p class="prevnext-title">Random Number Generators</p>
-            </div>
-        </a>
+            <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="random.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Random Number Generators</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="utility_function_object_classes.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Utility Function Object Classes</p>
     </div>
-     <div id="next">
-        <a class="right-next" href="utility_function_object_classes.html" title="next page">
-            <div class="prevnext-info">
-                <p class="prevnext-label">next</p>
-                <p class="prevnext-title">Utility Function Object Classes</p>
-            </div>
-            <i class="prevnext-label fas fa-angle-right"></i>
-        </a>
-     </div>
-
+    <i class="fas fa-angle-right"></i>
+    </a>
 </div>
         
         </div>
@@ -1092,8 +1145,7 @@ and Microsoft Visual Studio 2019</p></td>
       </div>
     </div>
   
-  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
 
-  
   </body>
 </html>

@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Get Started with the oneAPI DPC++ Library (oneDPL) &#8212; oneDPL Documentation 2021.5 documentation</title>
     
-  <link href="_static/css/theme.css" rel="stylesheet" />
-  <link href="_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+  <link href="_static/css/theme.css" rel="stylesheet">
+  <link href="_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="_static/sphinx-book-theme.css?digest=c3fdc42140077d1ad13ad2f1588a4309" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
-  <link rel="preload" as="script" href="_static/js/index.1c5a1a01449ed65a7b51.js">
+  <link rel="preload" as="script" href="_static/js/index.be7d3bbb2ef33a8344ce.js">
 
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
@@ -39,7 +39,10 @@
     <link rel="next" title="oneAPI DPC++ Library (oneDPL) Overview" href="overview.html" />
     <link rel="prev" title="oneAPI DPC++ Library (oneDPL) Guide" href="index.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="en" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
     
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -258,8 +261,8 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#oneapi-dpl-random-usage-example">
-     oneapi/dpl/random Usage Example
+    <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
+     &lt;oneapi/dpl/random&gt; Header Usage Example
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -322,8 +325,8 @@ and use the <code class="docutils literal notranslate"><span class="pre">std</sp
 <p>oneDPL sample code is available from the
 <a class="reference external" href="https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL">oneAPI GitHub samples repository</a>.
 Each sample includes a readme with build instructions.</p>
-<div class="section" id="oneapi-dpl-random-usage-example">
-<h3>oneapi/dpl/random Usage Example<a class="headerlink" href="#oneapi-dpl-random-usage-example" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="oneapi-dpl-random-header-usage-example">
+<h3>&lt;oneapi/dpl/random&gt; Header Usage Example<a class="headerlink" href="#oneapi-dpl-random-header-usage-example" title="Permalink to this headline">¶</a></h3>
 <p>This example illustrates oneDPL Random Number Generators (RNGs) usage.
 The sample below shows you how to create an RNG engine object (the source of pseudo-randomness),
 a distribution object (specifying the desired probability distribution), and how to generate
@@ -333,22 +336,19 @@ to improve the speed of your computations.</p>
 <code class="docutils literal notranslate"><span class="pre">SYCL_DEVICE_TYPE</span></code> environment variable to CPU or GPU.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">VecSize</span><span class="o">&gt;</span><span class="w"></span>
 <span class="kt">void</span><span class="w"> </span><span class="n">random_fill</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">usmptr</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-
 <span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
 
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"></span>
-<span class="n">zero</span><span class="p">,</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="n">VecSize</span><span class="p">,</span><span class="w"></span>
-<span class="w">      </span><span class="p">[</span><span class="n">usmptr</span><span class="p">](</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">){</span><span class="w"></span>
+<span class="w">        </span><span class="n">zero</span><span class="p">,</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="n">VecSize</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="p">[</span><span class="n">usmptr</span><span class="p">](</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">VecSize</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">VecSize</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">minstd_rand_vec</span><span class="o">&lt;</span><span class="n">VecSize</span><span class="o">&gt;</span><span class="w"> </span><span class="n">engine</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">uniform_real_distribution</span><span class="o">&lt;</span><span class="n">sycl</span><span class="o">::</span><span class="n">vec</span><span class="o">&lt;</span><span class="kt">float</span><span class="p">,</span><span class="w"> </span><span class="n">VecSize</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">distr</span><span class="p">;</span><span class="w"></span>
 
-<span class="w">        </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">minstd_rand_vec</span><span class="o">&lt;</span><span class="n">VecSize</span><span class="o">&gt;</span><span class="w"> </span><span class="n">engine</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">uniform_real_distribution</span><span class="o">&lt;</span><span class="n">sycl</span><span class="o">::</span><span class="n">vec</span><span class="o">&lt;</span><span class="kt">float</span><span class="p">,</span><span class="w"> </span><span class="n">VecSize</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">distr</span><span class="p">;</span><span class="w"></span>
-
-<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="n">res</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">global_ptr</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">usmptr</span><span class="p">));</span><span class="w"></span>
-
-<span class="w">       </span><span class="p">});</span><span class="w"></span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="n">res</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">global_ptr</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">usmptr</span><span class="p">));</span><span class="w"></span>
+<span class="w">        </span><span class="p">});</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
@@ -421,6 +421,9 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
 <tr class="row-odd"><td><p><a class="reference external" href="https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL">oneDPL Samples</a></p></td>
 <td><p>Learn how to use oneDPL with samples.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-iot-linux/top/adding-oneapi-components-to-yocto-project-builds.html">Layers for Yocto* Project</a></p></td>
+<td><p>Add oneAPI components to a Yocto project build using the meta-intel layers.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -430,31 +433,22 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
               </div>
               
         
-            
-
-
-
-<div class='prev-next-bottom'>
-    
-    <div id="prev">
-        <a class="left-prev" href="index.html" title="previous page">
-            <i class="prevnext-label fas fa-angle-left"></i>
-            <div class="prevnext-info">
-                <p class="prevnext-label">previous</p>
-                <p class="prevnext-title">oneAPI DPC++ Library (oneDPL) Guide</p>
-            </div>
-        </a>
+            <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">oneAPI DPC++ Library (oneDPL) Guide</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="overview.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">oneAPI DPC++ Library (oneDPL) Overview</p>
     </div>
-     <div id="next">
-        <a class="right-next" href="overview.html" title="next page">
-            <div class="prevnext-info">
-                <p class="prevnext-label">next</p>
-                <p class="prevnext-title">oneAPI DPC++ Library (oneDPL) Overview</p>
-            </div>
-            <i class="prevnext-label fas fa-angle-right"></i>
-        </a>
-     </div>
-
+    <i class="fas fa-angle-right"></i>
+    </a>
 </div>
         
         </div>
@@ -475,8 +469,7 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
       </div>
     </div>
   
-  <script src="_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+  <script src="_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
 
-  
   </body>
 </html>
