@@ -19,6 +19,10 @@
 #include _PSTL_TEST_HEADER(algorithm)
 
 #include "support/utils.h"
+#if TEST_DPCPP_BACKEND_PRESENT
+#include "support/sycl_alloc_utils.h"
+#endif
+
 
 #if !defined(_PSTL_TEST_SORT) && !defined(_PSTL_TEST_STABLE_SORT)
 #define _PSTL_TEST_SORT
@@ -174,19 +178,40 @@ Equal(std::int32_t x, std::int32_t y)
     return x == y;
 }
 
-
-template <typename T>
-struct sort_body
+struct run_sort
 {
     template <typename ...Args>
-    void run_algo(Args... args)
+    void operator()(Args... args)
     {
        if (Stable)
             std::stable_sort(args...);
         else
             std::sort(args...);
     }
+};
 
+#if TEST_DPCPP_BACKEND_PRESENT
+struct run_sort_device
+{
+    template <typename Policy, typename RandomAccessIterator, typename ...Compare>
+    void operator()(Policy&& exec, RandomAccessIterator first, RandomAccessIterator last, Compare... compare)
+    {
+        // allocate USM device memory and copying data to USM device memory
+       using value_type = typename ::std::iterator_traits<RandomAccessIterator>::value_type;
+       usm_data_transfer<sycl::usm::alloc::device, value_type> device_data(exec.queue(), first, last);
+
+       //run tested algorithm
+       run_sort()(exec, device_data.begin(), device_data.end(), compare...);
+
+       //copy data back to the host
+       device_data.retrieve_data(first);
+    }
+};
+#endif //TEST_DPCPP_BACKEND_PRESENT 
+
+template <typename T, typename Algo>
+struct sort_body
+{
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename ...Compare>
     typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value,
@@ -199,11 +224,11 @@ struct sort_body
 
 	//run a tested algorithm
         std::int32_t count0 = KeyCount;
-        run_algo(exec, tmp_first + 1, tmp_last - 1, compare...);
+        Algo()(exec, tmp_first + 1, tmp_last - 1, compare...);
         
         //generate exam(expected) and check result
         std::copy_n(first, n, expected_first);
-        run_algo(expected_first + 1, expected_last - 1, compare...);
+        run_sort()(expected_first + 1, expected_last - 1, compare...);
         for (size_t i = 0; i < n; ++i, ++expected_first, ++tmp_first)
         {
             // Check that expected[i] is equal to tmp[i]
@@ -222,6 +247,14 @@ struct sort_body
     }
 };
 
+template <bool Condition, typename F, typename ...Args>
+typename std::enable_if<Condition, void>::type
+call_if(F f, Args... args) { f(args...); }
+
+template <bool Condition, typename F, typename ...Args>
+typename std::enable_if<!Condition, void>::type
+call_if(F f, Args... args) {}
+
 template <typename T, typename Compare, typename Convert>
 void
 test_sort(Compare compare, Convert convert)
@@ -235,11 +268,17 @@ test_sort(Compare compare, Convert convert)
         Sequence<T> expected(in);
         Sequence<T> tmp(in);
 #ifdef _PSTL_TEST_WITHOUT_PREDICATE
-        invoke_on_all_policies<0>()(sort_body<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                    expected.end(), in.begin(), in.end(), in.size());
+        call_if<can_use_default_less_operator<T>::value>(
+            invoke_on_all_policies<0>{}, sort_body<T, run_sort>(), tmp.begin(), tmp.end(), expected.begin(),
+                                         expected.end(), in.begin(), in.end(), in.size());
 #endif
 #ifdef _PSTL_TEST_WITH_PREDICATE
-        invoke_on_all_policies<1>()(sort_body<T>(), tmp.begin(), tmp.end(), expected.begin(),
+        invoke_on_all_policies<1>()(sort_body<T, run_sort>(), tmp.begin(), tmp.end(), expected.begin(),
+                                    expected.end(), in.begin(), in.end(), in.size(), compare);
+#endif
+
+#if TEST_DPCPP_BACKEND_PRESENT && _PSTL_SYCL_TEST_USM
+        invoke_on_all_policies<2>()(sort_body<T, run_sort_device>(), tmp.begin(), tmp.end(), expected.begin(),
                                     expected.end(), in.begin(), in.end(), in.size(), compare);
 #endif
     }
