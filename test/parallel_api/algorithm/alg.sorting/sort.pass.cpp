@@ -204,42 +204,90 @@ check_results(OutputIterator1 expected_first, OutputIterator2 tmp_first, Size n,
     }
 }
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#if _PSTL_SYCL_TEST_USM
-template <sycl::usm::alloc alloc_type, typename Policy, typename InputIterator, typename OutputIterator,
-            typename OutputIterator2, typename Size, typename ...Compare>
+template <typename TestExecutor, typename Policy, typename InputIterator,
+          typename OutputIterator, typename OutputIterator2, typename Size, typename... Compare>
 void
-test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
-         OutputIterator2 expected_last, InputIterator first, InputIterator /* last */, Size n, Compare... compare)
+run_test_impl(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
+              OutputIterator2 expected_last, InputIterator first, InputIterator /* last */, Size n, Compare... compare)
 {
     // Prepare data for sort algorithm
     copy_data(first, expected_first, expected_last, tmp_first, n);
     sort_data(expected_first + 1, expected_last - 1, compare...);
 
-    using _ValueType = typename std::iterator_traits<OutputIterator>::value_type;
+    std::int32_t count0 = 0;
+    {
+        TestExecutor execTest(exec, tmp_first, tmp_last);
 
-    auto queue = exec.queue();
+        count0 = KeyCount;
 
-    // allocate USM memory and copying data to USM shared/device memory
-    const auto _it_from = tmp_first + 1;
-    const auto _it_to = tmp_last - 1;
-    TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, _it_from, _it_to);
-    auto sortingData = dt_helper.get_data();
-
-    const std::int32_t count0 = KeyCount;
-
-    // Call sort algorithm on prepared data
-    const auto _size = _it_to - _it_from;
-    sort_data(::std::forward<Policy>(exec), sortingData, sortingData + _size, compare...);
-
-    // check result
-    dt_helper.retrieve_data(_it_from);
+        execTest([&](typename TestExecutor::CallParamType sort_from, typename TestExecutor::CallParamType sort_to)
+                 { sort_data(exec, sort_from, sort_to, ::std::forward<Compare>(compare)...); });
+    }
 
     check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #2");
 
     const std::int32_t count1 = KeyCount;
     EXPECT_EQ(count0, count1, "key cleanup error");
 }
+
+template <typename Policy, typename OutputIterator>
+struct RunTestWithHostExecutionPolicy
+{
+    using CallParamType = OutputIterator;
+
+    RunTestWithHostExecutionPolicy(Policy&& /*exec*/, OutputIterator tmp_first, OutputIterator tmp_last)
+        : _tmp_first(tmp_first), _tmp_last(tmp_last)
+    {
+    }
+
+    template <typename Predicate>
+    void
+    operator()(Predicate pred)
+    {
+        pred(_tmp_first + 1, _tmp_last - 1);
+    }
+
+    OutputIterator _tmp_first;
+    OutputIterator _tmp_last;
+};
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#if _PSTL_SYCL_TEST_USM
+template <sycl::usm::alloc alloc_type, typename Policy, typename OutputIterator>
+struct RunTestWithHeteroExecutionPolicy : RunTestWithHostExecutionPolicy<Policy, OutputIterator>
+{
+    using Base = RunTestWithHostExecutionPolicy<Policy, OutputIterator>;
+
+    using _ValueType = typename std::iterator_traits<OutputIterator>::value_type;
+
+    using CallParamType = _ValueType*;
+
+    RunTestWithHeteroExecutionPolicy(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last)
+        : Base(exec, tmp_first, tmp_last)
+        , __usmDataTransfer(::std::make_unique<USMDataTransfer>(exec.queue(), tmp_first + 1, tmp_last - 1))
+        , _sort_from(__usmDataTransfer->get_data())
+        , _sort_to(__usmDataTransfer->get_data() + __usmDataTransfer->get_count())
+    {
+    }
+
+    ~RunTestWithHeteroExecutionPolicy()
+    {
+        __usmDataTransfer->retrieve_data(Base::_tmp_first + 1);
+    }
+
+    template <typename Predicate>
+    void
+    operator()(Predicate pred)
+    {
+        pred(_sort_from, _sort_to);
+    }
+
+    using USMDataTransfer = TestUtils::usm_data_transfer<alloc_type, _ValueType>;
+    std::unique_ptr<USMDataTransfer> __usmDataTransfer;
+
+    _ValueType* _sort_from = nullptr;
+    _ValueType* _sort_to = nullptr;
+};
 #endif // _PSTL_SYCL_TEST_USM
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -247,24 +295,18 @@ template <typename Policy, typename InputIterator, typename OutputIterator, type
           typename... Compare>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, void>
 run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
-         OutputIterator2 expected_last, InputIterator first, InputIterator /*last*/, Size n, Compare ...compare)
+         OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare... compare)
 {
-    // Prepare data for sort algorithm
-    copy_data(first, expected_first, expected_last, tmp_first, n);
-    sort_data(expected_first + 1, expected_last - 1, compare...);
-
-    // Call sort algorithm on prepared data
-    const std::int32_t count0 = KeyCount;
-    sort_data(::std::forward<Policy>(exec), tmp_first + 1, tmp_last - 1, compare...);
-
-    check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #1");
-
-    const std::int32_t count1 = KeyCount;
-    EXPECT_EQ(count0, count1, "key cleanup error");
+    run_test_impl<RunTestWithHostExecutionPolicy<Policy, OutputIterator>>(
+        ::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
+        ::std::forward<Compare>(compare)...);
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #if _PSTL_SYCL_TEST_USM
+template <sycl::usm::alloc alloc_type, typename Policy, typename OutputIterator>
+using TRunTestWithHeteroExecutionPolicy = RunTestWithHeteroExecutionPolicy<alloc_type, Policy, OutputIterator>;
+
 template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
           typename... Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
@@ -272,11 +314,13 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
             OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
 {
     // Run tests for USM shared memory (external testing for USM shared memory, once already covered in sycl_iterator.pass.cpp)
-    test_usm<sycl::usm::alloc::shared>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
-                                       first, last, n, compare...);
+    run_test_impl<TRunTestWithHeteroExecutionPolicy<sycl::usm::alloc::shared, Policy, OutputIterator>>(
+        ::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
+        ::std::forward<Compare>(compare)...);
     // Run tests for USM device memory
-    test_usm<sycl::usm::alloc::device>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
-                                       first, last, n, compare...);
+    run_test_impl<TRunTestWithHeteroExecutionPolicy<sycl::usm::alloc::device, Policy, OutputIterator>>(
+        ::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
+        ::std::forward<Compare>(compare)...);
 }
 #endif // _PSTL_SYCL_TEST_USM
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -293,7 +337,7 @@ struct test_sort_op
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
     {
         run_test(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
-                 compare...);
+                 ::std::forward<Compare>(compare)...);
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,

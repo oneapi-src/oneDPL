@@ -93,6 +93,13 @@ public:
     /// Destructor
     ~usm_data_transfer();
 
+    /// Get objects count
+    /**
+     * @return __difference_type - objects count in USM shared/device allocated memory
+     */
+    __difference_type get_count() const
+        {   return __count; }
+
     /// Get USM pointer
     /**
      * @returun _ValueType* - pointer to USM shared/device allocated memory

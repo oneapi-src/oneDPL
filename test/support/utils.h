@@ -102,7 +102,7 @@ expect(bool expected, bool condition, const char* file, std::int32_t line, const
 // Function must be able to detect const differences between expected and actual.
 template <typename T>
 void
-expect_equal_val(T& expected, T& actual, const char* file, std::int32_t line, const char* message)
+expect_equal_val(const T& expected, const T& actual, const char* file, std::int32_t line, const char* message)
 {
     if (!(expected == actual))
     {
