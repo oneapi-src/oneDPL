@@ -1,0 +1,100 @@
+#%Module1.0###################################################################
+
+##===----------------------------------------------------------------------===##
+#
+# Copyright (C) Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
+
+# Why all the directory and filename boilerplate code? It is needed in order
+# to properly remove symbolic links used in assembly of the modulefiles
+# folder as well as those found within the oneAPI installation folders.
+# Without it many modulefiles will fail to work as expected.
+
+# IMPORTANT: quotes around "$variables" and "[expressions]" are there
+# to insure that paths/filenames which include spaces are handled properly.
+
+# This modulefile requires Environment Modules 4.1 or later.
+# Type `module --version` to determine the current installed version.
+
+set min_tcl_ver 8.4
+if { $tcl_version < $min_tcl_ver } {
+    puts stderr " "
+    puts stderr "ERROR: This modulefile requires tcl $min_tcl_ver or greater."
+    puts stderr "Your system reports that tclsh version $tcl_version is installed."
+    exit 1
+}
+
+# get full pathname for this script file
+set scriptpath "${ModulesCurrentModulefile}"
+
+# if modulefile script name is a symlink, resolve it
+if { "[file type "$scriptpath"]" eq "link" } {
+    set scriptpath "[file readlink "$scriptpath"]"
+}
+
+# if fullpath contains links, resolve them
+set scriptpath "[file normalize "$scriptpath"]"
+
+# get directory holding this modulefile script and others
+set modulefileroot "[file dirname "$scriptpath"]"
+
+# get name of modulefile script we are loading
+set modulefilename "[file tail "$scriptpath"]"
+
+# determine modulefile script version
+set modulefilever "[file dirname "$modulefileroot"]"
+set modulefilever "[file tail "$modulefilever"]"
+
+# point to component top-level root folder
+set componentroot "[file dirname "$modulefileroot"]"
+set componentroot "[file dirname "$componentroot"]"
+
+# get component folder name
+set componentname "[file tail "$componentroot"]"
+
+# get oneAPI top-level root folder
+set oneapiroot "[file dirname "$componentroot"]"
+
+# disallow loading multiple versions of this modulefile
+# disallow loading multiple architectures of this modulefile
+# if only 64-bit architecture exists the test still works
+set mname32 $modulefilename
+set mname64 [string trimright $mname32 "32"]
+if { [string equal "$mname32" "$mname64"] } {
+    append mname32 "32"
+}
+conflict $mname32
+conflict $mname64
+
+
+# On load print component name and version being loaded
+if { [ module-info mode load ] } {
+    puts stderr "Loading $modulefilename version $modulefilever"
+}
+
+# On `module unload` print component module name and version being removed
+# Include `module list` message only if this modulefile loads dependent modules
+if { [ module-info mode ] == "unload" || [ module-info mode ] == "remove" } {
+    puts stderr "Removing $modulefilename version $modulefilever"
+    puts stderr "Use `module list` to view any remaining dependent modules."
+}
+
+
+# ###### Component Specific env vars setup ###################################
+
+module-whatis "Intel(R) DPC++ Library."
+
+set dpl_root "$componentroot/$modulefilever"
+setenv DPL_ROOT "$dpl_root"
+
+# CPATH
+prepend-path CPATH "$dpl_root/linux/include"

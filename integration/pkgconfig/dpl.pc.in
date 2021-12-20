@@ -1,0 +1,23 @@
+##===----------------------------------------------------------------------===##
+#
+# Copyright (C) Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
+
+prefix=${pcfiledir}/../../
+includedir=${prefix}/@_onedpl_headers_subdir@/include
+
+Name: oneDPL
+Description: Intel(R) DPC++ Library.
+Version: @PROJECT_VERSION@
+URL: https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html
+
+Cflags: -I${includedir}
