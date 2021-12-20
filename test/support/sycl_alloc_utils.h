@@ -66,29 +66,29 @@ public:
 
     /// Constructor
     /**
-     * @param sycl::queue& __q - sycl queue
+     * @param sycl::queue __q - sycl queue
      * @param _Size __sz - objects count
      */
     template<typename _Size>
-    usm_data_transfer(sycl::queue& __q, _Size __sz);
+    usm_data_transfer(sycl::queue __q, _Size __sz);
 
     /// Constructor
     /**
-     * @param sycl::queue& __q - sycl queue
+     * @param sycl::queue __q - sycl queue
      * @param_Iterator __it - source iterator to copy from
      * @param _Size __sz - objects count
      */
     template<typename _Iterator, typename _Size>
-    usm_data_transfer(sycl::queue& __q, _Iterator __it, _Size __sz);
+    usm_data_transfer(sycl::queue __q, _Iterator __it, _Size __sz);
 
     /// Constructor
     /**
-     * @param sycl::queue& __q - sycl queue
+     * @param sycl::queue __q - sycl queue
      * @param_Iterator __it_from - source iterator to copy from
      * @param_Iterator __it_to - source iterator to copy till
      */
     template<typename _Iterator>
-    usm_data_transfer(sycl::queue& __q, _Iterator __it_from, _Iterator __it_to);
+    usm_data_transfer(sycl::queue __q, _Iterator __it_from, _Iterator __it_to);
 
     /// Destructor
     ~usm_data_transfer();
@@ -110,7 +110,7 @@ public:
 
 private:
 
-    sycl::queue& __queue;               //< SYCL queue
+    sycl::queue  __queue;               //< SYCL queue
     __difference_type __count = 0;      //< Count of objects in SYCL memory
     _ValueType* __ptr = nullptr;        //< Pointer to USM shared/device allocated memory
 };
@@ -118,7 +118,7 @@ private:
 //----------------------------------------------------------------------------//
 template <sycl::usm::alloc _alloc_type, typename _ValueType>
 template <typename _Size>
-TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue& __q, _Size __sz)
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue __q, _Size __sz)
     : __queue(__q), __count(__sz)
 {
     if (__count > 0)
@@ -131,7 +131,7 @@ TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::q
 //----------------------------------------------------------------------------//
 template <sycl::usm::alloc _alloc_type, typename _ValueType>
 template <typename _Iterator, typename _Size>
-TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue& __q, _Iterator __it, _Size __sz)
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue __q, _Iterator __it, _Size __sz)
     : usm_data_transfer(__q, __sz)
 {
     if (__count > 0)
@@ -148,7 +148,7 @@ TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::q
 //----------------------------------------------------------------------------//
 template <sycl::usm::alloc _alloc_type, typename _ValueType>
 template <typename _Iterator>
-TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue& __q, _Iterator __it_from,
+TestUtils::usm_data_transfer<_alloc_type, _ValueType>::usm_data_transfer(sycl::queue __q, _Iterator __it_from,
                                                                          _Iterator __it_to)
     : usm_data_transfer(__q, __it_from, __it_to - __it_from)
 {

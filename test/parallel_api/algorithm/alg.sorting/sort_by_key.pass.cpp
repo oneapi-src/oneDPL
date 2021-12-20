@@ -26,7 +26,7 @@
 
 template <sycl::usm::alloc alloc_type>
 void
-test_with_usm(sycl::queue& q)
+test_with_usm(sycl::queue q)
 {
     constexpr int N = 32;
 
