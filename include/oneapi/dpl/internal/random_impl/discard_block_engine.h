@@ -205,7 +205,7 @@ class discard_block_engine
     }
 
     _Engine engine_;
-    int n_ = 0u;
+    int n_ = 0;
 };
 
 } // namespace dpl
