@@ -107,14 +107,6 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     if (n <= 0)
         return result;
 
-    // Check for single element ranges
-    if (n == 1)
-    {
-        auto result_acc = internal::get_access<sycl::access::mode::write>(policy, result);
-        result_acc[0] = init;
-        return result + 1;
-    }
-
     typedef typename ::std::iterator_traits<OutputIterator>::value_type OutputType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef unsigned int FlagType;
