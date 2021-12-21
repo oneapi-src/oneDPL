@@ -47,7 +47,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
-    else if (n == 1)
+    if (n == 1)
     {
         *result = init;
         return result + 1;
@@ -103,15 +103,9 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 {
     const auto n = ::std::distance(first1, last1);
 
-    // Check for empty and single element ranges
+    // Check for empty element ranges
     if (n <= 0)
         return result;
-    else if (n == 1)
-    {
-        auto result_acc = internal::get_access<sycl::access::mode::write>(policy, result);
-        result_acc[0] = init;
-        return result + 1;
-    }
 
     typedef typename ::std::iterator_traits<OutputIterator>::value_type OutputType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
