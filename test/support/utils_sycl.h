@@ -368,7 +368,69 @@ template <typename T>
 T*
 get_host_pointer(T* data)
 {
+    assert(data);
+
+    auto srvc = usm_data_transfer_service::instance();
+    assert(srvc);
+
+    auto pUsmDataTransferBase = srvc->get_usm_data_transfer_base(data);
+    assert(pUsmDataTransferBase);
+
+    if (sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
+    {
+        return srvc->get_host_pointer(pUsmDataTransferBase, data);
+    }
+
     return data;
+}
+
+template <typename T, typename TSize>
+void
+refresh_usm_from_host_pointer(T* __host_ptr, T* __usm_ptr, TSize __count)
+{
+    if (__host_ptr == __usm_ptr || __count == 0)
+        return;
+
+    assert(__host_ptr);
+    assert(__usm_ptr);
+
+    auto srvc = usm_data_transfer_service::instance();
+    assert(srvc);
+
+    auto pUsmDataTransferBase = srvc->get_usm_data_transfer_base(__usm_ptr);
+    assert(pUsmDataTransferBase);
+
+    if (sycl::usm::alloc::device == pUsmDataTransferBase->get_alloc_type())
+    {
+        srvc->refresh_usm_from_host_pointer(pUsmDataTransferBase, __host_ptr, __usm_ptr, __count);
+    }
+}
+
+template <typename T, typename Iter, typename TSize>
+typename ::std::enable_if<!::std::is_same<T, Iter>::value, void>::type
+refresh_usm_from_host_pointer(T* data, Iter it, TSize)
+{
+    // No actions required here
+
+}
+
+template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
+          sycl::access::placeholder Placeholder,
+          typename TSize>
+void
+refresh_usm_from_host_pointer(T*, sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>&, TSize)
+{
+    // No actions required here
+}
+
+template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
+          sycl::access::placeholder Placeholder,
+          typename TIterator,
+          typename TSize>
+void
+refresh_usm_from_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>&, TIterator&, TSize)
+{
+    // No actions required here
 }
 
 template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
@@ -387,7 +449,7 @@ template <typename T>
 T*
 get_host_access(T* data)
 {
-    return data;
+    return get_host_pointer(data);
 }
 } /* namespace TestUtils */
 #endif
