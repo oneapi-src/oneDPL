@@ -456,18 +456,23 @@ template <typename _T>
 class __future : public __future_base
 {
     ::std::size_t __result_idx;
+    sycl::buffer<_T> __result;
     sycl::buffer<_T> __data;
 
   public:
-    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
-        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __data(__b)
+    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __res)
+        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __result(__res)
+    {
+    }
+    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __res, sycl::buffer<_T> __d)
+        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __result(__res), __data(__d)
     {
     }
 
     _T
     get()
     {
-        return __data.template get_access<access_mode::read>()[__result_idx];
+        return __result.template get_access<access_mode::read>()[__result_idx];
     }
     template <class _Tp, class _Enable>
     friend class oneapi::dpl::__internal::__future;
@@ -485,11 +490,6 @@ class __future<void> : public __future_base
         if (sizeof...(__t) != 0)
             __tmps = ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper<_Ts...>>(
                 new oneapi::dpl::__internal::__lifetime_keeper<_Ts...>(__t...));
-    }
-    void
-    get()
-    {
-        this->wait();
     }
     template <class _Tp, class _Enable>
     friend class oneapi::dpl::__internal::__future;

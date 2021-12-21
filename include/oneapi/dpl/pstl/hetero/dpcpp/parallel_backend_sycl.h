@@ -315,6 +315,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 
     // Create temporary global buffers to store temporary values
     sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
+    sycl::buffer<_Tp> __result(sycl::range<1>(1));
     // __is_first == true. Reduce over each work_group
     // __is_first == false. Reduce between work groups
     bool __is_first = true;
@@ -332,6 +333,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+            auto __result_acc = __result.template get_access<access_mode::read_write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, __dpl_sycl::__target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -362,6 +364,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                     if (__local_idx == 0)
                     {
                         __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
+                        //store result in one-element buffer
+                        if (__item_id.get_group(0) == 0)
+                            __result_acc[0] = __result;
                     }
                 });
         });
@@ -372,7 +377,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
         __n_items = (__n - 1) / __iters_per_work_item + 1;
         __n_groups = (__n - 1) / __size_per_work_group + 1;
     } while (__n > 1);
-    return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, __offset_2, __temp);
+    return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, 0 /*just one element*/, __result, __temp);
 }
 
 //------------------------------------------------------------------------
