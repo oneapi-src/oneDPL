@@ -39,7 +39,6 @@ const int max_n = 100000;
 const int inout1_offset = 3;
 const int inout2_offset = 5;
 const int inout3_offset = 7;
-const int inout4_offset = 9;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "utils_sycl.h"
