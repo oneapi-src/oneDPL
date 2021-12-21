@@ -34,6 +34,7 @@
 #include _PSTL_TEST_HEADER(iterator)
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 #include "iterator_utils.h"
+#include "sycl_alloc_utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
@@ -164,22 +165,20 @@ struct invoke_on_all_hetero_policies
     }
 };
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test1buffer()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
+    sycl::queue& queue = my_queue; // usm and allocator requires queue
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper(queue, max_n + inout1_offset);
+        auto inout1_first = dt_helper.get_data();
 
         // 2. create a pointer at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -209,25 +208,23 @@ test1buffer()
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test2buffers()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
+    sycl::queue& queue = my_queue; // usm and allocator requires queue
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper1(queue, max_n + inout1_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper2(queue, max_n + inout2_offset);
+        auto inout1_first = dt_helper1.get_data();
+        auto inout2_first = dt_helper2.get_data();
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
+        T* inout2_offset_first = inout2_first + inout2_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -261,30 +258,26 @@ test2buffers()
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test3buffers(int mult = 1)
 {
-    const sycl::queue& queue = my_queue; // usm requires queue
+    sycl::queue& queue = my_queue; // usm requires queue
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout3_first(
-            (T*)sycl::malloc_shared(mult * sizeof(T) * (max_n + inout3_offset), queue.get_device(),
-                                    queue.get_context()),
-            sycl_deleter);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper1(queue, max_n + inout1_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper2(queue, max_n + inout2_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper3(queue, max_n + inout3_offset);
+        auto inout1_first = dt_helper1.get_data();
+        auto inout2_first = dt_helper2.get_data();
+        auto inout3_first = dt_helper3.get_data();
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
-        T* inout3_offset_first = inout3_first.get() + inout3_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
+        T* inout2_offset_first = inout2_first + inout2_offset;
+        T* inout3_offset_first = inout3_first + inout3_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
@@ -320,6 +313,35 @@ test3buffers(int mult = 1)
                                                inout3_offset_first + n, n);
         }
     }
+}
+
+// For backward compatibility with old test code
+template <typename T, typename TestName>
+void
+test1buffer()
+{
+    test1buffer<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test2buffers()
+{
+    test2buffers<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test3buffers()
+{
+    test3buffers<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test3buffers(int mult)
+{
+    test3buffers<sycl::usm::alloc::shared, T, TestName>(mult);
 }
 
 // use the function carefully due to temporary accessor creation.
