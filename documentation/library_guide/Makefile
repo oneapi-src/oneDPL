@@ -4,7 +4,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SOURCEDIR     = ./
-BUILDDIR      = _build
+BUILDDIR      = build
 
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
