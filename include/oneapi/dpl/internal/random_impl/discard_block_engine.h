@@ -129,8 +129,7 @@ class discard_block_engine
 
   private:
     // Static asserts
-    static_assert((0 < _R) && (_R <= _P) && (_R <= INT_MAX),
-                  "oneapi::dpl::discard_block_engine. Error: unsupported parameters");
+    static_assert((0 < _R) && (_R <= _P) && (_R <= std::numeric_limits<int>::max()), "oneapi::dpl::discard_block_engine. Error: unsupported parameters");
 
     // Function for state adjustment
     template <int _N>
