@@ -139,28 +139,106 @@ make_new_policy(_Policy&& __policy)
 // create the queue with custom asynchronous exceptions handler
 static auto my_queue = sycl::queue(default_selector, async_handler);
 
-// Invoke op(policy,rest...) for each possible policy.
+// check fp16 and fp64 support
+template<typename T>
+bool has_type_support(const sycl::device& device)
+{
+    if(std::is_same<T, double>::value)
+    {
+        return device.has(sycl::aspect::fp64);
+    }
+    else if(std::is_same<T, sycl::half>::value)
+    {
+        return device.has(sycl::aspect::fp16);
+    }
+    return true;
+}
+
+// TODO: use c++11 fatures only (see void_t and fold expressions)
+template<typename... Ts>
+struct has_types_support_impl
+{
+    bool operator()(const sycl::device& device)
+    {
+        return (has_type_support<Ts>(device) && ...);
+    }
+};
+
+template<typename... Ts>
+struct has_types_support_impl<std::tuple<Ts...>>
+{
+    bool operator()(const sycl::device& device)
+    {
+        return (has_type_support<Ts>(device) && ...);
+    }
+};
+
+template<typename... Ts>
+bool has_types_support(const sycl::device& device)
+{
+    return has_types_support_impl<Ts...>()(device);
+}
+
+template <typename, typename = void>
+struct has_value_types : ::std::false_type
+{
+};
+
+template <typename T>
+struct has_value_types<T, ::std::void_t<typename T::value_types>> : ::std::true_type
+{
+};
+
+// Invoke test::operator()(policy,rest...) for each possible policy.
 template <::std::size_t CallNumber = 0>
 struct invoke_on_all_hetero_policies
 {
-    template <typename Op, typename... T>
-    void
-    operator()(Op op, T&&... rest)
+    //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
+    //of kernels from operator type and ::std::size_t
+    // There may be an issue when there is a kernel parameter which has a pointer in its name.
+    // For example, param<int*>. In this case the runtime interpreters it as a memory object and
+    // performs some checks that fails. As a workaround, define for functors which have this issue
+    // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
+
+    template <typename Op, typename... Args>
+    typename ::std::enable_if<has_value_types<Op>::value, void>::type
+    operator()(Op op, Args&&... rest)
     {
-        //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
-        //of kernels from operator type and ::std::size_t
-        // There may be an issue when there is a kernel parameter which has a pointer in its name.
-        // For example, param<int*>. In this case the runtime interpreters it as a memory object and
-        // performs some checks that fails. As a workaround, define for functors which have this issue
-        // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
-        using kernel_name = unique_kernel_name<Op, CallNumber>;
-        iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+        invoke_impl<typename Op::value_types>(op, ::std::forward<Args>(rest)...);
+    }
+
+    // assume Op which does not provide value_types works with only one type retrieved from the first iterator
+    template <typename Op, typename... Args>
+    typename ::std::enable_if<!has_value_types<Op>::value, void>::type
+    operator()(Op op, Args&&... rest)
+    {
+        using first_iter_type = typename ::std::tuple_element<0, ::std::tuple<Args...>>::type;
+        using first_value_type = typename ::std::iterator_traits<first_iter_type>::value_type;
+        invoke_impl<first_value_type>(op, ::std::forward<Args>(rest)...);
+    }
+
+private:
+    template <typename... ValueTypes, typename Op, typename... Args>
+    void
+    invoke_impl(Op op, Args&&... rest)
+    {
+        if(has_types_support<ValueTypes...>(my_queue.get_device()))
+        {
+            using kernel_name = unique_kernel_name<Op, CallNumber>;
+            auto my_policy =
 #if ONEDPL_FPGA_DEVICE
-            oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(my_queue), op,
-            ::std::forward<T>(rest)...);
+                oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(my_queue);
 #else
-            oneapi::dpl::execution::make_device_policy<kernel_name>(my_queue), op, ::std::forward<T>(rest)...);
+                oneapi::dpl::execution::make_device_policy<kernel_name>(my_queue);
 #endif
+            iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+                my_policy, op, ::std::forward<Args>(rest)...);
+        }
+        else
+        {
+            // TODO: think about if notifying about skipped scenarios is worth it
+            // std::cout << "skipped testing with unsupported types" << std::endl;
+        }
     }
 };
 
