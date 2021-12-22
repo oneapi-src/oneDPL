@@ -21,14 +21,27 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include "support/utils_sycl.h"
 
 using namespace oneapi::dpl::execution;
 #endif
 using namespace TestUtils;
 
+#if TEST_DPCPP_BACKEND_PRESENT
+template <sycl::usm::alloc alloc_type, typename ValueType>
+struct test_exclusive_scan_by_segment : TestUtils::test_base<alloc_type, ValueType>
+#else
 struct test_exclusive_scan_by_segment
+#endif // TEST_DPCPP_BACKEND_PRESENT
 {
+#if TEST_DPCPP_BACKEND_PRESENT
+    template <UDTKind kind, typename Iterator, typename Size>
+    using USMReadData = typename TestUtils::test_base<alloc_type, ValueType>::template USMReadData<kind, Iterator, Size>;
+
+    template <UDTKind kind, typename Iterator, typename Size>
+    using USMReadUpdateData = typename TestUtils::test_base<alloc_type, ValueType>::template USMReadUpdateData<kind, Iterator, Size>;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
     // TODO: replace data generation with random data and update check to compare result to
     // the result of a serial implementation of the algorithm
     template <typename Accessor1, typename Accessor2, typename Accessor3, typename Size>
@@ -94,30 +107,36 @@ struct test_exclusive_scan_by_segment
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
+        typedef typename ::std::iterator_traits<Iterator3>::value_type ValR;
 
         const ValT init = 1;
 
         // call algorithm with no optional arguments
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_vals = get_host_access(vals_first);
-            auto host_val_res = get_host_access(val_res_first);
+            USMReadUpdateData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
+            USMReadUpdateData<UDTKind::eVals, Iterator2, Size> host_vals   (*this, vals_first, n);
+            USMReadUpdateData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
 
-            initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys.get_host_buffer_data(),
+                            host_vals.get_host_buffer_data(),
+                            host_val_res.get_host_buffer_data(), n);
         }
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, init, n);
+            USMReadUpdateData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
+            USMReadUpdateData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+
+            check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), init, n);
 
             // call algorithm with equality comparator
-            auto host_vals = get_host_access(vals_first);
+            USMReadUpdateData<UDTKind::eVals, Iterator2, Size> host_vals(*this, vals_first, n);
 
-            initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys.get_host_buffer_data(),
+                            host_vals.get_host_buffer_data(),
+                            host_val_res.get_host_buffer_data(), n);
         }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
@@ -125,14 +144,17 @@ struct test_exclusive_scan_by_segment
                                                            init, [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, init, n);
+            USMReadUpdateData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
+            USMReadUpdateData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+
+            check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), init, n);
 
             // call algorithm with addition operator
-            auto host_vals = get_host_access(vals_first);
+            USMReadUpdateData<UDTKind::eVals, Iterator2, Size> host_vals(*this, vals_first, n);
 
-            initialize_data(host_keys, host_vals, host_val_res, n);
+            initialize_data(host_keys.get_host_buffer_data(),
+                            host_vals.get_host_buffer_data(),
+                            host_val_res.get_host_buffer_data(), n);
         }
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
@@ -141,18 +163,20 @@ struct test_exclusive_scan_by_segment
                                                            [](ValT first, ValT second) { return first + second; });
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, init, n);
+            USMReadData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
+            USMReadData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+
+            check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), init, n);
         }
 
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
         auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, 0, n);
+            USMReadData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
+            USMReadData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+
+            check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), 0, n);
         }
     }
 #endif
@@ -208,10 +232,22 @@ struct test_exclusive_scan_by_segment
     }
 };
 
-int main() {
+int main()
+{
+    using ValueType = std::uint64_t;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<std::uint64_t, test_exclusive_scan_by_segment>();
+    // Run tests for USM shared memory
+    test3buffers<sycl::usm::alloc::shared, ValueType, test_exclusive_scan_by_segment<sycl::usm::alloc::shared, ValueType>>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, ValueType, test_exclusive_scan_by_segment<sycl::usm::alloc::device, ValueType>>();
 #endif
-    test_algo_three_sequences<std::uint64_t, test_exclusive_scan_by_segment>();
+
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<sycl::usm::alloc::shared, ValueType>>();
+#else
+    test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
     return TestUtils::done();
 }

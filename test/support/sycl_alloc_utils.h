@@ -86,12 +86,7 @@ public:
     {
         if (__count > 0)
         {
-            //TODO: support copying data provided by non-contiguous iterator
-            auto __src = std::addressof(*__it);
-            assert(std::addressof(*(__it + __count)) - __src == __count);
-
-            __queue.copy(__src, __ptr, __count);
-            __queue.wait();
+            update_data(__it);
         }
     }
 
@@ -115,18 +110,54 @@ public:
         return __ptr;
     }
 
-    template<typename _Iterator>
+    template <typename _Iterator>
+    void update_data(_Iterator __it)
+    {
+        update_data(__it, 0, __count);
+    }
+
+    template<typename _Iterator, typename _Size>
+    void update_data(_Iterator __it, __difference_type __offset, _Size __objects_count)
+    {
+        assert(0 <= __offset);
+        assert(0 <= __objects_count);
+        assert(__offset + __objects_count <= __count);
+
+        if (__count > 0 && __objects_count > 0)
+        {
+            assert(__ptr != nullptr);
+
+            //TODO: support copying data provided by non-contiguous iterator
+            auto __src = std::addressof(*__it);
+            assert(std::addressof(*(__it + __objects_count)) - __src == __objects_count);
+
+            __queue.copy(__src, __ptr + __offset, __objects_count);
+            __queue.wait();
+        }
+    }
+
+    template <typename _Iterator>
     void retrieve_data(_Iterator __it)
     {
-        if (__count > 0)
+        return retrieve_data(__it, 0, __count);
+    }
+
+    template<typename _Iterator>
+    void retrieve_data(_Iterator __it, __difference_type __offset, __difference_type __objects_count)
+    {
+        assert(0 <= __offset);
+        assert(0 <= __objects_count);
+        assert(__offset + __objects_count <= __count);
+
+        if (__count > 0 && __objects_count > 0)
         {
             assert(__ptr != nullptr);
 
             //TODO: support copying data provided by non-contiguous iterator
             auto __dst = std::addressof(*__it);
-            assert(std::addressof(*(__it + __count)) - __dst == __count);
+            assert(std::addressof(*(__it + __objects_count)) - __dst == __objects_count);
 
-            __queue.copy(__ptr, __dst, __count);
+            __queue.copy(__ptr + __offset, __dst, __objects_count);
             __queue.wait();
         }
     }

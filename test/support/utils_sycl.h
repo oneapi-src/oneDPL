@@ -34,6 +34,7 @@
 #include _PSTL_TEST_HEADER(iterator)
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 #include "iterator_utils.h"
+#include "sycl_alloc_utils.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
@@ -164,22 +165,234 @@ struct invoke_on_all_hetero_policies
     }
 };
 
-template <typename T, typename TestName>
+enum class UDTKind
+{
+    eKeys = 0,
+    eVals,
+    eRes
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///
+template <sycl::usm::alloc alloc_type, typename ValueType>
+struct test_base
+{
+    using TUSMDataTransfer = usm_data_transfer<alloc_type, ValueType>;
+    using SyclBuffer = sycl::buffer<ValueType, 1>;
+
+    struct USMDataTransferInfo
+    {
+        TUSMDataTransfer* __ptr = nullptr;
+        ::std::size_t __offset = 0;
+
+        USMDataTransferInfo() = default;
+        USMDataTransferInfo(TUSMDataTransfer* ptr, ::std::size_t offset)
+            : __ptr(ptr), __offset(offset)
+        {
+        }
+
+        TUSMDataTransfer* get_usm_data_transfer()
+        {
+            return __ptr;
+        }
+    };
+
+    struct SyclBufferInfo
+    {
+        SyclBuffer* __ptr = nullptr;
+        ::std::size_t __offset = 0;
+
+        SyclBufferInfo() = default;
+        SyclBufferInfo(SyclBuffer* ptr, ::std::size_t offset)
+            : __ptr(ptr), __offset(offset)
+        {
+        }
+
+        SyclBuffer* get_sycl_buffer()
+        {
+            return __ptr;
+        }
+    };
+
+    template <typename ...Args>
+    void
+    add_usm_data_transfer(USMDataTransferInfo __info, Args ...args)
+    {
+        _dt_helpers.push_back(__info);
+
+        if constexpr (sizeof...(args) > 0)
+            add_usm_data_transfer(args...);
+    }
+
+    template <typename ...Args>
+    void
+    add_sycl_buffer_info(SyclBufferInfo __info, Args ...args)
+    {
+        _sycl_buffer_info.push_back(__info);
+
+        if constexpr (sizeof...(args) > 0)
+            add_sycl_buffer_info(args...);
+    }
+
+    /////////////////////////////////////////////////////////
+    /// USM shared/device memory support
+    bool has_usm_data_transfer_info() const
+    {
+        return !_dt_helpers.empty();
+    }
+
+    USMDataTransferInfo&
+    get_usm_data_transfer_info(UDTKind kind)
+    {
+        return _dt_helpers.at((unsigned)kind);
+    }
+
+    template <typename Iterator>
+    void retrieve_usm_data(UDTKind __kind, Iterator __it_from, Iterator __it_to)
+    {
+        auto& __usm_data_transfer_info = get_usm_data_transfer_info(__kind);
+        auto __usm_data_transfer = __usm_data_transfer_info.get_usm_data_transfer();
+
+        __usm_data_transfer->retrieve_data(__it_from, __usm_data_transfer_info.__offset, __it_to - __it_from);
+    }
+
+    template <typename Iterator>
+    void refresh_usm_data(UDTKind __kind, Iterator __it_from, Iterator __it_to)
+    {
+        auto& __usm_data_transfer_info = get_usm_data_transfer_info(__kind);
+        auto __usm_data_transfer = __usm_data_transfer_info.get_usm_data_transfer();
+
+        __usm_data_transfer->update_data(__it_from, __usm_data_transfer_info.__offset, __it_to - __it_from);
+    }
+
+    /////////////////////////////////////////////////////////
+    /// SYCL buffer support
+    bool has_sycl_buffers_info() const
+    {
+        return !_sycl_buffer_info.empty();
+    }
+
+    SyclBufferInfo& get_sycl_buffer_info(UDTKind kind)
+    {
+        return _sycl_buffer_info.at((unsigned)kind);
+    }
+
+    template <typename Iterator>
+    void
+    retrieve_sycl_buf_data(UDTKind __kind, Iterator __it_from, Iterator __it_to)
+    {
+        auto& __sycl_buf_info = get_sycl_buffer_info(__kind);
+
+        auto acc = __sycl_buf_info.get_sycl_buffer()->template get_access<sycl::access::mode::read_write>();
+
+        auto __index = __sycl_buf_info.__offset;
+        for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)
+        {
+            *__it = acc[__index];
+        }
+    }
+
+    template <typename Iterator>
+    void
+    refresh_sycl_buf_data(UDTKind __kind, Iterator __it_from, Iterator __it_to)
+    {
+        auto& __sycl_buf_info = get_sycl_buffer_info(__kind);
+
+        auto acc = __sycl_buf_info.get_sycl_buffer()->template get_access<sycl::access::mode::read_write>();
+
+        auto __index = __sycl_buf_info.__offset;
+        for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)
+        {
+            acc[__index] = *__it;
+        }
+    }
+
+    template <UDTKind kind, typename Iterator, typename Size>
+    class USMReadData
+    {
+    public:
+
+        using HostData = std::vector<ValueType>;
+
+        USMReadData(test_base& _test_base, Iterator _it, Size _count)
+            : __test_base(_test_base)
+            , __iterator(_it)
+            , __host_buffer(_count)
+        {
+            assert(__test_base.has_usm_data_transfer_info() || __test_base.has_sycl_buffers_info());
+
+            if (__test_base.has_usm_data_transfer_info())
+            {
+                __test_base.retrieve_usm_data(kind, __host_buffer.begin(), __host_buffer.end());
+            }
+            else if (__test_base.has_sycl_buffers_info())
+            {
+                __test_base.retrieve_sycl_buf_data(kind, __host_buffer.begin(), __host_buffer.end());
+            }
+        }
+
+        const ValueType* get_host_buffer_data() const
+        {
+            return __host_buffer.data();
+        }
+
+    protected:
+
+        test_base&             __test_base;
+        std::vector<ValueType> __host_buffer;
+        Iterator               __iterator;
+    };
+
+    template <UDTKind kind, typename Iterator, typename Size>
+    class USMReadUpdateData : public USMReadData<kind, Iterator, Size>
+    {
+        using Base = USMReadData<kind, Iterator, Size>;
+
+    public:
+
+        USMReadUpdateData(test_base& _test_base, Iterator _it, Size _count)
+            : Base(_test_base, _it, _count)
+        {
+        }
+
+        ~USMReadUpdateData()
+        {
+            assert(this->__test_base.has_usm_data_transfer_info() || this->__test_base.has_sycl_buffers_info());
+
+            if (this->__test_base.has_usm_data_transfer_info())
+            {
+                this->__test_base.refresh_usm_data(kind, Base::__host_buffer.begin(), Base::__host_buffer.end());
+            }
+            else if (this->__test_base.has_sycl_buffers_info())
+            {
+                this->__test_base.refresh_sycl_buf_data(kind, Base::__host_buffer.begin(), Base::__host_buffer.end());
+            }
+        }
+
+        auto get_host_buffer_data() -> decltype(this->__host_buffer.data())
+        {
+            return this->__host_buffer.data();
+        }
+    };
+
+    std::vector<USMDataTransferInfo> _dt_helpers;
+    std::vector<SyclBufferInfo>      _sycl_buffer_info;
+};
+
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test1buffer()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
+    sycl::queue& queue = my_queue; // usm and allocator requires queue
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper(queue, max_n + inout1_offset);
+        auto inout1_first = dt_helper.get_data();
 
         // 2. create a pointer at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -187,7 +400,12 @@ test1buffer()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(TestName(), inout1_offset_first, inout1_offset_first + n, n);
+            TestName testObj;
+            if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
+            {
+                testObj.add_usm_data_transfer(TestName::USMDataTransferInfo(&dt_helper, inout1_offset));
+            }
+            invoke_on_all_hetero_policies<0>()(testObj, inout1_offset_first, inout1_offset_first + n, n);
         }
     }
 #endif
@@ -204,30 +422,33 @@ test1buffer()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(TestName(), inout1_offset_first, inout1_offset_first + n, n);
+            TestName testObj;
+            if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
+            {
+                testObj.add_sycl_buffer_info(TestName::SyclBufferInfo(&inout1, inout1_offset));
+            }
+            invoke_on_all_hetero_policies<1>()(testObj, inout1_offset_first, inout1_offset_first + n, n);
         }
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test2buffers()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
+    sycl::queue& queue = my_queue; // usm and allocator requires queue
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper1(queue, max_n + inout1_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper2(queue, max_n + inout2_offset);
+        auto inout1_first = dt_helper1.get_data();
+        auto inout2_first = dt_helper2.get_data();
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
+        T* inout2_offset_first = inout2_first + inout2_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -235,7 +456,13 @@ test2buffers()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(TestName(), inout1_offset_first, inout1_offset_first + n,
+            TestName testObj;
+            if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
+            {
+                testObj.add_usm_data_transfer(TestName::USMDataTransferInfo(&dt_helper1, inout1_offset),
+                                              TestName::USMDataTransferInfo(&dt_helper2, inout2_offset));
+            }
+            invoke_on_all_hetero_policies<0>()(testObj, inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n, n);
         }
     }
@@ -255,36 +482,38 @@ test2buffers()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(TestName(), inout1_offset_first, inout1_offset_first + n,
+            TestName testObj;
+            if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
+            {
+                testObj.add_sycl_buffer_info(TestName::SyclBufferInfo(&inout1, inout1_offset),
+                                             TestName::SyclBufferInfo(&inout2, inout2_offset));
+            }
+            invoke_on_all_hetero_policies<1>()(testObj, inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n, n);
         }
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename T, typename TestName>
 void
 test3buffers(int mult = 1)
 {
-    const sycl::queue& queue = my_queue; // usm requires queue
+    sycl::queue& queue = my_queue; // usm requires queue
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout3_first(
-            (T*)sycl::malloc_shared(mult * sizeof(T) * (max_n + inout3_offset), queue.get_device(),
-                                    queue.get_context()),
-            sycl_deleter);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper1(queue, max_n + inout1_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper2(queue, max_n + inout2_offset);
+        TestUtils::usm_data_transfer<alloc_type, T> dt_helper3(queue, max_n + inout3_offset);
+        auto inout1_first = dt_helper1.get_data();
+        auto inout2_first = dt_helper2.get_data();
+        auto inout3_first = dt_helper3.get_data();
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
-        T* inout3_offset_first = inout3_first.get() + inout3_offset;
+        T* inout1_offset_first = inout1_first + inout1_offset;
+        T* inout2_offset_first = inout2_first + inout2_offset;
+        T* inout3_offset_first = inout3_first + inout3_offset;
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
@@ -292,7 +521,14 @@ test3buffers(int mult = 1)
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(TestName(), inout1_offset_first, inout1_offset_first + n,
+            TestName testObj;
+            if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
+            {
+                testObj.add_usm_data_transfer(typename TestName::USMDataTransferInfo(&dt_helper1, inout1_offset),
+                                              typename TestName::USMDataTransferInfo(&dt_helper2, inout2_offset),
+                                              typename TestName::USMDataTransferInfo(&dt_helper3, inout3_offset));
+            }
+            invoke_on_all_hetero_policies<0>()(testObj, inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n, inout3_offset_first,
                                                inout3_offset_first + n, n);
         }
@@ -315,11 +551,47 @@ test3buffers(int mult = 1)
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(TestName(), inout1_offset_first, inout1_offset_first + n,
+            TestName testObj;
+            if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
+            {
+                testObj.add_sycl_buffer_info(typename TestName::SyclBufferInfo(&inout1, inout1_offset),
+                                             typename TestName::SyclBufferInfo(&inout2, inout2_offset),
+                                             typename TestName::SyclBufferInfo(&inout3, inout3_offset));
+            }
+            invoke_on_all_hetero_policies<1>()(testObj, inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n, inout3_offset_first,
                                                inout3_offset_first + n, n);
         }
     }
+}
+
+// For backward compatibility with old test code
+template <typename T, typename TestName>
+void
+test1buffer()
+{
+    test1buffer<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test2buffers()
+{
+    test2buffers<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test3buffers()
+{
+    test3buffers<sycl::usm::alloc::shared, T, TestName>();
+}
+
+template <typename T, typename TestName>
+void
+test3buffers(int mult)
+{
+    test3buffers<sycl::usm::alloc::shared, T, TestName>(mult);
 }
 
 // use the function carefully due to temporary accessor creation.
