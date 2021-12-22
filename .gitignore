@@ -1,6 +1,3 @@
-# ----- Documentation build ------
-_build
-
 # -------- CMake --------
 build/*
 
