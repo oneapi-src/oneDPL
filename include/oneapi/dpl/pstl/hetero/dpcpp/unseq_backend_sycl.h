@@ -48,7 +48,7 @@ using __has_known_identity =
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::plus<_Tp>>,
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::minimum<_Tp>>,
                            ::std::is_same<typename ::std::decay<BinaryOp>::type, sycl::maximum<_Tp>>>>;
-#    else //__LIBSYCL_VERSION >= 50200
+#    else  //__LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<typename ::std::decay<BinaryOp>::type, ::std::plus<_Tp>>,
@@ -73,7 +73,7 @@ template <typename BinaryOp, typename _Tp>
 inline constexpr _Tp __known_identity =
 #if __LIBSYCL_VERSION >= 50200
     sycl::known_identity<BinaryOp, _Tp>::value;
-#else //__LIBSYCL_VERSION >= 50200
+#else  //__LIBSYCL_VERSION >= 50200
     __known_identity_for_plus<BinaryOp, _Tp>::value; //for plus only
 #endif //__LIBSYCL_VERSION >= 50200
 
@@ -192,7 +192,9 @@ struct reduce
 
     // Reduce on local memory with subgroups
     template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal>
-    _Tp reduce_impl(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem, std::true_type /*has_known_identity*/) const
+    _Tp
+    reduce_impl(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem,
+                std::true_type /*has_known_identity*/) const
     {
         auto __local_id = __item_id.get_local_id(0);
         if (__global_idx >= __n)
@@ -205,7 +207,9 @@ struct reduce
     }
 
     template <typename _NDItemId, typename _GlobalIdx, typename _Size, typename _AccLocal>
-    _Tp reduce_impl(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem, std::false_type /*has_known_identity*/) const
+    _Tp
+    reduce_impl(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem,
+                std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __group_size = __item_id.get_local_range().size();
@@ -569,10 +573,10 @@ struct __scan
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
               typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
-    void scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
-                    _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
-                    _ItersPerWG __iters_per_wg,
-                    _InitType __init, std::false_type /*has_known_identity*/) const
+    void
+    scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
+              _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
+              _InitType __init, std::false_type /*has_known_identity*/) const
     {
         ::std::size_t __group_id = __item.get_group(0);
         ::std::size_t __global_id = __item.get_global_id(0);
