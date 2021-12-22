@@ -24,7 +24,7 @@
 #include "support/utils_sycl.h"
 
 using namespace oneapi::dpl::execution;
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -179,14 +179,14 @@ struct test_exclusive_scan_by_segment
             check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), 0, n);
         }
     }
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     typename ::std::enable_if<
 #if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
             is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
@@ -241,7 +241,7 @@ int main()
     test3buffers<sycl::usm::alloc::shared, ValueType, test_exclusive_scan_by_segment<sycl::usm::alloc::shared, ValueType>>();
     // Run tests for USM device memory
     test3buffers<sycl::usm::alloc::device, ValueType, test_exclusive_scan_by_segment<sycl::usm::alloc::device, ValueType>>();
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
     test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<sycl::usm::alloc::shared, ValueType>>();
