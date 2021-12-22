@@ -659,10 +659,10 @@ struct __scan
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _InAcc, typename _OutAcc,
               typename _WGSumsAcc, typename _SizePerWG, typename _WGSize, typename _ItersPerWG>
-    void scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
-                    _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
-                    _ItersPerWG __iters_per_wg,
-                    _InitType __init, std::true_type /*has_known_identity*/) const
+    void
+    scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
+              _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
+              _InitType __init, std::true_type /*has_known_identity*/) const
     {
         auto __group_id = __item.get_group(0);
         auto __global_id = __item.get_global_id(0);
