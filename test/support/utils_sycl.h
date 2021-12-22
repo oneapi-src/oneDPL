@@ -139,28 +139,49 @@ make_new_policy(_Policy&& __policy)
 // create the queue with custom asynchronous exceptions handler
 static auto my_queue = sycl::queue(default_selector, async_handler);
 
-// check fp16 and fp64 support
+// check fp16/fp64 support by a device
 template<typename T>
-bool has_type_support(const sycl::device& device)
+bool has_type_support(const sycl::device&)
 {
-    if(std::is_same<T, double>::value)
-    {
-        return device.has(sycl::aspect::fp64);
-    }
-    else if(std::is_same<T, sycl::half>::value)
-    {
-        return device.has(sycl::aspect::fp16);
-    }
     return true;
 }
 
-// TODO: use c++11 fatures only (see void_t and fold expressions)
+template<>
+bool has_type_support<double>(const sycl::device& device)
+{
+    return device.has(sycl::aspect::fp64);
+}
+
+template<>
+bool has_type_support<sycl::half>(const sycl::device& device)
+{
+    return device.has(sycl::aspect::fp16);
+}
+
+template<typename... Ts>
+struct has_types_support_fold
+{
+    bool operator()(const sycl::device& device)
+    {
+        return true;
+    }
+};
+
+template<typename T, typename... Ts>
+struct has_types_support_fold<T, Ts...>
+{
+    bool operator()(const sycl::device& device)
+    {
+        return has_type_support<T>(device) && has_types_support_fold<Ts...>()(device);
+    }
+};
+
 template<typename... Ts>
 struct has_types_support_impl
 {
     bool operator()(const sycl::device& device)
     {
-        return (has_type_support<Ts>(device) && ...);
+        return has_types_support_fold<Ts...>()(device);
     }
 };
 
@@ -169,7 +190,7 @@ struct has_types_support_impl<std::tuple<Ts...>>
 {
     bool operator()(const sycl::device& device)
     {
-        return (has_type_support<Ts>(device) && ...);
+        return has_types_support_impl<Ts...>()(device);
     }
 };
 
@@ -180,14 +201,10 @@ bool has_types_support(const sycl::device& device)
 }
 
 template <typename, typename = void>
-struct has_value_types : ::std::false_type
-{
-};
+struct has_value_types : ::std::false_type {};
 
 template <typename T>
-struct has_value_types<T, ::std::void_t<typename T::value_types>> : ::std::true_type
-{
-};
+struct has_value_types<T, typename T::value_types> : ::std::true_type {};
 
 // Invoke test::operator()(policy,rest...) for each possible policy.
 template <::std::size_t CallNumber = 0>
@@ -209,10 +226,27 @@ struct invoke_on_all_hetero_policies
 
     // assume Op which does not provide value_types works with only one type retrieved from the first iterator
     template <typename Op, typename... Args>
-    typename ::std::enable_if<!has_value_types<Op>::value, void>::type
+    typename ::std::enable_if<!has_value_types<Op>::value &&
+        ::std::is_pointer<typename ::std::decay<
+            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type>::value,
+        void>::type
     operator()(Op op, Args&&... rest)
     {
-        using first_iter_type = typename ::std::tuple_element<0, ::std::tuple<Args...>>::type;
+        using first_ptr_type = typename ::std::decay<
+            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type;
+        using first_value_type = typename ::std::remove_pointer<first_ptr_type>::type;
+        invoke_impl<first_value_type>(op, ::std::forward<Args>(rest)...);
+    }
+
+    template <typename Op, typename... Args>
+    typename ::std::enable_if<!has_value_types<Op>::value &&
+        !::std::is_pointer<typename ::std::decay<
+            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type>::value,
+        void>::type
+    operator()(Op op, Args&&... rest)
+    {
+        using first_iter_type = typename ::std::decay<
+            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type;
         using first_value_type = typename ::std::iterator_traits<first_iter_type>::value_type;
         invoke_impl<first_value_type>(op, ::std::forward<Args>(rest)...);
     }
@@ -233,11 +267,6 @@ private:
 #endif
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, op, ::std::forward<Args>(rest)...);
-        }
-        else
-        {
-            // TODO: think about if notifying about skipped scenarios is worth it
-            // std::cout << "skipped testing with unsupported types" << std::endl;
         }
     }
 };
