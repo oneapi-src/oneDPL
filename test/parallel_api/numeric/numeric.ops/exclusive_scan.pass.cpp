@@ -43,13 +43,12 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
     // Prepare source data
     const std::vector<int> h_idx(initialize_data(count));
-    std::vector<int> h_val(count);
 
     // Copy source data to USM shared/device memory
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
     auto d_idx = dt_helper_h_idx.get_data();
 
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, ::std::begin(h_val), ::std::end(h_val));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, count);
     auto d_val = dt_helper_h_val.get_data();
 
     // Run dpl::exclusive_scan algorithm on USM shared-device memory
@@ -58,6 +57,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
 
     // Copy results from USM shared/device memory to host
+    std::vector<int> h_val(count);
     dt_helper_h_val.retrieve_data(h_val.begin());
 
     // Check results
