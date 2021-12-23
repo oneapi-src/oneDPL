@@ -31,12 +31,14 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
+    constexpr int trash = -666;
+
     auto prepare_data = [count](std::vector<int>& idx, std::vector<int>& val)
     {
         for (int i = 0; i < count; i++)
         {
             idx[i] = i + 1;
-            val[i] = 0;
+            val[i] = trash;     // Fill output data by trash value
         }
     };
 
