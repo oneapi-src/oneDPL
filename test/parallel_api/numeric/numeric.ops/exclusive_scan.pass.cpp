@@ -17,10 +17,9 @@
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
+#include _PSTL_TEST_HEADER(numeric)
 
 #include "support/utils.h"
-
-#include <numeric>
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
