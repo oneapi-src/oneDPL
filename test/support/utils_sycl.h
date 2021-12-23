@@ -66,17 +66,7 @@ template <sycl::usm::alloc alloc_type>
 constexpr ::std::size_t
 uniq_kernel_index()
 {
-    if constexpr (alloc_type == sycl::usm::alloc::host)
-        return 0;
-
-    else if constexpr (alloc_type == sycl::usm::alloc::shared)
-        return 1;
-
-    else if constexpr (alloc_type == sycl::usm::alloc::device)
-        return 2;
-
-    else if constexpr (alloc_type == sycl::usm::alloc::unknown)
-        return 3;
+    return static_cast<typename ::std::underlying_type<sycl::usm::alloc>::type>(alloc_type);
 }
 
 template <typename Op, ::std::size_t CallNumber>
