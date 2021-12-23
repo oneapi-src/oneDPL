@@ -31,9 +31,10 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
-    constexpr int trash = -666;
+    constexpr int trash1 = -666;
+    constexpr int trash2 = -999;
 
-    auto prepare_data = [count](std::vector<int>& idx, std::vector<int>& val)
+    auto prepare_data = [count](std::vector<int>& idx, std::vector<int>& val, int trash)
     {
         for (int i = 0; i < count; i++)
         {
@@ -45,7 +46,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     // Prepare source data
     std::vector<int> h_idx(count);
     std::vector<int> h_val(count);
-    prepare_data(h_idx, h_val);
+    prepare_data(h_idx, h_val, trash1);
 
     // Copy source data to USM shared/device memory
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
@@ -68,7 +69,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     // Check results
     std::vector<int> h_sidx_expected(count);
     std::vector<int> h_sval_expected(count);
-    prepare_data(h_sidx_expected, h_sval_expected);
+    prepare_data(h_sidx_expected, h_sval_expected, trash2);
     ::std::exclusive_scan(h_sidx_expected.begin(), h_sidx_expected.begin() + count, h_sval_expected.begin(), 0);
 
     EXPECT_EQ_N(h_sidx_expected.begin(), h_sidx.begin(), count, "wrong effect from exclusive_scan - h_sidx");
