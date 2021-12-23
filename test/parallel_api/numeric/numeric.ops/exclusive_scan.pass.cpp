@@ -27,22 +27,14 @@
 
 #include "support/sycl_alloc_utils.h"
 
-std::vector<int> initialize_data(const ::std::size_t count)
-{
-    std::vector<int> idx(count);
-
-    for (int i = 0; i < count; i++)
-        idx[i] = i + 1;
-
-    return idx;
-}
-
 template <sycl::usm::alloc alloc_type>
 void
 test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
     // Prepare source data
-    const std::vector<int> h_idx(initialize_data(count));
+    std::vector<int> h_idx(count);
+    for (int i = 0; i < count; i++)
+        h_idx[i] = i + 1;
 
     // Copy source data to USM shared/device memory
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
