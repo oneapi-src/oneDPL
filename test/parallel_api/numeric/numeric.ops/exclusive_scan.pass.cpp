@@ -58,14 +58,13 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
 
     // Copy results from USM shared/device memory to host
-    std::vector<int> h_sval(count);
-    dt_helper_h_val.retrieve_data(h_sval.begin());
+    dt_helper_h_val.retrieve_data(h_val.begin());
 
     // Check results
     std::vector<int> h_sval_expected(count);
     ::std::exclusive_scan(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0);
 
-    EXPECT_EQ_N(h_sval_expected.begin(), h_sval.begin(), count, "wrong effect from exclusive_scan");
+    EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
 }
 
 template <sycl::usm::alloc alloc_type>
