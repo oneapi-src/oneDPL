@@ -21,6 +21,8 @@
 
 #include "support/utils.h"
 
+#include <numeric>
+
 #if TEST_DPCPP_BACKEND_PRESENT
 
 #include "support/sycl_alloc_utils.h"
