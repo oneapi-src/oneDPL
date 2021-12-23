@@ -27,13 +27,11 @@
 
 template <sycl::usm::alloc alloc_type>
 void
-test_with_usm(sycl::queue& q)
+test_with_usm(sycl::queue& q, const ::std::size_t __count)
 {
-    constexpr ::std::size_t N = 16;
-
-    auto prepare_data = [](::std::size_t* idx, int* val)
+    auto prepare_data = [__count](std::vector<::std::size_t>& idx, std::vector<int>& val)
     {
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < __count; i++)
         {
             idx[i] = i + 1;
             val[i] = 0;
@@ -41,8 +39,8 @@ test_with_usm(sycl::queue& q)
     };
 
     // Prepare source data
-    ::std::size_t h_idx[N] = {};
-    int           h_val[N] = {};
+    std::vector<::std::size_t> h_idx(__count);
+    std::vector<int>           h_val(__count);
     prepare_data(h_idx, h_val);
 
     // Copy source data to USM shared/device memory
@@ -55,23 +53,34 @@ test_with_usm(sycl::queue& q)
     // Run dpl::exclusive_scan algorithm on USM shared-device memory
     auto myPolicy = oneapi::dpl::execution::make_device_policy<
         TestUtils::unique_kernel_name<class copy, (::std::size_t)alloc_type>>(q);
-    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + N, d_val, 0);
+    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + __count, d_val, 0);
 
     // Copy results from USM shared/device memory to host
-    ::std::size_t h_sidx[N] = {};
-    int           h_sval[N] = {};
-    dt_helper_h_idx.retrieve_data(h_sidx);
-    dt_helper_h_val.retrieve_data(h_sval);
+    std::vector<::std::size_t> h_sidx(__count);
+    std::vector<int>           h_sval(__count);
+    dt_helper_h_idx.retrieve_data(h_sidx.begin());
+    dt_helper_h_val.retrieve_data(h_sval.begin());
 
     // Check results
-    ::std::size_t h_sidx_expected[N] = {};
-    int           h_sval_expected[N] = {};
+    std::vector<::std::size_t> h_sidx_expected(__count);
+    std::vector<int>           h_sval_expected(__count);
     prepare_data(h_sidx_expected, h_sval_expected);
-    ::std::exclusive_scan(h_sidx_expected, h_sidx_expected + N, h_sval_expected, 0);
+    ::std::exclusive_scan(h_sidx_expected.begin(), h_sidx_expected.begin() + __count, h_sval_expected.begin(), 0);
 
-    EXPECT_EQ_N(h_sidx_expected, h_sidx, N, "wrong effect from exclusive_scan - h_sidx");
-    EXPECT_EQ_N(h_sval_expected, h_sval, N, "wrong effect from exclusive_scan - h_sval");
+    EXPECT_EQ_N(h_sidx_expected.begin(), h_sidx.begin(), __count, "wrong effect from exclusive_scan - h_sidx");
+    EXPECT_EQ_N(h_sval_expected.begin(), h_sval.begin(), __count, "wrong effect from exclusive_scan - h_sval");
 }
+
+template <sycl::usm::alloc alloc_type>
+void
+test_with_usm(sycl::queue& q)
+{
+    for (::std::size_t n = 0; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
+        test_with_usm<alloc_type>(q, n);
+    }
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
