@@ -65,7 +65,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     std::vector<int> h_sval_expected(count);
     ::std::exclusive_scan(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0);
 
-    EXPECT_EQ_N(h_sval_expected.begin(), h_sval.begin(), count, "wrong effect from exclusive_scan - h_sval");
+    EXPECT_EQ_N(h_sval_expected.begin(), h_sval.begin(), count, "wrong effect from exclusive_scan");
 }
 
 template <sycl::usm::alloc alloc_type>
