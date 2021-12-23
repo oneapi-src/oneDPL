@@ -31,7 +31,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
-    auto prepare_data = [count](std::vector<::std::size_t>& idx, std::vector<int>& val)
+    auto prepare_data = [count](std::vector<int>& idx, std::vector<int>& val)
     {
         for (int i = 0; i < count; i++)
         {
@@ -41,12 +41,12 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     };
 
     // Prepare source data
-    std::vector<::std::size_t> h_idx(count);
-    std::vector<int>           h_val(count);
+    std::vector<int> h_idx(count);
+    std::vector<int> h_val(count);
     prepare_data(h_idx, h_val);
 
     // Copy source data to USM shared/device memory
-    TestUtils::usm_data_transfer<alloc_type, ::std::size_t> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
     auto d_idx = dt_helper_h_idx.get_data();
 
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, ::std::begin(h_val), ::std::end(h_val));
@@ -58,14 +58,14 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
 
     // Copy results from USM shared/device memory to host
-    std::vector<::std::size_t> h_sidx(count);
-    std::vector<int>           h_sval(count);
+    std::vector<int> h_sidx(count);
+    std::vector<int> h_sval(count);
     dt_helper_h_idx.retrieve_data(h_sidx.begin());
     dt_helper_h_val.retrieve_data(h_sval.begin());
 
     // Check results
-    std::vector<::std::size_t> h_sidx_expected(count);
-    std::vector<int>           h_sval_expected(count);
+    std::vector<int> h_sidx_expected(count);
+    std::vector<int> h_sval_expected(count);
     prepare_data(h_sidx_expected, h_sval_expected);
     ::std::exclusive_scan(h_sidx_expected.begin(), h_sidx_expected.begin() + count, h_sval_expected.begin(), 0);
 
