@@ -27,26 +27,23 @@
 
 #include "support/sycl_alloc_utils.h"
 
+std::vector<int> initialize_data(const ::std::size_t count)
+{
+    std::vector<int> idx(count);
+
+    for (int i = 0; i < count; i++)
+        idx[i] = i + 1;
+
+    return idx;
+}
+
 template <sycl::usm::alloc alloc_type>
 void
 test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
-    constexpr int trash1 = -666;
-    constexpr int trash2 = -999;
-
-    auto prepare_data = [count](std::vector<int>& idx, std::vector<int>& val, int trash)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            idx[i] = i + 1;
-            val[i] = trash;     // Fill output data by trash value
-        }
-    };
-
     // Prepare source data
-    std::vector<int> h_idx(count);
+    const std::vector<int> h_idx(initialize_data(count));
     std::vector<int> h_val(count);
-    prepare_data(h_idx, h_val, trash1);
 
     // Copy source data to USM shared/device memory
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
@@ -61,18 +58,13 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
 
     // Copy results from USM shared/device memory to host
-    std::vector<int> h_sidx(count);
     std::vector<int> h_sval(count);
-    dt_helper_h_idx.retrieve_data(h_sidx.begin());
     dt_helper_h_val.retrieve_data(h_sval.begin());
 
     // Check results
-    std::vector<int> h_sidx_expected(count);
     std::vector<int> h_sval_expected(count);
-    prepare_data(h_sidx_expected, h_sval_expected, trash2);
-    ::std::exclusive_scan(h_sidx_expected.begin(), h_sidx_expected.begin() + count, h_sval_expected.begin(), 0);
+    ::std::exclusive_scan(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0);
 
-    EXPECT_EQ_N(h_sidx_expected.begin(), h_sidx.begin(), count, "wrong effect from exclusive_scan - h_sidx");
     EXPECT_EQ_N(h_sval_expected.begin(), h_sval.begin(), count, "wrong effect from exclusive_scan - h_sval");
 }
 
