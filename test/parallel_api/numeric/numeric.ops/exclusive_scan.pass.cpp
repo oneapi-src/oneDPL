@@ -29,11 +29,11 @@
 
 template <sycl::usm::alloc alloc_type>
 void
-test_with_usm(sycl::queue& q, const ::std::size_t __count)
+test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
-    auto prepare_data = [__count](std::vector<::std::size_t>& idx, std::vector<int>& val)
+    auto prepare_data = [count](std::vector<::std::size_t>& idx, std::vector<int>& val)
     {
-        for (int i = 0; i < __count; i++)
+        for (int i = 0; i < count; i++)
         {
             idx[i] = i + 1;
             val[i] = 0;
@@ -41,8 +41,8 @@ test_with_usm(sycl::queue& q, const ::std::size_t __count)
     };
 
     // Prepare source data
-    std::vector<::std::size_t> h_idx(__count);
-    std::vector<int>           h_val(__count);
+    std::vector<::std::size_t> h_idx(count);
+    std::vector<int>           h_val(count);
     prepare_data(h_idx, h_val);
 
     // Copy source data to USM shared/device memory
@@ -55,22 +55,22 @@ test_with_usm(sycl::queue& q, const ::std::size_t __count)
     // Run dpl::exclusive_scan algorithm on USM shared-device memory
     auto myPolicy = oneapi::dpl::execution::make_device_policy<
         TestUtils::unique_kernel_name<class copy, (::std::size_t)alloc_type>>(q);
-    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + __count, d_val, 0);
+    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
 
     // Copy results from USM shared/device memory to host
-    std::vector<::std::size_t> h_sidx(__count);
-    std::vector<int>           h_sval(__count);
+    std::vector<::std::size_t> h_sidx(count);
+    std::vector<int>           h_sval(count);
     dt_helper_h_idx.retrieve_data(h_sidx.begin());
     dt_helper_h_val.retrieve_data(h_sval.begin());
 
     // Check results
-    std::vector<::std::size_t> h_sidx_expected(__count);
-    std::vector<int>           h_sval_expected(__count);
+    std::vector<::std::size_t> h_sidx_expected(count);
+    std::vector<int>           h_sval_expected(count);
     prepare_data(h_sidx_expected, h_sval_expected);
-    ::std::exclusive_scan(h_sidx_expected.begin(), h_sidx_expected.begin() + __count, h_sval_expected.begin(), 0);
+    ::std::exclusive_scan(h_sidx_expected.begin(), h_sidx_expected.begin() + count, h_sval_expected.begin(), 0);
 
-    EXPECT_EQ_N(h_sidx_expected.begin(), h_sidx.begin(), __count, "wrong effect from exclusive_scan - h_sidx");
-    EXPECT_EQ_N(h_sval_expected.begin(), h_sval.begin(), __count, "wrong effect from exclusive_scan - h_sval");
+    EXPECT_EQ_N(h_sidx_expected.begin(), h_sidx.begin(), count, "wrong effect from exclusive_scan - h_sidx");
+    EXPECT_EQ_N(h_sval_expected.begin(), h_sval.begin(), count, "wrong effect from exclusive_scan - h_sval");
 }
 
 template <sycl::usm::alloc alloc_type>
