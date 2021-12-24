@@ -19,6 +19,7 @@
 #include _PSTL_TEST_HEADER(numeric)
 
 #include "support/utils.h"
+#include "scan_serial_impl.h"
 
 #if  !defined(_PSTL_TEST_INCLUSIVE_SCAN) && !defined(_PSTL_TEST_EXCLUSIVE_SCAN)
 #define _PSTL_TEST_INCLUSIVE_SCAN
@@ -26,69 +27,6 @@
 #endif
 
 using namespace TestUtils;
-
-// We provide the no execution policy versions of the exclusive_scan and inclusive_scan due checking correctness result of the versions with execution policies.
-//TODO: to add a macro for availability of ver implementations
-template <class InputIterator, class OutputIterator, class T>
-OutputIterator
-exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, T init)
-{
-    for (; first != last; ++first, ++result)
-    {
-        *result = init;
-        init = init + *first;
-    }
-    return result;
-}
-
-template <class InputIterator, class OutputIterator, class T, class BinaryOperation>
-OutputIterator
-exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, T init, BinaryOperation binary_op)
-{
-    for (; first != last; ++first, ++result)
-    {
-        *result = init;
-        init = binary_op(init, *first);
-    }
-    return result;
-}
-
-// Note: N4582 is missing the ", class T".  Issue was reported 2016-Apr-11 to cxxeditor@gmail.com
-template <class InputIterator, class OutputIterator, class BinaryOperation, class T>
-OutputIterator
-inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op, T init)
-{
-    for (; first != last; ++first, ++result)
-    {
-        init = binary_op(init, *first);
-        *result = init;
-    }
-    return result;
-}
-
-template <class InputIterator, class OutputIterator, class BinaryOperation>
-OutputIterator
-inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op)
-{
-    if (first != last)
-    {
-        auto tmp = *first;
-        *result = tmp;
-        return inclusive_scan_serial(++first, last, ++result, binary_op, tmp);
-    }
-    else
-    {
-        return result;
-    }
-}
-
-template <class InputIterator, class OutputIterator>
-OutputIterator
-inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result)
-{
-    typedef typename ::std::iterator_traits<InputIterator>::value_type input_type;
-    return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
-}
 
 // Most of the framework required for testing inclusive and exclusive scan is identical,
 // so the tests for both are in this file.  Which is being tested is controlled by the global

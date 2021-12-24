@@ -21,7 +21,10 @@
 
 #include "support/utils.h"
 
-#include <numeric>
+#include <iostream>
+#include <vector>
+
+#include "scan_serial_impl.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
@@ -54,7 +57,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
 
     // Check results
     std::vector<int> h_sval_expected(count);
-    ::std::exclusive_scan(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0);
+    exclusive_scan_serial(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0);
 
     EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
 }
