@@ -216,22 +216,22 @@ struct test_base
 
     template <typename ...Args>
     void
-    add_usm_data_transfer(USMDataTransferInfo __info, Args ...args)
+    add_source_data_info(USMDataTransferInfo __info, Args ...args)
     {
         _dt_helpers.push_back(__info);
 
         if constexpr (sizeof...(args) > 0)
-            add_usm_data_transfer(args...);
+            add_source_data_info(args...);
     }
 
     template <typename ...Args>
     void
-    add_sycl_buffer_info(SyclBufferInfo __info, Args ...args)
+    add_source_data_info(SyclBufferInfo __info, Args ...args)
     {
         _sycl_buffer_info.push_back(__info);
 
         if constexpr (sizeof...(args) > 0)
-            add_sycl_buffer_info(args...);
+            add_source_data_info(args...);
     }
 
     /////////////////////////////////////////////////////////
@@ -403,7 +403,7 @@ test1buffer()
             TestName testObj;
             if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
             {
-                testObj.add_usm_data_transfer(TestName::USMDataTransferInfo(&dt_helper, inout1_offset));
+                testObj.add_source_data_info(TestName::USMDataTransferInfo(&dt_helper, inout1_offset));
             }
             invoke_on_all_hetero_policies<0>()(testObj, inout1_offset_first, inout1_offset_first + n, n);
         }
@@ -425,7 +425,7 @@ test1buffer()
             TestName testObj;
             if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
             {
-                testObj.add_sycl_buffer_info(TestName::SyclBufferInfo(&inout1, inout1_offset));
+                testObj.add_source_data_info(TestName::SyclBufferInfo(&inout1, inout1_offset));
             }
             invoke_on_all_hetero_policies<1>()(testObj, inout1_offset_first, inout1_offset_first + n, n);
         }
@@ -459,8 +459,8 @@ test2buffers()
             TestName testObj;
             if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
             {
-                testObj.add_usm_data_transfer(TestName::USMDataTransferInfo(&dt_helper1, inout1_offset),
-                                              TestName::USMDataTransferInfo(&dt_helper2, inout2_offset));
+                testObj.add_source_data_info(TestName::USMDataTransferInfo(&dt_helper1, inout1_offset),
+                                             TestName::USMDataTransferInfo(&dt_helper2, inout2_offset));
             }
             invoke_on_all_hetero_policies<0>()(testObj, inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n, n);
@@ -485,7 +485,7 @@ test2buffers()
             TestName testObj;
             if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
             {
-                testObj.add_sycl_buffer_info(TestName::SyclBufferInfo(&inout1, inout1_offset),
+                testObj.add_source_data_info(TestName::SyclBufferInfo(&inout1, inout1_offset),
                                              TestName::SyclBufferInfo(&inout2, inout2_offset));
             }
             invoke_on_all_hetero_policies<1>()(testObj, inout1_offset_first, inout1_offset_first + n,
@@ -524,9 +524,9 @@ test3buffers(int mult = 1)
             TestName testObj;
             if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
             {
-                testObj.add_usm_data_transfer(typename TestName::USMDataTransferInfo(&dt_helper1, inout1_offset),
-                                              typename TestName::USMDataTransferInfo(&dt_helper2, inout2_offset),
-                                              typename TestName::USMDataTransferInfo(&dt_helper3, inout3_offset));
+                testObj.add_source_data_info(typename TestName::USMDataTransferInfo(&dt_helper1, inout1_offset),
+                                             typename TestName::USMDataTransferInfo(&dt_helper2, inout2_offset),
+                                             typename TestName::USMDataTransferInfo(&dt_helper3, inout3_offset));
             }
             invoke_on_all_hetero_policies<0>()(testObj, inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n, inout3_offset_first,
@@ -554,7 +554,7 @@ test3buffers(int mult = 1)
             TestName testObj;
             if constexpr (::std::is_base_of<test_base<alloc_type, T>, TestName>::value)
             {
-                testObj.add_sycl_buffer_info(typename TestName::SyclBufferInfo(&inout1, inout1_offset),
+                testObj.add_source_data_info(typename TestName::SyclBufferInfo(&inout1, inout1_offset),
                                              typename TestName::SyclBufferInfo(&inout2, inout2_offset),
                                              typename TestName::SyclBufferInfo(&inout3, inout3_offset));
             }
