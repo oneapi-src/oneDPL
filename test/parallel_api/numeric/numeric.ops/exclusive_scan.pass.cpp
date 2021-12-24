@@ -17,8 +17,14 @@
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
+#include _PSTL_TEST_HEADER(numeric)
 
 #include "support/utils.h"
+
+#include <iostream>
+#include <vector>
+
+#include "scan_serial_impl.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
@@ -26,44 +32,43 @@
 
 template <sycl::usm::alloc alloc_type>
 void
-test_with_usm(sycl::queue& q)
+test_with_usm(sycl::queue& q, const ::std::size_t count)
 {
-    constexpr int N = 32;
+    // Prepare source data
+    std::vector<int> h_idx(count);
+    for (int i = 0; i < count; i++)
+        h_idx[i] = i + 1;
 
-    int h_key[N] = {};
-    int h_val[N] = {};
-    for (int i = 0; i < N; i++)
-    {
-        h_val[i] = ((N - 1 - i) / 3) * 3;
-        h_key[i] = i * 10;
-    }
+    // Copy source data to USM shared/device memory
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
+    auto d_idx = dt_helper_h_idx.get_data();
 
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_key(q, ::std::begin(h_key), ::std::end(h_key));
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, ::std::begin(h_val), ::std::end(h_val));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, count);
+    auto d_val = dt_helper_h_val.get_data();
 
-    int* d_key = dt_helper_h_key.get_data();
-    int* d_val = dt_helper_h_val.get_data();
-
-    auto first = oneapi::dpl::make_zip_iterator(d_key, d_val);
-    auto last = first + N;
-
+    // Run dpl::exclusive_scan algorithm on USM shared-device memory
     auto myPolicy = oneapi::dpl::execution::make_device_policy<
         TestUtils::unique_kernel_name<class copy, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
-    std::sort(myPolicy, first, last,
-              [](const auto& item1, const auto& item2) { return std::get<0>(item1) > std::get<0>(item2); });
+    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
 
-    int h_skey[N] = {};
-    int h_sval[N] = {};
+    // Copy results from USM shared/device memory to host
+    std::vector<int> h_val(count);
+    dt_helper_h_val.retrieve_data(h_val.begin());
 
-    dt_helper_h_key.retrieve_data(h_skey);
-    dt_helper_h_val.retrieve_data(h_sval);
+    // Check results
+    std::vector<int> h_sval_expected(count);
+    exclusive_scan_serial(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0);
 
-    for (int i = 0; i < N; i++)
+    EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
+}
+
+template <sycl::usm::alloc alloc_type>
+void
+test_with_usm(sycl::queue& q)
+{
+    for (::std::size_t n = 0; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        if (i < (N - 1))
-        {
-            EXPECT_TRUE(h_skey[i] >= h_skey[i + 1], "wrong sort result");
-        }
+        test_with_usm<alloc_type>(q, n);
     }
 }
 
