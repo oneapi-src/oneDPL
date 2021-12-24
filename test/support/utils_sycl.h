@@ -217,38 +217,21 @@ struct invoke_on_all_hetero_policies
     // performs some checks that fails. As a workaround, define for functors which have this issue
     // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
 
-    template <typename Op, typename... Args>
+    template <typename Op, typename Arg, typename... Args>
     typename ::std::enable_if<has_value_types<Op>::value, void>::type
-    operator()(Op op, Args&&... rest)
+    operator()(Op op, Arg&& first, Args&&... rest)
     {
-        invoke_impl<typename Op::value_types>(op, ::std::forward<Args>(rest)...);
+        invoke_impl<typename Op::value_types>(
+            op, std::forward<Arg>(first), ::std::forward<Args>(rest)...);
     }
 
     // assume Op which does not provide value_types works with only one type retrieved from the first iterator
-    template <typename Op, typename... Args>
-    typename ::std::enable_if<!has_value_types<Op>::value &&
-        ::std::is_pointer<typename ::std::decay<
-            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type>::value,
-        void>::type
-    operator()(Op op, Args&&... rest)
+    template <typename Op, typename Arg, typename... Args>
+    typename ::std::enable_if<!has_value_types<Op>::value, void>::type
+    operator()(Op op, Arg&& first, Args&&... rest)
     {
-        using first_ptr_type = typename ::std::decay<
-            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type;
-        using first_value_type = typename ::std::remove_pointer<first_ptr_type>::type;
-        invoke_impl<first_value_type>(op, ::std::forward<Args>(rest)...);
-    }
-
-    template <typename Op, typename... Args>
-    typename ::std::enable_if<!has_value_types<Op>::value &&
-        !::std::is_pointer<typename ::std::decay<
-            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type>::value,
-        void>::type
-    operator()(Op op, Args&&... rest)
-    {
-        using first_iter_type = typename ::std::decay<
-            typename ::std::tuple_element<0, ::std::tuple<Args...>>::type>::type;
-        using first_value_type = typename ::std::iterator_traits<first_iter_type>::value_type;
-        invoke_impl<first_value_type>(op, ::std::forward<Args>(rest)...);
+        invoke_impl<typename ::std::iterator_traits<typename ::std::decay<Arg>::type>::value_type>(
+            op, std::forward<Arg>(first), ::std::forward<Args>(rest)...);
     }
 
 private:
