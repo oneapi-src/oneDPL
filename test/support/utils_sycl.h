@@ -294,16 +294,15 @@ struct test_base
         }
     }
 
-    template <UDTKind kind, typename Iterator, typename Size>
+    template <UDTKind kind, typename Size>
     class USMReadData
     {
     public:
 
         using HostData = std::vector<ValueType>;
 
-        USMReadData(test_base& _test_base, Iterator _it, Size _count)
+        USMReadData(test_base& _test_base, Size _count)
             : __test_base(_test_base)
-            , __iterator(_it)
             , __host_buffer(_count)
         {
             assert(__test_base.has_usm_data_transfer_info() || __test_base.has_sycl_buffers_info());
@@ -327,18 +326,17 @@ struct test_base
 
         test_base&             __test_base;
         std::vector<ValueType> __host_buffer;
-        Iterator               __iterator;
     };
 
-    template <UDTKind kind, typename Iterator, typename Size>
-    class USMReadUpdateData : public USMReadData<kind, Iterator, Size>
+    template <UDTKind kind, typename Size>
+    class USMReadUpdateData : public USMReadData<kind, Size>
     {
-        using Base = USMReadData<kind, Iterator, Size>;
+        using Base = USMReadData<kind, Size>;
 
     public:
 
-        USMReadUpdateData(test_base& _test_base, Iterator _it, Size _count)
-            : Base(_test_base, _it, _count)
+        USMReadUpdateData(test_base& _test_base, Size _count)
+            : Base(_test_base, _count)
         {
         }
 

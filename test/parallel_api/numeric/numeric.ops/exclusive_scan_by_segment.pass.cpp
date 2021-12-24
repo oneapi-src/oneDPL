@@ -35,11 +35,11 @@ struct test_exclusive_scan_by_segment
 #endif // TEST_DPCPP_BACKEND_PRESENT
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    template <UDTKind kind, typename Iterator, typename Size>
-    using USMReadData = typename TestUtils::test_base<alloc_type, ValueType>::template USMReadData<kind, Iterator, Size>;
+    template <UDTKind kind, typename Size>
+    using USMReadData = typename TestUtils::test_base<alloc_type, ValueType>::template USMReadData<kind, Size>;
 
-    template <UDTKind kind, typename Iterator, typename Size>
-    using USMReadUpdateData = typename TestUtils::test_base<alloc_type, ValueType>::template USMReadUpdateData<kind, Iterator, Size>;
+    template <UDTKind kind, typename Size>
+    using USMReadUpdateData = typename TestUtils::test_base<alloc_type, ValueType>::template USMReadUpdateData<kind, Size>;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     // TODO: replace data generation with random data and update check to compare result to
@@ -113,9 +113,9 @@ struct test_exclusive_scan_by_segment
 
         // call algorithm with no optional arguments
         {
-            USMReadUpdateData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
-            USMReadUpdateData<UDTKind::eVals, Iterator2, Size> host_vals   (*this, vals_first, n);
-            USMReadUpdateData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+            USMReadUpdateData<UDTKind::eKeys, Size> host_keys   (*this, n);
+            USMReadUpdateData<UDTKind::eVals, Size> host_vals   (*this, n);
+            USMReadUpdateData<UDTKind::eRes,  Size> host_val_res(*this, n);
 
             initialize_data(host_keys.get_host_buffer_data(),
                             host_vals.get_host_buffer_data(),
@@ -126,13 +126,13 @@ struct test_exclusive_scan_by_segment
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
         {
-            USMReadUpdateData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
-            USMReadUpdateData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+            USMReadUpdateData<UDTKind::eKeys, Size> host_keys   (*this, n);
+            USMReadUpdateData<UDTKind::eRes,  Size> host_val_res(*this, n);
 
             check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), init, n);
 
             // call algorithm with equality comparator
-            USMReadUpdateData<UDTKind::eVals, Iterator2, Size> host_vals(*this, vals_first, n);
+            USMReadUpdateData<UDTKind::eVals, Size> host_vals(*this, n);
 
             initialize_data(host_keys.get_host_buffer_data(),
                             host_vals.get_host_buffer_data(),
@@ -144,13 +144,13 @@ struct test_exclusive_scan_by_segment
                                                            init, [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
         {
-            USMReadUpdateData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
-            USMReadUpdateData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+            USMReadUpdateData<UDTKind::eKeys, Size> host_keys   (*this, n);
+            USMReadUpdateData<UDTKind::eRes,  Size> host_val_res(*this, n);
 
             check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), init, n);
 
             // call algorithm with addition operator
-            USMReadUpdateData<UDTKind::eVals, Iterator2, Size> host_vals(*this, vals_first, n);
+            USMReadUpdateData<UDTKind::eVals, Size> host_vals(*this, n);
 
             initialize_data(host_keys.get_host_buffer_data(),
                             host_vals.get_host_buffer_data(),
@@ -163,8 +163,8 @@ struct test_exclusive_scan_by_segment
                                                            [](ValT first, ValT second) { return first + second; });
         exec.queue().wait_and_throw();
         {
-            USMReadData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
-            USMReadData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+            USMReadData<UDTKind::eKeys, Size> host_keys   (*this, n);
+            USMReadData<UDTKind::eRes,  Size> host_val_res(*this, n);
 
             check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), init, n);
         }
@@ -173,8 +173,8 @@ struct test_exclusive_scan_by_segment
         auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
         {
-            USMReadData<UDTKind::eKeys, Iterator1, Size> host_keys   (*this, keys_first, n);
-            USMReadData<UDTKind::eRes,  Iterator3, Size> host_val_res(*this, val_res_first, n);
+            USMReadData<UDTKind::eKeys, Size> host_keys   (*this, n);
+            USMReadData<UDTKind::eRes,  Size> host_val_res(*this, n);
 
             check_values(host_keys.get_host_buffer_data(), host_val_res.get_host_buffer_data(), 0, n);
         }
