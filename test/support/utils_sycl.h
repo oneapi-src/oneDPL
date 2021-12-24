@@ -180,39 +180,26 @@ struct test_base
     using TUSMDataTransfer = usm_data_transfer<alloc_type, ValueType>;
     using SyclBuffer = sycl::buffer<ValueType, 1>;
 
-    struct USMDataTransferInfo
+    template <typename T>
+    struct SourceDataInfo
     {
-        TUSMDataTransfer* __ptr = nullptr;
+        T* __ptr = nullptr;
         ::std::size_t __offset = 0;
 
-        USMDataTransferInfo() = default;
-        USMDataTransferInfo(TUSMDataTransfer* ptr, ::std::size_t offset)
+        SourceDataInfo() = default;
+        SourceDataInfo(T* ptr, ::std::size_t offset)
             : __ptr(ptr), __offset(offset)
         {
         }
 
-        TUSMDataTransfer* get_usm_data_transfer()
+        T* get_ptr()
         {
             return __ptr;
         }
     };
 
-    struct SyclBufferInfo
-    {
-        SyclBuffer* __ptr = nullptr;
-        ::std::size_t __offset = 0;
-
-        SyclBufferInfo() = default;
-        SyclBufferInfo(SyclBuffer* ptr, ::std::size_t offset)
-            : __ptr(ptr), __offset(offset)
-        {
-        }
-
-        SyclBuffer* get_sycl_buffer()
-        {
-            return __ptr;
-        }
-    };
+    using USMDataTransferInfo = SourceDataInfo<TUSMDataTransfer>;
+    using SyclBufferInfo = SourceDataInfo<SyclBuffer>;
 
     template <typename ...Args>
     void
@@ -251,7 +238,7 @@ struct test_base
     void retrieve_usm_data(UDTKind __kind, Iterator __it_from, Iterator __it_to)
     {
         auto& __usm_data_transfer_info = get_usm_data_transfer_info(__kind);
-        auto __usm_data_transfer = __usm_data_transfer_info.get_usm_data_transfer();
+        auto __usm_data_transfer = __usm_data_transfer_info.get_ptr();
 
         __usm_data_transfer->retrieve_data(__it_from, __usm_data_transfer_info.__offset, __it_to - __it_from);
     }
@@ -260,7 +247,7 @@ struct test_base
     void refresh_usm_data(UDTKind __kind, Iterator __it_from, Iterator __it_to)
     {
         auto& __usm_data_transfer_info = get_usm_data_transfer_info(__kind);
-        auto __usm_data_transfer = __usm_data_transfer_info.get_usm_data_transfer();
+        auto __usm_data_transfer = __usm_data_transfer_info.get_ptr();
 
         __usm_data_transfer->update_data(__it_from, __usm_data_transfer_info.__offset, __it_to - __it_from);
     }
@@ -283,7 +270,7 @@ struct test_base
     {
         auto& __sycl_buf_info = get_sycl_buffer_info(__kind);
 
-        auto acc = __sycl_buf_info.get_sycl_buffer()->template get_access<sycl::access::mode::read_write>();
+        auto acc = __sycl_buf_info.get_ptr()->template get_access<sycl::access::mode::read_write>();
 
         auto __index = __sycl_buf_info.__offset;
         for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)
@@ -298,7 +285,7 @@ struct test_base
     {
         auto& __sycl_buf_info = get_sycl_buffer_info(__kind);
 
-        auto acc = __sycl_buf_info.get_sycl_buffer()->template get_access<sycl::access::mode::read_write>();
+        auto acc = __sycl_buf_info.get_ptr()->template get_access<sycl::access::mode::read_write>();
 
         auto __index = __sycl_buf_info.__offset;
         for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)
