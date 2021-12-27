@@ -295,13 +295,13 @@ struct test_base
     }
 
     template <UDTKind kind, typename Size>
-    class USMReadData
+    class TestDataRead
     {
     public:
 
         using HostData = std::vector<ValueType>;
 
-        USMReadData(test_base& _test_base, Size _count)
+        TestDataRead(test_base& _test_base, Size _count)
             : __test_base(_test_base)
             , __host_buffer(_count)
         {
@@ -329,18 +329,18 @@ struct test_base
     };
 
     template <UDTKind kind, typename Size>
-    class USMReadUpdateData : public USMReadData<kind, Size>
+    class TestDataUpdate : public TestDataRead<kind, Size>
     {
-        using Base = USMReadData<kind, Size>;
+        using Base = TestDataRead<kind, Size>;
 
     public:
 
-        USMReadUpdateData(test_base& _test_base, Size _count)
+        TestDataUpdate(test_base& _test_base, Size _count)
             : Base(_test_base, _count)
         {
         }
 
-        ~USMReadUpdateData()
+        ~TestDataUpdate()
         {
             assert(this->__test_base.has_usm_data_transfer_info() || this->__test_base.has_sycl_buffers_info());
 
