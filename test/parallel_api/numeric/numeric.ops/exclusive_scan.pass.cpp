@@ -24,7 +24,7 @@
 #include <iostream>
 #include <vector>
 
-#include "scan_serial_impl.h"
+#include "support/scan_serial_impl.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
