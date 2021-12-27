@@ -35,7 +35,8 @@ main()
 
     std::vector<int> v{10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
 
-    sycl::queue syclQue(TestUtils::default_selector);    // (sycl::gpu_selector{});
+    //sycl::queue syclQue(TestUtils::default_selector);
+    sycl::queue syclQue(sycl::gpu_selector{});
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(syclQue, v.begin(), v.end());
     int* dev_v = dt_helper.get_data();
