@@ -22,6 +22,7 @@
 
 #include "support/utils.h"
 #include "support/sycl_alloc_utils.h"
+#include "scan_serial_impl.h"
 
 #include <iostream>
 #include <vector>
@@ -42,14 +43,14 @@ main()
     auto policy = oneapi::dpl::execution::make_device_policy(syclQue);
     oneapi::dpl::inclusive_scan(policy, dev_v, dev_v + kItemsCount, dev_v); //, oneapi::dpl::maximum<int>() );
 
-    std::vector<int> h(kItemsCount);
-    dt_helper.retrieve_data(h.begin());
+    std::vector<int> results(kItemsCount);
+    dt_helper.retrieve_data(results.begin());
 
-    for (auto elem : h)
-    {
-        std::cout << elem << " ";
-    }
-    std::cout << "\n";
+    std::vector<int> results_expected(kItemsCount);
+    inclusive_scan_serial(v.begin(), v.end(), results_expected.begin());
+
+    EXPECT_EQ_N(results.begin(), results_expected.begin(), kItemsCount, "wrong effect from inclusive_scan");
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
