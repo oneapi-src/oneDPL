@@ -22,7 +22,7 @@
 
 #include "support/utils.h"
 #include "support/sycl_alloc_utils.h"
-#include "scan_serial_impl.h"
+#include "support/scan_serial_impl.h"
 
 #include <iostream>
 #include <vector>
