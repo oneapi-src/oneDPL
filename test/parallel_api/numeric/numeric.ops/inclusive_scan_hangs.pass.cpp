@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _GLIBCXX_USE_TBB_PAR_BACKEND 0 // libstdc++10
+//#define _GLIBCXX_USE_TBB_PAR_BACKEND 0 // libstdc++10
 
 #include "support/test_config.h"
 
