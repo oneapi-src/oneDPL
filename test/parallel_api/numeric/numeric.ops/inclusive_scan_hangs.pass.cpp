@@ -38,6 +38,8 @@ main()
     //sycl::queue syclQue(TestUtils::default_selector);
     sycl::queue syclQue(sycl::gpu_selector{});
 
+    std::cout << "    Device Name = " << syclQue.get_device().get_info<cl::sycl::info::device::name>().c_str() << "\n";
+
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(syclQue, v.begin(), v.end());
     int* dev_v = dt_helper.get_data();
 
