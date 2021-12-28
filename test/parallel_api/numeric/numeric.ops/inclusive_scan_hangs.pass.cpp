@@ -35,9 +35,8 @@ main()
 
     std::vector<int> v{10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
 
-    //sycl::queue syclQue(TestUtils::default_selector);
+    sycl::queue syclQue(TestUtils::default_selector);
     //sycl::queue syclQue(sycl::gpu_selector{});
-    sycl::queue syclQue(sycl::cpu_selector{});
 
     std::cout << "    Device Name = " << syclQue.get_device().get_info<cl::sycl::info::device::name>().c_str() << "\n";
 
