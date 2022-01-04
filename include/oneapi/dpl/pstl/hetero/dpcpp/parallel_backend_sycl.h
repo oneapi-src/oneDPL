@@ -232,7 +232,7 @@ template <typename... _Name>
 struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-    __future<void>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
         assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
@@ -246,14 +246,16 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
                 __brick(__idx, __rngs...);
             });
         });
-        return __future<void>(__event);
+        return __future(__event);
     }
 };
 
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
-template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
+template <typename _ExecutionPolicy, typename _Fp, typename _Index, 
+          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>,
+          typename... _Ranges>
+auto
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -268,9 +270,10 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 // parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
-          typename _Rp, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__par_backend_hetero::__future<_Tp>>
+          typename _Rp, 
+          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>,
+          typename... _Ranges>
+auto
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
                             _Ranges&&... __rngs)
 {
@@ -333,7 +336,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-            auto __result_acc = __result.template get_access<access_mode::read_write>(__cgh);
+            auto __result_acc = __result.template get_access<access_mode::write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, __dpl_sycl::__target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -377,7 +380,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
         __n_items = (__n - 1) / __iters_per_work_item + 1;
         __n_groups = (__n - 1) / __size_per_work_group + 1;
     } while (__n > 1);
-    return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, 0 /*just one element*/, __result, __temp);
+    //return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, 0 /*just one element*/, __result, __temp);
+    return __future(__reduce_event, __result, __temp);
 }
 
 //------------------------------------------------------------------------
@@ -418,7 +422,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
               typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-    oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
     {
@@ -457,6 +461,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __n_groups = (__n - 1) / __size_per_wg + 1;
         // Storage for the results of scan for each workgroup
         sycl::buffer<_Type> __wg_sums(__n_groups);
+        sycl::buffer<_Type> __result(sycl::range<1>(1));
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
 
@@ -508,6 +513,8 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             __cgh.depends_on(__submit_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
+            //TODO: usage of __result_acc
+            auto __result_acc = __result.template get_access<access_mode::write>(__cgh);
             __cgh.parallel_for<_PropagateScanName...>(
                 sycl::range<1>(__n_groups * __size_per_wg),
                 __global_scan_caller<_GlobalScan, typename ::std::decay<_Range2>::type,
@@ -515,14 +522,15 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                     __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg));
         });
 
-        return oneapi::dpl::__par_backend_hetero::__future<_Type>(__final_event, __n_groups - 1, __wg_sums);
+        //return oneapi::dpl::__par_backend_hetero::__future<_Type>(__final_event, __n_groups - 1, __wg_sums);
+        return __future(__final_event, __wg_sums);
     }
 };
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>>
+          typename _LocalScan, typename _GroupScan, typename _GlobalScan,
+          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>>
+auto
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
@@ -1070,7 +1078,7 @@ template <typename... _Name>
 struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-    __future<void>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp) const
     {
         auto __n = __rng1.size();
@@ -1091,12 +1099,13 @@ struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
                                       decltype(__n_2)(0), __n_2, __rng3, decltype(__n)(0), __comp, __chunk);
             });
         });
-        return __future<void>(__event);
+        return __future(__event);
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
+typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>>
+auto
 __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1144,7 +1153,7 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
     template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-    __future<void>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
         using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1270,12 +1279,13 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
             });
         }
 
-        return __future<void>(__event1, __temp);
+        return __future(__event1, __temp);
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
+template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare,
+typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>>
+auto
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1300,7 +1310,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
                                          __internal::__optional_kernel_name<_CopyBackName...>>
 {
     template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-    __future<void>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
         using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -1361,12 +1371,13 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
             });
         }
         // return future and extend lifetime of temporary buffer
-        return __future<void>(__event1, __temp);
+        return __future(__event1, __temp);
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, __future<void>>
+template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare,
+typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void>>
+auto
 __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;

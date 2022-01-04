@@ -434,7 +434,36 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 //-----------------------------------------------------------------------
 // future and helper classes for async pattern/algorithm
 //-----------------------------------------------------------------------
+#if 1
+template<typename ...Args>
+class __future
+{
+    std::tuple<Args...> __my_args; //a contract: <sycl::event, sycl::buffer...>
+    static constexpr bool __is_value = sizeof...(Args) > 1;
+public:
+    __future(Args... args): __my_args(args...) {}
 
+    operator sycl::event() const { return std::get<0>(__my_args); } //sycl::event according to the contract
+    void
+    wait()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        operator sycl::event().wait_and_throw();
+#endif
+    }
+
+    template<typename = typename std::enable_if<__is_value, void>>
+    auto
+    get()
+    {
+        //according to the contract, std::get<1>(__my_args) is one-element sycl::buffer
+        return std::get<1>(__my_args).template get_access<access_mode::read>()[0];
+    }
+};
+//template <typename... Args>
+//__future<Args...> __make_future(Args... args) { return __future<Args...>(args...); }
+
+#else
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
 struct __future_base
 {
@@ -494,6 +523,7 @@ class __future<void> : public __future_base
     template <class _Tp, class _Enable>
     friend class oneapi::dpl::__internal::__future;
 };
+#endif
 
 } // namespace __par_backend_hetero
 } // namespace dpl
