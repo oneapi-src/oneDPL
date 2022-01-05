@@ -438,6 +438,57 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 template<typename ...Args>
 class __future
 {
+protected:
+    std::tuple<Args...> __my_args; //a contract: <sycl::event, sycl::buffer...>
+    __future(Args... args): __my_args(args...) {}
+};
+
+template<typename ...Args>
+class __future<sycl::event>: public __future<sycl::event, Args...>
+{
+public:
+    __future(Args... args): __future<sycl::event, Args...>(args...) {}
+
+    operator sycl::event() const { return std::get<0>(__my_args); } //sycl::event according to the contract
+    void
+    wait()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        operator sycl::event().wait_and_throw();
+#endif
+    }
+};
+
+template<typename _T, typename ...Args>
+class __future<sycl::event, sycl::buffer<_T>>: public __future<sycl::event, sycl::buffer<_T>, Args...>
+{
+public:
+    __future(Args... args): __future<sycl::event, sycl::buffer<_T>, Args...>(args...) {}
+    auto
+    get()
+    {
+        //according to the contract, std::get<1>(__my_args) is one-element sycl::buffer
+        return std::get<1>(__my_args).template get_access<access_mode::read>()[0];
+    }
+};
+
+template<typename _T, typename ...Args>
+class __future<sycl::event, _T>: public __future<sycl::event, _T, Args...>
+{
+public:
+    __future(Args... args): __future<sycl::event, _T, Args...>(args...) {}
+    auto
+    get()
+    {
+        //according to the contract, std::get<1>(__my_args) is a scalar value
+        return std::get<1>(__my_args);
+    }
+};
+
+#else
+template<typename ...Args>
+class __future
+{
     std::tuple<Args...> __my_args; //a contract: <sycl::event, sycl::buffer...>
     static constexpr bool __is_value = sizeof...(Args) > 1;
 public:
@@ -460,10 +511,10 @@ public:
         return std::get<1>(__my_args).template get_access<access_mode::read>()[0];
     }
 };
+#endif
 //template <typename... Args>
 //__future<Args...> __make_future(Args... args) { return __future<Args...>(args...); }
 
-#else
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
 struct __future_base
 {
@@ -481,32 +532,8 @@ struct __future_base
     operator sycl::event() const { return __my_event; }
 };
 
-template <typename _T>
-class __future : public __future_base
-{
-    ::std::size_t __result_idx;
-    sycl::buffer<_T> __result;
-    sycl::buffer<_T> __data;
 
-  public:
-    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __res)
-        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __result(__res)
-    {
-    }
-    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __res, sycl::buffer<_T> __d)
-        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __result(__res), __data(__d)
-    {
-    }
-
-    _T
-    get()
-    {
-        return __result.template get_access<access_mode::read>()[__result_idx];
-    }
-    template <class _Tp, class _Enable>
-    friend class oneapi::dpl::__internal::__future;
-};
-
+//TODO: to remove as a reduntant class specialization
 template <>
 class __future<void> : public __future_base
 {
@@ -523,7 +550,6 @@ class __future<void> : public __future_base
     template <class _Tp, class _Enable>
     friend class oneapi::dpl::__internal::__future;
 };
-#endif
 
 } // namespace __par_backend_hetero
 } // namespace dpl
