@@ -434,22 +434,18 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 //-----------------------------------------------------------------------
 // future and helper classes for async pattern/algorithm
 //-----------------------------------------------------------------------
-#if 1
+#if 0
+//TODO:
 template<typename ...Args>
-class __future
-{
-protected:
-    std::tuple<Args...> __my_args; //a contract: <sycl::event, sycl::buffer...>
-    __future(Args... args): __my_args(args...) {}
-};
+class __future;
 
 template<typename ...Args>
-class __future<sycl::event>: public __future<sycl::event, Args...>
+class __future<sycl::event>: protected  std::tuple<sycl::event, Args...>
 {
 public:
-    __future(Args... args): __future<sycl::event, Args...>(args...) {}
+    __future(Args... args): std::tuple<sycl::event, Args...>(args...) {}
 
-    operator sycl::event() const { return std::get<0>(__my_args); } //sycl::event according to the contract
+    operator sycl::event() const { return std::get<0>(*this); } //sycl::event according to the contract
     void
     wait()
     {
@@ -459,56 +455,81 @@ public:
     }
 };
 
-template<typename _T, typename ...Args>
-class __future<sycl::event, sycl::buffer<_T>>: public __future<sycl::event, sycl::buffer<_T>, Args...>
+//TODO:
+template<typename ..._T, typename ...Args>
+class __future<sycl::event, sycl::buffer<_T>...>: std::tuple<sycl::event, sycl::buffer<_T>...>
 {
 public:
-    __future(Args... args): __future<sycl::event, sycl::buffer<_T>, Args...>(args...) {}
+    __future(Args... args): __future<sycl::event, Args...>(args...) {}
     auto
     get()
     {
         //according to the contract, std::get<1>(__my_args) is one-element sycl::buffer
-        return std::get<1>(__my_args).template get_access<access_mode::read>()[0];
+        return std::get<1>(*this).template get_access<access_mode::read>()[0];
     }
 };
 
+//TODO:
 template<typename _T, typename ...Args>
-class __future<sycl::event, _T>: public __future<sycl::event, _T, Args...>
+class __future<sycl::event, _T>: public __future<sycl::event, Args...>
 {
 public:
-    __future(Args... args): __future<sycl::event, _T, Args...>(args...) {}
+    __future(Args... args): __future<sycl::event, Args...>(args...) {}
     auto
     get()
     {
         //according to the contract, std::get<1>(__my_args) is a scalar value
-        return std::get<1>(__my_args);
+        return std::get<1>(*this);
     }
 };
 
 #else
-template<typename ...Args>
+
+//TODO: static_assert: this event is not supported
+template<typename _Event>
+void __wait_event(_Event);
+
+void __wait_event(sycl::event __e)
+{
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __e.wait_and_throw();
+#endif
+}
+
+template<typename _T>
+constexpr auto __get_value(sycl::buffer<_T>& __buf)
+{
+    //according to a contract, returned value is one-element sycl::buffer
+    return __buf.template get_access<access_mode::read>()[0];
+}
+
+template<typename _T>
+constexpr void __get_value(_T& __val)
+{
+    return __val;
+}
+
+template<typename _Event, typename ...Args>
 class __future
 {
-    std::tuple<Args...> __my_args; //a contract: <sycl::event, sycl::buffer...>
-    static constexpr bool __is_value = sizeof...(Args) > 1;
+    std::tuple<_Event, Args...> __my_args; //a contract: <sycl::event or other event, a value or sycl::buffers...>
+    static constexpr bool __is_value = sizeof...(Args) > 0;
 public:
-    __future(Args... args): __my_args(args...) {}
+    __future(_Event e, Args... args): __my_args(e, args...) {}
 
-    operator sycl::event() const { return std::get<0>(__my_args); } //sycl::event according to the contract
+    operator _Event() const { return std::get<0>(__my_args); } //sycl::event according to the contract
+    auto event() const { return operator _Event(); }
     void
     wait()
     {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        operator sycl::event().wait_and_throw();
-#endif
+        __wait_event(operator _Event());
     }
 
     template<typename = typename std::enable_if<__is_value, void>>
     auto
     get()
     {
-        //according to the contract, std::get<1>(__my_args) is one-element sycl::buffer
-        return std::get<1>(__my_args).template get_access<access_mode::read>()[0];
+        return __get_value(std::get<1>(__my_args));
     }
 };
 #endif
