@@ -156,7 +156,6 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
     //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
 
-    typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
 
     namespace __bknd = __par_backend_hetero;

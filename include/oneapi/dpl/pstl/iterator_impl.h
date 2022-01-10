@@ -705,7 +705,7 @@ struct ignore_copyable
     }
 
     bool
-    operator==(const ignore_copyable& other) const
+    operator==(const ignore_copyable&) const
     {
         return true;
     }
