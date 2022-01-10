@@ -28,7 +28,10 @@ namespace dpl
 using ::std::binary_function;
 using ::std::unary_function;
 #endif
+#if __cplusplus < 202002L
 using ::std::binary_negate;
+using ::std::unary_negate;
+#endif
 using ::std::bind;
 using ::std::bit_and;
 #if __cplusplus > 201103L
@@ -58,7 +61,6 @@ using ::std::not_equal_to;
 using ::std::plus;
 using ::std::ref;
 using ::std::reference_wrapper;
-using ::std::unary_negate;
 
 struct identity
 {
