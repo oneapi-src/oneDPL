@@ -107,8 +107,8 @@ for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation, class... _Events>
 oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<
     _ExecutionPolicy, oneapi::dpl::__internal::__future<_Tp>, _Tp, _BinaryOperation, _Events...>
-reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
-             _BinaryOperation __binary_op, _Events&&... __dependencies)
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init, _BinaryOperation,
+             _Events&&... __dependencies)
 {
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _InputType;
