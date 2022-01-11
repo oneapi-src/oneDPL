@@ -37,7 +37,6 @@ class ForwardIterator
 
   protected:
     Iterator my_iterator;
-    typedef value_type element_type;
 
   public:
     ForwardIterator() = default;
@@ -356,9 +355,9 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag,
                                             Iterator>::value, void>::type
-    operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, 
+    operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n,
         Iterator expected, Rest&&... rest)
     {
         op(exec, make_iterator<Iterator>()(begin), n, make_iterator<Iterator>()(expected), ::std::forward<Rest>(rest)...);
