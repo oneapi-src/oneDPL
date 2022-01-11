@@ -279,5 +279,5 @@ jobs:
           mkdir build && cd build
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} ..
-          make VERBOSE=1 -j${MACOS_BUILD_CONCURRENCY}
+          make VERBOSE=1 build-all-tests -j${MACOS_BUILD_CONCURRENCY}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure -E "${EXCLUDE_FROM_TESTING}"
