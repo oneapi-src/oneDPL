@@ -85,13 +85,9 @@ get_access(Policy, counting_iterator<T> i)
 
 template <sycl::access::mode Mode, typename Policy, typename T>
 T*
-get_access(const Policy&
-#    if !defined(NDEBUG)
-               policy
-#    endif
-           ,
-           T* ptr)
+get_access(const Policy& policy, T* ptr)
 {
+    (void)policy; // policy may be unused, avoid warning
     assert(sycl::get_pointer_type(ptr, policy.queue().get_context()) == sycl::usm::alloc::shared);
     return ptr;
 }
