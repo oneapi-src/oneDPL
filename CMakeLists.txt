@@ -265,8 +265,11 @@ target_include_directories(oneDPL
 ###############################################################################
 # Setup tests
 ###############################################################################
-enable_testing()
-add_subdirectory(test)
+get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
+if (NOT _onedpl_is_subproject)
+    enable_testing()
+    add_subdirectory(test)
+endif()
 
 ###############################################################################
 # Installation instructions

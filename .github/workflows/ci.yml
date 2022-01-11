@@ -167,6 +167,8 @@ jobs:
             make_targets="sycl_iterator.pass"
             ctest_flags="-R sycl_iterator.pass"
             echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass"
+          else
+            make_targets="build-all-tests"
           fi
           mkdir build && cd build
           lscpu
@@ -222,6 +224,9 @@ jobs:
             set ninja_targets=sycl_iterator.pass
             set ctest_flags=-R sycl_iterator.pass
             echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass
+          )
+          ELSE (
+            set ninja_targets=build-all-tests
           )
           IF "${{ matrix.cxx_compiler }}" == "dpcpp" (
             powershell $output = dpcpp --version; Write-Host ::warning::Compiler: $output

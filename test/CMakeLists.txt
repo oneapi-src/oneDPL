@@ -15,20 +15,20 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-add_custom_target(build-all
-    COMMENT "Build all the pstl tests.")
+add_custom_target(build-all-tests
+    COMMENT "Build all oneDPL tests")
 
-add_custom_target(run-all
+add_custom_target(run-all-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
     DEPENDS build-all
-    COMMENT "Build and run all the unit tests.")
+    COMMENT "Build and run all oneDPL tests")
 
 macro(onedpl_add_test test_source_file)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
-    add_executable(${_test_name} "${test_source_file}")
+    add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)
@@ -97,7 +97,7 @@ macro(onedpl_add_test test_source_file)
         endif()
         add_dependencies(build-${_label} ${_test_name})
     endforeach()
-    add_dependencies(build-all ${_test_name})
+    add_dependencies(build-all-tests ${_test_name})
 endmacro()
 
 set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
