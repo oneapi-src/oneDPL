@@ -316,7 +316,7 @@ pipeline {
                                                 """, label: "Generate"
                                                 bat script: """
                                                     set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
-                                                    "%MAKE_PROGRAM%" build-all -v -k 0
+                                                    "%MAKE_PROGRAM%" build-all-tests -v -k 0
                                                 """, label: "Build"
                                                 bat script: """
                                                     ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
@@ -360,7 +360,7 @@ pipeline {
                                                 """, label: "Generate"
                                                 bat script: """
                                                     set MAKE_PROGRAM=%DevEnvDir%CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe
-                                                    "%MAKE_PROGRAM%" build-all -v -k 0
+                                                    "%MAKE_PROGRAM%" build-all-tests -v -k 0
                                                 """, label: "Build"
                                                 bat script: """
                                                     ctest --output-on-failure -C release --timeout %TEST_TIMEOUT%
