@@ -274,7 +274,7 @@ pipeline {
                                             sh script: """
                                                 rm -rf *
                                                 cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=11 -DONEDPL_BACKEND=tbb -DONEDPL_DEVICE_TYPE=HOST -DCMAKE_BUILD_TYPE=release ..
-                                                make VERBOSE=1 build-all -j`nproc` -k || true
+                                                make VERBOSE=1 build-all-tests -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
                                             """, label: "All tests"
                                         }
