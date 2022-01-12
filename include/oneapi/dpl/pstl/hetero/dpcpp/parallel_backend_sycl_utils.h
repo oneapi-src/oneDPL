@@ -509,28 +509,22 @@ constexpr void __get_value(_T& __val)
     return __val;
 }
 
+//A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
+//Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
 template<typename _Event, typename ...Args>
-class __future
+class __future: private std::tuple<Args...>
 {
-    std::tuple<_Event, Args...> __my_args; //a contract: <sycl::event or other event, a value or sycl::buffers...>
+    _Event __my_event;
     static constexpr bool __is_value = sizeof...(Args) > 0;
 public:
-    __future(_Event e, Args... args): __my_args(e, args...) {}
+    __future(_Event e, Args... args): __my_event(e), std::tuple<Args...>(args...) {}
 
-    operator _Event() const { return std::get<0>(__my_args); } //sycl::event according to the contract
+    operator _Event() const { return __my_event; }
     auto event() const { return operator _Event(); }
-    void
-    wait()
-    {
-        __wait_event(operator _Event());
-    }
+    void wait() { __wait_event(operator _Event());}
 
     template<typename = typename std::enable_if<__is_value, void>>
-    auto
-    get()
-    {
-        return __get_value(std::get<1>(__my_args));
-    }
+    auto get() { return __get_value(std::get<0>(*this)); }
 };
 #endif
 //template <typename... Args>
