@@ -510,12 +510,12 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _InitType, typename _LocalScan,
+          typename _GroupScan, typename _GlobalScan>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
     _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>>
-__parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation,
-                          _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
+__parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _InitType __init,
+                          _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;

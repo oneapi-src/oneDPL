@@ -332,7 +332,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
             oneapi::dpl::__ranges::zip_view(
                 __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                             __mask_buf.get_buffer())),
-            __rng2, __reduce_op, _InitType{},
+            __rng2, _InitType{},
             // local scan
             unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                                   _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
