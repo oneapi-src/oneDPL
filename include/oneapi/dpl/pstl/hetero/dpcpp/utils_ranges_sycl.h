@@ -397,7 +397,8 @@ struct __get_sycl_range
         return this->operator()(__m, __m + __n);
     }
     template <typename _Map, typename _Size>
-    auto __get_it_map_view(_Map __m, _Size __n) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Size>::type
+    auto
+    __get_it_map_view(_Map __m, _Size __n) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Size>::type
     {
         oneapi::dpl::__internal::__maybe_unused(__m);
         oneapi::dpl::__internal::__maybe_unused(__n);
