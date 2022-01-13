@@ -226,6 +226,7 @@ jobs:
           set LIB=%CONDA_PREFIX%\Library\lib;%LIB%
           set CPATH=%CONDA_PREFIX%\include
           set OCL_ICD_FILENAMES=%CONDA_PREFIX%\Library\lib\intelocl64.dll
+          set TBB_DLL_PATH=%CONDA_PREFIX%\Library\bin
           cmake -G "Ninja" %toolchain_option% -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           ninja -j 2 -v %ninja_targets%
           ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags%
