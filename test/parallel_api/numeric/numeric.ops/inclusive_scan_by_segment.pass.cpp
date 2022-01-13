@@ -32,6 +32,20 @@ using namespace TestUtils;
 template <typename BinaryOperation>
 struct test_inclusive_scan_by_segment
 {
+    template <typename T>
+    struct DifferenceTypeT
+    {
+        using DifferenceType = typename ::std::iterator_traits<T>::difference_type;
+    };
+
+#if TEST_DPCPP_BACKEND_PRESENT
+    template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget, sycl::access::placeholder Placeholder>
+    struct DifferenceTypeT<sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>>
+    {
+        using DifferenceType = ::std::size_t;
+    };
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
     // TODO: replace data generation with random data and update check to compare result to
     // the result of a serial implementation of the algorithm
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
@@ -41,11 +55,12 @@ struct test_inclusive_scan_by_segment
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, ... };
 
-        int segment_length = 1;
-        int i = 0;
-        while (i != n)
+        using DifferenceType = typename DifferenceTypeT<decltype(host_vals)>::DifferenceType;
+
+        DifferenceType segment_length = 1;
+        for (DifferenceType i = 0; i != n; )
         {
-          for (int j = 0; j != 4*segment_length && i != n; ++j)
+          for (DifferenceType j = 0; j != 4*segment_length && i != n; ++j)
           {
               host_keys[i] = j/segment_length + 1;
               host_vals[i] = 1;
@@ -60,8 +75,10 @@ struct test_inclusive_scan_by_segment
     template <typename Iterator, typename Size>
     void display_param(const char* msg, Iterator it, Size n)
     {
+        using DifferenceType = typename DifferenceTypeT<Iterator>::DifferenceType;
+
         std::cout << msg;
-        for (int i = 0; i < n; ++i)
+        for (DifferenceType i = 0; i < n; ++i)
         {
             if (i > 0)
                 std::cout << ", ";
@@ -108,14 +125,16 @@ struct test_inclusive_scan_by_segment
         using ValT = typename ::std::decay<decltype(host_vals[0])>::type;
         const ValT init = {};
 
-        // Last summ info
-        int last_segment_begin = 0;         // Start index of last summ
-        int last_segment_end = 0;           // End index of last summ
-        ValT last_segment_summ = init;      // Last summ
+        using DifferenceType = typename DifferenceTypeT<decltype(host_vals)>::DifferenceType;
 
-        int segment_start_idx = 0;
-        int val_res_idx = 0;
-        for (int current_key_idx = 1; current_key_idx <= n; ++current_key_idx)
+        // Last summ info
+        DifferenceType last_segment_begin = 0;  // Start index of last summ
+        DifferenceType last_segment_end = 0;    // End index of last summ
+        ValT last_segment_summ = init;          // Last summ
+
+        DifferenceType segment_start_idx = 0;
+        DifferenceType val_res_idx = 0;
+        for (DifferenceType current_key_idx = 1; current_key_idx <= n; ++current_key_idx)
         {
             // Eval current summ
             auto expected_segment_sum = init;
