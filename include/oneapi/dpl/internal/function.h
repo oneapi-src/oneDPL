@@ -17,6 +17,7 @@
 #define _ONEDPL_INTERNAL_FUNCTION_H
 
 #include <utility>
+#include "utils.h"
 #if _ONEDPL_BACKEND_SYCL
 #    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #endif
@@ -87,7 +88,7 @@ template <sycl::access::mode Mode, typename Policy, typename T>
 T*
 get_access(const Policy& policy, T* ptr)
 {
-    (void)policy; // TODO: apply maybe_unused attribute once c++17 is minimal supported version
+    oneapi::dpl::__internal::__maybe_unused(policy);
     assert(sycl::get_pointer_type(ptr, policy.queue().get_context()) == sycl::usm::alloc::shared);
     return ptr;
 }

@@ -649,6 +649,13 @@ struct __lifetime_keeper : public __lifetime_keeper_base
     __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
 };
 
+// Suppress unused entity warning with pre c++17 standards
+template<typename T>
+inline void __maybe_unused(const T& v)
+{
+    static_cast<void>(v);
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
