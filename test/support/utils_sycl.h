@@ -367,6 +367,5 @@ get_host_access(T* data)
 {
     return data;
 }
-
 } /* namespace TestUtils */
 #endif
