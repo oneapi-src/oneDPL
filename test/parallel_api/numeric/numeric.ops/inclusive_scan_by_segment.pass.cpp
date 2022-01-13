@@ -321,7 +321,7 @@ struct test_inclusive_scan_by_segment
 };
 
 template<typename _Tp>
-struct UserBinaryOperation : public ::std::binary_function<_Tp, _Tp, _Tp>
+struct UserBinaryOperation
 {
     _Tp operator()(const _Tp& __x, const _Tp& __y) const
     {
