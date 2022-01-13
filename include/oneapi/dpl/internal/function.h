@@ -17,7 +17,7 @@
 #define _ONEDPL_INTERNAL_FUNCTION_H
 
 #include <utility>
-#include "utils.h"
+#include "../pstl/utils.h"
 #if _ONEDPL_BACKEND_SYCL
 #    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #endif
