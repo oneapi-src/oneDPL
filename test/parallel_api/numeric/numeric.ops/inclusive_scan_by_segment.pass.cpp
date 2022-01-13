@@ -42,13 +42,19 @@ namespace
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    template <typename, typename = ::std::void_t<>>
-    struct HasBeginMethod : ::std::false_type
+    template<typename>
+    struct TVoid
+    {
+        using type = void;
+    };
+
+    template<typename T, typename Type = void>
+    struct HasBeginMethod : std::false_type
     {
     };
 
     template <typename T>
-    struct HasBeginMethod<T, ::std::void_t<decltype(&T::begin)>> : ::std::true_type
+    struct HasBeginMethod<T, typename TVoid<decltype(&T::begin)>::type> : std::true_type
     {
     };
 
