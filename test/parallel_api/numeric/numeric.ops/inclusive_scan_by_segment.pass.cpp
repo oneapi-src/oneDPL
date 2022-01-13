@@ -29,6 +29,7 @@ using namespace TestUtils;
 
 //#define DUMP_CHECK_RESULTS
 
+template <typename BinaryOperation>
 struct test_inclusive_scan_by_segment
 {
     // TODO: replace data generation with random data and update check to compare result to
@@ -74,6 +75,15 @@ struct test_inclusive_scan_by_segment
     void
     check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n)
     {
+        using ValT = typename ::std::decay<decltype(host_vals[0])>::type;
+
+        return check_values(host_keys, host_vals, val_res, n, ::std::plus<ValT>());
+    }
+
+    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename BinaryOperationCheck>
+    void
+    check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n, BinaryOperationCheck op)
+    {
         // https://docs.oneapi.io/versions/latest/onedpl/extension_api.html
         // keys:   [ 0, 0, 0, 1, 1, 1 ]
         // values: [ 1, 2, 3, 4, 5, 6 ]
@@ -110,10 +120,15 @@ struct test_inclusive_scan_by_segment
             // Eval current summ
             auto expected_segment_sum = init;
             if (last_segment_begin == segment_start_idx && last_segment_end + 1 == current_key_idx)
-                expected_segment_sum = last_segment_summ + host_vals[current_key_idx - 1];
+                expected_segment_sum = segment_start_idx == current_key_idx - 1
+                                           ? host_vals[segment_start_idx]
+                                           : op(last_segment_summ, host_vals[current_key_idx - 1]);
             else
-                expected_segment_sum = ::std::accumulate(get_host_iterator(host_vals) + segment_start_idx,
-                                                         get_host_iterator(host_vals) + current_key_idx, init);
+                expected_segment_sum =
+                    segment_start_idx == current_key_idx - 1
+                        ? host_vals[segment_start_idx]
+                        : ::std::accumulate(get_host_iterator(host_vals) + segment_start_idx,
+                                            get_host_iterator(host_vals) + current_key_idx, init, op);
 
             // Update last summ  info
             last_segment_begin = segment_start_idx;
@@ -183,12 +198,12 @@ struct test_inclusive_scan_by_segment
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; },
-                                                           [](ValT first, ValT second) { return first + second; });
+                                                           BinaryOperation());
         exec.queue().wait_and_throw();
         auto host_keys = get_host_access(keys_first);
         auto host_vals = get_host_access(vals_first);
         auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_vals, host_val_res, n);
+        check_values(host_keys, host_vals, host_val_res, n, BinaryOperation());
     }
 #endif
 
@@ -221,8 +236,8 @@ struct test_inclusive_scan_by_segment
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; },
-                                                           [](ValT first, ValT second) { return first + second; });
-        check_values(keys_first, vals_first, val_res_first, n);
+                                                           BinaryOperation());
+        check_values(keys_first, vals_first, val_res_first, n, BinaryOperation());
     }
 
     // specialization for non-random_access iterators
@@ -235,10 +250,34 @@ struct test_inclusive_scan_by_segment
     }
 };
 
+template<typename _Tp>
+struct UserBinaryOperation : public ::std::binary_function<_Tp, _Tp, _Tp>
+{
+    _Tp operator()(const _Tp& __x, const _Tp& __y) const
+    {
+        return __x * __y;
+    }
+};
+
 int main() {
+    {
+        using ValueType = ::std::uint64_t;
+        using BinaryOperation = ::std::plus<ValueType>;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<std::uint64_t, test_inclusive_scan_by_segment>();
-#endif
-    test_algo_three_sequences<std::uint64_t, test_inclusive_scan_by_segment>();
+        test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+        test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+    }
+
+    {
+        using ValueType = ::std::int64_t;
+        using BinaryOperation = UserBinaryOperation<ValueType>;
+
+#if TEST_DPCPP_BACKEND_PRESENT
+        test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+        test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+    }
     return TestUtils::done();
 }
