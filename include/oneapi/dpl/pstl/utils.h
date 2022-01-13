@@ -650,8 +650,9 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 };
 
 // Suppress unused entity warning with pre c++17 standards
-template<typename T>
-inline void __maybe_unused(const T& v)
+template <typename T>
+inline void
+__maybe_unused(const T& v)
 {
     static_cast<void>(v);
 }
