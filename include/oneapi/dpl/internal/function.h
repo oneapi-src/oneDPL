@@ -87,7 +87,7 @@ template <sycl::access::mode Mode, typename Policy, typename T>
 T*
 get_access(const Policy& policy, T* ptr)
 {
-    (void)policy; // policy may be unused, avoid warning
+    (void)policy; // TODO: apply maybe_unused attribute once c++17 is minimal supported version
     assert(sycl::get_pointer_type(ptr, policy.queue().get_context()) == sycl::usm::alloc::shared);
     return ptr;
 }
