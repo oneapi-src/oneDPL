@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This header guard is used to check inclusion of OpenMP backend.
+// Changing this macro may result in broken tests.
 #ifndef _ONEDPL_PARALLEL_BACKEND_OMP_H
 #define _ONEDPL_PARALLEL_BACKEND_OMP_H
 

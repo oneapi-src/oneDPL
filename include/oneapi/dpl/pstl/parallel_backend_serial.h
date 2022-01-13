@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This header guard is used to check inclusion of serial backend.
+// Changing this macro may result in broken tests.
 #ifndef _ONEDPL_PARALLEL_BACKEND_SERIAL_H
 #define _ONEDPL_PARALLEL_BACKEND_SERIAL_H
 
