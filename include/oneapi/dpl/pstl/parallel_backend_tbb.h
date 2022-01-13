@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This header guard is used to check inclusion of TBB backend.
+// Changing this macro may result in broken tests.
 #ifndef _ONEDPL_PARALLEL_BACKEND_TBB_H
 #define _ONEDPL_PARALLEL_BACKEND_TBB_H
 
