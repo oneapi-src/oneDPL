@@ -13,7 +13,7 @@ env:
   BUILD_CONCURRENCY: 2
   MACOS_BUILD_CONCURRENCY: 3
   TEST_TIMEOUT: 360
-  MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18358/m_cpp-compiler-classic_p_2022.0.0.62_offline.dmg
+  MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18212/m_cpp-compiler-classic_p_2021.4.0.248_offline.dmg
 
 jobs:
   clang-format:
