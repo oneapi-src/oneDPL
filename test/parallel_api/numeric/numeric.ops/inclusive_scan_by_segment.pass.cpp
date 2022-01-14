@@ -290,7 +290,9 @@ struct UserBinaryOperation
     }
 };
 
-int main() {
+int main()
+{
+    std::cout << "Test operation: ::std::plus<ValueType>" << std::endl;
     {
         using ValueType = ::std::uint64_t;
         using BinaryOperation = ::std::plus<ValueType>;
@@ -301,6 +303,7 @@ int main() {
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
     }
 
+    std::cout << "Test operation: UserBinaryOperation (op1 * op2)" << std::endl;
     {
         using ValueType = ::std::int64_t;
         using BinaryOperation = UserBinaryOperation<ValueType>;
