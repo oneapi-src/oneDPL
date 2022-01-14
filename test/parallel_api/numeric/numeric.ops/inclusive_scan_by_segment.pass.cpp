@@ -88,6 +88,40 @@ struct test_inclusive_scan_by_segment
     }
 //#endif // DUMP_CHECK_RESULTS
 
+    template <typename Iterator1, typename Iterator2, typename Size>
+    bool
+    check_values_old_impl(Iterator1 host_keys, Iterator2 val_res, Size n)
+    {
+        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
+        //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
+
+        int segment_length = 1;
+        auto expected_segment_sum = 1;
+        auto current_key = host_keys[0];
+        auto current_sum = 0;
+        for (int i = 0; i != n; ++i)
+        {
+            if (current_key == host_keys[i])
+            {
+                current_sum += val_res[i];
+            }
+            else {
+                //EXPECT_TRUE(current_sum == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
+                if (current_sum != expected_segment_sum)
+                    return false;
+
+                current_sum = val_res[i];
+                current_key = host_keys[i];
+                if (current_key == 1) {
+                    ++segment_length;
+                    expected_segment_sum = segment_length * (segment_length + 1) / 2;
+                }
+            }
+        }
+
+        return true;
+    }
+
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n)
@@ -166,6 +200,8 @@ struct test_inclusive_scan_by_segment
                 display_param("keys:   ", host_keys, n);
                 display_param("values: ", host_vals, n);
                 display_param("result: ", val_res, n);
+
+                std::cout << "Old check function result : " << check_values_old_impl(host_keys, val_res, n) << std::endl;
             }
 
             EXPECT_TRUE(val_res[val_res_idx] == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
