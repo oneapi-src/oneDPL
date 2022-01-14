@@ -71,7 +71,7 @@ struct test_inclusive_scan_by_segment
         }
     }
 
-#ifdef DUMP_CHECK_RESULTS
+//#ifdef DUMP_CHECK_RESULTS
     template <typename Iterator, typename Size>
     void display_param(const char* msg, Iterator it, Size n)
     {
@@ -86,7 +86,7 @@ struct test_inclusive_scan_by_segment
         }
         std::cout << std::endl;
     }
-#endif // DUMP_CHECK_RESULTS
+//#endif // DUMP_CHECK_RESULTS
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
@@ -154,6 +154,19 @@ struct test_inclusive_scan_by_segment
             last_segment_begin = segment_start_idx;
             last_segment_end = current_key_idx;
             last_segment_summ = expected_segment_sum;
+
+            if (val_res[val_res_idx] != expected_segment_sum)
+            {
+                std::cout << "check_values(n = " << n << ") : val_res[val_res_idx] != expected_segment_sum : "
+                    << "val_res_idx = " << val_res_idx << ";"
+                    << "val_res[val_res_idx]" << val_res[val_res_idx] << ";"
+                    << "expected_segment_sum = " << expected_segment_sum
+                    << std::endl;
+
+                display_param("keys:   ", host_keys, n);
+                display_param("values: ", host_vals, n);
+                display_param("result: ", val_res, n);
+            }
 
             EXPECT_TRUE(val_res[val_res_idx] == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
             ++val_res_idx;
