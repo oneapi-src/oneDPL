@@ -179,15 +179,15 @@ struct test_inclusive_scan_by_segment
             return;
         }
 
-        using ValT = typename ::std::decay<decltype(host_vals[0])>::type;
-        const ValT init = {};
+        auto init = host_vals[0];
+        init = {};
 
         using DifferenceType = typename DifferenceTypeT<decltype(host_vals)>::DifferenceType;
 
         // Last summ info
         DifferenceType last_segment_begin = 0;  // Start index of last summ
         DifferenceType last_segment_end = 0;    // End index of last summ
-        ValT last_segment_summ = init;          // Last summ
+        auto last_segment_summ = init;          // Last summ
 
         DifferenceType segment_start_idx = 0;
         DifferenceType val_res_idx = 0;
@@ -230,7 +230,6 @@ struct test_inclusive_scan_by_segment
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         // call algorithm with no optional arguments
         {
@@ -295,7 +294,6 @@ struct test_inclusive_scan_by_segment
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
