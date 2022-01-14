@@ -124,16 +124,16 @@ struct test_inclusive_scan_by_segment
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
-    check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n)
+    check_values(const char* msg, Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n)
     {
         using ValT = typename ::std::decay<decltype(host_vals[0])>::type;
 
-        return check_values(host_keys, host_vals, val_res, n, ::std::plus<ValT>());
+        return check_values(msg, host_keys, host_vals, val_res, n, ::std::plus<ValT>());
     }
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename BinaryOperationCheck>
     void
-    check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n, BinaryOperationCheck op)
+    check_values(const char* msg, Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n, BinaryOperationCheck op)
     {
         // https://docs.oneapi.io/versions/latest/onedpl/extension_api.html
         // keys:   [ 0, 0, 0, 1, 1, 1 ]
@@ -191,11 +191,12 @@ struct test_inclusive_scan_by_segment
 
             if (val_res[val_res_idx] != expected_segment_sum)
             {
-                std::cout << "check_values(n = " << n << ") : val_res[val_res_idx] != expected_segment_sum : "
-                    << "val_res_idx = " << val_res_idx << ";"
-                    << "val_res[val_res_idx]" << val_res[val_res_idx] << ";"
-                    << "expected_segment_sum = " << expected_segment_sum
-                    << std::endl;
+                std::cout << msg << " : "
+                          << "check_values(n = " << n << ") : val_res[val_res_idx] != expected_segment_sum : "
+                          << "val_res_idx = " << val_res_idx << ";"
+                          << "val_res[val_res_idx]" << val_res[val_res_idx] << ";"
+                          << "expected_segment_sum = " << expected_segment_sum
+                          << std::endl;
 
                 display_param("keys:   ", host_keys, n);
                 display_param("values: ", host_vals, n);
@@ -241,7 +242,7 @@ struct test_inclusive_scan_by_segment
             auto host_keys = get_host_access(keys_first);
             auto host_vals = get_host_access(vals_first);
             auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_vals, host_val_res, n);
+            check_values("1", host_keys, host_vals, host_val_res, n);
 
             // call algorithm with equality comparator
 
@@ -256,7 +257,7 @@ struct test_inclusive_scan_by_segment
             auto host_keys = get_host_access(keys_first);
             auto host_vals = get_host_access(vals_first);
             auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_vals, host_val_res, n);
+            check_values("2", host_keys, host_vals, host_val_res, n);
 
             // call algorithm with addition operator
 
@@ -271,7 +272,7 @@ struct test_inclusive_scan_by_segment
         auto host_keys = get_host_access(keys_first);
         auto host_vals = get_host_access(vals_first);
         auto host_val_res = get_host_access(val_res_first);
-        check_values(host_keys, host_vals, host_val_res, n, BinaryOperation());
+        check_values("3", host_keys, host_vals, host_val_res, n, BinaryOperation());
     }
 #endif
 
@@ -291,20 +292,20 @@ struct test_inclusive_scan_by_segment
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res1 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
-        check_values(keys_first, vals_first, val_res_first, n);
+        check_values("4", keys_first, vals_first, val_res_first, n);
 
         // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res2 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; });
-        check_values(keys_first, vals_first, val_res_first, n);
+        check_values("5", keys_first, vals_first, val_res_first, n);
 
         // call algorithm with addition operator
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; },
                                                            BinaryOperation());
-        check_values(keys_first, vals_first, val_res_first, n, BinaryOperation());
+        check_values("6", keys_first, vals_first, val_res_first, n, BinaryOperation());
     }
 
     // specialization for non-random_access iterators
@@ -336,6 +337,7 @@ int main()
 #if TEST_DPCPP_BACKEND_PRESENT
         test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
+        std::cout << "test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
     }
 
@@ -345,8 +347,10 @@ int main()
         using BinaryOperation = UserBinaryOperation<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
+        std::cout << "test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
         test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
+        std::cout << "test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
     }
     return TestUtils::done();
