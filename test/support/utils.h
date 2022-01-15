@@ -893,7 +893,7 @@ template <typename T, typename TestName>
 void
 test_algo_three_sequences()
 {
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 2; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         Sequence<T> inout1(max_n + inout1_offset);
         Sequence<T> inout2(max_n + inout2_offset);

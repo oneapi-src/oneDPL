@@ -287,7 +287,7 @@ test3buffers(int mult = 1)
         T* inout3_offset_first = inout3_first.get() + inout3_offset;
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
+        for (size_t n = 2; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
         {
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
@@ -310,7 +310,7 @@ test3buffers(int mult = 1)
         auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
 
         // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
+        for (size_t n = 2; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
         {
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
