@@ -29,63 +29,6 @@ using namespace TestUtils;
 
 //#define DUMP_CHECK_RESULTS
 
-namespace
-{
-#if TEST_DPCPP_BACKEND_PRESENT
-    // accessors
-    template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
-              sycl::access::placeholder Placeholder>
-    T*
-    get_host_iterator(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>& acc)
-    {
-        return &acc[0];
-    }
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-    template<typename>
-    struct TVoid
-    {
-        using type = void;
-    };
-
-    template<typename T, typename Type = void>
-    struct HasBeginMethod : std::false_type
-    {
-    };
-
-    template <typename T>
-    struct HasBeginMethod<T, typename TVoid<decltype(&T::begin)>::type> : std::true_type
-    {
-    };
-
-    // containers with begin
-    template <typename Container>
-    auto
-    get_host_iterator(Container& cont) ->
-        typename ::std::enable_if<HasBeginMethod<Container>::value, decltype(cont.begin())>::type
-    {
-        return cont.begin();
-    }
-
-    // pointers
-    template <typename T>
-    T*
-    get_host_iterator(T* data)
-    {
-        return data;
-    }
-
-    // iterators (ramdom access)
-    template <typename Iterator>
-    typename ::std::enable_if<::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category,
-                                             ::std::random_access_iterator_tag>::value,
-                              Iterator>::type
-    get_host_iterator(Iterator it)
-    {
-        return it;
-    }
-};
-
 template <typename BinaryOperation>
 struct test_inclusive_scan_by_segment
 {
@@ -189,15 +132,16 @@ struct test_inclusive_scan_by_segment
             // Eval current summ
             auto expected_segment_sum = init;
             if (last_segment_begin == segment_start_idx && last_segment_end + 1 == current_key_idx)
+            {
                 expected_segment_sum = segment_start_idx == current_key_idx - 1
                                            ? host_vals[segment_start_idx]
                                            : op(last_segment_summ, host_vals[current_key_idx - 1]);
+            }
             else
-                expected_segment_sum =
-                    segment_start_idx == current_key_idx - 1
-                        ? host_vals[segment_start_idx]
-                        : ::std::accumulate(get_host_iterator(host_vals) + segment_start_idx,
-                                            get_host_iterator(host_vals) + current_key_idx, init, op);
+            {
+                assert(segment_start_idx == current_key_idx - 1);
+                expected_segment_sum = host_vals[segment_start_idx];
+            }
 
             // Update last summ  info
             last_segment_begin = segment_start_idx;
