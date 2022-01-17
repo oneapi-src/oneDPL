@@ -355,8 +355,11 @@ int main()
         std::cout << "test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
         test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if !_PSTL_ICC_XX_SIMD_SCAN_USER_OP_RELEASE_BROKEN
         std::cout << "test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+#endif // !_PSTL_ICC_XX_SIMD_SCAN_USER_OP_RELEASE_BROKEN
     }
     return TestUtils::done();
 }
