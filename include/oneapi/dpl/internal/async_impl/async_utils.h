@@ -27,7 +27,7 @@ namespace dpl
 {
 namespace __internal
 {
-
+#if 0
 template <typename _T>
 struct async_value_base
 {
@@ -109,6 +109,7 @@ class __future<_T, typename std::enable_if<__internal::is_hetero_iterator<_T>::v
     {
     }
 };
+#endif //0
 #endif
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>

@@ -39,10 +39,9 @@ wait_for_all(_Ts&&... __events)
 }
 
 // [async.reduce]
-template <class _ExecutionPolicy, class _ForwardIt, class... _Events>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future<typename std::iterator_traits<_ForwardIt>::value_type>,
-    _Events...>
+template <class _ExecutionPolicy, class _ForwardIt, class... _Events,
+          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+auto
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _Events&&... __dependencies)
 {
     using _Tp = typename std::iterator_traits<_ForwardIt>::value_type;
@@ -50,9 +49,9 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _
                         ::std::forward<_Events>(__dependencies)...);
 }
 
-template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events>
-oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<
-    _ExecutionPolicy, oneapi::dpl::__internal::__future<_T>, _T, _Events...>
+template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events,
+          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, void, _T, _Events...>>
+auto
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init, _Events&&... __dependencies)
 {
     return reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>(),
@@ -60,9 +59,9 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _
 }
 
 // [async.transform_reduce]
-template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__future<_T>,
-                                                             _Events...>
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
+          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _Events&&... __dependencies)
 {
@@ -73,9 +72,9 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _Forward
 }
 
 // [async.sort]
-template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events>
-oneapi::dpl::__internal::__enable_if_device_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<void>, _Events...>
+template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events,
+          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+auto
 sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
            _Events&&... __dependencies)
 {
