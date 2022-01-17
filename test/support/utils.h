@@ -681,9 +681,16 @@ struct invoke_on_all_host_policies
 
 #if !TEST_ONLY_HETERO_POLICIES
         // Try static execution policies
+        std::cout << "invoke_on_all_iterator_types()(seq, op, ::std::forward<T>(rest)...);" << std::endl;
         invoke_on_all_iterator_types()(seq, op, ::std::forward<T>(rest)...);
+
+        std::cout << "invoke_on_all_iterator_types()(unseq, op, ::std::forward<T>(rest)...);" << std::endl;
         invoke_on_all_iterator_types()(unseq, op, ::std::forward<T>(rest)...);
+
+        std::cout << "invoke_on_all_iterator_types()(par, op, ::std::forward<T>(rest)...);" << std::endl;
         invoke_on_all_iterator_types()(par, op, ::std::forward<T>(rest)...);
+
+        std::cout << "invoke_on_all_iterator_types()(par_unseq, op, ::std::forward<T>(rest)...);" << std::endl;
         invoke_on_all_iterator_types()(par_unseq, op, ::std::forward<T>(rest)...);
 
 #endif
