@@ -27,6 +27,8 @@ using namespace oneapi::dpl::execution;
 #endif
 using namespace TestUtils;
 
+#include <thread>
+
 //#define DUMP_CHECK_RESULTS
 
 template <typename BinaryOperation>
@@ -329,6 +331,8 @@ struct UserBinaryOperation
 
 int main()
 {
+    std::this_thread::sleep_for(std::chrono::seconds(30));
+
     std::cout << "Test operation: ::std::plus<ValueType>" << std::endl;
     {
 //        using ValueType = ::std::uint64_t;
