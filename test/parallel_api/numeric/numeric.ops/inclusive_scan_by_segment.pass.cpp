@@ -290,6 +290,7 @@ struct test_inclusive_scan_by_segment
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
@@ -306,8 +307,8 @@ struct test_inclusive_scan_by_segment
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; },
-                                                           BinaryOperation());
-        check_values("6", keys_first, vals_first, val_res_first, n, BinaryOperation());
+                                                           [](ValT op1, ValT op2) -> ValT { return op1 * op2; });
+        check_values("6", keys_first, vals_first, val_res_first, n, [](ValT op1, ValT op2) -> ValT { return op1 * op2; });
     }
 
     // specialization for non-random_access iterators
@@ -348,9 +349,7 @@ int main()
     std::cout << "Test operation: UserBinaryOperation (op1 * op2)" << std::endl;
     {
         using ValueType = ::std::int64_t;
-        //using BinaryOperation = UserBinaryOperation<ValueType>;
-
-        using BinaryOperation = ::std::multiplies<ValueType>;
+        using BinaryOperation = UserBinaryOperation<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
         std::cout << "test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
