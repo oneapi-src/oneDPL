@@ -60,6 +60,8 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     auto mask = _mask.get();
 
     mask[0] = 1;
+    for (auto i = 0; i < n; ++i)
+        mask[i] = i == 0 ? 1 : 0;
 
     //// Log mask
     //{
