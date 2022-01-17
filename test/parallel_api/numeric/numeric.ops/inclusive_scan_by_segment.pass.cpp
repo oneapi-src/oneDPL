@@ -19,6 +19,8 @@
 
 #include "support/test_config.h"
 #include "support/utils.h"
+#include "support/scan_serial_impl.h"
+
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #include <CL/sycl.hpp>
@@ -27,7 +29,7 @@ using namespace oneapi::dpl::execution;
 #endif
 using namespace TestUtils;
 
-//#define DUMP_CHECK_RESULTS
+#define DUMP_CHECK_RESULTS
 
 template <typename BinaryOperation>
 struct test_inclusive_scan_by_segment
@@ -109,50 +111,19 @@ struct test_inclusive_scan_by_segment
         if (n < 1)
             return;
 
-        if (n == 1)
-        {
-            EXPECT_TRUE(host_vals[0] == val_res[0], "wrong effect from exclusive_scan_by_segment");
-            return;
-        }
+        using ValT = typename ::std::decay<decltype(val_res[0])>::type;
 
-        auto init = host_vals[0];
-        init = {};
+        std::vector<ValT> expected_val_res(n);
+        inclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, op);
+
+#ifdef DUMP_CHECK_RESULTS
+        display_param("expected result: ", expected_val_res.data(), n);
+#endif // DUMP_CHECK_RESULTS
 
         using DifferenceType = typename DifferenceTypeT<decltype(host_vals)>::DifferenceType;
-
-        // Last summ info
-        DifferenceType last_segment_begin = 0;  // Start index of last summ
-        DifferenceType last_segment_end = 0;    // End index of last summ
-        auto last_segment_summ = init;          // Last summ
-
-        DifferenceType segment_start_idx = 0;
-        DifferenceType val_res_idx = 0;
-        for (DifferenceType current_key_idx = 1; current_key_idx <= n; ++current_key_idx)
+        for (DifferenceType i = 0; i < n; ++i)
         {
-            // Eval current summ
-            auto expected_segment_sum = init;
-            if (last_segment_begin == segment_start_idx && last_segment_end + 1 == current_key_idx)
-            {
-                expected_segment_sum = segment_start_idx == current_key_idx - 1
-                                           ? host_vals[segment_start_idx]
-                                           : op(last_segment_summ, host_vals[current_key_idx - 1]);
-            }
-            else
-            {
-                assert(segment_start_idx == current_key_idx - 1);
-                expected_segment_sum = host_vals[segment_start_idx];
-            }
-
-            // Update last summ  info
-            last_segment_begin = segment_start_idx;
-            last_segment_end = current_key_idx;
-            last_segment_summ = expected_segment_sum;
-
-            EXPECT_TRUE(val_res[val_res_idx] == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
-            ++val_res_idx;
-
-            if (current_key_idx < n && host_keys[segment_start_idx] != host_keys[current_key_idx])
-                segment_start_idx = current_key_idx;
+            EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from exclusive_scan_by_segment");
         }
     }
 
