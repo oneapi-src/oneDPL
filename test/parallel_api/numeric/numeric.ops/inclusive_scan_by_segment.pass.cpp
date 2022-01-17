@@ -348,7 +348,9 @@ int main()
     std::cout << "Test operation: UserBinaryOperation (op1 * op2)" << std::endl;
     {
         using ValueType = ::std::int64_t;
-        using BinaryOperation = UserBinaryOperation<ValueType>;
+        //using BinaryOperation = UserBinaryOperation<ValueType>;
+
+        using BinaryOperation = ::std::multiplies<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
         std::cout << "test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
