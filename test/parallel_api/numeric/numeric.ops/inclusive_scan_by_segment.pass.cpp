@@ -331,14 +331,14 @@ int main()
 {
     std::cout << "Test operation: ::std::plus<ValueType>" << std::endl;
     {
-        using ValueType = ::std::uint64_t;
-        using BinaryOperation = ::std::plus<ValueType>;
-
-#if TEST_DPCPP_BACKEND_PRESENT
-        test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
-        std::cout << "test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
-        test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+//        using ValueType = ::std::uint64_t;
+//        using BinaryOperation = ::std::plus<ValueType>;
+//
+//#if TEST_DPCPP_BACKEND_PRESENT
+//        test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+//#endif // TEST_DPCPP_BACKEND_PRESENT
+//        std::cout << "test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();" << std::endl;
+//        test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
     }
 
     std::cout << "Test operation: UserBinaryOperation (op1 * op2)" << std::endl;
