@@ -206,17 +206,21 @@ struct has_value_types : ::std::false_type {};
 template <typename T>
 struct has_value_types<T, typename T::value_types> : ::std::true_type {};
 
+inline void not_supported_types_notifier(bool has_support, const sycl::device& device)
+{
+    static bool is_notified = false;
+    if(!has_support && !is_notified)
+    {
+        ::std::cout << device.template get_info<sycl::info::device::name>()
+                    << " does not support fp64 or fp16 types, affected test cases have been skipped\n";
+        is_notified = true;
+    }
+}
+
 // Invoke test::operator()(policy,rest...) for each possible policy.
 template <::std::size_t CallNumber = 0>
 struct invoke_on_all_hetero_policies
 {
-    //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
-    //of kernels from operator type and ::std::size_t
-    // There may be an issue when there is a kernel parameter which has a pointer in its name.
-    // For example, param<int*>. In this case the runtime interpreters it as a memory object and
-    // performs some checks that fails. As a workaround, define for functors which have this issue
-    // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
-
     template <typename Op, typename Arg, typename... Args>
     typename ::std::enable_if<has_value_types<Op>::value, void>::type
     operator()(Op op, Arg&& first, Args&&... rest)
@@ -235,11 +239,21 @@ struct invoke_on_all_hetero_policies
     }
 
 private:
+    //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
+    //of kernels from operator type and ::std::size_t
+    // There may be an issue when there is a kernel parameter which has a pointer in its name.
+    // For example, param<int*>. In this case the runtime interpreters it as a memory object and
+    // performs some checks that fails. As a workaround, define for functors which have this issue
+    // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
     template <typename... ValueTypes, typename Op, typename... Args>
     void
     invoke_impl(Op op, Args&&... rest)
     {
-        if(has_types_support<ValueTypes...>(my_queue.get_device()))
+        bool has_support = has_types_support<ValueTypes...>(my_queue.get_device());
+        // Let's notify about skipped cases here and only once
+        // due to having large amout of cases to skip and no handy way to handle then on upper levels
+        not_supported_types_notifier(has_support, my_queue.get_device());
+        if(has_support)
         {
             using kernel_name = unique_kernel_name<Op, CallNumber>;
             auto my_policy =
