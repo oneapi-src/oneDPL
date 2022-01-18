@@ -259,7 +259,10 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
         test3buffers<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if !_PSTL_ICC_TEST_SIMD_UDS_MACOS_RELEASE_BROKEN
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
+#endif // !_PSTL_ICC_TEST_SIMD_UDS_MACOS_RELEASE_BROKEN
     }
     return TestUtils::done();
 }
