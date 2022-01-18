@@ -34,20 +34,6 @@ using namespace TestUtils;
 template <typename BinaryOperation>
 struct test_inclusive_scan_by_segment
 {
-    template <typename T>
-    struct DifferenceTypeT
-    {
-        using DifferenceType = typename ::std::iterator_traits<T>::difference_type;
-    };
-
-#if TEST_DPCPP_BACKEND_PRESENT
-    template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget, sycl::access::placeholder Placeholder>
-    struct DifferenceTypeT<sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>>
-    {
-        using DifferenceType = ::std::size_t;
-    };
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
     // TODO: replace data generation with random data and update check to compare result to
     // the result of a serial implementation of the algorithm
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
@@ -57,12 +43,10 @@ struct test_inclusive_scan_by_segment
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, ... };
 
-        using DifferenceType = typename DifferenceTypeT<decltype(host_vals)>::DifferenceType;
-
-        DifferenceType segment_length = 1;
-        for (DifferenceType i = 0; i != n; )
+        Size segment_length = 1;
+        for (Size i = 0; i != n; )
         {
-          for (DifferenceType j = 0; j != 4*segment_length && i != n; ++j)
+          for (Size j = 0; j != 4*segment_length && i != n; ++j)
           {
               host_keys[i] = j/segment_length + 1;
               host_vals[i] = 1;
@@ -77,10 +61,8 @@ struct test_inclusive_scan_by_segment
     template <typename Iterator, typename Size>
     void display_param(const char* msg, Iterator it, Size n)
     {
-        using DifferenceType = typename DifferenceTypeT<Iterator>::DifferenceType;
-
         std::cout << msg;
-        for (DifferenceType i = 0; i < n; ++i)
+        for (Size i = 0; i < n; ++i)
         {
             if (i > 0)
                 std::cout << ", ";
@@ -120,8 +102,7 @@ struct test_inclusive_scan_by_segment
         display_param("expected result: ", expected_val_res.data(), n);
 #endif // DUMP_CHECK_RESULTS
 
-        using DifferenceType = typename DifferenceTypeT<decltype(host_vals)>::DifferenceType;
-        for (DifferenceType i = 0; i < n; ++i)
+        for (Size i = 0; i < n; ++i)
         {
             EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from exclusive_scan_by_segment");
         }
