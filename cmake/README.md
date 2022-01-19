@@ -28,7 +28,7 @@ Some useful CMake variables ([here](https://cmake.org/cmake/help/latest/manual/c
 Steps:
 
 1. Configure project using CMake.
-2. Perform build [and run] using build system (e.g. `make build-all-tests`).
+2. Perform build [and run] using build system (e.g. `make build-onedpl-tests`).
 3. (optional) Run tests using CTest.
 
 **NOTE**: tests are not added to `all` target, so they are not built/run by default.
@@ -36,10 +36,10 @@ The following targets are available for build system after configuration:
 
 - `<test-name>` - build specific test, e.g. `for_each.pass`;
 - `run-<test-name>` - build and run specific test, e.g. `run-for_each.pass`;
-- `build-<tests-subdir>` - build all tests from specific subdirectory under `<root>/test`, e.g. `build-general`;
-- `run-<tests-subdir>` - build and run all tests from specific subdirectory under `<root>/test`, e.g. `run-general`;
-- `build-all-tests` - build all tests;
-- `run-all-tests` - build and run all tests.
+- `build-onedpl-<tests-subdir>-tests` - build all tests from specific subdirectory under `<root>/test`, e.g. `build-onedpl-general-tests`;
+- `run-onedpl-<tests-subdir>-tests` - build and run all tests from specific subdirectory under `<root>/test`, e.g. `run-onedpl-general-tests`;
+- `build-onedpl-tests` - build all tests;
+- `run-onedpl-tests` - build and run all tests.
 
 Sudirectories are added as labels for each test and can be used with `ctest -L <label>`.
 For example, `<root>/test/path/to/test.pass.cpp` will have `path` and `to` labels.

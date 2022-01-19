@@ -258,7 +258,7 @@ pipeline {
                                                 export PATH=/usr/bin/:$PATH
                                                 dpcpp --version
                                                 cmake -DCMAKE_CXX_COMPILER=dpcpp -DCMAKE_CXX_STANDARD=17 -DONEDPL_BACKEND=dpcpp -DONEDPL_DEVICE_TYPE=GPU -DCMAKE_BUILD_TYPE=release ..
-                                                make VERBOSE=1 build-all-tests -j`nproc` -k || true
+                                                make VERBOSE=1 build-onedpl-tests -j`nproc` -k || true
                                                 ctest --output-on-failure --timeout ${TEST_TIMEOUT}
                                             """, label: "all tests"
                                         }

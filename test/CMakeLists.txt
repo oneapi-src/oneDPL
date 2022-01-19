@@ -15,10 +15,10 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-add_custom_target(build-all-tests
+add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 
-add_custom_target(run-all-tests
+add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
     DEPENDS build-all
@@ -86,18 +86,18 @@ macro(onedpl_add_test test_source_file)
     endif()
 
     foreach (_label ${_test_labels})
-        if (NOT TARGET build-${_label})
-            add_custom_target(build-${_label} COMMENT "Build tests with label ${_label}")
+        if (NOT TARGET build-onedpl-${_label}-tests)
+            add_custom_target(build-onedpl-${_label}-tests COMMENT "Build tests with label ${_label}")
 
-            add_custom_target(run-${_label}
+            add_custom_target(run-onedpl-${_label}-tests
                 COMMAND "${CMAKE_CTEST_COMMAND}" -L ^${_label}$$ --output-on-failure --no-label-summary
                 USES_TERMINAL
-                DEPENDS build-${_label}
+                DEPENDS build-onedpl-${_label}-tests
                 COMMENT "Build and run tests with label ${_label}")
         endif()
-        add_dependencies(build-${_label} ${_test_name})
+        add_dependencies(build-onedpl-${_label}-tests ${_test_name})
     endforeach()
-    add_dependencies(build-all-tests ${_test_name})
+    add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
 set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
