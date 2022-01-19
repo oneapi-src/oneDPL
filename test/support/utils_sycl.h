@@ -200,13 +200,13 @@ bool has_types_support(const sycl::device& device)
     return has_types_support_impl<Ts...>()(device);
 }
 
-template <typename, typename = void>
+template <typename T, typename = int>
 struct has_value_types : ::std::false_type {};
 
 template <typename T>
-struct has_value_types<T, typename T::value_types> : ::std::true_type {};
+struct has_value_types<T, decltype(std::declval<typename T::value_types>(), 0)> : ::std::true_type {};
 
-inline void not_supported_types_notifier(bool has_support, const sycl::device& device)
+inline void unsupported_types_notifier(bool has_support, const sycl::device& device)
 {
     static bool is_notified = false;
     if(!has_support && !is_notified)
@@ -239,22 +239,22 @@ struct invoke_on_all_hetero_policies
     }
 
 private:
-    //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
-    //of kernels from operator type and ::std::size_t
-    // There may be an issue when there is a kernel parameter which has a pointer in its name.
-    // For example, param<int*>. In this case the runtime interpreters it as a memory object and
-    // performs some checks that fails. As a workaround, define for functors which have this issue
-    // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
     template <typename... ValueTypes, typename Op, typename... Args>
     void
     invoke_impl(Op op, Args&&... rest)
     {
         bool has_support = has_types_support<ValueTypes...>(my_queue.get_device());
         // Let's notify about skipped cases here and only once
-        // due to having large amout of cases to skip and no handy way to handle then on upper levels
-        not_supported_types_notifier(has_support, my_queue.get_device());
+        // due to having large amount of cases to skip and no handy way to handle then on the upper levels
+        unsupported_types_notifier(has_support, my_queue.get_device());
         if(has_support)
         {
+            // Since make_device_policy need only one parameter for instance, this alias is used to create unique type
+            // of kernels from operator type and ::std::size_t
+            // There may be an issue when there is a kernel parameter which has a pointer in its name.
+            // For example, param<int*>. In this case the runtime interpreters it as a memory object and
+            // performs some checks that fail. As a workaround, define for functors which have this issue
+            // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
             using kernel_name = unique_kernel_name<Op, CallNumber>;
             auto my_policy =
 #if ONEDPL_FPGA_DEVICE

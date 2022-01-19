@@ -103,7 +103,7 @@ main()
     test<std::int16_t, std::int8_t>();
     test<std::uint16_t, float32_t>();
     test<float64_t, std::int64_t>();
-    test<wrapper<float64_t>, wrapper<float64_t>>();
+    test<wrapper<float32_t>, wrapper<float32_t>>();
 
     return done();
 }

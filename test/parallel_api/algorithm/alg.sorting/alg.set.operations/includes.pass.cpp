@@ -46,12 +46,15 @@ struct Num
     }
 };
 
-template <typename T>
+template <typename T1, typename T2>
 struct test_without_compare
 {
+    // keeping types in value_types allows checking if they are supported by a device
+    using value_types = ::std::tuple<T1, T2>;
+
     template <typename Policy, typename InputIterator1, typename InputIterator2>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value &&
-                              can_use_default_less_operator<T>::value, void>::type
+                              can_use_default_less_operator<T1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto expect_res = ::std::includes(first1, last1, first2, last2);
@@ -62,15 +65,17 @@ struct test_without_compare
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
     typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value ||
-                              !can_use_default_less_operator<T>::value, void>::type
+                              !can_use_default_less_operator<T1>::value, void>::type
     operator()(Policy&& /* exec */, InputIterator1 /* first1 */, InputIterator1 /* last1 */, InputIterator2 /* first2 */, InputIterator2 /* last2 */)
     {
     }
 };
 
-template <typename T>
+template <typename T1, typename T2>
 struct test_with_compare
 {
+    using value_types = ::std::tuple<T1, T2>;
+
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
@@ -114,13 +119,13 @@ test_includes(Compare compare)
     {
         for (::std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
         {
-            invoke_on_all_policies<0>()(test_with_compare<T1>(), in1.begin(), in1.begin() + n, in2.cbegin(),
+            invoke_on_all_policies<0>()(test_with_compare<T1, T2>(), in1.begin(), in1.begin() + n, in2.cbegin(),
                                         in2.cbegin() + m, compare);
-            invoke_on_all_policies<1>()(test_without_compare<T1>(), in3.begin(), in3.begin() + n, in4.begin(),
+            invoke_on_all_policies<1>()(test_without_compare<T1, T2>(), in3.begin(), in3.begin() + n, in4.begin(),
                                         in4.begin() + m);
             //test w/ non constant predicate
             if (n < 5 && m < 5)
-                invoke_on_all_host_policies()(test_with_compare<T1>(), in1.begin(), in1.end(), in2.cbegin(),
+                invoke_on_all_host_policies()(test_with_compare<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(),
                                               in2.cend(), non_const(compare));
         }
     }
