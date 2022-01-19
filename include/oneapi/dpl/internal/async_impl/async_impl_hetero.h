@@ -142,7 +142,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         unseq_backend::transform_init<_Policy, _BinaryOperation1, _Functor>{__binary_op1,
                                                                             _Functor{__binary_op2}}, // transform
         unseq_backend::transform_init<_Policy, _BinaryOperation1, _NoOpFunctor>{__binary_op1, _NoOpFunctor{}},
-        unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1}, // reduce
+        unseq_backend::reduce_init<_Policy, _BinaryOperation1, _RepackedTp>(__binary_op1, __init), // reduce
         __buf1.all_view(), __buf2.all_view());
     return __res;
 }
@@ -174,7 +174,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
         unseq_backend::transform_init<_Policy, _BinaryOperation, _Functor>{__binary_op,
                                                                            _Functor{__unary_op}}, // transform
         unseq_backend::transform_init<_Policy, _BinaryOperation, _NoOpFunctor>{__binary_op, _NoOpFunctor{}},
-        unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op}, // reduce
+        unseq_backend::reduce_init<_Policy, _BinaryOperation, _RepackedTp>{__binary_op, __init}, // reduce
         __buf.all_view());
     return __res;
 }

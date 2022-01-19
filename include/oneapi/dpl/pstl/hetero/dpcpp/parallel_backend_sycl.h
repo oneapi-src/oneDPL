@@ -369,7 +369,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                         __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
                         //store result in one-element buffer
                         if (__item_id.get_group(0) == 0)
-                            __result_acc[0] = __result;
+                        {
+                            __result_acc[0] = __brick_reduce.apply_init(__result);
+                        }
                     }
                 });
         });
@@ -380,7 +382,6 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
         __n_items = (__n - 1) / __iters_per_work_item + 1;
         __n_groups = (__n - 1) / __size_per_work_group + 1;
     } while (__n > 1);
-    //return oneapi::dpl::__par_backend_hetero::__future<_Tp>(__reduce_event, 0 /*just one element*/, __result, __temp);
     return __future(__reduce_event, __result, __temp);
 }
 

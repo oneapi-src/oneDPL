@@ -235,6 +235,29 @@ struct reduce
     {
         return reduce_impl(__item_id, __global_idx, __n, __local_mem, __has_known_identity<_BinaryOperation1, _Tp>{});
     }
+
+    template<typename _Result>
+    auto
+    apply_init(_Result __result) const
+    {
+        return __result; //no op
+    }
+};
+
+// Reduce on local memory
+template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
+struct reduce_init: public reduce<_ExecutionPolicy, _BinaryOperation1, _Tp>
+{
+    _Tp __init;
+
+    reduce_init(_BinaryOperation1 __bi_op, _Tp __i): reduce<_ExecutionPolicy, _BinaryOperation1, _Tp>{__bi_op}, __init(__i) {}
+
+    template<typename _Result>
+    auto
+    apply_init(_Result __result) const
+    {
+        return reduce<_ExecutionPolicy, _BinaryOperation1, _Tp>::__bin_op1(__init, __result);
+    }
 };
 
 // Matchers for early_exit_or and early_exit_find
