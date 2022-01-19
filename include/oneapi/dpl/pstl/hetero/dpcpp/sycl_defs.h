@@ -55,13 +55,26 @@ using __no_init =
     sycl::property::noinit;
 #endif
 
-template <typename _T>
-using __plus =
 #if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
-    sycl::plus<_T>;
+template <typename _T>
+using __plus = sycl::plus<_T>;
+
+template <typename _T>
+using __maximum = sycl::maximum<_T>;
+
+template <typename _T>
+using __minimum = sycl::minimum<_T>;
+
 #else
-    sycl::ONEAPI::plus<_T>;
-#endif
+template <typename _T>
+using __plus = sycl::ONEAPI::plus<_T>;
+
+template <typename _T>
+using __maximum = sycl::ONEAPI::maximum<_T>;
+
+template <typename _T>
+using __minimum = sycl::ONEAPI::minimum<_T>;
+#endif // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 
 template <typename _Buffer>
 constexpr auto
@@ -92,7 +105,7 @@ __group_barrier(_Item __item)
 #if 0 //__LIBSYCL_VERSION >= 50300
     //TODO: usage of sycl::group_barrier: probably, we have to revise SYCL parallel patterns which use a group_barrier.
     // 1) sycl::group_barrier() implementation is not ready
-    // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent 
+    // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent
     sycl::group_barrier(__item.get_group(), sycl::memory_scope::work_group);
 #else
     __item.barrier(sycl::access::fence_space::local_space);
