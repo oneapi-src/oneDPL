@@ -504,7 +504,7 @@ constexpr auto __get_value(sycl::buffer<_T>& __buf)
 }
 
 template<typename _T>
-constexpr void __get_value(_T& __val)
+constexpr auto __get_value(_T& __val)
 {
     return __val;
 }
@@ -518,6 +518,7 @@ class __future: private std::tuple<Args...>
     static constexpr bool __is_value = sizeof...(Args) > 0;
 public:
     __future(_Event e, Args... args): __my_event(e), std::tuple<Args...>(args...) {}
+    __future(_Event e, std::tuple<Args...> _t): __my_event(e), std::tuple<Args...>(_t) {}
 
     operator _Event() const { return __my_event; }
     auto event() const { return operator _Event(); }
@@ -525,13 +526,19 @@ public:
 
     template<typename = typename std::enable_if<__is_value, void>>
     auto get() { return __get_value(std::get<0>(*this)); }
+
+    template<typename _T>
+    auto add_value(_T __t) const
+    {
+        auto new_val = std::tuple<_T>(__t);
+        auto new_tuple = std::tuple_cat(new_val, (std::tuple<Args...>)*this);
+        return __future<_Event, _T, Args...>(__my_event, new_tuple);
+    }
 };
 #endif
-//template <typename... Args>
-//__future<Args...> __make_future(Args... args) { return __future<Args...>(args...); }
 
 // TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
-struct __future_base
+/*struct __future_base
 {
     sycl::event __my_event;
 
@@ -565,7 +572,7 @@ class __future<void> : public __future_base
     template <class _Tp, class _Enable>
     friend class oneapi::dpl::__internal::__future;
 };
-
+*/
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
