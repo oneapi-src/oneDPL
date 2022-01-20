@@ -90,6 +90,9 @@ public:
             auto __src = std::addressof(*__it);
             assert(std::addressof(*(__it + __count)) - __src == __count);
 
+#if __LIBSYCL_VERSION >= 50300
+            __queue.copy(__src, __ptr, __count);
+#else
             auto __p = __ptr;
             auto __c = __count;
             __queue.submit([__src, __c, __p](sycl::handler& __cgh){
@@ -98,6 +101,7 @@ public:
                     *(__p + __id) = *(__src + __id);
                 });
             });
+#endif // __LIBSYCL_VERSION >= 50300
             __queue.wait();
         }
     }
@@ -133,6 +137,9 @@ public:
             auto __dst = std::addressof(*__it);
             assert(std::addressof(*(__it + __count)) - __dst == __count);
 
+#if __LIBSYCL_VERSION >= 50300
+            __queue.copy(__ptr, __dst, __count);
+#else
             auto __p = __ptr;
             auto __c = __count;
             __queue.submit([__dst, __c, __p](sycl::handler& __cgh){
@@ -141,6 +148,7 @@ public:
                     *(__dst + __id) = *(__p + __id);
                 });
             });
+#endif // __LIBSYCL_VERSION >= 50300
             __queue.wait();
         }
     }
