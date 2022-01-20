@@ -29,7 +29,7 @@ using namespace oneapi::dpl::execution;
 #endif
 using namespace TestUtils;
 
-#define DUMP_CHECK_RESULTS
+//#define DUMP_CHECK_RESULTS
 
 template <typename BinaryOperation>
 struct test_inclusive_scan_by_segment
