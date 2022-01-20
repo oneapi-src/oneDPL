@@ -90,7 +90,14 @@ public:
             auto __src = std::addressof(*__it);
             assert(std::addressof(*(__it + __count)) - __src == __count);
 
-            __queue.copy(__src, __ptr, __count);
+            auto __p = __ptr;
+            auto __c = __count;
+            __queue.submit([__src, __c, __p](sycl::handler& __cgh){
+                __cgh.parallel_for(sycl::range<1>(__c), [__src, __c, __p](sycl::item<1>__item){
+                    ::std::size_t __id = __item.get_linear_id();
+                    *(__p + __id) = *(__src + __id);
+                });
+            });
             __queue.wait();
         }
     }
@@ -126,7 +133,14 @@ public:
             auto __dst = std::addressof(*__it);
             assert(std::addressof(*(__it + __count)) - __dst == __count);
 
-            __queue.copy(__ptr, __dst, __count);
+            auto __p = __ptr;
+            auto __c = __count;
+            __queue.submit([__dst, __c, __p](sycl::handler& __cgh){
+                __cgh.parallel_for(sycl::range<1>(__c), [__dst, __c, __p](sycl::item<1>__item){
+                    ::std::size_t __id = __item.get_linear_id();
+                    *(__dst + __id) = *(__p + __id);
+                });
+            });
             __queue.wait();
         }
     }
