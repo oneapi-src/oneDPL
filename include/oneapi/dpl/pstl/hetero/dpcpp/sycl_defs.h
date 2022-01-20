@@ -63,7 +63,7 @@ using __known_identity = sycl::known_identity<_BinaryOp, _T>;
 template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::has_known_identity<_BinaryOp, _T>;
 
-#else  // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
+#elif __LIBSYCL_VERSION == 50200
 template <typename _BinaryOp, typename _T>
 using __known_identity = sycl::ONEAPI::known_identity<_BinaryOp, _T>;
 
