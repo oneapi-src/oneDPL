@@ -43,6 +43,7 @@
 #define _ONEDPL_NO_INIT_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (__LIBSYCL_VERSION >= 50300)
 
 namespace __dpl_sycl
@@ -55,6 +56,21 @@ using __no_init =
     sycl::property::noinit;
 #endif
 
+#if _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
+template <typename _BinaryOp, typename _T>
+using __known_identity = sycl::known_identity<_BinaryOp, _T>;
+
+template <typename _BinaryOp, typename _T>
+using __has_known_identity = sycl::has_known_identity<_BinaryOp, _T>;
+
+#else  // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
+template <typename _BinaryOp, typename _T>
+using __known_identity = sycl::ONEAPI::known_identity<_BinaryOp, _T>;
+
+template <typename _BinaryOp, typename _T>
+using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
+#endif // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
+
 #if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 template <typename _T>
 using __plus = sycl::plus<_T>;
@@ -65,7 +81,7 @@ using __maximum = sycl::maximum<_T>;
 template <typename _T>
 using __minimum = sycl::minimum<_T>;
 
-#else
+#else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 template <typename _T>
 using __plus = sycl::ONEAPI::plus<_T>;
 
