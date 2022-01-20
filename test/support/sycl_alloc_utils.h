@@ -30,11 +30,11 @@ namespace TestUtils
 // RAII service class to allocate shared/device memory (USM)
 // Usage model"
 // 1. allocate USM memory and copying data to USM:
-//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, count); 
-// or 
+//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, count);
+// or
 //    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, std::begin(data), std::end(data));
 // or just allocate USM memory"
-//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, count); 
+//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, count);
 // 2. get a USM pointer by usm_data_transfer::get_data() and passed one into a parallel algorithm with dpc++ policy.
 // 3. Retrieve data back (in case of device allocation type) to the host for further checking result.
 //    dt_helper.retrieve_data(dest_host);
@@ -90,7 +90,18 @@ public:
             auto __src = std::addressof(*__it);
             assert(std::addressof(*(__it + __count)) - __src == __count);
 
+#if __LIBSYCL_VERSION >= 50300
             __queue.copy(__src, __ptr, __count);
+#else
+            auto __p = __ptr;
+            auto __c = __count;
+            __queue.submit([__src, __c, __p](sycl::handler& __cgh){
+                __cgh.parallel_for(sycl::range<1>(__c), [__src, __c, __p](sycl::item<1>__item){
+                    ::std::size_t __id = __item.get_linear_id();
+                    *(__p + __id) = *(__src + __id);
+                });
+            });
+#endif // __LIBSYCL_VERSION >= 50300
             __queue.wait();
         }
     }
@@ -126,7 +137,18 @@ public:
             auto __dst = std::addressof(*__it);
             assert(std::addressof(*(__it + __count)) - __dst == __count);
 
+#if __LIBSYCL_VERSION >= 50300
             __queue.copy(__ptr, __dst, __count);
+#else
+            auto __p = __ptr;
+            auto __c = __count;
+            __queue.submit([__dst, __c, __p](sycl::handler& __cgh){
+                __cgh.parallel_for(sycl::range<1>(__c), [__dst, __c, __p](sycl::item<1>__item){
+                    ::std::size_t __id = __item.get_linear_id();
+                    *(__dst + __id) = *(__p + __id);
+                });
+            });
+#endif // __LIBSYCL_VERSION >= 50300
             __queue.wait();
         }
     }
