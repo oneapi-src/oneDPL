@@ -17,10 +17,6 @@
 
 #include _PSTL_TEST_HEADER(execution)
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
-#endif
-
 #include "support/utils.h"
 
 #include _PSTL_TEST_HEADER(algorithm)
@@ -30,29 +26,53 @@
 #include <functional>
 #include <iostream>
 
-//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", as an example reported by a user; just "memory deallocation" added.
-int main()
-{
 #if TEST_DPCPP_BACKEND_PRESENT
+#include "support/sycl_alloc_utils.h"
+
+template <sycl::usm::alloc alloc_type>
+void
+test_with_usm()
+{
     sycl::queue q;
 
-    const int n = 9, n_res = 6;
-
-    //shared memory allocation
-    int* d_keys1         = sycl::malloc_shared<int>(n, q);
-    int* d_keys2         = sycl::malloc_shared<int>(n, q);
-    int* d_values        = sycl::malloc_shared<int>(n, q);
-    int* d_output_keys1  = sycl::malloc_shared<int>(n, q);
-    int* d_output_keys2  = sycl::malloc_shared<int>(n, q);
-    int* d_output_values = sycl::malloc_shared<int>(n, q);
-
     //data initialization
-    const int keys1[n] = {11, 11, 21, 20, 21, 21, 21, 37, 37};
-    const int keys2[n] = {11, 11, 20, 20, 20, 21, 21, 37, 37};
-    const int values[n] = {0,  1,  2,  3,  4,  5,  6,  7,  8};
-    std::copy(keys1, keys1 + n, d_keys1);
-    std::copy(keys2, keys2 + n, d_keys2);
-    std::copy(values, values + n, d_values);
+    auto prepare_data = [](int n, int* keys1, int* keys2, int* values)
+        {
+            constexpr int items_count = 9;
+
+            const int src_keys1 [items_count] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
+            const int src_keys2 [items_count] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
+            const int src_values[items_count] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
+
+            ::std::copy_n(src_keys1, items_count, keys1);
+            ::std::copy_n(src_keys2, items_count, keys2);
+            ::std::copy_n(src_values, items_count, values);
+        };
+
+    constexpr int n = 9;
+    constexpr int n_res = 6;
+    int keys1[n] = {};
+    int keys2[n] = {};
+    int values[n] = {};
+    int output_keys1[n] = {};
+    int output_keys2[n] = {};
+    int output_values[n] = {};
+
+    prepare_data(n, keys1, keys2, values);
+
+    // allocate USM memory and copying data to USM shared/device memory
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper1(q, std::begin(keys1),         std::end(keys1));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper2(q, std::begin(keys2),         std::end(keys2));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper3(q, std::begin(values),        std::end(values));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper4(q, std::begin(output_keys1),  std::end(output_keys1));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper5(q, std::begin(output_keys2),  std::end(output_keys2));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper6(q, std::begin(output_values), std::end(output_values));
+    auto d_keys1         = dt_helper1.get_data();
+    auto d_keys2         = dt_helper2.get_data();
+    auto d_values        = dt_helper3.get_data();
+    auto d_output_keys1  = dt_helper4.get_data();
+    auto d_output_keys2  = dt_helper5.get_data();
+    auto d_output_values = dt_helper6.get_data();
 
     //make zip iterators
     auto begin_keys_in = oneapi::dpl::make_zip_iterator(d_keys1, d_keys2);
@@ -60,15 +80,21 @@ int main()
     auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1, d_output_keys2);
 
     //run reduce_by_segment algorithm 
-    auto new_last = oneapi::dpl::reduce_by_segment(oneapi::dpl::execution::make_device_policy(q),
-        begin_keys_in, end_keys_in, d_values, begin_keys_out, d_output_values);
+    auto new_last = oneapi::dpl::reduce_by_segment(
+        oneapi::dpl::execution::make_device_policy(q), begin_keys_in,
+        end_keys_in, d_values, begin_keys_out, d_output_values);
 
     q.wait();
+
+    //retrieve result on the host and check the result
+    dt_helper4.retrieve_data(output_keys1);
+    dt_helper5.retrieve_data(output_keys2);
+    dt_helper6.retrieve_data(output_values);
 
 //Dump
 #if 0
     for(int i=0; i < n_res; i++) {
-      std::cout << "{" << d_output_keys1[i] << ", " << d_output_keys2[i] << "}: " << d_output_values[i] << std::endl;
+      std::cout << "{" << output_keys1[i] << ", " << output_keys2[i] << "}: " << output_values[i] << std::endl;
     }
 #endif
 
@@ -82,18 +108,21 @@ int main()
     const int exp_keys1[n_res] = {11, 21, 20, 21, 21,37};
     const int exp_keys2[n_res] = {11, 20, 20, 20, 21, 37};
     const int exp_values[n_res] = {1, 2, 3, 4, 11, 15};
-    EXPECT_EQ_N(exp_keys1, d_output_keys1, n_res, "wrong keys1 from reduce_by_segment");
-    EXPECT_EQ_N(exp_keys2, d_output_keys2, n_res, "wrong keys2 from reduce_by_segment");
-    EXPECT_EQ_N(exp_values, d_output_values, n_res, "wrong values from reduce_by_segment");
-
-    // Deallocate memory
-    sycl::free(d_keys1, q);
-    sycl::free(d_keys2, q);
-    sycl::free(d_values, q);
-    sycl::free(d_output_keys1, q);
-    sycl::free(d_output_keys2, q);
-    sycl::free(d_output_values, q);
-
+    EXPECT_EQ_N(exp_keys1, output_keys1, n_res, "wrong keys1 from reduce_by_segment");
+    EXPECT_EQ_N(exp_keys2, output_keys2, n_res, "wrong keys2 from reduce_by_segment");
+    EXPECT_EQ_N(exp_values, output_values, n_res, "wrong values from reduce_by_segment");
+}
 #endif
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+
+//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", as an example reported by a user; just "memory deallocation" added.
+int main()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    // Run tests for USM shared memory
+    test_with_usm<sycl::usm::alloc::shared>();
+    // Run tests for USM device memory
+    test_with_usm<sycl::usm::alloc::device>();
+#endif
+
+    return TestUtils::done();
 }
