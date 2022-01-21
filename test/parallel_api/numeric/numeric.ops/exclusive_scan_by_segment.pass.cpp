@@ -21,14 +21,16 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include "support/utils_sycl.h"
 
 using namespace oneapi::dpl::execution;
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
 
-struct test_exclusive_scan_by_segment
+DEFINE_TEST(test_exclusive_scan_by_segment)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_exclusive_scan_by_segment)
+
     // TODO: replace data generation with random data and update check to compare result to
     // the result of a serial implementation of the algorithm
     template <typename Accessor1, typename Accessor2, typename Accessor3, typename Size>
@@ -92,32 +94,37 @@ struct test_exclusive_scan_by_segment
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys   (*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals   (*this, n);
+        TestDataTransfer<UDTKind::eRes,  Size> host_val_res(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
+        typedef typename ::std::iterator_traits<Iterator3>::value_type ValR;
 
         const ValT init = 1;
 
         // call algorithm with no optional arguments
-        {
-            auto host_keys = get_host_access(keys_first);
-            auto host_vals = get_host_access(vals_first);
-            auto host_val_res = get_host_access(val_res_first);
-
-            initialize_data(host_keys, host_vals, host_val_res, n);
-        }
+        initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
+        host_keys.update_data();
+        host_vals.update_data();
+        host_val_res.update_data();
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, init, n);
+            host_vals.retrieve_data();
+            host_val_res.retrieve_data();
+
+            check_values(host_keys.get(), host_val_res.get(), init, n);
 
             // call algorithm with equality comparator
-            auto host_vals = get_host_access(vals_first);
+            initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
 
-            initialize_data(host_keys, host_vals, host_val_res, n);
+            host_keys.update_data();
+            host_vals.update_data();
+            host_val_res.update_data();
         }
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
@@ -125,14 +132,17 @@ struct test_exclusive_scan_by_segment
                                                            init, [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, init, n);
+            host_vals.retrieve_data();
+            host_val_res.retrieve_data();
+
+            check_values(host_keys.get(), host_val_res.get(), init, n);
 
             // call algorithm with addition operator
-            auto host_vals = get_host_access(vals_first);
+            initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
 
-            initialize_data(host_keys, host_vals, host_val_res, n);
+            host_keys.update_data();
+            host_vals.update_data();
+            host_val_res.update_data();
         }
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
@@ -141,28 +151,30 @@ struct test_exclusive_scan_by_segment
                                                            [](ValT first, ValT second) { return first + second; });
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, init, n);
+            host_keys.retrieve_data();
+            host_val_res.retrieve_data();
+
+            check_values(host_keys.get(), host_val_res.get(), init, n);
         }
 
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
         auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
         {
-            auto host_keys = get_host_access(keys_first);
-            auto host_val_res = get_host_access(val_res_first);
-            check_values(host_keys, host_val_res, 0, n);
+            host_keys.retrieve_data();
+            host_val_res.retrieve_data();
+
+            check_values(host_keys.get(), host_val_res.get(), 0, n);
         }
     }
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     typename ::std::enable_if<
 #if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
             is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
@@ -208,10 +220,22 @@ struct test_exclusive_scan_by_segment
     }
 };
 
-int main() {
+int main()
+{
+    using ValueType = std::uint64_t;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<std::uint64_t, test_exclusive_scan_by_segment>();
-#endif
-    test_algo_three_sequences<std::uint64_t, test_exclusive_scan_by_segment>();
+    // Run tests for USM shared memory
+    test3buffers<sycl::usm::alloc::shared, test_exclusive_scan_by_segment<ValueType>>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, test_exclusive_scan_by_segment<ValueType>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType>>();
+#else
+    test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
     return TestUtils::done();
 }
