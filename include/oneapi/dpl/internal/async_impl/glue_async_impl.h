@@ -28,9 +28,8 @@ namespace experimental
 {
 
 // [async.transform]
-template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation,
-          class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                 _ForwardIterator2 __result, _UnaryOperation __op, _Events&&... __dependencies)
@@ -44,8 +43,8 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIt
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
           class _BinaryOperation, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<
-          _ExecutionPolicy, void, _BinaryOperation, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<
+          _ExecutionPolicy, int, _BinaryOperation, _Events...>>
 auto
 transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                 _ForwardIterator2 __first2, _ForwardIterator __result, _BinaryOperation __op,
@@ -61,7 +60,7 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
 
 // [async.copy]
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result,
            _Events&&... __dependencies)
@@ -75,13 +74,14 @@ copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterato
 
 // [async.sort]
 template <class _ExecutionPolicy, class _Iterator, class _Compare, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, void, _Compare, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _Compare, _Events...>>
 auto
 sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp, _Events&&... __dependencies)
 {
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    if (__last - __first < 2)
-        return oneapi::dpl::__par_backend_hetero::__future(sycl::event{});
+    assert(__last - __first >= 2);
+    //if (__last - __first < 2)
+      //  return oneapi::dpl::__par_backend_hetero::__future(sycl::event{});
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -92,7 +92,7 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
 
 // [async.for_each]
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                _Events&&... __dependencies)
@@ -106,7 +106,7 @@ for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
 // [async.reduce]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<_ExecutionPolicy, void, _Tp, _BinaryOperation, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<_ExecutionPolicy, int, _Tp, _BinaryOperation, _Events...>>
 auto
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
              _BinaryOperation __binary_op, _Events&&... __dependencies)
@@ -122,7 +122,7 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterat
 // [async.fill]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value,
            _Events&&... __dependencies)
@@ -134,9 +134,8 @@ fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
 
 // [async.transform_reduce]
 
-template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOp1, class _BinaryOp2,
-          class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<_ExecutionPolicy, void, _BinaryOp1, _BinaryOp2, _Events...>>
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOp1, class _BinaryOp2, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<_ExecutionPolicy, int, _BinaryOp1, _BinaryOp2, _Events...>>
 auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2, _Events&&... __dependencies)
@@ -147,7 +146,7 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _Forward
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, void, _UnaryOp, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _UnaryOp, _Events...>>
 auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init,
                        _BinaryOp __binary_op, _UnaryOp __unary_op, _Events&&... __dependencies)
@@ -160,7 +159,7 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt
 // [async.scan]
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _Events&&... __dependencies)
@@ -172,7 +171,7 @@ inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<void, _BinaryOperation, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _BinaryOperation, _Events...>>
 auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _BinaryOperation __binary_op, _Events&&... __dependencies)
@@ -183,9 +182,8 @@ inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
         __binary_op, /*inclusive=*/::std::true_type());
 }
 
-template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _T,
-          class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<_ExecutionPolicy, void, _BinaryOperation, _T, _Events...>>
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _T, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_double_no_default<_ExecutionPolicy, int, _BinaryOperation, _T, _Events...>>
 auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _BinaryOperation __binary_op, _T __init, _Events&&... __dependencies)
@@ -197,7 +195,7 @@ inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _T __init, _Events&&... __dependencies)
@@ -208,9 +206,8 @@ exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
         __init, ::std::plus<_T>(), /*exclusive=*/::std::false_type());
 }
 
-template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOperation,
-          class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, void, _BinaryOperation, _Events...>>
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOperation, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _BinaryOperation, _Events...>>
 auto
 exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _T __init, _BinaryOperation __binary_op, _Events&&... __dependencies)
@@ -223,7 +220,7 @@ exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOperation,
           class _UnaryOperation, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 transform_exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1,
                                _ForwardIt2 __first2, _T __init, _BinaryOperation __binary_op,
@@ -235,9 +232,8 @@ transform_exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                                                    /*exclusive=*/::std::false_type());
 }
 
-template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _UnaryOperation,
-          class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, void, _Events...>>
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _UnaryOperation, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
 auto
 transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1,
                                _ForwardIt2 __first2, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
@@ -251,7 +247,7 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _UnaryOperation,
           class _T, class... _Events,
-          typename = oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, void, _T, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _T, _Events...>>
 auto
 transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1,
                                _ForwardIt2 __first2, _BinaryOperation __binary_op, _UnaryOperation __unary_op,

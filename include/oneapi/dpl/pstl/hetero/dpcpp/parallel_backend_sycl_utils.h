@@ -524,7 +524,7 @@ public:
     auto event() const { return operator _Event(); }
     void wait() { __wait_event(operator _Event());}
 
-    template<typename = typename std::enable_if<__is_value, void>>
+    template<typename = std::enable_if<__is_value, void>>
     auto get() { return __get_value(std::get<0>(*this)); }
 
     template<typename _T>

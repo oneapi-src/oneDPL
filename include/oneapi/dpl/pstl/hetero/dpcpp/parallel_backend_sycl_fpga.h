@@ -53,7 +53,7 @@ template <typename... _Name>
 struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-    __future<void>
+    auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
         auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -72,12 +72,13 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
                 }
             });
         });
-        return __future<void>(__event);
+        return __future(__event);
     }
 };
 
-template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, __future<void>>
+template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+auto
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
@@ -92,9 +93,9 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 //------------------------------------------------------------------------
 
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
-          typename _Rp, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy,
-                                                           oneapi::dpl::__par_backend_hetero::__future<_Tp>>
+          typename... _Ranges, typename _Rp,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+auto
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
                             _Ranges&&... __rngs)
 {
@@ -111,9 +112,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
-oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
-    _ExecutionPolicy, oneapi::dpl::__par_backend_hetero::__future<typename _InitType::__value_type>>
+          typename _LocalScan, typename _GroupScan, typename _GlobalScan,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+auto
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                           _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
@@ -231,12 +232,10 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 // parallel_stable_sort
 //-----------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
-    -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
-        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(
-                              __device_policy(__exec), ::std::forward<_Range>(__rng), __comp))>
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__device_policy(__exec),
@@ -248,13 +247,11 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __com
 //-----------------------------------------------------------------------
 
 // TODO: check if it makes sense to move these wrappers out of backend to a common place
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+template <typename _ExecutionPolicy, typename _Iterator, typename _Compare,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last,
                         _Compare __comp)
-    -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
-        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(
-                              __device_policy(__exec), __first, __mid, __last, __comp))>
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(__device_policy(__exec), __first, __mid, __last,
