@@ -50,7 +50,8 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _T, _Events...>>
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _T,
+                                                                                         _Events...>>
 auto
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init, _Events&&... __dependencies)
 {

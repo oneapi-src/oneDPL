@@ -431,148 +431,73 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-//-----------------------------------------------------------------------
-// future and helper classes for async pattern/algorithm
-//-----------------------------------------------------------------------
-#if 0
-//TODO:
-template<typename ...Args>
-class __future;
-
-template<typename ...Args>
-class __future<sycl::event>: protected  std::tuple<sycl::event, Args...>
-{
-public:
-    __future(Args... args): std::tuple<sycl::event, Args...>(args...) {}
-
-    operator sycl::event() const { return std::get<0>(*this); } //sycl::event according to the contract
-    void
-    wait()
-    {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        operator sycl::event().wait_and_throw();
-#endif
-    }
-};
-
-//TODO:
-template<typename ..._T, typename ...Args>
-class __future<sycl::event, sycl::buffer<_T>...>: std::tuple<sycl::event, sycl::buffer<_T>...>
-{
-public:
-    __future(Args... args): __future<sycl::event, Args...>(args...) {}
-    auto
-    get()
-    {
-        //according to the contract, std::get<1>(__my_args) is one-element sycl::buffer
-        return std::get<1>(*this).template get_access<access_mode::read>()[0];
-    }
-};
-
-//TODO:
-template<typename _T, typename ...Args>
-class __future<sycl::event, _T>: public __future<sycl::event, Args...>
-{
-public:
-    __future(Args... args): __future<sycl::event, Args...>(args...) {}
-    auto
-    get()
-    {
-        //according to the contract, std::get<1>(__my_args) is a scalar value
-        return std::get<1>(*this);
-    }
-};
-
-#else
-
-//TODO: static_assert: this event is not supported
-template<typename _Event>
+template <typename _Event>
 void __wait_event(_Event);
 
-void __wait_event(sycl::event __e)
+void
+__wait_event(sycl::event __e)
 {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __e.wait_and_throw();
+    __e.wait_and_throw();
 #endif
 }
 
-template<typename _T>
-constexpr auto __get_value(sycl::buffer<_T>& __buf)
+template <typename _T>
+constexpr auto
+__get_value(sycl::buffer<_T>& __buf)
 {
     //according to a contract, returned value is one-element sycl::buffer
     return __buf.template get_access<access_mode::read>()[0];
 }
 
-template<typename _T>
-constexpr auto __get_value(_T& __val)
+template <typename _T>
+constexpr auto
+__get_value(_T& __val)
 {
     return __val;
 }
 
 //A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
 //Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
-template<typename _Event, typename ...Args>
-class __future: private std::tuple<Args...>
+template <typename _Event, typename... Args>
+class __future : private std::tuple<Args...>
 {
     _Event __my_event;
     static constexpr bool __is_value = sizeof...(Args) > 0;
-public:
-    __future(_Event e, Args... args): __my_event(e), std::tuple<Args...>(args...) {}
-    __future(_Event e, std::tuple<Args...> _t): __my_event(e), std::tuple<Args...>(_t) {}
+
+  public:
+    __future(_Event e, Args... args) : __my_event(e), std::tuple<Args...>(args...) {}
+    __future(_Event e, std::tuple<Args...> _t) : __my_event(e), std::tuple<Args...>(_t) {}
 
     operator _Event() const { return __my_event; }
-    auto event() const { return operator _Event(); }
-    void wait() { __wait_event(operator _Event());}
+    auto
+    event() const
+    {
+        return operator _Event();
+    }
+    void
+    wait()
+    {
+        __wait_event(operator _Event());
+    }
 
-    template<typename = std::enable_if<__is_value, void>>
-    auto get() { return __get_value(std::get<0>(*this)); }
+    template <typename = std::enable_if<__is_value, void>>
+    auto
+    get()
+    {
+        return __get_value(std::get<0>(*this));
+    }
 
-    template<typename _T>
-    auto add_value(_T __t) const
+    template <typename _T>
+    auto
+    add_value(_T __t) const
     {
         auto new_val = std::tuple<_T>(__t);
         auto new_tuple = std::tuple_cat(new_val, (std::tuple<Args...>)*this);
         return __future<_Event, _T, Args...>(__my_event, new_tuple);
     }
 };
-#endif
 
-// TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
-/*struct __future_base
-{
-    sycl::event __my_event;
-
-    __future_base() = default;
-    __future_base(sycl::event __e) : __my_event(__e) {}
-    void
-    wait()
-    {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait_and_throw();
-#endif
-    }
-    operator sycl::event() const { return __my_event; }
-};
-
-
-//TODO: to remove as a reduntant class specialization
-template <>
-class __future<void> : public __future_base
-{
-    ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base> __tmps;
-
-  public:
-    template <typename... _Ts>
-    __future(sycl::event __e, _Ts... __t) : __future_base(__e)
-    {
-        if (sizeof...(__t) != 0)
-            __tmps = ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper<_Ts...>>(
-                new oneapi::dpl::__internal::__lifetime_keeper<_Ts...>(__t...));
-    }
-    template <class _Tp, class _Enable>
-    friend class oneapi::dpl::__internal::__future;
-};
-*/
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi

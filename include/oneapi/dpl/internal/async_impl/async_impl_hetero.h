@@ -31,8 +31,6 @@ __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forw
 {
     auto __n = __last - __first;
     assert(__n > 0);
-    //if (__n <= 0)
-        //return oneapi::dpl::__par_backend_hetero::__future(sycl::event{});
 
     auto __keep =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
@@ -55,8 +53,6 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 {
     auto __n = __last1 - __first1;
     assert(__n > 0);
-    //if (__n <= 0)
-      //  return oneapi::dpl::__par_backend_hetero::__future(sycl::event{}, __first2);
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
@@ -73,16 +69,13 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
-          typename _Function,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+          typename _Function, oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f)
 {
     auto __n = __last1 - __first1;
     assert(__n > 0);
-    //if (__n <= 0)
-    //    return oneapi::dpl::__internal::__future(sycl::event{}, __first3);
 
     auto __keep1 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
@@ -125,8 +118,6 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
                                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
     assert(__first1 < __last1);
-    //if (__first1 == __last1)
-      //  return oneapi::dpl::__par_backend_hetero::__future(sycl::event{},__init);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
@@ -163,8 +154,6 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
                                  _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
     assert(__first < __last);
-    //if (__first == __last)
-        //return oneapi::dpl::__par_backend_hetero::__future(sycl::event{}, __init);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
@@ -189,10 +178,11 @@ template <typename _ExecutionPolicy, typename _ForwardIterator, typename _T,
 auto
 __pattern_fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _T& __value)
 {
-    return __pattern_walk1_async(::std::forward<_ExecutionPolicy>(__exec),
-                              __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
-                              __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
-                              fill_functor<_T>{__value});
+    return __pattern_walk1_async(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
+        fill_functor<_T>{__value});
 }
 
 //------------------------------------------------------------------------
@@ -208,8 +198,6 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
                                     _BinaryOperation __binary_op, _Inclusive)
 {
     assert(__first < __last);
-    //if (__first == __last)
-      //  return oneapi::dpl::__par_backend_hetero::__future(sycl::event{}, __result);
 
     using _Type = typename _InitType::__value_type;
     using _Assigner = unseq_backend::__scan_assigner;
