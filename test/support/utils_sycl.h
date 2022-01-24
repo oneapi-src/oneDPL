@@ -403,33 +403,6 @@ test3buffers(int mult = kDefaultMultValue)
     test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
 
-// use the function carefully due to temporary accessor creation.
-// Race condition between host and device may be occurred
-// if we work with the buffer host memory when kernel is invoked on device
-template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
-typename ::std::iterator_traits<Iter>::pointer
-get_host_pointer(Iter it)
-{
-    auto temp_idx = it - oneapi::dpl::begin(it.get_buffer());
-    return &it.get_buffer().template get_access<mode>()[0] + temp_idx;
-}
-
-template <typename T, int Dim, sycl::access::mode AccMode, __dpl_sycl::__target AccTarget,
-          sycl::access::placeholder Placeholder>
-T*
-get_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>& acc)
-{
-    return &acc[0];
-}
-
-// for USM pointers
-template <typename T>
-T*
-get_host_pointer(T* data)
-{
-    return data;
-}
-
 template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
 auto
 get_host_access(Iter it)
