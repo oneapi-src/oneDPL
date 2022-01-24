@@ -23,26 +23,24 @@
 
 #include <tuple>
 
+using namespace TestUtils;
+
 #if TEST_DPCPP_BACKEND_PRESENT
 
-template <typename Iterator>
-class test_copy {
-    using result_type = typename ::std::iterator_traits<Iterator>::value_type;
+DEFINE_TEST(test_copy)
+{
+    DEFINE_TEST_CONSTRUCTOR(test_copy)
 
-    size_t buffer_size;
-    Iterator result_begin;
-    result_type expected_value;
-public:
-    test_copy(size_t buf_size, Iterator res_begin, const result_type& val)
-        : buffer_size(buf_size), result_begin(res_begin), expected_value(val) {}
-
-    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2) {
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Size, typename TExpectedValue>
+    void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Size n, TExpectedValue expected_value)
+    {
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+    
         ::std::copy(::std::forward<ExecutionPolicy>(exec), first1, last1, first2);
-        auto host_first = TestUtils::get_host_pointer(result_begin);
-
-        auto res_begin = host_first;
-        for(int i = 0; i != buffer_size; ++i) {
+        
+        host_vals.retrieve_data();
+        auto res_begin = host_vals.get();
+        for(int i = 0; i != n; ++i) {
             EXPECT_EQ(expected_value, *res_begin, "Wrong result from copy with transform_iterator");
             ++res_begin;
         }
@@ -50,7 +48,8 @@ public:
 }; // struct test_copy
 
 template <typename Iterator>
-struct test_copy_if {
+struct test_copy_if
+{
     size_t expected_buffer_size;
     Iterator result_begin;
 public:
@@ -72,35 +71,51 @@ public:
     }
 }; // struct test_copy_if
 
-void test_simple_copy(size_t buffer_size) {
-    sycl::buffer<int> source_buf{ buffer_size };
-    sycl::buffer<int> result_buf{ buffer_size };
-    auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
+void test_simple_copy(size_t buffer_size)
+{
+    // 1. create buffers
+    using TestBaseData = test_base_data_buffer<int>;
+    TestBaseData test_base_data({ { buffer_size, 0 },
+                                  { buffer_size, 0 } });
 
-    auto sycl_source_begin = oneapi::dpl::begin(source_buf);
-    auto sycl_result_begin = oneapi::dpl::begin(result_buf);
+    // 2. create iterators over buffers
+    auto sycl_source_begin = test_base_data.get_start_from(0);
+    auto sycl_result_begin = test_base_data.get_start_from(1);
 
+    // 3. run algorithms
     auto transformation = [](int item) { return item + 1; };
 
     auto tr_sycl_source_begin = oneapi::dpl::make_transform_iterator(sycl_source_begin, transformation);
     auto tr_sycl_source_end = tr_sycl_source_begin + buffer_size;
 
     int identity = 0;
+    auto& sycl_src_buf = test_base_data.get_buffer(0);
+    auto host_source_begin = sycl_src_buf.get_access<sycl::access::mode::write>().get_pointer();
     ::std::fill_n(host_source_begin, buffer_size, identity);
 
-    test_copy<decltype(sycl_result_begin)> test(buffer_size, sycl_result_begin, identity + 1);
-    TestUtils::invoke_on_all_hetero_policies<0>()(test, tr_sycl_source_begin, tr_sycl_source_end, sycl_result_begin);
+    test_copy<int> test(test_base_data);
+    TestUtils::invoke_on_all_hetero_policies<0>()(test, tr_sycl_source_begin, tr_sycl_source_end, sycl_result_begin, buffer_size, identity + 1);
 }
 
-void test_ignore_copy(size_t buffer_size) {
-    sycl::buffer<int> source_buf{ buffer_size };
-    sycl::buffer<int> result_buf{ buffer_size };
+void test_ignore_copy(size_t buffer_size)
+{
+    // 1. create buffers
+    using TestBaseData = test_base_data_buffer<int>;
+    TestBaseData test_base_data({ { buffer_size, 0 },
+                                  { buffer_size, 0 } });
+
+    // 2. create iterators over buffers
+    auto& source_buf = test_base_data.get_buffer(0);
+    auto& result_buf = test_base_data.get_buffer(1);
+
     auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
     auto host_result_begin = result_buf.template get_access<sycl::access::mode::write>().get_pointer();
 
     auto sycl_source_begin = oneapi::dpl::begin(source_buf);
     auto sycl_source_end = oneapi::dpl::end(source_buf);
     auto sycl_result_begin = oneapi::dpl::begin(result_buf);
+
+    // 3. run algorithms
 
     auto transformation = [](int) { return ::std::ignore; };
 
@@ -110,18 +125,28 @@ void test_ignore_copy(size_t buffer_size) {
     ::std::fill_n(host_source_begin, buffer_size, 1);
     ::std::fill_n(host_result_begin, buffer_size, ignored);
 
-    test_copy<decltype(sycl_result_begin)> test(buffer_size, sycl_result_begin, ignored);
-    TestUtils::invoke_on_all_hetero_policies<1>()(test, sycl_source_begin, sycl_source_end, tr_sycl_result_begin);
+    test_copy<int> test(test_base_data);
+    TestUtils::invoke_on_all_hetero_policies<1>()(test, sycl_source_begin, sycl_source_end, tr_sycl_result_begin, buffer_size, ignored);
 }
 
-void test_multi_transform_copy(size_t buffer_size) {
-    sycl::buffer<int> source_buf{ buffer_size };
-    sycl::buffer<int> result_buf{ buffer_size };
+void test_multi_transform_copy(size_t buffer_size)
+{
+    // 1. create buffers
+    using TestBaseData = test_base_data_buffer<int>;
+    TestBaseData test_base_data({ { buffer_size, 0 },
+                                  { buffer_size, 0 } });
+
+    // 2. create iterators over buffers
+    sycl::buffer<int>& source_buf = test_base_data.get_buffer(0);
+    sycl::buffer<int>& result_buf = test_base_data.get_buffer(1);
+
     auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
 
     auto sycl_source_begin = oneapi::dpl::begin(source_buf);
     auto sycl_source_end = sycl_source_begin + buffer_size;
     auto sycl_result_begin = oneapi::dpl::begin(result_buf);
+
+    // 3. run algorithms
 
     auto transformation = [](int item) { return item + 1; };
 
@@ -133,16 +158,19 @@ void test_multi_transform_copy(size_t buffer_size) {
     int identity = 0;
     ::std::fill_n(host_source_begin, buffer_size, identity);
 
-    test_copy<decltype(sycl_result_begin)> test(buffer_size, sycl_result_begin, identity + 3);
-    TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_sycl_source_begin, tr3_sycl_source_end, sycl_result_begin);
+    test_copy<int> test(test_base_data);
+    TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_sycl_source_begin, tr3_sycl_source_end, sycl_result_begin, buffer_size, identity + 3);
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-std::int32_t main() {
+std::int32_t
+main()
+{
 #if TEST_DPCPP_BACKEND_PRESENT
     size_t max_n = 10000;
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n)) {
+    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
         test_simple_copy(n);
         test_ignore_copy(n);
         test_multi_transform_copy(n);
