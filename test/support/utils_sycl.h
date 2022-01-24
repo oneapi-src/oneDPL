@@ -402,25 +402,6 @@ test3buffers(int mult = kDefaultMultValue)
 {
     test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
-
-template <typename Iter, sycl::access::mode mode = sycl::access::mode::read_write>
-auto
-get_host_access(Iter it)
-    -> decltype(it.get_buffer().template get_access<mode>(__dpl_sycl::__get_buffer_size(it.get_buffer()) -
-                                                              (it - oneapi::dpl::begin(it.get_buffer())),
-                                                          it - oneapi::dpl::begin(it.get_buffer())))
-{
-    auto temp_buf = it.get_buffer();
-    auto temp_idx = it - oneapi::dpl::begin(temp_buf);
-    return temp_buf.template get_access<mode>(__dpl_sycl::__get_buffer_size(temp_buf) - temp_idx, temp_idx);
-}
-
-template <typename T>
-T*
-get_host_access(T* data)
-{
-    return data;
-}
 } /* namespace TestUtils */
 
 #endif
