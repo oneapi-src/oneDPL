@@ -33,10 +33,10 @@ using namespace TestUtils;
 
 struct WithCmpOp
 {
-    int32_t _first;
-    int32_t _second;
+    std::int32_t _first;
+    std::int32_t _second;
     WithCmpOp() : _first(0), _second(0){};
-    explicit WithCmpOp(int32_t x) : _first(x), _second(x){};
+    explicit WithCmpOp(std::int32_t x) : _first(x), _second(x){};
     bool
     operator<(const WithCmpOp& rhs) const
     {
@@ -48,7 +48,7 @@ template <typename T>
 struct test_is_heap
 {
     template <typename Policy, typename Iterator>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
@@ -59,7 +59,7 @@ struct test_is_heap
 
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
     {
     }
@@ -69,7 +69,7 @@ template <typename T>
 struct test_is_heap_predicate
 {
     template <typename Policy, typename Iterator, typename Predicate>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
     {
         using namespace std;
@@ -80,7 +80,7 @@ struct test_is_heap_predicate
 
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
     {
     }
@@ -90,7 +90,7 @@ template <typename T>
 struct test_is_heap_until
 {
     template <typename Policy, typename Iterator>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
@@ -101,7 +101,7 @@ struct test_is_heap_until
 
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
     {
     }
@@ -111,7 +111,7 @@ template <typename T>
 struct test_is_heap_until_predicate
 {
     template <typename Policy, typename Iterator, typename Predicate>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
     {
         using namespace std;
@@ -122,7 +122,7 @@ struct test_is_heap_until_predicate
 
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator, ::std::random_access_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
     {
     }
@@ -217,13 +217,13 @@ main()
 {
     test_is_heap_by_type<float32_t>(::std::greater<float32_t>());
     test_is_heap_by_type<WithCmpOp>(::std::less<WithCmpOp>());
-    test_is_heap_by_type<uint64_t>([](uint64_t x, uint64_t y) { return x % 100 < y % 100; });
+    test_is_heap_by_type<std::uint64_t>([](std::uint64_t x, std::uint64_t y) { return x % 100 < y % 100; });
 
 #ifdef _PSTL_TEST_IS_HEAP
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const_is_heap<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const_is_heap<std::int32_t>>());
 #endif
 #ifdef _PSTL_TEST_IS_HEAP_UNTIL
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const_is_heap_until<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const_is_heap_until<std::int32_t>>());
 #endif
 
     return done();

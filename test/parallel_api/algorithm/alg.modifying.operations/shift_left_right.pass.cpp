@@ -31,6 +31,11 @@
 #define _PSTL_TEST_SHIFT_RIGHT
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
+#include "support/utils_sycl.h"
+#include "support/sycl_alloc_utils.h"
+#endif
+
 template<typename Name>
 struct USM;
 
@@ -48,6 +53,33 @@ struct test_shift
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+#if _PSTL_SYCL_TEST_USM
+    template <sycl::usm::alloc alloc_type, typename Policy, typename It, typename Algo>
+    void
+    test_usm(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m, It first_exp,
+        typename ::std::iterator_traits<It>::difference_type n, Algo algo)
+    {
+        using _ValueType = typename ::std::iterator_traits<It>::value_type;
+        using _DiffType = typename ::std::iterator_traits<It>::difference_type;
+
+        auto queue = exec.queue();
+
+        // allocate USM memory and copying data to USM shared/device memory
+        TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, m);
+
+        auto ptr = dt_helper.get_data();
+        auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
+                            ptr, ptr + m, n);
+        _DiffType res_idx = het_res - ptr;
+
+        //3.2 check result
+        dt_helper.retrieve_data(first);
+        algo.check(first + res_idx, first, m, first_exp, n);
+    };
+
+#endif
+
     template <typename Policy, typename It, typename Algo>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
@@ -77,24 +109,9 @@ struct test_shift
         algo.check(first + res_idx, first, m, first_exp, n);
 
 #if _PSTL_SYCL_TEST_USM
-        //3.1 run a test with hetero policy and USM pointers
-        {
-            // allocate USM memory
-            auto queue = exec.queue();
-            auto sycl_deleter = [queue](_ValueType* mem) { sycl::free(mem, queue.get_context()); };
-            ::std::unique_ptr<_ValueType, decltype(sycl_deleter)> ptr(
-                (_ValueType*)sycl::malloc_shared(sizeof(_ValueType)*m, queue.get_device(), queue.get_context()),
-                sycl_deleter);
-
-            //copying data to USM buffer
-            ::std::copy_n(first, m, ptr.get());
-
-            auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr.get(), ptr.get() + m, n);
-            res_idx = het_res - ptr.get();
-
-            //3.2 check result
-            algo.check(ptr.get() + res_idx, ptr.get(), m, first_exp, n);
-        }
+        //3. run a test with hetero policy and USM shared/device memory pointers
+        test_usm<sycl::usm::alloc::shared>(exec, first, m, first_exp, n, algo);
+        test_usm<sycl::usm::alloc::device>(exec, first, m, first_exp, n, algo);
 #endif
     }
 #endif
@@ -132,8 +149,8 @@ struct shift_left_algo
 struct shift_right_algo
 {
     template <typename Policy, typename It>
-    typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
-                            || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+                            It>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
@@ -141,8 +158,8 @@ struct shift_right_algo
     }
     //skip the test for non-bidirectional iterator (forward iterator, etc)
     template <typename Policy, typename It>
-    typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
-                            && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+                            It>::value,
                             It>::type
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
@@ -150,8 +167,8 @@ struct shift_right_algo
     }
 
     template <typename It, typename ItExp>
-    typename ::std::enable_if<TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
-                            || TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+                            It>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
@@ -172,8 +189,8 @@ struct shift_right_algo
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
     template <typename It, typename ItExp>
-    typename ::std::enable_if<!TestUtils::is_same_iterator_category<It, ::std::bidirectional_iterator_tag>::value
-                            && !TestUtils::is_same_iterator_category<It, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
+                            It>::value,
                             void>::type
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
@@ -203,7 +220,7 @@ main()
     for (long m = 0; m < N; m = m < 16 ? m + 1 : long(3.1415 * m))
         for (long n = 0; n < N; n = n < 16 ? n + 1 : long(3.1415 * n))
     {
-       test_shift_by_type<int32_t>(m, n);
+       test_shift_by_type<std::int32_t>(m, n);
     }
 
     return TestUtils::done();

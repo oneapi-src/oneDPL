@@ -28,7 +28,7 @@ struct test_one_policy
     // inplace_merge works with bidirectional iterators at least
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename ::std::enable_if<!is_same_iterator_category<BiDirIt1, ::std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
@@ -39,7 +39,7 @@ struct test_one_policy
     }
 
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2>
-    typename ::std::enable_if<!is_same_iterator_category<BiDirIt1, ::std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2)
     {
@@ -64,14 +64,14 @@ struct test_one_policy
     }
 
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2>
-    typename ::std::enable_if<is_same_iterator_category<BiDirIt1, ::std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
     operator()(Policy&& /* exec */, BiDirIt1 /* first1 */, BiDirIt1 /* last1 */, BiDirIt1 /* first2 */, BiDirIt1 /* last2 */, Size /* n */, Size /* m */,
                Generator1 /* generator1 */, Generator2 /* generator2 */)
     {
     }
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename ::std::enable_if<is_same_iterator_category<BiDirIt1, ::std::forward_iterator_tag>::value, void>::type
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
     operator()(Policy&& /* exec */, BiDirIt1 /* first1 */, BiDirIt1 /* last1 */, BiDirIt1 /* first2 */, BiDirIt1 /* last2 */, Size /* n */, Size /* m */,
                Generator1 /* generator1 */, Generator2 /* generator2 */, Compare /* comp */)
     {
@@ -120,7 +120,7 @@ test_by_type(Generator1 generator1, Generator2 generator2, bool comp_flag, Compa
 template <typename T>
 struct LocalWrapper
 {
-    explicit LocalWrapper(int32_t k) : my_val(k) {}
+    explicit LocalWrapper(std::int32_t k) : my_val(k) {}
     LocalWrapper(LocalWrapper&& input) { my_val = ::std::move(input.my_val); }
     LocalWrapper&
     operator=(LocalWrapper&& input)
@@ -163,15 +163,15 @@ int
 main()
 {
 #if !ONEDPL_FPGA_DEVICE
-    test_by_type<float64_t>([](int32_t i) { return -2 * i; }, [](int32_t i) { return -(2 * i + 1); }, true,
+    test_by_type<float64_t>([](std::int32_t i) { return -2 * i; }, [](std::int32_t i) { return -(2 * i + 1); }, true,
                             [](const float64_t x, const float64_t y) { return x > y; });
 #endif
 
-    test_by_type<int32_t>([](int32_t i) { return 10 * i; }, [](int32_t i) { return i + 1; }, false, ::std::less<int32_t>());
+    test_by_type<std::int32_t>([](std::int32_t i) { return 10 * i; }, [](std::int32_t i) { return i + 1; }, false, ::std::less<std::int32_t>());
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_by_type<LocalWrapper<float32_t>>([](int32_t i) { return LocalWrapper<float32_t>(2 * i + 1); },
-                                          [](int32_t i) { return LocalWrapper<float32_t>(2 * i); }, true,
+    test_by_type<LocalWrapper<float32_t>>([](std::int32_t i) { return LocalWrapper<float32_t>(2 * i + 1); },
+                                          [](std::int32_t i) { return LocalWrapper<float32_t>(2 * i); }, true,
                                           ::std::less<LocalWrapper<float32_t>>());
     test_by_type<MemoryChecker>(
         [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx * 2)}; },
@@ -179,7 +179,7 @@ main()
         [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() < val2.value(); });
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from inplace_merge: number of ctor and dtor calls is not equal");
 #endif
-    test_algo_basic_single<int32_t>(run_for_rnd_bi<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd_bi<test_non_const<std::int32_t>>());
 
     return done();
 }

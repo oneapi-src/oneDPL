@@ -40,8 +40,8 @@ struct Gen
 template <typename T>
 struct Flip
 {
-    int32_t val;
-    Flip(int32_t y) : val(y) {}
+    std::int32_t val;
+    Flip(std::int32_t y) : val(y) {}
     T
     operator()(T& x) const
     {
@@ -131,16 +131,16 @@ struct test_non_const_for_each_n
 int
 main()
 {
-    test<int32_t>();
-    test<uint16_t>();
+    test<std::int32_t>();
+    test<std::uint16_t>();
     test<float64_t>();
 
 
 #ifdef FOR_EACH
-    test_algo_basic_single<int64_t>(run_for_rnd_fw<test_non_const_for_each>());
+    test_algo_basic_single<std::int64_t>(run_for_rnd_fw<test_non_const_for_each>());
 #endif
 #ifdef FOR_EACH_N
-    test_algo_basic_single<int64_t>(run_for_rnd_fw<test_non_const_for_each_n>());
+    test_algo_basic_single<std::int64_t>(run_for_rnd_fw<test_non_const_for_each_n>());
 #endif
 
     return done();

@@ -55,7 +55,7 @@ template<typename T1, typename T2>
 struct test_one_policy
 {
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator1, ::std::forward_iterator_tag>::value>::type
+    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, Iterator1>::value>::type
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e)
     {
         using namespace std;
@@ -72,7 +72,7 @@ struct test_one_policy
     }
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    typename ::std::enable_if<is_same_iterator_category<Iterator1, ::std::forward_iterator_tag>::value>::type
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, Iterator1>::value>::type
     operator()(ExecutionPolicy&& /* exec */, Iterator1 /* data_b */, Iterator1 /* data_e */, Iterator2 /* actual_b */, Iterator2 /* actual_e*/)
     {
     }
@@ -99,10 +99,10 @@ int
 main()
 {
     // clang-3.8 fails to correctly auto vectorize the loop in some cases of different types of container's elements,
-    // for example: int32_t and int8_t. This issue isn't detected for clang-3.9 and newer versions.
-    test<int16_t, int8_t>();
-    test<uint16_t, float32_t>();
-    test<float64_t, int64_t>();
+    // for example: std::int32_t and std::int8_t. This issue isn't detected for clang-3.9 and newer versions.
+    test<std::int16_t, std::int8_t>();
+    test<std::uint16_t, float32_t>();
+    test<float64_t, std::int64_t>();
     test<wrapper<float64_t>, wrapper<float64_t>>();
 
     return done();

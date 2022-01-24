@@ -168,9 +168,9 @@ main()
 {
 #if !ONEDPL_FPGA_DEVICE
     test_partial_sort_copy<Num<float32_t>>([](Num<float32_t> x, Num<float32_t> y) { return x < y; });
-    test_algo_basic_double<int32_t>(run_for_rnd<test_non_const<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd<test_non_const<std::int32_t>>());
 #endif
-    test_partial_sort_copy<int32_t>([](int32_t x, int32_t y) { return x > y; });
+    test_partial_sort_copy<std::int32_t>([](std::int32_t x, std::int32_t y) { return x > y; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test_partial_sort_copy<MemoryChecker>(

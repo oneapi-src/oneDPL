@@ -54,7 +54,7 @@ struct test_lower_bound
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     typename ::std::enable_if<
         oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
                Iterator3 result_first, Iterator3 result_last, Size n)
@@ -97,7 +97,7 @@ struct test_lower_bound
 #if TEST_DPCPP_BACKEND_PRESENT
         !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
 #endif
-            is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
                Iterator3 result_first, Iterator3 result_last, Size n)
@@ -117,7 +117,7 @@ struct test_lower_bound
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    typename ::std::enable_if<!is_same_iterator_category<Iterator3, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
                               void>::type
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
                Iterator3 result_first, Iterator3 result_last, Size n)
@@ -129,8 +129,8 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<uint64_t, test_lower_bound>();
+    test3buffers<std::uint64_t, test_lower_bound>();
 #endif
-    test_algo_three_sequences<uint64_t, test_lower_bound>();
+    test_algo_three_sequences<std::uint64_t, test_lower_bound>();
     return TestUtils::done();
 }

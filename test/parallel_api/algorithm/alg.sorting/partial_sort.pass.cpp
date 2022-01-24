@@ -25,8 +25,8 @@
 using namespace TestUtils;
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-static ::std::atomic<int32_t> count_val;
-static ::std::atomic<int32_t> count_comp;
+static ::std::atomic<std::int32_t> count_val;
+static ::std::atomic<std::int32_t> count_comp;
 
 template <typename T>
 struct Num
@@ -58,7 +58,7 @@ template <typename Type>
 struct test_brick_partial_sort
 {
     template <typename Policy, typename InputIterator, typename Compare>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value,
                             void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last, Compare compare)
@@ -102,7 +102,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator, typename Compare>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value,
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value,
                             void>::type
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */, Compare /* compare */)
@@ -110,7 +110,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator>
-    typename ::std::enable_if<is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value &&
+    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value &&
                               can_use_default_less_operator<Type>::value, void>::type
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last)
@@ -131,7 +131,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator>
-    typename ::std::enable_if<!is_same_iterator_category<InputIterator, ::std::random_access_iterator_tag>::value ||
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value ||
                               !can_use_default_less_operator<Type>::value, void>::type
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */)
@@ -183,10 +183,10 @@ main()
     EXPECT_TRUE(count_val == 0, "cleanup error");
 #endif
 
-    test_partial_sort<int32_t>(
-        [](int32_t x, int32_t y) { return x > y; }); // Reversed so accidental use of < will be detected.
+    test_partial_sort<std::int32_t>(
+        [](std::int32_t x, std::int32_t y) { return x > y; }); // Reversed so accidental use of < will be detected.
 
-    test_algo_basic_single<int32_t>(run_for_rnd<test_non_const<int32_t>>());
+    test_algo_basic_single<std::int32_t>(run_for_rnd<test_non_const<std::int32_t>>());
 
     return done();
 }

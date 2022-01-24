@@ -25,7 +25,7 @@
 
 #define ONEDPL_VERSION_MAJOR 2021
 #define ONEDPL_VERSION_MINOR 6
-#define ONEDPL_VERSION_PATCH 0
+#define ONEDPL_VERSION_PATCH 1
 
 #if defined(ONEDPL_USE_DPCPP_BACKEND)
 #    undef _ONEDPL_BACKEND_SYCL
@@ -75,11 +75,6 @@
 #if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
-
-// TODO: This is the define to support use-cases in tests. It is not really required
-// to be defined with new approach. However keep if for now until we figure out
-// what is the right behavior of tests.
-#define _ONEDPL_USE_PAR_POLICIES (_ONEDPL_PAR_BACKEND_TBB || _ONEDPL_PAR_BACKEND_OPENMP)
 
 #if (__cplusplus >= 201703L)
 #    define _ONEDPL_CONSTEXPR_FUN constexpr

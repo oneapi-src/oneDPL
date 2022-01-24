@@ -156,31 +156,12 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
     //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
 
-    typedef uint64_t FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
-    typedef typename ::std::decay<Policy>::type policy_type;
 
     namespace __bknd = __par_backend_hetero;
 
-    ValueType initial_value;
-    {
-        auto first2_acc = internal::get_access<sycl::access::mode::read>(policy, first2);
-        initial_value = first2_acc[0];
-    }
-
     const auto n = ::std::distance(first1, last1);
-    if (n <= 0)
-        return ::std::make_pair(result1, result2);
-    else if (n == 1)
-    {
-        auto result1_acc = internal::get_access<sycl::access::mode::write>(policy, result1);
-        auto result2_acc = internal::get_access<sycl::access::mode::write>(policy, result2);
-        auto first1_acc = internal::get_access<sycl::access::mode::read>(policy, first1);
-        result1_acc[0] = first1_acc[0];
-        result2_acc[0] = initial_value;
-        return ::std::make_pair(result1 + 1, result2 + 1);
-    }
 
     auto keep_keys = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto key_buf = keep_keys(first1, last1);

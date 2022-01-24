@@ -14,6 +14,9 @@
 //===----------------------------------------------------------------------===//
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
+
+// This header guard is used to check inclusion of DPC++ backend for the FPGA.
+// Changing this macro may result in broken tests.
 #ifndef _ONEDPL_parallel_backend_sycl_fpga_H
 #define _ONEDPL_parallel_backend_sycl_fpga_H
 
@@ -262,4 +265,4 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_parallel_backend_sycl_H */
+#endif /* _ONEDPL_parallel_backend_sycl_fpga_H */

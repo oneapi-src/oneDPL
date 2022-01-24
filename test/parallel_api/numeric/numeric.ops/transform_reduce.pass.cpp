@@ -46,10 +46,9 @@ class XOR
 class MyClass
 {
   public:
-    int32_t my_field;
+    std::int32_t my_field;
     MyClass() { my_field = 0; }
-    MyClass(int32_t in) { my_field = in; }
-    MyClass(const MyClass& in) { my_field = in.my_field; }
+    MyClass(std::int32_t in) { my_field = in; }
 
     friend MyClass
     operator+(const MyClass& x, const MyClass& y)
@@ -154,11 +153,11 @@ test_by_type(T init, BinaryOperation1 opB1, BinaryOperation2 opB2, UnaryOp opU, 
 int
 main()
 {
-    test_by_type<int32_t>(42, ::std::plus<int32_t>(), ::std::multiplies<int32_t>(), ::std::negate<int32_t>(),
-                          [](::std::size_t) -> int32_t { return int32_t(rand() % 1000); });
-    test_by_type<int64_t>(0, [](const int64_t& a, const int64_t& b) -> int64_t { return a | b; }, XOR(),
-                          [](const int64_t& x) -> int64_t { return x * 2; },
-                          [](::std::size_t) -> int64_t { return int64_t(rand() % 1000); });
+    test_by_type<std::int32_t>(42, ::std::plus<std::int32_t>(), ::std::multiplies<std::int32_t>(), ::std::negate<std::int32_t>(),
+                          [](::std::size_t) -> std::int32_t { return std::int32_t(rand() % 1000); });
+    test_by_type<std::int64_t>(0, [](const std::int64_t& a, const std::int64_t& b) -> std::int64_t { return a | b; }, XOR(),
+                          [](const std::int64_t& x) -> std::int64_t { return x * 2; },
+                          [](::std::size_t) -> std::int64_t { return std::int64_t(rand() % 1000); });
     test_by_type<float32_t>(1.0f, ::std::multiplies<float32_t>(),
                             [](const float32_t& a, const float32_t& b) -> float32_t { return a + b; },
                             [](const float32_t& x) -> float32_t { return x + 2; },
@@ -166,6 +165,5 @@ main()
     test_by_type<MyClass>(MyClass(), ::std::plus<MyClass>(), ::std::multiplies<MyClass>(),
         [](const MyClass& x) { return MyClass(-x.my_field); },
         [](::std::size_t) -> MyClass { return MyClass(rand() % 1000); });
-
     return done();
 }

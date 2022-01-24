@@ -105,7 +105,7 @@ struct test_non_const
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
         auto is_even = [&](float64_t v) {
-            uint32_t i = (uint32_t)v;
+            std::uint32_t i = (std::uint32_t)v;
             return i % 2 == 0;
         };
 
@@ -120,16 +120,16 @@ main()
     test<float64_t>(-666.0, 8.5, 0.33, [](const float64_t& x) { return x * x <= 1024; },
                     [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? 8.5 : float64_t(j % 32 + j); });
 
-    test<int32_t>(-666, 42, 99, [](const int32_t& x) { return x != 42; },
-                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? 42 : -1 - int32_t(j); });
+    test<std::int32_t>(-666, 42, 99, [](const std::int32_t& x) { return x != 42; },
+                  [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? 42 : -1 - std::int32_t(j); });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<Number>(Number(42, OddTag()), Number(2001, OddTag()), Number(2017, OddTag()), IsMultiple(3, OddTag()),
-                 [](int32_t j) { return ((j + 1) % 3 & 2) != 0 ? Number(2001, OddTag()) : Number(j, OddTag()); });
+                 [](std::int32_t j) { return ((j + 1) % 3 & 2) != 0 ? Number(2001, OddTag()) : Number(j, OddTag()); });
 #endif
 
 #ifdef _PSTL_TEST_REPLACE_COPY_IF
-    test_algo_basic_double<int32_t>(run_for_rnd_fw<test_non_const<int32_t>>());
+    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 #endif
 
     return done();
