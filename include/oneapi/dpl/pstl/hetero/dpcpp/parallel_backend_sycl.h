@@ -386,19 +386,23 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 //------------------------------------------------------------------------
 // parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
-template <typename _GlobalScan, typename _Range2, typename _Range1, typename _Accessor, typename _Size>
+template <typename _GlobalScan, typename _Range2, typename _Range1, typename _Accessor, typename _Size,
+          typename _AccessorRes, typename _IdxRes>
 struct __global_scan_caller
 {
     __global_scan_caller(const _GlobalScan& __global_scan, const _Range2& __rng2, const _Range1& __rng1,
-                         const _Accessor& __wg_sums_acc, _Size __n, ::std::size_t __size_per_wg)
+                         const _Accessor& __wg_sums_acc, _Size __n, ::std::size_t __size_per_wg, _AccessorRes __acc_res,
+                         _IdxRes __idx_res)
         : __m_global_scan(__global_scan), __m_rng2(__rng2), __m_rng1(__rng1), __m_wg_sums_acc(__wg_sums_acc),
-          __m_n(__n), __m_size_per_wg(__size_per_wg)
+          __m_n(__n), __m_size_per_wg(__size_per_wg), __m_acc_res(__acc_res), __m_idx_res(__idx_res)
     {
     }
 
     void operator()(sycl::item<1> __item) const
     {
         __m_global_scan(__item, __m_rng2, __m_rng1, __m_wg_sums_acc, __m_n, __m_size_per_wg);
+        //TODO: store result in one-element buffer
+        __m_acc_res[0] = __m_wg_sums_acc[__m_idx_res];
     }
 
   private:
@@ -406,6 +410,8 @@ struct __global_scan_caller
     _Range2 __m_rng2;
     _Range1 __m_rng1;
     _Accessor __m_wg_sums_acc;
+    _AccessorRes __m_acc_res;
+    _IdxRes __m_idx_res;
     _Size __m_n;
     ::std::size_t __m_size_per_wg;
 };
@@ -517,12 +523,13 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             __cgh.parallel_for<_PropagateScanName...>(
                 sycl::range<1>(__n_groups * __size_per_wg),
                 __global_scan_caller<_GlobalScan, typename ::std::decay<_Range2>::type,
-                                     typename ::std::decay<_Range1>::type, decltype(__wg_sums_acc), decltype(__n)>(
-                    __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg));
+                                     typename ::std::decay<_Range1>::type, decltype(__wg_sums_acc), decltype(__n),
+                                     decltype(__result_acc), decltype(__n_groups)>(
+                    __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg, __result_acc, __n_groups - 1));
         });
 
         //return oneapi::dpl::__par_backend_hetero::__future<_Type>(__final_event, __n_groups - 1, __wg_sums);
-        return __future(__final_event, __wg_sums);
+        return __future(__final_event, __result, __wg_sums);
     }
 };
 
