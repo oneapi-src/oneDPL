@@ -36,6 +36,7 @@ jobs:
         name: Save artifacts
         uses: actions/upload-artifact@v2
         with:
+          name: clang-format-diff
           path: clang-format-diff.diff
           retention-days: 3
 
