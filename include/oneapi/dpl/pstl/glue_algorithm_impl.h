@@ -114,7 +114,8 @@ find_if_not(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterato
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator> find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
 {
     return oneapi::dpl::find_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
