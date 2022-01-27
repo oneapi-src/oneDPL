@@ -8,6 +8,39 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2021.6.1
+===============
+
+New Features
+------------
+- Added support of unified shared device memory (USM) for ``reduce_by_segment`` algorithm.
+
+Fixed Issues
+------------
+- Fixed compilation errors happening when using C++20.
+- Fixed ``CL_OUT_OF_RESOURCES`` issue which used to occur during execution of Radix sort algorithm on CPU devices.
+- Fixed error in ``exclusive_scan_by_segment`` algorithm when used with unified shared device memory (USM) and number of items equals to 1.
+- Fixed error in ``inclusive_scan_by_segment`` algorithm when used with unified shared device memory (USM).
+- Fixed error in ``reduce_by_segment`` algorithm when used with a DPC++ execution policy and unified shared device memory (USM).
+
+Changes to Existing Features
+----------------------------
+- Improved performance of ``shift_left``, ``shift_right`` algorithms on vector with ``seq``, ``par``, ``par_unseq``, ``unseq``
+  execution policies when used with contiguous iterators.
+
+Known Issues and Limitations
+----------------------------
+- No new issues in this release. 
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+
 New in 2021.6
 =============
 
