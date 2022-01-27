@@ -419,8 +419,24 @@ struct test_base
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 //--------------------------------------------------------------------------------------------------------------------//
+template <typename T, typename TestName, typename TestBaseData>
+typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+create_test_obj(TestBaseData& data)
+{
+    return TestName(data);
+}
+
+template <typename T, typename TestName, typename TestBaseData>
+typename ::std::enable_if<!::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+create_test_obj(TestBaseData&)
+{
+    return TestName();
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
 template <typename T, typename TestName>
+//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
 void
 test_algo_three_sequences()
 {
@@ -437,23 +453,11 @@ test_algo_three_sequences()
         auto inout2_offset_first = test_base_data.get_start_from(1);
         auto inout3_offset_first = test_base_data.get_start_from(2);
 
-        if constexpr (::std::is_base_of<test_base<T>, TestName>::value)
-        {
-            TestName testObj(test_base_data);
-            invoke_on_all_host_policies()(testObj,
-                                          inout1_offset_first, inout1_offset_first + n,
-                                          inout2_offset_first, inout2_offset_first + n,
-                                          inout3_offset_first, inout3_offset_first + n,
-                                          n);
-        }
-        else
-        {
-            invoke_on_all_host_policies()(TestName(),
-                                          inout1_offset_first, inout1_offset_first + n,
-                                          inout2_offset_first, inout2_offset_first + n,
-                                          inout3_offset_first, inout3_offset_first + n,
-                                          n);
-        }
+        invoke_on_all_host_policies()(create_test_obj<T, TestName>(test_base_data),
+                                      inout1_offset_first, inout1_offset_first + n,
+                                      inout2_offset_first, inout2_offset_first + n,
+                                      inout3_offset_first, inout3_offset_first + n,
+                                      n);
     }
 }
 

@@ -171,19 +171,9 @@ test1buffer()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
-            {
-                TestName testObj(test_base_data);
-                invoke_on_all_hetero_policies<0>()(testObj,
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   n);
-            }
-            else
-            {
--                invoke_on_all_hetero_policies<0>()(TestName(),
-                                                    inout1_offset_first, inout1_offset_first + n,
-                                                    n);
-            }
+            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
+                                               inout1_offset_first, inout1_offset_first + n,
+                                               n);
         }
     }
 #endif
@@ -201,19 +191,9 @@ test1buffer()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
-            {
-                TestName testObj(test_base_data);
-                invoke_on_all_hetero_policies<1>()(testObj,
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   n);
-            }
-            else
-            {
-                invoke_on_all_hetero_policies<1>()(TestName(),
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   n);
-            }
+            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
+                                               inout1_offset_first, inout1_offset_first + n,
+                                               n);
         }
     }
 }
@@ -240,21 +220,10 @@ test2buffers()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
-            {
-                TestName testObj(test_base_data);
-                invoke_on_all_hetero_policies<0>()(testObj,
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   n);
-            }
-            else
-            {
-                invoke_on_all_hetero_policies<0>()(TestName(),
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   n);
-            }
+            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
+                                               inout1_offset_first, inout1_offset_first + n,
+                                               inout2_offset_first, inout2_offset_first + n,
+                                               n);
         }
     }
 #endif
@@ -274,21 +243,10 @@ test2buffers()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
-            {
-                TestName testObj(test_base_data);
-                invoke_on_all_hetero_policies<1>()(testObj,
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   n);
-            }
-            else
-            {
-                invoke_on_all_hetero_policies<1>()(TestName(),
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   n);
-            }
+            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
+                                               inout1_offset_first, inout1_offset_first + n,
+                                               inout2_offset_first, inout2_offset_first + n,
+                                               n);
         }
     }
 }
@@ -317,23 +275,11 @@ test3buffers(int mult = kDefaultMultValue)
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
-            {
-                TestName testObj(test_base_data);
-                invoke_on_all_hetero_policies<0>()(testObj,
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   inout3_offset_first, inout3_offset_first + n,
-                                                   n);
-            }
-            else
-            {
-                invoke_on_all_hetero_policies<0>()(TestName(),
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   inout3_offset_first, inout3_offset_first + n,
-                                                   n);
-            }
+            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
+                                               inout1_offset_first, inout1_offset_first + n,
+                                               inout2_offset_first, inout2_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n,
+                                               n);
         }
     }
 #endif
@@ -355,23 +301,11 @@ test3buffers(int mult = kDefaultMultValue)
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
-            {
-                TestName testObj(test_base_data);
-                invoke_on_all_hetero_policies<1>()(testObj,
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   inout3_offset_first, inout3_offset_first + n,
-                                                   n);
-            }
-            else
-            {
-                invoke_on_all_hetero_policies<1>()(TestName(),
-                                                   inout1_offset_first, inout1_offset_first + n,
-                                                   inout2_offset_first, inout2_offset_first + n,
-                                                   inout3_offset_first, inout3_offset_first + n,
-                                                   n);
-            }
+            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
+                                               inout1_offset_first, inout1_offset_first + n,
+                                               inout2_offset_first, inout2_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n,
+                                               n);
         }
     }
 }
