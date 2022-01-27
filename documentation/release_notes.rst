@@ -11,10 +11,6 @@ creating efficient heterogeneous applications.
 New in 2021.6.1
 ===============
 
-New Features
-------------
-- Added support of unified shared device memory (USM) for ``reduce_by_segment`` algorithm.
-
 Fixed Issues
 ------------
 - Fixed compilation errors happening when using C++20.
