@@ -28,8 +28,10 @@ using namespace oneapi::dpl::execution;
 #endif
 using namespace TestUtils;
 
-struct test_upper_bound
+DEFINE_TEST(test_upper_bound)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_upper_bound)
+
     // TODO: replace data generation with random data and update check to compare result to
     // the result of the serial algorithm
     template <typename Accessor1, typename Accessor2, typename Size>
@@ -64,23 +66,30 @@ struct test_upper_bound
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
                Iterator3 result_first, Iterator3 result_last, Size n)
     {
-        typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
-        // call algorithm with no optional arguments
-        {
-            auto host_first = get_host_access(first);
-            auto host_val_first = get_host_access(value_first);
-            auto host_result = get_host_access(result_first);
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, n);
 
-            initialize_data(host_first, host_val_first, host_result, n);
-        }
+        typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
+
+        // call algorithm with no optional arguments
+        initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
+
+        host_keys.update_data();
+        host_vals.update_data();
+        host_res.update_data();
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::upper_bound(new_policy, first, last, value_first, value_last, result_first);
         exec.queue().wait_and_throw();
         {
-            auto host_val_first = get_host_access(value_first);
-            auto host_result = get_host_access(result_first);
-            check_and_clean(host_result, host_val_first, n);
+            host_vals.retrieve_data();
+            host_res.retrieve_data();
+
+            check_and_clean(host_res.get(), host_vals.get(), n);
+
+            host_vals.update_data();
+            host_res.update_data();
         }
 
         // call algorithm with comparator
@@ -89,9 +98,10 @@ struct test_upper_bound
                                              [](ValueT first, ValueT second) { return first < second; });
         exec.queue().wait_and_throw();
         {
-            auto host_val_first = get_host_access(value_first);
-            auto host_result = get_host_access(result_first);
-            check_and_clean(host_result, host_val_first, n);
+            host_vals.retrieve_data();
+            host_res.retrieve_data();
+
+            check_and_clean(host_res.get(), host_vals.get(), n);
         }
     }
 #endif
@@ -133,9 +143,20 @@ struct test_upper_bound
 int
 main()
 {
+    using ValueType = ::std::uint64_t;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<std::uint64_t, test_upper_bound>();
-#endif
-    test_algo_three_sequences<std::uint64_t, test_upper_bound>();
+    // Run tests for USM shared memory
+    test3buffers<sycl::usm::alloc::shared, test_upper_bound<ValueType>>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, test_upper_bound<ValueType>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_algo_three_sequences<test_upper_bound<ValueType>>();
+#else
+    test_algo_three_sequences<ValueType, test_upper_bound>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
     return TestUtils::done();
 }
