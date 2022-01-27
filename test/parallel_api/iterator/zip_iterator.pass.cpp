@@ -102,49 +102,61 @@ struct TuplePredicate
 
 using namespace oneapi::dpl::execution;
 
-struct test_for_each
+DEFINE_TEST(test_for_each)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_for_each)
+
     template <typename Policy, typename Iterator1, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto host_first1 = get_host_pointer(first1);
+
+        auto value = T1(6);
+        auto f = [](T1& val) { ++val; };
+        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        host_keys.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
-        auto value = T1(6);
-        auto f = [](T1& val) { ++val; };
-        ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
                       TuplePredicate<decltype(f), 0>{f});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        host_first1 = get_host_pointer(first1);
-        EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 1), "wrong effect from for_each(tuple)");
+        host_keys.retrieve_data();
+        EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1), "wrong effect from for_each(tuple)");
     }
 };
 
 #if defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
-struct test_for_each_structured_binding
+
+DEFINE_TEST(test_for_each_structured_binding)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_for_each_structured_binding)
+
     template <typename Policy, typename Iterator1, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto host_first1 = get_host_pointer(first1);
+
+        auto value = T1(6);
+        auto f = [](T1& val) { ++val; };
+        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        host_keys.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
-        auto value = T1(6);
-        auto f = [](T1& val) { ++val; };
-        ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
-                        [f](auto value) {
+                        [f](auto value)
+                        {
                             auto [x, y] = value;
                             f(x);
                             f(y);
@@ -152,47 +164,57 @@ struct test_for_each_structured_binding
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        host_first1 = get_host_pointer(first1);
-        EXPECT_TRUE(check_values(host_first1, host_first1 + n, value + 2), "wrong effect from for_each(tuple)");
+        host_keys.retrieve_data();
+        EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 2), "wrong effect from for_each(tuple)");
     }
 };
 #endif // _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING
 
-struct test_transform_reduce_unary
+DEFINE_TEST(test_transform_reduce_unary)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_unary)
+
     template <typename Policy, typename Iterator1, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto host_first1 = get_host_pointer(first1);
+
+        auto value = T1(1);
+        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        host_keys.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
-        auto value = T1(1);
-        ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
-                                  ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
+                                ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
     }
 };
 
-struct test_transform_reduce_binary
+DEFINE_TEST(test_transform_reduce_binary)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_transform_reduce_binary)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 /* first2 */, Iterator2 /* last2 */, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto host_first1 = get_host_pointer(first1);
+
+        auto value = T1(1);
+        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        host_keys.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
-        auto value = T1(1);
-        ::std::fill(host_first1, host_first1 + n, value);
 
         ::std::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
                                   tuple_last1, tuple_first1, ::std::make_tuple(T1{42}, T1{42}), TupleNoOp{}, TupleNoOp{});
@@ -202,27 +224,30 @@ struct test_transform_reduce_binary
     }
 };
 
-struct test_min_element
+DEFINE_TEST(test_min_element)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_min_element)
+
     template <typename Policy, typename Iterator, typename Size>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
         using IteratorValueType = typename ::std::iterator_traits<Iterator>::value_type;
 
         IteratorValueType fill_value = IteratorValueType{static_cast<IteratorValueType>(n)};
-        auto host_first1 = get_host_pointer(first);
-        ::std::for_each(host_first1, host_first1 + n,
-                      [&fill_value](IteratorValueType& it) { it = fill_value-- % 10 + 1; });
+        ::std::for_each(host_keys.get(), host_keys.get() + n,
+                        [&fill_value](IteratorValueType& it) { it = fill_value-- % 10 + 1; });
 
-        ::std::size_t min_dis = n;
+        auto min_dis = n;
         if (min_dis)
         {
-            auto min_it = host_first1 + /*min_idx*/ min_dis / 2;
+            auto min_it = host_keys.get() + /*min_idx*/ min_dis / 2;
             *(min_it) = IteratorValueType{/*min_val*/ 0};
-            *(host_first1 + n - 1) = IteratorValueType{/*2nd min*/ 0};
+            *(host_keys.get() + n - 1) = IteratorValueType{/*2nd min*/ 0};
         }
+        host_keys.update_data();
 
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
@@ -233,26 +258,30 @@ struct test_min_element
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        auto expected_min = ::std::min_element(host_first1, host_first1 + n);
+        auto expected_min = ::std::min_element(host_keys.get(), host_keys.get() + n);
 
-        EXPECT_TRUE((tuple_result - tuple_first) == (expected_min - host_first1),
+        EXPECT_TRUE((tuple_result - tuple_first) == (expected_min - host_keys.get()),
                     "wrong effect from min_element(tuple)");
     }
 };
 
-struct test_count_if
+DEFINE_TEST(test_count_if)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_count_if)
+
     template <typename Policy, typename Iterator, typename Size>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         using ValueType = typename ::std::iterator_traits<Iterator>::value_type;
         using ReturnType = typename ::std::iterator_traits<Iterator>::difference_type;
 
-        auto host_first1 = get_host_pointer(first);
-
         ValueType fill_value{0};
-        ::std::for_each(host_first1, host_first1 + n, [&fill_value](ValueType& value) { value = fill_value++ % 10; });
+        ::std::for_each(host_keys.get(), host_keys.get() + n,
+                        [&fill_value](ValueType& value) { value = fill_value++ % 10; });
+        host_keys.update_data();
 
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
@@ -270,18 +299,24 @@ struct test_count_if
     }
 };
 
-struct test_equal
+DEFINE_TEST(test_equal)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_equal)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+
         using T = typename ::std::iterator_traits<Iterator1>::value_type;
+
         auto value = T(42);
-        auto host_first1 = get_host_pointer(first1);
-        auto host_first2 = get_host_pointer(first2);
-        ::std::iota(host_first1, host_first1 + n, value);
-        ::std::iota(host_first2, host_first2 + n, value);
+        ::std::iota(host_keys.get(), host_keys.get() + n, value);
+        ::std::iota(host_vals.get(), host_vals.get() + n, value);
+        host_keys.update_data();
+        host_vals.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -294,8 +329,10 @@ struct test_equal
 #endif
         EXPECT_TRUE(is_equal, "wrong effect from equal(tuple) 1");
 
-        host_first2 = get_host_pointer(first2);
-        *(host_first2 + n - 1) = T{0};
+        host_vals.retrieve_data();
+        *(host_vals.get() + n - 1) = T{0};
+        host_vals.update_data();
+
         is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 1>>(exec), tuple_first1, tuple_last1, tuple_first2,
                               TuplePredicate<::std::equal_to<T>, 0>{::std::equal_to<T>{}});
 #if _PSTL_SYCL_TEST_USM
@@ -306,18 +343,24 @@ struct test_equal
 };
 
 #if defined(_PSTL_TEST_EQUAL_STRUCTURED_BINDING)
-struct test_equal_structured_binding
+DEFINE_TEST(test_equal_structured_binding)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_equal_structured_binding)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+
         using T = typename ::std::iterator_traits<Iterator1>::value_type;
+
         auto value = T(42);
-        auto host_first1 = get_host_pointer(first1);
-        auto host_first2 = get_host_pointer(first2);
-        ::std::iota(host_first1, host_first1 + n, value);
-        ::std::iota(host_first2, host_first2 + n, value);
+        ::std::iota(host_keys.get(), host_keys.get() + n, value);
+        ::std::iota(host_vals.get(), host_vals.get() + n, value);
+        host_keys.update_data();
+        host_vals.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -343,8 +386,10 @@ struct test_equal_structured_binding
 #endif
         EXPECT_TRUE(is_equal, "wrong effect from equal(tuple with use of structured binding) 1");
 
-        host_first2 = get_host_pointer(first2);
-        *(host_first2 + n - 1) = T{0};
+        host_vals.retrieve_data();
+        *(host_vals.get() + n - 1) = T{0};
+        host_vals.update_data();
+
         is_equal = ::std::equal(make_new_policy<new_kernel_name<Policy, 1>>(exec), tuple_first1, tuple_last1, tuple_first2,
                                 compare);
         EXPECT_TRUE(!is_equal, "wrong effect from equal(tuple with use of structured binding) 2");
@@ -352,15 +397,20 @@ struct test_equal_structured_binding
 };
 #endif // _PSTL_TEST_EQUAL_STRUCTURED_BINDING
 
-struct test_find_if
+DEFINE_TEST(test_find_if)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_find_if)
+
     template <typename Policy, typename Iterator1, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto host_first1 = get_host_pointer(first1);
-        ::std::iota(host_first1, host_first1 + n, T1(0));
+
+        ::std::iota(host_keys.get(), host_keys.get() + n, T1(0));
+        host_keys.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -398,15 +448,20 @@ struct test_find_if
     }
 };
 
-struct test_transform_inclusive_scan
+DEFINE_TEST(test_transform_inclusive_scan)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_transform_inclusive_scan)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
-        auto host_first1 = get_host_pointer(first1);
-        ::std::fill(host_first1, host_first1 + n, T1(1));
+
+        ::std::fill(host_keys.get(), host_keys.get() + n, T1(1));
+        host_keys.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -414,8 +469,9 @@ struct test_transform_inclusive_scan
         auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
         auto value = T1(333);
 
-        auto res = ::std::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
-                                                 tuple_first2, TupleNoOp{}, TupleNoOp{}, ::std::make_tuple(value, value));
+        auto res = ::std::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1,
+                                                   tuple_last1, tuple_first2, TupleNoOp{}, TupleNoOp{},
+                                                   ::std::make_tuple(value, value));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
@@ -423,22 +479,27 @@ struct test_transform_inclusive_scan
     }
 };
 
-struct test_unique
+DEFINE_TEST(test_unique)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_unique)
+
     template <typename Policy, typename Iterator1, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
         using Iterator1ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
-        auto host_first1 = get_host_pointer(first1);
+
+        int index = 0;
+        ::std::for_each(host_keys.get(), host_keys.get() + n,
+                        [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
+        host_keys.update_data();
+
+        const std::int64_t expected_size = (n - 1) / 4 + 1;
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
-
-        int index = 0;
-        ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
-        std::int64_t expected_size = (n - 1) / 4 + 1;
 
         auto tuple_lastnew =
             ::std::unique(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
@@ -448,60 +509,70 @@ struct test_unique
 #endif
 
         bool is_correct = (tuple_lastnew - tuple_first1) == expected_size;
-        host_first1 = get_host_pointer(first1);
+        host_keys.retrieve_data();
         for (int i = 0; i < ::std::min(tuple_lastnew - tuple_first1, expected_size) && is_correct; ++i)
-            if ((*host_first1 + i) != i + 1)
+            if ((*host_keys.get() + i) != i + 1)
                 is_correct = false;
 
         EXPECT_TRUE(is_correct, "wrong effect from unique(tuple)");
     }
 };
 
-struct test_unique_copy
+DEFINE_TEST(test_unique_copy)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_unique_copy)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
         using Iterator1ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
-        auto host_first1 = get_host_pointer(first1);
-        auto host_first2 = get_host_pointer(first2);
+
+        int index = 0;
+        ::std::for_each(host_keys.get(), host_keys.get() + n,
+                        [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
+        ::std::fill(host_vals.get(), host_vals.get() + n, Iterator1ValueType{-1});
+        host_keys.update_data();
+        host_keys.update_data();
+
+        const std::int64_t expected_size = (n - 1) / 4 + 1;
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
 
-        int index = 0;
-        ::std::for_each(host_first1, host_first1 + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
-        ::std::fill(host_first2, host_first2 + n, Iterator1ValueType{-1});
-        std::int64_t expected_size = (n - 1) / 4 + 1;
-
-        auto tuple_last2 =
-            ::std::unique_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
-                             TuplePredicate<::std::equal_to<Iterator1ValueType>, 0>{::std::equal_to<Iterator1ValueType>{}});
+        auto tuple_last2 = ::std::unique_copy(
+            make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1, tuple_first2,
+            TuplePredicate<::std::equal_to<Iterator1ValueType>, 0>{::std::equal_to<Iterator1ValueType>{}});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
 
         bool is_correct = (tuple_last2 - tuple_first2) == expected_size;
-        host_first2 = get_host_pointer(first2);
-
+        host_vals.retrieve_data();
         for (int i = 0; i < ::std::min(tuple_last2 - tuple_first2, expected_size) && is_correct; ++i)
-            if ((*host_first2 + i) != i + 1)
+            if ((*host_vals.get() + i) != i + 1)
                 is_correct = false;
 
         EXPECT_TRUE(is_correct, "wrong effect from unique_copy(tuple)");
     }
 };
 
-struct test_merge
+DEFINE_TEST(test_merge)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_merge)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Iterator3 first3,
                Iterator3 /* last3 */, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
         typedef typename ::std::iterator_traits<Iterator3>::value_type T3;
@@ -510,18 +581,25 @@ struct test_merge
         T2 even = T2{0};
         size_t size1 = n >= 2 ? n / 2 : n;
         size_t size2 = n >= 3 ? n / 3 : n;
-        auto host_first1 = get_host_pointer(first1);
-        auto host_first2 = get_host_pointer(first2);
-        auto host_first3 = get_host_pointer(first3);
-        ::std::for_each(host_first1, host_first1 + size1, [&odd](T1& value) {
-            value = odd;
-            odd += 2;
-        });
-        ::std::for_each(host_first2, host_first2 + size2, [&even](T2& value) {
-            value = even;
-            even += 2;
-        });
-        ::std::fill(host_first3, host_first3 + n, T3{-1});
+        ::std::for_each(host_keys.get(), host_keys.get() + size1,
+                        [&odd](T1& value)
+                        {
+                            value = odd;
+                            odd += 2;
+                        });
+        host_keys.update_data();
+        ::std::for_each(host_vals.get(), host_vals.get() + size2,
+                        [&even](T2& value)
+                        {
+                            value = even;
+                            even += 2;
+                        });
+        host_vals.update_data();
+        {
+            TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
+            ::std::fill(host_res.get(), host_res.get() + n, T3{ -1 });
+            host_res.update_data();
+        }
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(first1 + size1, first1 + size1);
@@ -536,10 +614,22 @@ struct test_merge
 #endif
 
         size_t res_size = tuple_last3 - tuple_first3;
+
+        assert(res_size <= 2 * n);
+        TestDataTransfer<UDTKind::eRes, Size> host_res(*this, res_size);
+
         size_t exp_size = size1 + size2;
         bool is_correct = res_size == exp_size;
         EXPECT_TRUE(is_correct, "wrong result from merge (tuple)");
-        host_first3 = get_host_pointer(first3);
+
+        host_keys.retrieve_data();
+        host_vals.retrieve_data();
+        host_res.retrieve_data();
+
+        auto host_first1 = host_keys.get();
+        auto host_first2 = host_vals.get();
+        auto host_first3 = host_res.get();
+
         for (size_t i = 0; i < ::std::min(res_size, exp_size) && is_correct; ++i)
             if ((i < size2 * 2 && *(host_first3 + i) != i) ||
                 (i >= size2 * 2 && *(host_first3 + i) != *(host_first1 + i - size2)))
@@ -548,19 +638,24 @@ struct test_merge
     }
 };
 
-struct test_stable_sort
+DEFINE_TEST(test_stable_sort)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_stable_sort)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+
         using T =  typename ::std::iterator_traits<Iterator1>::value_type;
 
         auto value = T(333);
-        auto host_first1 = get_host_pointer(first1);
-        auto host_first2 = get_host_pointer(first2);
-        ::std::iota(host_first1, host_first1 + n, value);
-        ::std::copy_n(host_first1, n, host_first2);
+        ::std::iota(host_keys.get(), host_keys.get() + n, value);
+        ::std::copy_n(host_keys.get(), n, host_vals.get());
+        host_keys.update_data();
+        host_vals.update_data();
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), oneapi::dpl::make_zip_iterator(first1, first2),
                          oneapi::dpl::make_zip_iterator(last1, last2),
@@ -568,22 +663,39 @@ struct test_stable_sort
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        host_first1 = get_host_pointer(first1);
-        host_first2 = get_host_pointer(first2);
-        EXPECT_TRUE(::std::is_sorted(host_first1, host_first1 + n, ::std::greater<T>()),
+        host_keys.retrieve_data();
+        host_vals.retrieve_data();
+        EXPECT_TRUE(::std::is_sorted(host_keys.get(), host_keys.get() + n, ::std::greater<T>()),
                     "wrong effect from stable_sort (tuple)");
-        EXPECT_TRUE(::std::is_sorted(host_first2, host_first2 + n, ::std::greater<T>()),
+        EXPECT_TRUE(::std::is_sorted(host_vals.get(), host_vals.get() + n, ::std::greater<T>()),
                     "wrong effect from stable_sort (tuple)");
     }
 };
 
-struct test_lexicographical_compare
+DEFINE_TEST(test_lexicographical_compare)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_lexicographical_compare)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+
         using ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+
+        // init
+        ValueType fill_value1{0};
+        ::std::for_each(host_keys.get(), host_keys.get() + n,
+                        [&fill_value1](ValueType& value) { value = fill_value1++ % 10; });
+        ValueType fill_value2{0};
+        ::std::for_each(host_vals.get(), host_vals.get() + n,
+                        [&fill_value2](ValueType& value) { value = fill_value2++ % 10; });
+        if (n > 1)
+            *(host_vals.get() + n - 2) = 222;
+        host_keys.update_data();
+        host_vals.update_data();
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -592,21 +704,10 @@ struct test_lexicographical_compare
 
         auto comp = [](ValueType const& first, ValueType const& second) { return first < second; };
 
-        // init
-        ValueType fill_value1{0};
-        auto host_first1 = get_host_pointer(first1);
-        auto host_first2 = get_host_pointer(first2);
-
-        ::std::for_each(host_first1, host_first1 + n, [&fill_value1](ValueType& value) { value = fill_value1++ % 10; });
-        ValueType fill_value2{0};
-        ::std::for_each(host_first2, host_first2 + n, [&fill_value2](ValueType& value) { value = fill_value2++ % 10; });
-        if (n > 1)
-            *(host_first2 + n - 2) = 222;
-
         bool is_less_exp = n > 1 ? 1 : 0;
         bool is_less_res =
             ::std::lexicographical_compare(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
-                                         tuple_first2, tuple_last2, TuplePredicate<decltype(comp), 0>{comp});
+                                           tuple_first2, tuple_last2, TuplePredicate<decltype(comp), 0>{comp});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
@@ -626,110 +727,130 @@ struct Assigner{
 };
 
 // Make sure that it's possible to use conting iterator inside zip iterator
-struct test_counting_zip_transform
+DEFINE_TEST(test_counting_zip_transform)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_transform)
+
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Size n)
     {
+        if (n < 6)
+            return;
+
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
         using ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
 
-        if (n < 6)
-            return;
-        auto host_first1 = get_host_pointer(first1);
-        auto host_first2 = get_host_pointer(first2);
-
-        ::std::fill(host_first1, host_first1 + n, ValueType{0});
-        ::std::fill(host_first2, host_first2 + n, ValueType{0});
-        *(host_first1 + (n / 3)) = 10;
-        *(host_first1 + (n / 3 * 2)) = 100;
+        ::std::fill(host_keys.get(), host_keys.get() + n, ValueType{0});
+        ::std::fill(host_vals.get(), host_vals.get() + n, ValueType{0});
+        *(host_keys.get() + (n / 3)) = 10;
+        *(host_keys.get() + (n / 3 * 2)) = 100;
+        host_keys.update_data();
+        host_vals.update_data();
 
         auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
         auto start = oneapi::dpl::make_zip_iterator(idx, first1);
 
-        auto res = ::std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), start, start + n,
-                        oneapi::dpl::make_transform_iterator(
-                            first2,
-                            [](ValueType& x1) {
-                                // It's required to use forward_as_tuple instead of make_tuple
-                                // as the latter do not propagate references.
-                                return ::std::forward_as_tuple(x1, ::std::ignore);
-                            }),
-                        Assigner{});
+        auto res =
+            ::std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), start, start + n,
+                           oneapi::dpl::make_transform_iterator(first2,
+                                                                [](ValueType& x1)
+                                                                {
+                                                                    // It's required to use forward_as_tuple instead of make_tuple
+                                                                    // as the latter do not propagate references.
+                                                                    return ::std::forward_as_tuple(x1, ::std::ignore);
+                                                                }),
+                           Assigner{});
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        host_first2 = get_host_pointer(first2);
+        host_vals.retrieve_data();
         EXPECT_TRUE(res.base() - first2 == 2, "Incorrect number of elements");
-        EXPECT_TRUE(*host_first2 == n / 3, "Incorrect 1st element");
-        EXPECT_TRUE(*(host_first2 + 1) == (n / 3 * 2), "Incorrect 2nd element");
+        EXPECT_TRUE(*host_vals.get() == n / 3, "Incorrect 1st element");
+        EXPECT_TRUE(*(host_vals.get() + 1) == (n / 3 * 2), "Incorrect 2nd element");
     }
 };
 #endif
 
-std::int32_t
-main()
-{
 #if TEST_DPCPP_BACKEND_PRESENT
+template <sycl::usm::alloc alloc_type>
+void
+test_usm()
+{
+    using ValueType = ::std::int32_t;
+
 #if defined(_PSTL_TEST_FOR_EACH)
     PRINT_DEBUG("test_for_each");
-    test1buffer<std::int32_t, test_for_each>();
+    test1buffer<alloc_type, test_for_each<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_FOR_EACH_STRUCTURED_BINDING)
     PRINT_DEBUG("test_for_each_structured_binding");
-    test1buffer<std::int32_t, test_for_each_structured_binding>();
+    test1buffer<alloc_type, test_for_each_structured_binding<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_TRANSFORM_REDUCE_UNARY)
     PRINT_DEBUG("test_transform_reduce_unary");
-    test1buffer<std::int32_t, test_transform_reduce_unary>();
+    test1buffer<alloc_type, test_transform_reduce_unary<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_TRANSFORM_REDUCE_BINARY)
     PRINT_DEBUG("test_transform_reduce_binary");
-    test2buffers<std::int32_t, test_transform_reduce_binary>();
+    test2buffers<alloc_type, test_transform_reduce_binary<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_COUNT_IF)
     PRINT_DEBUG("test_count_if");
-    test1buffer<std::int32_t, test_count_if>();
+    test1buffer<alloc_type, test_count_if<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_EQUAL)
     PRINT_DEBUG("test_equal");
-    test2buffers<std::int32_t, test_equal>();
+    test2buffers<alloc_type, test_equal<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_EQUAL_STRUCTURED_BINDING)
     PRINT_DEBUG("test_equal_structured_binding");
-    test2buffers<std::int32_t, test_equal_structured_binding>();
+    test2buffers<alloc_type, test_equal_structured_binding<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_INCLUSIVE_SCAN)
     PRINT_DEBUG("test_inclusive_scan");
-    test2buffers<std::int32_t, test_transform_inclusive_scan>();
+    test2buffers<alloc_type, test_transform_inclusive_scan<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_UNIQUE)
     PRINT_DEBUG("test_unique");
-    test1buffer<std::int32_t, test_unique>();
+    test1buffer<alloc_type, test_unique<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_UNIQUE_COPY)
     PRINT_DEBUG("test_unique_copy");
-    test2buffers<std::int32_t, test_unique_copy>();
+    test2buffers<alloc_type, test_unique_copy<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_MERGE)
     PRINT_DEBUG("test_merge");
-    test3buffers<std::int32_t, test_merge>();
+    test3buffers<alloc_type, test_merge<ValueType>>(2);
 #endif
 // sorting with zip iterator does not meet limits of RAM usage on FPGA.
 // TODO: try to investigate and reduce RAM consumption
 #if defined(_PSTL_TEST_STABLE_SORT) && !ONEDPL_FPGA_DEVICE
     PRINT_DEBUG("test_stable_sort");
-    test2buffers<std::int32_t, test_stable_sort>();
+    test2buffers<alloc_type, test_stable_sort<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE)
     PRINT_DEBUG("test_lexicographical_compare");
-    test2buffers<std::int32_t, test_lexicographical_compare>();
+    test2buffers<alloc_type, test_lexicographical_compare<ValueType>>();
 #endif
 #if defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
     PRINT_DEBUG("test_counting_zip_transform");
-    test2buffers<std::int32_t, test_counting_zip_transform>();
+    test2buffers<alloc_type, test_counting_zip_transform<ValueType>>();
 #endif
+}
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+::std::int32_t
+main()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    // Run tests for USM shared memory
+    test_usm<sycl::usm::alloc::shared>();
+    // Run tests for USM device memory
+    test_usm<sycl::usm::alloc::device>();
 #endif
+
     return done(TEST_DPCPP_BACKEND_PRESENT);
 }
