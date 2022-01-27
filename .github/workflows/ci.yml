@@ -32,6 +32,12 @@ jobs:
         run: git diff > clang-format-diff.diff
       - name: Checking if diff is empty
         run: if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi
+      - if: failure()
+        name: Save artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: clang-format-diff.diff
+          retention-days: 3
 
   codespell:
     runs-on: ubuntu-latest
