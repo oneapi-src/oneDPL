@@ -64,6 +64,8 @@ using ::std::lower_bound;
 using ::std::move;
 using ::std::move_backward;
 using ::std::none_of;
+using ::std::rotate;
+using ::std::rotate_copy;
 using ::std::upper_bound;
 } // namespace dpl
 
