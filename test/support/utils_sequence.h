@@ -61,22 +61,22 @@ public:
     Sequence(size_t size, Func f);
     Sequence(const ::std::initializer_list<T>& data);
 
-    const_iterator               begin   () const;
-    const_iterator               end     () const;
-    iterator                     begin   ();
-    iterator                     end     ();
-    const_iterator               cbegin  () const;
-    const_iterator               cend    () const;
-    forward_iterator             fbegin  ();
-    forward_iterator             fend    ();
-    const_forward_iterator       cfbegin () const;
-    const_forward_iterator       cfend   () const;
-    const_forward_iterator       fbegin  () const;
-    const_forward_iterator       fend    () const;
-    const_bidirectional_iterator cbibegin() const;
-    const_bidirectional_iterator cbiend  () const;
-    bidirectional_iterator       bibegin ();
-    bidirectional_iterator       biend   ();
+    const_iterator               begin   () const { return m_storage.begin();                                };
+    const_iterator               end     () const { return m_storage.end();                                  };
+    iterator                     begin   ()       { return m_storage.begin();                                };
+    iterator                     end     ()       { return m_storage.end();                                  };
+    const_iterator               cbegin  () const { return m_storage.cbegin();                               };
+    const_iterator               cend    () const { return m_storage.cend();                                 };
+    forward_iterator             fbegin  ()       { return forward_iterator(m_storage.begin());              };
+    forward_iterator             fend    ()       { return forward_iterator(m_storage.end());                };
+    const_forward_iterator       cfbegin () const { return const_forward_iterator(m_storage.cbegin());       };
+    const_forward_iterator       cfend   () const { return const_forward_iterator(m_storage.cend());         };
+    const_forward_iterator       fbegin  () const { return const_forward_iterator(m_storage.cbegin());       };
+    const_forward_iterator       fend    () const { return const_forward_iterator(m_storage.cend());         };
+    const_bidirectional_iterator cbibegin() const { return const_bidirectional_iterator(m_storage.cbegin()); };
+    const_bidirectional_iterator cbiend  () const { return const_bidirectional_iterator(m_storage.cend());   };
+    bidirectional_iterator       bibegin ()       { return bidirectional_iterator(m_storage.begin());        };
+    bidirectional_iterator       biend   ()       { return bidirectional_iterator(m_storage.end());          };
 
     ::std::size_t size() const;
     const T* data() const;
@@ -128,134 +128,6 @@ template <typename T>
 Sequence<T>::Sequence(const ::std::initializer_list<T>& data)
     : m_storage(data)
 {
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_iterator
-Sequence<T>::begin() const
-{
-    return m_storage.begin();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_iterator
-Sequence<T>::end() const
-{
-    return m_storage.end();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::iterator
-Sequence<T>::begin()
-{
-    return m_storage.begin();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::iterator
-Sequence<T>::end()
-{
-    return m_storage.end();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_iterator
-Sequence<T>::cbegin() const
-{
-    return m_storage.cbegin();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_iterator
-Sequence<T>::cend() const
-{
-    return m_storage.cend();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::forward_iterator
-Sequence<T>::fbegin()
-{
-    return forward_iterator(m_storage.begin());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::forward_iterator
-Sequence<T>::fend()
-{
-    return forward_iterator(m_storage.end());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_forward_iterator
-Sequence<T>::cfbegin() const
-{
-    return const_forward_iterator(m_storage.cbegin());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_forward_iterator
-Sequence<T>::cfend() const
-{
-    return const_forward_iterator(m_storage.cend());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_forward_iterator
-Sequence<T>::fbegin() const
-{
-    return const_forward_iterator(m_storage.cbegin());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_forward_iterator
-Sequence<T>::fend() const
-{
-    return const_forward_iterator(m_storage.cend());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_bidirectional_iterator
-Sequence<T>::cbibegin() const
-{
-    return const_bidirectional_iterator(m_storage.cbegin());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::const_bidirectional_iterator
-Sequence<T>::cbiend() const
-{
-    return const_bidirectional_iterator(m_storage.cend());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::bidirectional_iterator
-Sequence<T>::bibegin()
-{
-    return bidirectional_iterator(m_storage.begin());
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename T>
-typename Sequence<T>::bidirectional_iterator
-Sequence<T>::biend()
-{
-    return bidirectional_iterator(m_storage.end());
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
