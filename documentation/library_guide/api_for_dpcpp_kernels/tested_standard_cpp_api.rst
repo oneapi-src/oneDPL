@@ -366,16 +366,6 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::partial_sort``                Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::partial_sort_copy``           Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::is_heap``                     Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::is_heap_until``               Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::make_heap``                   Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::push_heap``                   Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::pop_heap``                    Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

@@ -59,20 +59,15 @@ using ::std::find;
 using ::std::find_if;
 using ::std::find_if_not;
 using ::std::for_each;
-using ::std::is_heap;
-using ::std::is_heap_until;
 using ::std::is_permutation;
 using ::std::is_sorted;
 using ::std::is_sorted_until;
 using ::std::lower_bound;
-using ::std::make_heap;
 using ::std::move;
 using ::std::move_backward;
 using ::std::none_of;
 using ::std::partial_sort;
 using ::std::partial_sort_copy;
-using ::std::pop_heap;
-using ::std::push_heap;
 using ::std::upper_bound;
 } // namespace dpl
 
