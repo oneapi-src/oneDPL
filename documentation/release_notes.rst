@@ -15,9 +15,7 @@ Fixed Issues
 ------------
 - Fixed compilation errors happening when using C++20.
 - Fixed ``CL_OUT_OF_RESOURCES`` issue which used to occur during execution of Radix sort algorithm on CPU devices.
-- Fixed error in ``exclusive_scan_by_segment`` algorithm when used with unified shared device memory (USM) and number of items equals to 1.
-- Fixed error in ``inclusive_scan_by_segment`` algorithm when used with unified shared device memory (USM).
-- Fixed error in ``reduce_by_segment`` algorithm when used with a DPC++ execution policy and unified shared device memory (USM).
+- Fixed an issue with the following algorithms used with DPC++ execution policies and the data located in the device memory (USM): ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``.
 
 Changes to Existing Features
 ----------------------------
