@@ -29,15 +29,15 @@ jobs:
           FILES=$(git diff --diff-filter=d --name-only ${{ github.event.pull_request.base.sha }} | grep ^include | grep -v nanorange\.hpp\$ || true)
           echo $FILES | xargs -n1 -t -r clang-format-6.0 --style=file -i
       - name: Creating diff
-        run: git diff > clang-format-diff.diff
+        run: git diff > clang-format.diff
       - name: Checking if diff is empty
-        run: if [ -s clang-format-diff.diff ]; then cat clang-format-diff.diff; exit 1; fi
+        run: if [ -s clang-format.diff ]; then cat clang-format.diff; exit 1; fi
       - if: failure()
         name: Save artifacts
         uses: actions/upload-artifact@v2
         with:
           name: clang-format-diff
-          path: clang-format-diff.diff
+          path: clang-format.diff
           retention-days: 3
 
   codespell:
