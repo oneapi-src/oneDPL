@@ -35,30 +35,15 @@ test_with_usm()
 {
     sycl::queue q;
 
-    //data initialization
-    auto prepare_data = [](int n, int* keys1, int* keys2, int* values)
-        {
-            constexpr int items_count = 9;
-
-            const int src_keys1 [items_count] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
-            const int src_keys2 [items_count] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
-            const int src_values[items_count] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
-
-            ::std::copy_n(src_keys1, items_count, keys1);
-            ::std::copy_n(src_keys2, items_count, keys2);
-            ::std::copy_n(src_values, items_count, values);
-        };
-
     constexpr int n = 9;
-    constexpr int n_res = 6;
-    int keys1[n] = {};
-    int keys2[n] = {};
-    int values[n] = {};
-    int output_keys1[n] = {};
-    int output_keys2[n] = {};
-    int output_values[n] = {};
 
-    prepare_data(n, keys1, keys2, values);
+    //data initialization
+    int keys1 [n] = { 11, 11, 21, 20, 21, 21, 21, 37, 37 };
+    int keys2 [n] = { 11, 11, 20, 20, 20, 21, 21, 37, 37 };
+    int values[n] = {  0,  1,  2,  3,  4,  5,  6,  7,  8 };
+    int output_keys1 [n] = { };
+    int output_keys2 [n] = { };
+    int output_values[n] = { };
 
     // allocate USM memory and copying data to USM shared/device memory
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper1(q, std::begin(keys1),         std::end(keys1));
@@ -93,7 +78,7 @@ test_with_usm()
 
 //Dump
 #if 0
-    for(int i=0; i < n_res; i++) {
+    for(int i=0; i < n; i++) {
       std::cout << "{" << output_keys1[i] << ", " << output_keys2[i] << "}: " << output_values[i] << std::endl;
     }
 #endif
@@ -105,12 +90,12 @@ test_with_usm()
     // {21, 20}: 4
     // {21, 21}: 11
     // {37, 37}: 15
-    const int exp_keys1[n_res] = {11, 21, 20, 21, 21,37};
-    const int exp_keys2[n_res] = {11, 20, 20, 20, 21, 37};
-    const int exp_values[n_res] = {1, 2, 3, 4, 11, 15};
-    EXPECT_EQ_N(exp_keys1, output_keys1, n_res, "wrong keys1 from reduce_by_segment");
-    EXPECT_EQ_N(exp_keys2, output_keys2, n_res, "wrong keys2 from reduce_by_segment");
-    EXPECT_EQ_N(exp_values, output_values, n_res, "wrong values from reduce_by_segment");
+    const int exp_keys1[n] = {11, 21, 20, 21, 21,37};
+    const int exp_keys2[n] = {11, 20, 20, 20, 21, 37};
+    const int exp_values[n] = {1, 2, 3, 4, 11, 15};
+    EXPECT_EQ_N(exp_keys1, output_keys1, n, "wrong keys1 from reduce_by_segment");
+    EXPECT_EQ_N(exp_keys2, output_keys2, n, "wrong keys2 from reduce_by_segment");
+    EXPECT_EQ_N(exp_values, output_values, n, "wrong values from reduce_by_segment");
 }
 #endif
 
