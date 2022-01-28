@@ -228,7 +228,7 @@ private:
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename _ValueType, typename _Size>
-::std::unique_ptr<usm_data_transfer_base<_ValueType>>
+auto
 create_usm_data_transfer(sycl::usm::alloc alloc_type, sycl::queue& __q, _Size __sz)
 {
     ::std::unique_ptr<usm_data_transfer_base<_ValueType>> result;
