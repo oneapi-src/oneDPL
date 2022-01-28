@@ -42,11 +42,11 @@ public:
 // RAII service class to allocate shared/device memory (USM)
 // Usage model"
 // 1. allocate USM memory and copying data to USM:
-//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, count); 
-// or 
+//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, count);
+// or
 //    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, std::begin(data), std::end(data));
 // or just allocate USM memory"
-//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, count); 
+//    usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, count);
 // 2. get a USM pointer by usm_data_transfer::get_data() and passed one into a parallel algorithm with dpc++ policy.
 // 3. Retrieve data back (in case of device allocation type) to the host for further checking result.
 //    dt_helper.retrieve_data(dest_host);
