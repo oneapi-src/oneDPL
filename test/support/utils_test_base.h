@@ -71,7 +71,7 @@ struct test_base_data_usm : test_base_data<TestValueType>
         ::std::size_t    offset = 0;
 
         template<typename _Size>
-        Data(sycl::usm::alloc __alloc_type, sycl::queue& __q, _Size __sz, ::std::size_t __offset)
+        Data(sycl::usm::alloc __alloc_type, sycl::queue __q, _Size __sz, ::std::size_t __offset)
             : alloc_type(__alloc_type)
             , src_data_usm(create_usm_data_transfer<TestValueType>(__alloc_type, __q, __sz + __offset))
             , offset(__offset)
@@ -110,19 +110,16 @@ struct test_base_data_usm : test_base_data<TestValueType>
     };
     ::std::vector<Data> data;
 
-    template <typename _Size, typename... Args>
-    test_base_data_usm(sycl::usm::alloc alloc_type, sycl::queue& __q, _Size __sz, Args&&... args)
+    struct InitParam
     {
-        fill_data(alloc_type, __q, __sz, ::std::forward<Args>(args)...);
-    }
+        ::std::size_t size   = 0;
+        ::std::size_t offset = 0;
+    };
 
-    template <typename _Size, typename... Args>
-    void fill_data(sycl::usm::alloc alloc_type, sycl::queue& __q, _Size __sz, ::std::size_t __offset, Args&&... args)
+    test_base_data_usm(sycl::usm::alloc alloc_type, sycl::queue __q, ::std::initializer_list<InitParam> init)
     {
-        data.emplace_back(alloc_type, __q, __sz, __offset);
-
-        if constexpr (sizeof...(Args) > 0)
-            fill_data(alloc_type, __q, __sz, ::std::forward<Args>(args)...);
+        for (auto& initParam : init)
+            data.emplace_back(alloc_type, __q, initParam.size, initParam.offset);
     }
 
     struct PredGetStartFrom

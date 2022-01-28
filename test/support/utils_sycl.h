@@ -160,7 +160,7 @@ test1buffer()
     { // USM
         // 1. allocate usm memory
         using TestBaseData = test_base_data_usm<TestValueType>;
-        TestBaseData test_base_data(alloc_type, queue, max_n, inout1_offset);
+        TestBaseData test_base_data(alloc_type, queue, { { (::std::size_t)max_n, (::std::size_t)inout1_offset } });
 
         // 2. create a pointer at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(0);
@@ -208,7 +208,8 @@ test2buffers()
     { // USM
         // 1. allocate usm memory
         using TestBaseData = test_base_data_usm<TestValueType>;
-        TestBaseData test_base_data(alloc_type, queue, max_n, inout1_offset, inout2_offset);
+        TestBaseData test_base_data(alloc_type, queue, { { (::std::size_t)max_n, (::std::size_t)inout1_offset },
+                                                         { (::std::size_t)max_n, (::std::size_t)inout2_offset } });
 
         // 2. create pointers at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(0);
@@ -262,7 +263,9 @@ test3buffers(int mult = kDefaultMultValue)
 
         // 1. allocate usm memory
         using TestBaseData = test_base_data_usm<TestValueType>;
-        TestBaseData test_base_data(alloc_type, queue, max_n, inout1_offset, inout2_offset, inout3_offset);
+        TestBaseData test_base_data(alloc_type, queue, { { (::std::size_t)max_n,        (::std::size_t)inout1_offset },
+                                                         { (::std::size_t)max_n,        (::std::size_t)inout2_offset },
+                                                         { (::std::size_t)max_n * mult, (::std::size_t)inout3_offset } });
 
         // 2. create pointers at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(0);
