@@ -302,18 +302,23 @@ struct test_base
     }
 
     template <UDTKind kind, typename Size>
-    class TestDataRead
+    class TestDataTransfer
     {
     public:
 
         using HostData = std::vector<TestValueType>;
         using Iterator = typename HostData::iterator;
 
-        TestDataRead(test_base& _test_base, Size _count)
+        TestDataTransfer(test_base& _test_base, Size _count)
             : __test_base(_test_base)
             , __host_buffer(_count)
+            , __count(_count)
         {
-            retrieve_data();
+        }
+
+        TestValueType* get()
+        {
+            return __host_buffer.data();
         }
 
         void retrieve_data()
@@ -325,51 +330,31 @@ struct test_base
                 assert(false);
         }
 
-        TestValueType* get()
+        void update_data()
         {
-            return __host_buffer.data();
+            test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
+                kind, __host_buffer.begin(), __host_buffer.end());
+
+            if (!__test_base.base_data_ref.visit(&visitor_update))
+                assert(false);
+        }
+
+        void update_data(Size count)
+        {
+            assert(count <= __count);
+
+            test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
+                kind, __host_buffer.begin(), __host_buffer.begin() + count);
+
+            if (!__test_base.base_data_ref.visit(&visitor_update))
+                assert(false);
         }
 
     protected:
 
         test_base& __test_base;
         HostData   __host_buffer;
-    };
-
-    template <UDTKind kind, typename Size>
-    class TestDataUpdate : public TestDataRead<kind, Size>
-    {
-        using Base = TestDataRead<kind, Size>;
-
-    public:
-
-        TestDataUpdate(test_base& _test_base, Size _count)
-            : Base(_test_base, _count)
-        {
-        }
-
-        void update_data()
-        {
-            test_base_data_visitor_update<TestValueType, typename Base::Iterator> visitor_update(
-                kind, Base::__host_buffer.begin(), Base::__host_buffer.end());
-
-            if (!Base::__test_base.base_data_ref.visit(&visitor_update))
-                assert(false);
-        }
-
-        void update_data(Size __count)
-        {
-            test_base_data_visitor_update<TestValueType, typename Base::Iterator> visitor_update(
-                kind, Base::__host_buffer.begin(), Base::__host_buffer.begin() + __count);
-
-            if (!Base::__test_base.base_data_ref.visit(&visitor_update))
-                assert(false);
-        }
-
-        ~TestDataUpdate()
-        {
-            update_data();
-        }
+        const Size __count = 0;
     };
 };
 
@@ -398,18 +383,15 @@ struct test_base
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#define DEFINE_TEST_CONSTRUCTOR(TestClassName)                                                                  \
-    TestClassName(test_base_data<TestValueType>& _test_base_data)                                               \
-        : TestUtils::test_base<TestValueType>(_test_base_data)                                                  \
-    {                                                                                                           \
-    }                                                                                                           \
-                                                                                                                \
-    template <UDTKind kind, typename Size>                                                                      \
-    using TestDataRead = typename TestUtils::test_base<TestValueType>::template TestDataRead<kind, Size>;       \
-                                                                                                                \
-    template <UDTKind kind, typename Size>                                                                      \
-    using TestDataUpdate = typename TestUtils::test_base<TestValueType>::template TestDataUpdate<kind, Size>;   \
-                                                                                                                \
+#define DEFINE_TEST_CONSTRUCTOR(TestClassName)                                                                    \
+    TestClassName(test_base_data<TestValueType>& _test_base_data)                                                 \
+        : TestUtils::test_base<TestValueType>(_test_base_data)                                                    \
+    {                                                                                                             \
+    }                                                                                                             \
+                                                                                                                  \
+    template <UDTKind kind, typename Size>                                                                        \
+    using TestDataTransfer = typename TestUtils::test_base<TestValueType>::template TestDataTransfer<kind, Size>; \
+                                                                                                                  \
     using UsedValueType = TestValueType;
 #else
 #define DEFINE_TEST_CONSTRUCTOR(TestClassName)
@@ -677,7 +659,5 @@ TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-
-
 
 #endif // UTILS_TEST_BASE
