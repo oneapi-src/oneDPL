@@ -129,7 +129,6 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
 
         // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
-
         update_data(host_keys, host_vals, host_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
@@ -153,7 +152,6 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
 
         // call algorithm with equality comparator
         initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
-
         update_data(host_keys, host_vals, host_res);
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
