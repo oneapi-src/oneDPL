@@ -325,17 +325,12 @@ struct test_base
             __test_base.base_data_ref.visit(&visitor_retrieve);
         }
 
-        void update_data()
-        {
-            test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
-                kind, __host_buffer.begin(), __host_buffer.end());
-
-            __test_base.base_data_ref.visit(&visitor_update);
-        }
-
-        void update_data(Size count)
+        void update_data(Size count = 0)
         {
             assert(count <= __count);
+
+            if (count == 0)
+                count = __count;
 
             test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
                 kind, __host_buffer.begin(), __host_buffer.begin() + count);
