@@ -536,7 +536,7 @@ DEFINE_TEST(test_unique_copy)
                         [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
         ::std::fill(host_vals.get(), host_vals.get() + n, Iterator1ValueType{-1});
         host_keys.update_data();
-        host_keys.update_data();
+        host_vals.update_data();
 
         const std::int64_t expected_size = (n - 1) / 4 + 1;
 
