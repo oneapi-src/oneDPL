@@ -99,13 +99,9 @@ struct test_base_data_usm : test_base_data<TestValueType>
                     }
                     return;
 
-                case sycl::usm::alloc::host:
-                case sycl::usm::alloc::unknown:
-                    break;
+                default:
+                    assert(false);
             }
-
-            assert(false);
-            throw ::std::runtime_error("Ivalid alloc type");
         }
     };
     ::std::vector<Data> data;
