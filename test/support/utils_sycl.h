@@ -333,7 +333,7 @@ get_host_pointer(Iter it)
     return &it.get_buffer().template get_access<mode>()[0] + temp_idx;
 }
 
-template <typename T, int Dim, sycl::access::mode AccMode, sycl::access::target AccTarget,
+template <typename T, int Dim, sycl::access::mode AccMode, __dpl_sycl::__target AccTarget,
           sycl::access::placeholder Placeholder>
 T*
 get_host_pointer(sycl::accessor<T, Dim, AccMode, AccTarget, Placeholder>& acc)
