@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef UTILS_CONST
-#define UTILS_CONST
+#ifndef _UTILS_CONST_H
+#define _UTILS_CONST_H
 
 namespace TestUtils
 {
@@ -32,4 +32,4 @@ constexpr int inout3_offset = 7;
 
 } /* namespace TestUtils */
 
-#endif // UTILS_CONST
+#endif // _UTILS_CONST_H

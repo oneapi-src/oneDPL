@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef ITERATORS_H
-#define ITERATORS_H
+#ifndef _TEST_ITERATORS_H
+#define _TEST_ITERATORS_H
 
 #include <iterator>
 #include <cstddef>
@@ -485,4 +485,4 @@ base(Iter i)
 
 #undef DELETE_FUNCTION
 
-#endif // ITERATORS_H
+#endif // _TEST_ITERATORS_H

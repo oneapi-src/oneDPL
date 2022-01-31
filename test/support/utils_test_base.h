@@ -12,8 +12,8 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
-#ifndef __UTILS_TEST_BASE_H
-#define __UTILS_TEST_BASE_H
+#ifndef _UTILS_TEST_BASE_H
+#define _UTILS_TEST_BASE_H
 
 #include <memory>
 
@@ -694,4 +694,4 @@ TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
 
 //--------------------------------------------------------------------------------------------------------------------//
 
-#endif // __UTILS_TEST_BASE_H
+#endif // _UTILS_TEST_BASE_H

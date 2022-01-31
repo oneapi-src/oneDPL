@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __iterator_utils_H
-#define __iterator_utils_H
+#ifndef _ITERATOR_UTILS_H
+#define _ITERATOR_UTILS_H
 
 #include "test_config.h"
 
@@ -564,4 +564,4 @@ struct invoke_on_all_iterator_types
     }
 };
 } /* namespace TestUtils */
-#endif /* __iterator_utils_H */
+#endif // _ITERATOR_UTILS_H

@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef UTILS_SEQUENCE
-#define UTILS_SEQUENCE
+#ifndef _UTILS_SEQUENCE_H
+#define _UTILS_SEQUENCE_H
 
 // File contains common utilities that tests rely on
 
@@ -201,4 +201,4 @@ Sequence<T>::print() const
 
 } /* namespace TestUtils */
 
-#endif // UTILS_SEQUENCE
+#endif // _UTILS_SEQUENCE_H

@@ -12,8 +12,8 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
-#ifndef UTILS_SYCL
-#define UTILS_SYCL
+#ifndef _UTILS_SYCL_H
+#define _UTILS_SYCL_H
 
 // File contains common utilities for SYCL that tests rely on
 
@@ -341,4 +341,4 @@ test3buffers(int mult = kDefaultMultValue)
 }
 } /* namespace TestUtils */
 
-#endif
+#endif // _UTILS_SYCL_H

@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef UTILS_INVOKE
-#define UTILS_INVOKE
+#ifndef _UTILS_INVOKE_H
+#define _UTILS_INVOKE_H
 
 #include <type_traits>
 
@@ -115,4 +115,4 @@ struct invoke_on_all_policies
 
 } /* namespace TestUtils */
 
-#endif // UTILS_INVOKE
+#endif // _UTILS_INVOKE_H
