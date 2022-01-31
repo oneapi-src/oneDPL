@@ -178,7 +178,7 @@ public:
     template <typename _Iterator>
     void retrieve_data(_Iterator __it)
     {
-        return retrieve_data(__it, 0, __count);
+        retrieve_data(__it, 0, __count);
     }
 
     template<typename _Iterator>
