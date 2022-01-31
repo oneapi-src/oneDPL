@@ -227,31 +227,6 @@ private:
 };
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename _ValueType, typename _Size>
-auto
-create_usm_data_transfer(sycl::usm::alloc alloc_type, sycl::queue& __q, _Size __sz)
-{
-    ::std::unique_ptr<usm_data_transfer_base<_ValueType>> result;
-
-    switch (alloc_type)
-    {
-    case sycl::usm::alloc::host:
-    case sycl::usm::alloc::unknown:
-        break;
-    case sycl::usm::alloc::shared:
-        result.reset(new usm_data_transfer<sycl::usm::alloc::shared, _ValueType>(__q, __sz));
-        break;
-    case sycl::usm::alloc::device:
-        result.reset(new usm_data_transfer<sycl::usm::alloc::device, _ValueType>(__q, __sz));
-        break;
-    }
-
-    assert(result.get() != nullptr);
-
-    return result;
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
 
 } // namespace TestUtils
 

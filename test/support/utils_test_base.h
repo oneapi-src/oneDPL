@@ -73,9 +73,23 @@ struct test_base_data_usm : test_base_data<TestValueType>
         template<typename _Size>
         Data(sycl::usm::alloc __alloc_type, sycl::queue __q, _Size __sz, ::std::size_t __offset)
             : alloc_type(__alloc_type)
-            , src_data_usm(create_usm_data_transfer<TestValueType>(__alloc_type, __q, __sz + __offset))
             , offset(__offset)
         {
+            // We use this switch/case because we have test_base_data_visitor interface with
+            // virtual functions, arguments of which can't be template classes.
+            // So, USM allocation type specified in runtime.
+            switch (__alloc_type)
+            {
+            case sycl::usm::alloc::shared:
+                src_data_usm.reset(new usm_data_transfer<sycl::usm::alloc::shared, TestValueType>(__q, __sz + __offset));
+                break;
+            case sycl::usm::alloc::device:
+                src_data_usm.reset(new usm_data_transfer<sycl::usm::alloc::device, TestValueType>(__q, __sz + __offset));
+                break;
+            default:
+                assert(false);
+                break;
+            }
         }
 
         template <typename Pred>
