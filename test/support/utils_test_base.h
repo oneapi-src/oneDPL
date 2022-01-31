@@ -52,7 +52,7 @@ struct test_base_data_visitor;
 template <typename TestValueType>
 struct test_base_data
 {
-    virtual bool visit(test_base_data_visitor<TestValueType>* visitor) = 0;
+    virtual void visit(test_base_data_visitor<TestValueType>* visitor) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -142,7 +142,7 @@ struct test_base_data_usm : test_base_data<TestValueType>
 
     // test_base_data
 
-    virtual bool visit(test_base_data_visitor<TestValueType>* visitor) override;
+    virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -185,7 +185,7 @@ struct test_base_data_buffer : test_base_data<TestValueType>
 
     // test_base_data
 
-    virtual bool visit(test_base_data_visitor<TestValueType>* visitor) override;
+    virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -221,7 +221,7 @@ struct test_base_data_sequence : test_base_data<TestValueType>
 
     // test_base_data
 
-    virtual bool visit(test_base_data_visitor<TestValueType>* visitor) override;
+    virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -322,8 +322,7 @@ struct test_base
             test_base_data_visitor_retrieve<TestValueType, Iterator> visitor_retrieve(
                 kind, __host_buffer.begin(), __host_buffer.end());
 
-            if (!__test_base.base_data_ref.visit(&visitor_retrieve))
-                assert(false);
+            __test_base.base_data_ref.visit(&visitor_retrieve);
         }
 
         void update_data()
@@ -331,8 +330,7 @@ struct test_base
             test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
                 kind, __host_buffer.begin(), __host_buffer.end());
 
-            if (!__test_base.base_data_ref.visit(&visitor_update))
-                assert(false);
+            __test_base.base_data_ref.visit(&visitor_update);
         }
 
         void update_data(Size count)
@@ -342,8 +340,7 @@ struct test_base
             test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
                 kind, __host_buffer.begin(), __host_buffer.begin() + count);
 
-            if (!__test_base.base_data_ref.visit(&visitor_update))
-                assert(false);
+            __test_base.base_data_ref.visit(&visitor_update);
         }
 
     protected:
@@ -451,46 +448,61 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename TestValueType>
-bool
+void
 TestUtils::test_base_data_usm<TestValueType>::visit(test_base_data_visitor<TestValueType>* visitor)
 {
+    bool bProcessed = false;
+
     for (::std::size_t nIndex = 0; nIndex < data.size(); ++nIndex)
     {
         if (visitor->on_visit(nIndex, *this))
-            return true;
+        {
+            bProcessed = true;
+            break;
+        }
     }
 
-    return false;
+    assert(bProcessed);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
-bool
+void
 TestUtils::test_base_data_buffer<TestValueType>::visit(test_base_data_visitor<TestValueType>* visitor)
 {
+    bool bProcessed = false;
+
     for (::std::size_t nIndex = 0; nIndex < data.size(); ++nIndex)
     {
         if (visitor->on_visit(nIndex, *this))
-            return true;
+        {
+            bProcessed = true;
+            break;
+        }
     }
 
-    return false;
+    assert(bProcessed);
 }
 
 #endif //  TEST_DPCPP_BACKEND_PRESENT
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
-bool
+void
 TestUtils::test_base_data_sequence<TestValueType>::visit(test_base_data_visitor<TestValueType>* visitor)
 {
+    bool bProcessed = false;
+
     for (::std::size_t nIndex = 0; nIndex < data.size(); ++nIndex)
     {
         if (visitor->on_visit(nIndex, *this))
-            return true;
+        {
+            bProcessed = true;
+            break;
+        }
     }
 
-    return false;
+    assert(bProcessed);
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
