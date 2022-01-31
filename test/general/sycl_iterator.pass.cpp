@@ -1792,27 +1792,22 @@ DEFINE_TEST(test_find_first_of)
         }
         else if (n >= 2 && n < 10)
         {
-            {
-                auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1,
-                                                first2, first2);
+            auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1,
+                                            first2, first2);
 #if _PSTL_SYCL_TEST_USM
-                exec.queue().wait_and_throw();
+            exec.queue().wait_and_throw();
 #endif
-                EXPECT_TRUE(res == last1, "Wrong effect from find_first_of_2");
-            }
+            EXPECT_TRUE(res == last1, "Wrong effect from find_first_of_2");
 
             // No matches
-            {
-                ::std::iota(host_vals.get(), host_vals.get() + n, T1(5));
-                host_vals.update_data();
+            ::std::iota(host_vals.get(), host_vals.get() + n, T1(5));
+            host_vals.update_data();
 
-                auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1,
-                                                first2, last2);
+            res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
-                exec.queue().wait_and_throw();
+            exec.queue().wait_and_throw();
 #endif
-                EXPECT_TRUE(res == last1, "Wrong effect from find_first_of_3");
-            }
+            EXPECT_TRUE(res == last1, "Wrong effect from find_first_of_3");
         }
         else if (n >= 10)
         {
@@ -1822,30 +1817,25 @@ DEFINE_TEST(test_find_first_of)
             auto pos1 = n / 5;
             auto pos2 = 3 * n / 5;
             auto num = 3;
-            {
-                ::std::iota(host_keys.get() + pos2, host_keys.get() + pos2 + num, T1(7));
-                host_keys.update_data();
 
-                auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1,
-                                                first2, last2);
+            ::std::iota(host_keys.get() + pos2, host_keys.get() + pos2 + num, T1(7));
+            host_keys.update_data();
+
+            auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
-                exec.queue().wait_and_throw();
+            exec.queue().wait_and_throw();
 #endif
-                EXPECT_TRUE(res == first1 + pos2, "Wrong effect from find_first_of_4");
-            }
+            EXPECT_TRUE(res == first1 + pos2, "Wrong effect from find_first_of_4");
 
             // Add second match
-            {
-                ::std::iota(host_keys.get() + pos1, host_keys.get() + pos1 + num, T1(6));
-                host_keys.update_data();
+            ::std::iota(host_keys.get() + pos1, host_keys.get() + pos1 + num, T1(6));
+            host_keys.update_data();
 
-                auto res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1,
-                                                first2, last2);
+            res = ::std::find_first_of(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
-                exec.queue().wait_and_throw();
+            exec.queue().wait_and_throw();
 #endif
-                EXPECT_TRUE(res == first1 + pos1, "Wrong effect from find_first_of_5");
-            }
+            EXPECT_TRUE(res == first1 + pos1, "Wrong effect from find_first_of_5");
         }
     }
 };
