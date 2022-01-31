@@ -72,10 +72,7 @@ DEFINE_TEST(test_binary_search)
 
         // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
-
-        host_keys.update_data();
-        host_vals.update_data();
-        host_res.update_data();
+        update_data(host_keys, host_vals, host_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::binary_search(new_policy, first, last, value_first, value_last, result_first);

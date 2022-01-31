@@ -69,35 +69,24 @@ DEFINE_TEST(test_lower_bound)
 
         // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_vals.get(), n);
-
-        host_keys.update_data();
-        host_vals.update_data();
-        host_res.update_data();
+        update_data(host_keys, host_vals, host_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::lower_bound(new_policy, first, last, value_first, value_last, result_first);
         exec.queue().wait_and_throw();
-        {
-            host_vals.retrieve_data();
-            host_res.retrieve_data();
 
-            check_and_clean(host_res.get(), host_vals.get(), n);
-
-            host_vals.update_data();
-            host_res.update_data();
-        }
+        retrieve_data(host_vals, host_res);
+        check_and_clean(host_res.get(), host_vals.get(), n);
+        update_data(host_vals, host_res);
 
         // call algorithm with comparator
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::lower_bound(new_policy2, first, last, value_first, value_last, result_first,
                                              [](ValueT first, ValueT second) { return first < second; });
         exec.queue().wait_and_throw();
-        {
-            host_vals.retrieve_data();
-            host_res.retrieve_data();
 
-            check_and_clean(host_res.get(), host_vals.get(), n);
-        }
+        retrieve_data(host_vals, host_res);
+        check_and_clean(host_res.get(), host_vals.get(), n);
     }
 #endif
 

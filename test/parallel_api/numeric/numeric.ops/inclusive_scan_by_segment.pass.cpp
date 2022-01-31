@@ -130,54 +130,39 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
         // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
 
-        host_keys.update_data();
-        host_vals.update_data();
-        host_res.update_data();
+        update_data(host_keys, host_vals, host_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::inclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
 
-        {
-            host_keys.retrieve_data();
-            host_vals.retrieve_data();
-            host_res.retrieve_data();
-            check_values(host_keys.get(), host_vals.get(), host_res.get(), n);
+        retrieve_data(host_keys, host_vals, host_res);
+        check_values(host_keys.get(), host_vals.get(), host_res.get(), n);
 
-            // call algorithm with equality comparator
-            initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
-
-            host_keys.update_data();
-            host_vals.update_data();
-            host_res.update_data();
-        }
+        // call algorithm with equality comparator
+        initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
+        update_data(host_keys, host_vals, host_res);
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::inclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
-        {
-            host_keys.retrieve_data();
-            host_vals.retrieve_data();
-            host_res.retrieve_data();
-            check_values(host_keys.get(), host_vals.get(), host_res.get(), n);
 
-            // call algorithm with equality comparator
-            initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
+        retrieve_data(host_keys, host_vals, host_res);
+        check_values(host_keys.get(), host_vals.get(), host_res.get(), n);
 
-            host_keys.update_data();
-            host_vals.update_data();
-            host_res.update_data();
-        }
+        // call algorithm with equality comparator
+        initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
+
+        update_data(host_keys, host_vals, host_res);
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; },
                                                            BinaryOperation());
         exec.queue().wait_and_throw();
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
-        host_res.retrieve_data();
+
+        retrieve_data(host_keys, host_vals, host_res);
         check_values(host_keys.get(), host_vals.get(), host_res.get(), n, BinaryOperation());
     }
 #endif

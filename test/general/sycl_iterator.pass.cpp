@@ -124,8 +124,7 @@ DEFINE_TEST(test_uninitialized_copy)
 
         ::std::fill(host_keys.get(), host_keys.get() + n, value);
         ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ -1 });
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::uninitialized_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -152,8 +151,7 @@ DEFINE_TEST(test_uninitialized_copy_n)
 
         ::std::fill_n(host_keys.get(), n, value);
         ::std::fill_n(host_vals.get(), n, IteratorValueType{0});
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::uninitialized_copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -179,8 +177,7 @@ DEFINE_TEST(test_uninitialized_move)
         auto value = IteratorValueType(42);
         ::std::fill_n(host_keys.get(), n, value);
         ::std::fill_n(host_vals.get(), n, IteratorValueType{ -1 });
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::uninitialized_move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -207,8 +204,7 @@ DEFINE_TEST(test_uninitialized_move_n)
 
         ::std::fill_n(host_keys.get(), n, value);
         ::std::fill_n(host_vals.get(), n, IteratorValueType{ -1 });
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::uninitialized_move_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -450,7 +446,6 @@ DEFINE_TEST(test_fill)
         exec.queue().wait_and_throw();
 #endif
         host_keys.retrieve_data();
-
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), value), "wrong effect from fill");
     }
 };
@@ -596,8 +591,7 @@ DEFINE_TEST(test_transform_unary)
 
         ::std::fill(host_keys.get(), host_keys.get() + n, value);
         ::std::fill(host_vals.get(), host_vals.get() + n, value + 1);
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + n / 2, last1, first2 + n / 2, Flip(7));
 #if _PSTL_SYCL_TEST_USM
@@ -759,8 +753,7 @@ DEFINE_TEST(test_copy)
         auto value = IteratorValueType(42);
         ::std::fill(host_keys.get(), host_keys.get() + n, value);
         ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{0});
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -788,8 +781,7 @@ DEFINE_TEST(test_copy_n)
 
         ::std::fill(host_keys.get(), host_keys.get() + n, value);
         ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ 0 });
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -816,8 +808,7 @@ DEFINE_TEST(test_move)
 
         ::std::fill(host_keys.get(), host_keys.get() + n, value);
         ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ 0 });
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 #if _PSTL_SYCL_TEST_USM
@@ -852,8 +843,7 @@ DEFINE_TEST(test_adjacent_difference)
         ::std::for_each(host_keys.get(), host_keys.get() + n,
                         [&fill_value](Iterator1ValueType& val) { val = (fill_value++ % 10) + 1; });
         ::std::fill(host_vals.get(), host_vals.get() + n, blank_value);
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         // test with custom functor
         ::std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, __f);
@@ -862,8 +852,7 @@ DEFINE_TEST(test_adjacent_difference)
 #endif
 
         {
-            host_keys.retrieve_data();
-            host_vals.retrieve_data();
+            retrieve_data(host_keys, host_vals);
 
             auto host_first1 = host_keys.get();
             auto host_first2 = host_vals.get();
@@ -884,8 +873,7 @@ DEFINE_TEST(test_adjacent_difference)
         exec.queue().wait_and_throw();
 #endif
 
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
+        retrieve_data(host_keys, host_vals);
 
         auto host_first1 = host_keys.get();
         auto host_first2 = host_vals.get();
@@ -1681,8 +1669,7 @@ DEFINE_TEST(test_equal)
         ::std::fill(host_keys.get(), host_keys.get() + n, value);
         ::std::fill(host_vals.get(), host_vals.get() + n, T{0});
         ::std::fill(host_vals.get() + new_start, host_vals.get() + new_end, value);
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         auto expected  = new_end - new_start > 0;
         auto result = ::std::equal(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + new_start,
@@ -1855,8 +1842,7 @@ DEFINE_TEST(test_search)
 
         ::std::iota(host_keys.get(), host_keys.get() + n, T1(5));
         ::std::iota(host_vals.get(), host_vals.get() + n, T1(0));
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         // empty sequence case
         if (n == 1)
@@ -2056,8 +2042,7 @@ DEFINE_TEST(test_mismatch)
 
         ::std::iota(host_keys.get(), host_keys.get() + n, T1(5));
         ::std::iota(host_vals.get(), host_vals.get() + n, T1(0));
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         // empty sequence case
         if (n == 1)
@@ -2112,8 +2097,7 @@ DEFINE_TEST(test_transform_inclusive_scan)
 #endif
         EXPECT_TRUE(res1 == last2, "wrong result from transform_inclusive_scan_1");
 
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
+        retrieve_data(host_keys, host_vals);
 
         T1 ii = value;
         for (int i = 0; i < last2 - first2; ++i)
@@ -2132,8 +2116,7 @@ DEFINE_TEST(test_transform_inclusive_scan)
                                                     first2, ::std::plus<T1>(), [](T1 x) { return x * 2; });
         EXPECT_TRUE(res2 == last2, "wrong result from transform_inclusive_scan_2");
 
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
+        retrieve_data(host_keys, host_vals);
 
         ii = 0;
         for (int i = 0; i < last2 - first2; ++i)
@@ -2158,12 +2141,12 @@ DEFINE_TEST(test_transform_exclusive_scan)
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
 
         ::std::fill(host_keys.get(), host_keys.get() + n, T1(1));
         host_keys.update_data();
-
 
         auto res1 =
             ::std::transform_exclusive_scan(make_new_policy<new_kernel_name<Policy, 2>>(exec), first1, last1, first2,
@@ -2175,8 +2158,7 @@ DEFINE_TEST(test_transform_exclusive_scan)
 
         auto ii = T1(0);
 
-        host_keys.retrieve_data();
-        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        retrieve_data(host_keys, host_vals);
 
         for (size_t i = 0; i < last2 - first2; ++i)
         {
@@ -2212,37 +2194,35 @@ DEFINE_TEST(test_copy_if)
 #endif
         EXPECT_TRUE(res1 == last2, "wrong result from copy_if_1");
 
+        host_vals.retrieve_data();
+        auto host_first2 = host_vals.get();
+        for (int i = 0; i < res1 - first2; ++i)
         {
-            host_vals.retrieve_data();
-            auto host_first2 = host_vals.get();
-            for (int i = 0; i < res1 - first2; ++i)
+            auto exp = i + 222;
+            if (host_first2[i] != exp)
             {
-                auto exp = i + 222;
-                if (host_first2[i] != exp)
-                {
-                    ::std::cout << "Error_1: i = " << i << ", expected " << exp << ", got " << host_first2[i] << ::std::endl;
-                }
-                EXPECT_TRUE(host_first2[i] == exp, "wrong effect from copy_if_1");
+                ::std::cout << "Error_1: i = " << i << ", expected " << exp << ", got " << host_first2[i] << ::std::endl;
             }
+            EXPECT_TRUE(host_first2[i] == exp, "wrong effect from copy_if_1");
         }
+
         auto res2 = ::std::copy_if(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2,
                                  [](T1 x) { return x % 2 == 1; });
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(res2 == first2 + (last2 - first2) / 2, "wrong result from copy_if_2");
+
         host_vals.retrieve_data();
+        host_first2 = host_vals.get();
+        for (int i = 0; i < res2 - first2; ++i)
         {
-            auto host_first2 = host_vals.get();
-            for (int i = 0; i < res2 - first2; ++i)
+            auto exp = 2 * i + 1 + 222;
+            if (host_first2[i] != exp)
             {
-                auto exp = 2 * i + 1 + 222;
-                if (host_first2[i] != exp)
-                {
-                    ::std::cout << "Error_2: i = " << i << ", expected " << exp << ", got " << host_first2[i] << ::std::endl;
-                }
-                EXPECT_TRUE(host_first2[i] == exp, "wrong effect from copy_if_2");
+                ::std::cout << "Error_2: i = " << i << ", expected " << exp << ", got " << host_first2[i] << ::std::endl;
             }
+            EXPECT_TRUE(host_first2[i] == exp, "wrong effect from copy_if_2");
         }
     }
 };
@@ -2267,6 +2247,7 @@ DEFINE_TEST(test_remove)
         exec.queue().wait_and_throw();
 #endif
         EXPECT_TRUE(res1 == last - 1, "wrong result from remove");
+
         host_keys.retrieve_data();
         auto host_first1 = host_keys.get();
         for (int i = 0; i < res1 - first; ++i)
@@ -2337,8 +2318,7 @@ DEFINE_TEST(test_unique_copy)
         int index = 0;
         ::std::for_each(host_keys.get(), host_keys.get() + n, [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
         ::std::fill(host_vals.get(), host_vals.get() + n, Iterator1ValueType{ -1 });
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         // invoke
         auto f = [](Iterator1ValueType a, Iterator1ValueType b) { return a == b; };
@@ -2362,7 +2342,6 @@ DEFINE_TEST(test_unique_copy)
 
         host_vals.retrieve_data();
         auto host_first2 = host_vals.get();
-
         for (int i = 0; i < ::std::min(result_size, expected_size) && is_correct; ++i)
         {
             if (*(host_first2 + i) != i + 1)
@@ -2449,9 +2428,7 @@ DEFINE_TEST(test_partition_copy)
         ::std::iota(host_keys.get(), host_keys.get() + n, Iterator1ValueType{0});
         ::std::fill(host_vals.get(), host_vals.get() + n, Iterator2ValueType{-1});
         ::std::fill(host_res.get(),   host_res.get() + n, Iterator3ValueType{-2});
-        host_keys.update_data();
-        host_vals.update_data();
-        host_res.update_data();
+        update_data(host_keys, host_vals, host_res);
 
         // invoke
         auto res =
@@ -2459,11 +2436,9 @@ DEFINE_TEST(test_partition_copy)
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
-        host_res.retrieve_data();
-        // init for expected
+        retrieve_data(host_keys, host_vals, host_res);
 
+        // init for expected
         ::std::vector<Iterator2ValueType> exp_true(n, -1);
         ::std::vector<Iterator3ValueType> exp_false(n, -2);
         auto exp_true_first = exp_true.begin();
@@ -2719,12 +2694,13 @@ DEFINE_TEST(test_merge)
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
         typedef typename ::std::iterator_traits<Iterator3>::value_type T3;
+
         auto value = T1(0);
         auto x = n > 1 ? n / 2 : n;
         ::std::iota(host_keys.get(), host_keys.get() + n, value);
         ::std::iota(host_vals.get(), host_vals.get() + n, T2(value));
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
+
         ::std::vector<T3> exp(2 * n);
         auto exp1 = ::std::merge(host_keys.get(), host_keys.get() + n, host_vals.get(), host_vals.get() + x, exp.begin());
         auto res1 = ::std::merge(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, first2 + x, first3);
@@ -3023,8 +2999,7 @@ DEFINE_TEST(test_find_end)
             // re-write the sequence after previous run
             ::std::iota(host_keys.get(), host_keys.get() + n, T1(0));
             ::std::iota(host_vals.get(), host_vals.get() + n, T2(10));
-            host_keys.update_data();
-            host_vals.update_data();
+            update_data(host_keys, host_vals);
 
             // No subsequence
             auto res = ::std::find_end(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, first2 + n / 2);
@@ -3122,8 +3097,7 @@ DEFINE_TEST(test_lexicographical_compare)
             ValueType fill_value2{0};
             ::std::for_each(host_vals.get(), host_vals.get() + n,
                             [&fill_value2](ValueType& value) { value = fill_value2++ % 10; });
-            host_keys.update_data();
-            host_vals.update_data();
+            update_data(host_keys, host_vals);
         }
 
         auto comp = [](ValueType const& first, ValueType const& second) { return first < second; };
@@ -3286,8 +3260,7 @@ DEFINE_TEST(test_swap_ranges)
 
         ::std::iota(host_keys.get(), host_keys.get() + n, value_type(0));
         ::std::iota(host_vals.get(), host_vals.get() + n, value_type(n));
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         Iterator2 actual_return = ::std::swap_ranges(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 
@@ -3300,8 +3273,7 @@ DEFINE_TEST(test_swap_ranges)
         {
             ::std::size_t i = 0;
 
-            host_keys.retrieve_data();
-            host_vals.retrieve_data();
+            retrieve_data(host_keys, host_vals);
 
             auto host_first1 = host_keys.get();
             auto host_first2 = host_vals.get();
@@ -3333,8 +3305,7 @@ DEFINE_TEST(test_nth_element)
         auto value2 = T2(0);
         ::std::for_each(host_keys.get(), host_keys.get() + n, [&value1](T1& val) { val = (value1++ % 10) + 1; });
         ::std::for_each(host_vals.get(), host_vals.get() + n, [&value2](T2& val) { val = (value2++ % 10) + 1; });
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         auto middle1 = first1 + n / 2;
 
@@ -3345,8 +3316,7 @@ DEFINE_TEST(test_nth_element)
         exec.queue().wait_and_throw();
 #endif
 
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
+        retrieve_data(host_keys, host_vals);
 
         auto host_first1 = host_keys.get();
         auto host_first2 = host_vals.get();
@@ -3680,9 +3650,7 @@ DEFINE_TEST(test_set_symmetric_difference)
         exec.queue().wait_and_throw();
 #endif
         int res_expect[na + nb];
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
-        host_res.retrieve_data();
+        retrieve_data(host_keys, host_vals, host_res);
         auto nres_expect = ::std::set_symmetric_difference(host_keys.get(), host_keys.get() + na, host_vals.get(),
                                                            host_vals.get() + nb, res_expect) -
                            res_expect;

@@ -346,6 +346,31 @@ struct test_base
     };
 };
 
+namespace
+{
+void retrieve_data()
+{
+}
+
+void update_data()
+{
+}
+};
+
+template <typename TTestDataTransfer, typename... Args>
+void retrieve_data(TTestDataTransfer& helper, Args&& ...args)
+{
+    helper.retrieve_data();
+    retrieve_data(::std::forward<Args>(args)...);
+}
+
+template <typename TTestDataTransfer, typename... Args>
+void update_data(TTestDataTransfer& helper, Args&& ...args)
+{
+    helper.update_data();
+    update_data(::std::forward<Args>(args)...);
+}
+
 // 1) define class as
 //      template <typename TestValueType>
 //      struct TestClassName : TestUtils::test_base<TestValueType>

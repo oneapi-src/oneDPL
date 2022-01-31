@@ -315,8 +315,7 @@ DEFINE_TEST(test_equal)
         auto value = T(42);
         ::std::iota(host_keys.get(), host_keys.get() + n, value);
         ::std::iota(host_vals.get(), host_vals.get() + n, value);
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -359,8 +358,7 @@ DEFINE_TEST(test_equal_structured_binding)
         auto value = T(42);
         ::std::iota(host_keys.get(), host_keys.get() + n, value);
         ::std::iota(host_vals.get(), host_vals.get() + n, value);
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -535,8 +533,7 @@ DEFINE_TEST(test_unique_copy)
         ::std::for_each(host_keys.get(), host_keys.get() + n,
                         [&index](Iterator1ValueType& value) { value = (index++ + 4) / 4; });
         ::std::fill(host_vals.get(), host_vals.get() + n, Iterator1ValueType{-1});
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         const std::int64_t expected_size = (n - 1) / 4 + 1;
 
@@ -572,6 +569,7 @@ DEFINE_TEST(test_merge)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, n);
 
         typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
         typedef typename ::std::iterator_traits<Iterator2>::value_type T2;
@@ -587,19 +585,14 @@ DEFINE_TEST(test_merge)
                             value = odd;
                             odd += 2;
                         });
-        host_keys.update_data();
         ::std::for_each(host_vals.get(), host_vals.get() + size2,
                         [&even](T2& value)
                         {
                             value = even;
                             even += 2;
                         });
-        host_vals.update_data();
-        {
-            TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
-            ::std::fill(host_res.get(), host_res.get() + n, T3{ -1 });
-            host_res.update_data();
-        }
+        ::std::fill(host_res.get(), host_res.get() + n, T3{ -1 });
+        update_data(host_keys, host_vals, host_res);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(first1 + size1, first1 + size1);
@@ -614,21 +607,17 @@ DEFINE_TEST(test_merge)
 #endif
 
         size_t res_size = tuple_last3 - tuple_first3;
-
-        assert(res_size <= 2 * n);
-        TestDataTransfer<UDTKind::eRes, Size> host_res(*this, res_size);
+        TestDataTransfer<UDTKind::eRes, Size> host_res_merge(*this, res_size);
 
         size_t exp_size = size1 + size2;
         bool is_correct = res_size == exp_size;
         EXPECT_TRUE(is_correct, "wrong result from merge (tuple)");
 
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
-        host_res.retrieve_data();
+        retrieve_data(host_keys, host_vals, host_res_merge);
 
         auto host_first1 = host_keys.get();
         auto host_first2 = host_vals.get();
-        auto host_first3 = host_res.get();
+        auto host_first3 = host_res_merge.get();
 
         for (size_t i = 0; i < ::std::min(res_size, exp_size) && is_correct; ++i)
             if ((i < size2 * 2 && *(host_first3 + i) != i) ||
@@ -654,8 +643,7 @@ DEFINE_TEST(test_stable_sort)
         auto value = T(333);
         ::std::iota(host_keys.get(), host_keys.get() + n, value);
         ::std::copy_n(host_keys.get(), n, host_vals.get());
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), oneapi::dpl::make_zip_iterator(first1, first2),
                          oneapi::dpl::make_zip_iterator(last1, last2),
@@ -663,8 +651,8 @@ DEFINE_TEST(test_stable_sort)
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        host_keys.retrieve_data();
-        host_vals.retrieve_data();
+
+        retrieve_data(host_keys, host_vals);
         EXPECT_TRUE(::std::is_sorted(host_keys.get(), host_keys.get() + n, ::std::greater<T>()),
                     "wrong effect from stable_sort (tuple)");
         EXPECT_TRUE(::std::is_sorted(host_vals.get(), host_vals.get() + n, ::std::greater<T>()),
@@ -694,8 +682,7 @@ DEFINE_TEST(test_lexicographical_compare)
                         [&fill_value2](ValueType& value) { value = fill_value2++ % 10; });
         if (n > 1)
             *(host_vals.get() + n - 2) = 222;
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
@@ -747,8 +734,7 @@ DEFINE_TEST(test_counting_zip_transform)
         ::std::fill(host_vals.get(), host_vals.get() + n, ValueType{0});
         *(host_keys.get() + (n / 3)) = 10;
         *(host_keys.get() + (n / 3 * 2)) = 100;
-        host_keys.update_data();
-        host_vals.update_data();
+        update_data(host_keys, host_vals);
 
         auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
         auto start = oneapi::dpl::make_zip_iterator(idx, first1);
