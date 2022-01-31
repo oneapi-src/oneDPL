@@ -13,14 +13,9 @@ New in 2021.6.1
 
 Fixed Issues
 ------------
-- Fixed compilation errors happening when using C++20.
-- Fixed ``CL_OUT_OF_RESOURCES`` issue which used to occur during execution of Radix sort algorithm on CPU devices.
+- Fixed compilation errors with C++20.
+- Fixed ``CL_OUT_OF_RESOURCES`` issue for Radix sort algorithm executed on CPU devices.
 - Fixed an issue with the following algorithms used with DPC++ execution policies and the data located in the device memory (USM): ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``.
-
-Changes to Existing Features
-----------------------------
-- Improved performance of ``shift_left``, ``shift_right`` algorithms on vector with ``seq``, ``par``, ``par_unseq``, ``unseq``
-  execution policies when used with contiguous iterators.
 
 Known Issues and Limitations
 ----------------------------
