@@ -1904,7 +1904,6 @@ DEFINE_TEST(test_search_n)
         typedef typename ::std::iterator_traits<Iterator>::value_type T;
 
         ::std::iota(host_keys.get(), host_keys.get() + n, T(5));
-        host_keys.update_data();
 
         // Search for sequence at the end
         {
