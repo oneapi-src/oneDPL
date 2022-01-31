@@ -120,7 +120,6 @@ struct test_base_data_usm : test_base_data<TestValueType>
 
     struct PredGetStartFrom
     {
-        ::std::size_t index = 0;
         TestValueType* from_ptr = nullptr;
 
         template <sycl::usm::alloc alloc_type>
