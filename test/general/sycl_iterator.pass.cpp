@@ -3429,10 +3429,12 @@ DEFINE_TEST(test_rotate_copy)
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator1 result_first, Iterator1 /* result_last */, Size n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
         using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
 
         ::std::vector<IteratorValyeType> local_copy(n);
+        host_keys.retrieve_data();
         local_copy.assign(host_keys.get(), host_keys.get() + n);
         ::std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
 
@@ -3440,7 +3442,7 @@ DEFINE_TEST(test_rotate_copy)
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
-        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        host_vals.retrieve_data();
         for (int i = 0; i < n; ++i)
             EXPECT_TRUE(local_copy[i] == host_vals.get()[i], "wrong effect from rotate_copy");
     }
