@@ -52,6 +52,21 @@ struct test_base_data_visitor;
 template <typename TestValueType>
 struct test_base_data
 {
+    /// Check that host buffering is required
+    /**
+     * @return bool - true, if host buffering of test data is required, false - otherwise
+     */
+    virtual bool host_buffering_required() const = 0;
+
+    /// Get test data
+    /**
+     * @param UDTKind kind - test data kind
+     * @return TestValueType* - pointer to test data.
+     *      ATTENTION: return nullptr, if host buffering is required.
+     * @see host_buffering_required
+     */
+    virtual TestValueType* get_data(UDTKind kind) = 0;
+
     /// Visit all test data
     /**
      * @param test_base_data_visitor<TestValueType>* visitor - pointer to visitor
@@ -214,6 +229,12 @@ struct test_base_data_usm : test_base_data<TestValueType>
 
 // test_base_data
 
+    // Check that host buffering is required
+    virtual bool host_buffering_required() const override;
+
+    // Get test data
+    virtual TestValueType* get_data(UDTKind kind) override;
+
     // Visit all test data
     virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
@@ -262,6 +283,12 @@ struct test_base_data_buffer : test_base_data<TestValueType>
 
 // test_base_data
 
+    // Check that host buffering is required
+    virtual bool host_buffering_required() const override;
+
+    // Get test data
+    virtual TestValueType* get_data(UDTKind kind) override;
+
     // Visit all test data
     virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
@@ -300,6 +327,12 @@ struct test_base_data_sequence : test_base_data<TestValueType>
     }
 
 // test_base_data
+
+    // Check that host buffering is required
+    virtual bool host_buffering_required() const override;
+
+    // Get test data
+    virtual TestValueType* get_data(UDTKind kind) override;
 
     // Visit all test data
     virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
@@ -384,6 +417,15 @@ struct test_base
     {
     }
 
+    /// Check that host buffering is required
+    /**
+     * @return bool - true, if host buffering of test data is required, false - otherwise
+     */
+    bool host_buffering_required() const
+    {
+        return base_data_ref.host_buffering_required();
+    }
+
     /// class TestDataTransfer - copy test data from/to source test data storage
     /// to/from local buffer for modification processing.
     template <UDTKind kind, typename Size>
@@ -401,18 +443,22 @@ struct test_base
          */
         TestDataTransfer(test_base& _test_base, Size _count)
             : __test_base(_test_base)
-            , __host_buffer(_count)
+            , __host_buffering_required(_test_base.host_buffering_required())
+            , __host_buffer(__host_buffering_required ? _count : 0)
             , __count(_count)
         {
         }
 
-        /// Get pointer to internala data buffer
+        /// Get pointer to internal data buffer
         /**
          * @return TestValueType* - pointer to internal data buffer
          */
         TestValueType* get()
         {
-            return __host_buffer.data();
+            if (__host_buffering_required)
+                return __host_buffer.data();
+
+            return __test_base.base_data_ref.get_data(kind);
         }
 
         /// Retrieve data
@@ -422,10 +468,13 @@ struct test_base
          */
         void retrieve_data()
         {
-            test_base_data_visitor_retrieve<TestValueType, Iterator> visitor_retrieve(
-                kind, __host_buffer.begin(), __host_buffer.end());
+            if (__host_buffering_required)
+            {
+                test_base_data_visitor_retrieve<TestValueType, Iterator> visitor_retrieve(
+                    kind, __host_buffer.begin(), __host_buffer.end());
 
-            __test_base.base_data_ref.visit(&visitor_retrieve);
+                __test_base.base_data_ref.visit(&visitor_retrieve);
+            }
         }
 
         /// Update data
@@ -438,18 +487,22 @@ struct test_base
         {
             assert(count <= __count);
 
-            if (count == 0)
-                count = __count;
+            if (__host_buffering_required)
+            {
+                if (count == 0)
+                    count = __count;
 
-            test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
-                kind, __host_buffer.begin(), __host_buffer.begin() + count);
+                test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
+                    kind, __host_buffer.begin(), __host_buffer.begin() + count);
 
-            __test_base.base_data_ref.visit(&visitor_update);
+                __test_base.base_data_ref.visit(&visitor_update);
+            }
         }
 
     protected:
 
         test_base& __test_base;     // Test base class ref
+        bool       __host_buffering_required = false;
         HostData   __host_buffer;   // Local test data buffer
         const Size __count = 0;     // Count of items in test data
     };
@@ -579,6 +632,29 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename TestValueType>
+bool
+TestUtils::test_base_data_usm<TestValueType>::host_buffering_required() const
+{
+    return data.end() != ::std::find_if(data.begin(), data.end(),
+                                        [](const Data& item)
+                                        {
+                                            return item.alloc_type != sycl::usm::alloc::shared;
+                                        });
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+TestValueType*
+TestUtils::test_base_data_usm<TestValueType>::get_data(UDTKind kind)
+{
+    if (host_buffering_required())
+        return nullptr;
+
+    return get_start_from(enum_val_to_index(kind));
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
 void
 TestUtils::test_base_data_usm<TestValueType>::visit(test_base_data_visitor<TestValueType>* visitor)
 {
@@ -594,6 +670,22 @@ TestUtils::test_base_data_usm<TestValueType>::visit(test_base_data_visitor<TestV
     }
 
     assert(bProcessed);
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+bool
+TestUtils::test_base_data_buffer<TestValueType>::host_buffering_required() const
+{
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+TestValueType*
+TestUtils::test_base_data_buffer<TestValueType>::get_data(UDTKind /*kind*/)
+{
+    return nullptr;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -616,6 +708,23 @@ TestUtils::test_base_data_buffer<TestValueType>::visit(test_base_data_visitor<Te
 }
 
 #endif //  TEST_DPCPP_BACKEND_PRESENT
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+bool
+TestUtils::test_base_data_sequence<TestValueType>::host_buffering_required() const
+{
+    return false;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+TestValueType*
+TestUtils::test_base_data_sequence<TestValueType>::get_data(UDTKind kind)
+{
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return data_item.src_data_seq.data();
+}
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>

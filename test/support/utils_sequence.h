@@ -79,6 +79,7 @@ public:
     bidirectional_iterator       biend   ()       { return bidirectional_iterator(m_storage.end());          };
 
     ::std::size_t size() const;
+    T* data();
     const T* data() const;
 
     typename ::std::vector<T>::reference operator[](size_t j);
@@ -136,6 +137,14 @@ template <typename T>
 Sequence<T>::size() const
 {
     return m_storage.size();
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename T>
+T*
+Sequence<T>::data()
+{
+    return m_storage.data();
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
