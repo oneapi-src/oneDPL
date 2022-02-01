@@ -655,12 +655,9 @@ bool
 TestUtils::test_base_data_visitor_retrieve<TestValueType, Iterator>::on_visit(
     ::std::size_t nIndex, TestUtils::test_base_data_sequence<TestValueType>& /*obj*/)
 {
-    if (nIndex != enum_val_to_index(Base::__kind))
-        return false;
-
     // No additional actions required here
 
-    return true;
+    return nIndex == enum_val_to_index(Base::__kind);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -710,12 +707,9 @@ bool
 TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
     ::std::size_t nIndex, TestUtils::test_base_data_sequence<TestValueType>& /*obj*/)
 {
-    if (nIndex != enum_val_to_index(Base::__kind))
-        return false;
-
     // No additional actions required here
 
-    return true;
+    return nIndex == enum_val_to_index(Base::__kind);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
