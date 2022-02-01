@@ -96,12 +96,24 @@ struct test_base_data_usm : test_base_data<TestValueType>
             }
         }
 
+        /// Get pointer to usm_data_transfer<sycl::usm::alloc::shared, TestValueType> class
+        /**
+         * Method return pointer from base class to derived class with required spezialization.
+         * 
+         * @return usm_data_transfer<sycl::usm::alloc::shared, TestValueType>* - pointer
+         */
         auto get_usm_data_shared()
         {
             assert(alloc_type == sycl::usm::alloc::shared);
             return reinterpret_cast<usm_data_transfer<sycl::usm::alloc::shared, TestValueType>*>(src_data_usm.get());
         }
 
+        /// Get pointer to usm_data_transfer<sycl::usm::alloc::device, TestValueType> class
+        /**
+         * Method return pointer from base class to derived class with required spezialization.
+         *
+         * @return usm_data_transfer<sycl::usm::alloc::device, TestValueType>* - pointer
+         */
         auto get_usm_data_device()
         {
             assert(alloc_type == sycl::usm::alloc::device);
