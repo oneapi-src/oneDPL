@@ -48,7 +48,7 @@ template <typename TestValueType>
 struct test_base_data_visitor;
 
 ////////////////////////////////////////////////////////////////////////////////
-// struct test_base_data - test source data base class
+/// struct test_base_data - test source data base class
 template <typename TestValueType>
 struct test_base_data
 {
@@ -141,6 +141,11 @@ struct test_base_data_usm : test_base_data<TestValueType>
             return result;
         }
 
+        /// Retrieve data from USM shared/device memory
+        /**
+         * @param _Iterator __it - start iterator
+         * @param TDiff __objects_count - retrieving items couunt
+         */
         template<typename _Iterator, typename TDiff>
         void retrieve_data(_Iterator __it, TDiff __objects_count)
         {
@@ -159,6 +164,11 @@ struct test_base_data_usm : test_base_data<TestValueType>
             }
         }
 
+        /// Update data in USM shared/device memory
+        /**
+         * @param _Iterator __it - start iterator
+         * @param TDiff __objects_count - updating items couunt
+         */
         template<typename _Iterator, typename TDiff>
         void update_data(_Iterator __it, TDiff __objects_count)
         {
@@ -202,8 +212,9 @@ struct test_base_data_usm : test_base_data<TestValueType>
         return data_item.get_start_from();
     }
 
-    // test_base_data
+// test_base_data
 
+    // Visit all test data
     virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -249,8 +260,9 @@ struct test_base_data_buffer : test_base_data<TestValueType>
         return oneapi::dpl::begin(data.at(index).src_data_buf) + data.at(index).offset;
     }
 
-    // test_base_data
+// test_base_data
 
+    // Visit all test data
     virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -287,13 +299,16 @@ struct test_base_data_sequence : test_base_data<TestValueType>
         return data.at(index).src_data_seq.begin() + data.at(index).offset;
     }
 
-    // test_base_data
+// test_base_data
 
+    // Visit all test data
     virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// struct test_base_data_visitor - interface of source test data visitor
+/// struct test_base_data_visitor - interface of source test data visitor
+/// By using this interface we may traverse throught all source test data
+/// of different kinds: USM shared/device memory, SYCL::buffer and Sequence.
 template <typename TestValueType>
 struct test_base_data_visitor
 {
@@ -305,7 +320,7 @@ struct test_base_data_visitor
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// struct test_base_data_visitor_impl - base implementation of source test data visitor
+/// struct test_base_data_visitor_impl - base implementation of source test data visitor
 template <typename TestValueType, typename Iterator>
 struct test_base_data_visitor_impl : test_base_data_visitor<TestValueType>
 {
@@ -320,7 +335,7 @@ struct test_base_data_visitor_impl : test_base_data_visitor<TestValueType>
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// struct test_base_data_visitor_retrieve - implementation of retrieve data visitor
+/// struct test_base_data_visitor_retrieve - implementation of retrieve data visitor
 template <typename TestValueType, typename Iterator>
 struct test_base_data_visitor_retrieve : test_base_data_visitor_impl<TestValueType, Iterator>
 {
@@ -339,7 +354,7 @@ struct test_base_data_visitor_retrieve : test_base_data_visitor_impl<TestValueTy
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// struct test_base_data_visitor_update - implementation of update data visitor
+/// struct test_base_data_visitor_update - implementation of update data visitor
 template <typename TestValueType, typename Iterator>
 struct test_base_data_visitor_update : test_base_data_visitor_impl<TestValueType, Iterator>
 {
