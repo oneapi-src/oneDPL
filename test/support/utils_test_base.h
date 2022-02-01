@@ -96,29 +96,72 @@ struct test_base_data_usm : test_base_data<TestValueType>
             }
         }
 
-        template <typename Pred>
-        void process_usm_data_transfer(Pred& pred)
+        auto get_usm_data_shared()
         {
-            auto& obj = *src_data_usm.get();
+            assert(alloc_type == sycl::usm::alloc::shared);
+            return reinterpret_cast<usm_data_transfer<sycl::usm::alloc::shared, TestValueType>*>(src_data_usm.get());
+        }
+
+        auto get_usm_data_device()
+        {
+            assert(alloc_type == sycl::usm::alloc::device);
+            return reinterpret_cast<usm_data_transfer<sycl::usm::alloc::device, TestValueType>*>(src_data_usm.get());
+        }
+
+        TestValueType* get_start_from()
+        {
+            TestValueType* result = nullptr;
 
             switch (alloc_type)
             {
-                case sycl::usm::alloc::shared :
-                    {
-                        auto& usm_data_transfer_obj = reinterpret_cast<usm_data_transfer<sycl::usm::alloc::shared, TestValueType>&>(obj);
-                        pred(usm_data_transfer_obj);
-                    }
-                    return;
+            case sycl::usm::alloc::shared:
+                result = get_usm_data_shared()->get_data() + offset;
+                break;
 
-                case sycl::usm::alloc::device :
-                    {
-                        auto& usm_data_transfer_obj = reinterpret_cast<usm_data_transfer<sycl::usm::alloc::device, TestValueType>&>(obj);
-                        pred(usm_data_transfer_obj);
-                    }
-                    return;
+            case sycl::usm::alloc::device:
+                result = get_usm_data_device()->get_data() + offset;
+                break;
 
-                default:
-                    assert(false);
+            default:
+                assert(false);
+            }
+
+            return result;
+        }
+
+        template<typename _Iterator, typename TDiff>
+        void retrieve_data(_Iterator __it, TDiff __objects_count)
+        {
+            switch (alloc_type)
+            {
+            case sycl::usm::alloc::shared:
+                get_usm_data_shared()->retrieve_data(__it, offset, __objects_count);
+                break;
+
+            case sycl::usm::alloc::device:
+                get_usm_data_device()->retrieve_data(__it, offset, __objects_count);
+                break;
+
+            default:
+                assert(false);
+            }
+        }
+
+        template<typename _Iterator, typename TDiff>
+        void update_data(_Iterator __it, TDiff __objects_count)
+        {
+            switch (alloc_type)
+            {
+            case sycl::usm::alloc::shared:
+                get_usm_data_shared()->update_data(__it, offset, __objects_count);
+                break;
+
+            case sycl::usm::alloc::device:
+                get_usm_data_device()->update_data(__it, offset, __objects_count);
+                break;
+
+            default:
+                assert(false);
             }
         }
     };
@@ -139,25 +182,12 @@ struct test_base_data_usm : test_base_data<TestValueType>
             data.emplace_back(alloc_type, __q, initParam.size, initParam.offset);
     }
 
-    struct PredGetStartFrom
-    {
-        TestValueType* from_ptr = nullptr;
-
-        template <sycl::usm::alloc alloc_type>
-        void operator()(usm_data_transfer<alloc_type, TestValueType>& obj)
-        {
-            from_ptr = obj.get_data();
-        }
-    };
-
     TestValueType* get_start_from(::std::size_t index)
     {
+        TestValueType* result = nullptr;
+
         auto& data_item = data.at(index);
-
-        PredGetStartFrom pred;
-        data_item.process_usm_data_transfer(pred);
-
-        return pred.from_ptr + data_item.offset;
+        return data_item.get_start_from();
     }
 
     // test_base_data
@@ -602,30 +632,6 @@ TestUtils::test_base_data_visitor_retrieve<TestValueType, Iterator>::on_visit(
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if TEST_DPCPP_BACKEND_PRESENT
-template <typename TestValueType, typename Iterator>
-struct RetrieveUsmData
-{
-    Iterator      it_from;
-    Iterator      it_to;
-    ::std::size_t offset = 0;
-
-    RetrieveUsmData(Iterator itFrom, Iterator itTo, ::std::size_t __offset)
-        : it_from(itFrom)
-        , it_to(itTo)
-        , offset(__offset)
-    {
-    }
-
-    template <sycl::usm::alloc alloc_type>
-    void operator()(TestUtils::usm_data_transfer<alloc_type, TestValueType>& obj)
-    {
-        const auto count = it_to - it_from;
-        obj.retrieve_data(it_from, offset, count);
-    }
-};
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 //--------------------------------------------------------------------------------------------------------------------//
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename TestValueType, typename Iterator>
@@ -637,9 +643,7 @@ TestUtils::test_base_data_visitor_retrieve<TestValueType, Iterator>::on_visit(
         return false;
 
     auto& data_item = obj.data.at(nIndex);
-
-    RetrieveUsmData<TestValueType, Iterator> pred(Base::__it_from, Base::__it_to, data_item.offset);
-    data_item.process_usm_data_transfer(pred);
+    data_item.retrieve_data(Base::__it_from, Base::__it_to - Base::__it_from);
 
     return true;
 }
@@ -683,30 +687,6 @@ TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if TEST_DPCPP_BACKEND_PRESENT
-template <typename TestValueType, typename Iterator>
-struct UpdateUsmData
-{
-    Iterator      it_from;
-    Iterator      it_to;
-    ::std::size_t offset = 0;
-
-    UpdateUsmData(Iterator itFrom, Iterator itTo, ::std::size_t __offset)
-        : it_from(itFrom)
-        , it_to(itTo)
-        , offset(__offset)
-    {
-    }
-
-    template <sycl::usm::alloc alloc_type>
-    void operator()(TestUtils::usm_data_transfer<alloc_type, TestValueType>& obj)
-    {
-        const auto count = it_to - it_from;
-        obj.update_data(it_from, offset, count);
-    }
-};
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 //--------------------------------------------------------------------------------------------------------------------//
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename TestValueType, typename Iterator>
@@ -718,9 +698,7 @@ TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
         return false;
 
     auto& data_item = obj.data.at(nIndex);
-
-    UpdateUsmData<TestValueType, Iterator> pred(Base::__it_from, Base::__it_to, data_item.offset);
-    data_item.process_usm_data_transfer(pred);
+    data_item.update_data(Base::__it_from, Base::__it_to - Base::__it_from);
 
     return true;
 }
