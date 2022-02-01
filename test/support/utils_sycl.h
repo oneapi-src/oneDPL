@@ -291,7 +291,7 @@ test3buffers(int mult = kDefaultMultValue)
         using TestBaseData = test_base_data_buffer<TestValueType>;
         TestBaseData test_base_data({ { max_n,        inout1_offset },
                                       { max_n,        inout2_offset },
-                                      { mult * max_n, inout3_offset } });
+                                      { max_n * mult, inout3_offset } });
 
         // 2. create iterators over buffers
         auto inout1_offset_first = test_base_data.get_start_from(0);
