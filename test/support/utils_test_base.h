@@ -59,9 +59,9 @@ struct test_base_data
     virtual void visit(test_base_data_visitor<TestValueType>* visitor) = 0;
 };
 
+#if TEST_DPCPP_BACKEND_PRESENT
 ////////////////////////////////////////////////////////////////////////////////
 /// struct test_base_data_usm -  test source data for USM shared/device memory
-#if TEST_DPCPP_BACKEND_PRESENT
 template <typename TestValueType>
 struct test_base_data_usm : test_base_data<TestValueType>
 {
