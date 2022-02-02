@@ -8,6 +8,29 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2021.6.1
+===============
+
+Fixed Issues
+------------
+- Fixed compilation errors with C++20.
+- Fixed ``CL_OUT_OF_RESOURCES`` issue for Radix sort algorithm executed on CPU devices.
+- Fixed crashes in exclusive_scan_by_segment, inclusive_scan_by_segment, reduce_by_segment algorithms applied to
+  device-allocated USM.
+
+Known Issues and Limitations
+----------------------------
+- No new issues in this release. 
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+
 New in 2021.6
 =============
 
