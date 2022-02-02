@@ -459,26 +459,29 @@ __get_value(_T& __val)
 
 //A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
 //Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
-template <typename _Event, typename... Args>
-class __future : private std::tuple<Args...>
+template <typename _Event, typename... _Args>
+class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
-    static constexpr bool __is_value = sizeof...(Args) > 0;
+    static constexpr bool __is_value = sizeof...(_Args) > 0;
 
   public:
-    __future(_Event e, Args... args) : __my_event(e), std::tuple<Args...>(args...) {}
-    __future(_Event e, std::tuple<Args...> _t) : __my_event(e), std::tuple<Args...>(_t) {}
+    __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
+    __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
 
-    operator _Event() const { return __my_event; }
     auto
     event() const
     {
-        return operator _Event();
+        return __my_event;
+    }
+    operator _Event() const
+    {
+        return event();
     }
     void
     wait()
     {
-        __wait_event(operator _Event());
+        __wait_event(event());
     }
 
     template <typename = std::enable_if<__is_value, void>>
@@ -488,13 +491,15 @@ class __future : private std::tuple<Args...>
         return __get_value(std::get<0>(*this));
     }
 
+    //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,
+    //where a future is created.
     template <typename _T>
     auto
-    add_value(_T __t) const
+    __add_value(_T __t) const
     {
         auto new_val = std::tuple<_T>(__t);
-        auto new_tuple = std::tuple_cat(new_val, (std::tuple<Args...>)*this);
-        return __future<_Event, _T, Args...>(__my_event, new_tuple);
+        auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
+        return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
 

@@ -528,7 +528,6 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                     __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg, __result_acc, __n_groups - 1));
         });
 
-        //return oneapi::dpl::__par_backend_hetero::__future<_Type>(__final_event, __n_groups - 1, __wg_sums);
         return __future(__final_event, __result, __wg_sums);
     }
 };
