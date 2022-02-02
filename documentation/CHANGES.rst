@@ -6,6 +6,20 @@ Overview
 
 The list of the most significant changes made over time in oneDPL.
 
+New in 2021.6.1
+===============
+
+Fixed Issues
+------------
+- Fixed compilation errors with C++20.
+- Fixed ``CL_OUT_OF_RESOURCES`` issue for Radix sort algorithm executed on CPU devices.
+- Fixed crashes in exclusive_scan_by_segment, inclusive_scan_by_segment, reduce_by_segment algorithms applied to
+  device-allocated USM.
+  
+Known Issues and Limitations
+----------------------------
+- No new issues in this release.
+
 New in 2021.6
 =============
 
