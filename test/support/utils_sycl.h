@@ -199,7 +199,7 @@ struct invoke_on_all_hetero_policies
     void
     operator()(Op op, Args&&... rest)
     {
-        bool has_support = has_types_support<Args...>(my_queue.get_device());
+        bool has_support = has_types_support<::std::decay_t<Args>...>(my_queue.get_device());
         // Let's notify about skipped cases here and only once
         // due to having large amount of cases to skip and no handy way to handle then on the upper levels
         unsupported_types_notifier(has_support, my_queue.get_device());
