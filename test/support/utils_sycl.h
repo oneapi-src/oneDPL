@@ -141,70 +141,43 @@ static auto my_queue = sycl::queue(default_selector, async_handler);
 
 // check fp16/fp64 support by a device
 template<typename T>
-bool has_type_support(const sycl::device&)
-{
-    return true;
-}
+bool has_type_support(const sycl::device&) { return true; }
 
 template<>
-bool has_type_support<double>(const sycl::device& device)
+inline bool has_type_support<double>(const sycl::device& device)
 {
     return device.has(sycl::aspect::fp64);
 }
 
 template<>
-bool has_type_support<sycl::half>(const sycl::device& device)
+inline bool has_type_support<sycl::half>(const sycl::device& device)
 {
     return device.has(sycl::aspect::fp16);
 }
 
-template<typename... Ts>
-struct has_types_support_fold
+template <typename, typename = void>
+struct has_value_type : ::std::false_type {};
+
+template <typename T>
+struct has_value_type<T, ::std::void_t<typename std::iterator_traits<T>::value_type>> : ::std::true_type {};
+
+template<typename T>
+std::enable_if_t<!has_value_type<T>::value, bool> has_iter_type_support(const sycl::device& device)
 {
-    bool operator()(const sycl::device& device)
-    {
-        return true;
-    }
+    return has_type_support<T>(device);
 };
 
-template<typename T, typename... Ts>
-struct has_types_support_fold<T, Ts...>
+template<typename T>
+std::enable_if_t<has_value_type<T>::value, bool> has_iter_type_support(const sycl::device& device)
 {
-    bool operator()(const sycl::device& device)
-    {
-        return has_type_support<T>(device) && has_types_support_fold<Ts...>()(device);
-    }
-};
-
-template<typename... Ts>
-struct has_types_support_impl
-{
-    bool operator()(const sycl::device& device)
-    {
-        return has_types_support_fold<Ts...>()(device);
-    }
-};
-
-template<typename... Ts>
-struct has_types_support_impl<std::tuple<Ts...>>
-{
-    bool operator()(const sycl::device& device)
-    {
-        return has_types_support_impl<Ts...>()(device);
-    }
+    return has_type_support<typename std::iterator_traits<T>::value_type>(device);
 };
 
 template<typename... Ts>
 bool has_types_support(const sycl::device& device)
 {
-    return has_types_support_impl<Ts...>()(device);
+    return (true && ... && has_iter_type_support<Ts>(device));
 }
-
-template <typename T, typename = int>
-struct has_value_types : ::std::false_type {};
-
-template <typename T>
-struct has_value_types<T, decltype(std::declval<typename T::value_types>(), 0)> : ::std::true_type {};
 
 inline void unsupported_types_notifier(bool has_support, const sycl::device& device)
 {
@@ -212,7 +185,8 @@ inline void unsupported_types_notifier(bool has_support, const sycl::device& dev
     if(!has_support && !is_notified)
     {
         ::std::cout << device.template get_info<sycl::info::device::name>()
-                    << " does not support fp64 or fp16 types, affected test cases have been skipped\n";
+                    << " does not support fp64 (double) or fp16 (sycl::half) types,"
+                    << " affected test cases have been skipped\n";
         is_notified = true;
     }
 }
@@ -221,33 +195,15 @@ inline void unsupported_types_notifier(bool has_support, const sycl::device& dev
 template <::std::size_t CallNumber = 0>
 struct invoke_on_all_hetero_policies
 {
-    template <typename Op, typename Arg, typename... Args>
-    typename ::std::enable_if<has_value_types<Op>::value, void>::type
-    operator()(Op op, Arg&& first, Args&&... rest)
-    {
-        invoke_impl<typename Op::value_types>(
-            op, std::forward<Arg>(first), ::std::forward<Args>(rest)...);
-    }
-
-    // assume Op which does not provide value_types works with only one type retrieved from the first iterator
-    template <typename Op, typename Arg, typename... Args>
-    typename ::std::enable_if<!has_value_types<Op>::value, void>::type
-    operator()(Op op, Arg&& first, Args&&... rest)
-    {
-        invoke_impl<typename ::std::iterator_traits<typename ::std::decay<Arg>::type>::value_type>(
-            op, std::forward<Arg>(first), ::std::forward<Args>(rest)...);
-    }
-
-private:
-    template <typename... ValueTypes, typename Op, typename... Args>
+    template <typename Op, typename... Args>
     void
-    invoke_impl(Op op, Args&&... rest)
+    operator()(Op op, Args&&... rest)
     {
-        bool has_support = has_types_support<ValueTypes...>(my_queue.get_device());
+        bool has_support = has_types_support<Args...>(my_queue.get_device());
         // Let's notify about skipped cases here and only once
         // due to having large amount of cases to skip and no handy way to handle then on the upper levels
         unsupported_types_notifier(has_support, my_queue.get_device());
-        if(has_support)
+        if (has_support)
         {
             // Since make_device_policy need only one parameter for instance, this alias is used to create unique type
             // of kernels from operator type and ::std::size_t

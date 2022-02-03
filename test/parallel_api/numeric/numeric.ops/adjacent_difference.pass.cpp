@@ -95,18 +95,17 @@ compute_and_check(Iterator1 /* first */, Iterator1 /* last */, Iterator2 /* d_fi
     return true;
 }
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_adjacent_difference
 {
-    // keeping types in value_types allows checking if they are supported by a device
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename T>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e,
                T trash)
     {
         using namespace std;
+        using T2 = typename ::std::iterator_traits<Iterator1>::value_type;
+
         fill(actual_b, actual_e, trash);
 
         Iterator2 actual_return = adjacent_difference(exec, data_b, data_e, actual_b);
@@ -116,17 +115,17 @@ struct test_adjacent_difference
     }
 };
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_adjacent_difference_functor
 {
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename T, typename Function>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e,
                T trash, Function f)
     {
         using namespace std;
+        using T2 = typename ::std::iterator_traits<Iterator1>::value_type;
+
         fill(actual_b, actual_e, trash);
 
         Iterator2 actual_return = adjacent_difference(exec, data_b, data_e, actual_b, f);
@@ -151,13 +150,13 @@ test(Pred pred)
 
     for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
     {
-        invoke_on_all_policies<0>()(test_adjacent_difference<T1, T2>(), data.begin(), data.begin() + len, actual.begin(),
+        invoke_on_all_policies<0>()(test_adjacent_difference<T1>(), data.begin(), data.begin() + len, actual.begin(),
                                     actual.begin() + len, trash);
-        invoke_on_all_policies<1>()(test_adjacent_difference_functor<T1, T2>(), data.begin(), data.begin() + len,
+        invoke_on_all_policies<1>()(test_adjacent_difference_functor<T1>(), data.begin(), data.begin() + len,
                                     actual.begin(), actual.begin() + len, trash, pred);
-        invoke_on_all_policies<2>()(test_adjacent_difference<T1, T2>(), data.cbegin(), data.cbegin() + len,
+        invoke_on_all_policies<2>()(test_adjacent_difference<T1>(), data.cbegin(), data.cbegin() + len,
                                     actual.begin(), actual.begin() + len, trash);
-        invoke_on_all_policies<3>()(test_adjacent_difference_functor<T1, T2>(), data.cbegin(), data.cbegin() + len,
+        invoke_on_all_policies<3>()(test_adjacent_difference_functor<T1>(), data.cbegin(), data.cbegin() + len,
                                     actual.begin(), actual.begin() + len, trash, pred);
     }
 }

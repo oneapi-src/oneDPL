@@ -23,13 +23,10 @@
 
 using namespace TestUtils;
 
-template <typename T, typename Value>
+template <typename T>
 struct test_find
 {
-    // keeping types in value_types allows checking if they are supported by a device
-    using value_types = ::std::tuple<T, Value>;
-
-    template <typename Policy, typename Iterator>
+    template <typename Policy, typename Iterator, typename Value>
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Value value)
     {
@@ -54,8 +51,8 @@ test(Value value, Hit hit, Miss miss)
         {
             if (m < n)
                 in[m] = hit(n ^ m);
-            invoke_on_all_policies<0>()(test_find<T, Value>(), in.begin(), in.end(), value);
-            invoke_on_all_policies<1>()(test_find<T, Value>(), in.cbegin(), in.cend(), value);
+            invoke_on_all_policies<0>()(test_find<T>(), in.begin(), in.end(), value);
+            invoke_on_all_policies<1>()(test_find<T>(), in.cbegin(), in.cend(), value);
         }
     }
 }

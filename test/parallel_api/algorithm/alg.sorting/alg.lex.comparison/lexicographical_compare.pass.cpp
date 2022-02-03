@@ -24,11 +24,9 @@
 
 using namespace TestUtils;
 
-template <typename T1, typename T2>
+template <typename T>
 struct test_one_policy
 {
-    // keeping types in value_types allows checking if they are supported by a device
-    using value_types = ::std::tuple<T1, T2>;
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Predicate>
     void
@@ -62,40 +60,40 @@ test(Predicate pred)
     ::std::size_t n2;
 
     // Test case: Call algorithm's version without predicate.
-    invoke_on_all_policies<0>()(test_one_policy<T1, T2>(), in1.cbegin(), in1.cbegin() + max_n,
+    invoke_on_all_policies<0>()(test_one_policy<T1>(), in1.cbegin(), in1.cbegin() + max_n,
                                 in2.cbegin() + 3 * max_n / 10, in2.cbegin() + 5 * max_n / 10);
 
     // Test case: If one range is a prefix of another, the shorter range is lexicographically less than the other.
     ::std::size_t max_n2 = max_n / 10;
-    invoke_on_all_policies<1>()(test_one_policy<T1, T2>(), in1.begin(), in1.begin() + max_n, in2.cbegin(),
+    invoke_on_all_policies<1>()(test_one_policy<T1>(), in1.begin(), in1.begin() + max_n, in2.cbegin(),
                                 in2.cbegin() + max_n2, pred);
-    invoke_on_all_policies<2>()(test_one_policy<T1, T2>(), in1.begin(), in1.begin() + max_n, in2.begin() + max_n2,
+    invoke_on_all_policies<2>()(test_one_policy<T1>(), in1.begin(), in1.begin() + max_n, in2.begin() + max_n2,
                                 in2.begin() + 3 * max_n2, pred);
 
     // Test case: If one range is a prefix of another, the shorter range is lexicographically less than the other.
     max_n2 = 2 * max_n;
-    invoke_on_all_policies<3>()(test_one_policy<T1, T2>(), in1.cbegin(), in1.cbegin() + max_n, in2.begin(),
+    invoke_on_all_policies<3>()(test_one_policy<T1>(), in1.cbegin(), in1.cbegin() + max_n, in2.begin(),
                                 in2.begin() + max_n2, pred);
 
     for (::std::size_t n1 = 0; n1 <= max_n; n1 = n1 <= 16 ? n1 + 1 : ::std::size_t(3.1415 * n1))
     {
         // Test case: If two ranges have equivalent elements and are of the same length, then the ranges are lexicographically equal.
         n2 = n1;
-        invoke_on_all_policies<4>()(test_one_policy<T1, T2>(), in1.begin(), in1.begin() + n1, in2.begin(),
+        invoke_on_all_policies<4>()(test_one_policy<T1>(), in1.begin(), in1.begin() + n1, in2.begin(),
                                     in2.begin() + n2, pred);
 
         n2 = n1;
         // Test case: two ranges have different elements and are of the same length (second sequence less than first)
         ::std::size_t ind = n1 / 2;
         in2[ind] = T2(-1);
-        invoke_on_all_policies<5>()(test_one_policy<T1, T2>(), in1.begin(), in1.begin() + n1, in2.begin(),
+        invoke_on_all_policies<5>()(test_one_policy<T1>(), in1.begin(), in1.begin() + n1, in2.begin(),
                                     in2.begin() + n2, pred);
         in2[ind] = T2(ind);
 
         // Test case: two ranges have different elements and are of the same length (first sequence less than second)
         ind = n1 / 5;
         in1[ind] = T1(-1);
-        invoke_on_all_policies<6>()(test_one_policy<T1, T2>(), in1.begin(), in1.begin() + n1, in2.cbegin(),
+        invoke_on_all_policies<6>()(test_one_policy<T1>(), in1.begin(), in1.begin() + n1, in2.cbegin(),
                                     in2.cbegin() + n2, pred);
         in1[ind] = T1(ind);
     }
@@ -125,21 +123,21 @@ test_string(Predicate pred)
     {
         // Test case: If two ranges have equivalent elements and are of the same length, then the ranges are lexicographically equal.
         n2 = n1;
-        invoke_on_all_policies<7>()(test_one_policy<::std::string, ::std::string>(), in1.begin(), in1.begin() + n1, in2.begin(),
+        invoke_on_all_policies<7>()(test_one_policy<Predicate>(), in1.begin(), in1.begin() + n1, in2.begin(),
                                     in2.begin() + n2, pred);
 
         n2 = n1;
         // Test case: two ranges have different elements and are of the same length (second sequence less than first)
         in2[n1 / 2] = 'a';
-        invoke_on_all_policies<8>()(test_one_policy<::std::string, ::std::string>(), in1.begin(), in1.begin() + n1, in2.begin(),
+        invoke_on_all_policies<8>()(test_one_policy<Predicate>(), in1.begin(), in1.begin() + n1, in2.begin(),
                                     in2.begin() + n2, pred);
 
         // Test case: two ranges have different elements and are of the same length (first sequence less than second)
         in1[n1 / 5] = 'a';
-        invoke_on_all_policies<9>()(test_one_policy<::std::string, ::std::string>(), in1.begin(), in1.begin() + n1, in2.cbegin(),
+        invoke_on_all_policies<9>()(test_one_policy<Predicate>(), in1.begin(), in1.begin() + n1, in2.cbegin(),
                                     in2.cbegin() + n2, pred);
     }
-    invoke_on_all_policies<10>()(test_one_policy<::std::string, ::std::string>(), in1.cbegin(), in1.cbegin() + max_n,
+    invoke_on_all_policies<10>()(test_one_policy<Predicate>(), in1.cbegin(), in1.cbegin() + max_n,
                                  in2.cbegin() + 3 * max_n / 10, in2.cbegin() + 5 * max_n / 10);
 }
 

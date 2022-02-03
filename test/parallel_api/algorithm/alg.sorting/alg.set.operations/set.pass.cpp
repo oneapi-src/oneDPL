@@ -79,12 +79,9 @@ init(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIt
     return ::std::make_pair(expect,out);
 }
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_set_union
 {
-    // keeping types in value_types allows checking if they are supported by a device
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
@@ -128,11 +125,9 @@ struct test_set_union
     }
 };
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_set_intersection
 {
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
@@ -175,11 +170,9 @@ struct test_set_intersection
     }
 };
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_set_difference
 {
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
@@ -224,11 +217,9 @@ struct test_set_difference
     }
 };
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_set_symmetric_difference
 {
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
@@ -278,6 +269,7 @@ template <typename T1, typename T2, typename Compare>
 void
 test_set(Compare compare, bool comp_flag)
 {
+
     const ::std::size_t n_max = 100000;
 
     // The rand()%(2*n+1) encourages generation of some duplicates.
@@ -296,32 +288,32 @@ test_set(Compare compare, bool comp_flag)
 
 #ifdef _PSTL_TEST_SET_UNION
             if(comp_flag)
-                invoke_on_all_policies<0>()(test_set_union<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
+                invoke_on_all_policies<0>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
                                             compare);
             else
-                invoke_on_all_policies<4>()(test_set_union<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
+                invoke_on_all_policies<4>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
 #endif
 
 #ifdef _PSTL_TEST_SET_INTERSECTION
             if(comp_flag)
-                invoke_on_all_policies<1>()(test_set_intersection<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
+                invoke_on_all_policies<1>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
                                             compare);
             else
-                invoke_on_all_policies<5>()(test_set_intersection<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
+                invoke_on_all_policies<5>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
 #endif
 #ifdef _PSTL_TEST_SET_DIFFERENCE
             if(comp_flag)
-                invoke_on_all_policies<2>()(test_set_difference<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
+                invoke_on_all_policies<2>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
                                             compare);
             else
-                invoke_on_all_policies<6>()(test_set_difference<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
+                invoke_on_all_policies<6>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
 #endif
 #ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
             if(comp_flag)
-                invoke_on_all_policies<3>()(test_set_symmetric_difference<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(),
+                invoke_on_all_policies<3>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
                                             in2.cend(), compare);
             else
-                invoke_on_all_policies<7>()(test_set_symmetric_difference<T1, T2>(), in1.begin(), in1.end(), in2.cbegin(),
+                invoke_on_all_policies<7>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
                                                 in2.cend());
 #endif
         }

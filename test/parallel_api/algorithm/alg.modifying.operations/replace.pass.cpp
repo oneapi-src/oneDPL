@@ -59,9 +59,6 @@ struct copy_int
 template <typename T1, typename T2>
 struct test_replace
 {
-    // keeping types in value_types allows checking if they are supported by a device
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Iterator3, typename T, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 expected_b, Iterator1 expected_e, Iterator2 actual_b,
@@ -97,8 +94,6 @@ struct test_replace
 template<typename T1, typename T2>
 struct test_replace_if
 {
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Iterator3, typename T, typename Predicate>
     void
     operator()(ExecutionPolicy&& exec, Iterator1 expected_b, Iterator1 expected_e, Iterator2 actual_b,

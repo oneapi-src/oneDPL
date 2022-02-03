@@ -44,9 +44,6 @@ check_and_reset(InputIterator first, InputIterator last, OutputIterator out_firs
 template <typename T1, typename T2>
 struct test_one_policy
 {
-    // keeping types in value_types allows checking if they are supported by a device
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator, typename OutputIterator, typename UnaryOp>
     void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,

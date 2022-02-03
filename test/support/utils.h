@@ -678,6 +678,7 @@ struct invoke_on_all_host_policies
     operator()(Op op, T&&... rest)
     {
         using namespace oneapi::dpl::execution;
+
 #if !TEST_ONLY_HETERO_POLICIES
         // Try static execution policies
         invoke_on_all_iterator_types()(seq, op, ::std::forward<T>(rest)...);
@@ -696,6 +697,7 @@ struct invoke_on_all_policies
     void
     operator()(Op op, T&&... rest)
     {
+
         invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
 #if TEST_DPCPP_BACKEND_PRESENT
         invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);

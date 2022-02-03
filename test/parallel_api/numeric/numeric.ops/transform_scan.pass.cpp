@@ -40,12 +40,9 @@ check_and_reset(Iterator expected_first, Iterator out_first, Size n, T trash)
     ::std::fill_n(out_first, n, trash);
 }
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_transform_exclusive_scan
 {
-    // keeping types in value_types allows checking if they are supported by a device
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
@@ -72,11 +69,9 @@ struct test_transform_exclusive_scan
     }
 };
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_transform_inclusive_scan_init
 {
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
@@ -103,11 +98,9 @@ struct test_transform_inclusive_scan_init
     }
 };
 
-template <typename T1, typename T2>
+template <typename Type>
 struct test_transform_inclusive_scan
 {
-    using value_types = ::std::tuple<T1, T2>;
-
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
     typename ::std::enable_if<!TestUtils::isReverse<InputIterator>::value, void>::type
@@ -193,16 +186,16 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
 #ifdef _PSTL_TEST_TRANSFORM_INCLUSIVE_SCAN
         transform_inclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op);
         check_and_reset(expected2.begin(), out.begin(), out.size(), trash);
-        invoke_on_all_policies<1>()(test_transform_inclusive_scan_init<In, Out>(), in.begin(), in.end(), out.begin(),
+        invoke_on_all_policies<1>()(test_transform_inclusive_scan_init<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
-        invoke_on_all_policies<2>()(test_transform_inclusive_scan<In, Out>(), in.begin(), in.end(), out.begin(), out.end(),
+        invoke_on_all_policies<2>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected2.begin(), expected2.end(), in.size(), unary_op, init, binary_op, trash);
 #if !ONEDPL_FPGA_DEVICE
-        invoke_on_all_policies<3>()(test_transform_inclusive_scan_init<In, Out>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<3>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
-        invoke_on_all_policies<4>()(test_transform_inclusive_scan<In, Out>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<4>()(test_transform_inclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected2.begin(), expected2.end(), in.size(), unary_op, init,
                                     binary_op, trash);
 #endif
@@ -210,15 +203,15 @@ test(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
 #ifdef _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
         transform_exclusive_scan_serial(in.cbegin(), in.cend(), out.fbegin(), unary_op, init, binary_op);
         check_and_reset(expected1.begin(), out.begin(), out.size(), trash);
-        invoke_on_all_policies<5>()(test_transform_exclusive_scan<In, Out>(), in.begin(), in.end(), out.begin(), out.end(),
+        invoke_on_all_policies<5>()(test_transform_exclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected1.begin(), expected1.end(), in.size(), unary_op, init, binary_op, trash);
 #if !ONEDPL_FPGA_DEVICE
-        invoke_on_all_policies<6>()(test_transform_exclusive_scan<In, Out>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<6>()(test_transform_exclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected1.begin(), expected1.end(), in.size(), unary_op, init,
                                     binary_op, trash);
 #endif
         ::std::copy(in.begin(), in.end(), out.begin());
-        invoke_on_all_policies<13>()(test_transform_exclusive_scan<In, Out>(), out.begin(), out.end(), out.begin(), out.end(),
+        invoke_on_all_policies<13>()(test_transform_exclusive_scan<In>(), out.begin(), out.end(), out.begin(), out.end(),
                                     expected1.begin(), expected1.end(), in.size(), unary_op, init, binary_op, trash);
 #endif // _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
     }
@@ -236,23 +229,23 @@ test_matrix(UnaryOp unary_op, Out init, BinaryOp binary_op, Out trash)
         Sequence<Out> expected(n, [&](size_t) { return trash; });
 
 #ifdef _PSTL_TEST_TRANSFORM_INCLUSIVE_SCAN
-        invoke_on_all_policies<7>()(test_transform_inclusive_scan_init<In, Out>(), in.begin(), in.end(), out.begin(),
+        invoke_on_all_policies<7>()(test_transform_inclusive_scan_init<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
-        invoke_on_all_policies<8>()(test_transform_inclusive_scan_init<In, Out>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<8>()(test_transform_inclusive_scan_init<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
-        invoke_on_all_policies<9>()(test_transform_inclusive_scan<In, Out>(), in.begin(), in.end(), out.begin(), out.end(),
+        invoke_on_all_policies<9>()(test_transform_inclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                      expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
-        invoke_on_all_policies<10>()(test_transform_inclusive_scan<In, Out>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<10>()(test_transform_inclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                      out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                      trash);
 #endif
 #ifdef _PSTL_TEST_TRANSFORM_EXCLUSIVE_SCAN
 #if !TEST_GCC10_EXCLUSIVE_SCAN_BROKEN
-        invoke_on_all_policies<11>()(test_transform_exclusive_scan<In, Out>(), in.begin(), in.end(), out.begin(), out.end(),
+        invoke_on_all_policies<11>()(test_transform_exclusive_scan<In>(), in.begin(), in.end(), out.begin(), out.end(),
                                     expected.begin(), expected.end(), in.size(), unary_op, init, binary_op, trash);
-        invoke_on_all_policies<12>()(test_transform_exclusive_scan<In, Out>(), in.cbegin(), in.cend(), out.begin(),
+        invoke_on_all_policies<12>()(test_transform_exclusive_scan<In>(), in.cbegin(), in.cend(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), unary_op, init, binary_op,
                                     trash);
 #endif
