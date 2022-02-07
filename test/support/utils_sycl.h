@@ -176,11 +176,11 @@ test1buffer()
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
         ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
+            (T*)sycl::malloc_shared(sizeof(T) * max_n, queue.get_device(), queue.get_context()),
             sycl_deleter);
 
         // 2. create a pointer at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
+        T* inout1_offset_first = inout1_first.get();
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -194,10 +194,10 @@ test1buffer()
 #endif
     { // sycl::buffer
         // 1. create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
+        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n)};
 
         // 2. create an iterator over buffer
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
+        auto inout1_offset_first = oneapi::dpl::begin(inout1);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -220,15 +220,15 @@ test2buffers()
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
         ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
+            (T*)sycl::malloc_shared(sizeof(T) * (max_n), queue.get_device(), queue.get_context()),
             sycl_deleter);
         ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
+            (T*)sycl::malloc_shared(sizeof(T) * (max_n), queue.get_device(), queue.get_context()),
             sycl_deleter);
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
+        T* inout1_offset_first = inout1_first.get();
+        T* inout2_offset_first = inout2_first.get();
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -243,12 +243,12 @@ test2buffers()
 #endif
     { // sycl::buffer
         // 1. create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
+        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n)};
+        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n)};
 
         // 2. create iterators over buffers
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
+        auto inout1_offset_first = oneapi::dpl::begin(inout1);
+        auto inout2_offset_first = oneapi::dpl::begin(inout2);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -272,20 +272,19 @@ test3buffers(int mult = 1)
         // 1. allocate usm memory
         auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
         ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
+            (T*)sycl::malloc_shared(sizeof(T) * max_n, queue.get_device(), queue.get_context()),
             sycl_deleter);
         ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
+            (T*)sycl::malloc_shared(sizeof(T) * max_n, queue.get_device(), queue.get_context()),
             sycl_deleter);
         ::std::unique_ptr<T, decltype(sycl_deleter)> inout3_first(
-            (T*)sycl::malloc_shared(mult * sizeof(T) * (max_n + inout3_offset), queue.get_device(),
-                                    queue.get_context()),
+            (T*)sycl::malloc_shared(mult * sizeof(T) * max_n, queue.get_device(), queue.get_context()),
             sycl_deleter);
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
-        T* inout3_offset_first = inout3_first.get() + inout3_offset;
+        T* inout1_offset_first = inout1_first.get();
+        T* inout2_offset_first = inout2_first.get();
+        T* inout3_offset_first = inout3_first.get();
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
@@ -301,14 +300,14 @@ test3buffers(int mult = 1)
 #endif
     { // sycl::buffer
         // 1. create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
-        sycl::buffer<T, 1> inout3{sycl::range<1>(mult * max_n + inout3_offset)};
+        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n)};
+        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n)};
+        sycl::buffer<T, 1> inout3{sycl::range<1>(mult * max_n)};
 
         // 2. create iterators over buffers
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
-        auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
+        auto inout1_offset_first = oneapi::dpl::begin(inout1);
+        auto inout2_offset_first = oneapi::dpl::begin(inout2);
+        auto inout3_offset_first = oneapi::dpl::begin(inout3);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
