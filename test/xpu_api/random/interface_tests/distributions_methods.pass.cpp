@@ -20,11 +20,11 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include <CL/sycl.hpp>
-#include <oneapi/dpl/random>
+#    include <iostream>
+#    include <cmath>
+#    include <vector>
+#    include <CL/sycl.hpp>
+#    include <oneapi/dpl/random>
 
 constexpr auto SEED = 777;
 constexpr auto N_GEN = 960;
@@ -70,8 +70,7 @@ check_params(oneapi::dpl::exponential_distribution<T>& distr)
 {
     Element_type<T> lambda = Element_type<T>{1.0};
     return ((distr.lambda() != lambda) || (distr.min() != 0) ||
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
-            (distr.param().lambda() != lambda));
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().lambda() != lambda));
 }
 
 template <class T>
@@ -79,8 +78,7 @@ std::int32_t
 check_params(oneapi::dpl::bernoulli_distribution<T>& distr)
 {
     double p = 0.5;
-    return ((distr.p() != p) || (distr.min() != false) ||
-            (distr.max() != true) || (distr.param().p() != p));
+    return ((distr.p() != p) || (distr.min() != false) || (distr.max() != true) || (distr.param().p() != p));
 }
 
 template <class T>
@@ -88,8 +86,7 @@ std::int32_t
 check_params(oneapi::dpl::geometric_distribution<T>& distr)
 {
     double p = 0.5;
-    return ((distr.p() != p) || (distr.min() != 0) ||
-            (distr.max()  < std::numeric_limits<Element_type<T>>::max()) || 
+    return ((distr.p() != p) || (distr.min() != 0) || (distr.max() < std::numeric_limits<Element_type<T>>::max()) ||
             (distr.param().p() != p));
 }
 
@@ -99,9 +96,9 @@ check_params(oneapi::dpl::weibull_distribution<T>& distr)
 {
     Element_type<T> a = Element_type<T>{1.0};
     Element_type<T> b = Element_type<T>{1.0};
-    return ((distr.a() != a) || (distr.b() != b) || (distr.min() != 0) || 
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) ||
-            (distr.param().a() != a) || (distr.param().b() != b));
+    return ((distr.a() != a) || (distr.b() != b) || (distr.min() != 0) ||
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().a() != a) ||
+            (distr.param().b() != b));
 }
 
 template <class T>
@@ -110,9 +107,9 @@ check_params(oneapi::dpl::lognormal_distribution<T>& distr)
 {
     Element_type<T> m = Element_type<T>{0.0};
     Element_type<T> s = Element_type<T>{1.0};
-    return ((distr.m() != m) || (distr.s() != s) ||
-            (distr.min() != 0) || (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
-            (distr.param().m() != m) || (distr.param().s() != s));
+    return ((distr.m() != m) || (distr.s() != s) || (distr.min() != 0) ||
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().m() != m) ||
+            (distr.param().s() != s));
 }
 
 template <class T>
@@ -121,10 +118,9 @@ check_params(oneapi::dpl::cauchy_distribution<T>& distr)
 {
     Element_type<T> a = Element_type<T>{0.0};
     Element_type<T> b = Element_type<T>{1.0};
-    return ((distr.a() != a) || (distr.b() != b) ||
-            (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) || 
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
-            (distr.param().a() != a) || (distr.param().b() != b));
+    return ((distr.a() != a) || (distr.b() != b) || (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) ||
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().a() != a) ||
+            (distr.param().b() != b));
 }
 
 template <class T>
@@ -133,15 +129,14 @@ check_params(oneapi::dpl::extreme_value_distribution<T>& distr)
 {
     Element_type<T> a = Element_type<T>{0.0};
     Element_type<T> b = Element_type<T>{1.0};
-    return ((distr.a() != a) || (distr.b() != b) ||
-            (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) || 
-            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || 
-            (distr.param().a() != a) || (distr.param().b() != b));
+    return ((distr.a() != a) || (distr.b() != b) || (distr.min() > std::numeric_limits<Element_type<T>>::lowest()) ||
+            (distr.max() < std::numeric_limits<Element_type<T>>::max()) || (distr.param().a() != a) ||
+            (distr.param().b() != b));
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr,
-        oneapi::dpl::uniform_int_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<
+    ::std::is_same<Distr, oneapi::dpl::uniform_int_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{0, 10};
@@ -149,8 +144,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::uniform_real_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<
+    ::std::is_same<Distr, oneapi::dpl::uniform_real_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.0};
@@ -158,8 +153,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::exponential_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<
+    ::std::is_same<Distr, oneapi::dpl::exponential_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5};
@@ -167,8 +162,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::bernoulli_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<
+    ::std::is_same<Distr, oneapi::dpl::bernoulli_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{0.5};
@@ -176,8 +171,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::geometric_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<
+    ::std::is_same<Distr, oneapi::dpl::geometric_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{0.5};
@@ -185,8 +180,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::weibull_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<::std::is_same<Distr, oneapi::dpl::weibull_distribution<typename Distr::result_type>>::value,
+                          void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.0};
@@ -194,8 +189,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::lognormal_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<
+    ::std::is_same<Distr, oneapi::dpl::lognormal_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -203,8 +198,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::normal_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<::std::is_same<Distr, oneapi::dpl::normal_distribution<typename Distr::result_type>>::value,
+                          void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -212,8 +207,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::cauchy_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<::std::is_same<Distr, oneapi::dpl::cauchy_distribution<typename Distr::result_type>>::value,
+                          void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -221,8 +216,8 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-typename ::std::enable_if<::std::is_same<Distr, 
-        oneapi::dpl::extreme_value_distribution<typename Distr::result_type>>::value, void>::type
+typename ::std::enable_if<
+    ::std::is_same<Distr, oneapi::dpl::extreme_value_distribution<typename Distr::result_type>>::value, void>::type
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -369,275 +364,277 @@ main()
     };
 
     sycl::queue queue(sycl::default_selector{}, exception_handler);
-
     std::int32_t err = 0;
 
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "uniform_int_distribution<std::int32_t>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::uniform_int_distribution<std::int32_t>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 16>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 8>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 4>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 3>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 2>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
+    if (TestUtils::has_type_support<double>(queue.get_device()))
+    {
 
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "uniform_int_distribution<std::uint32_t>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::uniform_int_distribution<std::uint32_t>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 16>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 8>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 4>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 3>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 2>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "uniform_int_distribution<std::int32_t>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::uniform_int_distribution<std::int32_t>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 16>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 8>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 4>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 3>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 2>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "uniform_int_distribution<std::uint32_t>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::uniform_int_distribution<std::uint32_t>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 16>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 8>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 4>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 3>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 2>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_int_distribution<sycl::vec<std::uint32_t, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "uniform_real_distribution<double>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::uniform_real_distribution<double>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 16>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 8>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 4>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 3>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 2>>>(queue);
+        err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "normal_distribution<double>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::normal_distribution<double>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>>(queue);
+        err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>>(queue);
+        err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>>(queue);
+        err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 3>>>(queue);
+        err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>>(queue);
+        err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "exponential_distribution<double>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::exponential_distribution<double>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 16>>>(queue);
+        err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 8>>>(queue);
+        err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 4>>>(queue);
+        err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>>(queue);
+        err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>>(queue);
+        err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "bernoulli_distribution<bool>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::bernoulli_distribution<bool>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 16>>>(queue);
+        err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 8>>>(queue);
+        err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 4>>>(queue);
+        err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 3>>>(queue);
+        err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 2>>>(queue);
+        err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "geometric_distribution<std::int32_t>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::geometric_distribution<std::int32_t>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "geometric_distribution<std::uint32_t>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::geometric_distribution<std::uint32_t>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 16>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 8>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 4>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 3>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 2>>>(queue);
+        err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "weibull_distribution<double>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::weibull_distribution<double>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 16>>>(queue);
+        err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 8>>>(queue);
+        err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 4>>>(queue);
+        err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 3>>>(queue);
+        err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 2>>>(queue);
+        err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "lognormal_distribution<double>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::lognormal_distribution<double>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 16>>>(queue);
+        err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 8>>>(queue);
+        err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 4>>>(queue);
+        err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 3>>>(queue);
+        err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 2>>>(queue);
+        err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "cauchy_distribution<double>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::cauchy_distribution<double>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 16>>>(queue);
+        err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 8>>>(queue);
+        err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 4>>>(queue);
+        err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 3>>>(queue);
+        err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 2>>>(queue);
+        err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+
+        std::cout << "---------------------------------------------------" << std::endl;
+        std::cout << "extreme_value_distribution<double>" << std::endl;
+        std::cout << "---------------------------------------------------" << std::endl;
+        err += test<oneapi::dpl::extreme_value_distribution<double>>(queue);
+#    if TEST_LONG_RUN
+        err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 16>>>(queue);
+        err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 8>>>(queue);
+        err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 4>>>(queue);
+        err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 3>>>(queue);
+        err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 2>>>(queue);
+        err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 1>>>(queue);
+#    endif // TEST_LONG_RUN
+        EXPECT_TRUE(!err, "Test FAILED");
+    }
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "uniform_real_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::uniform_real_distribution<float>>(queue);
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 16>>>(queue);
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 8>>>(queue);
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 4>>>(queue);
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 3>>>(queue);
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 2>>>(queue);
     err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<float, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "uniform_real_distribution<double>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::uniform_real_distribution<double>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 16>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 8>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 4>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 3>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 2>>>(queue);
-    err += test_vec<oneapi::dpl::uniform_real_distribution<sycl::vec<double, 1>>>(queue);
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "normal_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::normal_distribution<float>>(queue);
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>>(queue);
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>>(queue);
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>>(queue);
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 3>>>(queue);
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>>(queue);
     err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<float, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "normal_distribution<double>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::normal_distribution<double>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>>(queue);
-    err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>>(queue);
-    err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>>(queue);
-    err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 3>>>(queue);
-    err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>>(queue);
-    err += test_vec<oneapi::dpl::normal_distribution<sycl::vec<double, 1>>>(queue);
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "exponential_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::exponential_distribution<float>>(queue);
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 16>>>(queue);
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 8>>>(queue);
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 4>>>(queue);
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 3>>>(queue);
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 2>>>(queue);
     err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<float, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "exponential_distribution<double>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::exponential_distribution<double>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 16>>>(queue);
-    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 8>>>(queue);
-    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 4>>>(queue);
-    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 3>>>(queue);
-    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 2>>>(queue);
-    err += test_vec<oneapi::dpl::exponential_distribution<sycl::vec<double, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "bernoulli_distribution<bool>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::bernoulli_distribution<bool>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 16>>>(queue);
-    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 8>>>(queue);
-    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 4>>>(queue);
-    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 3>>>(queue);
-    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 2>>>(queue);
-    err += test_vec<oneapi::dpl::bernoulli_distribution<sycl::vec<bool, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<std::int32_t>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::geometric_distribution<std::int32_t>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 16>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 8>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 4>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 3>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 2>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::int32_t, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "geometric_distribution<std::uint32_t>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::geometric_distribution<std::uint32_t>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 16>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 8>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 4>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 3>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 2>>>(queue);
-    err += test_vec<oneapi::dpl::geometric_distribution<sycl::vec<std::uint32_t, 1>>>(queue);
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "weibull_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::weibull_distribution<float>>(queue);
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<float, 16>>>(queue);
     err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<float, 8>>>(queue);
     err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<float, 4>>>(queue);
     err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<float, 3>>>(queue);
     err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<float, 2>>>(queue);
     err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<float, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "weibull_distribution<double>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::weibull_distribution<double>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 16>>>(queue);
-    err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 8>>>(queue);
-    err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 4>>>(queue);
-    err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 3>>>(queue);
-    err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 2>>>(queue);
-    err += test_vec<oneapi::dpl::weibull_distribution<sycl::vec<double, 1>>>(queue);
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "lognormal_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::lognormal_distribution<float>>(queue);
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<float, 16>>>(queue);
     err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<float, 8>>>(queue);
     err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<float, 4>>>(queue);
     err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<float, 3>>>(queue);
     err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<float, 2>>>(queue);
     err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<float, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "lognormal_distribution<double>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::lognormal_distribution<double>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 16>>>(queue);
-    err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 8>>>(queue);
-    err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 4>>>(queue);
-    err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 3>>>(queue);
-    err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 2>>>(queue);
-    err += test_vec<oneapi::dpl::lognormal_distribution<sycl::vec<double, 1>>>(queue);
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "cauchy_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::cauchy_distribution<float>>(queue);
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 16>>>(queue);
     err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 8>>>(queue);
     err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 4>>>(queue);
     err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 3>>>(queue);
     err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 2>>>(queue);
     err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<float, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "cauchy_distribution<double>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::cauchy_distribution<double>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 16>>>(queue);
-    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 8>>>(queue);
-    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 4>>>(queue);
-    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 3>>>(queue);
-    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 2>>>(queue);
-    err += test_vec<oneapi::dpl::cauchy_distribution<sycl::vec<double, 1>>>(queue);
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
     std::cout << "---------------------------------------------------" << std::endl;
     std::cout << "extreme_value_distribution<float>" << std::endl;
     std::cout << "---------------------------------------------------" << std::endl;
     err += test<oneapi::dpl::extreme_value_distribution<float>>(queue);
-#if TEST_LONG_RUN
+#    if TEST_LONG_RUN
     err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 16>>>(queue);
     err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 8>>>(queue);
     err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 4>>>(queue);
     err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 3>>>(queue);
     err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 2>>>(queue);
     err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<float, 1>>>(queue);
-#endif // TEST_LONG_RUN
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
-
-    std::cout << "---------------------------------------------------" << std::endl;
-    std::cout << "extreme_value_distribution<double>" << std::endl;
-    std::cout << "---------------------------------------------------" << std::endl;
-    err += test<oneapi::dpl::extreme_value_distribution<double>>(queue);
-#if TEST_LONG_RUN
-    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 16>>>(queue);
-    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 8>>>(queue);
-    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 4>>>(queue);
-    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 3>>>(queue);
-    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 2>>>(queue);
-    err += test_vec<oneapi::dpl::extreme_value_distribution<sycl::vec<double, 1>>>(queue);
-#endif // TEST_LONG_RUN
-    EXPECT_TRUE(!err, "Test FAILED");
-
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 

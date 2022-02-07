@@ -21,7 +21,7 @@
 #include <iostream>
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
-#include "common_for_device_tests.h"
+#    include "common_for_device_tests.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 constexpr auto a = 40014u;
@@ -37,64 +37,92 @@ main()
     sycl::queue queue(exception_handler);
     int err = 0;
 
-    // testing oneapi::dpl::normal_distribution<sycl::vec<double, 2>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::normal_distribution<sycl::vec<float, 2>> oneapi::dpl::linear_congruential_engine
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "normal_distribution<sycl::vec<double, 2>> linear_congruential_engine" << std::endl;
+    std::cout << "normal_distribution<sycl::vec<float, 2>> linear_congruential_engine" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
-#if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 2>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
-#endif // TEST_LONG_RUN
+    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>,
+                               oneapi::dpl::linear_congruential_engine<std::uint32_t, a, c, m>>(queue);
+#    if TEST_LONG_RUN
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 2>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>, a, c, m>>(queue);
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::normal_distribution<sycl::vec<double, 4>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::normal_distribution<sycl::vec<float, 4>> oneapi::dpl::linear_congruential_engine
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "normal_distribution<sycl::vec<double, 4>> linear_congruential_engine" << std::endl;
+    std::cout << "normal_distribution<sycl::vec<float, 4>> linear_congruential_engine" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
-#if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 4>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
-#endif // TEST_LONG_RUN
+    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>,
+                               oneapi::dpl::linear_congruential_engine<std::uint32_t, a, c, m>>(queue);
+#    if TEST_LONG_RUN
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 4>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>, a, c, m>>(queue);
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::normal_distribution<sycl::vec<double, 8>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::normal_distribution<sycl::vec<float, 8>> oneapi::dpl::linear_congruential_engine
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "normal_distribution<sycl::vec<double, 8>> linear_congruential_engine" << std::endl;
+    std::cout << "normal_distribution<sycl::vec<float, 8>> linear_congruential_engine" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
-#if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 8>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
-#endif // TEST_LONG_RUN
+    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>,
+                               oneapi::dpl::linear_congruential_engine<std::uint32_t, a, c, m>>(queue);
+#    if TEST_LONG_RUN
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 8>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>, a, c, m>>(queue);
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-    // testing oneapi::dpl::normal_distribution<sycl::vec<double, 16>> oneapi::dpl::linear_congruential_engine
+    // testing oneapi::dpl::normal_distribution<sycl::vec<float, 16>> oneapi::dpl::linear_congruential_engine
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    std::cout << "normal_distribution<sycl::vec<double, 16>> linear_congruential_engine" << std::endl;
+    std::cout << "normal_distribution<sycl::vec<float, 16>> linear_congruential_engine" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
-    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<std::uint32_t,  a, c, m>>(queue);
-#if TEST_LONG_RUN
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>,  a, c, m>>(queue);
-    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<double, 16>>, oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>,  a, c, m>>(queue);
-#endif // TEST_LONG_RUN
+    err = device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>,
+                               oneapi::dpl::linear_congruential_engine<std::uint32_t, a, c, m>>(queue);
+#    if TEST_LONG_RUN
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 16>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 8>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 4>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 3>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 2>, a, c, m>>(queue);
+    err += device_copyable_test<oneapi::dpl::normal_distribution<sycl::vec<float, 16>>,
+                                oneapi::dpl::linear_congruential_engine<sycl::vec<std::uint32_t, 1>, a, c, m>>(queue);
+#    endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS

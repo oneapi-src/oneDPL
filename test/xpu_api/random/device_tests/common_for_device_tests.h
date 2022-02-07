@@ -29,34 +29,45 @@
 constexpr auto seed = 777;
 constexpr int N = 96;
 
-auto exception_handler = [] (sycl::exception_list exceptions) {
-    for (std::exception_ptr const& e : exceptions) {
-        try {
+auto exception_handler = [](sycl::exception_list exceptions) {
+    for (std::exception_ptr const& e : exceptions)
+    {
+        try
+        {
             std::rethrow_exception(e);
-        } catch(sycl::exception const& e) {
-            std::cout << "Caught asynchronous SYCL exception during calculation:\n"
-            << e.what() << std::endl;
+        }
+        catch (sycl::exception const& e)
+        {
+            std::cout << "Caught asynchronous SYCL exception during calculation:\n" << e.what() << std::endl;
         }
     }
 };
 
 template <typename Fp>
-int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
+int
+comparison(Fp* r0, Fp* r1, std::uint32_t length)
+{
     Fp coeff;
     int numErrors = 0;
-    for (size_t i = 0; i < length; ++i) {
-        if constexpr (std::is_integral<Fp>::value) {
-            if (((int)r0[i] - (int)r1[i]) > 1 || ((int)r1[i] - (int)r0[i]) > 1) {
+    for (size_t i = 0; i < length; ++i)
+    {
+        if constexpr (std::is_integral<Fp>::value)
+        {
+            if (((int)r0[i] - (int)r1[i]) > 1 || ((int)r1[i] - (int)r0[i]) > 1)
+            {
                 std::cout << "mismatch in " << i << " element: " << r0[i] << " " << r1[i] << std::endl;
                 ++numErrors;
             }
-        } else {
+        }
+        else
+        {
             auto diff = std::fabs(r0[i] - r1[i]);
             auto norm = std::fmax(fabs(r0[i]), fabs(r1[i]));
-            if (diff > norm * 1000 * 16 * std::numeric_limits<Fp>::epsilon()) {
-                std::cout <<  "mismatch in " << i << " element: "  << std::endl;
-                std::cout << std::setprecision (15) << r0[i]  << std::endl; 
-                std::cout << std::setprecision (15) << r1[i] << std::endl; 
+            if (diff > norm * 1000 * 16 * std::numeric_limits<Fp>::epsilon())
+            {
+                std::cout << "mismatch in " << i << " element: " << std::endl;
+                std::cout << std::setprecision(15) << r0[i] << std::endl;
+                std::cout << std::setprecision(15) << r1[i] << std::endl;
                 ++numErrors;
             }
         }
@@ -64,12 +75,14 @@ int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
     return numErrors;
 }
 
-template<class Distr, class Engine>
-int device_copyable_test(sycl::queue& queue) {
+template <class Distr, class Engine>
+int
+device_copyable_test(sycl::queue& queue)
+{
 
     using result_type = typename Distr::result_type;
     using scalar_type = typename Distr::scalar_type;
-    
+
     Engine engine(seed);
     Distr distr;
 
@@ -79,7 +92,6 @@ int device_copyable_test(sycl::queue& queue) {
     // memory allocation
     scalar_type r_dev[N];
     scalar_type r_host[N];
-
 
     constexpr int num_elems = oneapi::dpl::internal::type_traits_t<result_type>::num_elems == 0
                                   ? 1
@@ -103,14 +115,14 @@ int device_copyable_test(sycl::queue& queue) {
     }
 
     // host generation
-    for (int i = 0; i < N/num_elems; i++)
+    for (int i = 0; i < N / num_elems; i++)
     {
         result_type res = distr(engine);
         for (int j = 0; j < num_elems; j++)
-            r_host[i*num_elems + j] = res[j];
+            r_host[i * num_elems + j] = res[j];
     }
 
-    // compare    
+    // compare
     return comparison(r_dev, r_host, N);
 }
 
