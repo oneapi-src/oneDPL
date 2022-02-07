@@ -143,17 +143,9 @@ struct test_base_data_usm : test_base_data<TestValueType>
         ::std::size_t offset = 0;   // Offset from test data
     };
 
-    test_base_data_usm(sycl::usm::alloc alloc_type, sycl::queue __q, ::std::initializer_list<InitParam> init)
-    {
-        for (auto& initParam : init)
-            data.emplace_back(__q, initParam.size, initParam.offset);
-    }
+    test_base_data_usm(sycl::queue __q, ::std::initializer_list<InitParam> init);
 
-    TestValueType* get_start_from(::std::size_t index)
-    {
-        auto& data_item = data.at(index);
-        return data_item.get_start_from();
-    }
+    TestValueType* get_start_from(::std::size_t index);
 
 // test_base_data
 
@@ -196,21 +188,12 @@ struct test_base_data_buffer : test_base_data<TestValueType>
                                 //  - 2 items for test2buffers;
                                 //  - 3 items for test3buffers
 
-    test_base_data_buffer(::std::initializer_list<Data> init)
-        : data(init)
-    {
-    }
+    test_base_data_buffer(::std::initializer_list<Data> init);
 
-    sycl::buffer<TestValueType, 1>& get_buffer(::std::size_t index)
-    {
-        return data.at(index).src_data_buf;
-    }
+    sycl::buffer<TestValueType, 1>& get_buffer(::std::size_t index);
 
     auto get_start_from(::std::size_t index)
-        -> decltype(oneapi::dpl::begin(data.at(index).src_data_buf) + data.at(index).offset)
-    {
-        return oneapi::dpl::begin(data.at(index).src_data_buf) + data.at(index).offset;
-    }
+        -> decltype(oneapi::dpl::begin(data.at(index).src_data_buf));
 
 // test_base_data
 
@@ -249,16 +232,10 @@ struct test_base_data_sequence : test_base_data<TestValueType>
     ::std::vector<Data> data;   // Vector of source test data:
                                 //  - 3 items for test_algo_three_sequences
 
-    test_base_data_sequence(::std::initializer_list<Data> init)
-        : data(init)
-    {
-    }
+    test_base_data_sequence(::std::initializer_list<Data> init);
 
     auto get_start_from(::std::size_t index)
-        -> decltype(data.at(index).src_data_seq.begin() + data.at(index).offset)
-    {
-        return data.at(index).src_data_seq.begin() + data.at(index).offset;
-    }
+        -> decltype(data.at(index).src_data_seq.begin());
 
 // test_base_data
 
@@ -282,19 +259,13 @@ struct test_base
 {
     test_base_data<TestValueType>& base_data_ref;
 
-    test_base(test_base_data<TestValueType>& _base_data_ref)
-        : base_data_ref(_base_data_ref)
-    {
-    }
+    test_base(test_base_data<TestValueType>& _base_data_ref);
 
     /// Check that host buffering is required
     /**
      * @return bool - true, if host buffering of test data is required, false - otherwise
      */
-    bool host_buffering_required() const
-    {
-        return base_data_ref.host_buffering_required();
-    }
+    bool host_buffering_required() const;
 
     /// class TestDataTransfer - copy test data from/to source test data storage
     /// to/from local buffer for modification processing.
@@ -311,40 +282,20 @@ struct test_base
          * @param test_base& _test_base - reference to test base class
          * @param Size _count - count of objects in source test storage
          */
-        TestDataTransfer(test_base& _test_base, Size _count)
-            : __test_base(_test_base)
-            , __host_buffering_required(_test_base.host_buffering_required())
-            , __host_buffer(__host_buffering_required ? _count : 0)
-            , __count(_count)
-        {
-        }
+        TestDataTransfer(test_base& _test_base, Size _count);
 
         /// Get pointer to internal data buffer
         /**
          * @return TestValueType* - pointer to internal data buffer
          */
-        TestValueType* get()
-        {
-            if (__host_buffering_required)
-                return __host_buffer.data();
-
-            return __test_base.base_data_ref.get_data(kind);
-        }
+        TestValueType* get();
 
         /// Retrieve data
         /**
          * Method copy data from test source data storage (USM shared/device buffer, SYCL buffer)
          * to internal buffer.
          */
-        void retrieve_data()
-        {
-            if (__host_buffering_required)
-            {
-                __test_base.base_data_ref.retrieve_data(kind,
-                                                        __host_buffer.data(),
-                                                        __host_buffer.data() + __host_buffer.size());
-            }
-        }
+        void retrieve_data();
 
         /// Update data
         /**
@@ -352,20 +303,7 @@ struct test_base
          * 
          * @param Size count - count of items to copy, if 0 - copy all data.
          */
-        void update_data(Size count = 0)
-        {
-            assert(count <= __count);
-
-            if (__host_buffering_required)
-            {
-                if (count == 0)
-                    count = __count;
-
-                __test_base.base_data_ref.update_data(kind,
-                                                      __host_buffer.data(),
-                                                      __host_buffer.data() + count);
-            }
-        }
+        void update_data(Size count = 0);
 
     protected:
 
@@ -500,6 +438,24 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 #if TEST_DPCPP_BACKEND_PRESENT
 template <sycl::usm::alloc alloc_type, typename TestValueType>
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::test_base_data_usm(
+    sycl::queue __q, ::std::initializer_list<InitParam> init)
+{
+    for (auto& initParam : init)
+        data.emplace_back(__q, initParam.size, initParam.offset);
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <sycl::usm::alloc alloc_type, typename TestValueType>
+TestValueType*
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_start_from(::std::size_t index)
+{
+    auto& data_item = data.at(index);
+    return data_item.get_start_from();
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <sycl::usm::alloc alloc_type, typename TestValueType>
 bool
 TestUtils::test_base_data_usm<alloc_type, TestValueType>::host_buffering_required() const
 {
@@ -537,6 +493,30 @@ TestUtils::test_base_data_usm<alloc_type, TestValueType>::update_data(UDTKind ki
 
     auto& data_item = data.at(enum_val_to_index(kind));
     data_item.update_data(__it_from, __it_to - __it_from);
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+TestUtils::test_base_data_buffer<TestValueType>::test_base_data_buffer(::std::initializer_list<Data> init)
+    : data(init)
+{
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+sycl::buffer<TestValueType, 1>&
+TestUtils::test_base_data_buffer<TestValueType>::get_buffer(::std::size_t index)
+{
+    return data.at(index).src_data_buf;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+auto
+TestUtils::test_base_data_buffer<TestValueType>::get_start_from(::std::size_t index)
+-> decltype(oneapi::dpl::begin(data.at(index).src_data_buf))
+{
+    return oneapi::dpl::begin(data.at(index).src_data_buf) + data.at(index).offset;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -588,6 +568,22 @@ TestUtils::test_base_data_buffer<TestValueType>::update_data(UDTKind kind, TestV
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
+TestUtils::test_base_data_sequence<TestValueType>::test_base_data_sequence(::std::initializer_list<Data> init)
+    : data(init)
+{
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+auto
+TestUtils::test_base_data_sequence<TestValueType>::get_start_from(::std::size_t index)
+-> decltype(data.at(index).src_data_seq.begin())
+{
+    return data.at(index).src_data_seq.begin() + data.at(index).offset;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
 bool
 TestUtils::test_base_data_sequence<TestValueType>::host_buffering_required() const
 {
@@ -619,6 +615,77 @@ TestUtils::test_base_data_sequence<TestValueType>::update_data(
     UDTKind /*kind*/, TestValueType* /*__it_from*/, TestValueType* /*__it_to*/)
 {
     // No action required here
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+TestUtils::test_base<TestValueType>::test_base(test_base_data<TestValueType>& _base_data_ref)
+    : base_data_ref(_base_data_ref)
+{
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+bool
+TestUtils::test_base<TestValueType>::host_buffering_required() const
+{
+    return base_data_ref.host_buffering_required();
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::TestDataTransfer(test_base& _test_base, Size _count)
+    : __test_base(_test_base)
+    , __host_buffering_required(_test_base.host_buffering_required())
+    , __host_buffer(__host_buffering_required ? _count : 0)
+    , __count(_count)
+{
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+TestValueType*
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::get()
+{
+    if (__host_buffering_required)
+        return __host_buffer.data();
+
+    return __test_base.base_data_ref.get_data(kind);
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+void
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::retrieve_data()
+{
+    if (__host_buffering_required)
+    {
+        __test_base.base_data_ref.retrieve_data(kind,
+            __host_buffer.data(),
+            __host_buffer.data() + __host_buffer.size());
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+void
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::update_data(Size count /*= 0*/)
+{
+    assert(count <= __count);
+
+    if (__host_buffering_required)
+    {
+        if (count == 0)
+            count = __count;
+
+        __test_base.base_data_ref.update_data(kind,
+            __host_buffer.data(),
+            __host_buffer.data() + count);
+    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
