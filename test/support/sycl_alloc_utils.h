@@ -27,18 +27,6 @@ namespace TestUtils
 {
 ////////////////////////////////////////////////////////////////////////////////
 //
-template<typename _ValueType>
-class usm_data_transfer_base
-{
-public:
-
-    using __difference_type = typename ::std::iterator_traits<_ValueType*>::difference_type;
-
-    virtual ~usm_data_transfer_base() = default;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
 // RAII service class to allocate shared/device memory (USM)
 // Usage model"
 // 1. allocate USM memory and copying data to USM:
@@ -56,7 +44,7 @@ public:
 // This behavior is implemented based on tests use cases.
 //
 template<sycl::usm::alloc _alloc_type, typename _ValueType>
-class usm_data_transfer : public usm_data_transfer_base<_ValueType>
+class usm_data_transfer
 {
     static_assert(_alloc_type == sycl::usm::alloc::shared || _alloc_type == sycl::usm::alloc::device,
                   "Invalid allocation type for usm_data_transfer class");
@@ -79,7 +67,7 @@ class usm_data_transfer : public usm_data_transfer_base<_ValueType>
 
 public:
 
-    using __difference_type = typename usm_data_transfer_base<_ValueType>::__difference_type;
+    using __difference_type = typename ::std::iterator_traits<_ValueType*>::difference_type;
 
     template<typename _Size>
     usm_data_transfer(sycl::queue __q, _Size __sz)
