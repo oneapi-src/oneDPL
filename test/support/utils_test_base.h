@@ -44,9 +44,6 @@ enum_val_to_index(TEnum enumVal)
     return static_cast<typename ::std::underlying_type<TEnum>::type>(enumVal);
 }
 
-template <typename TestValueType>
-struct test_base_data_visitor;
-
 ////////////////////////////////////////////////////////////////////////////////
 /// struct test_base_data - test source data base class
 template <typename TestValueType>
@@ -67,11 +64,25 @@ struct test_base_data
      */
     virtual TestValueType* get_data(UDTKind kind) = 0;
 
-    /// Visit all test data
+    /// Retrieve data
     /**
-     * @param test_base_data_visitor<TestValueType>* visitor - pointer to visitor
+     * Retrieve data from source test data to host buffer
+     *
+     * @param UDTKind kind - test data kind
+     * @param TestValueType* __it_from - pointer to begin of host buffer
+     * @param TestValueType* __it_to - pointer to end of host buffer
      */
-    virtual void visit(test_base_data_visitor<TestValueType>* visitor) = 0;
+    virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) = 0;
+
+    /// Update data
+    /**
+     * Update data from host buffer data to test source data
+     *
+     * @param UDTKind kind - test data kind
+     * @param TestValueType* __it_from - pointer to begin of host buffer
+     * @param TestValueType* __it_to - pointer to end of host buffer
+     */
+    virtual void update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) = 0;
 };
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -94,9 +105,7 @@ struct test_base_data_usm : test_base_data<TestValueType>
             : alloc_type(__alloc_type)
             , offset(__offset)
         {
-            // We use this switch/case because we have test_base_data_visitor interface with
-            // virtual functions, arguments of which can't be template classes.
-            // So, USM allocation type specified in runtime.
+            // We use this switch/case because USM allocation type specified in runtime.
             switch (__alloc_type)
             {
             case sycl::usm::alloc::shared:
@@ -235,8 +244,11 @@ struct test_base_data_usm : test_base_data<TestValueType>
     // Get test data
     virtual TestValueType* get_data(UDTKind kind) override;
 
-    // Visit all test data
-    virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
+    // Retrieve data
+    virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
+
+    // Update data
+    virtual void update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -289,8 +301,11 @@ struct test_base_data_buffer : test_base_data<TestValueType>
     // Get test data
     virtual TestValueType* get_data(UDTKind kind) override;
 
-    // Visit all test data
-    virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
+    // Retrieve data
+    virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
+
+    // Update data
+    virtual void update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -334,75 +349,11 @@ struct test_base_data_sequence : test_base_data<TestValueType>
     // Get test data
     virtual TestValueType* get_data(UDTKind kind) override;
 
-    // Visit all test data
-    virtual void visit(test_base_data_visitor<TestValueType>* visitor) override;
-};
+    // Retrieve data
+    virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
 
-////////////////////////////////////////////////////////////////////////////////
-/// struct test_base_data_visitor - interface of source test data visitor
-/// By using this interface we may traverse throught all source test data
-/// of different kinds: USM shared/device memory, SYCL::buffer and Sequence.
-template <typename TestValueType>
-struct test_base_data_visitor
-{
-#if TEST_DPCPP_BACKEND_PRESENT
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_usm     <TestValueType>& obj) = 0;
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_buffer  <TestValueType>& obj) = 0;
-#endif // TEST_DPCPP_BACKEND_PRESENT
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_sequence<TestValueType>& obj) = 0;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// struct test_base_data_visitor_impl - base implementation of source test data visitor
-template <typename TestValueType, typename Iterator>
-struct test_base_data_visitor_impl : test_base_data_visitor<TestValueType>
-{
-    test_base_data_visitor_impl(UDTKind kind, Iterator it_from, Iterator it_to)
-        : __kind(kind), __it_from(it_from), __it_to(it_to)
-    {
-    }
-
-    const UDTKind  __kind;          // Source test data kind (keys, values, results)
-    const Iterator __it_from;       // Begin iterator in [begin, end)
-    const Iterator __it_to;         // End itedator in [begin, end)
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// struct test_base_data_visitor_retrieve - implementation of retrieve data visitor
-template <typename TestValueType, typename Iterator>
-struct test_base_data_visitor_retrieve : test_base_data_visitor_impl<TestValueType, Iterator>
-{
-    using Base = test_base_data_visitor_impl<TestValueType, Iterator>;
-
-    test_base_data_visitor_retrieve(UDTKind kind, Iterator it_from, Iterator it_to)
-        : Base(kind, it_from, it_to)
-    {
-    }
-
-#if TEST_DPCPP_BACKEND_PRESENT
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_usm     <TestValueType>& obj) override;
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_buffer  <TestValueType>& obj) override;
-#endif // TEST_DPCPP_BACKEND_PRESENT
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_sequence<TestValueType>& obj) override;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// struct test_base_data_visitor_update - implementation of update data visitor
-template <typename TestValueType, typename Iterator>
-struct test_base_data_visitor_update : test_base_data_visitor_impl<TestValueType, Iterator>
-{
-    using Base = test_base_data_visitor_impl<TestValueType, Iterator>;
-
-    test_base_data_visitor_update(UDTKind kind, Iterator it_from, Iterator it_to)
-        : Base(kind, it_from, it_to)
-    {
-    }
-
-#if TEST_DPCPP_BACKEND_PRESENT
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_usm     <TestValueType>& obj) override;
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_buffer  <TestValueType>& obj) override;
-#endif // TEST_DPCPP_BACKEND_PRESENT
-    virtual bool on_visit(::std::size_t nIndex, test_base_data_sequence<TestValueType>& obj) override;
+    // Update data
+    virtual void update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -470,10 +421,9 @@ struct test_base
         {
             if (__host_buffering_required)
             {
-                test_base_data_visitor_retrieve<TestValueType, Iterator> visitor_retrieve(
-                    kind, __host_buffer.begin(), __host_buffer.end());
-
-                __test_base.base_data_ref.visit(&visitor_retrieve);
+                __test_base.base_data_ref.retrieve_data(kind,
+                                                        __host_buffer.data(),
+                                                        __host_buffer.data() + __host_buffer.size());
             }
         }
 
@@ -492,10 +442,9 @@ struct test_base
                 if (count == 0)
                     count = __count;
 
-                test_base_data_visitor_update<TestValueType, Iterator> visitor_update(
-                    kind, __host_buffer.begin(), __host_buffer.begin() + count);
-
-                __test_base.base_data_ref.visit(&visitor_update);
+                __test_base.base_data_ref.update_data(kind,
+                                                      __host_buffer.data(),
+                                                      __host_buffer.data() + count);
             }
         }
 
@@ -656,20 +605,23 @@ TestUtils::test_base_data_usm<TestValueType>::get_data(UDTKind kind)
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 void
-TestUtils::test_base_data_usm<TestValueType>::visit(test_base_data_visitor<TestValueType>* visitor)
+TestUtils::test_base_data_usm<TestValueType>::retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to)
 {
-    bool bProcessed = false;
+    auto& data_item = data.at(enum_val_to_index(kind));
+    assert(data_item.alloc_type == sycl::usm::alloc::device);
 
-    for (::std::size_t nIndex = 0; nIndex < data.size(); ++nIndex)
-    {
-        if (visitor->on_visit(nIndex, *this))
-        {
-            bProcessed = true;
-            break;
-        }
-    }
+    data_item.retrieve_data(__it_from, __it_to - __it_from);
+}
 
-    assert(bProcessed);
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+void
+TestUtils::test_base_data_usm<TestValueType>::update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to)
+{
+    auto& data_item = data.at(enum_val_to_index(kind));
+    assert(data_item.alloc_type == sycl::usm::alloc::device);
+
+    data_item.update_data(__it_from, __it_to - __it_from);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -691,22 +643,32 @@ TestUtils::test_base_data_buffer<TestValueType>::get_data(UDTKind /*kind*/)
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 void
-TestUtils::test_base_data_buffer<TestValueType>::visit(test_base_data_visitor<TestValueType>* visitor)
+TestUtils::test_base_data_buffer<TestValueType>::retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to)
 {
-    bool bProcessed = false;
+    auto& data_item = data.at(enum_val_to_index(kind));
+    auto acc = data_item.src_data_buf.template get_access<sycl::access::mode::read_write>();
 
-    for (::std::size_t nIndex = 0; nIndex < data.size(); ++nIndex)
+    auto __index = 0;
+    for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)
     {
-        if (visitor->on_visit(nIndex, *this))
-        {
-            bProcessed = true;
-            break;
-        }
+        *__it = acc[__index];
     }
-
-    assert(bProcessed);
 }
 
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+void
+TestUtils::test_base_data_buffer<TestValueType>::update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to)
+{
+    auto& data_item = data.at(enum_val_to_index(kind));
+    auto acc = data_item.src_data_buf.template get_access<sycl::access::mode::read_write>();
+
+    auto __index = 0;
+    for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)
+    {
+        acc[__index] = *__it;
+    }
+}
 #endif //  TEST_DPCPP_BACKEND_PRESENT
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -729,123 +691,19 @@ TestUtils::test_base_data_sequence<TestValueType>::get_data(UDTKind kind)
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 void
-TestUtils::test_base_data_sequence<TestValueType>::visit(test_base_data_visitor<TestValueType>* visitor)
+TestUtils::test_base_data_sequence<TestValueType>::retrieve_data(
+    UDTKind /*kind*/, TestValueType* /*__it_from*/, TestValueType* /*__it_to*/)
 {
-    bool bProcessed = false;
-
-    for (::std::size_t nIndex = 0; nIndex < data.size(); ++nIndex)
-    {
-        if (visitor->on_visit(nIndex, *this))
-        {
-            bProcessed = true;
-            break;
-        }
-    }
-
-    assert(bProcessed);
-}
-
-#if TEST_DPCPP_BACKEND_PRESENT
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType, typename Iterator>
-bool
-TestUtils::test_base_data_visitor_retrieve<TestValueType, Iterator>::on_visit(
-    ::std::size_t nIndex, TestUtils::test_base_data_buffer<TestValueType>& obj)
-{
-    if (nIndex != enum_val_to_index(Base::__kind))
-        return false;
-
-    auto& data = obj.data.at(nIndex);
-    auto acc = data.src_data_buf.template get_access<sycl::access::mode::read_write>();
-
-    auto __index = data.offset;
-    for (auto __it = Base::__it_from; __it != Base::__it_to; ++__it, ++__index)
-    {
-        *__it = acc[__index];
-    }
-
-    return true;
-}
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-//--------------------------------------------------------------------------------------------------------------------//
-#if TEST_DPCPP_BACKEND_PRESENT
-template <typename TestValueType, typename Iterator>
-bool
-TestUtils::test_base_data_visitor_retrieve<TestValueType, Iterator>::on_visit(
-    ::std::size_t nIndex, TestUtils::test_base_data_usm<TestValueType>& obj)
-{
-    if (nIndex != enum_val_to_index(Base::__kind))
-        return false;
-
-    auto& data_item = obj.data.at(nIndex);
-    data_item.retrieve_data(Base::__it_from, Base::__it_to - Base::__it_from);
-
-    return true;
-}
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType, typename Iterator>
-bool
-TestUtils::test_base_data_visitor_retrieve<TestValueType, Iterator>::on_visit(
-    ::std::size_t nIndex, TestUtils::test_base_data_sequence<TestValueType>& /*obj*/)
-{
-    // No additional actions required here
-
-    return nIndex == enum_val_to_index(Base::__kind);
+    // No action required here
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-#if TEST_DPCPP_BACKEND_PRESENT
-template <typename TestValueType, typename Iterator>
-bool
-TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
-    ::std::size_t nIndex, TestUtils::test_base_data_buffer<TestValueType>& obj)
+template <typename TestValueType>
+void
+TestUtils::test_base_data_sequence<TestValueType>::update_data(
+    UDTKind /*kind*/, TestValueType* /*__it_from*/, TestValueType* /*__it_to*/)
 {
-    if (nIndex != enum_val_to_index(Base::__kind))
-        return false;
-
-    auto& data = obj.data.at(nIndex);
-
-    auto acc = data.src_data_buf.template get_access<sycl::access::mode::read_write>();
-
-    auto __index = data.offset;
-    for (auto __it = Base::__it_from; __it != Base::__it_to; ++__it, ++__index)
-    {
-        acc[__index] = *__it;
-    }
-
-    return true;
-}
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-//--------------------------------------------------------------------------------------------------------------------//
-#if TEST_DPCPP_BACKEND_PRESENT
-template <typename TestValueType, typename Iterator>
-bool
-TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
-    ::std::size_t nIndex, TestUtils::test_base_data_usm<TestValueType>& obj)
-{
-    if (nIndex != enum_val_to_index(Base::__kind))
-        return false;
-
-    auto& data_item = obj.data.at(nIndex);
-    data_item.update_data(Base::__it_from, Base::__it_to - Base::__it_from);
-
-    return true;
-}
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType, typename Iterator>
-bool
-TestUtils::test_base_data_visitor_update<TestValueType, Iterator>::on_visit(
-    ::std::size_t nIndex, TestUtils::test_base_data_sequence<TestValueType>& /*obj*/)
-{
-    // No additional actions required here
-
-    return nIndex == enum_val_to_index(Base::__kind);
+    // No action required here
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
