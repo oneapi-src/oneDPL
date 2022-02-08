@@ -179,7 +179,10 @@ int main() {
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     sycl::queue queue;
-
+    // Skip tests if DP is not supported
+    if (!TestUtils::has_type_support<double>(queue.get_device())) {
+        TestUtils::done(0);
+    }
     constexpr int nsamples = 100;
     int err = 0;
 
