@@ -35,6 +35,10 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
     sycl::queue queue(exception_handler);
+    // Skip tests if DP is not supported
+    if (!TestUtils::has_type_support<double>(queue.get_device())) {
+        TestUtils::done(0);
+    }
     int err = 0;
 
     // testing oneapi::dpl::uniform_int_distribution<sycl::vec<std::int32_t, 1>> oneapi::dpl::linear_congruential_engine
