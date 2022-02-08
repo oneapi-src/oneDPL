@@ -20,7 +20,7 @@
 #include <iostream>
 #include <vector>
 
-std::uint32_t seed = 777;
+constexpr std::uint32_t seed = 777;
 
 template <typename RealType>
 void scalar_example(sycl::queue& queue, std::vector<RealType>& x) {
