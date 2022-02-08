@@ -372,7 +372,7 @@ main()
     std::int32_t err = 0;
 
     // Skip tests if DP is not supported
-    if (!TestUtils::has_type_support<double>(queue.get_device())) {
+    if (TestUtils::has_type_support<double>(queue.get_device())) {
 
         std::cout << "---------------------------------------------------" << std::endl;
         std::cout << "uniform_int_distribution<std::int32_t>" << std::endl;
