@@ -3347,6 +3347,7 @@ DEFINE_TEST(test_reverse)
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Size n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        host_keys.retrieve_data();
 
         using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
 
@@ -3376,6 +3377,8 @@ DEFINE_TEST(test_reverse_copy)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
+        host_keys.retrieve_data();
+
         using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
 
         ::std::vector<IteratorValyeType> local_copy(n);
@@ -3386,6 +3389,7 @@ DEFINE_TEST(test_reverse_copy)
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
 #endif
+        host_vals.retrieve_data();
         auto host_first2 = host_vals.get();
         for (int i = 0; i < n; ++i)
             EXPECT_TRUE(local_copy[i] == host_first2[i], "wrong effect from reverse_copy");
@@ -3401,6 +3405,7 @@ DEFINE_TEST(test_rotate)
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Size n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        host_keys.retrieve_data();
 
         using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
 
@@ -3430,10 +3435,11 @@ DEFINE_TEST(test_rotate_copy)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
+        host_keys.retrieve_data();
+
         using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
 
         ::std::vector<IteratorValyeType> local_copy(n);
-        host_keys.retrieve_data();
         local_copy.assign(host_keys.get(), host_keys.get() + n);
         ::std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
 
