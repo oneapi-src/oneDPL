@@ -377,7 +377,7 @@ main()
     EXPECT_TRUE(!err, "Test FAILED");
 
     // Skip tests if DP is not supported
-    if (!TestUtils::has_type_support<double>(queue.get_device())) {
+    if (TestUtils::has_type_support<double>(queue.get_device())) {
         // testing double and std::uint32_t ... sycl::vec<std::uint32_t, 16>
         std::cout << "---------------------------------------------------------" << std::endl;
         std::cout << "double, std::uint32_t ... sycl::vec<std::uint32_t, 16> type" << std::endl;
