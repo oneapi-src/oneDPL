@@ -106,7 +106,7 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
 
         // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
-        update_data(host_keys, host_vals, host_res);
+        update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
