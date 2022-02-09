@@ -476,6 +476,84 @@ template <typename T>
 bool operator!= (const ThrowingIterator<T>& a, const ThrowingIterator<T>& b)
 {   return !a.operator==(b); }
 
+template <typename T>
+struct NonThrowingIterator {
+    typedef std::bidirectional_iterator_tag iterator_category;
+    typedef ptrdiff_t                       difference_type;
+    typedef const T                         value_type;
+    typedef const T *                       pointer;
+    typedef const T &                       reference;
+
+//  Constructors
+    NonThrowingIterator ()
+        : begin_(nullptr), end_(nullptr), current_(nullptr) {}
+    NonThrowingIterator (const T *first, const T* last)
+        : begin_(first), end_(last), current_(first) {}
+    NonThrowingIterator (const NonThrowingIterator &rhs)
+        : begin_(rhs.begin_), end_(rhs.end_), current_(rhs.current_) {}
+    NonThrowingIterator & operator= (const NonThrowingIterator &rhs) TEST_NOEXCEPT
+    {
+    begin_   = rhs.begin_;
+    end_     = rhs.end_;
+    current_ = rhs.current_;
+    return *this;
+    }
+
+//  iterator operations
+    reference operator*() const TEST_NOEXCEPT
+    {
+    return *current_;
+    }
+
+    NonThrowingIterator & operator++() TEST_NOEXCEPT
+    {
+    ++current_;
+    return *this;
+    }
+
+    NonThrowingIterator operator++(int) TEST_NOEXCEPT
+    {
+        NonThrowingIterator temp = *this;
+        ++(*this);
+        return temp;
+    }
+
+    NonThrowingIterator & operator--() TEST_NOEXCEPT
+    {
+    --current_;
+    return *this;
+    }
+
+    NonThrowingIterator operator--(int) TEST_NOEXCEPT
+    {
+        NonThrowingIterator temp = *this;
+        --(*this);
+        return temp;
+    }
+
+    bool operator== (const NonThrowingIterator &rhs) const TEST_NOEXCEPT
+    {
+    bool atEndL =     current_ == end_;
+    bool atEndR = rhs.current_ == rhs.end_;
+    if (atEndL != atEndR) return false;  // one is at the end (or empty), the other is not.
+    if (atEndL) return true;             // both are at the end (or empty)
+    return current_ == rhs.current_;
+    }
+
+private:
+    const T* begin_;
+    const T* end_;
+    const T* current_;
+};
+
+template <typename T>
+bool operator== (const NonThrowingIterator<T>& a, const NonThrowingIterator<T>& b) TEST_NOEXCEPT
+{   return a.operator==(b); }
+
+template <typename T>
+bool operator!= (const NonThrowingIterator<T>& a, const NonThrowingIterator<T>& b) TEST_NOEXCEPT
+{   return !a.operator==(b); }
+
 #undef DELETE_FUNCTION
 
 #endif // _TEST_ITERATORS_H
