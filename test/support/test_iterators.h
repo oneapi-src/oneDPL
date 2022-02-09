@@ -337,6 +337,145 @@ inline TEST_CONSTEXPR_CXX14 Iter base(random_access_iterator<Iter> i) { return i
 template <class Iter>    // everything else
 inline TEST_CONSTEXPR_CXX14 Iter base(Iter i) { return i; }
 
+template <typename T>
+struct ThrowingIterator {
+    typedef std::bidirectional_iterator_tag iterator_category;
+    typedef ptrdiff_t                       difference_type;
+    typedef const T                         value_type;
+    typedef const T *                       pointer;
+    typedef const T &                       reference;
+
+    enum ThrowingAction { TAIncrement, TADecrement, TADereference, TAAssignment, TAComparison };
+
+//  Constructors
+    ThrowingIterator ()
+        : begin_(nullptr), end_(nullptr), current_(nullptr), action_(TADereference), index_(0) {}
+    ThrowingIterator (const T *first, const T *last, size_t index = 0, ThrowingAction action = TADereference)
+        : begin_(first), end_(last), current_(first), action_(action), index_(index) {}
+    ThrowingIterator (const ThrowingIterator &rhs)
+        : begin_(rhs.begin_), end_(rhs.end_), current_(rhs.current_), action_(rhs.action_), index_(rhs.index_) {}
+    ThrowingIterator & operator= (const ThrowingIterator &rhs)
+    {
+    if (action_ == TAAssignment)
+    {
+        if (index_ == 0)
+#ifndef TEST_HAS_NO_EXCEPTIONS
+            throw std::runtime_error ("throw from iterator assignment");
+#else
+            assert(false);
+#endif
+
+        else
+            --index_;
+    }
+    begin_   = rhs.begin_;
+    end_     = rhs.end_;
+    current_ = rhs.current_;
+    action_  = rhs.action_;
+    index_   = rhs.index_;
+    return *this;
+    }
+
+//  iterator operations
+    reference operator*() const
+    {
+    if (action_ == TADereference)
+    {
+        if (index_ == 0)
+#ifndef TEST_HAS_NO_EXCEPTIONS
+            throw std::runtime_error ("throw from iterator dereference");
+#else
+            assert(false);
+#endif
+        else
+            --index_;
+    }
+    return *current_;
+    }
+
+    ThrowingIterator & operator++()
+    {
+    if (action_ == TAIncrement)
+    {
+        if (index_ == 0)
+#ifndef TEST_HAS_NO_EXCEPTIONS
+            throw std::runtime_error ("throw from iterator increment");
+#else
+            assert(false);
+#endif
+        else
+            --index_;
+    }
+    ++current_;
+    return *this;
+    }
+
+    ThrowingIterator operator++(int)
+    {
+        ThrowingIterator temp = *this;
+        ++(*this);
+        return temp;
+    }
+
+    ThrowingIterator & operator--()
+    {
+    if (action_ == TADecrement)
+    {
+        if (index_ == 0)
+#ifndef TEST_HAS_NO_EXCEPTIONS
+            throw std::runtime_error ("throw from iterator decrement");
+#else
+            assert(false);
+#endif
+        else
+            --index_;
+    }
+    --current_;
+    return *this;
+    }
+
+    ThrowingIterator operator--(int) {
+        ThrowingIterator temp = *this;
+        --(*this);
+        return temp;
+    }
+
+    bool operator== (const ThrowingIterator &rhs) const
+    {
+    if (action_ == TAComparison)
+    {
+        if (index_ == 0)
+#ifndef TEST_HAS_NO_EXCEPTIONS
+            throw std::runtime_error ("throw from iterator comparison");
+#else
+            assert(false);
+#endif
+        else
+            --index_;
+    }
+    bool atEndL =     current_ == end_;
+    bool atEndR = rhs.current_ == rhs.end_;
+    if (atEndL != atEndR) return false;  // one is at the end (or empty), the other is not.
+    if (atEndL) return true;             // both are at the end (or empty)
+    return current_ == rhs.current_;
+    }
+
+private:
+    const T* begin_;
+    const T* end_;
+    const T* current_;
+    ThrowingAction action_;
+    mutable size_t index_;
+};
+
+template <typename T>
+bool operator== (const ThrowingIterator<T>& a, const ThrowingIterator<T>& b)
+{   return a.operator==(b); }
+
+template <typename T>
+bool operator!= (const ThrowingIterator<T>& a, const ThrowingIterator<T>& b)
+{   return !a.operator==(b); }
+
 #undef DELETE_FUNCTION
 
 #endif // _TEST_ITERATORS_H
