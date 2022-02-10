@@ -21,7 +21,7 @@ add_custom_target(build-onedpl-tests
 add_custom_target(run-onedpl-tests
     COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
     USES_TERMINAL
-    DEPENDS build-all
+    DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
 macro(onedpl_add_test test_source_file)
