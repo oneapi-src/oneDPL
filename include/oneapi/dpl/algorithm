@@ -73,6 +73,7 @@ using ::std::partial_sort;
 using ::std::partial_sort_copy;
 using ::std::pop_heap;
 using ::std::push_heap;
+using ::std::sort_heap;
 using ::std::upper_bound;
 } // namespace dpl
 
