@@ -358,14 +358,6 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::move``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::move_backward``               Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::is_sorted``                   Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::is_sorted_until``             Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::partial_sort``                Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::partial_sort_copy``           Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
