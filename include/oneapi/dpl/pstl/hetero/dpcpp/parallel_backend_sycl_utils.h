@@ -185,25 +185,49 @@ using __kernel_name_generator =
     _BaseName<_CustomName>;
 #endif
 
-template <typename _DerivedKernelName>
+template <typename... _KernelNames>
 class __kernel_compiler
 {
-  public:
-    template <typename _Exec>
-    static sycl::kernel
-    __compile_kernel(_Exec&& __exec)
-    {
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
-        auto __kernel_id = sycl::get_kernel_id<_DerivedKernelName>();
-        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(
-            __exec.queue().get_context(), {__exec.queue().get_device()}, {__kernel_id});
-        return __kernel_bundle.get_kernel(__kernel_id);
-#else
-        sycl::program __program(__exec.queue().get_context());
+    using _KernelArray = std::array<sycl::kernel, sizeof...(_KernelNames)>;
+    _KernelArray __m_kernels;
 
-        __program.build_with_kernel_type<_DerivedKernelName>();
-        return __program.get_kernel<_DerivedKernelName>();
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+    sycl::kernel_bundle<sycl::bundle_state::executable> __m_kernel_bundle;
 #endif
+
+  public:
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+    template <typename _Exec>
+    __kernel_compiler(_Exec&& __exec)
+    {
+        std::vector<sycl::kernel_id> __kernel_ids{sycl::get_kernel_id<_KernelNames>()...};
+
+        __m_kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(
+            __exec.queue().get_context(), {__exec.queue().get_device()}, __kernel_ids);
+
+        __m_kernels = _KernelArray{__m_kernel_bundle.template get_kernel<_KernelNames>()...};
+        //TODO: Probably, get_kernel(const kernel_id &kernelId) is more effective that
+        //template<typename KernelName> kernel get_kernel();
+    }
+    auto
+    get_kernel_bundle() const
+    {
+        return __m_kernel_bundle;
+    }
+#else
+    template <typename _Exec>
+    __kernel_compiler(_Exec&& __exec)
+    {
+        sycl::program __program(__exec.queue().get_context());
+        __m_kernels =
+            _KernelArray{__program.build_with_kernel_type<_KernelNames>(), __program.template get_kernel<_KernelNames>())...};
+    }
+#endif
+    template <int _Idx = 0>
+    auto
+    get_kernel() const
+    {
+        return __m_kernels[_Idx];
     }
 };
 
