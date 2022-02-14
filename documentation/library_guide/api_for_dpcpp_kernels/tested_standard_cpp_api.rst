@@ -358,8 +358,6 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::move``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::move_backward``               Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
-``std::sort_heap``                   Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:
