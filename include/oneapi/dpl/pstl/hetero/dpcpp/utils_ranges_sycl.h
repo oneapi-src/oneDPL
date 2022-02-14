@@ -19,6 +19,7 @@
 #include <iterator>
 #include <type_traits>
 
+#include "../../utils.h"
 #include "../../utils_ranges.h"
 #include "../../iterator_impl.h"
 #include "../../glue_numeric_defs.h"
@@ -307,6 +308,7 @@ struct __get_sycl_range
     buf_type<val_t<_Iter>>
     copy_back(_Iter __first, buf_type<val_t<_Iter>> buf, /*_copy_back*/ ::std::false_type)
     {
+        oneapi::dpl::__internal::__maybe_unused(__first);
         return buf;
     }
 
@@ -397,6 +399,8 @@ struct __get_sycl_range
     auto
     __get_it_map_view(_Map __m, _Size __n) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Size>::type
     {
+        oneapi::dpl::__internal::__maybe_unused(__m);
+        oneapi::dpl::__internal::__maybe_unused(__n);
         return _Size(0);
     }
     template <typename _Map, typename _T>
@@ -404,12 +408,14 @@ struct __get_sycl_range
     __get_all_view(_Map __m, _T __t) ->
         typename ::std::enable_if<is_map_iterator<_Map>::value, decltype(__t.all_view())>::type
     {
+        oneapi::dpl::__internal::__maybe_unused(__m);
         return __t.all_view();
     }
     template <typename _Map, typename _T>
     static auto
     __get_all_view(_Map __m, _T __t) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Map>::type
     {
+        oneapi::dpl::__internal::__maybe_unused(__t);
         return __m;
     }
 

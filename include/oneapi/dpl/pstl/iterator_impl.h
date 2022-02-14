@@ -707,6 +707,7 @@ struct ignore_copyable
     bool
     operator==(const ignore_copyable& other) const
     {
+        oneapi::dpl::__internal::__maybe_unused(other);
         return true;
     }
 

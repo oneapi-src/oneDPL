@@ -332,7 +332,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
             oneapi::dpl::__ranges::zip_view(
                 __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                             __mask_buf.get_buffer())),
-            __rng2, __reduce_op, _InitType{},
+            __rng2, _InitType{},
             // local scan
             unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                                   _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
@@ -641,7 +641,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     // TODO: replace wgroup size with segment size based on platform specifics.
     auto __result_end =
         __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __view1, __view2,
-                          [__n, __binary_pred, __wgroup_size](const auto& __a) {
+                          [__binary_pred, __wgroup_size](const auto& __a) {
                               return ::std::get<0>(__a) % __wgroup_size == 0 ||              // segment size
                                      !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
                           },
@@ -675,7 +675,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     auto __new_exec = oneapi::dpl::execution::make_hetero_policy<__new_name>(::std::forward<_ExecutionPolicy>(__exec));
     __result_end =
         __pattern_copy_if(__new_exec, __view3, __view4,
-                          [__result_end, __binary_pred](const auto& __a) {
+                          [__binary_pred](const auto& __a) {
                               return !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
                           },
                           unseq_backend::__brick_assign_key_position{});
