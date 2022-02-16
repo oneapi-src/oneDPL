@@ -25,7 +25,9 @@ add_custom_target(run-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
 macro(onedpl_add_test test_source_file)
-    get_filename_component(_test_name ${test_source_file} NAME)
+    file(RELATIVE_PATH _test_name "${CMAKE_CURRENT_SOURCE_DIR}" "${test_source_file}")
+    string(REPLACE "\.cpp" "" _test_name ${_test_name})
+    string(REPLACE "/" "-" _test_name ${_test_name})
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
     add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
@@ -40,7 +42,7 @@ macro(onedpl_add_test test_source_file)
         target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
     endif()
 
-    target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
+    target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/support")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
@@ -101,7 +103,7 @@ macro(onedpl_add_test test_source_file)
 endmacro()
 
 set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
-file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
+file(GLOB_RECURSE UNIT_TESTS "std/*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
     if (_file MATCHES "${_skip_regex_for_not_dpcpp}" AND NOT ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
         message(STATUS "Skip test ${_file} as it requires DPC++ backend")
