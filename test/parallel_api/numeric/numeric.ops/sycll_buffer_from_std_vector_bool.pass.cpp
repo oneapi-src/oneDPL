@@ -25,7 +25,7 @@
 auto
 get_sycl_buffer(std::vector<bool>& container)
 {
-    return cl::sycl::buffer<bool, 1>(container.begin(), container.end());
+    return cl::sycl::buffer<bool, 1>(container.cbegin(), container.cend());
 }
 #endif
 
