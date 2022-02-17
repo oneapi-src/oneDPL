@@ -135,7 +135,7 @@ main()
 
     sycl::queue queue(sycl::default_selector{}, async_handler);
 
-    std::int64_t nsamples = 100;
+    constexpr std::int64_t nsamples = 100;
     constexpr int vec_size = 4;
     constexpr std::uint32_t seed = 777;
 
