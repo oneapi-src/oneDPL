@@ -20,11 +20,9 @@
 #include <iostream>
 #include <vector>
 
-std::uint32_t seed = 777;
-
 template <typename RealType>
 void
-scalar_example(sycl::queue& queue, std::vector<RealType>& x)
+scalar_example(sycl::queue& queue, std::uint32_t seed, std::vector<RealType>& x)
 {
     {
         sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
@@ -70,7 +68,7 @@ scalar_example(sycl::queue& queue, std::vector<RealType>& x)
 
 template <int VecSize, typename RealType>
 void
-vector_example(sycl::queue& queue, std::vector<RealType>& x)
+vector_example(sycl::queue& queue, std::uint32_t seed, std::vector<RealType>& x)
 {
     {
         sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
@@ -139,14 +137,15 @@ main()
 
     std::int64_t nsamples = 100;
     constexpr int vec_size = 4;
+    constexpr std::uint32_t seed = 777;
 
     std::vector<float> x(nsamples);
 
     // Scalar random number generation
-    scalar_example(queue, x);
+    scalar_example(queue, seed, x);
 
     // Vector random number generation
-    vector_example<vec_size>(queue, x);
+    vector_example<vec_size>(queue, seed, x);
 
     return 0;
 }
