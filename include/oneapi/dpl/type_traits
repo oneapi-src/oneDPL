@@ -216,7 +216,7 @@ using ::std::is_volatile_v;
 using ::std::negation;
 using ::std::rank_v;
 using ::std::void_t;
-#    if __cplusplus <= 201703L
+#    if __cplusplus == 201703L
 using ::std::is_literal_type_v;
 #    endif
 #endif // __cplusplus > 201402L
