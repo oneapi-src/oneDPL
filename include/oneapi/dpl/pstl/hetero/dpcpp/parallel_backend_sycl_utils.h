@@ -488,6 +488,7 @@ class __future : private std::tuple<_Args...>
     auto
     get()
     {
+        wait();
         return __get_value(std::get<0>(*this));
     }
 
