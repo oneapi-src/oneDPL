@@ -291,9 +291,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
     __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                              sizeof(_Tp), __work_group_size);
 
-    __internal::__kernel_compiler<_ReduceKernel> __k_compiler(::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
-    sycl::kernel __kernel = __k_compiler.get_kernel();
+    auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
     __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                           ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
@@ -336,7 +335,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
             sycl::accessor<_Tp, 1, access_mode::read_write, __dpl_sycl::__target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__k_compiler.get_kernel_bundle());
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_ReduceKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -434,11 +433,12 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                              sizeof(_Type), __wgroup_size);
 
-        __internal::__kernel_compiler<_LocalScanKernel, _GroupScanKernel> __k_compiler(
-            ::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel_1 = __k_compiler.template get_kernel<0>();
-        auto __kernel_2 = __k_compiler.template get_kernel<1>();
+        //Actually there is one kernel_bundle for the all kernels of the pattern.
+        auto __kernels = __internal::__kernel_compiler<_LocalScanKernel, _GroupScanKernel>::__compile(
+            ::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernel_1 = __kernels[0];
+        auto __kernel_2 = __kernels[1];
         auto __wgroup_size_kernel_1 =
             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
         auto __wgroup_size_kernel_2 =
@@ -462,7 +462,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             sycl::accessor<_Type, 1, access_mode::discard_read_write, __dpl_sycl::__target::local> __local_acc(
                 __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__k_compiler.get_kernel_bundle());
+            __cgh.use_kernel_bundle(__kernel_1.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_LocalScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -484,7 +484,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                 sycl::accessor<_Type, 1, access_mode::discard_read_write, __dpl_sycl::__target::local> __local_acc(
                     __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                __cgh.use_kernel_bundle(__k_compiler.get_kernel_bundle());
+                __cgh.use_kernel_bundle(__kernel_2.get_kernel_bundle());
 #endif
                 __cgh.parallel_for<_GroupScanKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -688,9 +688,8 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
 
     // TODO: find a way to generalize getting of reliable work-group size
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
-    __internal::__kernel_compiler<_FindOrKernel> __k_compiler(::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __k_compiler.get_kernel();
+    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
@@ -721,7 +720,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
             // create local accessor to connect atomic with
             sycl::accessor<_AtomicType, 1, access_mode::read_write, __dpl_sycl::__target::local> __temp_local(1, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__k_compiler.get_kernel_bundle());
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
             __cgh.parallel_for<_FindOrKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT

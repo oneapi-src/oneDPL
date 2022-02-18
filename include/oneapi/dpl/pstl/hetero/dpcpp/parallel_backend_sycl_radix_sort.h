@@ -318,7 +318,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, __dpl_sycl::__target::local>(
             __block_size * __radix_states, __hdl);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __hdl.use_kernel_bundle(__kernel);
+        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
         __hdl.parallel_for<_KernelName>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -457,7 +457,7 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
             // an accessor with value counter from each work_group
             oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __hdl.use_kernel_bundle(__local_scan_kernel);
+            __hdl.use_kernel_bundle(__local_scan_kernel.get_kernel_bundle());
 #endif
             __hdl.parallel_for<_RadixLocalScanName>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -531,7 +531,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
         // access with values to reorder and reordered values
         oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __hdl.use_kernel_bundle(__kernel);
+        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
         __hdl.parallel_for<_KernelName>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -624,12 +624,12 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     ::std::size_t __reorder_sg_size = __max_sg_size;
 
     // correct __block_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
-    __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderKernel> __k_compiler(
-        ::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
-    auto __count_kernel = __k_compiler.template get_kernel<0>();
-    auto __local_scan_kernel = __k_compiler.template get_kernel<1>();
-    auto __reorder_kernel = __k_compiler.template get_kernel<2>();
+    auto __kernels =
+        __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderKernel>::__compile(__exec);
+    auto __count_kernel = __kernels[0];
+    auto __local_scan_kernel = __kernels[1];
+    auto __reorder_kernel = __kernels[2];
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __scan_wg_size =
@@ -640,8 +640,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     // correct __block_size according to local memory limit in count phase
     const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size(
-        ::std::forward<_ExecutionPolicy>(__exec), sizeof(typename __decay_t<_TmpBuf>::value_type),
-        __block_size * __radix_states);
+        __exec, sizeof(typename __decay_t<_TmpBuf>::value_type), __block_size * __radix_states);
     __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
 
     // TODO: block size must be power of 2 and more than number of states. Check how to get rid of that restriction.
@@ -651,12 +650,9 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     // 1. Count Phase
     sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_comp_asc>(
-        ::std::forward<_ExecutionPolicy>(__exec), __segments, __block_size, __radix_iter,
-        ::std::forward<_InRange>(__in_rng), __tmp_buf, __dependency_event
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        ,
-        __k_compiler.get_kernel_bundle()
-#elif _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+        __exec, __segments, __block_size, __radix_iter, ::std::forward<_InRange>(__in_rng), __tmp_buf,
+        __dependency_event
+#if _ONEDPL_COMPILE_KERNEL
         ,
         __count_kernel
 #endif
@@ -665,11 +661,8 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     // 2. Scan Phase
     sycl::event __scan_event =
         __radix_sort_scan_submitter<_RadixLocalScanKernel, _RadixGlobalScanKernel, __radix_bits>()(
-            ::std::forward<_ExecutionPolicy>(__exec), __scan_wg_size, __segments, __tmp_buf, __count_event
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            ,
-            __k_compiler.get_kernel_bundle()
-#elif _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+            __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
+#if _ONEDPL_COMPILE_KERNEL
             ,
             __local_scan_kernel
 #endif
@@ -677,12 +670,9 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     // 3. Reorder Phase
     sycl::event __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc>(
-        ::std::forward<_ExecutionPolicy>(__exec), __segments, __block_size, __reorder_sg_size, __radix_iter,
-        ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        ,
-        __k_compiler.get_kernel_bundle()
-#elif _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+        __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
+        ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
+#if _ONEDPL_COMPILE_KERNEL
         ,
         __reorder_kernel
 #endif
