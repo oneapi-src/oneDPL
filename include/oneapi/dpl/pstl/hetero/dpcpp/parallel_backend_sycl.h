@@ -290,9 +290,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
     // change __work_group_size according to local memory limit
     __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                              sizeof(_Tp), __work_group_size);
+
 #if _ONEDPL_COMPILE_KERNEL
-    sycl::kernel __kernel =
-        __internal::__kernel_compiler<_ReduceKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
     __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                           ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
@@ -434,10 +434,11 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                                                                              sizeof(_Type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel_1 =
-            __internal::__kernel_compiler<_LocalScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
-        auto __kernel_2 =
-            __internal::__kernel_compiler<_GroupScanKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+        //Actually there is one kernel_bundle for the all kernels of the pattern.
+        auto __kernels = __internal::__kernel_compiler<_LocalScanKernel, _GroupScanKernel>::__compile(
+            ::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernel_1 = __kernels[0];
+        auto __kernel_2 = __kernels[1];
         auto __wgroup_size_kernel_1 =
             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
         auto __wgroup_size_kernel_2 =
@@ -688,8 +689,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     // TODO: find a way to generalize getting of reliable work-group size
     auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel =
-        __internal::__kernel_compiler<_FindOrKernel>::__compile_kernel(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif

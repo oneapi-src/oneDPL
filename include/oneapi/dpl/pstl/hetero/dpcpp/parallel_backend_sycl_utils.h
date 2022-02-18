@@ -185,26 +185,50 @@ using __kernel_name_generator =
     _BaseName<_CustomName>;
 #endif
 
-template <typename _DerivedKernelName>
+template <typename... _KernelNames>
 class __kernel_compiler
 {
-  public:
-    template <typename _Exec>
-    static sycl::kernel
-    __compile_kernel(_Exec&& __exec)
-    {
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
-        auto __kernel_id = sycl::get_kernel_id<_DerivedKernelName>();
-        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(
-            __exec.queue().get_context(), {__exec.queue().get_device()}, {__kernel_id});
-        return __kernel_bundle.get_kernel(__kernel_id);
-#else
-        sycl::program __program(__exec.queue().get_context());
+    static constexpr ::std::size_t __kernel_count = sizeof...(_KernelNames);
+    using __kernel_array_type = ::std::array<sycl::kernel, __kernel_count>;
 
-        __program.build_with_kernel_type<_DerivedKernelName>();
-        return __program.get_kernel<_DerivedKernelName>();
-#endif
+  public:
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+    template <typename _Exec>
+    static auto
+    __compile(_Exec&& __exec)
+    {
+        ::std::vector<sycl::kernel_id> __kernel_ids{sycl::get_kernel_id<_KernelNames>()...};
+
+        auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(
+            __exec.queue().get_context(), {__exec.queue().get_device()}, __kernel_ids);
+
+        if constexpr (sizeof...(_KernelNames) > 1)
+            return __make_kernels_array(__kernel_bundle, __kernel_ids,
+                                        oneapi::dpl::__internal::__make_index_sequence<__kernel_count>());
+        else
+            return __kernel_bundle.template get_kernel(__kernel_ids[0]);
     }
+
+  private:
+    template <typename _KernelBundle, typename _KernelIds, ::std::size_t... _Ip>
+    static auto
+    __make_kernels_array(_KernelBundle __kernel_bundle, _KernelIds& __kernel_ids,
+                         oneapi::dpl::__internal::__index_sequence<_Ip...>)
+    {
+        return __kernel_array_type{__kernel_bundle.template get_kernel(__kernel_ids[_Ip])...};
+    }
+#else
+    template <typename _Exec>
+    static auto
+    __compile(_Exec&& __exec)
+    {
+        sycl::program __program(__exec.queue().get_context());
+        if constexpr (sizeof...(_KernelNames) > 1)
+            return __kernel_array_type{__program.build_with_kernel_type<_KernelNames>(), __program.template get_kernel<_KernelNames>())...};
+        else
+            return __program.build_with_kernel_type<_KernelNames>(), __program.template get_kernel<_KernelNames>();
+    }
+#endif
 };
 
 #if _ONEDPL_DEBUG_SYCL
