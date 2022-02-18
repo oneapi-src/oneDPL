@@ -98,7 +98,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // buffer stores the sums of values associated with a given key. Sums are copied with
     // a shift into result2, and the shift is computed at the same time as the sums, so the
     // sums can't be written to result2 directly.
-    oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _scanned_values(n);
+    oneapi::dpl::__par_backend::__buffer<policy_type, ValueType> _scanned_values(n);
 
     // Buffer is used to store results of the scan of the mask. Values indicate which position
     // in result2 needs to be written with the scanned_values element.
