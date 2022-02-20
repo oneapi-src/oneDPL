@@ -463,7 +463,12 @@ template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
-    static constexpr bool __is_value = sizeof...(_Args) > 0;
+
+    template <typename... _Prms>
+    struct __value_ckeck
+    {
+        static constexpr bool __is_value = sizeof...(_Prms) > 0;
+    };
 
   public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
@@ -484,7 +489,7 @@ class __future : private std::tuple<_Args...>
         __wait_event(event());
     }
 
-    template <typename = std::enable_if<__is_value, void>>
+    template <typename _T = __value_ckeck<_Args...>, ::std::enable_if_t<_T::__is_value, int> = 0>
     auto
     get()
     {
@@ -496,7 +501,7 @@ class __future : private std::tuple<_Args...>
     //where a future is created.
     template <typename _T>
     auto
-    __add_value(_T __t) const
+    __make_future(_T __t) const
     {
         auto new_val = std::tuple<_T>(__t);
         auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
