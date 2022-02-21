@@ -365,8 +365,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                     if (__local_idx == 0)
                     {
                         __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
-                        //store result in one-element buffer
-                        if (__item_id.get_group(0) == 0)
+
+                        //final reduction, store the result in one-element buffer
+                        if (__n_groups == 1)
                         {
                             __brick_reduce.apply_init(__init, __result);
                             __result_acc[0] = __result;
