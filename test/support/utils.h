@@ -36,6 +36,9 @@
 
 // Test data ranges other than those that start at the beginning of an input.
 const int max_n = 100000;
+
+// All these offset consts used for indirect testing of specialization for hetero
+// iterator from file include\oneapi\dpl\pstl\hetero\dpcpp\utils_ranges_sycl.h
 const int inout1_offset = 3;
 const int inout2_offset = 5;
 const int inout3_offset = 7;
