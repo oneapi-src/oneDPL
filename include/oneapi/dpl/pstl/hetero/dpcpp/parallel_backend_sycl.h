@@ -269,11 +269,11 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 // parallel_transform_reduce - async pattern
 //------------------------------------------------------------------------
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
-          typename _Rp, oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
-          typename... _Ranges>
+          typename _Rp, typename _InitType,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
-                            _Ranges&&... __rngs)
+                            _InitType __init, _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
@@ -368,7 +368,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                         //store result in one-element buffer
                         if (__item_id.get_group(0) == 0)
                         {
-                            __result_acc[0] = __brick_reduce.apply_init(__result);
+                            __brick_reduce.apply_init(__init, __result);
+                            __result_acc[0] = __result;
                         }
                     }
                 });

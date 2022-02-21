@@ -479,10 +479,7 @@ class __future : private std::tuple<_Args...>
     {
         return __my_event;
     }
-    operator _Event() const
-    {
-        return event();
-    }
+    operator _Event() const { return event(); }
     void
     wait()
     {

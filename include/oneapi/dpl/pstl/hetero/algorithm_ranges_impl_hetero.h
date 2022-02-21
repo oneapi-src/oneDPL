@@ -293,6 +293,7 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
                    __identity_reduce_fn, _NoOpFunctor{}},
                unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                    __identity_reduce_fn},
+               unseq_backend::__no_init_value{}, //no initial value
                ::std::forward<_Range>(__rng))
         .get();
 }
@@ -315,7 +316,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
     using _Assigner = unseq_backend::__scan_assigner;
     using _NoAssign = unseq_backend::__scan_no_assign;
     using _MaskAssigner = unseq_backend::__mask_assigner<1>;
-    using _InitType = unseq_backend::__scan_no_init<_SizeType>;
+    using _InitType = unseq_backend::__no_init_value<_SizeType>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     _Assigner __assign_op;
@@ -523,6 +524,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
                 __identity_reduce_fn, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
+            unseq_backend::__no_init_value{}, //no initial value
             ::std::forward<_Range>(__rng))
             .get();
 
@@ -562,6 +564,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
                 __identity_reduce_fn<_Compare>{__comp}, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
                 __identity_reduce_fn<_Compare>{__comp}},
+            unseq_backend::__no_init_value{}, //no initial value
             ::std::forward<_Range>(__rng))
             .get();
 

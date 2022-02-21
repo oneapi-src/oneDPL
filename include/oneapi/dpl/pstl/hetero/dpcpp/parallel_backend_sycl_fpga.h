@@ -93,18 +93,18 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 //------------------------------------------------------------------------
 
 template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
-          typename... _Ranges, typename _Rp,
+          typename... _Ranges, typename _Rp, typename _InitType,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
-                            _Ranges&&... __rngs)
+                            _InitType __init, _Ranges&&... __rngs)
 {
     // workaround until we implement more performant version for patterns
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, __grainsize>(
-        __device_policy, __u, __brick_leaf_reduce, __brick_reduce, ::std::forward<_Ranges>(__rngs)...);
+        __device_policy, __u, __brick_leaf_reduce, __brick_reduce, __init, ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
