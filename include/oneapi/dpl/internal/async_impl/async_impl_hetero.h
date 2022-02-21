@@ -17,6 +17,8 @@
 #ifndef _ONEDPL_ASYNC_IMPL_HETERO_H
 #define _ONEDPL_ASYNC_IMPL_HETERO_H
 
+#include <cassert>
+
 namespace oneapi
 {
 namespace dpl
