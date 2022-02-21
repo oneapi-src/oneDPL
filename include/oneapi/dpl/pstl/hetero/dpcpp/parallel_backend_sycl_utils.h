@@ -18,6 +18,7 @@
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #include <type_traits>
+#include <tuple>
 
 #include "../../iterator_impl.h"
 
@@ -431,9 +432,6 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-template <typename _Event>
-void __wait_event(_Event);
-
 void
 __wait_event(sycl::event __e)
 {
@@ -464,12 +462,6 @@ class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
 
-    template <typename... _Prms>
-    struct __value_ckeck
-    {
-        static constexpr bool __is_value = sizeof...(_Prms) > 0;
-    };
-
   public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
@@ -486,12 +478,12 @@ class __future : private std::tuple<_Args...>
         __wait_event(event());
     }
 
-    template <typename _T = __value_ckeck<_Args...>, ::std::enable_if_t<_T::__is_value, int> = 0>
     auto
     get()
     {
         wait();
-        return __get_value(std::get<0>(*this));
+        if constexpr (sizeof...(_Args))
+            return __get_value(std::get<0>(*this));
     }
 
     //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,

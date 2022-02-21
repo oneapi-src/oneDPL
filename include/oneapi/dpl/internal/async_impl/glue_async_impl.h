@@ -16,6 +16,8 @@
 #ifndef _ONEDPL_GLUE_ASYNC_IMPL_H
 #define _ONEDPL_GLUE_ASYNC_IMPL_H
 
+#include "../async_extension_defs.h"
+
 #if _ONEDPL_HETERO_BACKEND
 #    include "async_impl_hetero.h"
 #endif
@@ -82,8 +84,6 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
 {
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     assert(__last - __first >= 2);
-    //if (__last - __first < 2)
-    //  return oneapi::dpl::__par_backend_hetero::__future(sycl::event{});
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
