@@ -403,8 +403,10 @@ struct __global_scan_caller
     void operator()(sycl::item<1> __item) const
     {
         __m_global_scan(__item, __m_rng2, __m_rng1, __m_wg_sums_acc, __m_n, __m_size_per_wg);
-        //TODO: store result in one-element buffer
-        __m_acc_res[0] = __m_wg_sums_acc[__m_idx_res];
+
+        //store result in one-element buffer
+        if (__item.get_linear_id() == 0)
+            __m_acc_res[0] = __m_wg_sums_acc[__m_idx_res];
     }
 
   private:
