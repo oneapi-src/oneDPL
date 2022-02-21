@@ -18,6 +18,7 @@
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #include <type_traits>
+#include <tuple>
 
 #include "../../iterator_impl.h"
 
@@ -431,68 +432,70 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-//-----------------------------------------------------------------------
-// future and helper classes for async pattern/algorithm
-//-----------------------------------------------------------------------
-
-// TODO: towards higher abstraction and generic future. implementation specific sycl::event should be hidden
-struct __future_base
+void
+__wait_event(sycl::event __e)
 {
-    sycl::event __my_event;
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+    __e.wait_and_throw();
+#endif
+}
 
-    __future_base() = default;
-    __future_base(sycl::event __e) : __my_event(__e) {}
+template <typename _T>
+constexpr auto
+__get_value(sycl::buffer<_T>& __buf)
+{
+    //according to a contract, returned value is one-element sycl::buffer
+    return __buf.template get_access<access_mode::read>()[0];
+}
+
+template <typename _T>
+constexpr auto
+__get_value(_T& __val)
+{
+    return __val;
+}
+
+//A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
+//Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
+template <typename _Event, typename... _Args>
+class __future : private std::tuple<_Args...>
+{
+    _Event __my_event;
+
+  public:
+    __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
+    __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
+
+    auto
+    event() const
+    {
+        return __my_event;
+    }
+    operator _Event() const { return event(); }
     void
     wait()
     {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait_and_throw();
-#endif
-    }
-    operator sycl::event() const { return __my_event; }
-};
-
-template <typename _T>
-class __future : public __future_base
-{
-    ::std::size_t __result_idx;
-    sycl::buffer<_T> __data;
-
-  public:
-    __future(sycl::event __e, size_t __o, sycl::buffer<_T> __b)
-        : __par_backend_hetero::__future_base(__e), __result_idx(__o), __data(__b)
-    {
+        __wait_event(event());
     }
 
-    _T
+    auto
     get()
     {
-        return __data.template get_access<access_mode::read>()[__result_idx];
+        wait();
+        if constexpr (sizeof...(_Args))
+            return __get_value(std::get<0>(*this));
     }
-    template <class _Tp, class _Enable>
-    friend class oneapi::dpl::__internal::__future;
-};
 
-template <>
-class __future<void> : public __future_base
-{
-    ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base> __tmps;
-
-  public:
-    template <typename... _Ts>
-    __future(sycl::event __e, _Ts... __t) : __future_base(__e)
+    //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,
+    //where a future is created.
+    template <typename _T>
+    auto
+    __make_future(_T __t) const
     {
-        if (sizeof...(__t) != 0)
-            __tmps = ::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper<_Ts...>>(
-                new oneapi::dpl::__internal::__lifetime_keeper<_Ts...>(__t...));
+        auto new_val = std::tuple<_T>(__t);
+        auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
+        return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
-    void
-    get()
-    {
-        this->wait();
-    }
-    template <class _Tp, class _Enable>
-    friend class oneapi::dpl::__internal::__future;
 };
 
 } // namespace __par_backend_hetero

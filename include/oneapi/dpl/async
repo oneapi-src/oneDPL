@@ -19,11 +19,7 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
-#if !_ONEDPL_ASYNC_FORWARD_DECLARED
-// If not declared, pull in forward declarations
-#    include "oneapi/dpl/internal/async_extension_defs.h"
-#    define _ONEDPL_ASYNC_FORWARD_DECLARED 1
-#endif
+#include "oneapi/dpl/internal/async_extension_defs.h"
 
 #if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations

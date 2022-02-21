@@ -404,6 +404,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
                 __identity_reduce_fn, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
+            unseq_backend::__no_init_value{}, //no initial value
             __buf.all_view())
             .get();
 
@@ -456,6 +457,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
                      unseq_backend::transform_init<_ExecutionPolicy, _ReduceFnType, _NoOpFunctor>{_ReduceFnType{__comp},
                                                                                                   _NoOpFunctor{}},
                      unseq_backend::reduce<_ExecutionPolicy, _ReduceFnType, _ReduceValueType>{_ReduceFnType{__comp}},
+                     unseq_backend::__no_init_value{}, //no initial value
                      __buf.all_view())
                      .get();
     return ::std::make_pair<_Iterator, _Iterator>(__first + ::std::get<0>(__ret), __first + ::std::get<1>(__ret));
@@ -553,6 +555,7 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
                    __identity_reduce_fn, _NoOpFunctor{}},
                unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                    __identity_reduce_fn},
+               unseq_backend::__no_init_value{}, //no initial value
                __buf.all_view())
         .get();
 }
@@ -825,7 +828,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
     using _Assigner = unseq_backend::__scan_assigner;
     using _NoAssign = unseq_backend::__scan_no_assign;
     using _MaskAssigner = unseq_backend::__mask_assigner<1>;
-    using _InitType = unseq_backend::__scan_no_init<_It1DifferenceType>;
+    using _InitType = unseq_backend::__no_init_value<_It1DifferenceType>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     if (__first == __last)
@@ -1049,6 +1052,7 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
                 __identity_reduce_fn, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
+            unseq_backend::__no_init_value{}, //no initial value
             __buf.all_view())
             .get();
 
@@ -1336,6 +1340,7 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
                 __identity_reduce_fn, _NoOpFunctor{}},
             unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
                 __identity_reduce_fn},
+            unseq_backend::__no_init_value{}, //no initial value
             __buf1.all_view(), __buf2.all_view())
             .get();
 
@@ -1642,7 +1647,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     using _Assigner = unseq_backend::__scan_assigner;
     using _NoAssign = unseq_backend::__scan_no_assign;
     using _MaskAssigner = unseq_backend::__mask_assigner<2>;
-    using _InitType = unseq_backend::__scan_no_init<_Size1>;
+    using _InitType = unseq_backend::__no_init_value<_Size1>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     _ReduceOp __reduce_op;

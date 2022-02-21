@@ -58,10 +58,11 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&
                                                                                 _Functor{__binary_op2}}, // transform
             unseq_backend::transform_init<_Policy, _BinaryOperation1, _NoOpFunctor>{__binary_op1, _NoOpFunctor{}},
             unseq_backend::reduce<_Policy, _BinaryOperation1, _RepackedTp>{__binary_op1}, // reduce
+            unseq_backend::__init_value<_RepackedTp>{__init},                             //initial value
             ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
             .get();
 
-    return __binary_op1(__init, _Tp{__res});
+    return __res;
 }
 
 //------------------------------------------------------------------------
@@ -88,10 +89,11 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range&& __rng, _Tp __init
                                                                                _Functor{__unary_op}}, // transform
             unseq_backend::transform_init<_Policy, _BinaryOperation, _NoOpFunctor>{__binary_op, _NoOpFunctor{}},
             unseq_backend::reduce<_Policy, _BinaryOperation, _RepackedTp>{__binary_op}, // reduce
+            unseq_backend::__init_value<_RepackedTp>{__init},                           //initial value
             ::std::forward<_Range>(__rng))
             .get();
 
-    return __binary_op(__init, _Tp{__res});
+    return __res;
 }
 
 //------------------------------------------------------------------------
@@ -127,7 +129,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
                                                        __get_data_op},
         // scan between groups
         unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
-                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__scan_no_init<_Type>>{
+                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
         unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op})
@@ -143,7 +145,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
                          _Type __init, _BinaryOperation __binary_op, _Inclusive)
 {
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
-    using _InitType = unseq_backend::__scan_init<_RepackedType>;
+    using _InitType = unseq_backend::__init_value<_RepackedType>;
 
     return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
                                          ::std::forward<_Range2>(__rng2), __unary_op, _InitType{__init}, __binary_op,
@@ -160,7 +162,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
 {
     using _Type = oneapi::dpl::__internal::__value_t<_Range1>;
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
-    using _InitType = unseq_backend::__scan_no_init<_RepackedType>;
+    using _InitType = unseq_backend::__no_init_value<_RepackedType>;
 
     return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
                                          ::std::forward<_Range2>(__rng2), __unary_op, _InitType{}, __binary_op,

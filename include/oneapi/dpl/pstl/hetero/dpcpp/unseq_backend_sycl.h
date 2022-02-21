@@ -151,6 +151,54 @@ struct walk_adjacent_difference
     }
 };
 
+// the C++ stuff types to distinct "init vs. no init"
+template <typename _InitType>
+struct __init_value
+{
+    _InitType __value;
+    using __value_type = _InitType;
+};
+
+template <typename _InitType = void>
+struct __no_init_value
+{
+    using __value_type = _InitType;
+};
+
+// structure for the correct processing of the initial scan element
+template <typename _InitType>
+struct __init_processing
+{
+    template <typename _Tp>
+    void
+    operator()(const __init_value<_InitType>& __init, _Tp&& __value) const
+    {
+        __value = __init.__value;
+    }
+    template <typename _Tp>
+    void
+    operator()(const __no_init_value<_InitType>&, _Tp&&) const
+    {
+    }
+
+    template <typename _Tp, typename _BinaryOp>
+    void
+    operator()(const __init_value<_InitType>& __init, _Tp&& __value, _BinaryOp __bin_op) const
+    {
+        __value = __bin_op(__init.__value, __value);
+    }
+    template <typename _Tp, typename _BinaryOp>
+    void
+    operator()(const __no_init_value<_InitType>&, _Tp&&, _BinaryOp) const
+    {
+    }
+    template <typename _Tp, typename _BinaryOp>
+    void
+    operator()(const __no_init_value<void>&, _Tp&&, _BinaryOp) const
+    {
+    }
+};
+
 //------------------------------------------------------------------------
 // transform_reduce
 //------------------------------------------------------------------------
@@ -234,6 +282,13 @@ struct reduce
     operator()(const _NDItemId __item_id, const _GlobalIdx __global_idx, const _Size __n, _AccLocal& __local_mem) const
     {
         return reduce_impl(__item_id, __global_idx, __n, __local_mem, __has_known_identity<_BinaryOperation1, _Tp>{});
+    }
+
+    template <typename _InitType, typename _Result>
+    void
+    apply_init(const _InitType& __init, _Result&& __result) const
+    {
+        __init_processing<_Tp>{}(__init, __result, __bin_op1);
     }
 };
 
@@ -374,49 +429,6 @@ struct __scan_no_assign
     template <typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
     operator()(_OutAcc&, const _OutIdx, const _InAcc&, const _InIdx) const
-    {
-    }
-};
-
-// types of initial value for parallel_transform_scan
-template <typename _InitType>
-struct __scan_init
-{
-    _InitType __value;
-    using __value_type = _InitType;
-};
-
-template <typename _InitType>
-struct __scan_no_init
-{
-    using __value_type = _InitType;
-};
-
-// structure for the correct processing of the initial scan element
-template <typename _InitType>
-struct __scan_init_processing
-{
-    template <typename _Tp>
-    void
-    operator()(const __scan_init<_InitType>& __init, _Tp&& __value) const
-    {
-        __value = __init.__value;
-    }
-    template <typename _Tp>
-    void
-    operator()(const __scan_no_init<_InitType>&, _Tp&&) const
-    {
-    }
-
-    template <typename _Tp, typename _BinaryOp>
-    void
-    operator()(const __scan_init<_InitType>& __init, _Tp&& __value, _BinaryOp __bin_op) const
-    {
-        __value = __bin_op(__init.__value, __value);
-    }
-    template <typename _Tp, typename _BinaryOp>
-    void
-    operator()(const __scan_no_init<_InitType>&, _Tp&&, _BinaryOp) const
     {
     }
 };
@@ -581,7 +593,7 @@ struct __scan
         ::std::size_t __group_id = __item.get_group(0);
         ::std::size_t __global_id = __item.get_global_id(0);
         ::std::size_t __local_id = __item.get_local_id(0);
-        __scan_init_processing<_Tp> __use_init{};
+        __init_processing<_Tp> __use_init{};
 
         ::std::size_t __shift = 0;
         __internal::__invoke_if_not(_Inclusive{}, [&]() { __shift = 1; });
@@ -667,7 +679,7 @@ struct __scan
         auto __group_id = __item.get_group(0);
         auto __global_id = __item.get_global_id(0);
         auto __local_id = __item.get_local_id(0);
-        auto __use_init = __scan_init_processing<_Tp>{};
+        auto __use_init = __init_processing<_Tp>{};
 
         auto __shift = 0;
         __internal::__invoke_if_not(_Inclusive{}, [&]() {
@@ -714,7 +726,7 @@ struct __scan
     void operator()(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
                     _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size,
                     _ItersPerWG __iters_per_wg,
-                    _InitType __init = __scan_no_init<typename _InitType::__value_type>{}) const
+                    _InitType __init = __no_init_value<typename _InitType::__value_type>{}) const
     {
         scan_impl(__item, __n, __local_acc, __acc, __out_acc, __wg_sums_acc, __size_per_wg, __wgroup_size,
                   __iters_per_wg, __init, __has_known_identity<_BinaryOperation, _Tp>{});
