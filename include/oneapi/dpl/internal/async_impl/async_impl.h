@@ -16,6 +16,8 @@
 #ifndef _ONEDPL_ASYNC_IMPL_H
 #define _ONEDPL_ASYNC_IMPL_H
 
+#include "../async_extension_defs.h"
+
 #if _ONEDPL_HETERO_BACKEND
 #    include "async_impl_hetero.h"
 #endif
