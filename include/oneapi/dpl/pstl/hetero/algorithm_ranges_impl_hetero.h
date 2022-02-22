@@ -46,8 +46,9 @@ __pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     if (__n > 0)
     {
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            __exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, ::std::forward<_Ranges>(__rngs)...)
+        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
+                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                          ::std::forward<_Ranges>(__rngs)...)
             .wait();
     }
 }
@@ -70,20 +71,23 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
 __pattern_swap(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Function __f)
 {
-    if (__rng1.size() <= __rng2.size())
+    const auto __rng1_size = __rng1.size();
+    const auto __rng2_size = __rng2.size();
+
+    if (__rng1_size <= __rng2_size)
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __f, __rng1, __rng2);
-        return __rng1.size();
+            __f, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+        return __rng1_size;
     }
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
-        __f, __rng2, __rng1);
-    return __rng2.size();
+        __f, ::std::forward<_Range2>(__rng2), ::std::forward<_Range1>(__rng1));
+    return __rng2_size;
 }
 
 //------------------------------------------------------------------------
