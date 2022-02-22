@@ -49,7 +49,8 @@
 #    define _ONEDPL_PREDEFINED_POLICIES 1
 #endif
 
-#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && __has_include(<tbb/version.h>))
+#if ONEDPL_USE_TBB_BACKEND ||                                                                                          \
+    (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && __has_include(<tbb/version.h>))
 #    define _ONEDPL_PAR_BACKEND_TBB 1
 #endif
 
