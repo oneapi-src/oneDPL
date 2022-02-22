@@ -23,7 +23,10 @@
 
 #include "support/utils.h"
 
+#include <cstdint>
+#if _ONEDPL_DEBUG_SYCL
 #include <iostream>
+#endif
 
 std::int32_t
 main()
@@ -45,11 +48,12 @@ main()
 
     auto res = reduce_by_segment(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(D));
 
-    // The expected keys 
+    // The expected keys
     int key_exp[n_res] = {1, 3, 2, 1};
-    // The expected keys 
+    // The expected keys
     int value_exp[n_res] = {9, 21, 9, 3};
 
+#if _ONEDPL_DEBUG_SYCL
     ::std::cout << "keys: ";
     for(auto v: views::host_all(C) | views::take(res))
         ::std::cout << v << " ";
@@ -59,10 +63,17 @@ main()
     for(auto v: views::host_all(D) | views::take(res))
         ::std::cout << v << " ";
     ::std::cout << ::std::endl;
+#endif // _ONEDPL_DEBUG_SYCL
 
     //check result
     EXPECT_EQ_N(key_exp, views::host_all(C).begin(), n_res, "wrong keys from reduce_by_segment");
     EXPECT_EQ_N(value_exp, views::host_all(D).begin(), n_res, "wrong values from reduce_by_segment");
+
+// Check if a kernel name can be omitted when a compiler supports implicit names
+#if __SYCL_UNNAMED_LAMBDA__
+    sycl::buffer<::std::uint64_t> E(n);
+    reduce_by_segment(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(E));
+#endif
 
 #endif //_ENABLE_RANGES_TESTING
 
