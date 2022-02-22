@@ -228,7 +228,7 @@ class __kernel_compiler
         using __return_type =
             typename std::conditional<(sizeof...(_KernelNames) > 1), __kernel_array_type, sycl::kernel>::type;
         return __return_type{
-            (__program.build_with_kernel_type<_KernelNames>(), __program.template get_kernel<_KernelNames>())...};
+            (__program.build_with_kernel_type<_KernelNames>(), __program.get_kernel<_KernelNames>())...};
     }
 #endif
 };
