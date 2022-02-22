@@ -472,12 +472,12 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __p
 //------------------------------------------------------------------------
 
 template <typename _Name>
-class __copy_first_wrapper
+class __copy1_wrapper
 {
 };
 
 template <typename _Name>
-class __copy_second_wrapper
+class __copy2_wrapper
 {
 };
 
@@ -496,7 +496,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
     if (__n1 == 0)
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_first_wrapper>(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy1_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::forward<_Range2>(__rng2),
             ::std::forward<_Range3>(__rng3));
@@ -504,7 +504,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
     else if (__n2 == 0)
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_second_wrapper>(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy2_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::forward<_Range1>(__rng1),
             ::std::forward<_Range3>(__rng3));
