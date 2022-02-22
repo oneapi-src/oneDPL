@@ -58,7 +58,6 @@ using ::std::is_floating_point;
 using ::std::is_function;
 using ::std::is_fundamental;
 using ::std::is_integral;
-using ::std::is_literal_type;
 using ::std::is_lvalue_reference;
 using ::std::is_member_function_pointer;
 using ::std::is_member_object_pointer;
@@ -107,11 +106,13 @@ using ::std::remove_extent;
 using ::std::remove_pointer;
 using ::std::remove_reference;
 using ::std::remove_volatile;
-#if __cplusplus <= 201703L
-using ::std::result_of;
-#endif
 using ::std::true_type;
 using ::std::underlying_type;
+#if __cplusplus <= 201703L
+using ::std::is_literal_type;
+using ::std::result_of;
+#endif
+
 #if __cplusplus > 201103L
 using ::std::add_const_t;
 using ::std::add_cv_t;
@@ -134,11 +135,12 @@ using ::std::remove_extent_t;
 using ::std::remove_pointer_t;
 using ::std::remove_reference_t;
 using ::std::remove_volatile_t;
+using ::std::underlying_type_t;
 #    if __cplusplus <= 201703L
 using ::std::result_of_t;
 #    endif
-using ::std::underlying_type_t;
-#endif
+#endif // __cplusplus > 201103L
+
 #if __cplusplus > 201402L
 using ::std::alignment_of_v;
 using ::std::conjunction;
@@ -171,7 +173,6 @@ using ::std::is_fundamental_v;
 using ::std::is_integral_v;
 using ::std::is_invocable;
 using ::std::is_invocable_r;
-using ::std::is_literal_type_v;
 using ::std::is_lvalue_reference_v;
 using ::std::is_member_function_pointer_v;
 using ::std::is_member_object_pointer_v;
@@ -215,7 +216,10 @@ using ::std::is_volatile_v;
 using ::std::negation;
 using ::std::rank_v;
 using ::std::void_t;
-#endif
+#    if __cplusplus == 201703L
+using ::std::is_literal_type_v;
+#    endif
+#endif // __cplusplus > 201402L
 } // namespace dpl
 } // namespace oneapi
 #endif
