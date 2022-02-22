@@ -35,7 +35,7 @@ using void_type = typename ::std::enable_if<::std::is_void<_Tp>::value, _Tp>::ty
 template <typename _Tp>
 using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp>::type;
 
-#if _USE_GROUP_ALGOS && defined (__INTEL_LLVM_COMPILER)
+#if _USE_GROUP_ALGOS && defined(__INTEL_LLVM_COMPILER)
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
 //We need to use __INTEL_LLVM_COMPILER macro as a guard.
 
