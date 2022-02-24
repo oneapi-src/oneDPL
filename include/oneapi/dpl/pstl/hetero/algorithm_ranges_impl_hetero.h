@@ -75,13 +75,15 @@ __pattern_swap(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _F
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(
-                ::std::forward<_ExecutionPolicy>(__exec)), __f, __rng1, __rng2);
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __f, __rng1, __rng2);
         return __rng1.size();
     }
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)), __f, __rng2, __rng1);
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __f, __rng2, __rng1);
     return __rng2.size();
 }
 
