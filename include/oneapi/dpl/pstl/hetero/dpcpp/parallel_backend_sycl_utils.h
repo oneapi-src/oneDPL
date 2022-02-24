@@ -83,12 +83,6 @@ struct explicit_wait_if<true>
     }
 };
 
-template <typename Op, ::std::size_t CallNumber>
-struct __unique_kernel_name;
-
-template <typename Policy, int idx>
-using __new_kernel_name = __unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
-
 // function is needed to wrap kernel name into another class
 template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
