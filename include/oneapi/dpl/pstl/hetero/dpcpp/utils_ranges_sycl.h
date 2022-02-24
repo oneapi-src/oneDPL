@@ -465,7 +465,7 @@ struct __get_sycl_range
 
         // The size of the source range is unknown. Use non-zero size to create the view.
         // permutation_view_simple access is controlled by the map range view.
-        auto res_src = this->operator()(__first.base(), __first.base() + 1 /*source size*/);
+        auto res_src = this->operator()(__first.base(), __first.base() + __first.base_count() /*source size*/);
         auto res_idx = __get_it_map_view(__first.map(), __n);
 
         auto rng = oneapi::dpl::__ranges::permutation_view_simple<decltype(res_src.all_view()),
