@@ -30,9 +30,10 @@
 #            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
 #        endif
 #    endif // __has_include(<tbb/version.h>)
+// Workarounds for libstdc++9 when TBB is not found in the environment
 #    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
 #        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
-#    endif
+#    endif //!__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
 #endif     // __cplusplus >= 201703L
 
 #endif
