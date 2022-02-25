@@ -132,13 +132,13 @@
 #    endif
 #endif
 
-// Make sure that the TBB backend is selected if ONEDPL_USE_OPENMP_BACKEND is undefined or set to 0
-// and ONEDPL_USE_TBB_BACKEND is undefined
 #if !defined(ONEDPL_USE_TBB_BACKEND)
 #    if !defined(ONEDPL_USE_OPENMP_BACKEND)
+// Make sure that the TBB backend is selected if ONEDPL_USE_OPENMP_BACKEND and ONEDPL_USE_TBB_BACKEND are undefined
+// and TBB is available
 #        if __has_include(<tbb/version.h>)
 #            if !defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
-#                error The TBB backend is not enabled while it should when neither of parallel backends is explicitly specified and TBB is available
+#                error The TBB backend is not enabled while it should when neither of parallel backends is explicitly specified
 #            endif
 #            if defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
 #                error The OpenMP backend cannot be simultaneously enabled with the TBB backend
@@ -146,17 +146,21 @@
 #            if defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
 #                error The serial backend cannot be simultaneously enabled with the TBB backend
 #            endif
+// Make sure that the OpenMP backend is selected if ONEDPL_USE_OPENMP_BACKEND and ONEDPL_USE_TBB_BACKEND are undefined,
+// TBB is not available and OpenMP is available
 #        elif defined(_OPENMP)
 #            if defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
 #                error The TBB backend cannot be simultaneously enabled with the OpenMP backend
 #            endif
 #            if !defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
-#                error The OpenMP backend is not enabled while it should when neither of parallel backends is explicitly specified, TBB is not available and OpenMP is available 
+#                error The OpenMP backend is not enabled while it should when neither of parallel backends is explicitly specified, TBB is not available
 #            endif
 #            if defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
 #                error The serial backend cannot be simultaneously enabled with the OpenMP backend
 #            endif
 #        else
+// Make sure that the serial backend is selected if ONEDPL_USE_OPENMP_BACKEND and
+// ONEDPL_USE_TBB_BACKEND are undefined and OpenMP and TBB are not available
 #            if defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
 #                error The TBB backend cannot be simultaneously enabled with the serial backend
 #            endif
@@ -167,26 +171,24 @@
 #                error The serial backend is not enabled while it should when neither of parallel backends is explicitly specified and TBB and OpenMP are not available
 #            endif
 #        endif
+// Make sure that the TBB backend is selected if ONEDPL_USE_OPENMP_BACKEND is set to 0,
+// ONEDPL_USE_TBB_BACKEND is undefined and TBB is available
 #    elif !ONEDPL_USE_OPENMP_BACKEND
 #        if __has_include(<tbb/version.h>)
 #            if !defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
-#                error The TBB backend is not enabled while it should when neither of parallel backends is explicitly specified and TBB is available
-#            endif
-#            if defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
-#                error The OpenMP backend cannot be simultaneously enabled with the TBB backend
+#                error The TBB backend is not enabled while it should when neither of parallel backends is explicitly specified
 #            endif
 #            if defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
 #                error The serial backend cannot be simultaneously enabled with the TBB backend
 #             endif
+// Make sure that the serial backend is selected if ONEDPL_USE_OPENMP_BACKEND is set to 0,
+// ONEDPL_USE_TBB_BACKEND is undefined and TBB is not available
 #        else
 #            if defined(_ONEDPL_PARALLEL_BACKEND_TBB_H)
 #                error The TBB backend cannot be simultaneously enabled with the serial backend
 #            endif
-#            if defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
-#                error The OpenMP backend cannot be simultaneously enabled with the serial backend
-#            endif
 #            if !defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
-#                error The serial backend is not enabled while it should when neither of parallel backends is explicitly specified and TBB and OpenMP are not available
+#                error The serial backend is not enabled while it should when neither of parallel backends is explicitly specified, OpenMP is disabled and TBB is not available
 #            endif
 #        endif
 #    endif

@@ -29,9 +29,10 @@
 #        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
 #            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
 #        endif
-#    elif !_ONEDPL_PAR_BACKEND_TBB && !defined(PSTL_USE_PARALLEL_POLICIES)
-#        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
 #    endif // __has_include(<tbb/version.h>)
+#    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
+#        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#    endif
 #endif     // __cplusplus >= 201703L
 
 #endif
