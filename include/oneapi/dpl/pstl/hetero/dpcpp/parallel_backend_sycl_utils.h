@@ -477,7 +477,7 @@ class __future : private std::tuple<_Args...>
     get()
     {
         wait();
-        if constexpr (sizeof...(_Args))
+        if constexpr (sizeof...(_Args) > 0)
             return __get_value(std::get<0>(*this));
     }
 
