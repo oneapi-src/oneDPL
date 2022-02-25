@@ -58,12 +58,12 @@ using __has_known_identity =
                            ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>>>;
 #    endif //__LIBSYCL_VERSION >= 50200
 
-#else //_USE_GROUP_ALGOS && defined (__INTEL_LLVM_COMPILER)
+#else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity = std::false_type;
 
-#endif //_USE_GROUP_ALGOS && defined (__INTEL_LLVM_COMPILER)
+#endif //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
