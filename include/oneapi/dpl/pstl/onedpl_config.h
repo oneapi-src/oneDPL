@@ -321,7 +321,7 @@
 
 // When compile with Intel(R) oneAPI DPC++ Compiler macro is on
 // We need this macro to use compiler specific implementation of SYCL
-#if defined(__INTEL_LLVM_COMPILER) and defined(SYCL_LANGUAGE_VERSION)
+#if defined(__INTEL_LLVM_COMPILER) && defined(SYCL_LANGUAGE_VERSION)
 #    define _ONEDPL_SYCL_INTEL_COMPILER 1
 #endif
 
