@@ -35,7 +35,10 @@ using void_type = typename ::std::enable_if<::std::is_void<_Tp>::value, _Tp>::ty
 template <typename _Tp>
 using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp>::type;
 
-#if _USE_GROUP_ALGOS
+#if _USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
+//This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
+//We need to use _ONEDPL_SYCL_INTEL_COMPILER macro as a guard.
+
 //TODO: To change __has_known_identity implementation as soon as the Intel(R) oneAPI DPC++ Compiler implementation issues related to
 //std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
@@ -55,12 +58,12 @@ using __has_known_identity =
                            ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>>>;
 #    endif //__LIBSYCL_VERSION >= 50200
 
-#else //_USE_GROUP_ALGOS
+#else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity = std::false_type;
 
-#endif //_USE_GROUP_ALGOS
+#endif //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
