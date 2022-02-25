@@ -153,7 +153,7 @@
 #                error The TBB backend cannot be simultaneously enabled with the OpenMP backend
 #            endif
 #            if !defined(_ONEDPL_PARALLEL_BACKEND_OMP_H)
-#                error The OpenMP backend is not enabled while it should when neither of parallel backends is explicitly specified, TBB is not available
+#                error The OpenMP backend is not enabled while it should when neither of parallel backends is explicitly specified and TBB is not available
 #            endif
 #            if defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
 #                error The serial backend cannot be simultaneously enabled with the OpenMP backend
@@ -168,7 +168,7 @@
 #                error The OpenMP backend cannot be simultaneously enabled with the serial backend
 #             endif
 #            if !defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
-#                error The serial backend is not enabled while it should when neither of parallel backends is explicitly specified and TBB and OpenMP are not available
+#                error The serial backend is not enabled while it should when TBB and OpenMP are not available
 #            endif
 #        endif
 // Make sure that the TBB backend is selected if ONEDPL_USE_OPENMP_BACKEND is set to 0,
@@ -188,7 +188,7 @@
 #                error The TBB backend cannot be simultaneously enabled with the serial backend
 #            endif
 #            if !defined(_ONEDPL_PARALLEL_BACKEND_SERIAL_H)
-#                error The serial backend is not enabled while it should when neither of parallel backends is explicitly specified, OpenMP is disabled and TBB is not available
+#                error The serial backend is not enabled while it should when OpenMP is disabled and TBB is not available
 #            endif
 #        endif
 #    endif
