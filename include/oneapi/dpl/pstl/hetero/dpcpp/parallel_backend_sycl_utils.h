@@ -427,8 +427,8 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-constexpr void
-__wait_event(sycl::event& __e)
+inline void
+__wait_event(sycl::event __e)
 {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
     __e.wait_and_throw();
