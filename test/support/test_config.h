@@ -90,4 +90,7 @@
 #endif
 #endif //!defined(_ENABLE_RANGES_TESTING)
 
+// Enable/disable std::complex with constexpr testing
+#define TEST_COMPLEX_WITH_CONSTEXPR 0
+
 #endif /* _TEST_config_H */
