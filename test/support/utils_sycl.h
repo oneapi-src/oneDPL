@@ -34,11 +34,15 @@
 #include _PSTL_TEST_HEADER(iterator)
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 #include "iterator_utils.h"
+#include "utils_invoke.h"
+#include "utils_test_base.h"
 
 #include _PSTL_TEST_HEADER(execution)
 
 namespace TestUtils
 {
+
+constexpr int kDefaultMultValue = 1;
 
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
@@ -140,47 +144,26 @@ make_new_policy(_Policy&& __policy)
 // create the queue with custom asynchronous exceptions handler
 static auto my_queue = sycl::queue(default_selector, async_handler);
 
-// Invoke op(policy,rest...) for each possible policy.
-template <::std::size_t CallNumber = 0>
-struct invoke_on_all_hetero_policies
+inline
+sycl::queue get_test_queue()
 {
-    template <typename Op, typename... T>
-    void
-    operator()(Op op, T&&... rest)
-    {
-        //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
-        //of kernels from operator type and ::std::size_t
-        // There may be an issue when there is a kernel parameter which has a pointer in its name.
-        // For example, param<int*>. In this case the runtime interpreters it as a memory object and
-        // performs some checks that fails. As a workaround, define for functors which have this issue
-        // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
-        using kernel_name = unique_kernel_name<Op, CallNumber>;
-        iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
-#if ONEDPL_FPGA_DEVICE
-            oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(my_queue), op,
-            ::std::forward<T>(rest)...);
-#else
-            oneapi::dpl::execution::make_device_policy<kernel_name>(my_queue), op, ::std::forward<T>(rest)...);
-#endif
-    }
-};
+    return my_queue;
+}
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
 void
 test1buffer()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
+    sycl::queue queue = get_test_queue(); // usm and allocator requires queue
 
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        using TestBaseData = test_base_data_usm<TestValueType>;
+        TestBaseData test_base_data(alloc_type, queue, max_n, inout1_offset);
 
         // 2. create a pointer at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
+        auto inout1_offset_first = test_base_data.get_start_from(0);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -188,16 +171,29 @@ test1buffer()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(TestName(), inout1_offset_first, inout1_offset_first + n, n);
+            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
+            {
+                TestName testObj(test_base_data);
+                invoke_on_all_hetero_policies<0>()(testObj,
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   n);
+            }
+            else
+            {
+-                invoke_on_all_hetero_policies<0>()(TestName(),
+                                                    inout1_offset_first, inout1_offset_first + n,
+                                                    n);
+            }
         }
     }
 #endif
     { // sycl::buffer
         // 1. create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
+        using TestBaseData = test_base_data_buffer<TestValueType>;
+        TestBaseData test_base_data({ { max_n, inout1_offset } });
 
-        // 2. create an iterator over buffer
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
+        // 2. create iterators over buffers
+        auto inout1_offset_first = test_base_data.get_start_from(0);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -205,30 +201,38 @@ test1buffer()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(TestName(), inout1_offset_first, inout1_offset_first + n, n);
+            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
+            {
+                TestName testObj(test_base_data);
+                invoke_on_all_hetero_policies<1>()(testObj,
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   n);
+            }
+            else
+            {
+                invoke_on_all_hetero_policies<1>()(TestName(),
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   n);
+            }
         }
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
 void
 test2buffers()
 {
-    const sycl::queue& queue = my_queue; // usm and allocator requires queue
+    sycl::queue queue = get_test_queue(); // usm and allocator requires queue
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
+        using TestBaseData = test_base_data_usm<TestValueType>;
+        TestBaseData test_base_data(alloc_type, queue, max_n, inout1_offset, inout2_offset);
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
+        auto inout1_offset_first = test_base_data.get_start_from(0);
+        auto inout2_offset_first = test_base_data.get_start_from(1);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -236,19 +240,33 @@ test2buffers()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(TestName(), inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n, n);
+            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
+            {
+                TestName testObj(test_base_data);
+                invoke_on_all_hetero_policies<0>()(testObj,
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   n);
+            }
+            else
+            {
+                invoke_on_all_hetero_policies<0>()(TestName(),
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   n);
+            }
         }
     }
 #endif
     { // sycl::buffer
         // 1. create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
+        using TestBaseData = test_base_data_buffer<TestValueType>;
+        TestBaseData test_base_data({ { max_n, inout1_offset },
+                                      { max_n, inout2_offset } });
 
         // 2. create iterators over buffers
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
+        auto inout1_offset_first = test_base_data.get_start_from(0);
+        auto inout2_offset_first = test_base_data.get_start_from(1);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -256,36 +274,42 @@ test2buffers()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(TestName(), inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n, n);
+            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
+            {
+                TestName testObj(test_base_data);
+                invoke_on_all_hetero_policies<1>()(testObj,
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   n);
+            }
+            else
+            {
+                invoke_on_all_hetero_policies<1>()(TestName(),
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   n);
+            }
         }
     }
 }
 
-template <typename T, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
 void
-test3buffers(int mult = 1)
+test3buffers(int mult = kDefaultMultValue)
 {
-    const sycl::queue& queue = my_queue; // usm requires queue
+    sycl::queue queue = get_test_queue(); // usm requires queue
+
 #if _PSTL_SYCL_TEST_USM
     { // USM
+
         // 1. allocate usm memory
-        auto sycl_deleter = [queue](T* mem) { sycl::free(mem, queue.get_context()); };
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout1_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout1_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout2_first(
-            (T*)sycl::malloc_shared(sizeof(T) * (max_n + inout2_offset), queue.get_device(), queue.get_context()),
-            sycl_deleter);
-        ::std::unique_ptr<T, decltype(sycl_deleter)> inout3_first(
-            (T*)sycl::malloc_shared(mult * sizeof(T) * (max_n + inout3_offset), queue.get_device(),
-                                    queue.get_context()),
-            sycl_deleter);
+        using TestBaseData = test_base_data_usm<TestValueType>;
+        TestBaseData test_base_data(alloc_type, queue, max_n, inout1_offset, inout2_offset, inout3_offset);
 
         // 2. create pointers at first+offset
-        T* inout1_offset_first = inout1_first.get() + inout1_offset;
-        T* inout2_offset_first = inout2_first.get() + inout2_offset;
-        T* inout3_offset_first = inout3_first.get() + inout3_offset;
+        auto inout1_offset_first = test_base_data.get_start_from(0);
+        auto inout2_offset_first = test_base_data.get_start_from(1);
+        auto inout3_offset_first = test_base_data.get_start_from(2);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
@@ -293,22 +317,37 @@ test3buffers(int mult = 1)
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(TestName(), inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n, inout3_offset_first,
-                                               inout3_offset_first + n, n);
+            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
+            {
+                TestName testObj(test_base_data);
+                invoke_on_all_hetero_policies<0>()(testObj,
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   inout3_offset_first, inout3_offset_first + n,
+                                                   n);
+            }
+            else
+            {
+                invoke_on_all_hetero_policies<0>()(TestName(),
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   inout3_offset_first, inout3_offset_first + n,
+                                                   n);
+            }
         }
     }
 #endif
     { // sycl::buffer
         // 1. create buffers
-        sycl::buffer<T, 1> inout1{sycl::range<1>(max_n + inout1_offset)};
-        sycl::buffer<T, 1> inout2{sycl::range<1>(max_n + inout2_offset)};
-        sycl::buffer<T, 1> inout3{sycl::range<1>(mult * max_n + inout3_offset)};
+        using TestBaseData = test_base_data_buffer<TestValueType>;
+        TestBaseData test_base_data({ { max_n,        inout1_offset },
+                                      { max_n,        inout2_offset },
+                                      { mult * max_n, inout3_offset } });
 
         // 2. create iterators over buffers
-        auto inout1_offset_first = oneapi::dpl::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = oneapi::dpl::begin(inout2) + inout2_offset;
-        auto inout3_offset_first = oneapi::dpl::begin(inout3) + inout3_offset;
+        auto inout1_offset_first = test_base_data.get_start_from(0);
+        auto inout2_offset_first = test_base_data.get_start_from(1);
+        auto inout3_offset_first = test_base_data.get_start_from(2);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
@@ -316,11 +355,52 @@ test3buffers(int mult = 1)
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(TestName(), inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n, inout3_offset_first,
-                                               inout3_offset_first + n, n);
+            if constexpr (::std::is_base_of<test_base<TestValueType>, TestName>::value)
+            {
+                TestName testObj(test_base_data);
+                invoke_on_all_hetero_policies<1>()(testObj,
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   inout3_offset_first, inout3_offset_first + n,
+                                                   n);
+            }
+            else
+            {
+                invoke_on_all_hetero_policies<1>()(TestName(),
+                                                   inout1_offset_first, inout1_offset_first + n,
+                                                   inout2_offset_first, inout2_offset_first + n,
+                                                   inout3_offset_first, inout3_offset_first + n,
+                                                   n);
+            }
         }
     }
+}
+
+template <sycl::usm::alloc alloc_type, typename TestName>
+typename ::std::enable_if<
+    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
+    void>::type
+test1buffer()
+{
+    test1buffer<alloc_type, typename TestName::UsedValueType, TestName>();
+}
+
+template <sycl::usm::alloc alloc_type, typename TestName>
+typename ::std::enable_if<
+    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
+    void>::type
+test2buffers()
+{
+    test2buffers<alloc_type, typename TestName::UsedValueType, TestName>();
+}
+
+template <sycl::usm::alloc alloc_type, typename TestName>
+typename ::std::enable_if<
+    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
+    void>::type
+test3buffers(int mult = kDefaultMultValue)
+{
+    test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
 
 // use the function carefully due to temporary accessor creation.
@@ -369,4 +449,5 @@ get_host_access(T* data)
     return data;
 }
 } /* namespace TestUtils */
+
 #endif
