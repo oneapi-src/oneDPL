@@ -159,8 +159,8 @@ test1buffer()
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        using TestBaseData = test_base_data_usm<TestValueType>;
-        TestBaseData test_base_data(alloc_type, queue, { { max_n, (::std::size_t)inout1_offset } });
+        using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
+        TestBaseData test_base_data(alloc_type, queue, { { max_n, inout1_offset } });
 
         // 2. create a pointer at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(0);
@@ -207,9 +207,9 @@ test2buffers()
 #if _PSTL_SYCL_TEST_USM
     { // USM
         // 1. allocate usm memory
-        using TestBaseData = test_base_data_usm<TestValueType>;
-        TestBaseData test_base_data(alloc_type, queue, { { max_n, (::std::size_t)inout1_offset },
-                                                         { max_n, (::std::size_t)inout2_offset } });
+        using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
+        TestBaseData test_base_data(alloc_type, queue, { { max_n, inout1_offset },
+                                                         { max_n, inout2_offset } });
 
         // 2. create pointers at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(0);
@@ -262,10 +262,10 @@ test3buffers(int mult = kDefaultMultValue)
     { // USM
 
         // 1. allocate usm memory
-        using TestBaseData = test_base_data_usm<TestValueType>;
-        TestBaseData test_base_data(alloc_type, queue, { { max_n,        (::std::size_t)inout1_offset },
-                                                         { max_n,        (::std::size_t)inout2_offset },
-                                                         { max_n * mult, (::std::size_t)inout3_offset } });
+        using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
+        TestBaseData test_base_data(alloc_type, queue, { { max_n,        inout1_offset },
+                                                         { max_n,        inout2_offset },
+                                                         { max_n * mult, inout3_offset } });
 
         // 2. create pointers at first+offset
         auto inout1_offset_first = test_base_data.get_start_from(0);

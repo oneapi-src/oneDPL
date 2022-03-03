@@ -600,9 +600,9 @@ test_algo_three_sequences()
     {
         using TestBaseData = test_base_data_sequence<T>;
 
-        TestBaseData test_base_data({ { max_n, (::std::size_t)inout1_offset },
-                                      { max_n, (::std::size_t)inout2_offset },
-                                      { max_n, (::std::size_t)inout3_offset } });
+        TestBaseData test_base_data({ { max_n, inout1_offset },
+                                      { max_n, inout2_offset },
+                                      { max_n, inout3_offset } });
 
         // create iterators
         auto inout1_offset_first = test_base_data.get_start_from(0);
