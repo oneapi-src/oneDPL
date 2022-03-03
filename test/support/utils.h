@@ -704,6 +704,29 @@ struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::de
 {
 };
 
+template <typename IsOperationSupported>
+struct invoke_test_if
+{
+    template <typename Op>
+    void
+    operator()(Op op)
+    {
+        op();
+    }
+};
+
+template <>
+struct invoke_test_if<::std::false_type>
+{
+    template <typename Op>
+    void
+    operator()(Op op)
+    {
+        // Do not call op;
+    }
+};
+
+
 } /* namespace TestUtils */
 
 #endif // __UTILS_H
