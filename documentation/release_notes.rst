@@ -8,6 +8,14 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2021.7.0
+===============
+
+Fixed Issues
+------------
+- Fixed a kernel name mangling error. The error arose with range-based algorithms or ``reduce_by_segment`` used with
+  `dpcpp_default` or another DPC++ policy object constructed with no explicitly provided kernel name.
+
 New in 2021.6.1
 ===============
 
