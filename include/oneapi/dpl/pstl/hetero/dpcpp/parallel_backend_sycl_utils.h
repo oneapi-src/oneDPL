@@ -437,15 +437,15 @@ __wait_event(sycl::event __e)
 
 template <typename _T>
 constexpr auto
-__get_value(sycl::buffer<_T>& __buf, ::std::size_t __idx)
+__get_value(sycl::buffer<_T>& __buf)
 {
     //according to a contract, returned value is one-element sycl::buffer
-    return __buf.template get_access<access_mode::read>()[__idx];
+    return __buf.template get_access<access_mode::read>()[0];
 }
 
 template <typename _T>
 constexpr auto
-__get_value(_T& __val, ::std::size_t)
+__get_value(_T& __val)
 {
     return __val;
 }
@@ -456,14 +456,10 @@ template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
-    ::std::size_t __result_idx = 0;
 
   public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
-    __future(_Event __e, std::tuple<_Args...> __t, ::std::size_t __idx)
-        : std::tuple<_Args...>(__t), __my_event(__e), __result_idx(__idx)
-    {
-    }
+    __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
 
     auto
     event() const
@@ -482,12 +478,7 @@ class __future : private std::tuple<_Args...>
     {
         wait();
         if constexpr (sizeof...(_Args) > 0)
-            return __get_value(std::get<0>(*this), __result_idx);
-    }
-    void
-    set_index(::std::size_t __idx)
-    {
-        __result_idx = __idx;
+            return __get_value(std::get<0>(*this));
     }
 
     //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,
@@ -498,7 +489,7 @@ class __future : private std::tuple<_Args...>
     {
         auto new_val = std::tuple<_T>(__t);
         auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
-        return __future<_Event, _T, _Args...>(__my_event, new_tuple, __result_idx);
+        return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
 

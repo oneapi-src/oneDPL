@@ -378,9 +378,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
         __n_groups = (__n - 1) / __size_per_work_group + 1;
     } while (__n > 1);
 
-    __future __f(__reduce_event, __temp);
-    __f.set_index(__offset_2);
-    return __f;
+    return __future(__reduce_event, sycl::buffer(__temp, sycl::id<1>(__offset_2), sycl::range<1>(1)));
 }
 
 //------------------------------------------------------------------------
@@ -518,9 +516,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                     __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg));
         });
 
-        __future __f(__final_event, __wg_sums);
-        __f.set_index(__n_groups - 1);
-        return __f;
+        return __future(__final_event, sycl::buffer(__wg_sums, sycl::id<1>(__n_groups - 1), sycl::range<1>(1)));
     }
 };
 
