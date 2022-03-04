@@ -81,8 +81,7 @@ void test_with_buffers()
     auto val_res_beg = oneapi::dpl::begin(val_res_buf);
 
     // create named policy from existing one
-    auto new_policy = oneapi::dpl::execution::make_device_policy<KernelName>(
-        oneapi::dpl::execution::dpcpp_default);
+    auto new_policy = oneapi::dpl::execution::make_device_policy<KernelName>(oneapi::dpl::execution::dpcpp_default);
 
     // call algorithm
     auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_beg, key_end, val_beg, key_res_beg, val_res_beg);
@@ -171,10 +170,10 @@ test_with_usm()
     auto val_res_head = dt_helper4.get_data();
 
     // call algorithm
-    auto new_policy =
-        oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<class async1, (::std::size_t)alloc_type>>(q);
-    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head,
-                                               key_res_head, val_res_head);
+    auto new_policy = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
+        TestUtils::unique_kernel_name<KernelName, 1>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
+    auto res1 =
+        oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
 
     //retrieve result on the host and check the result
     dt_helper3.retrieve_data(key_res_head_on_host);
@@ -204,10 +203,10 @@ test_with_usm()
     key_res_head_on_host[0] = T(9);
     val_res_head_on_host[0] = T(9);
 
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<
-        TestUtils::unique_kernel_name<class reduce_by_segment_4, (::std::size_t)alloc_type>>(q);
-    auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head,
-                                               key_res_head, val_res_head);
+    auto new_policy2 = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
+        TestUtils::unique_kernel_name<KernelName, 2>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
+    auto res2 =
+        oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);
 
     //retrieve result on the host and check the result
     dt_helper3.retrieve_data(key_res_head_on_host);
