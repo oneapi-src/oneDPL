@@ -20,8 +20,8 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- An application not using Parallel STL algorithms in libstdc++ version 9 may not compile with C++17/20 if
-  oneTBB is not present in the environment. Disable support for Parallel STL algorithms by setting
+- An application not using Parallel STL algorithms in GNU C++ standard library (libstdc++) version 9 may not compile with C++17/20
+  if oneTBB is not present in the environment. Disable support for Parallel STL algorithms by setting
   the macro ``PSTL_USE_PARALLEL_POLICIES`` to zero before including the first standard header file in each translation unit.
   Or use the workaround in the oneDPL library by including the oneDPL headers before the rest of the headers.
 - Due to specifics of Microsoft* Standard Template Library implementation, unable to compile Kernel code with some
