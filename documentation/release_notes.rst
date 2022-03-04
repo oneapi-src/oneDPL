@@ -15,6 +15,26 @@ Fixed Issues
 ------------
 - Fixed a kernel name mangling error. The error arose with range-based algorithms or ``reduce_by_segment`` used with
   `dpcpp_default` or another DPC++ policy object constructed with no explicitly provided kernel name.
+  
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- An application not using Parallel STL algorithms in libstdc++ version 9 may not compile with C++17/20 if
+  oneTBB is not present in the environment. Disable support for Parallel STL algorithms by setting
+  the macro ``PSTL_USE_PARALLEL_POLICIES`` to zero before including the first standard header file in each translation unit.
+  Or use the workaround in the oneDPL library by including the oneDPL headers before the rest of the headers.
+- Due to specifics of Microsoft* Standard Template Library implementation, unable to compile Kernel code with some
+  STL function calls (for example, std::upper_bound and etc.) from Debug version of Microsoft* Standard Template Library.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 
 New in 2021.6.1
 ===============
