@@ -66,19 +66,6 @@ check_values(Iterator first, Iterator last, const T& val)
     return ::std::all_of(first, last, [&val](const T& x) { return x == val; });
 }
 
-template <sycl::usm::alloc alloc_type>
-constexpr ::std::size_t
-uniq_kernel_index()
-{
-    return static_cast<typename ::std::underlying_type<sycl::usm::alloc>::type>(alloc_type);
-}
-
-template <typename Op, ::std::size_t CallNumber>
-struct unique_kernel_name;
-
-template <typename Policy, int idx>
-using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
-
 auto async_handler = [](sycl::exception_list ex_list) {
     for (auto& ex : ex_list)
     {
