@@ -476,9 +476,10 @@ class __future : private std::tuple<_Args...>
     auto
     get()
     {
-        wait();
         if constexpr (sizeof...(_Args) > 0)
             return __get_value(std::get<0>(*this));
+        else
+            wait();
     }
 
     //The internal API. There are cases where the implementation specifies return value  "higher" than SYCL backend,
