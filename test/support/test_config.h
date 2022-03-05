@@ -96,4 +96,11 @@
 // Disable ::std::conj(int) on host
 #define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_ON_HOST_BROKEN 1
 
+// Disable ::std::conj(int) in Kernel for DPCPP
+#if defined(TEST_DPCPP_BACKEND_PRESENT)
+#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN 1
+#else
+#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN 0
+#endif
+
 #endif /* _TEST_config_H */
