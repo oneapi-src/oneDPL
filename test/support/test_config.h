@@ -93,4 +93,7 @@
 // Enable/disable std::complex with constexpr testing
 #define TEST_COMPLEX_WITH_CONSTEXPR 0
 
+// Disable ::std::conj(int) on host
+#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_ON_HOST_BROKEN 1
+
 #endif /* _TEST_config_H */
