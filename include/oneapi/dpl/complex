@@ -24,6 +24,7 @@ namespace oneapi
 namespace dpl
 {
 using ::std::abs;
+using ::std::arg;
 using ::std::complex;
 using ::std::imag;
 using ::std::real;
