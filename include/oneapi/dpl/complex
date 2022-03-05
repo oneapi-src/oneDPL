@@ -24,6 +24,7 @@ namespace oneapi
 namespace dpl
 {
 using ::std::complex;
+using ::std::real;
 } // namespace dpl
 } // namespace oneapi
 
