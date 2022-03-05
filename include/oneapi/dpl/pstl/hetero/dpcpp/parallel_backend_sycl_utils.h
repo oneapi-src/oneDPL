@@ -450,6 +450,14 @@ __get_value(_T& __val)
     return __val;
 }
 
+template <typename _T>
+std::false_type
+__do_wait(sycl::buffer<_T>&);
+
+template <typename _T>
+std::true_type
+__do_wait(_T&);
+
 //A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
 //Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
@@ -477,7 +485,12 @@ class __future : private std::tuple<_Args...>
     get()
     {
         if constexpr (sizeof...(_Args) > 0)
-            return __get_value(std::get<0>(*this));
+        {
+            auto& __val = std::get<0>(*this);
+            if constexpr (decltype(__do_wait(__val))::value)
+                wait();
+            return __get_value(__val);
+        }
         else
             wait();
     }
