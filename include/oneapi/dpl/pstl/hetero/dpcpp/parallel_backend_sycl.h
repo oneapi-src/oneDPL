@@ -316,7 +316,6 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 
     // Create temporary global buffers to store temporary values
     sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
-    sycl::buffer<_Tp> __result(sycl::range<1>(1));
     // __is_first == true. Reduce over each work_group
     // __is_first == false. Reduce between work groups
     bool __is_first = true;
@@ -334,7 +333,6 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
 
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-            auto __result_acc = __result.template get_access<access_mode::write>(__cgh);
             sycl::accessor<_Tp, 1, access_mode::read_write, __dpl_sycl::__target::local> __temp_local(
                 sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -364,14 +362,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
                     _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
                     if (__local_idx == 0)
                     {
-                        __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
-
-                        //final reduction, store the result in one-element buffer
+                        //final reduction
                         if (__n_groups == 1)
-                        {
                             __brick_reduce.apply_init(__init, __result);
-                            __result_acc[0] = __result;
-                        }
+
+                        __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
                     }
                 });
         });
@@ -382,31 +377,26 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
         __n_items = (__n - 1) / __iters_per_work_item + 1;
         __n_groups = (__n - 1) / __size_per_work_group + 1;
     } while (__n > 1);
-    return __future(__reduce_event, __result, __temp);
+
+    return __future(__reduce_event, sycl::buffer(__temp, sycl::id<1>(__offset_2), sycl::range<1>(1)));
 }
 
 //------------------------------------------------------------------------
 // parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
-template <typename _GlobalScan, typename _Range2, typename _Range1, typename _Accessor, typename _Size,
-          typename _AccessorRes, typename _IdxRes>
+template <typename _GlobalScan, typename _Range2, typename _Range1, typename _Accessor, typename _Size>
 struct __global_scan_caller
 {
     __global_scan_caller(const _GlobalScan& __global_scan, const _Range2& __rng2, const _Range1& __rng1,
-                         const _Accessor& __wg_sums_acc, _Size __n, ::std::size_t __size_per_wg, _AccessorRes __acc_res,
-                         _IdxRes __idx_res)
+                         const _Accessor& __wg_sums_acc, _Size __n, ::std::size_t __size_per_wg)
         : __m_global_scan(__global_scan), __m_rng2(__rng2), __m_rng1(__rng1), __m_wg_sums_acc(__wg_sums_acc),
-          __m_n(__n), __m_size_per_wg(__size_per_wg), __m_acc_res(__acc_res), __m_idx_res(__idx_res)
+          __m_n(__n), __m_size_per_wg(__size_per_wg)
     {
     }
 
     void operator()(sycl::item<1> __item) const
     {
         __m_global_scan(__item, __m_rng2, __m_rng1, __m_wg_sums_acc, __m_n, __m_size_per_wg);
-
-        //store result in one-element buffer
-        if (__item.get_linear_id() == 0)
-            __m_acc_res[0] = __m_wg_sums_acc[__m_idx_res];
     }
 
   private:
@@ -414,8 +404,6 @@ struct __global_scan_caller
     _Range2 __m_rng2;
     _Range1 __m_rng1;
     _Accessor __m_wg_sums_acc;
-    _AccessorRes __m_acc_res;
-    _IdxRes __m_idx_res;
     _Size __m_n;
     ::std::size_t __m_size_per_wg;
 };
@@ -470,7 +458,6 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __n_groups = (__n - 1) / __size_per_wg + 1;
         // Storage for the results of scan for each workgroup
         sycl::buffer<_Type> __wg_sums(__n_groups);
-        sycl::buffer<_Type> __result(sycl::range<1>(1));
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
 
@@ -522,17 +509,14 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             __cgh.depends_on(__submit_event);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
-            //TODO: usage of __result_acc
-            auto __result_acc = __result.template get_access<access_mode::write>(__cgh);
             __cgh.parallel_for<_PropagateScanName...>(
                 sycl::range<1>(__n_groups * __size_per_wg),
                 __global_scan_caller<_GlobalScan, typename ::std::decay<_Range2>::type,
-                                     typename ::std::decay<_Range1>::type, decltype(__wg_sums_acc), decltype(__n),
-                                     decltype(__result_acc), decltype(__n_groups)>(
-                    __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg, __result_acc, __n_groups - 1));
+                                     typename ::std::decay<_Range1>::type, decltype(__wg_sums_acc), decltype(__n)>(
+                    __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg));
         });
 
-        return __future(__final_event, __result, __wg_sums);
+        return __future(__final_event, sycl::buffer(__wg_sums, sycl::id<1>(__n_groups - 1), sycl::range<1>(1)));
     }
 };
 
