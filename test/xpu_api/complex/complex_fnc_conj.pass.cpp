@@ -75,8 +75,10 @@ protected:
 
     void run_test_integer(::std::true_type)
     {
+#if !TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_ON_HOST_BROKEN
         // Test in type on host
         test_form_2<int>();                 // DoubleOrInteger, result type checked
+#endif // !TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_ON_HOST_BROKEN
     }
 
     void run_test_integer(::std::false_type)
