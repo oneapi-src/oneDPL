@@ -83,8 +83,10 @@ protected:
 
     void run_test_integer(::std::false_type)
     {
+#if !TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN
         // Test int type in Kernel
         test_form_2<int>();                 // DoubleOrInteger, result type checked
+#endif // !TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN
     }
 
     template <typename T>
