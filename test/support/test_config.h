@@ -103,4 +103,11 @@
 #define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN 0
 #endif
 
+// Disable ::std::abs test in Kernel for Windows + DPCPP + FPGA_EMU
+#if defined(_MSC_VER) && defined(TEST_DPCPP_BACKEND_PRESENT) && defined(_ONEDPL_FPGA_DEVICE)
+#define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN 1
+#else
+#define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN 0
+#endif
+
 #endif /* _TEST_config_H */
