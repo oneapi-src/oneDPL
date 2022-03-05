@@ -27,6 +27,7 @@ using ::std::abs;
 using ::std::arg;
 using ::std::complex;
 using ::std::conj;
+using ::std::exp;
 using ::std::imag;
 using ::std::real;
 } // namespace dpl
