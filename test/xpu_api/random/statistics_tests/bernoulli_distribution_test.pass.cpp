@@ -21,10 +21,10 @@
 #include <iostream>
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
-#include <CL/sycl.hpp>
 #include <limits>
 #include <oneapi/dpl/random>
 #include <math.h>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #include "statistics_common.h"
 
 // Engine parameters

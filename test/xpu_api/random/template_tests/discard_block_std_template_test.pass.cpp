@@ -22,9 +22,10 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #include <vector>
-#include <CL/sycl.hpp>
 #include <random>
 #include <oneapi/dpl/random>
+
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 
 template<class Engine, class StdEngine>
 int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<typename Engine::result_type> seed, std::int32_t nsamples) {

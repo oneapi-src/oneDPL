@@ -10,7 +10,7 @@
 #include <oneapi/dpl/iterator>
 
 #if !BUILD_FOR_HOST
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #endif
 #include <iomanip>
 #include <iostream>

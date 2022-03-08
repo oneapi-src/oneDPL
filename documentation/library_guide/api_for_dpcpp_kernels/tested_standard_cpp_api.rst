@@ -14,7 +14,7 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL* de
 
 .. code:: cpp
 
-  #include <CL/sycl.hpp>
+  #include <sycl/sycl.hpp>
   #include <oneapi/dpl/utility>
   #include <iostream>
   constexpr sycl::access::mode sycl_read_write = sycl::access::mode::read_write;

@@ -18,7 +18,7 @@
 #include _PSTL_TEST_HEADER(execution)
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #endif
 
 #include "support/utils.h"

@@ -20,6 +20,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #   include "oneapi/dpl/async"
+#   include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #endif
 
 #include <iostream>
@@ -120,7 +121,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    cl::sycl::queue q;
+    sycl::queue q;
 
     constexpr int n = 1024;
     constexpr int n_small = 13;
