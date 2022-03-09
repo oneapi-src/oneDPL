@@ -83,6 +83,11 @@ Known Limitations
   To overcome these issues, include oneDPL header files before the standard C++ header files,
   or disable parallel algorithms support in the standard library. 
   For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
+* When using oneDPL with serial or OpenMP backend and libstdc++ version 9, and C++17 or C++20, a compilation error occurs
+  if oneTBB is not present in the environment. It happens because libstdc++ version 9 does not check
+  oneTBB availability. To get rid of the error, disable support for Parallel STL algorithms by setting the macro
+  ``PSTL_USE_PARALLEL_POLICIES`` to zero before including the first standard header file in each translation unit,
+  or include oneDPL headers before the rest of the headers.
 * The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias. 
