@@ -13,8 +13,8 @@ New in 2021.7.0
 
 Fixed Issues
 ------------
-- Fixed a kernel name mangling error. The error arose with range-based algorithms or ``reduce_by_segment`` used with
-  `dpcpp_default` or another DPC++ policy object constructed with no explicitly provided kernel name.
+- Fixed a kernel name definition error in range-based algorithms and ``reduce_by_segment`` used with
+  a device_policy object that has no explicit kernel name.
   
 Known Issues and Limitations
 ----------------------------
@@ -24,8 +24,8 @@ New in This Release
   if oneTBB is not present in the environment. Disable support for Parallel STL algorithms by setting
   the macro ``PSTL_USE_PARALLEL_POLICIES`` to zero before including the first standard header file in each translation unit.
   Or use the workaround in the oneDPL library by including the oneDPL headers before the rest of the headers.
-- Due to specifics of Microsoft* Standard Template Library implementation, unable to compile Kernel code with some
-  STL function calls (for example, std::upper_bound and etc.) from Debug version of Microsoft* Standard Template Library.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
