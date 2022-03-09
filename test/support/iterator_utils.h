@@ -89,7 +89,7 @@ class BidirectionalIterator : public ForwardIterator<Iterator, IteratorTag>
         ++base_type::my_iterator;
         return *this;
     }
-    BidirectionalIterator
+    BidirectionalIterator&
     operator--()
     {
         --base_type::my_iterator;
