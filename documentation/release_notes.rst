@@ -11,6 +11,11 @@ creating efficient heterogeneous applications.
 New in 2021.7.0
 ===============
 
+Deprecation Notice
+------------------
+- Deprecated support of C++11 for Parallel API with host execution policies (``seq``, ``unseq``, ``par``, ``par_unseq``).
+  C++17 is the minimal required version going forward.
+  
 Fixed Issues
 ------------
 - Fixed a kernel name definition error in range-based algorithms and ``reduce_by_segment`` used with
@@ -20,10 +25,6 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- An application not using Parallel STL algorithms in GNU C++ standard library (libstdc++) version 9 may not compile with C++17/20
-  if oneTBB is not present in the environment. Disable support for Parallel STL algorithms by setting
-  the macro ``PSTL_USE_PARALLEL_POLICIES`` to zero before including the first standard header file in each translation unit.
-  Or use the workaround in the oneDPL library by including the oneDPL headers before the rest of the headers.
 - STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
   the Microsoft* Visual C++ standard library.
 
