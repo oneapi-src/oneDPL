@@ -26,10 +26,25 @@
 
 #include <iostream>
 #include <vector>
+#include <iomanip>
+#include <signal.h>
+
+void signal_handler(int signal)
+{
+    auto time_of_term = std::time(nullptr);
+    std::cout << "Test terminated at " << std::put_time(std::gmtime(&time_of_term), "%F %T%z") << std::endl;
+
+    exit(-1);
+}
 
 int
 main()
 {
+    signal(SIGINT, signal_handler);
+
+    auto time_start = std::time(nullptr);
+    std::cout << "Test started at " << std::put_time(std::gmtime(&time_start), "%F %T%z") << std::endl;
+
 #if TEST_DPCPP_BACKEND_PRESENT
     constexpr int kItemsCount = 10;
 
@@ -55,6 +70,9 @@ main()
     EXPECT_EQ_N(results.begin(), results_expected.begin(), kItemsCount, "wrong effect from inclusive_scan");
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+    auto time_finish = std::time(nullptr);
+    std::cout << "Test finished at " << std::put_time(std::gmtime(&time_finish), "%F %T%z") << std::endl;
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
