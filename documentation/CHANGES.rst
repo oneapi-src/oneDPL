@@ -6,6 +6,26 @@ Overview
 
 The list of the most significant changes made over time in oneDPL.
 
+New in 2021.7.0
+===============
+
+Deprecation Notice
+------------------
+- Deprecated support of C++11 for Parallel API with host execution policies (``seq``, ``unseq``, ``par``, ``par_unseq``).
+  C++17 is the minimal required version going forward.
+  
+Fixed Issues
+------------
+- Fixed a kernel name definition error in range-based algorithms and ``reduce_by_segment`` used with
+  a device_policy object that has no explicit kernel name.
+  
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
 New in 2021.6.1
 ===============
 
