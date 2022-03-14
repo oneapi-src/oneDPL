@@ -83,13 +83,13 @@ class BidirectionalIterator : public ForwardIterator<Iterator, IteratorTag>
     explicit BidirectionalIterator(Iterator i) : base_type(i) {}
     BidirectionalIterator(const base_type& i) : base_type(i.iterator()) {}
 
-    BidirectionalIterator
+    BidirectionalIterator&
     operator++()
     {
         ++base_type::my_iterator;
         return *this;
     }
-    BidirectionalIterator
+    BidirectionalIterator&
     operator--()
     {
         --base_type::my_iterator;
