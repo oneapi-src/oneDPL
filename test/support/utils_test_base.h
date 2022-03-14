@@ -509,7 +509,7 @@ template <typename TestValueType>
 sycl::buffer<TestValueType, 1>&
 TestUtils::test_base_data_buffer<TestValueType>::get_buffer(::std::size_t index)
 {
-    return data.at(index);
+    return data.at(index).src_data_buf;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
