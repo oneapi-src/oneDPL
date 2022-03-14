@@ -18,6 +18,7 @@
 #include <memory>
 #include <vector>
 #include <initializer_list>
+#include <utility>
 
 #include "utils_const.h"
 #include "utils_sequence.h"
@@ -47,19 +48,9 @@ enum_val_to_index(TEnum enumVal)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// 
-struct test_base_data_init_param
-{
-    ::std::size_t size = 0;     // Source test data size
-    ::std::size_t offset = 0;   // Offset from test data
-
-    test_base_data_init_param(::std::size_t __size, ::std::size_t __offset)
-        : size(__size)
-        , offset(__offset)
-    {
-    }
-};
-using InitParams = ::std::initializer_list<test_base_data_init_param>;
+/// First field - data size
+/// Second field - offset from test data
+using InitParams = ::std::initializer_list<::std::pair<::std::size_t, ::std::size_t>>;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// struct test_base_data - test source data base class
@@ -451,7 +442,7 @@ template <sycl::usm::alloc alloc_type, typename TestValueType>
 TestUtils::test_base_data_usm<alloc_type, TestValueType>::test_base_data_usm(sycl::queue __q, InitParams init)
 {
     for (auto& initParam : init)
-        data.emplace_back(__q, initParam.size, initParam.offset);
+        data.emplace_back(__q, initParam.first, initParam.second);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -509,7 +500,7 @@ template <typename TestValueType>
 TestUtils::test_base_data_buffer<TestValueType>::test_base_data_buffer(InitParams init)
 {
     for (auto& initParam : init)
-        data.emplace_back(initParam.size, initParam.offset);
+        data.emplace_back(initParam.first, initParam.second);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -581,7 +572,7 @@ template <typename TestValueType>
 TestUtils::test_base_data_sequence<TestValueType>::test_base_data_sequence(InitParams init)
 {
     for (auto& initParam : init)
-        data.emplace_back(initParam.size, initParam.offset);
+        data.emplace_back(initParam.first, initParam.second);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
