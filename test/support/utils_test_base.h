@@ -146,7 +146,7 @@ struct test_base_data_usm : test_base_data<TestValueType>
 
     test_base_data_usm(sycl::queue __q, InitParams init);
 
-    TestValueType* get_start_from(::std::size_t index);
+    TestValueType* get_start_from(UDTKind kind);
 
 // test_base_data
 
@@ -191,10 +191,10 @@ struct test_base_data_buffer : test_base_data<TestValueType>
 
     test_base_data_buffer(InitParams init);
 
-    sycl::buffer<TestValueType, 1>& get_buffer(::std::size_t index);
+    sycl::buffer<TestValueType, 1>& get_buffer(UDTKind kind);
 
-    auto get_start_from(::std::size_t index)
-        -> decltype(oneapi::dpl::begin(data.at(index).src_data_buf));
+    auto get_start_from(UDTKind kind)
+        -> decltype(oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf));
 
 // test_base_data
 
@@ -235,8 +235,8 @@ struct test_base_data_sequence : test_base_data<TestValueType>
 
     test_base_data_sequence(InitParams init);
 
-    auto get_start_from(::std::size_t index)
-        -> decltype(data.at(index).src_data_seq.begin());
+    auto get_start_from(UDTKind kind)
+        -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.begin());
 
 // test_base_data
 
@@ -412,9 +412,9 @@ test_algo_three_sequences()
                                       { max_n, inout3_offset } });
 
         // create iterators
-        auto inout1_offset_first = test_base_data.get_start_from(0);
-        auto inout2_offset_first = test_base_data.get_start_from(1);
-        auto inout3_offset_first = test_base_data.get_start_from(2);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
+        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
 
         invoke_on_all_host_policies()(create_test_obj<T, TestName>(test_base_data),
                                       inout1_offset_first, inout1_offset_first + n,
@@ -448,9 +448,9 @@ TestUtils::test_base_data_usm<alloc_type, TestValueType>::test_base_data_usm(syc
 //--------------------------------------------------------------------------------------------------------------------//
 template <sycl::usm::alloc alloc_type, typename TestValueType>
 TestValueType*
-TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_start_from(::std::size_t index)
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_start_from(UDTKind kind)
 {
-    auto& data_item = data.at(index);
+    auto& data_item = data.at(enum_val_to_index(kind));
     return data_item.get_start_from();
 }
 
@@ -470,7 +470,7 @@ TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_data(UDTKind kind)
     if (host_buffering_required())
         return nullptr;
 
-    return get_start_from(enum_val_to_index(kind));
+    return get_start_from(kind);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -506,18 +506,18 @@ TestUtils::test_base_data_buffer<TestValueType>::test_base_data_buffer(InitParam
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 sycl::buffer<TestValueType, 1>&
-TestUtils::test_base_data_buffer<TestValueType>::get_buffer(::std::size_t index)
+TestUtils::test_base_data_buffer<TestValueType>::get_buffer(UDTKind kind)
 {
-    return data.at(index).src_data_buf;
+    return data.at(enum_val_to_index(kind)).src_data_buf;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 auto
-TestUtils::test_base_data_buffer<TestValueType>::get_start_from(::std::size_t index)
--> decltype(oneapi::dpl::begin(data.at(index).src_data_buf))
+TestUtils::test_base_data_buffer<TestValueType>::get_start_from(UDTKind kind)
+    -> decltype(oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf))
 {
-    return oneapi::dpl::begin(data.at(index).src_data_buf) + data.at(index).offset;
+    return oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf) + data.at(enum_val_to_index(kind)).offset;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -578,10 +578,10 @@ TestUtils::test_base_data_sequence<TestValueType>::test_base_data_sequence(InitP
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 auto
-TestUtils::test_base_data_sequence<TestValueType>::get_start_from(::std::size_t index)
--> decltype(data.at(index).src_data_seq.begin())
+TestUtils::test_base_data_sequence<TestValueType>::get_start_from(UDTKind kind)
+    -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.begin())
 {
-    return data.at(index).src_data_seq.begin() + data.at(index).offset;
+    return data.at(enum_val_to_index(kind)).src_data_seq.begin() + data.at(enum_val_to_index(kind)).offset;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//

@@ -79,8 +79,8 @@ void test_simple_copy(size_t buffer_size)
                                   { buffer_size, 0 } });
 
     // 2. create iterators over buffers
-    auto sycl_source_begin = test_base_data.get_start_from(0);
-    auto sycl_result_begin = test_base_data.get_start_from(1);
+    auto sycl_source_begin = test_base_data.get_start_from(UDTKind::eKeys);
+    auto sycl_result_begin = test_base_data.get_start_from(UDTKind::eVals);
 
     // 3. run algorithms
     auto transformation = [](int item) { return item + 1; };
@@ -89,7 +89,7 @@ void test_simple_copy(size_t buffer_size)
     auto tr_sycl_source_end = tr_sycl_source_begin + buffer_size;
 
     int identity = 0;
-    auto& sycl_src_buf = test_base_data.get_buffer(0);
+    auto& sycl_src_buf = test_base_data.get_buffer(UDTKind::eKeys);
     auto host_source_begin = sycl_src_buf.get_access<sycl::access::mode::write>().get_pointer();
     ::std::fill_n(host_source_begin, buffer_size, identity);
 
@@ -105,8 +105,8 @@ void test_ignore_copy(size_t buffer_size)
                                   { buffer_size, 0 } });
 
     // 2. create iterators over buffers
-    auto& source_buf = test_base_data.get_buffer(0);
-    auto& result_buf = test_base_data.get_buffer(1);
+    auto& source_buf = test_base_data.get_buffer(UDTKind::eKeys);
+    auto& result_buf = test_base_data.get_buffer(UDTKind::eVals);
 
     auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
     auto host_result_begin = result_buf.template get_access<sycl::access::mode::write>().get_pointer();
@@ -137,8 +137,8 @@ void test_multi_transform_copy(size_t buffer_size)
                                   { buffer_size, 0 } });
 
     // 2. create iterators over buffers
-    sycl::buffer<int>& source_buf = test_base_data.get_buffer(0);
-    sycl::buffer<int>& result_buf = test_base_data.get_buffer(1);
+    sycl::buffer<int>& source_buf = test_base_data.get_buffer(UDTKind::eKeys);
+    sycl::buffer<int>& result_buf = test_base_data.get_buffer(UDTKind::eVals);
 
     auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
 

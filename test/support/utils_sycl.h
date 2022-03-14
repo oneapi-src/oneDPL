@@ -150,7 +150,7 @@ test1buffer()
         TestBaseData test_base_data(queue, { { max_n, inout1_offset } });
 
         // 2. create a pointer at first+offset
-        auto inout1_offset_first = test_base_data.get_start_from(0);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -170,7 +170,7 @@ test1buffer()
         TestBaseData test_base_data({ { max_n, inout1_offset } });
 
         // 2. create iterators over buffers
-        auto inout1_offset_first = test_base_data.get_start_from(0);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -199,8 +199,8 @@ test2buffers()
                                              { max_n, inout2_offset } });
 
         // 2. create pointers at first+offset
-        auto inout1_offset_first = test_base_data.get_start_from(0);
-        auto inout2_offset_first = test_base_data.get_start_from(1);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -222,8 +222,8 @@ test2buffers()
                                       { max_n, inout2_offset } });
 
         // 2. create iterators over buffers
-        auto inout1_offset_first = test_base_data.get_start_from(0);
-        auto inout2_offset_first = test_base_data.get_start_from(1);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
@@ -255,9 +255,9 @@ test3buffers(int mult = kDefaultMultValue)
                                              { max_n * mult, inout3_offset } });
 
         // 2. create pointers at first+offset
-        auto inout1_offset_first = test_base_data.get_start_from(0);
-        auto inout2_offset_first = test_base_data.get_start_from(1);
-        auto inout3_offset_first = test_base_data.get_start_from(2);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
+        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
@@ -281,9 +281,9 @@ test3buffers(int mult = kDefaultMultValue)
                                       { max_n * mult, inout3_offset } });
 
         // 2. create iterators over buffers
-        auto inout1_offset_first = test_base_data.get_start_from(0);
-        auto inout2_offset_first = test_base_data.get_start_from(1);
-        auto inout3_offset_first = test_base_data.get_start_from(2);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
+        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
 
         // 3. run algorithms
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
