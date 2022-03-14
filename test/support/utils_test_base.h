@@ -52,6 +52,12 @@ struct test_base_data_init_param
 {
     ::std::size_t size = 0;     // Source test data size
     ::std::size_t offset = 0;   // Offset from test data
+
+    test_base_data_init_param(::std::size_t __size, ::std::size_t __offset)
+        : size(__size)
+        , offset(__offset)
+    {
+    }
 };
 using InitParams = ::std::initializer_list<test_base_data_init_param>;
 
