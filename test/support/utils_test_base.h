@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <vector>
+#include <initializer_list>
 
 #include "utils_const.h"
 #include "utils_sequence.h"
@@ -46,16 +47,19 @@ enum_val_to_index(TEnum enumVal)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// 
+struct test_base_data_init_param
+{
+    ::std::size_t size = 0;     // Source test data size
+    ::std::size_t offset = 0;   // Offset from test data
+};
+using InitParams = ::std::initializer_list<test_base_data_init_param>;
+
+////////////////////////////////////////////////////////////////////////////////
 /// struct test_base_data - test source data base class
 template <typename TestValueType>
 struct test_base_data
 {
-    struct InitParam
-    {
-        ::std::size_t size   = 0;   // Source test data size
-        ::std::size_t offset = 0;   // Offset from test data
-    };
-
     /// Check that host buffering is required
     /**
      * @return bool - true, if host buffering of test data is required, false - otherwise
@@ -143,7 +147,7 @@ struct test_base_data_usm : test_base_data<TestValueType>
                                 //  - 2 items for test2buffers;
                                 //  - 3 items for test3buffers
 
-    test_base_data_usm(sycl::queue __q, ::std::initializer_list<typename test_base_data<TestValueType>::InitParam> init);
+    test_base_data_usm(sycl::queue __q, InitParams init);
 
     TestValueType* get_start_from(::std::size_t index);
 
@@ -188,7 +192,7 @@ struct test_base_data_buffer : test_base_data<TestValueType>
                                 //  - 2 items for test2buffers;
                                 //  - 3 items for test3buffers
 
-    test_base_data_buffer(::std::initializer_list<typename test_base_data<TestValueType>::InitParam> init);
+    test_base_data_buffer(InitParams init);
 
     sycl::buffer<TestValueType, 1>& get_buffer(::std::size_t index);
 
@@ -232,7 +236,7 @@ struct test_base_data_sequence : test_base_data<TestValueType>
     ::std::vector<Data> data;   // Vector of source test data:
                                 //  - 3 items for test_algo_three_sequences
 
-    test_base_data_sequence(::std::initializer_list<typename test_base_data<TestValueType>::InitParam> init);
+    test_base_data_sequence(InitParams init);
 
     auto get_start_from(::std::size_t index)
         -> decltype(data.at(index).src_data_seq.begin());
@@ -438,8 +442,7 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 #if TEST_DPCPP_BACKEND_PRESENT
 template <sycl::usm::alloc alloc_type, typename TestValueType>
-TestUtils::test_base_data_usm<alloc_type, TestValueType>::test_base_data_usm(
-    sycl::queue __q, ::std::initializer_list<typename test_base_data<TestValueType>::InitParam> init)
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::test_base_data_usm(sycl::queue __q, InitParams init)
 {
     for (auto& initParam : init)
         data.emplace_back(__q, initParam.size, initParam.offset);
@@ -497,8 +500,7 @@ TestUtils::test_base_data_usm<alloc_type, TestValueType>::update_data(UDTKind ki
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
-TestUtils::test_base_data_buffer<TestValueType>::test_base_data_buffer(
-    ::std::initializer_list<typename test_base_data<TestValueType>::InitParam> init)
+TestUtils::test_base_data_buffer<TestValueType>::test_base_data_buffer(InitParams init)
 {
     for (auto& initParam : init)
         data.emplace_back(initParam.size, initParam.offset);
@@ -570,8 +572,7 @@ TestUtils::test_base_data_buffer<TestValueType>::update_data(UDTKind kind, TestV
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
-TestUtils::test_base_data_sequence<TestValueType>::test_base_data_sequence(
-    ::std::initializer_list<typename test_base_data<TestValueType>::InitParam> init)
+TestUtils::test_base_data_sequence<TestValueType>::test_base_data_sequence(InitParams init)
 {
     for (auto& initParam : init)
         data.emplace_back(initParam.size, initParam.offset);
