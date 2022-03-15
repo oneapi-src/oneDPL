@@ -201,7 +201,7 @@ Error Handling with |dpcpp_short| Execution Policies
 
 The |dpcpp_short| error handling model supports two types of errors: Synchronous errors cause the DPC++ host
 runtime libraries throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
-associated with a|dpcpp_short| queue.
+associated with a |dpcpp_short| queue.
 
 For algorithms executed with |dpcpp_short| policies, handling all errors, synchronous or asynchronous, is a
 responsibility of the caller. Specifically:
