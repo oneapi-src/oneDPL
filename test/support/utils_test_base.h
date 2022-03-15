@@ -242,6 +242,7 @@ struct test_base_data_sequence : test_base_data<TestValueType>
 // test_base_data
 
     // Check that host buffering is required
+    //TODO: consider to remove that virtual function as a redundant. The polymorphic behavior should be defined within 'retrieve_data' and 'update_data' methods.
     virtual bool host_buffering_required() const override;
 
     // Get test data
