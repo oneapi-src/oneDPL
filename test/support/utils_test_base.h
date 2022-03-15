@@ -35,7 +35,7 @@ namespace TestUtils
 enum class UDTKind
 {
     eKeys = 0,  // ID for the first input data
-    eVals,      // Values
+    eVals,      // ID for the second input data (if applicable)
     eRes        // Results
 };
 
