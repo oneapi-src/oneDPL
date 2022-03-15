@@ -34,7 +34,7 @@ namespace TestUtils
 /// enum UDTKind - describe test source data kinds
 enum class UDTKind
 {
-    eKeys = 0,  // Keys
+    eKeys = 0,  // ID for the first input data
     eVals,      // Values
     eRes        // Results
 };
