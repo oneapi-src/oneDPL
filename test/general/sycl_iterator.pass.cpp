@@ -3669,7 +3669,7 @@ DEFINE_TEST(test_set_symmetric_difference)
 #if TEST_DPCPP_BACKEND_PRESENT
 template <sycl::usm::alloc alloc_type>
 void
-test_usm()
+test_usm_and_buffer()
 {
     using ValueType = ::std::int32_t;
 
@@ -3845,9 +3845,9 @@ main()
     {
 #if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory
-        test_usm<sycl::usm::alloc::shared>();
+        test_usm_and_buffer<sycl::usm::alloc::shared>();
         // Run tests for USM device memory
-        test_usm<sycl::usm::alloc::device>();
+        test_usm_and_buffer<sycl::usm::alloc::device>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
     }
     catch (const ::std::exception& exc)
