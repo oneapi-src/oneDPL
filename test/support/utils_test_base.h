@@ -214,6 +214,7 @@ struct test_base_data_buffer : test_base_data<TestValueType>
 
 ////////////////////////////////////////////////////////////////////////////////
 /// struct test_base_data_sequence -  test source data for sequence (based on std::vector)
+//TODO: consider remove 'struct test_base_data_sequence' (and usage of) because it does nothing.
 template <typename TestValueType>
 struct test_base_data_sequence : test_base_data<TestValueType>
 {
