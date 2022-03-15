@@ -97,17 +97,11 @@
 #define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_ON_HOST_BROKEN 1
 
 // Disable ::std::conj(int) in Kernel for DPCPP
-#if defined(TEST_DPCPP_BACKEND_PRESENT)
-#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN 1
-#else
-#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN 0
-#endif
+#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN                                                        \
+    (defined(TEST_DPCPP_BACKEND_PRESENT))
 
 // Disable ::std::abs test in Kernel for Windows + DPCPP + FPGA_EMU
-#if defined(_MSC_VER) && defined(TEST_DPCPP_BACKEND_PRESENT) && defined(_ONEDPL_FPGA_DEVICE)
-#define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN 1
-#else
-#define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN 0
-#endif
+#define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN                                                                               \
+    (defined(_MSC_VER) && defined(TEST_DPCPP_BACKEND_PRESENT) && defined(_ONEDPL_FPGA_DEVICE))
 
 #endif /* _TEST_config_H */
