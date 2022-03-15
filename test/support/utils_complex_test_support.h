@@ -37,12 +37,6 @@ using namespace oneapi::dpl::execution;
 //      C++14 : __cplusplus is 201402L
 //      C++20 : __cplusplus is 202002L
 
-#if TEST_COMPLEX_WITH_CONSTEXPR
-#define COMPLEX_TEST_CONSTEXPR constexpr
-#else
-#define COMPLEX_TEST_CONSTEXPR
-#endif
-
 namespace TestUtils
 {
 namespace Complex

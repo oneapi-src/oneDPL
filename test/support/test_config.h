@@ -66,8 +66,8 @@
 #define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN                                                                             \
     (defined(_MSC_VER) && defined(TEST_DPCPP_BACKEND_PRESENT) && defined(_ONEDPL_FPGA_DEVICE))
 
-// Enable/disable std::complex with constexpr testing
-#define TEST_COMPLEX_WITH_CONSTEXPR 0
+// May be defined as constexpr later
+#define COMPLEX_TEST_CONSTEXPR
 
 #define _PSTL_SYCL_TEST_USM 1
 
