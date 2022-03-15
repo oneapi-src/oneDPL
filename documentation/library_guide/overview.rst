@@ -79,18 +79,12 @@ Known Limitations
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   vector execution policies when building a program with GCC 10 and using ``-O0`` option.
 * The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
-  compilation errors (caused by oneTBB API changes). 
+  compilation errors (caused by oneTBB API changes).
+  Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
+  using C++17 or C++20 and TBB is not found in the environment, even if its use in |onedpl_short| is switched off.
   To overcome these issues, include |onedpl_short| header files before the standard C++ header files,
   or disable parallel algorithms support in the standard library. 
   For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
-* A compilation error occurs if oneTBB is not in your environment when you use |onedpl_short| with a serial or OpenMP backend,
-  libstdc++ version 9, and C++17 or C++20. The error occurs because libstdc++ version 9 does not check for oneTBB availability.
-  To remove the error:
-
-  * Disable support for Parallel STL algorithms by setting the macro, ``PSTL_USE_PARALLEL_POLICIES``, to zero before
-    including the first standard header file in each translation unit.
-  * Include |onedpl_short| headers before you include other headers.
-
 * The ``using namespace oneapi;`` directive in a |onedpl_short| program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias. 
