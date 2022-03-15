@@ -36,7 +36,7 @@ enum class UDTKind
 {
     eKeys = 0,  // ID for the first input data
     eVals,      // ID for the second input data (if applicable)
-    eRes        // Results
+    eRes        // ID for the output data (result)
 };
 
 template <typename TEnum>
