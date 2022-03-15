@@ -55,6 +55,20 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 
+// Disable ::std::conj(int) on host
+#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_ON_HOST_BROKEN 1
+
+// Disable ::std::conj(int) in Kernel for DPCPP
+#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN                                                      \
+    (defined(TEST_DPCPP_BACKEND_PRESENT))
+
+// Disable ::std::abs test in Kernel for Windows + DPCPP + FPGA_EMU
+#define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN                                                                             \
+    (defined(_MSC_VER) && defined(TEST_DPCPP_BACKEND_PRESENT) && defined(_ONEDPL_FPGA_DEVICE))
+
+// Enable/disable std::complex with constexpr testing
+#define TEST_COMPLEX_WITH_CONSTEXPR 0
+
 #define _PSTL_SYCL_TEST_USM 1
 
 // Enable test when the DPC++ backend is available
@@ -89,19 +103,5 @@
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY)
 #endif
 #endif //!defined(_ENABLE_RANGES_TESTING)
-
-// Enable/disable std::complex with constexpr testing
-#define TEST_COMPLEX_WITH_CONSTEXPR 0
-
-// Disable ::std::conj(int) on host
-#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_ON_HOST_BROKEN 1
-
-// Disable ::std::conj(int) in Kernel for DPCPP
-#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN                                                        \
-    (defined(TEST_DPCPP_BACKEND_PRESENT))
-
-// Disable ::std::abs test in Kernel for Windows + DPCPP + FPGA_EMU
-#define TEST_COMPLEX_ABS_IN_KERNEL_BROKEN                                                                               \
-    (defined(_MSC_VER) && defined(TEST_DPCPP_BACKEND_PRESENT) && defined(_ONEDPL_FPGA_DEVICE))
 
 #endif /* _TEST_config_H */
