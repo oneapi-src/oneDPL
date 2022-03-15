@@ -37,7 +37,7 @@ and use the ``std`` namespace.
 Prerequisites
 =============
 
-Since |onedpl_short| 2021.6, C++17 is the minimal supported version of the C++ standard.
+C++17 is the minimal supported version of the C++ standard.
 That means, any use of |onedpl_short| may require a C++17 compiler.
 While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.
  
@@ -78,12 +78,14 @@ Known Limitations
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   vector execution policies when building a program with GCC 10 and using ``-O0`` option.
-* The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
-  compilation errors (caused by oneTBB API changes). 
-  To overcome these issues, include oneDPL header files before the standard C++ header files,
+* The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
+  compilation errors (caused by oneTBB API changes).
+  Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
+  using C++17 or C++20 and TBB is not found in the environment, even if its use in |onedpl_short| is switched off.
+  To overcome these issues, include |onedpl_short| header files before the standard C++ header files,
   or disable parallel algorithms support in the standard library. 
   For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
-* The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
+* The ``using namespace oneapi;`` directive in a |onedpl_short| program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias. 
 * ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
