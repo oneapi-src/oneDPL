@@ -41,9 +41,9 @@
     (!PSTL_USE_DEBUG && (__linux__ || __APPLE__) && __INTEL_COMPILER == 1900)
 // ICC 19 generates wrong result with UDS on Windows
 #define _PSTL_ICC_19_TEST_SIMD_UDS_WINDOWS_RELEASE_BROKEN (__INTEL_COMPILER == 1900 && _MSC_VER && !_DEBUG)
-// ICC generates wrong result with UDS on MacOS
-#define _PSTL_ICC_TEST_SIMD_UDS_MACOS_RELEASE_BROKEN                                                                 \
-    (/*__INTEL_COMPILER == 1900 &&*/ !_DEBUG && __APPLE__)
+// ICC generates wrong result with UDS on icpc - 2021.5.0
+#define _PSTL_ICC_TEST_SIMD_UDS_BROKEN                                                                                \
+    (__INTEL_COMPILER && __INTEL_COMPILER_BUILD_DATE < 20211123)
 // ICC 18,19 generate wrong result
 #define _PSTL_ICC_18_19_TEST_SIMD_MONOTONIC_WINDOWS_RELEASE_BROKEN													  \
     ((__INTEL_COMPILER == 1800 || __INTEL_COMPILER == 1900) && _MSC_VER && !_DEBUG)
