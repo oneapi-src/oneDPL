@@ -65,7 +65,54 @@ struct invoke_on_all_host_policies
 sycl::queue get_test_queue();
 
 ////////////////////////////////////////////////////////////////////////////////
-// Invoke op(policy,rest...) for each possible policy.
+// check fp16/fp64 support by a device
+template<typename T>
+bool has_type_support(const sycl::device&) { return true; }
+
+template<>
+inline bool has_type_support<double>(const sycl::device& device)
+{
+    return device.has(sycl::aspect::fp64);
+}
+
+template<>
+inline bool has_type_support<sycl::half>(const sycl::device& device)
+{
+    return device.has(sycl::aspect::fp16);
+}
+
+template <typename T, typename = void>
+struct value_type
+{
+    using type = T;
+};
+
+// TODO: add a specialization for zip_iterator
+template <typename T>
+struct value_type<T, ::std::void_t<typename ::std::iterator_traits<T>::iterator_category>>
+{
+    using type = typename ::std::iterator_traits<T>::value_type;
+};
+
+template<typename... Ts>
+bool has_types_support(const sycl::device& device)
+{
+    return (... && has_type_support<typename value_type<Ts>::type>(device));
+}
+
+inline void unsupported_types_notifier(const sycl::device& device)
+{
+    static bool is_notified = false;
+    if(!is_notified)
+    {
+        ::std::cout << device.template get_info<sycl::info::device::name>()
+                    << " does not support fp64 (double) or fp16 (sycl::half) types,"
+                    << " affected test cases have been skipped\n";
+        is_notified = true;
+    }
+}
+
+// Invoke test::operator()(policy,rest...) for each possible policy.
 template <::std::size_t CallNumber = 0>
 struct invoke_on_all_hetero_policies
 {
@@ -76,24 +123,33 @@ struct invoke_on_all_hetero_policies
     {
     }
 
-    template <typename Op, typename... T>
+    template <typename Op, typename... Args>
     void
-    operator()(Op op, T&&... rest)
+    operator()(Op op, Args&&... rest)
     {
-        //Since make_device_policy need only one parameter for instance, this alias is used to create unique type
-        //of kernels from operator type and ::std::size_t
-        // There may be an issue when there is a kernel parameter which has a pointer in its name.
-        // For example, param<int*>. In this case the runtime interpreters it as a memory object and
-        // performs some checks that fails. As a workaround, define for functors which have this issue
-        // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
-        using kernel_name = unique_kernel_name<Op, CallNumber>;
-        iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+        // Device may not support some types, e.g. double or sycl::half; test if they are supported or skip otherwise
+        if (has_types_support<::std::decay_t<Args>...>(queue.get_device()))
+        {
+            // Since make_device_policy need only one parameter for instance, this alias is used to create unique type
+            // of kernels from operator type and ::std::size_t
+            // There may be an issue when there is a kernel parameter which has a pointer in its name.
+            // For example, param<int*>. In this case the runtime interpreters it as a memory object and
+            // performs some checks that fail. As a workaround, define for functors which have this issue
+            // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
+            using kernel_name = unique_kernel_name<Op, CallNumber>;
+            auto my_policy =
 #if ONEDPL_FPGA_DEVICE
-            oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(queue), op,
-            ::std::forward<T>(rest)...);
+                oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(queue);
 #else
-            oneapi::dpl::execution::make_device_policy<kernel_name>(queue), op, ::std::forward<T>(rest)...);
+                oneapi::dpl::execution::make_device_policy<kernel_name>(queue);
 #endif
+            iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+                my_policy, op, ::std::forward<Args>(rest)...);
+        }
+        else
+        {
+            unsupported_types_notifier(queue.get_device());
+        }
     }
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
