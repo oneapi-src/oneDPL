@@ -28,8 +28,10 @@ using namespace oneapi::dpl::execution;
 #endif
 using namespace TestUtils;
 
-struct test_binary_search
+DEFINE_TEST(test_binary_search)
 {
+    DEFINE_TEST_CONSTRUCTOR(test_binary_search)
+
     // TODO: replace data generation with random data and update check to compare result to
     // the result of the serial algorithm
     template <typename Accessor1, typename Size>
@@ -62,34 +64,32 @@ struct test_binary_search
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
                Iterator3 result_first, Iterator3 result_last, Size n)
     {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, n);
+
         typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
 
         // call algorithm with no optional arguments
-        {
-            auto host_first = get_host_access(first);
-            auto host_val_first = get_host_access(value_first);
-            auto host_result = get_host_access(result_first);
-
-            initialize_data(host_first, host_val_first, host_result, n);
-        }
+        initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
+        update_data(host_keys, host_vals, host_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         auto res1 = oneapi::dpl::binary_search(new_policy, first, last, value_first, value_last, result_first);
         exec.queue().wait_and_throw();
-        {
-            auto host_result = get_host_access(result_first);
-            check_and_clean(host_result, n);
-        }
+
+        host_res.retrieve_data();
+        check_and_clean(host_res.get(), n);
+        host_res.update_data();
 
         // call algorithm with comparator
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         auto res2 = oneapi::dpl::binary_search(new_policy2, first, last, value_first, value_last, result_first,
                                                [](ValueT first, ValueT second) { return first < second; });
         exec.queue().wait_and_throw();
-        {
-            auto host_result = get_host_access(result_first);
-            check_and_clean(host_result, n);
-        }
+
+        host_res.retrieve_data();
+        check_and_clean(host_res.get(), n);
     }
 #endif
 
@@ -131,9 +131,20 @@ struct test_binary_search
 int
 main()
 {
+    using ValueType = ::std::uint64_t;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    test3buffers<std::uint64_t, test_binary_search>();
-#endif
-    test_algo_three_sequences<std::uint64_t, test_binary_search>();
+    // Run tests for USM shared memory
+    test3buffers<sycl::usm::alloc::shared, test_binary_search<ValueType>>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, test_binary_search<ValueType>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if TEST_DPCPP_BACKEND_PRESENT
+    test_algo_three_sequences<test_binary_search<ValueType>>();
+#else
+    test_algo_three_sequences<ValueType, test_binary_search>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
     return TestUtils::done();
 }
