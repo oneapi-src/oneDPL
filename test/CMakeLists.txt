@@ -15,6 +15,11 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
+find_path(_onedpl_tbb_h_found NAMES tbb/tbb.h PATHS ENV CPATH ENV C_INCLUDE_PATH ENV CPLUS_INCLUDE_PATH ENV INCLUDE_PATH)
+if (NOT _onedpl_gxx_version VERSION_LESS 11 AND _onedpl_tbb_h_found AND NOT ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
+    set (_onedpl_link_extra_libs tbb)
+endif()
+
 # disable fast math for ALL TESTS
 # icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
 foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
@@ -91,6 +96,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
+    target_link_libraries(${_test_name} PRIVATE oneDPL ${_onedpl_link_extra_libs})
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
