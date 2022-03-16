@@ -1,9 +1,9 @@
 Execution Policies
 ##################
 
-The implementation supports the |dpcpp_long| execution policies used to run the massive parallel
+The implementation supports the SYCL* execution policies used to run the massive parallel
 computational model for heterogeneous systems. The policies are specified in
-the |onedpl_long| section of the `oneAPI Specification
+the |onedpl_long| (|onedpl_short|) section of the `oneAPI Specification
 <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy>`_.
 
 For any of the implemented algorithms, pass one of the execution policy objects as the first
@@ -22,7 +22,7 @@ Execution Policy Value            Description
 --------------------------------- ------------------------------
 ``par_unseq``                     Combined effect of ``unseq`` and ``par``.
 --------------------------------- ------------------------------
-``dpcpp_default``                 Massive parallel execution on devices using |dpcpp_short|.
+``dpcpp_default``                 Massive parallel execution on devices using SYCL.
 --------------------------------- ------------------------------
 ``dpcpp_fpga``                    Massive parallel execution on FPGA devices.
 ================================= ==============================
@@ -57,9 +57,9 @@ Follow these steps to add Parallel API to your application:
    #. Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
    #. Link with the |onetbb_long| or |tbb_long| dynamic library for TBB-based parallelism.
 
-#. Use the |dpcpp_short| Execution Policies:
+#. Use the SYCL Execution Policies:
 
-   #. Compile the code with options that enable support for SYCL* 2020.
+   #. Compile the code with options that enable support for SYCL 2020.
 
 Use the C++ Standard Execution Policies
 =======================================
@@ -79,12 +79,12 @@ Example:
       return 0;
   }
 
-Use the |dpcpp_short| Execution Policies
+Use the SYCL Execution Policies
 ========================================
 
-The |dpcpp_short| execution policy specifies where a parallel algorithm runs.
+The SYCL execution policy specifies where a parallel algorithm runs.
 It encapsulates a SYCL device or queue and allows you to
-set an optional kernel name. |dpcpp_short| execution policies can be used with all
+set an optional kernel name. SYCL execution policies can be used with all
 standard C++ algorithms that support execution policies.
 
 To create a policy object, you may use one of the following constructor arguments:
@@ -143,7 +143,7 @@ and ``using namespace sycl;`` directives when referring to policy classes and fu
 Use the FPGA Policy
 ===================
 
-The ``fpga_policy`` class is a |dpcpp_short| policy tailored to achieve
+The ``fpga_policy`` class is a SYCL policy tailored to achieve
 better performance of parallel algorithms on FPGA hardware devices.
 
 Use the policy when you run the application on a FPGA hardware device or FPGA emulation device
@@ -157,7 +157,7 @@ with the following steps:
    following constructor arguments:
 
    #. A SYCL queue constructed for the
-      `FPGA Selector <https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/IntelFPGA/FPGASelector.md>`_
+      `FPGA Selector <https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/supported/sycl_ext_intel_fpga_device_selector.md>`_
       (the behavior is undefined with any other queue).
    #. An existing FPGA policy object with a different kernel name and/or unroll factor.
 
@@ -196,21 +196,21 @@ The code below assumes you have added ``using namespace oneapi::dpl::execution;`
   auto fpga_policy_c = make_fpga_policy<unroll_factor, class FPGAPolicyC>();
 
 
-Error Handling with |dpcpp_short| Execution Policies
+Error Handling with SYCL Execution Policies
 ====================================================
 
-The |dpcpp_short| error handling model supports two types of errors: Synchronous errors cause the DPC++ host
+The SYCL error handling model supports two types of errors: Synchronous errors cause the SYCL host
 runtime libraries throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
-associated with a |dpcpp_short| queue.
+associated with a SYCL queue.
 
-For algorithms executed with |dpcpp_short| policies, handling all errors, synchronous or asynchronous, is a
+For algorithms executed with SYCL policies, handling all errors, synchronous or asynchronous, is a
 responsibility of the caller. Specifically:
 
 * No exceptions are thrown explicitly by algorithms.
-* Exceptions thrown by runtime libraries at the host CPU, including |dpcpp_short| synchronous exceptions,
+* Exceptions thrown by runtime libraries at the host CPU, including SYCL synchronous exceptions,
   are passed through to the caller.
-* |dpcpp_short| asynchronous errors are not handled.
+* SYCL asynchronous errors are not handled.
 
-To process |dpcpp_short| asynchronous errors, the queue associated with a |dpcpp_short| policy must be
+To process SYCL asynchronous errors, the queue associated with a SYCL policy must be
 created with an error handler object. The predefined policy objects (``dpcpp_default``, etc.) have
 no error handlers; do not use them if you need to process asynchronous errors.

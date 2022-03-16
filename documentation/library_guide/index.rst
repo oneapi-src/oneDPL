@@ -1,8 +1,8 @@
 |onedpl_long| Guide
 =================================
 
-|onedpl_long| works with the |dpcpp_cpp| to
-provide high-productivity APIs to developers, which can minimize |dpcpp_long| programming
+|onedpl_long| (|onedpl_short|) works with the |dpcpp_cpp| to
+provide high-productivity APIs to developers, which can minimize SYCL* programming
 efforts across devices for high performance parallel applications.
 
 .. toctree::
@@ -14,6 +14,6 @@ efforts across devices for high performance parallel applications.
    onedpl_gsg
    overview
    parallel_api_main
-   api_for_dpcpp_kernels_main
+   api_for_sycl_kernels_main
    macros
    notices_disclaimers
