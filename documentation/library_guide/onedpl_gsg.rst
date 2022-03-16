@@ -109,7 +109,7 @@ This example performs its computations on your default SYCL device. You can set 
 Pi Benchmark Usage Example
 --------------------------
 
-A Monte Carlo pi estimation uses a randomized method to estimate the value of π.
+This example uses a Monte Carlo method to estimate the value of π.
 The basic idea is to generate random points within a square, and to check what
 fraction of these random points lie in a quarter-circle inscribed within that square.
 The expected value is the ratio of the areas of the quarter-circle and the square (π/4).

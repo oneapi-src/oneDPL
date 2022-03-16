@@ -22,7 +22,7 @@ Execution Policy Value            Description
 --------------------------------- ------------------------------
 ``par_unseq``                     Combined effect of ``unseq`` and ``par``.
 --------------------------------- ------------------------------
-``dpcpp_default``                 Massive parallel execution on devices using SYCL.
+``dpcpp_default``                 Massive parallel execution on devices using |dpcpp_short|.
 --------------------------------- ------------------------------
 ``dpcpp_fpga``                    Massive parallel execution on FPGA devices.
 ================================= ==============================

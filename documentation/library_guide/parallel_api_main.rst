@@ -12,8 +12,8 @@ provides specific versions of the algorithms, including:
 * Segmented scan
 * Vectorized search algorithms
 
-Parallel API offers support for the parallel and vectorized execution of
-algorithms on Intel® processors and heterogeneity support with SYCL* execution policies.
+Parallel API offers support for the parallel and vectorized execution of algorithms on Intel®
+processors and heterogeneity support with a DPC++ based implementation for device execution policies.
 For sequential execution, |onedpl_short| relies on an available implementation of the C++ standard library.
 
 The utility API includes iterators and function object classes. The iterators implement
@@ -35,4 +35,4 @@ required ranges and Async API.
    parallel_api/async_api
    parallel_api/range_based_api
    parallel_api/additional_algorithms
-   parallel_api/buffers_and_usm
+   parallel_api/pass_data_algorithms

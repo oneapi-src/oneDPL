@@ -1,8 +1,5 @@
-Buffers and Unified Shared Memory
-#################################
-
 Pass Data to Algorithms
-=======================
+#######################
 
 You can use one of the following ways to pass data to an algorithm executed with a SYCL* policy:
 
@@ -104,11 +101,11 @@ before calling oneDPL algorithms, and copy it back once the algorithms have fini
 Use Host-Side std::vector
 -----------------------------
 
-SYCL parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
+|onedpl_long| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
 example below.
 In this case, a temporary SYCL buffer is created, and the data is copied to this buffer.
-After processing of the temporary buffer on a device is complete, the data is copied back
-to the host. Working with SYCL buffers is recommended to reduce data copying between the host and device.
+After processing on a device is complete, the modified data is copied from the temporary buffer back
+to the host container.
 For example:
 
 .. code:: cpp
@@ -122,3 +119,5 @@ For example:
     // each element of vec equals to 42
     return 0;
   }
+
+Working with SYCL buffers is recommended to reduce data copying between the host and device.

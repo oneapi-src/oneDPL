@@ -8,7 +8,7 @@ to enable parallelism on the host.
 The |onedpl_long| (|onedpl_short|) is implemented in accordance with the `oneDPL
 Specification <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html>`_.
 
-To support heterogeneity, |onedpl_short| works with the SYCL* API. More information can be found in the
+To support heterogeneity, |onedpl_short| works with the DPC++ API. More information can be found in the
 `DPC++ Specification <https://spec.oneapi.com/versions/latest/elements/dpcpp/source/index.html#dpc>`_.
 
 Before You Begin
@@ -58,8 +58,8 @@ To use Parallel API with the SYCL execution policies, you need to install the fo
 Restrictions
 ============
 
-When called with SYCL execution policies, |onedpl_short| algorithms apply the same restrictions as SYCL
-does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
+When called with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as
+|dpcpp_short| does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
 
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
 * Passing data types, which are not trivially copyable, is only allowed via USM,
