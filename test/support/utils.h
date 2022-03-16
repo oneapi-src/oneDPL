@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- utils.h -----------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -30,19 +30,10 @@
 #include <sstream>
 #include <vector>
 
+#include "utils_const.h"
 #include "iterator_utils.h"
-
-#define _SKIP_RETURN_CODE 77
-
-// Test data ranges other than those that start at the beginning of an input.
-const int max_n = 100000;
-
-// All these offset consts used for indirect testing of calculation an offset parameter
-// (as a result dpl::begin(buf) + offset) for further passing within sycl::accessor constructor.
-const int inout1_offset = 3;
-const int inout2_offset = 5;
-const int inout3_offset = 7;
-const int inout4_offset = 9;
+#include "utils_sequence.h"
+#include "utils_test_base.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "utils_sycl.h"
@@ -60,9 +51,6 @@ const_size(const T (&)[N]) noexcept
 {
     return N;
 }
-
-template <typename T>
-class Sequence;
 
 // Handy macros for error reporting
 #define EXPECT_TRUE(condition, message) ::TestUtils::expect(true, condition, __FILE__, __LINE__, message)
@@ -166,17 +154,6 @@ expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const cha
             issue_error_message(outstr);
             ++error_count;
         }
-    }
-}
-
-template <typename Iterator, typename F>
-void
-fill_data(Iterator first, Iterator last, F f)
-{
-    typedef typename ::std::iterator_traits<Iterator>::value_type T;
-    for (::std::size_t i = 0; first != last; ++first, ++i)
-    {
-        *first = T(f(i));
     }
 }
 
@@ -305,164 +282,6 @@ bool
 operator<(const MemoryChecker& v1, const MemoryChecker& v2)
 {
     return v1.value() < v2.value();
-}
-
-// Sequence<T> is a container of a sequence of T with lots of kinds of iterators.
-// Prefixes on begin/end mean:
-//      c = "const"
-//      f = "forward"
-// No prefix indicates non-const random-access iterator.
-template <typename T>
-class Sequence
-{
-    ::std::vector<T> m_storage;
-
-  public:
-    typedef typename ::std::vector<T>::iterator iterator;
-    typedef typename ::std::vector<T>::const_iterator const_iterator;
-    typedef ForwardIterator<iterator, ::std::forward_iterator_tag> forward_iterator;
-    typedef ForwardIterator<const_iterator, ::std::forward_iterator_tag> const_forward_iterator;
-
-    typedef BidirectionalIterator<iterator, ::std::bidirectional_iterator_tag> bidirectional_iterator;
-    typedef BidirectionalIterator<const_iterator, ::std::bidirectional_iterator_tag> const_bidirectional_iterator;
-
-    typedef T value_type;
-    explicit Sequence(size_t size) : m_storage(size) {}
-
-    // Construct sequence [f(0), f(1), ... f(size-1)]
-    // f can rely on its invocations being sequential from 0 to size-1.
-    template <typename Func>
-    Sequence(size_t size, Func f)
-    {
-        m_storage.reserve(size);
-        // Use push_back because T might not have a default constructor
-        for (size_t k = 0; k < size; ++k)
-            m_storage.push_back(T(f(k)));
-    }
-    Sequence(const ::std::initializer_list<T>& data) : m_storage(data) {}
-
-    const_iterator
-    begin() const
-    {
-        return m_storage.begin();
-    }
-    const_iterator
-    end() const
-    {
-        return m_storage.end();
-    }
-    iterator
-    begin()
-    {
-        return m_storage.begin();
-    }
-    iterator
-    end()
-    {
-        return m_storage.end();
-    }
-    const_iterator
-    cbegin() const
-    {
-        return m_storage.cbegin();
-    }
-    const_iterator
-    cend() const
-    {
-        return m_storage.cend();
-    }
-    forward_iterator
-    fbegin()
-    {
-        return forward_iterator(m_storage.begin());
-    }
-    forward_iterator
-    fend()
-    {
-        return forward_iterator(m_storage.end());
-    }
-    const_forward_iterator
-    cfbegin() const
-    {
-        return const_forward_iterator(m_storage.cbegin());
-    }
-    const_forward_iterator
-    cfend() const
-    {
-        return const_forward_iterator(m_storage.cend());
-    }
-    const_forward_iterator
-    fbegin() const
-    {
-        return const_forward_iterator(m_storage.cbegin());
-    }
-    const_forward_iterator
-    fend() const
-    {
-        return const_forward_iterator(m_storage.cend());
-    }
-
-    const_bidirectional_iterator
-    cbibegin() const
-    {
-        return const_bidirectional_iterator(m_storage.cbegin());
-    }
-    const_bidirectional_iterator
-    cbiend() const
-    {
-        return const_bidirectional_iterator(m_storage.cend());
-    }
-
-    bidirectional_iterator
-    bibegin()
-    {
-        return bidirectional_iterator(m_storage.begin());
-    }
-    bidirectional_iterator
-    biend()
-    {
-        return bidirectional_iterator(m_storage.end());
-    }
-
-    ::std::size_t
-    size() const
-    {
-        return m_storage.size();
-    }
-    const T*
-    data() const
-    {
-        return m_storage.data();
-    }
-    typename ::std::vector<T>::reference operator[](size_t j) { return m_storage[j]; }
-    typename ::std::vector<T>::const_reference operator[](size_t j) const { return m_storage[j]; }
-
-    // Fill with given value
-    void
-    fill(const T& value)
-    {
-        for (size_t i = 0; i < m_storage.size(); i++)
-            m_storage[i] = value;
-    }
-
-    void
-    print() const;
-
-    template <typename Func>
-    void
-    fill(Func f)
-    {
-        fill_data(m_storage.begin(), m_storage.end(), f);
-    }
-};
-
-template <typename T>
-void
-Sequence<T>::print() const
-{
-    ::std::cout << "size = " << size() << ": { ";
-    ::std::copy(begin(), end(), ::std::ostream_iterator<T>(::std::cout, " "));
-    ::std::cout << " } " << ::std::endl;
 }
 
 // Predicates for algorithms
@@ -673,41 +492,6 @@ struct multiply_matrix
     }
 };
 
-// Invoke op(policy,rest...) for each non-hetero policy.
-struct invoke_on_all_host_policies
-{
-    template <typename Op, typename... T>
-    void
-    operator()(Op op, T&&... rest)
-    {
-        using namespace oneapi::dpl::execution;
-
-#if !TEST_ONLY_HETERO_POLICIES
-        // Try static execution policies
-        invoke_on_all_iterator_types()(seq, op, ::std::forward<T>(rest)...);
-        invoke_on_all_iterator_types()(unseq, op, ::std::forward<T>(rest)...);
-        invoke_on_all_iterator_types()(par, op, ::std::forward<T>(rest)...);
-        invoke_on_all_iterator_types()(par_unseq, op, ::std::forward<T>(rest)...);
-
-#endif
-    }
-};
-
-template <::std::size_t CallNumber = 0>
-struct invoke_on_all_policies
-{
-    template <typename Op, typename... T>
-    void
-    operator()(Op op, T&&... rest)
-    {
-
-        invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
-#if TEST_DPCPP_BACKEND_PRESENT
-        invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
-#endif
-    }
-};
-
 template <typename F>
 struct NonConstAdapter
 {
@@ -889,27 +673,6 @@ test_algo_basic_double(F&& f)
     Sequence<T> in(N, [](size_t v) -> T { return T(v); });
     Sequence<T> out(N, [](size_t v) -> T { return T(v); });
     invoke_on_all_host_policies()(::std::forward<F>(f), in.begin(), out.begin());
-}
-
-// Used with algorithms that have two input sequences and one output sequences
-template <typename T, typename TestName>
-void
-test_algo_three_sequences()
-{
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-    {
-        Sequence<T> inout1(max_n + inout1_offset);
-        Sequence<T> inout2(max_n + inout2_offset);
-        Sequence<T> inout3(max_n + inout3_offset);
-
-        // create iterators
-        auto inout1_offset_first = std::begin(inout1) + inout1_offset;
-        auto inout2_offset_first = std::begin(inout2) + inout2_offset;
-        auto inout3_offset_first = std::begin(inout3) + inout3_offset;
-
-        invoke_on_all_host_policies()(TestName(), inout1_offset_first, inout1_offset_first + n, inout2_offset_first,
-                                      inout2_offset_first + n, inout3_offset_first, inout3_offset_first + n, n);
-    }
 }
 
 template <typename Policy, typename F>
