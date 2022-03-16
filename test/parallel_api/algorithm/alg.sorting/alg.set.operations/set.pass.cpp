@@ -87,7 +87,7 @@ struct test_set_union
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
-        
+
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
