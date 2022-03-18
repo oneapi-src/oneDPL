@@ -43,6 +43,7 @@ macro(onedpl_add_test test_source_file)
     endif()
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/support")
+    target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/support_stdlib")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
