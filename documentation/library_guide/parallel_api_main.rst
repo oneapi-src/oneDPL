@@ -5,15 +5,15 @@ Parallel API is an implementation of the C++ standard libraries algorithms and e
 policies, as specified in the ISO/IEC 14882:2017 standard (commonly called C++17). The implementation
 supports the unsequenced execution policy and the ``shift_left``/``shift_right`` algorithms, which are specified
 in the final draft of the C++ 20 standard (N4860). For more details see the `C++ Standard Execution
-Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_. |onedpl_long| provides
-specific versions of the algorithms, including:
+Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_. |onedpl_long| (|onedpl_short|)
+provides specific versions of the algorithms, including:
 
 * Segmented reduce
 * Segmented scan
 * Vectorized search algorithms
 
-Parallel API offers support for the parallel and vectorized execution of
-algorithms on Intel® processors and heterogeneity support with |dpcpp_short| execution policies.
+Parallel API offers support for the parallel and vectorized execution of algorithms on Intel®
+processors and heterogeneity support with a DPC++ based implementation for device execution policies.
 For sequential execution, |onedpl_short| relies on an available implementation of the C++ standard library.
 
 The utility API includes iterators and function object classes. The iterators implement
@@ -35,4 +35,4 @@ required ranges and Async API.
    parallel_api/async_api
    parallel_api/range_based_api
    parallel_api/additional_algorithms
-   parallel_api/buffers_and_usm
+   parallel_api/pass_data_algorithms
