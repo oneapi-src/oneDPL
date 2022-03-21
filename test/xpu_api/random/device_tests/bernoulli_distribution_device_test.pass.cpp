@@ -17,7 +17,6 @@
 //
 // Device copyable tests for bernoulli distribution
 
-
 #include "support/utils.h"
 #include <iostream>
 
