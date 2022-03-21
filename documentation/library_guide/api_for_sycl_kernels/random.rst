@@ -1,7 +1,7 @@
 Random Number Generators
 ########################
 
-|onedpl_long| offers support of random number generation, including:
+|onedpl_long| (|onedpl_short|) offers support of random number generation, including:
 
 - Random number engines, which generate unsigned integer sequences of random numbers.
 - Random number distributions (example: ``uniform_real_distribution``), which converts the output of
@@ -84,7 +84,7 @@ Distribution                   Description
 Usage Model of |onedpl_short| Random Number Generation Functionality
 --------------------------------------------------------------------
 
-Random number generation is available for |dpcpp_long| device-side and host-side code. For example:
+Random number generation is available for SYCL* device-side and host-side code. For example:
 
 .. code:: cpp
 

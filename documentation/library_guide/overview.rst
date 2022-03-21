@@ -5,16 +5,16 @@ Parallel API can be used with the `C++ Standard Execution
 Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_
 to enable parallelism on the host.
 
-The |onedpl_long| is implemented in accordance with the `oneDPL
+The |onedpl_long| (|onedpl_short|) is implemented in accordance with the `oneDPL
 Specification <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html>`_.
 
-To support heterogeneity, |onedpl_short| works with the Data Parallel C++ (DPC++) API. More information can be found in the
+To support heterogeneity, |onedpl_short| works with the DPC++ API. More information can be found in the
 `DPC++ Specification <https://spec.oneapi.com/versions/latest/elements/dpcpp/source/index.html#dpc>`_.
 
 Before You Begin
 ================
 
-Visit the |onedpl_long| `Release Notes
+Visit the |onedpl_short| `Release Notes
 <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
 page for:
 
@@ -51,23 +51,23 @@ To call Parallel API with the C++ standard policies, you need to install the fol
 
 For more information about parallel backends, see :doc:`Execution Policies <parallel_api/execution_policies>`
 
-To use Parallel API with the |dpcpp_short| execution policies, you need to install the following software:
+To use Parallel API with the SYCL execution policies, you need to install the following software:
 
-* A C++ compiler with support for SYCL* 2020
+* A C++ compiler with support for SYCL 2020
 
 Restrictions
 ============
 
-When called with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as |dpcpp_short|
-does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
+When called with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as
+|dpcpp_short| does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
 
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
 * Passing data types, which are not trivially copyable, is only allowed via USM,
   but not via buffers or host-allocated containers.
 * The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
   that makes it different for the host and the device. Otherwise, the behavior is undefined.
-* When used within DPC++ kernels or transferred to/from a device, a container class can only hold objects
-  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
+* When used within SYCL kernels or transferred to/from a device, a container class can only hold objects
+  whose type meets SYCL requirements for use in kernels and for data transfer, respectively.
 * Calling the API that throws exception is not allowed within callable objects passed to an algorithm.
 
 Known Limitations
