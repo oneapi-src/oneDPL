@@ -368,44 +368,44 @@ move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 
 // [partial.sort]
 
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
-partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
-             _RandomAccessIterator __last, _Compare __comp);
-
-template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
-partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
-             _RandomAccessIterator __last);
+//template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+//partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
+//             _RandomAccessIterator __last, _Compare __comp);
+//
+//template <class _ExecutionPolicy, class _RandomAccessIterator>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+//partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
+//             _RandomAccessIterator __last);
 
 // [partial.sort.copy]
 
-template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
-
-template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last);
+//template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+//partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+//                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
+//
+//template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+//partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+//                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last);
 
 // [is.sorted]
-template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
-is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
-
-template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
-is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
-
-template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
-
-template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
+//template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+//is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
+//
+//template <class _ExecutionPolicy, class _ForwardIterator>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+//is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
+//
+//template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+//is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
+//
+//template <class _ExecutionPolicy, class _ForwardIterator>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+//is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 // [alg.nth.element]
 
@@ -507,21 +507,21 @@ set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _ForwardIterator __result);
 
 // [is.heap]
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
-
-template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
-
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
-
-template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
+//template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+//is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
+//
+//template <class _ExecutionPolicy, class _RandomAccessIterator>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+//is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
+//
+//template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+//is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
+//
+//template <class _ExecutionPolicy, class _RandomAccessIterator>
+//oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+//is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
 
 // [alg.min.max]
 
