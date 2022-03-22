@@ -62,4 +62,7 @@ using ::std::tanh;
 using ::std::tgamma;
 } // namespace dpl
 } // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
 #endif
