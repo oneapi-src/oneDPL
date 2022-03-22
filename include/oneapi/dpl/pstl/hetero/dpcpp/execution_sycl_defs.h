@@ -109,7 +109,7 @@ class fpga_policy : public device_policy<KernelName>
 #endif // _ONEDPL_FPGA_DEVICE
 
 // 2.8, Execution policy objects
-#if _ONEDPL_USE_PREDEFINED_POLICIES
+#if _ONEDPL_PREDEFINED_POLICIES
 
 // In order to be useful oneapi::dpl::execution::dpcpp_default.queue() from one translation unit should be equal to
 // oneapi::dpl::execution::dpcpp_default.queue() from another TU.
@@ -147,7 +147,7 @@ static fpga_policy<> dpcpp_fpga{__get_fpga_policy_object()};
 
 #    endif // __cplusplus >= 201703L
 
-#endif // _ONEDPL_USE_PREDEFINED_POLICIES
+#endif // _ONEDPL_PREDEFINED_POLICIES
 
 // make_policy functions
 template <typename KernelName = DefaultKernelName>
@@ -167,9 +167,9 @@ make_device_policy(sycl::device d)
 template <typename NewKernelName, typename OldKernelName = DefaultKernelName>
 device_policy<NewKernelName>
 make_device_policy(const device_policy<OldKernelName>& policy
-#if _ONEDPL_USE_PREDEFINED_POLICIES
+#if _ONEDPL_PREDEFINED_POLICIES
                    = dpcpp_default
-#endif // _ONEDPL_USE_PREDEFINED_POLICIES
+#endif // _ONEDPL_PREDEFINED_POLICIES
 )
 {
     return device_policy<NewKernelName>(policy);
@@ -201,9 +201,9 @@ template <unsigned int new_unroll_factor, typename NewKernelName, unsigned int o
           typename OldKernelName = DefaultKernelNameFPGA>
 fpga_policy<new_unroll_factor, NewKernelName>
 make_fpga_policy(const fpga_policy<old_unroll_factor, OldKernelName>& policy
-#    if _ONEDPL_USE_PREDEFINED_POLICIES
+#    if _ONEDPL_PREDEFINED_POLICIES
                  = dpcpp_fpga
-#    endif // _ONEDPL_USE_PREDEFINED_POLICIES
+#    endif // _ONEDPL_PREDEFINED_POLICIES
 )
 {
     return fpga_policy<new_unroll_factor, NewKernelName>(policy);
