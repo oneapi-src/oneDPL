@@ -27,4 +27,7 @@ using ::std::ptrdiff_t;
 using ::std::size_t;
 } // namespace dpl
 } // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
 #endif
