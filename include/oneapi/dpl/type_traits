@@ -222,4 +222,7 @@ using ::std::is_literal_type_v;
 #endif // __cplusplus > 201402L
 } // namespace dpl
 } // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
 #endif
