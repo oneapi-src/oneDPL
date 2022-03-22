@@ -87,7 +87,7 @@ Macro                              Description
                                    If all parallel backends are disabled by setting respective macros to 0, algorithms
                                    with parallel policies are executed sequentially by the calling thread.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of the device execution policies.
+``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of the device policies.
                                    When the macro is not defined (by default)
                                    or evaluates to non-zero, device policies are enabled.
                                    When the macro is set to 0 there is no dependency on
