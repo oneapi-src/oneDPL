@@ -34,4 +34,7 @@ using ::std::ratio_not_equal;
 using ::std::ratio_subtract;
 } // namespace dpl
 } // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
 #endif
