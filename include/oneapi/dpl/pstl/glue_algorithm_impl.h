@@ -1067,6 +1067,14 @@ is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomA
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
+template <class _ExecutionPolicy, class _RandomAccessIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
+{
+    return oneapi::dpl::is_heap(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                oneapi::dpl::__internal::__pstl_less());
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
@@ -1075,14 +1083,6 @@ is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessI
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
-}
-
-template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
-{
-    return oneapi::dpl::is_heap(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                oneapi::dpl::__internal::__pstl_less());
 }
 
 // [alg.min.max]
