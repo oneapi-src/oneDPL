@@ -36,4 +36,7 @@ using ::std::make_from_tuple;
 #endif
 } // namespace dpl
 } // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
 #endif
