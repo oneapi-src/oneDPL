@@ -837,6 +837,15 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
 }
 
 // [is.sorted]
+
+template <class _ExecutionPolicy, class _ForwardIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
+{
+    return oneapi::dpl::is_sorted_until(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                        oneapi::dpl::__internal::__pstl_less());
+}
+
 template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp)
@@ -848,14 +857,6 @@ is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
         oneapi::dpl::__internal::__first_semantic());
     return __res == __last ? __last : oneapi::dpl::__internal::__pstl_next(__res);
-}
-
-template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
-is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
-{
-    return oneapi::dpl::is_sorted_until(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                        oneapi::dpl::__internal::__pstl_less());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
