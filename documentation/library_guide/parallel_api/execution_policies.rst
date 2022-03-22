@@ -1,7 +1,7 @@
 Execution Policies
 ##################
 
-The implementation supports the SYCL* execution policies used to run the massive parallel
+The implementation supports the device execution policies used to run the massive parallel
 computational model for heterogeneous systems. The policies are specified in
 the |onedpl_long| (|onedpl_short|) section of the `oneAPI Specification
 <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy>`_.
@@ -57,7 +57,7 @@ Follow these steps to add Parallel API to your application:
    #. Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
    #. Link with the |onetbb_long| or |tbb_long| dynamic library for TBB-based parallelism.
 
-#. Use the SYCL Execution Policies:
+#. Use the Device Execution Policies:
 
    #. Compile the code with options that enable support for SYCL 2020.
 
@@ -79,12 +79,12 @@ Example:
       return 0;
   }
 
-Use the SYCL Execution Policies
+Use the Device Execution Policies
 ========================================
 
-The SYCL execution policy specifies where a parallel algorithm runs.
+The device execution policy specifies where a parallel algorithm runs.
 It encapsulates a SYCL device or queue and allows you to
-set an optional kernel name. SYCL execution policies can be used with all
+set an optional kernel name. Device execution policies can be used with all
 standard C++ algorithms that support execution policies.
 
 To create a policy object, you may use one of the following constructor arguments:
@@ -143,7 +143,7 @@ and ``using namespace sycl;`` directives when referring to policy classes and fu
 Use the FPGA Policy
 ===================
 
-The ``fpga_policy`` class is a SYCL policy tailored to achieve
+The ``fpga_policy`` class is a device policy tailored to achieve
 better performance of parallel algorithms on FPGA hardware devices.
 
 Use the policy when you run the application on a FPGA hardware device or FPGA emulation device
@@ -196,14 +196,14 @@ The code below assumes you have added ``using namespace oneapi::dpl::execution;`
   auto fpga_policy_c = make_fpga_policy<unroll_factor, class FPGAPolicyC>();
 
 
-Error Handling with SYCL Execution Policies
+Error Handling with Device Execution Policies
 ====================================================
 
 The SYCL error handling model supports two types of errors: Synchronous errors cause the SYCL host
 runtime libraries throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
 associated with a SYCL queue.
 
-For algorithms executed with SYCL policies, handling all errors, synchronous or asynchronous, is a
+For algorithms executed with device policies, handling all errors, synchronous or asynchronous, is a
 responsibility of the caller. Specifically:
 
 * No exceptions are thrown explicitly by algorithms.
@@ -211,6 +211,6 @@ responsibility of the caller. Specifically:
   are passed through to the caller.
 * SYCL asynchronous errors are not handled.
 
-To process SYCL asynchronous errors, the queue associated with a SYCL policy must be
+To process SYCL asynchronous errors, the queue associated with a device policy must be
 created with an error handler object. The predefined policy objects (``dpcpp_default``, etc.) have
 no error handlers; do not use them if you need to process asynchronous errors.
