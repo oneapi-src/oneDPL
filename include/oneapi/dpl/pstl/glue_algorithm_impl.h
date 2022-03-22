@@ -814,6 +814,15 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
 
 // [partial.sort.copy]
 
+template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last)
+{
+    return oneapi::dpl::partial_sort_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
+                                          __d_last, oneapi::dpl::__internal::__pstl_less());
+}
+
 template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
@@ -825,15 +834,6 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
                                                               _RandomAccessIterator>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator,
                                                                 _RandomAccessIterator>(__exec));
-}
-
-template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last)
-{
-    return oneapi::dpl::partial_sort_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
-                                          __d_last, oneapi::dpl::__internal::__pstl_less());
 }
 
 // [is.sorted]
