@@ -27,4 +27,6 @@
 #    include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
 #endif
 
+namespace dpl = oneapi::dpl;
+
 #endif /* _ONEDPL_ASYNC */
