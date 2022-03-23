@@ -399,13 +399,13 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
-template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
-
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
 // [alg.nth.element]
 
