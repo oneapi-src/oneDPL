@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- numeric -----------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -27,12 +27,12 @@
 // If not declared, pull in forward declarations
 #    include "oneapi/dpl/pstl/glue_numeric_defs.h"
 #    define _ONEDPL_NUMERIC_FORWARD_DECLARED 1
-#endif
+#endif // !_ONEDPL_NUMERIC_FORWARD_DECLARED
 
 #if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
-#endif
+#endif // _ONEDPL_EXECUTION_POLICIES_DEFINED
 
 namespace oneapi
 {
@@ -59,4 +59,4 @@ using oneapi::dpl::transform_inclusive_scan;
 using oneapi::dpl::transform_reduce;
 } // namespace std
 
-#endif /* _ONEDPL_NUMERIC */
+#endif // _ONEDPL_NUMERIC

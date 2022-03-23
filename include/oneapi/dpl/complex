@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- complex -----------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -12,8 +12,10 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef __ONEDPL_complex
 #define __ONEDPL_complex
+
 #include "oneapi/dpl/internal/common_config.h"
 #include <complex>
 
@@ -24,4 +26,7 @@ namespace dpl
 using ::std::complex;
 } // namespace dpl
 } // namespace oneapi
-#endif
+
+namespace dpl = oneapi::dpl;
+
+#endif // __ONEDPL_complex

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- algorithm ---------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,6 +15,7 @@
 
 #ifndef _ONEDPL_ALGORITHM
 #define _ONEDPL_ALGORITHM
+
 #include "oneapi/dpl/internal/common_config.h"
 // ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
 #include <algorithm>
@@ -27,7 +28,7 @@
 #    include "oneapi/dpl/internal/by_segment_extension_defs.h"
 #    include "oneapi/dpl/internal/binary_search_extension_defs.h"
 #    define _ONEDPL_ALGORITHM_FORWARD_DECLARED 1
-#endif
+#endif // !_ONEDPL_ALGORITHM_FORWARD_DECLARED
 
 #if _ONEDPL_EXECUTION_POLICIES_DEFINED
 // If <execution> has already been included, pull in implementations
@@ -37,7 +38,7 @@
 #    include "oneapi/dpl/internal/inclusive_scan_by_segment_impl.h"
 #    include "oneapi/dpl/internal/binary_search_impl.h"
 #    include "oneapi/dpl/internal/reduce_by_segment_impl.h"
-#endif
+#endif // _ONEDPL_EXECUTION_POLICIES_DEFINED
 
 namespace oneapi
 {
@@ -141,4 +142,4 @@ using oneapi::dpl::unique;
 using oneapi::dpl::unique_copy;
 } // namespace std
 
-#endif /* _ONEDPL_ALGORITHM */
+#endif // _ONEDPL_ALGORITHM

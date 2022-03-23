@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- utility -----------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -12,8 +12,10 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef __ONEDPL_utility
 #define __ONEDPL_utility
+
 #include "oneapi/dpl/internal/common_config.h"
 #include <utility>
 
@@ -34,11 +36,14 @@ using ::std::tuple_element;
 using ::std::tuple_size;
 #if __cplusplus > 201103L
 using ::std::exchange;
-#endif
+#endif // __cplusplus > 201103L
 #if __cplusplus > 201402L
 using ::std::in_place;
 using ::std::in_place_t;
-#endif
+#endif // __cplusplus > 201402L
 } // namespace dpl
 } // namespace oneapi
-#endif
+
+namespace dpl = oneapi::dpl;
+
+#endif // __ONEDPL_utility
