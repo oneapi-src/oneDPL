@@ -51,7 +51,7 @@ To call Parallel API with the C++ standard policies, you need to install the fol
 
 For more information about parallel backends, see :doc:`Execution Policies <parallel_api/execution_policies>`
 
-To use Parallel API with the SYCL execution policies, you need to install the following software:
+To use Parallel API with the device execution policies, you need to install the following software:
 
 * A C++ compiler with support for SYCL 2020
 
