@@ -33,7 +33,7 @@ using ::std::tuple_size;
 #if __cplusplus > 201402L
 using ::std::apply;
 using ::std::make_from_tuple;
-#endif
+#endif // __cplusplus > 201402L
 } // namespace dpl
 } // namespace oneapi
 

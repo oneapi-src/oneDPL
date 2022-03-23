@@ -111,7 +111,7 @@ using ::std::underlying_type;
 #if __cplusplus <= 201703L
 using ::std::is_literal_type;
 using ::std::result_of;
-#endif
+#endif // __cplusplus <= 201703L
 
 #if __cplusplus > 201103L
 using ::std::add_const_t;

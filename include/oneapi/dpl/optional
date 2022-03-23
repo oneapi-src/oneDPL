@@ -26,7 +26,7 @@ using ::std::make_optional;
 using ::std::nullopt;
 using ::std::nullopt_t;
 using ::std::optional;
-#endif
+#endif // __cplusplus > 201402L
 } // namespace dpl
 } // namespace oneapi
 
