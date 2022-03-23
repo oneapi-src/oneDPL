@@ -80,4 +80,4 @@ using namespace oneapi::dpl::execution;
 
 namespace dpl = oneapi::dpl;
 
-#endif /* _ONEDPL_EXECUTION */
+#endif // _ONEDPL_EXECUTION

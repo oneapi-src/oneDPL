@@ -29,4 +29,4 @@
 
 namespace dpl = oneapi::dpl;
 
-#endif /* _ONEDPL_ASYNC */
+#endif // _ONEDPL_ASYNC

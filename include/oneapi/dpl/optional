@@ -32,4 +32,4 @@ using ::std::optional;
 
 namespace dpl = oneapi::dpl;
 
-#endif
+#endif // __ONEDPL_optional

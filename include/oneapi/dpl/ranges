@@ -51,4 +51,4 @@ static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
 
 namespace dpl = oneapi::dpl;
 
-#endif /* _ONEDPL_RANGES */
+#endif // _ONEDPL_RANGES

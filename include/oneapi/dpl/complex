@@ -27,4 +27,4 @@ using ::std::complex;
 
 namespace dpl = oneapi::dpl;
 
-#endif
+#endif // __ONEDPL_complex

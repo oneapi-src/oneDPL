@@ -29,4 +29,4 @@ using ::std::memset;
 
 namespace dpl = oneapi::dpl;
 
-#endif
+#endif // __ONEDPL_cstring

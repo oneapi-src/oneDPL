@@ -30,4 +30,4 @@ using ::std::size_t;
 
 namespace dpl = oneapi::dpl;
 
-#endif
+#endif // __ONEDPL_cstddef

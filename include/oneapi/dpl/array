@@ -31,4 +31,4 @@ using ::std::tuple_size;
 
 namespace dpl = oneapi::dpl;
 
-#endif
+#endif // __ONEDPL_array

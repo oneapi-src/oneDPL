@@ -64,4 +64,4 @@ using ::std::reverse_iterator;
 } // namespace oneapi
 namespace dpl = oneapi::dpl;
 
-#endif /* _ONEDPL_ITERATOR */
+#endif // _ONEDPL_ITERATOR

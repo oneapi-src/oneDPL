@@ -59,4 +59,4 @@ using oneapi::dpl::transform_inclusive_scan;
 using oneapi::dpl::transform_reduce;
 } // namespace std
 
-#endif /* _ONEDPL_NUMERIC */
+#endif // _ONEDPL_NUMERIC

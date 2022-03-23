@@ -141,4 +141,4 @@ using oneapi::dpl::unique;
 using oneapi::dpl::unique_copy;
 } // namespace std
 
-#endif /* _ONEDPL_ALGORITHM */
+#endif // _ONEDPL_ALGORITHM

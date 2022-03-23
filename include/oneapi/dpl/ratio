@@ -37,4 +37,4 @@ using ::std::ratio_subtract;
 
 namespace dpl = oneapi::dpl;
 
-#endif
+#endif // __ONEDPL_ratio

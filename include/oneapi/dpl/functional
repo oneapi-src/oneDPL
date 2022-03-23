@@ -97,4 +97,4 @@ struct minimum
 
 namespace dpl = oneapi::dpl;
 
-#endif /* __DPSTD_functional */
+#endif // __DPSTD_functional

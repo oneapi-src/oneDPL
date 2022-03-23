@@ -59,4 +59,4 @@ using oneapi::dpl::uninitialized_value_construct;
 using oneapi::dpl::uninitialized_value_construct_n;
 } // namespace std
 
-#endif /* _ONEDPL_MEMORY */
+#endif // _ONEDPL_MEMORY
