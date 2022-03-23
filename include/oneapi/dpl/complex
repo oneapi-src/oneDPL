@@ -24,4 +24,7 @@ namespace dpl
 using ::std::complex;
 } // namespace dpl
 } // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
 #endif
