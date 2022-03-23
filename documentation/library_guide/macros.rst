@@ -87,15 +87,15 @@ Macro                              Description
                                    If all parallel backends are disabled by setting respective macros to 0, algorithms
                                    with parallel policies are executed sequentially by the calling thread.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of the device policies.
+``ONEDPL_USE_DPCPP_BACKEND``       This macro enables the use of the device execution policies.
                                    When the macro is not defined (by default)
                                    or evaluates to non-zero, device policies are enabled.
                                    When the macro is set to 0 there is no dependency on
                                    the |dpcpp_cpp| and runtime libraries.
                                    Trying to use device policies will lead to compilation errors.
 ---------------------------------- ------------------------------
-``ONEDPL_USE_PREDEFINED_POLICIES`` This macro enables the use of predefined policies objects,
-                                   (for example ``dpcpp_default`` or ``dpcpp_fpga``). When the macro is not defined (by default)
+``ONEDPL_USE_PREDEFINED_POLICIES`` This macro enables the use of predefined device policy objects,
+                                   such as ``dpcpp_default`` and ``dpcpp_fpga``. When the macro is not defined (by default)
                                    or evaluates to non-zero, predefined policies objects can be used.
                                    When the macro is set to 0, predefined policies objects and make functions
                                    without arguments, when ``make_device_policy()``,

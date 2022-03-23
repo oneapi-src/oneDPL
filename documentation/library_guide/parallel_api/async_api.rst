@@ -6,7 +6,7 @@ extends the functionality of the C++17 parallel algorithms by providing asynchro
 This experimental feature enables you to express a concurrent control flow by building dependency chains, interleaving algorithm calls,
 and interoperability with SYCL* kernels. 
 
-The current implementation for async algorithms is limited to Device Execution Policies.
+The current implementation for async algorithms is limited to device execution policies.
 All the functionality described below is available in the ``oneapi::dpl::experimental`` namespace.
 
 The following async algorithms are currently supported:

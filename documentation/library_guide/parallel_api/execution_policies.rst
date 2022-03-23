@@ -52,12 +52,12 @@ Follow these steps to add Parallel API to your application:
 
 #. Pass a |onedpl_short| execution policy object, defined in the ``oneapi::dpl::execution``
    namespace, to a parallel algorithm.
-#. Use the C++ Standard Execution Policies:
+#. Use the C++ standard execution policies:
 
    #. Compile the code with options that enable OpenMP parallelism and/or vectorization pragmas.
    #. Link with the |onetbb_long| or |tbb_long| dynamic library for TBB-based parallelism.
 
-#. Use the Device Execution Policies:
+#. Use the device execution policies:
 
    #. Compile the code with options that enable support for SYCL 2020.
 
