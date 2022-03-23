@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- functional -------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,6 +15,7 @@
 
 #ifndef __ONEDPL_functional
 #define __ONEDPL_functional
+
 #include "oneapi/dpl/internal/common_config.h"
 #include <functional>
 
@@ -49,17 +50,17 @@ using ::std::reference_wrapper;
 #if __cplusplus < 201703L
 using ::std::binary_function;
 using ::std::unary_function;
-#endif
+#endif // __cplusplus < 201703L
 #if __cplusplus < 202002L
 using ::std::binary_negate;
 using ::std::not1;
 using ::std::not2;
 using ::std::unary_negate;
-#endif
+#endif // __cplusplus < 202002L
 
 #if __cplusplus > 201103L
 using ::std::bit_not;
-#endif
+#endif // __cplusplus > 201103L
 
 struct identity
 {
@@ -97,4 +98,4 @@ struct minimum
 
 namespace dpl = oneapi::dpl;
 
-#endif /* __DPSTD_functional */
+#endif // __DPSTD_functional

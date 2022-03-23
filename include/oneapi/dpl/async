@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- async -------------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -25,6 +25,8 @@
 // If <execution> has already been included, pull in implementations
 #    include "oneapi/dpl/internal/async_impl/async_impl.h"
 #    include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
-#endif
+#endif // _ONEDPL_EXECUTION_POLICIES_DEFINED
 
-#endif /* _ONEDPL_ASYNC */
+namespace dpl = oneapi::dpl;
+
+#endif // _ONEDPL_ASYNC

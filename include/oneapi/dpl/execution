@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- execution ---------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -37,23 +37,23 @@
 #    include "oneapi/dpl/internal/inclusive_scan_by_segment_impl.h"
 #    include "oneapi/dpl/internal/binary_search_impl.h"
 #    include "oneapi/dpl/internal/reduce_by_segment_impl.h"
-#endif
+#endif // _ONEDPL_ALGORITHM_FORWARD_DECLARED
 
 #if _ONEDPL_MEMORY_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_memory_impl.h"
-#endif
+#endif // _ONEDPL_MEMORY_FORWARD_DECLARED
 
 #if _ONEDPL_NUMERIC_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_numeric_impl.h"
-#endif
+#endif // _ONEDPL_NUMERIC_FORWARD_DECLARED
 
 #if _ONEDPL_ALGORITHM_RANGES_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_algorithm_ranges_impl.h"
-#endif
+#endif // _ONEDPL_ALGORITHM_RANGES_FORWARD_DECLARED
 
 #if _ONEDPL_NUMERIC_RANGES_FORWARD_DECLARED
 #    include "oneapi/dpl/pstl/glue_numeric_ranges_impl.h"
-#endif
+#endif // _ONEDPL_NUMERIC_RANGES_FORWARD_DECLARED
 
 #if _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 _PSTL_PRAGMA_MESSAGE_POLICIES(
@@ -65,7 +65,7 @@ _PSTL_PRAGMA_MESSAGE_POLICIES(
 #    include "oneapi/dpl/pstl/glue_execution_defs.h"
 _PSTL_PRAGMA_MESSAGE_POLICIES(
     "The <Parallel STL> execution policies are injected into the standard namespace std::execution")
-#endif
+#endif // _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 
 namespace oneapi
 {
@@ -80,4 +80,4 @@ using namespace oneapi::dpl::execution;
 
 namespace dpl = oneapi::dpl;
 
-#endif /* _ONEDPL_EXECUTION */
+#endif // _ONEDPL_EXECUTION

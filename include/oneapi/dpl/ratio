@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- ratio -------------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -12,8 +12,10 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef __ONEDPL_ratio
 #define __ONEDPL_ratio
+
 #include "oneapi/dpl/internal/common_config.h"
 #include <ratio>
 
@@ -34,4 +36,7 @@ using ::std::ratio_not_equal;
 using ::std::ratio_subtract;
 } // namespace dpl
 } // namespace oneapi
-#endif
+
+namespace dpl = oneapi::dpl;
+
+#endif // __ONEDPL_ratio
