@@ -49,4 +49,6 @@ static_assert(__cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
 #    include "oneapi/dpl/pstl/glue_numeric_ranges_impl.h"
 #endif
 
+namespace dpl = oneapi::dpl;
+
 #endif /* _ONEDPL_RANGES */
