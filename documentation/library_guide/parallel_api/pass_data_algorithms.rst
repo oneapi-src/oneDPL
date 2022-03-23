@@ -1,7 +1,7 @@
 Pass Data to Algorithms
 #######################
 
-You can use one of the following ways to pass data to an algorithm executed with a SYCL* policy:
+You can use one of the following ways to pass data to an algorithm executed with a device policy:
 
 * ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
 * Unified shared memory (USM) pointers and ``std::vector`` with USM allocators

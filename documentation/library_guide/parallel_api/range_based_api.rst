@@ -85,7 +85,7 @@ The signature example of the range-based algorithms looks like:
 
 where ``source`` is used instead of two iterators to represent the input, and ``destination`` represents the output.
 
-These algorithms are declared in the ``oneapi::dpl::experimental::ranges`` namespace and implemented only for SYCL* policies.
+These algorithms are declared in the ``oneapi::dpl::experimental::ranges`` namespace and implemented only for device execution policies.
 To make these algorithms available, the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
 Use of the range-based API requires C++17 and the C++ standard libraries that come with GCC 8.1 (or higher) or Clang 7 (or higher).
 
