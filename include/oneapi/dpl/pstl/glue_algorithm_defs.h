@@ -380,15 +380,15 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
 
 // [partial.sort.copy]
 
-template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
-
 template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                   _RandomAccessIterator __d_first, _RandomAccessIterator __d_last);
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
 
 // [is.sorted]
 template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
