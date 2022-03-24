@@ -66,6 +66,11 @@ __brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ ::std::false_typ
 {
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
+    // We shouldn't call this brick in code for trivially destructible types
+#if __cplusplus >= 201703L
+    static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
+#endif // __cplusplus >= 201703L
+
     for (; __first != __last; ++__first)
         __first->~_ValueType();
 }
@@ -76,6 +81,11 @@ __brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*v
 {
     using _ValueType = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
     using _ReferenceType = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
+
+    // We shouldn't call this brick in code for trivially destructible types
+#if __cplusplus >= 201703L
+    static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
+#endif // __cplusplus >= 201703L
 
     __unseq_backend::__simd_walk_1(__first, __last - __first, [](_ReferenceType __x) { __x.~_ValueType(); });
 }
@@ -172,6 +182,12 @@ struct __op_destroy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
+
+        // We shouldn't call this operator in code for trivial types
+#if __cplusplus >= 201703L
+        static_assert(!::std::is_trivially_destructible<_TargetValueType>::value, "__op_destroy for trivially destructible types not required!");
+#endif // __cplusplus >= 201703L
+
         __target.~_TargetValueType();
     }
 };
