@@ -38,7 +38,7 @@ struct __serial_destroy
     {
         typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
 
-        // We shouldn't call this brick in code for trivially destructible types
+        // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
         static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L

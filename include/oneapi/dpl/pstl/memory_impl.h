@@ -66,7 +66,7 @@ __brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ ::std::false_typ
 {
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    // We shouldn't call this brick in code for trivially destructible types
+    // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
     static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L
@@ -82,7 +82,7 @@ __brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*v
     using _ValueType = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
     using _ReferenceType = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
 
-    // We shouldn't call this brick in code for trivially destructible types
+    // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
     static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L
@@ -183,7 +183,7 @@ struct __op_destroy<_ExecutionPolicy>
     {
         using _TargetValueType = typename ::std::decay<_TargetT>::type;
 
-        // We shouldn't call this operator in code for trivial types
+        // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
         static_assert(!::std::is_trivially_destructible<_TargetValueType>::value, "__op_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L
