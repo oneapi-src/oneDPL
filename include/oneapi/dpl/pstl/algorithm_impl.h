@@ -1130,6 +1130,11 @@ struct __brick_move_destroy<_ExecutionPolicy,
     {
         using _IteratorValueType = typename ::std::iterator_traits<_RandomAccessIterator1>::value_type;
 
+        // We shouldn't call this brick in code for trivially destructible types
+#if __cplusplus >= 201703L
+        static_assert(!::std::is_trivially_destructible<_IteratorValueType>::value, "__brick_destroy for trivially destructible types not required!");
+#endif // __cplusplus >= 201703L
+
         return __unseq_backend::__simd_assign(__first, __last - __first, __result,
                                               [](_RandomAccessIterator1 __first, _RandomAccessIterator2 __result) {
                                                   *__result = ::std::move(*__first);
@@ -1487,10 +1492,13 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
             ::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
             [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
                 __invoke_if_else(
-                    ::std::is_trivial<_Tp>(),
+                    ::std::is_trivially_destructible<_Tp>(),
                     [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector); },
                     [&]() {
-                        __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector);
+#if __cplusplus >= 201703L
+                        if constexpr (!::std::is_trivially_destructible<_Tp>())
+#endif
+                            __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector);
                     });
             });
         return __first + __m;
@@ -1841,11 +1849,19 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
                     __internal::__brick_move<_ExecutionPolicy>{}(__b, __e, __b + (__last - __middle), __is_vector);
                 });
 
-            __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __result, __result + (__n - __m),
-                                          [__first, __result, __is_vector](_Tp* __b, _Tp* __e) {
-                                              __brick_move_destroy<_ExecutionPolicy>{}(
-                                                  __b, __e, __first + (__b - __result), __is_vector);
-                                          });
+            __par_backend::__parallel_for(
+            	::std::forward<_ExecutionPolicy>(__exec), __result, __result + (__n - __m),
+                [__result, __first, __is_vector](_Tp* __b, _Tp* __e) {
+                        __invoke_if_else(
+                        ::std::is_trivially_destructible<_Tp>(),
+                        [&]() { __brick_move<_ExecutionPolicy>{}(__b, __e, __first + (__b - __result), __is_vector); },
+                        [&]() {
+#if __cplusplus >= 201703L
+                            if constexpr (!::std::is_trivially_destructible<_Tp>())
+#endif
+                                __brick_move_destroy<_ExecutionPolicy>{}(__b, __e, __first + (__b - __result), __is_vector);
+                        });
+                });
 
             return __first + (__last - __middle);
         });
@@ -1867,11 +1883,20 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
                     __internal::__brick_move<_ExecutionPolicy>{}(__b, __e, __first + (__b - __middle), __is_vector);
                 });
 
-            __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
-                                          [__n, __m, __first, __result, __is_vector](_Tp* __b, _Tp* __e) {
-                                              __brick_move_destroy<_ExecutionPolicy>{}(
-                                                  __b, __e, __first + ((__n - __m) + (__b - __result)), __is_vector);
-                                          });
+            __par_backend::__parallel_for(
+                ::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
+                [__n, __m, __first, __result, __is_vector](_Tp* __b, _Tp* __e)
+                {
+                    __invoke_if_else(
+                        ::std::is_trivially_destructible<_Tp>(),
+                        [&]() { __brick_move<_ExecutionPolicy>{}(__b, __e, __first + ((__n - __m) + (__b - __result)), __is_vector); },
+                        [&]() {
+#if __cplusplus >= 201703L
+                            if constexpr (!::std::is_trivially_destructible<_Tp>())
+#endif
+                                __brick_move_destroy<_ExecutionPolicy>{}(__b, __e, __first + ((__n - __m) + (__b - __result)), __is_vector);
+                        });
+                });
 
             return __first + (__last - __middle);
         });
@@ -2497,14 +2522,31 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
                                                   __n2);
 
             // 3. Move elements from temporary buffer to output
-            __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n2,
-                                          [__r, __d_first, __is_vector](_T1* __i, _T1* __j) {
-                                              __brick_move_destroy<_ExecutionPolicy>{}(
-                                                  __i, __j, __d_first + (__i - __r), __is_vector);
-                                          });
             __par_backend::__parallel_for(
-                ::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
-                [__is_vector](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, __is_vector); });
+                ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n2,
+                [__r, __d_first, __is_vector](_T1* __i, _T1* __j)
+                {
+                    __invoke_if_else(
+                        ::std::is_trivially_destructible<_T1>(),
+                        [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __d_first + (__i - __r), __is_vector); },
+                        [&]() {
+#if __cplusplus >= 201703L
+                            if constexpr (!::std::is_trivially_destructible<_T1>())
+#endif
+                                __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __d_first + (__i - __r), __is_vector);
+                        });
+                });
+
+#if __cplusplus >= 201703L
+            if constexpr (!::std::is_trivially_destructible<_T1>())
+#else
+            if (!::std::is_trivially_destructible<_T1>())
+#endif
+            {
+                __par_backend::__parallel_for(
+                    ::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
+                    [__is_vector](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, __is_vector); });
+            }
 
             return __d_first + __n2;
         }
@@ -2972,8 +3014,18 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
                 return __f3 + (__l1 - __f1) + (__l2 - __f2);
             });
         __par_backend::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n, [__r, __first, __is_vector](_Tp* __i, _Tp* __j) {
-                __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector);
+            ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n,
+            [__r, __first, __is_vector](_Tp* __i, _Tp* __j)
+            {
+                __invoke_if_else(
+                    ::std::is_trivially_destructible<_Tp>(),
+                    [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector); },
+                    [&]() {
+#if __cplusplus >= 201703L
+                        if constexpr (!::std::is_trivially_destructible<_Tp>())
+#endif
+                            __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector);
+                    });
             });
     });
 }
@@ -3086,9 +3138,27 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
         _DifferenceType __m{};
         auto __scan = [=](_DifferenceType, _DifferenceType, const _SetRange& __s) { // Scan
             if (!__s.empty())
-                __brick_move_destroy<_ExecutionPolicy>{}(__buffer + __s.__buf_pos,
-                                                         __buffer + (__s.__buf_pos + __s.__len), __result + __s.__pos,
-                                                         __is_vector);
+            {
+                __invoke_if_else(
+                    ::std::is_trivially_destructible<_T>(),
+                    [&]()
+                    {
+                        __brick_move<_ExecutionPolicy>{}(
+                            __buffer + __s.__buf_pos,
+                            __buffer + (__s.__buf_pos + __s.__len), __result + __s.__pos,
+                            __is_vector);
+                    },
+                    [&]()
+                    {
+#if __cplusplus >= 201703L
+                        if constexpr (!::std::is_trivially_destructible<_T>())
+#endif
+                            __brick_move_destroy<_ExecutionPolicy>{}(
+                                __buffer + __s.__buf_pos,
+                                __buffer + (__s.__buf_pos + __s.__len), __result + __s.__pos,
+                                __is_vector);
+                    });
+            }
         };
         __par_backend::__parallel_strict_scan(
             ::std::forward<_ExecutionPolicy>(__exec), __n1, _SetRange{0, 0, 0}, //-1, 0},
