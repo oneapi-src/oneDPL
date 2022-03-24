@@ -37,6 +37,12 @@ struct __serial_destroy
     operator()(_RandomAccessIterator __zs, _RandomAccessIterator __ze)
     {
         typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _ValueType;
+
+        // We shouldn't call this brick in code for trivially destructible types
+#if __cplusplus >= 201703L
+        static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
+#endif // __cplusplus >= 201703L
+
         while (__zs != __ze)
         {
             --__ze;
