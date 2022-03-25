@@ -524,7 +524,7 @@ __simd_transform_reduce(_Size __n, _Tp __init, _BinaryOperation __binary_op, _Un
             __init = __binary_op(__init, __lane[__i]);
         }
         // destroyer
-        if (!::std::is_trivially_destructible<_Tp>())
+        if _ONEDPL_CONSTEXPR_IF (!::std::is_trivially_destructible<_Tp>())
         {
             _ONEDPL_PRAGMA_SIMD
             for (_Size __i = 0; __i < __block_size; ++__i)
