@@ -384,11 +384,12 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 
     auto __identity_init_fn = __acc_handler_minelement<_ReduceValueType>{};
     auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
-        // in case of equal elements we should return closer to the first
         using ::std::get;
-        if (get<0>(__a) < get<0>(__b)) //check indices
-            return __comp(get<1>(__b), get<1>(__a)) ? __b : __a;
-        return __comp(get<1>(__a), get<1>(__b)) ? __a : __b;
+        if (__comp(get<1>(__b), get<1>(__a)))
+        {
+            return __b;
+        }
+        return __a;
     };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
