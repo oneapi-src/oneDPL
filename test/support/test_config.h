@@ -25,6 +25,13 @@
 #define _SCL_SECURE_NO_WARNINGS //to prevent the compilation warning. Microsoft STL implementation has specific checking of an iterator range in DEBUG mode for the containers from the standard library.
 #endif
 
+// Enable test when the DPC++ backend is available
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
+#define TEST_DPCPP_BACKEND_PRESENT 1
+#else
+#define TEST_DPCPP_BACKEND_PRESENT 0
+#endif
+
 // ICC 18 (Windows) has encountered an unexpected problem on some tests
 #define _PSTL_ICC_18_VC141_TEST_SIMD_LAMBDA_RELEASE_BROKEN                                                            \
     (!_DEBUG && __INTEL_COMPILER >= 1800 && __INTEL_COMPILER < 1900 && _MSC_VER == 1910)
@@ -70,13 +77,6 @@
 #define COMPLEX_TEST_CONSTEXPR
 
 #define _PSTL_SYCL_TEST_USM 1
-
-// Enable test when the DPC++ backend is available
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
-#define TEST_DPCPP_BACKEND_PRESENT 1
-#else
-#define TEST_DPCPP_BACKEND_PRESENT 0
-#endif
 
 #ifdef __SYCL_UNNAMED_LAMBDA__
 #define TEST_UNNAMED_LAMBDAS 1
