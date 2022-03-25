@@ -27,10 +27,6 @@
 #    include <CL/sycl.hpp>
 #endif
 
-#if TEST_DPCPP_BACKEND_PRESENT
-using namespace oneapi::dpl::execution;
-#endif
-
 //
 // https://stackoverflow.com/questions/2324658/how-to-determine-the-version-of-the-c-standard-used-by-the-compiler
 //      C++11 : __cplusplus is 201103L
