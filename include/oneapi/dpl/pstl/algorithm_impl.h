@@ -1132,7 +1132,8 @@ struct __brick_move_destroy<_ExecutionPolicy,
 
         // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
-        static_assert(!::std::is_trivially_destructible<_IteratorValueType>::value, "__brick_destroy for trivially destructible types not required!");
+        static_assert(!::std::is_trivially_destructible<_IteratorValueType>::value,
+                      "__brick_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L
 
         return __unseq_backend::__simd_assign(__first, __last - __first, __result,
@@ -1490,14 +1491,16 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
         // 3. Elements from result are moved to [first, last)
         __par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
-            [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
+            [__result, __first, __is_vector](_Tp* __i, _Tp* __j)
+            {
                 __invoke_if_else(
                     ::std::is_trivially_destructible<_Tp>(),
                     [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector); },
-                    [&]() {
+                    [&]()
+                    {
                         // The goal of this check - avoid to compile code with __brick_move_destroy call because
                         // we have static_assert inside of __brick_move_destroy (if __cplusplus >= 201703L)
-                        if _ONEDPL_CONSTEXPR_FUN(!::std::is_trivially_destructible<_Tp>())
+                        if _ONEDPL_CONSTEXPR_FUN (!::std::is_trivially_destructible<_Tp>())
                             __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector);
                     });
             });
@@ -1850,16 +1853,19 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
                 });
 
             __par_backend::__parallel_for(
-            	::std::forward<_ExecutionPolicy>(__exec), __result, __result + (__n - __m),
-                [__result, __first, __is_vector](_Tp* __b, _Tp* __e) {
-                        __invoke_if_else(
+                ::std::forward<_ExecutionPolicy>(__exec), __result, __result + (__n - __m),
+                [__result, __first, __is_vector](_Tp* __b, _Tp* __e)
+                {
+                    __invoke_if_else(
                         ::std::is_trivially_destructible<_Tp>(),
                         [&]() { __brick_move<_ExecutionPolicy>{}(__b, __e, __first + (__b - __result), __is_vector); },
-                        [&]() {
+                        [&]()
+                        {
                             // The goal of this check - avoid to compile code with __brick_move_destroy call because
                             // we have static_assert inside of __brick_move_destroy (if __cplusplus >= 201703L)
-                            if _ONEDPL_CONSTEXPR_FUN(!::std::is_trivially_destructible<_Tp>())
-                                __brick_move_destroy<_ExecutionPolicy>{}(__b, __e, __first + (__b - __result), __is_vector);
+                            if _ONEDPL_CONSTEXPR_FUN (!::std::is_trivially_destructible<_Tp>())
+                                __brick_move_destroy<_ExecutionPolicy>{}(__b, __e, __first + (__b - __result),
+                                                                         __is_vector);
                         });
                 });
 
@@ -2529,21 +2535,23 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
                     __invoke_if_else(
                         ::std::is_trivially_destructible<_T1>(),
                         [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __d_first + (__i - __r), __is_vector); },
-                        [&]() {
+                        [&]()
+                        {
                             // The goal of this check - avoid to compile code with __brick_move_destroy call because
                             // we have static_assert inside of __brick_move_destroy (if __cplusplus >= 201703L)
-                            if _ONEDPL_CONSTEXPR_FUN(!::std::is_trivially_destructible<_T1>())
-                                __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __d_first + (__i - __r), __is_vector);
+                            if _ONEDPL_CONSTEXPR_FUN (!::std::is_trivially_destructible<_T1>())
+                                __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __d_first + (__i - __r),
+                                                                         __is_vector);
                         });
                 });
 
             // The goal of this check - avoid to compile code with __brick_destroy call because
             // we have static_assert inside of __brick_destroy (if __cplusplus >= 201703L)
-            if _ONEDPL_CONSTEXPR_FUN(!::std::is_trivially_destructible<_T1>())
+            if _ONEDPL_CONSTEXPR_FUN (!::std::is_trivially_destructible<_T1>())
             {
-                __par_backend::__parallel_for(
-                    ::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
-                    [__is_vector](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, __is_vector); });
+                __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
+                                              [__is_vector](_T1* __i, _T1* __j)
+                                              { __brick_destroy(__i, __j, __is_vector); });
             }
 
             return __d_first + __n2;
@@ -3011,20 +3019,21 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
                                                     __move_sequences, __move_sequences);
                 return __f3 + (__l1 - __f1) + (__l2 - __f2);
             });
-        __par_backend::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n,
-            [__r, __first, __is_vector](_Tp* __i, _Tp* __j)
-            {
-                __invoke_if_else(
-                    ::std::is_trivially_destructible<_Tp>(),
-                    [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector); },
-                    [&]() {
-                        // The goal of this check - avoid to compile code with __brick_move_destroy call because
-                        // we have static_assert inside of __brick_move_destroy (if __cplusplus >= 201703L)
-                        if _ONEDPL_CONSTEXPR_FUN(!::std::is_trivially_destructible<_Tp>())
-                            __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector);
-                    });
-            });
+            __par_backend::__parallel_for(
+                ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n,
+                [__r, __first, __is_vector](_Tp* __i, _Tp* __j)
+                {
+                    __invoke_if_else(
+                        ::std::is_trivially_destructible<_Tp>(),
+                        [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector); },
+                        [&]()
+                        {
+                            // The goal of this check - avoid to compile code with __brick_move_destroy call because
+                            // we have static_assert inside of __brick_move_destroy (if __cplusplus >= 201703L)
+                            if _ONEDPL_CONSTEXPR_FUN (!::std::is_trivially_destructible<_Tp>())
+                                __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector);
+                        });
+                });
     });
 }
 
@@ -3141,20 +3150,18 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
                     ::std::is_trivially_destructible<_T>(),
                     [&]()
                     {
-                        __brick_move<_ExecutionPolicy>{}(
-                            __buffer + __s.__buf_pos,
-                            __buffer + (__s.__buf_pos + __s.__len), __result + __s.__pos,
-                            __is_vector);
+                        __brick_move<_ExecutionPolicy>{}(__buffer + __s.__buf_pos,
+                                                         __buffer + (__s.__buf_pos + __s.__len), __result + __s.__pos,
+                                                         __is_vector);
                     },
                     [&]()
                     {
                         // The goal of this check - avoid to compile code with __brick_move_destroy call because
                         // we have static_assert inside of __brick_move_destroy (if __cplusplus >= 201703L)
-                        if _ONEDPL_CONSTEXPR_FUN(!::std::is_trivially_destructible<_T>())
-                            __brick_move_destroy<_ExecutionPolicy>{}(
-                                __buffer + __s.__buf_pos,
-                                __buffer + (__s.__buf_pos + __s.__len), __result + __s.__pos,
-                                __is_vector);
+                        if _ONEDPL_CONSTEXPR_FUN (!::std::is_trivially_destructible<_T>())
+                            __brick_move_destroy<_ExecutionPolicy>{}(__buffer + __s.__buf_pos,
+                                                                     __buffer + (__s.__buf_pos + __s.__len),
+                                                                     __result + __s.__pos, __is_vector);
                     });
             }
         };

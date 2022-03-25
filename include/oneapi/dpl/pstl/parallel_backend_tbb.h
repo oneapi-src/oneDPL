@@ -827,15 +827,13 @@ class __merge_func
             {
                 auto __n = __last - __first;
                 tbb::parallel_for(tbb::blocked_range<_SizeType>(0, __n, __merge_cut_off),
-                                    [__first](const tbb::blocked_range<_SizeType>& __range) {
-                                        _Cleanup()(__first + __range.begin(), __first + __range.end());
-                                    });
+                                  [__first](const tbb::blocked_range<_SizeType>& __range)
+                                  { _Cleanup()(__first + __range.begin(), __first + __range.end()); });
             }
         }
 
         template <typename Iterator>
-        void
-        operator()(Iterator /*__first*/, Iterator /*__last*/, ::std::true_type)
+        void operator()(Iterator /*__first*/, Iterator /*__last*/, ::std::true_type)
         {
             // No operations required here for trivially destructible types
         }
@@ -913,7 +911,8 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx, _M_x_beg + _M_xs);
-            __cleanup_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx, typename ::std::is_trivially_destructible<_ValueType>::type());
+            __cleanup_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx,
+                              typename ::std::is_trivially_destructible<_ValueType>::type());
         }
 
         _x_orig = !_x_orig;
@@ -929,7 +928,8 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny, _M_x_beg + _M_ys);
-            __cleanup_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny, typename ::std::is_trivially_destructible<_ValueType>::type());
+            __cleanup_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny,
+                              typename ::std::is_trivially_destructible<_ValueType>::type());
         }
 
         _y_orig = !_y_orig;
@@ -964,8 +964,10 @@ class __merge_func
             _M_leaf_merge(_M_z_beg + _M_xs, _M_z_beg + _M_xe, _M_z_beg + _M_ys, _M_z_beg + _M_ye, _M_x_beg + _M_zs,
                           _M_comp, __move_value(), __move_value(), __move_range(), __move_range());
 
-            __cleanup_range()(_M_z_beg + _M_xs, _M_z_beg + _M_xe, typename ::std::is_trivially_destructible<_ValueType>::type());
-            __cleanup_range()(_M_z_beg + _M_ys, _M_z_beg + _M_ye, typename ::std::is_trivially_destructible<_ValueType>::type());
+            __cleanup_range()(_M_z_beg + _M_xs, _M_z_beg + _M_xe,
+                              typename ::std::is_trivially_destructible<_ValueType>::type());
+            __cleanup_range()(_M_z_beg + _M_ys, _M_z_beg + _M_ye,
+                              typename ::std::is_trivially_destructible<_ValueType>::type());
         }
         return nullptr;
     }

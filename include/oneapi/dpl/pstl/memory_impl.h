@@ -68,7 +68,8 @@ __brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ ::std::false_typ
 
     // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
-    static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
+    static_assert(!::std::is_trivially_destructible<_ValueType>::value,
+                  "__brick_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L
 
     for (; __first != __last; ++__first)
@@ -84,7 +85,8 @@ __brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*v
 
     // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
-    static_assert(!::std::is_trivially_destructible<_ValueType>::value, "__brick_destroy for trivially destructible types not required!");
+    static_assert(!::std::is_trivially_destructible<_ValueType>::value,
+                  "__brick_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L
 
     __unseq_backend::__simd_walk_1(__first, __last - __first, [](_ReferenceType __x) { __x.~_ValueType(); });
@@ -185,7 +187,8 @@ struct __op_destroy<_ExecutionPolicy>
 
         // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
 #if __cplusplus >= 201703L
-        static_assert(!::std::is_trivially_destructible<_TargetValueType>::value, "__op_destroy for trivially destructible types not required!");
+        static_assert(!::std::is_trivially_destructible<_TargetValueType>::value,
+                      "__op_destroy for trivially destructible types not required!");
 #endif // __cplusplus >= 201703L
 
         __target.~_TargetValueType();
