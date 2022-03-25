@@ -90,6 +90,12 @@
 #    define _ONEDPL_CPP14_CONSTEXPR
 #endif
 
+#if (__cplusplus >= 201703L)
+#    define _ONEDPL_CONSTEXPR_IF constexpr
+#else
+#    define _ONEDPL_CONSTEXPR_IF
+#endif
+
 // Check the user-defined macro for warnings
 #if !defined(_PSTL_USAGE_WARNINGS) && defined(PSTL_USAGE_WARNINGS)
 #    define _PSTL_USAGE_WARNINGS PSTL_USAGE_WARNINGS
