@@ -1149,6 +1149,12 @@ struct __brick_move_destroy<_ExecutionPolicy,
     {
         using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
+        // Check here C++ vesrion: if version >= C++17 then "if constexpr" required on caller side and this code shouldn't be compiled
+#if __cplusplus >= 201703L
+        static_assert(!::std::is_trivially_destructible<_IteratorValueType>::value,
+                      "__brick_destroy for trivially destructible types not required!");
+#endif // __cplusplus >= 201703L
+
         for (; __first != __last; ++__first, ++__result)
         {
             *__result = ::std::move(*__first);
