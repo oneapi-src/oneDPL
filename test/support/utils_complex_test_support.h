@@ -27,8 +27,7 @@
 #    include <CL/sycl.hpp>
 #endif
 
-//
-// https://stackoverflow.com/questions/2324658/how-to-determine-the-version-of-the-c-standard-used-by-the-compiler
+// C++ compiler versions:
 //      C++11 : __cplusplus is 201103L
 //      C++14 : __cplusplus is 201402L
 //      C++20 : __cplusplus is 202002L
