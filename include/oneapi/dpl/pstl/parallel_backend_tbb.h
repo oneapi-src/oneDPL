@@ -827,8 +827,9 @@ class __merge_func
             {
                 auto __n = __last - __first;
                 tbb::parallel_for(tbb::blocked_range<_SizeType>(0, __n, __merge_cut_off),
-                                  [__first](const tbb::blocked_range<_SizeType>& __range)
-                                  { _Cleanup()(__first + __range.begin(), __first + __range.end()); });
+                                  [__first](const tbb::blocked_range<_SizeType>& __range) {
+                                      _Cleanup()(__first + __range.begin(), __first + __range.end());
+                                  });
             }
         }
 
