@@ -2505,9 +2505,9 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
 
             if _ONEDPL_CONSTEXPR_IF (!::std::is_trivially_destructible<_T1>())
             {
-                __par_backend::__parallel_for(
-                    ::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
-                    [__is_vector](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, __is_vector); });
+                __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
+                                              [__is_vector](_T1* __i, _T1* __j)
+                                              { __brick_destroy(__i, __j, __is_vector); });
             }
 
             return __d_first + __n2;
