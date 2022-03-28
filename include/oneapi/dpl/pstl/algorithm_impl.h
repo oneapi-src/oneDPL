@@ -1483,11 +1483,11 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
             [&__m](_DifferenceType __total) { __m = __total; });
 
         // 3. Elements from result are moved to [first, last)
-        __par_backend::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
-            [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
-                __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector);
-            });
+        __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
+                                      [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
+                                          __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result),
+                                                                                   __is_vector);
+                                      });
         return __first + __m;
     });
 }
