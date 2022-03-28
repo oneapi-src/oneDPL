@@ -220,7 +220,7 @@ jobs:
         shell: cmd
         run: |
           call %CONDA%/condabin/conda.bat activate base
-          if "dpcpp" == "dpcpp" (
+          if "${{ matrix.backend }}" == "dpcpp" (
             set ninja_targets=sycl_iterator.pass
             set ctest_flags=-R sycl_iterator.pass
             echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass
