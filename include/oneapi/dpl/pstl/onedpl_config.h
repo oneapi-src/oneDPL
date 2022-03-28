@@ -91,9 +91,9 @@
 #endif
 
 #if (__cplusplus >= 201703L)
-#    define _ONEDPL_CONSTEXPR_IF constexpr
+#    define _ONEDPL_CPP17_CONSTEXPR_IF constexpr
 #else
-#    define _ONEDPL_CONSTEXPR_IF
+#    define _ONEDPL_CPP17_CONSTEXPR_IF
 #endif
 
 // Check the user-defined macro for warnings
