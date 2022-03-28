@@ -1486,12 +1486,7 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
         __par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
             [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
-                __invoke_if_else(
-                    ::std::is_trivially_destructible<_Tp>(),
-                    [&]() { __brick_move<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector); },
-                    [&]() {
-                        __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector);
-                    });
+                __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result), __is_vector);
             });
         return __first + __m;
     });
