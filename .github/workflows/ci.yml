@@ -220,17 +220,17 @@ jobs:
         shell: cmd
         run: |
           call %CONDA%/condabin/conda.bat activate base
-          if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
+          if "dpcpp" == "dpcpp" (
             set ninja_targets=sycl_iterator.pass
             set ctest_flags=-R sycl_iterator.pass
             echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass
-          else
+          ) else (
             set ninja_targets=build-onedpl-tests
-          fi
-          if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
+          )
+          if "${{ matrix.cxx_compiler }}" == "dpcpp" (
             powershell $output = dpcpp --version; Write-Host ::warning::Compiler: $output
             set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
-          fi
+          )
           mkdir build && cd build
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           set INCLUDE=%CONDA_PREFIX%\Library\include;%INCLUDE%
