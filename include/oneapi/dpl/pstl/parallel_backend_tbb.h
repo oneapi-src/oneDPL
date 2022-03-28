@@ -819,7 +819,7 @@ class __merge_func
     {
         template <typename Iterator>
         void
-        operator()(Iterator __first, Iterator __last, ::std::false_type)
+        operator()(Iterator __first, Iterator __last)
         {
             if (__last - __first < __merge_cut_off)
                 _Cleanup()(__first, __last);
@@ -831,12 +831,6 @@ class __merge_func
                                       _Cleanup()(__first + __range.begin(), __first + __range.end());
                                   });
             }
-        }
-
-        template <typename Iterator>
-        void operator()(Iterator /*__first*/, Iterator /*__last*/, ::std::true_type)
-        {
-            // No operations required here for trivially destructible types
         }
     };
 
@@ -912,8 +906,8 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx, _M_x_beg + _M_xs);
-            __cleanup_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx,
-                              typename ::std::is_trivially_destructible<_ValueType>::type());
+            if _ONEDPL_CPP17_CONSTEXPR_IF (!::std::is_trivially_destructible<_ValueType>())
+                __cleanup_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx);
         }
 
         _x_orig = !_x_orig;
@@ -929,8 +923,8 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny, _M_x_beg + _M_ys);
-            __cleanup_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny,
-                              typename ::std::is_trivially_destructible<_ValueType>::type());
+            if _ONEDPL_CPP17_CONSTEXPR_IF (!::std::is_trivially_destructible<_ValueType>())
+                __cleanup_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny);
         }
 
         _y_orig = !_y_orig;
@@ -965,10 +959,11 @@ class __merge_func
             _M_leaf_merge(_M_z_beg + _M_xs, _M_z_beg + _M_xe, _M_z_beg + _M_ys, _M_z_beg + _M_ye, _M_x_beg + _M_zs,
                           _M_comp, __move_value(), __move_value(), __move_range(), __move_range());
 
-            __cleanup_range()(_M_z_beg + _M_xs, _M_z_beg + _M_xe,
-                              typename ::std::is_trivially_destructible<_ValueType>::type());
-            __cleanup_range()(_M_z_beg + _M_ys, _M_z_beg + _M_ye,
-                              typename ::std::is_trivially_destructible<_ValueType>::type());
+            if _ONEDPL_CPP17_CONSTEXPR_IF (!::std::is_trivially_destructible<_ValueType>())
+            {
+                __cleanup_range()(_M_z_beg + _M_xs, _M_z_beg + _M_xe);
+                __cleanup_range()(_M_z_beg + _M_ys, _M_z_beg + _M_ye);
+            }
         }
         return nullptr;
     }
