@@ -517,6 +517,10 @@ set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _ForwardIterator __result);
 
 // [is.heap]
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.6.2/libstdc++/api/a01200.html
+// Otherwise, we have compile errors in clang < 13.0
+
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
