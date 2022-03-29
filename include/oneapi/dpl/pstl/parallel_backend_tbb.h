@@ -906,7 +906,9 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx, _M_x_beg + _M_xs);
-            __cleanup_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx);
+            oneapi::dpl::__internal::__invoke_if_not(::std::is_trivially_destructible<_ValueType>(), [&]() {
+                __cleanup_range()(_M_z_beg + _M_zs, _M_z_beg + _M_zs + __nx);
+            });
         }
 
         _x_orig = !_x_orig;
@@ -922,7 +924,9 @@ class __merge_func
         else
         {
             __move_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny, _M_x_beg + _M_ys);
-            __cleanup_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny);
+            oneapi::dpl::__internal::__invoke_if_not(::std::is_trivially_destructible<_ValueType>(), [&]() {
+                __cleanup_range()(_M_z_beg + _M_zs + __nx, _M_z_beg + _M_zs + __nx + __ny);
+            });
         }
 
         _y_orig = !_y_orig;
@@ -957,8 +961,10 @@ class __merge_func
             _M_leaf_merge(_M_z_beg + _M_xs, _M_z_beg + _M_xe, _M_z_beg + _M_ys, _M_z_beg + _M_ye, _M_x_beg + _M_zs,
                           _M_comp, __move_value(), __move_value(), __move_range(), __move_range());
 
-            __cleanup_range()(_M_z_beg + _M_xs, _M_z_beg + _M_xe);
-            __cleanup_range()(_M_z_beg + _M_ys, _M_z_beg + _M_ye);
+            oneapi::dpl::__internal::__invoke_if_not(::std::is_trivially_destructible<_ValueType>(), [&]() {
+                __cleanup_range()(_M_z_beg + _M_xs, _M_z_beg + _M_xe);
+                __cleanup_range()(_M_z_beg + _M_ys, _M_z_beg + _M_ye);
+            });
         }
         return nullptr;
     }
