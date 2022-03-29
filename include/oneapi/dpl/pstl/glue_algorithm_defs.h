@@ -397,6 +397,10 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
                   _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
 
 // [is.sorted]
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
+// Otherwise, we have compile errors in clang < 13.0
+
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
