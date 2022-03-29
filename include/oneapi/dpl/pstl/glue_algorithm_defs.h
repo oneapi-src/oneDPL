@@ -382,6 +382,9 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
              _RandomAccessIterator __last, _Compare __comp);
 
 // [partial.sort.copy]
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
+// Otherwise, we have compile errors in clang < 13.0
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
