@@ -367,6 +367,9 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
 
 // [partial.sort]
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
+// Otherwise, we have compile errors in clang < 13.0
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
