@@ -368,15 +368,15 @@ move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 
 // [partial.sort]
 
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
-partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
-             _RandomAccessIterator __last, _Compare __comp);
-
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
              _RandomAccessIterator __last);
+
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
+             _RandomAccessIterator __last, _Compare __comp);
 
 // [partial.sort.copy]
 
