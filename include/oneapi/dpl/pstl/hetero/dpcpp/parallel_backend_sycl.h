@@ -119,7 +119,7 @@ struct iter_mode
     // for common heterogeneous iterator
     template <template <access_mode, typename...> class Iter, access_mode inMode, typename... Types>
     Iter<iter_mode_resolver<inMode, outMode>::value, Types...>
-    operator()(const Iter<inMode, Types...>& it)
+    operator()(Iter<inMode, Types...>& it)
     {
         constexpr access_mode preferredMode = iter_mode_resolver<inMode, outMode>::value;
         if (inMode == preferredMode)

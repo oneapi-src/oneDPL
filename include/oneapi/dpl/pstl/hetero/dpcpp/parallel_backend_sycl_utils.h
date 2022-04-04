@@ -328,8 +328,8 @@ struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
         return oneapi::dpl::begin(__container);
     }
 
-    __container_t
-    get_buffer() const
+    __container_t&
+    get_buffer()
     {
         return __container;
     }
