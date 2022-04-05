@@ -173,6 +173,10 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
 {
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
+
+    if (size <= 0)
+        return result;
+
     const auto value_size = ::std::distance(value_start, value_end);
 
     auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
