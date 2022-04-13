@@ -5,16 +5,16 @@ Parallel API can be used with the `C++ Standard Execution
 Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_
 to enable parallelism on the host.
 
-The |onedpl_long| is implemented in accordance with the `oneDPL
+The |onedpl_long| (|onedpl_short|) is implemented in accordance with the `oneDPL
 Specification <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html>`_.
 
-To support heterogeneity, |onedpl_short| works with the Data Parallel C++ (DPC++) API. More information can be found in the
+To support heterogeneity, |onedpl_short| works with the DPC++ API. More information can be found in the
 `DPC++ Specification <https://spec.oneapi.com/versions/latest/elements/dpcpp/source/index.html#dpc>`_.
 
 Before You Begin
 ================
 
-Visit the |onedpl_long| `Release Notes
+Visit the |onedpl_short| `Release Notes
 <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
 page for:
 
@@ -37,7 +37,7 @@ and use the ``std`` namespace.
 Prerequisites
 =============
 
-Since |onedpl_short| 2021.6, C++17 is the minimal supported version of the C++ standard.
+C++17 is the minimal supported version of the C++ standard.
 That means, any use of |onedpl_short| may require a C++17 compiler.
 While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.
  
@@ -51,23 +51,23 @@ To call Parallel API with the C++ standard policies, you need to install the fol
 
 For more information about parallel backends, see :doc:`Execution Policies <parallel_api/execution_policies>`
 
-To use Parallel API with the |dpcpp_short| execution policies, you need to install the following software:
+To use Parallel API with the device execution policies, you need to install the following software:
 
-* A C++ compiler with support for SYCL* 2020
+* A C++ compiler with support for SYCL 2020
 
 Restrictions
 ============
 
-When called with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as |dpcpp_short|
-does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
+When called with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as
+|dpcpp_short| does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
 
 * Adding buffers to a lambda capture list is not allowed for lambdas passed to an algorithm.
 * Passing data types, which are not trivially copyable, is only allowed via USM,
   but not via buffers or host-allocated containers.
 * The definition of lambda functions used with parallel algorithms should not depend on preprocessor macros
   that makes it different for the host and the device. Otherwise, the behavior is undefined.
-* When used within DPC++ kernels or transferred to/from a device, a container class can only hold objects
-  whose type meets DPC++ requirements for use in kernels and for data transfer, respectively.
+* When used within SYCL kernels or transferred to/from a device, a container class can only hold objects
+  whose type meets SYCL requirements for use in kernels and for data transfer, respectively.
 * Calling the API that throws exception is not allowed within callable objects passed to an algorithm.
 
 Known Limitations
@@ -78,12 +78,14 @@ Known Limitations
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   vector execution policies when building a program with GCC 10 and using ``-O0`` option.
-* The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
-  compilation errors (caused by oneTBB API changes). 
-  To overcome these issues, include oneDPL header files before the standard C++ header files,
+* The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
+  compilation errors (caused by oneTBB API changes).
+  Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
+  using C++17 or C++20 and TBB is not found in the environment, even if its use in |onedpl_short| is switched off.
+  To overcome these issues, include |onedpl_short| header files before the standard C++ header files,
   or disable parallel algorithms support in the standard library. 
   For more information, please see `Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`_.
-* The ``using namespace oneapi;`` directive in a oneDPL program code may result in compilation errors
+* The ``using namespace oneapi;`` directive in a |onedpl_short| program code may result in compilation errors
   with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
   ``oneapi::dpl`` namespace, or create a namespace alias. 
 * ``std::array::at`` member function cannot be used in kernels because it may throw an exception;
