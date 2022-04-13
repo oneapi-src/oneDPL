@@ -1,7 +1,7 @@
 Tested Standard C++ APIs
 ########################
 
-The basic functionality for several C++ standard APIs has been tested for use in SYCL* kernels.
+The basic functionality for several C++ standard APIs has been tested for use in SYCL kernels.
 These APIs can be employed in device kernels similarly to how they are employed in code for a typical CPU-based platform.
 The Tested Standard C++ APIs are added to the namespace ``oneapi::dpl``. The corresponding headers have been added in the
 |onedpl_long| (|onedpl_short|) package. In order to use these APIs via the namespace ``oneapi::dpl``, the headers in
