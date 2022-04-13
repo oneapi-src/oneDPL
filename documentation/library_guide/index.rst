@@ -2,7 +2,7 @@
 =================================
 
 |onedpl_long| (|onedpl_short|) works with the |dpcpp_cpp| to
-provide high-productivity APIs to developers, which can minimize SYCL* programming
+provide high-productivity APIs to developers, which can minimize SYCL programming
 efforts across devices for high performance parallel applications.
 
 .. toctree::
