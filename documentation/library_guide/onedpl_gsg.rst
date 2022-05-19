@@ -3,7 +3,7 @@ Get Started with the |onedpl_long|
 
 |onedpl_long| (|onedpl_short|) works with the
 `Intel® oneAPI DPC++/C++ Compiler <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
-to provide high-productivity APIs to developers, which can minimize SYCL
+to provide high-productivity APIs to developers, which can minimize SYCL*
 
 programming efforts across devices for high performance parallel applications.
 
