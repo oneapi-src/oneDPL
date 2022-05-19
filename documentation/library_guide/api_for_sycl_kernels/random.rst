@@ -84,7 +84,7 @@ Distribution                   Description
 Usage Model of |onedpl_short| Random Number Generation Functionality
 --------------------------------------------------------------------
 
-Random number generation is available for SYCL device-side and host-side code. For example:
+Random number generation is available for SYCL* device-side and host-side code. For example:
 
 .. code:: cpp
 

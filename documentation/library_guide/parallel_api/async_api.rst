@@ -4,7 +4,7 @@ Asynchronous API Algorithms
 The functions defined in the STL ``<algorithm>`` or ``<numeric>`` headers are traditionally blocking. |onedpl_long| (|onedpl_short|)
 extends the functionality of the C++17 parallel algorithms by providing asynchronous algorithms with non-blocking behavior.
 This experimental feature enables you to express a concurrent control flow by building dependency chains, interleaving algorithm calls,
-and interoperability with SYCL kernels. 
+and interoperability with SYCL* kernels. 
 
 The current implementation for async algorithms is limited to device execution policies.
 All the functionality described below is available in the ``oneapi::dpl::experimental`` namespace.

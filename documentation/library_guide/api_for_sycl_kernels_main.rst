@@ -1,7 +1,7 @@
-API for the SYCL Kernels
+API for the SYCL* Kernels
 #########################
 
-|onedpl_long| (|onedpl_short|) includes the following APIs for SYCL kernels:
+|onedpl_long| (|onedpl_short|) includes the following APIs for SYCL* kernels:
 
 * :doc:`Tested Standard C++ APIs <api_for_sycl_kernels/tested_standard_cpp_api>`. The basic
   functionality for several C++ standard APIs has been tested for use in SYCL kernels.
