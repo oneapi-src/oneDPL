@@ -1,10 +1,7 @@
-Working with Buffers and USM
-################################
-
 Pass Data to Algorithms
-=======================
+#######################
 
-You can use one of the following ways to pass data to an algorithm executed with a |dpcpp_long| policy:
+You can use one of the following ways to pass data to an algorithm executed with a device policy:
 
 * ``oneapi:dpl::begin`` and ``oneapi::dpl::end`` functions
 * Unified shared memory (USM) pointers and ``std::vector`` with USM allocators
@@ -14,7 +11,7 @@ Use oneapi::dpl::begin and oneapi::dpl::end Functions
 -----------------------------------------------------
 
 ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` are special helper functions that
-allow you to pass SYCL* buffers to parallel algorithms. These functions accept
+allow you to pass SYCL buffers to parallel algorithms. These functions accept
 a SYCL buffer and return an object of an unspecified type that provides the following API:
 
 * It satisfies ``CopyConstructible`` and ``CopyAssignable`` C++ named requirements and comparable with
@@ -26,7 +23,7 @@ a SYCL buffer and return an object of an unspecified type that provides the foll
 
 The ``begin`` and ``end`` functions can take SYCL 2020 deduction tags and ``sycl::no_init`` as arguments
 to explicitly mention which access mode should be applied to the buffer accessor when submitting a
-DPC++ kernel to a device. For example:
+SYCL kernel to a device. For example:
 
 .. code:: cpp
 
@@ -101,14 +98,14 @@ Alternatively, use ``std::vector`` with a USM allocator. For example:
 When using device USM, such as allocated by ``malloc_device``, manually copy data to this memory
 before calling oneDPL algorithms, and copy it back once the algorithms have finished execution.
 
-Use Host-side std::vector
+Use Host-Side std::vector
 -----------------------------
 
 |onedpl_long| parallel algorithms can be called with ordinary (host-side) iterators, as seen in the
 example below.
 In this case, a temporary SYCL buffer is created, and the data is copied to this buffer.
-After processing of the temporary buffer on a device is complete, the data is copied back
-to the host. Working with SYCL buffers is recommended to reduce data copying between the host and device.
+After processing on a device is complete, the modified data is copied from the temporary buffer back
+to the host container.
 For example:
 
 .. code:: cpp
@@ -122,3 +119,5 @@ For example:
     // each element of vec equals to 42
     return 0;
   }
+
+Working with SYCL buffers is recommended to reduce data copying between the host and device.

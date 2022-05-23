@@ -4,8 +4,9 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; oneDPL Documentation 2021.7 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>API for the SYCL* Kernels &#8212; oneDPL Documentation 2021.7 documentation</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -32,8 +33,10 @@
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <link rel="shortcut icon" href="_static/favicons.png"/>
-    <link rel="index" title="Index" href="#" />
+    <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Random Number Generators" href="api_for_sycl_kernels/random.html" />
+    <link rel="prev" title="Pass Data to Algorithms" href="parallel_api/pass_data_algorithms.html" />
 
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
@@ -80,7 +83,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item active">
-        <ul class="nav bd-sidenav">
+        <ul class="current nav bd-sidenav">
  <li class="toctree-l1">
   <a class="reference internal" href="onedpl_gsg.html">
    Get Started with the oneAPI DPC++ Library
@@ -133,11 +136,11 @@
    </li>
   </ul>
  </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="api_for_sycl_kernels_main.html">
+ <li class="toctree-l1 current active has-children">
+  <a class="current reference internal" href="#">
    API for the SYCL* Kernels
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
   <label for="toctree-checkbox-2">
    <i class="fas fa-chevron-down">
    </i>
@@ -234,10 +237,19 @@ title="Fullscreen mode"
   </span>
 
 </button>
-<a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fgenindex.html&body=Your%20issue%20content%20here."
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fapi_for_sycl_kernels_main.html&body=Your%20issue%20content%20here."
    class="headerbtn"
    data-toggle="tooltip"
-data-placement="bottom"
+data-placement="left"
 title="Open an issue"
 >
   
@@ -245,8 +257,77 @@ title="Open an issue"
 <span class="headerbtn__icon-container">
   <i class="fas fa-lightbulb"></i>
   </span>
-
+<span class="headerbtn__text-container">open issue</span>
 </a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/api_for_sycl_kernels_main.rst"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Edit this page"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="headerbtn__text-container">suggest edit</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="_sources/api_for_sycl_kernels_main.rst.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.rst</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
 
     </div>
 </div>
@@ -259,7 +340,7 @@ title="Open an issue"
         <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1></h1>
+                <h1>API for the SYCL* Kernels</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -271,12 +352,20 @@ title="Open an issue"
                 
               <div>
                 
-
-<h1 id="index">Index</h1>
-
-<div class="genindex-jumpbox">
- 
+  <section id="api-for-the-sycl-kernels">
+<h1>API for the SYCL* Kernels<a class="headerlink" href="#api-for-the-sycl-kernels" title="Permalink to this headline">#</a></h1>
+<p>oneAPI DPC++ Library (oneDPL) includes the following APIs for SYCL* kernels:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="api_for_sycl_kernels/tested_standard_cpp_api.html"><span class="doc">Tested Standard C++ APIs</span></a>. The basic
+functionality for several C++ standard APIs has been tested for use in SYCL kernels.</p></li>
+<li><p><a class="reference internal" href="api_for_sycl_kernels/random.html"><span class="doc">Random Number Generators</span></a>. Support of random number generation
+including engines and distributions.</p></li>
+<li><p><a class="reference internal" href="api_for_sycl_kernels/utility_function_object_classes.html"><span class="doc">Utility Function Object Classes</span></a>. Various
+utilities in addition to C++ standard functionality.</p></li>
+</ul>
+<div class="toctree-wrapper compound">
 </div>
+</section>
 
 
               </div>
@@ -286,6 +375,20 @@ title="Open an issue"
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="parallel_api/pass_data_algorithms.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Pass Data to Algorithms</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="api_for_sycl_kernels/random.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Random Number Generators</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
 </div>
             </footer>
         </div>
