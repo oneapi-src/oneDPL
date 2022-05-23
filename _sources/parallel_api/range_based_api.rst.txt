@@ -1,4 +1,4 @@
-Range-based API Algorithms
+Range-Based API Algorithms
 ##########################
 .. Note::
 
@@ -7,8 +7,8 @@ Range-based API Algorithms
 
 C++20 introduces the Ranges library. C++20 standard splits ranges into two categories: factories and adaptors.
 A range factory does not have underlying data. An element is generated on success by an index or by dereferencing an iterator.
-A range adaptor, from the |onedpl_long| perspective, is a utility that transforms the base range, or another adapted range,
-into a view with custom behavior.
+A range adaptor, from the |onedpl_long| (|onedpl_short|) perspective, is a utility that transforms the base range,
+or another adapted range, into a view with custom behavior.
 
 |onedpl_short| supports an ``iota_view`` range factory.
 
@@ -85,7 +85,7 @@ The signature example of the range-based algorithms looks like:
 
 where ``source`` is used instead of two iterators to represent the input, and ``destination`` represents the output.
 
-These algorithms are declared in the ``oneapi::dpl::experimental::ranges`` namespace and implemented only for |dpcpp_long| policies.
+These algorithms are declared in the ``oneapi::dpl::experimental::ranges`` namespace and implemented only for device execution policies.
 To make these algorithms available, the ``<oneapi/dpl/ranges>`` header should be included (after ``<oneapi/dpl/execution>``).
 Use of the range-based API requires C++17 and the C++ standard libraries that come with GCC 8.1 (or higher) or Clang 7 (or higher).
 
@@ -104,7 +104,7 @@ Only the ranges shown below and ``sycl::buffer`` are available as ranges for ran
 * ``views::take``: A range adapter that produces a view of the first N elements from another view.
 * ``views::drop``: A range adapter that produces a view excluding the first N elements from another view.
 
-Example of Range-based API Usage
+Example of Range-Based API Usage
 --------------------------------
 
 .. code:: cpp
