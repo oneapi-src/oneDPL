@@ -8,26 +8,29 @@
 
     <title>Asynchronous API Algorithms &#8212; oneDPL Documentation 2021.7 documentation</title>
     
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+    <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-
+  
     
-  <link rel="stylesheet"
-    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet"
+      href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
@@ -38,8 +41,26 @@
     <link rel="next" title="Range-Based API Algorithms" href="range_based_api.html" />
     <link rel="prev" title="Iterators" href="iterators.html" />
 
+    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
+    <script type="text/javascript">
+        // Configure TMS settings
+        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
+        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
+        // Load TMS
+        if(document.location.href.contains("oneapi-src.github.io")){
+        (function () {
+        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+        }
+    </script>
+    <link href="../_static/style.css" rel="stylesheet" type="text/css">
+
+
+
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
 <!-- Checkboxes to toggle the left sidebar -->
 <input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
 <label class="overlay overlay-navbar" for="__navigation">
@@ -390,7 +411,7 @@ title="Print to PDF"
               <div>
                 
   <section id="asynchronous-api-algorithms">
-<h1>Asynchronous API Algorithms<a class="headerlink" href="#asynchronous-api-algorithms" title="Permalink to this headline">#</a></h1>
+<h1>Asynchronous API Algorithms<a class="headerlink" href="#asynchronous-api-algorithms" title="Permalink to this headline">¶</a></h1>
 <p>The functions defined in the STL <code class="docutils literal notranslate"><span class="pre">&lt;algorithm&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;numeric&gt;</span></code> headers are traditionally blocking. oneAPI DPC++ Library (oneDPL)
 extends the functionality of the C++17 parallel algorithms by providing asynchronous algorithms with non-blocking behavior.
 This experimental feature enables you to express a concurrent control flow by building dependency chains, interleaving algorithm calls,
@@ -432,7 +453,7 @@ the returned object.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">wait_for_all(…)</span></code> waits for an arbitrary number of objects that are convertible into <code class="docutils literal notranslate"><span class="pre">sycl::event</span></code> to become ready.</p></li>
 </ul>
 <section id="example-of-async-api-usage">
-<h2>Example of Async API Usage<a class="headerlink" href="#example-of-async-api-usage" title="Permalink to this headline">#</a></h2>
+<h2>Example of Async API Usage<a class="headerlink" href="#example-of-async-api-usage" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span><span class="cp"></span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/async&gt;</span><span class="cp"></span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;CL/sycl.hpp&gt;</span><span class="cp"></span>
@@ -504,9 +525,8 @@ the returned object.</p>
       </div>
     </div>
   
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-
+    <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  
 
   </body>
 </html>

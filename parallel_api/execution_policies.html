@@ -8,26 +8,29 @@
 
     <title>Execution Policies &#8212; oneDPL Documentation 2021.7 documentation</title>
     
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+    <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-
+  
     
-  <link rel="stylesheet"
-    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet"
+      href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
@@ -38,8 +41,26 @@
     <link rel="next" title="Iterators" href="iterators.html" />
     <link rel="prev" title="Parallel API" href="../parallel_api_main.html" />
 
+    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
+    <script type="text/javascript">
+        // Configure TMS settings
+        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
+        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
+        // Load TMS
+        if(document.location.href.contains("oneapi-src.github.io")){
+        (function () {
+        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+        }
+    </script>
+    <link href="../_static/style.css" rel="stylesheet" type="text/css">
+
+
+
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
 <!-- Checkboxes to toggle the left sidebar -->
 <input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
 <label class="overlay overlay-navbar" for="__navigation">
@@ -440,7 +461,7 @@ title="Print to PDF"
               <div>
                 
   <section id="execution-policies">
-<h1>Execution Policies<a class="headerlink" href="#execution-policies" title="Permalink to this headline">#</a></h1>
+<h1>Execution Policies<a class="headerlink" href="#execution-policies" title="Permalink to this headline">¶</a></h1>
 <p>The implementation supports the device execution policies used to run the massive parallel
 computational model for heterogeneous systems. The policies are specified in
 the oneAPI DPC++ Library (oneDPL) section of the <a class="reference external" href="https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy">oneAPI Specification</a>.</p>
@@ -515,7 +536,7 @@ namespace, to a parallel algorithm.</p></li>
 </li>
 </ol>
 <section id="use-the-c-standard-execution-policies">
-<h2>Use the C++ Standard Execution Policies<a class="headerlink" href="#use-the-c-standard-execution-policies" title="Permalink to this headline">#</a></h2>
+<h2>Use the C++ Standard Execution Policies<a class="headerlink" href="#use-the-c-standard-execution-policies" title="Permalink to this headline">¶</a></h2>
 <p>Example:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/execution&gt;</span><span class="cp"></span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/algorithm&gt;</span><span class="cp"></span>
@@ -531,7 +552,7 @@ namespace, to a parallel algorithm.</p></li>
 </div>
 </section>
 <section id="use-the-device-execution-policies">
-<h2>Use the Device Execution Policies<a class="headerlink" href="#use-the-device-execution-policies" title="Permalink to this headline">#</a></h2>
+<h2>Use the Device Execution Policies<a class="headerlink" href="#use-the-device-execution-policies" title="Permalink to this headline">¶</a></h2>
 <p>The device execution policy specifies where a parallel algorithm runs.
 It encapsulates a SYCL device or queue and allows you to
 set an optional kernel name. Device execution policies can be used with all
@@ -556,7 +577,7 @@ compiler you use supports implicit kernel names (see above) and this option is t
 <p>The <code class="docutils literal notranslate"><span class="pre">make_device_policy</span></code> function templates simplify <code class="docutils literal notranslate"><span class="pre">device_policy</span></code> creation.</p>
 </section>
 <section id="usage-examples">
-<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">#</a></h2>
+<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
 <p>The code examples below assume you are <code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">oneapi::dpl::execution;</span></code>
 and <code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">sycl;</span></code> directives when referring to policy classes and functions:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">policy_a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device_policy</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">PolicyA</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{};</span><span class="w"></span>
@@ -581,7 +602,7 @@ and <code class="docutils literal notranslate"><span class="pre">using</span> <s
 </div>
 </section>
 <section id="use-the-fpga-policy">
-<h2>Use the FPGA Policy<a class="headerlink" href="#use-the-fpga-policy" title="Permalink to this headline">#</a></h2>
+<h2>Use the FPGA Policy<a class="headerlink" href="#use-the-fpga-policy" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">fpga_policy</span></code> class is a device policy tailored to achieve
 better performance of parallel algorithms on FPGA hardware devices.</p>
 <p>Use the policy when you run the application on a FPGA hardware device or FPGA emulation device
@@ -619,7 +640,7 @@ the <a class="reference external" href="https://software.intel.com/content/www/u
 <p>The <code class="docutils literal notranslate"><span class="pre">make_fpga_policy</span></code> function templates simplify <code class="docutils literal notranslate"><span class="pre">fpga_policy</span></code> creation.</p>
 </section>
 <section id="fpga-policy-usage-examples">
-<h2>FPGA Policy Usage Examples<a class="headerlink" href="#fpga-policy-usage-examples" title="Permalink to this headline">#</a></h2>
+<h2>FPGA Policy Usage Examples<a class="headerlink" href="#fpga-policy-usage-examples" title="Permalink to this headline">¶</a></h2>
 <p>The code below assumes you have added <code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">oneapi::dpl::execution;</span></code> for policies and
 <code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">sycl;</span></code> for queues and device selectors:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">constexpr</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">unroll_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span><span class="w"></span>
@@ -630,7 +651,7 @@ the <a class="reference external" href="https://software.intel.com/content/www/u
 </div>
 </section>
 <section id="error-handling-with-device-execution-policies">
-<h2>Error Handling with Device Execution Policies<a class="headerlink" href="#error-handling-with-device-execution-policies" title="Permalink to this headline">#</a></h2>
+<h2>Error Handling with Device Execution Policies<a class="headerlink" href="#error-handling-with-device-execution-policies" title="Permalink to this headline">¶</a></h2>
 <p>The SYCL error handling model supports two types of errors: Synchronous errors cause the SYCL host
 runtime libraries throw exceptions. Asynchronous errors may only be processed in a user-supplied error handler
 associated with a SYCL queue.</p>
@@ -693,9 +714,8 @@ no error handlers; do not use them if you need to process asynchronous errors.</
       </div>
     </div>
   
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-
+    <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  
 
   </body>
 </html>

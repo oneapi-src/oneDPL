@@ -8,26 +8,29 @@
 
     <title>oneAPI DPC++ Library Overview &#8212; oneDPL Documentation 2021.7 documentation</title>
     
-  <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-
+  
     
-  <link rel="stylesheet"
-    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -38,8 +41,26 @@
     <link rel="next" title="Parallel API" href="parallel_api_main.html" />
     <link rel="prev" title="Get Started with the oneAPI DPC++ Library" href="onedpl_gsg.html" />
 
+    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
+    <script type="text/javascript">
+        // Configure TMS settings
+        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
+        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
+        // Load TMS
+        if(document.location.href.contains("oneapi-src.github.io")){
+        (function () {
+        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+        }
+    </script>
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+
+
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
 <!-- Checkboxes to toggle the left sidebar -->
 <input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
 <label class="overlay overlay-navbar" for="__navigation">
@@ -430,7 +451,7 @@ title="Print to PDF"
               <div>
                 
   <section id="onedpl-long-overview">
-<h1>oneAPI DPC++ Library Overview<a class="headerlink" href="#onedpl-long-overview" title="Permalink to this headline">#</a></h1>
+<h1>oneAPI DPC++ Library Overview<a class="headerlink" href="#onedpl-long-overview" title="Permalink to this headline">¶</a></h1>
 <p>Parallel API can be used with the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
 Policies</a>
 to enable parallelism on the host.</p>
@@ -439,7 +460,7 @@ Specification</a>.</p>
 <p>To support heterogeneity, oneDPL works with the DPC++ API. More information can be found in the
 <a class="reference external" href="https://spec.oneapi.com/versions/latest/elements/dpcpp/source/index.html#dpc">DPC++ Specification</a>.</p>
 <section id="before-you-begin">
-<h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">#</a></h2>
+<h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">¶</a></h2>
 <p>Visit the oneDPL <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
 page for:</p>
 <ul class="simple">
@@ -458,7 +479,7 @@ oneDPL introduces the namespace <code class="docutils literal notranslate"><span
 and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
 </section>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">#</a></h2>
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <p>C++17 is the minimal supported version of the C++ standard.
 That means, any use of oneDPL may require a C++17 compiler.
 While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.</p>
@@ -479,7 +500,7 @@ While some APIs of the library may accidentally work with earlier versions of th
 </ul>
 </section>
 <section id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">#</a></h2>
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
 <p>When called with DPC++ execution policies, oneDPL algorithms apply the same restrictions as
 DPC++ does (see the DPC++ specification and the SYCL specification for details), such as:</p>
 <ul class="simple">
@@ -494,7 +515,7 @@ whose type meets SYCL requirements for use in kernels and for data transfer, res
 </ul>
 </section>
 <section id="known-limitations">
-<h2>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">#</a></h2>
+<h2>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>For <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">transform_inclusive_scan</span></code> algorithms, the result of the unary operation should be
 convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
@@ -519,7 +540,7 @@ for double precision.</p></li>
 </ul>
 </section>
 <section id="build-your-code-with-onedpl-short">
-<h2>Build Your Code with oneDPL<a class="headerlink" href="#build-your-code-with-onedpl-short" title="Permalink to this headline">#</a></h2>
+<h2>Build Your Code with oneDPL<a class="headerlink" href="#build-your-code-with-onedpl-short" title="Permalink to this headline">¶</a></h2>
 <p>Follow the steps below to build your code with oneDPL:</p>
 <ol class="arabic simple">
 <li><p>To build with the Intel® oneAPI DPC++/C++ Compiler, see the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html">Get Started with the Intel® oneAPI DPC++/C++ Compiler</a>
@@ -580,9 +601,8 @@ oneDPL parallel algorithms on Linux* (depending on the code, parameters within [
       </div>
     </div>
   
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  
 
   </body>
 </html>

@@ -8,26 +8,29 @@
 
     <title>Get Started with the oneAPI DPC++ Library &#8212; oneDPL Documentation 2021.7 documentation</title>
     
-  <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-
+  
     
-  <link rel="stylesheet"
-    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -38,8 +41,26 @@
     <link rel="next" title="oneAPI DPC++ Library Overview" href="overview.html" />
     <link rel="prev" title="oneAPI DPC++ Library Guide" href="index.html" />
 
+    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
+    <script type="text/javascript">
+        // Configure TMS settings
+        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
+        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
+        // Load TMS
+        if(document.location.href.contains("oneapi-src.github.io")){
+        (function () {
+        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+        }
+    </script>
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+
+
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
 <!-- Checkboxes to toggle the left sidebar -->
 <input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
 <label class="overlay overlay-navbar" for="__navigation">
@@ -458,7 +479,7 @@ title="Print to PDF"
               <div>
                 
   <section id="get-started-with-the-onedpl-long">
-<h1>Get Started with the oneAPI DPC++ Library<a class="headerlink" href="#get-started-with-the-onedpl-long" title="Permalink to this headline">#</a></h1>
+<h1>Get Started with the oneAPI DPC++ Library<a class="headerlink" href="#get-started-with-the-onedpl-long" title="Permalink to this headline">¶</a></h1>
 <p>oneAPI DPC++ Library (oneDPL) works with the
 <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html">Intel® oneAPI DPC++/C++ Compiler</a>
 to provide high-productivity APIs to developers, which can minimize SYCL*
@@ -473,7 +494,7 @@ programming efforts across devices for high performance parallel applications.</
 or visit the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html">Intel® oneAPI DPC++ Library Guide</a>
 and the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html">Intel® oneAPI DPC++ Library main page</a>.</p>
 <section id="before-you-begin">
-<h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">#</a></h2>
+<h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">¶</a></h2>
 <p>Visit the oneDPL <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
 page for:</p>
 <ul class="simple">
@@ -492,11 +513,11 @@ oneDPL uses the namespace <code class="docutils literal notranslate"><span class
 and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
 </section>
 <section id="pkg-config-support">
-<h2>pkg-config Support<a class="headerlink" href="#pkg-config-support" title="Permalink to this headline">#</a></h2>
+<h2>pkg-config Support<a class="headerlink" href="#pkg-config-support" title="Permalink to this headline">¶</a></h2>
 <p>The pkg-config program is used to retrieve information about your installed libraries, and
 to compile and link against one or more libraries.</p>
 <section id="use-pkg-config-with-onedpl-short">
-<h3>Use pkg-config with oneDPL<a class="headerlink" href="#use-pkg-config-with-onedpl-short" title="Permalink to this headline">#</a></h3>
+<h3>Use pkg-config with oneDPL<a class="headerlink" href="#use-pkg-config-with-onedpl-short" title="Permalink to this headline">¶</a></h3>
 <p>Use pkg-config with the <code class="docutils literal notranslate"><span class="pre">--cflags</span></code> flag to get the include path to the oneDPL directory:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span><span class="w"></span>
 </pre></div>
@@ -513,12 +534,12 @@ This flag converts your compiling and linking flags to the appropriate form:</p>
 </section>
 </section>
 <section id="usage-examples">
-<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">#</a></h2>
+<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
 <p>oneDPL sample code is available from the
 <a class="reference external" href="https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL">oneAPI GitHub samples repository</a>.
 Each sample includes a readme with build instructions.</p>
 <section id="oneapi-dpl-random-header-usage-example">
-<h3>&lt;oneapi/dpl/random&gt; Header Usage Example<a class="headerlink" href="#oneapi-dpl-random-header-usage-example" title="Permalink to this headline">#</a></h3>
+<h3>&lt;oneapi/dpl/random&gt; Header Usage Example<a class="headerlink" href="#oneapi-dpl-random-header-usage-example" title="Permalink to this headline">¶</a></h3>
 <p>This example illustrates oneDPL random number generator usage.
 The sample below shows you how to create an random number generator engine object (the source of pseudo-randomness),
 a distribution object (specifying the desired probability distribution), and how to generate
@@ -546,7 +567,7 @@ to improve the speed of your computations.</p>
 </div>
 </section>
 <section id="pi-benchmark-usage-example">
-<h3>Pi Benchmark Usage Example<a class="headerlink" href="#pi-benchmark-usage-example" title="Permalink to this headline">#</a></h3>
+<h3>Pi Benchmark Usage Example<a class="headerlink" href="#pi-benchmark-usage-example" title="Permalink to this headline">¶</a></h3>
 <p>This example uses a Monte Carlo method to estimate the value of π.
 The basic idea is to generate random points within a square, and to check what
 fraction of these random points lie in a quarter-circle inscribed within that square.
@@ -589,7 +610,7 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
 </section>
 </section>
 <section id="find-more">
-<h2>Find More<a class="headerlink" href="#find-more" title="Permalink to this headline">#</a></h2>
+<h2>Find More<a class="headerlink" href="#find-more" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given table">
 <colgroup>
 <col style="width: 50%" />
@@ -666,9 +687,8 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
       </div>
     </div>
   
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  
 
   </body>
 </html>
