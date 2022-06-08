@@ -586,16 +586,8 @@ class transform_output_iterator
         __my_it_ = __input.__my_it_;
         return *this;
     }
-    reference
-    operator*() const
-    {
-        return reference{*__my_it_, __my_unary_func_};
-    }
-    reference
-    operator[](difference_type __i) const
-    {
-        return reference{*(*this + __i), __my_unary_func_};
-    }
+    reference operator*() const { return reference{*__my_it_, __my_unary_func_}; }
+    reference operator[](difference_type __i) const { return reference{*(*this + __i), __my_unary_func_}; }
     transform_output_iterator&
     operator++()
     {
