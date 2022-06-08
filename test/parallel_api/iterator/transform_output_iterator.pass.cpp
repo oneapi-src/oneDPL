@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// These test cases are modified versions of transform_iterator.pass.cpp
-
 #include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -72,9 +70,9 @@ void test_simple_copy(size_t buffer_size)
     auto host_result_begin = sycl_result_buf.get_access<sycl::access::mode::write>().get_pointer();
     auto tr_host_result_begin = oneapi::dpl::make_transform_output_iterator(host_result_begin, transformation);
 
-    // transformation should occur upon copy to the result
     test_copy<int> test(test_base_data);
-    TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, tr_host_result_begin, buffer_size, identity + 1);
+    TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, 
+        tr_host_result_begin, buffer_size, identity + 1);
 }
 
 void test_multi_transform_copy(size_t buffer_size)
@@ -97,8 +95,6 @@ void test_multi_transform_copy(size_t buffer_size)
     auto transformation2 = [](int item) { return item + 2; };
     auto transformation3 = [](int item) { return item + 3; };
 
-    // Since transformation occurs on write, transformation3 should be the only function called. The other derefences
-    // should have no effect.
     auto tr_host_source_begin = oneapi::dpl::make_transform_output_iterator(host_source_begin, transformation1);
     auto tr2_host_source_begin = oneapi::dpl::make_transform_output_iterator(tr_host_source_begin, transformation2);
     auto tr3_host_source_begin = oneapi::dpl::make_transform_output_iterator(tr2_host_source_begin, transformation3);
@@ -134,7 +130,6 @@ void test_fill_transform(size_t buffer_size)
     auto& sycl_result_buf = test_base_data.get_buffer(UDTKind::eVals);
     auto sycl_result_begin = oneapi::dpl::begin(sycl_result_buf);
 
-    // verify the data has been transformed in the result buffer.
     test_copy<int> test(test_base_data);
     TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, sycl_result_begin, buffer_size, identity + 1);
 }

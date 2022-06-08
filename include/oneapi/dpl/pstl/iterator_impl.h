@@ -139,6 +139,29 @@ class zip_forward_iterator
     __it_types __my_it_;
 };
 
+template <typename T, typename _UnaryFunc>
+class transform_output_ref_wrapper
+{
+  private:
+    T& __my_reference_;
+    const _UnaryFunc __my_unary_func_;
+
+  public:
+    transform_output_ref_wrapper(T& __reference, _UnaryFunc __unary_func)
+        : __my_reference_(__reference), __my_unary_func_(__unary_func)
+    {
+    }
+
+    operator T&() { return __my_reference_; }
+
+    transform_output_ref_wrapper&
+    operator=(const T& e)
+    {
+        __my_reference_ = __my_unary_func_(e);
+        return *this;
+    }
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
@@ -538,29 +561,6 @@ make_transform_iterator(_Iter __it, _UnaryFunc __unary_func)
     return transform_iterator<_Iter, _UnaryFunc>(__it, __unary_func);
 }
 
-template <typename T, typename _UnaryFunc>
-class transform_output_ref_wrapper
-{
-  private:
-    T& __my_reference_;
-    const _UnaryFunc __my_unary_func_;
-
-  public:
-    transform_output_ref_wrapper(T& __reference, _UnaryFunc __unary_func)
-        : __my_reference_(__reference), __my_unary_func_(__unary_func)
-    {
-    }
-
-    operator T&() { return __my_reference_; }
-
-    transform_output_ref_wrapper&
-    operator=(const T& e)
-    {
-        __my_reference_ = __my_unary_func_(e);
-        return *this;
-    }
-};
-
 template <typename _Iter, typename _UnaryFunc>
 class transform_output_iterator
 {
@@ -571,7 +571,7 @@ class transform_output_iterator
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
     typedef typename ::std::iterator_traits<_Iter>::value_type value_type;
-    typedef transform_output_ref_wrapper<value_type, decltype(__my_unary_func_)> reference;
+    typedef __internal::transform_output_ref_wrapper<value_type, decltype(__my_unary_func_)> reference;
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
