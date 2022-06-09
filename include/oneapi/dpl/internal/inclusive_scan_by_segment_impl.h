@@ -52,7 +52,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         return result + 1;
     }
 
-    typedef unsigned int FlagType;
+    typedef unsigned char FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef typename ::std::decay<Policy>::type policy_type;
 
@@ -79,7 +79,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::dec
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
-    typedef unsigned int FlagType;
+    typedef unsigned char FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef typename ::std::decay<Policy>::type policy_type;
 

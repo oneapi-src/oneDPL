@@ -270,7 +270,7 @@ struct reduce
         do
         {
             __dpl_sycl::__group_barrier(__item_id);
-            if (__local_idx % (2 * __k) == 0 && __local_idx + __k < __group_size && __global_idx < __n &&
+            if (__local_idx & (2 * __k - 1) == 0 && __local_idx + __k < __group_size && __global_idx < __n &&
                 __global_idx + __k < __n)
             {
                 __local_mem[__local_idx] = __bin_op1(__local_mem[__local_idx], __local_mem[__local_idx + __k]);
@@ -629,7 +629,7 @@ struct __scan
             {
                 __dpl_sycl::__group_barrier(__item);
 
-                if (__adjusted_global_id < __n && __local_id % (2 * __k) == 2 * __k - 1)
+                if (__adjusted_global_id < __n && __local_id & (2 * __k - 1) == 2 * __k - 1)
                 {
                     __local_acc[__local_id] = __bin_op(__local_acc[__local_id - __k], __local_acc[__local_id]);
                 }
@@ -643,9 +643,9 @@ struct __scan
             do
             {
                 // use signed type to avoid overflowing
-                ::std::int32_t __shifted_local_id = __local_id - __local_id % __k - 1;
-                if (__shifted_local_id >= 0 && __adjusted_global_id < __n && __local_id % (2 * __k) >= __k &&
-                    __local_id % (2 * __k) < 2 * __k - 1)
+                ::std::int32_t __shifted_local_id = __local_id - (__local_id & (__k - 1)) - 1;
+                if (__shifted_local_id >= 0 && __adjusted_global_id < __n && (__local_id & (2 * __k - 1)) >= __k &&
+                    (__local_id & (2 * __k - 1)) < 2 * __k - 1)
                 {
                     __partial_sums = __bin_op(__local_acc[__shifted_local_id], __partial_sums);
                 }

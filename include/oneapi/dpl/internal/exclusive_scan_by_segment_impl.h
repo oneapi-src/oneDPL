@@ -55,7 +55,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     typedef typename ::std::iterator_traits<OutputIterator>::value_type OutputType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef unsigned int FlagType;
+    typedef unsigned char FlagType;
     typedef typename ::std::decay<Policy>::type policy_type;
 
     InputIterator2 last2 = first2 + n;
@@ -109,7 +109,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     typedef typename ::std::iterator_traits<OutputIterator>::value_type OutputType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef unsigned int FlagType;
+    typedef unsigned char FlagType;
     typedef typename ::std::decay<Policy>::type policy_type;
 
     InputIterator2 last2 = first2 + n;
