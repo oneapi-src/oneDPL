@@ -47,7 +47,7 @@
         var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
         var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
         // Load TMS
-        if(document.location.href.contains("oneapi-src.github.io")){
+        if(document.location.href.includes("oneapi-src.github.io")){
         (function () {
         var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
         var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
@@ -702,7 +702,7 @@ no error handlers; do not use them if you need to process asynchronous errors.</
   
       &copy; Copyright Intel Corporation.<br/>
     <div class="extra_footer">
-      <p align="right"><a href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
+      <p align="right"><a data-cookie-notice="true" href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
     </div>
 </p>
         </footer>
