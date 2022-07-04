@@ -510,10 +510,15 @@ struct __get_sycl_range
     {
         assert(__first < __last);
         using value_type = val_t<_Iter>;
+
+        const auto __offset = __first - oneapi::dpl::begin(__first.get_buffer());
+        const auto __n = __last - __first;
+        const auto __size = __first.get_buffer().size();
+        assert(__offset + __n <= __size);
+
         return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>{
-            oneapi::dpl::__ranges::all_view<value_type, AccMode>(__first.get_buffer(),
-                                                                 __first - oneapi::dpl::begin(__first.get_buffer()),
-                                                                 __last - __first)}; //{buffer, offset, size}
+            oneapi::dpl::__ranges::all_view<value_type, AccMode>(__first.get_buffer() /* buffer */,
+                                                                 __offset /* offset*/, __n /* size*/)};
     }
 
     //specialization for a host iterator
