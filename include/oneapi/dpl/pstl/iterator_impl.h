@@ -278,6 +278,7 @@ class zip_iterator
 
     zip_iterator() : __my_it_() {}
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
+    explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
     zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
     zip_iterator&
     operator=(const zip_iterator& __input)
@@ -401,6 +402,13 @@ zip_iterator<_Tp...>
 make_zip_iterator(_Tp... __args)
 {
     return zip_iterator<_Tp...>(__args...);
+}
+
+template <typename... _Tp>
+zip_iterator<_Tp...>
+make_zip_iterator(std::tuple<_Tp...> __arg)
+{
+    return zip_iterator<_Tp...>(__arg);
 }
 
 template <typename _Iter, typename _UnaryFunc>

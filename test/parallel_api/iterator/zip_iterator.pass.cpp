@@ -119,7 +119,7 @@ DEFINE_TEST(test_for_each)
         ::std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
+        auto tuple_first1 = oneapi::dpl::make_zip_iterator(std::make_tuple(first1, first1));
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
         ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), tuple_first1, tuple_last1,
