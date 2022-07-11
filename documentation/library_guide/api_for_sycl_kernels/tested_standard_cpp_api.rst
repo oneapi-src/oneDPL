@@ -317,6 +317,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::nearbyint``                   Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::nearbyintf``                  Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::fdim``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::optional``                    Tested     Tested     Tested
