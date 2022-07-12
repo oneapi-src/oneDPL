@@ -34,32 +34,32 @@ test(sycl::queue& deviceQueue)
                 {
                     T a[] = {1, 0};
                     unsigned sa = sizeof(a) / sizeof(a[0]);
-                    ret_acc[0] &= (std::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 1));
+                    ret_acc[0] &= (dpl::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 1));
                 }
                 {
                     T a[] = {1, 0, 0};
                     unsigned sa = sizeof(a) / sizeof(a[0]);
-                    ret_acc[0] &= (std::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 1));
+                    ret_acc[0] &= (dpl::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 1));
                 }
                 {
                     T a[] = {1, 0, 1};
                     unsigned sa = sizeof(a) / sizeof(a[0]);
-                    ret_acc[0] &= (std::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 1));
+                    ret_acc[0] &= (dpl::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 1));
                 }
                 {
                     T a[] = {0, 0, 1, 1};
                     unsigned sa = sizeof(a) / sizeof(a[0]);
-                    ret_acc[0] &= (std::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + sa));
+                    ret_acc[0] &= (dpl::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + sa));
                 }
                 {
                     T a[] = {0, 1, 0, 0};
                     unsigned sa = sizeof(a) / sizeof(a[0]);
-                    ret_acc[0] &= (std::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 2));
+                    ret_acc[0] &= (dpl::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 2));
                 }
                 {
                     T a[] = {0, 1, 0, 1};
                     unsigned sa = sizeof(a) / sizeof(a[0]);
-                    ret_acc[0] &= (std::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 2));
+                    ret_acc[0] &= (dpl::is_sorted_until(Iter(a), Iter(a + sa)) == Iter(a + 2));
                 }
             });
         });
