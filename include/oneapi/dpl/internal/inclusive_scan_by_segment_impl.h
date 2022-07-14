@@ -19,10 +19,10 @@
 #ifndef _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
 #define _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
 
+#include "by_segment_extension_defs.h"
 #include "../pstl/glue_numeric_impl.h"
 #include "../pstl/parallel_backend.h"
 #include "function.h"
-#include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
 
 namespace oneapi
@@ -79,37 +79,34 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::dec
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
-    typedef unsigned int FlagType;
-    typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef typename ::std::decay<Policy>::type policy_type;
-
     const auto n = ::std::distance(first1, last1);
 
-    // Check for empty element ranges
+    // Check for empty and single element ranges
     if (n <= 0)
         return result;
+    if (n == 1)
+        return result + 1;
 
-    FlagType initial_mask = 1;
+    typedef uint64_t CountType;
 
-    internal::__buffer<policy_type, FlagType> _mask(policy, n);
-    {
-        auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<sycl::access::mode::read_write>();
+    namespace __bknd = oneapi::dpl::__par_backend_hetero;
 
-        mask[0] = initial_mask;
-    }
+    auto keep_keys = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
+    auto key_buf = keep_keys(first1, last1);
+    auto keep_values = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
+    auto value_buf = keep_values(first2, first2 + n);
+    auto keep_value_outputs = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator>();
+    auto value_output_buf = keep_value_outputs(result, result + n);
+    auto buf_view = key_buf.all_view();
 
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
-              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
+    scan_by_segment_impl<scan_type::inclusive> scan;
 
-    typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
-    transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
-                             make_zip_iterator(first2, _mask.get()) + n, make_zip_iterator(result, _mask.get()),
-                             internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
-                             oneapi::dpl::__internal::__no_op());
+    scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
+        value_output_buf.all_view(), binary_pred, binary_op);
 
     return result + n;
 }
+
 #endif
 } // namespace internal
 
