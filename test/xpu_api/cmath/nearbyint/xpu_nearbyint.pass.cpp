@@ -70,7 +70,10 @@ test(Function fnc, const std::vector<ValueType>& args, const char* message)
 
     // Check results: compare resuls evaluated in Kernel and on host
     for (size_t i = 0; i < args_count; ++i)
-        EXPECT_EQ(fnc(args[i]), output[i], message);
+    {
+        auto host_result = fnc(args[i]);
+        EXPECT_EQ(host_result, output[i], message);
+    }
 }
 
 class Test;
