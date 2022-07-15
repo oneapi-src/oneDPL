@@ -53,7 +53,6 @@ template <class InIter, class OutIter, class Test> void test() {
   }
 }
 
-// TODO required to remove all these class names and use uniq_kernel_name
 class KernelTest1;
 class KernelTest2;
 class KernelTest3;
