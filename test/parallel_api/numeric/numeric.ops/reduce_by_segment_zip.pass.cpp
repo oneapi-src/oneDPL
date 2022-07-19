@@ -109,5 +109,5 @@ int main()
     test_with_usm<sycl::usm::alloc::device>();
 #endif
 
-    return TestUtils::done();
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
