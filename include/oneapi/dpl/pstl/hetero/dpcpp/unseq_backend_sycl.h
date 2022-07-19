@@ -547,10 +547,11 @@ struct __partition_by_mask
     }
 };
 
-template <typename _Inclusive, typename _BinaryOp>
+template <typename _Inclusive, typename _BinaryOp, typename _InitType>
 struct __global_scan_functor
 {
     _BinaryOp __binary_op;
+    _InitType __init;
 
     template <typename _Item, typename _OutAcc, typename _InAcc, typename _WgSumsAcc, typename _Size,
               typename _SizePerWg>
@@ -572,6 +573,15 @@ struct __global_scan_functor
             __out_acc[__item_idx] =
                 static_cast<typename __internal::__get_tuple_type<__in_type, __out_type>::__type>(__bin_op_result);
         }
+        __internal::__invoke_if_not(_Inclusive{}, [&]() {
+            //store an initial value to the output first position should be done as postprocess (for in-place scanning)
+            if (__item_idx == 0)
+            {
+                using _Tp = typename _InitType::__value_type;
+                __init_processing<_Tp> __use_init{};
+                __use_init(__init, __out_acc[__item_idx]);
+            }
+        });
     }
 };
 
@@ -663,10 +673,6 @@ struct __scan
             if (__adjusted_global_id == __n - 1)
                 __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
         }
-        __internal::__invoke_if_not(_Inclusive{}, [&]() {
-            if (__global_id == 0)
-                __use_init(__init, __out_acc[__global_id]);
-        });
 
         if (__local_id == __wgroup_size - 1 && __adjusted_global_id - __wgroup_size < __n)
             __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
@@ -685,11 +691,7 @@ struct __scan
         auto __use_init = __init_processing<_Tp>{};
 
         auto __shift = 0;
-        __internal::__invoke_if_not(_Inclusive{}, [&]() {
-            __shift = 1;
-            if (__global_id == 0)
-                __use_init(__init, __out_acc[__global_id]);
-        });
+        __internal::__invoke_if_not(_Inclusive{}, [&]() { __shift = 1; });
 
         auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
