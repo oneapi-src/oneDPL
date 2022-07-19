@@ -211,6 +211,7 @@ test_matrix(Out init, BinaryOp binary_op, Out trash)
         Sequence<Out> out(n, [&](size_t) { return trash; });
         Sequence<Out> expected(n, [&](size_t) { return trash; });
 
+        auto __scan_invoker = [&](Sequence<Out>& out) {
 #ifdef _PSTL_TEST_INCLUSIVE_SCAN
         invoke_on_all_policies<4>()(test_inclusive_scan_with_binary_op<In>(), in.begin(), in.end(), out.begin(),
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
@@ -230,6 +231,13 @@ test_matrix(Out init, BinaryOp binary_op, Out trash)
                                     out.end(), expected.begin(), expected.end(), in.size(), init, binary_op, trash);
 #endif
 #endif
+        };
+
+        //perform regular a scan algorithm
+        __scan_invoker(out);
+
+        //perform an in-place scan algorithm
+        __scan_invoker(in);
     }
 }
 
