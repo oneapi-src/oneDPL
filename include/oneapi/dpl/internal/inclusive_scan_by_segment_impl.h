@@ -79,15 +79,12 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::dec
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
+    
     const auto n = ::std::distance(first1, last1);
 
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
-    if (n == 1)
-        return result + 1;
-
-    typedef uint64_t CountType;
 
     namespace __bknd = oneapi::dpl::__par_backend_hetero;
 
@@ -99,10 +96,12 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     auto value_output_buf = keep_value_outputs(result, result + n);
     auto buf_view = key_buf.all_view();
 
-    scan_by_segment_impl<scan_type::inclusive> scan;
+    auto identity = oneapi::dpl::__internal::__value_t<decltype(value_buf.all_view())>{};
+
+    sycl_scan_by_segment_impl<scan_type::inclusive> scan;
 
     scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-        value_output_buf.all_view(), binary_pred, binary_op);
+        value_output_buf.all_view(), binary_pred, binary_op, identity);
 
     return result + n;
 }
