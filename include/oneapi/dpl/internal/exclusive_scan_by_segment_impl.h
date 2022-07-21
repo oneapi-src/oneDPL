@@ -109,11 +109,6 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     // Check for empty and single element ranges
     if (n <= 0)
         return result;
-    if (n == 1)
-    {
-        *result = init;
-        return result + 1;
-    }
 
     typedef uint64_t CountType;
 
@@ -127,10 +122,10 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     auto value_output_buf = keep_value_outputs(result, result + n);
     auto buf_view = key_buf.all_view();
 
-    scan_by_segment_impl<scan_type::exclusive> scan;
+    sycl_scan_by_segment_impl<scan_type::exclusive> scan;
 
     scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-        value_output_buf.all_view(), binary_pred, binary_op);
+        value_output_buf.all_view(), binary_pred, binary_op, init);
 
     return result + n;
 }
