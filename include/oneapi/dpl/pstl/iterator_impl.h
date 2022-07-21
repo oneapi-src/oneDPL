@@ -574,7 +574,7 @@ class permutation_iterator
     IndexMap
     map() const
     {
-        return my_index_map;
+        return my_index_map + my_index;
     }
 
     reference operator*() const { return my_source_it[my_index_map[my_index]]; }
@@ -618,7 +618,7 @@ class permutation_iterator
     }
 
     permutation_iterator
-    operator-(difference_type backward)
+    operator-(difference_type backward) const
     {
         return permutation_iterator(my_source_it, my_index_map, my_index - backward);
     }
