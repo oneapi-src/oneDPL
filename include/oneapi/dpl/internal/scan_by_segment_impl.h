@@ -156,9 +156,9 @@ struct sycl_scan_by_segment_impl
                         __accumulator = __init;
                         __max_end = __local_id;
                         
-                        // need the id of the next start segment
-                        if (__i == __end - 1)
-                            ++__max_end;
+                        //// need the id of the next start segment
+                        //if (__i == __end - 1)
+                        //    ++__max_end;
 
                         __first = true;
                     }
@@ -173,7 +173,7 @@ struct sycl_scan_by_segment_impl
                     __local_id - __delta_local_id, __accumulator, __binary_op, __wgroup_size); // need to use exclusive scan delta
 
                 // 1c. Update local partial reductions and write to global memory.
-                if (__local_id != 0 && __keys[__start] == __keys[__start - 1])
+                if (__local_id != 0 && __start < __n && __keys[__start] == __keys[__start - 1])
                 {
                     for (int32_t __i = __start; __i < __end; ++__i)
                     {
