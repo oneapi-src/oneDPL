@@ -102,6 +102,12 @@ main()
     test<TestUtils::unique_kernel_name<Test, 11>>(f_nearbyintf_float, f_args_float, "float nearbyintf(float)");
 
     ////////////////////////////////////////////////////////
+    // long double nearbyintl(long double arg);
+    const std::vector<long double> f_args_ld = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
+    auto f_nearbyintl_ld = [](long double arg) -> long double { return oneapi::dpl::nearbyintl(arg); };
+    test<TestUtils::unique_kernel_name<Test, 11>>(f_nearbyintl_ld, f_args_ld, "long double nearbyintl(long double)");
+
+    ////////////////////////////////////////////////////////
     // double nearbyint(double arg);
     auto f_nearbyint_double = [](double arg) -> double { return oneapi::dpl::nearbyint(arg); };
     const std::vector<double> f_args_double = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
