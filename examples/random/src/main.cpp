@@ -25,12 +25,12 @@ void
 scalar_example(sycl::queue& queue, std::uint32_t seed, std::vector<RealType>& x)
 {
     {
-        sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
+        sycl::buffer<RealType> x_buffer(x.data(), x.size());
 
         queue.submit(
             [&](sycl::handler& cgh)
             {
-                auto x_acc = x_buffer.template get_access<sycl::access::mode::write>(cgh);
+                sycl::accessor x_acc(x_buffer, cgh, sycl::write_only);
 
                 cgh.parallel_for(sycl::range<1>(x.size()),
                                  [=](sycl::item<1> idx)
@@ -71,14 +71,14 @@ void
 vector_example(sycl::queue& queue, std::uint32_t seed, std::vector<RealType>& x)
 {
     {
-        sycl::buffer<RealType, 1> x_buffer(x.data(), sycl::range<1>(x.size()));
+        sycl::buffer<RealType> x_buffer(x.data(), x.size());
 
         queue.submit(
             [&](sycl::handler& cgh)
             {
-                auto x_acc = x_buffer.template get_access<sycl::access::mode::write>(cgh);
+                sycl::accessor x_acc(x_buffer, cgh, sycl::write_only);
 
-                cgh.parallel_for<class generate_kernel>(
+                cgh.parallel_for(
                     sycl::range<1>(x.size() / VecSize),
                     [=](sycl::item<1> idx)
                     {
