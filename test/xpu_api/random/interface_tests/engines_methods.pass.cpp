@@ -154,8 +154,7 @@ public:
             catch (sycl::exception const& e)
             {
                 std::cout << "\t\tSYCL exception during generation\n"
-                          << e.what() << std::endl
-                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                          << e.what() << std::endl;
                 return 1;
             }
 
@@ -227,16 +226,14 @@ public:
                 {
                     std::cout << "Error occurred in " << sum << " elements" << std::endl;
                 }
+                queue.wait_and_throw();
             }
             catch (sycl::exception const& e)
             {
                 std::cout << "\t\tSYCL exception during generation\n"
-                          << e.what() << std::endl
-                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                          << e.what() << std::endl;
                 return 1;
             }
-
-            queue.wait_and_throw();
             oneapi::dpl::ranlux24_vec<N> engine;
             sum += check_params(engine);
         }
@@ -301,8 +298,7 @@ public:
             catch (sycl::exception const& e)
             {
                 std::cout << "\t\tSYCL exception during generation\n"
-                          << e.what() << std::endl
-                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                          << e.what() << std::endl;
                 return 1;
             }
 
@@ -373,8 +369,7 @@ public:
             catch (sycl::exception const& e)
             {
                 std::cout << "\t\tSYCL exception during generation\n"
-                          << e.what() << std::endl
-                          << "OpenCL status: " << e.get_cl_code() << std::endl;
+                          << e.what() << std::endl;
                 return 1;
             }
 

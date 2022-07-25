@@ -53,14 +53,13 @@ typename Engine::scalar_type test(sycl::queue& queue) {
                     res.store(idx.get_linear_id(), dpstd_acc);
                 });
             });
+            queue.wait_and_throw();
         }
         catch(sycl::exception const& e) {
             std::cout << "\t\tSYCL exception during generation\n"
-                      << e.what() << std::endl << "OpenCL status: " << e.get_cl_code() << std::endl;
+                      << e.what() << std::endl;
             return 0;
         }
-
-        queue.wait_and_throw();
     }
 
     return dpstd_samples[REF_SAMPLE_ID];
