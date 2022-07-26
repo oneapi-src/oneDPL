@@ -70,19 +70,21 @@ struct TestImpl
 };
 
 template <typename KernelClass, typename Function, typename ValueType>
-void
+bool
 test(cl::sycl::queue deviceQueue, Function fnc, const std::vector<ValueType>& args, const char* message)
 {
     if (TestUtils::has_type_support<ValueType>(deviceQueue.get_device()))
     {
         auto test_obj = ::std::make_unique<TestImpl<KernelClass, Function, ValueType> >();
         (*test_obj)(deviceQueue, fnc, args, message);
+        return true;
     }
     else
     {
         std::cout << deviceQueue.get_device().template get_info<sycl::info::device::name>() << " does not support "
                   << typeid(ValueType).name() << " type,"
                   << " affected test case have been skipped" << std::endl;
+        return false;
     }
 }
 
@@ -93,33 +95,23 @@ class Test;
 int
 main()
 {
+    int result = 0;
+
 #if TEST_DPCPP_BACKEND_PRESENT
 
     // functions from https://en.cppreference.com/w/cpp/numeric/math/nearbyint :
-    //     float  nearbyint (float arg);
-    //     float  nearbyintf(float arg);
-    //     double nearbyint (double arg);
+    //     long double nearbyintl(long double arg);
 
     cl::sycl::queue deviceQueue(TestUtils::async_handler);
 
     ////////////////////////////////////////////////////////
-    // float nearbyint(float arg);
-    auto f_nearbyint_float = [](float arg) -> float { return oneapi::dpl::nearbyint(arg); };
-    const std::vector<float> f_args_float = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
-    test<TestUtils::unique_kernel_name<Test, 1>>(deviceQueue, f_nearbyint_float, f_args_float, "float nearbyint(float)");
-
-    ////////////////////////////////////////////////////////
-    // float nearbyintf(float arg);
-    auto f_nearbyintf_float = [](float arg) -> float { return oneapi::dpl::nearbyintf(arg); };
-    test<TestUtils::unique_kernel_name<Test, 11>>(deviceQueue, f_nearbyintf_float, f_args_float, "float nearbyintf(float)");
-
-    ////////////////////////////////////////////////////////
-    // double nearbyint(double arg);
-    auto f_nearbyint_double = [](double arg) -> double { return oneapi::dpl::nearbyint(arg); };
-    const std::vector<double> f_args_double = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
-    test<TestUtils::unique_kernel_name<Test, 2>>(deviceQueue, f_nearbyint_double, f_args_double, "double nearbyint(double)");
+    // long double nearbyintl(long double arg);
+    const std::vector<long double> f_args_ld = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
+    auto f_nearbyintl_ld = [](long double arg) -> long double { return oneapi::dpl::nearbyintl(arg); };
+    if (test<TestUtils::unique_kernel_name<Test, 11>>(deviceQueue, f_nearbyintl_ld, f_args_ld, "long double nearbyintl(long double)"))
+        result = TEST_DPCPP_BACKEND_PRESENT;
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(result);
 }
