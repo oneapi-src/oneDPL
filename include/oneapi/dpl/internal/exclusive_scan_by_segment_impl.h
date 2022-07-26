@@ -124,8 +124,8 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     sycl_scan_by_segment_impl<scan_type::exclusive> scan;
 
-    scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-        value_output_buf.all_view(), binary_pred, binary_op, init);
+    scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), value_output_buf.all_view(),
+         binary_pred, binary_op, init);
 
     return result + n;
 }

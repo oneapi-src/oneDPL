@@ -144,44 +144,43 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range3>>
 sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                            _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
+                       _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
     using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
     using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
     using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
     using __flag_type = bool;
-    
+
     const auto __n = __keys.size();
 
     constexpr int __vals_per_item = 2; // Each work item serially processes 2 items. Best observered performance on gpu
 
     ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    
+
     // adjust __wgroup_size according to local memory limit
     __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(
         ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + sizeof(__val_type), __wgroup_size);
 
     int __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
-    
+
     // intermediate reductions within a workgroup
-    auto __partials = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
-        .get_buffer();
+    auto __partials =
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
+            .get_buffer();
 
-    auto __end_idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int>(__exec, 1)
-        .get_buffer();
+    auto __end_idx =
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int>(__exec, 1).get_buffer();
 
-    // the number of segment ends found in each work group 
-    auto __seg_ends = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int>(__exec, __n_groups)
-        .get_buffer();
-    
-    // 1. Count the segment ends in each workgroup 
-    auto __seg_end_identification = 
-    __exec.queue().submit([&](sycl::handler& __cgh) {
+    // the number of segment ends found in each work group
+    auto __seg_ends =
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int>(__exec, __n_groups).get_buffer();
+
+    // 1. Count the segment ends in each workgroup
+    auto __seg_end_identification = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __keys);
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::write>(__cgh);
 
-        __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size},
-        [=](sycl::nd_item<1> __item) {
+        __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
             auto __group = __item.get_group();
             auto __group_id = __group.get_group_id();
             int __local_id = __group.get_local_id();
@@ -189,16 +188,16 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
             int __start = __global_id * __vals_per_item;
             int __end = sycl::minimum{}(__start + __vals_per_item, __n);
-            int __item_segments = 0; 
-            
+            int __item_segments = 0;
+
             // 1a. Work item scan to identify segment ends
-            for (int32_t __i = __start; __i < __end; ++__i) 
-                if (__n - 1 == __i || __keys[__i] != __keys[__i+1])
+            for (int32_t __i = __start; __i < __end; ++__i)
+                if (__n - 1 == __i || __keys[__i] != __keys[__i + 1])
                     ++__item_segments;
-            
+
             // 1b. Work group reduction
             auto __num_segs = sycl::reduce_over_group(__group, __item_segments, sycl::plus<>());
-            
+
             // 1c. First work item writes segment count to global memory
             if (__local_id == 0)
                 __seg_ends_acc[__group_id] = __num_segs;
@@ -206,57 +205,56 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     });
 
     // 2. Work group reduction
-    auto __wg_reduce =
-    __exec.queue().submit([&](sycl::handler& __cgh) {
+    auto __wg_reduce = __exec.queue().submit([&](sycl::handler& __cgh) {
         __cgh.depends_on(__seg_end_identification);
         oneapi::dpl::__ranges::__require_access(__cgh, __keys, __out_keys, __out_values, __values);
 
         auto __partials_acc = __partials.template get_access<sycl::access_mode::read_write>(__cgh);
+        auto __end_idx_acc = __end_idx.template get_access<sycl::access_mode::write>(__cgh);
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
-        auto __loc_acc = sycl::accessor<__val_type, 1, 
-                               sycl::access::mode::read_write, 
-                               sycl::access::target::local>{2 * __wgroup_size, __cgh}; 
+        auto __loc_acc = sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
+            2 * __wgroup_size, __cgh};
 
-        __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size},
-        [=](sycl::nd_item<1> __item) {
+        __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
             ::std::array<__val_type, __vals_per_item> __loc_partials;
-            
+
             auto __group = __item.get_group();
             auto __group_id = __group.get_group_id();
             auto __local_id = __group.get_local_id();
             auto __global_id = __item.get_global_id();
-            
-            __val_type __accumulator{}; 
-                       
-            // 2a. Compute the number of segments in prior workgroups. Do this collectively in 
+
+            __val_type __accumulator{};
+
+            // 2a. Compute the number of segments in prior workgroups. Do this collectively in
             // subgroups to eliminate barriers.
             auto __start_ptr = __seg_ends_acc.get_pointer();
             auto __end_ptr = __start_ptr + __group_id;
 
-            int32_t __wg_num_prior_segs = sycl::joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, sycl::plus<>());
-            
-            // 2b. Perform a serial scan within the work item over assigned elements. Store partial 
+            int32_t __wg_num_prior_segs =
+                sycl::joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, sycl::plus<>());
+
+            // 2b. Perform a serial scan within the work item over assigned elements. Store partial
             // reductions in work group local memory.
             int32_t __start = __global_id * __vals_per_item;
             int32_t __end = sycl::minimum{}(__start + __vals_per_item, __n);
- 
+
             int32_t __max_end = 0;
-            int32_t __item_segments = 0; 
+            int32_t __item_segments = 0;
 
             bool __first = true;
-            for (int32_t __i = __start; __i < __end; ++__i) 
+            for (int32_t __i = __start; __i < __end; ++__i)
             {
                 if (__first)
-                    __accumulator = __values[__i]; 
-
-                else
                 {
-                    __accumulator = __binary_op(__accumulator, __values[__i]);
+                    __accumulator = __values[__i];
                     __first = false;
                 }
-                
-                // clear the accumulator if we reach end of segment 
-                if (__n - 1 == __i || __keys[__i] != __keys[__i+1])
+
+                else
+                    __accumulator = __binary_op(__accumulator, __values[__i]);
+
+                // clear the accumulator if we reach end of segment
+                if (__n - 1 == __i || __keys[__i] != __keys[__i + 1])
                 {
                     __loc_partials[__i - __start] = __accumulator;
                     __accumulator = {};
@@ -267,151 +265,157 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 }
             }
 
-            // 2c. Count the number of prior work segments cooperatively over group 
+            // 2c. Count the number of prior work segments cooperatively over group
             int __prior_segs_in_wg = sycl::exclusive_scan_over_group(__group, __item_segments, sycl::plus<>());
             auto __start_idx = __wg_num_prior_segs + __prior_segs_in_wg;
 
             // 2d. Find the greatest segment end less than the current index (inclusive)
             auto __closest_seg_id = sycl::inclusive_scan_over_group(__group, __max_end, sycl::maximum<>());
-            
-            __val_type __carry_in = oneapi::dpl::internal::wg_segmented_scan(__item, __loc_acc, __local_id, 
-                __local_id - __closest_seg_id, __accumulator, __binary_op, __wgroup_size);
- 
+
+            __val_type __carry_in =
+                oneapi::dpl::internal::wg_segmented_scan(__item, __loc_acc, __local_id, __local_id - __closest_seg_id,
+                                                         __accumulator, __binary_op, __wgroup_size);
+
             // 2e. Update local partial reductions in first segment and write to global memory.
             // double check edge cases for applying partials
             bool __apply_aggs = true;
             int __item_offset = 0;
-            
-            // first item in group does not have any work-group aggregates to apply 
+
+            // first item in group does not have any work-group aggregates to apply
             if (__local_id == 0)
                 __apply_aggs = false;
 
             for (int32_t __i = __start; __i < __end; ++__i)
             {
-                if (__i == __n-1 || __keys[__i] != __keys[__i+1])
+                if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
                 {
+                    auto __idx = __start_idx + __item_offset;
                     if (__apply_aggs)
                     {
-                        __out_values[__start_idx + __item_offset] = __binary_op(__carry_in, __loc_partials[__i - __start]);
+                        __out_values[__idx] = __binary_op(__carry_in, __loc_partials[__i - __start]);
                         __apply_aggs = false;
                     }
                     else
-                        __out_values[__start_idx + __item_offset] = __loc_partials[__i - __start];
+                        __out_values[__idx] = __loc_partials[__i - __start];
 
-                    __out_keys[__start_idx + __item_offset] = __keys[__i];
+                    __out_keys[__idx] = __keys[__i];
+
+                    // the last item must write the last index's position to return
+                    if (__i == __n - 1)
+                        __end_idx_acc[0] = __idx;
+
                     ++__item_offset;
                 }
             }
-            
+
             // 2e. Output the work group aggregate and total number of segments for use in phase 2.
-            if (__local_id == __wgroup_size - 1) // last work item writes the group's carry out  
+            if (__local_id == __wgroup_size - 1) // last work item writes the group's carry out
             {
-                // If no segment ends in the item, the aggregates from previous work groups must be applied. 
+                // If no segment ends in the item, the aggregates from previous work groups must be applied.
                 if (__max_end == 0)
-                    __partials_acc[__group_id] = __binary_op(__carry_in, __accumulator); // needs to be inclusive with last element
-                
+                    __partials_acc[__group_id] =
+                        __binary_op(__carry_in, __accumulator); // needs to be inclusive with last element
+
                 else
                     __partials_acc[__group_id] = __accumulator;
             }
         });
     });
-    
-    // 3. Apply inter work-group aggregates 
-    __exec.queue().submit([&](sycl::handler& __cgh) {
-        oneapi::dpl::__ranges::__require_access(__cgh, __keys, __out_keys, __out_values);
-        
-        auto __partials_acc = __partials.template get_access<sycl::access_mode::read>(__cgh);
-        auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
-        auto __end_idx_acc = __end_idx.template get_access<sycl::access_mode::write>(__cgh);
 
-        __cgh.depends_on(__wg_reduce);
+    // 3. Apply inter work-group aggregates
+    __exec.queue()
+        .submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __keys, __out_keys, __out_values);
 
-        __cgh.parallel_for(sycl::nd_range<1>{__n_groups *__wgroup_size, __wgroup_size},
-        [=](sycl::nd_item<1> __item) {
-            auto __group = __item.get_group();
-            auto __group_id = __group.get_group_id(0);
-            auto __global_id = __item.get_global_id();
-            auto __local_id = __item.get_local_id();
+            auto __partials_acc = __partials.template get_access<sycl::access_mode::read>(__cgh);
+            auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
 
-            int32_t __start = __global_id * __vals_per_item;
-            int32_t __end = sycl::minimum{}(__start + __vals_per_item, __n);
-            int32_t __item_segments = 0;
+            __cgh.depends_on(__wg_reduce);
 
-            int32_t __wg_agg_idx = __group_id - 1;
-            __val_type __agg_collector{};
+            __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1>
+                                                                                                     __item) {
+                auto __group = __item.get_group();
+                auto __group_id = __group.get_group_id(0);
+                auto __global_id = __item.get_global_id();
+                auto __local_id = __item.get_local_id();
 
-            // 3a. Find the work group's carry-in value. 
-            bool __first = true;
-            bool __ag_exists = false;
-            if (__local_id == 0 && __wg_agg_idx >= 0)
-            {
-                if (__start < __n && __keys[__start] == __keys[__start - 1])
+                int32_t __start = __global_id * __vals_per_item;
+                int32_t __end = sycl::minimum{}(__start + __vals_per_item, __n);
+                int32_t __item_segments = 0;
+
+                int32_t __wg_agg_idx = __group_id - 1;
+                __val_type __agg_collector{};
+
+                // 3a. Find the work group's carry-in value.
+                bool __first = true;
+                bool __ag_exists = false;
+                if (__local_id == 0 && __wg_agg_idx >= 0)
                 {
-                    __ag_exists = true;
-                    for (int32_t __i = __wg_agg_idx; __i >= 0; --__i) 
+                    if (__start < __n && __keys[__start] == __keys[__start - 1])
                     {
-                        const auto& __wg_aggregate = __partials_acc[__i];
-                        const auto& __b_seg_end = __seg_ends_acc[__i];
-
-                        if (__first)
+                        __ag_exists = true;
+                        for (int32_t __i = __wg_agg_idx; __i >= 0; --__i)
                         {
-                            __agg_collector = __wg_aggregate;
-                            __first = false;
-                        }
-                        else
-                            __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
+                            const auto& __wg_aggregate = __partials_acc[__i];
+                            const auto& __b_seg_end = __seg_ends_acc[__i];
 
-                        // current aggregate is the last aggregate 
-                        if (__b_seg_end)
-                            break;
+                            if (__first)
+                            {
+                                __agg_collector = __wg_aggregate;
+                                __first = false;
+                            }
+                            else
+                                __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
+
+                            // current aggregate is the last aggregate
+                            if (__b_seg_end)
+                                break;
+                        }
                     }
                 }
-            }
-            
-            __ag_exists = sycl::group_broadcast(__group, __ag_exists);
-            if (!__ag_exists)
-                return;
-        
-            __agg_collector = sycl::group_broadcast(__group, __agg_collector);
 
-            // 3b. count the segment ends 
-            for (auto __i = __start; __i < __end; ++__i)
-                if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
-                    ++__item_segments;
+                __ag_exists = sycl::group_broadcast(__group, __ag_exists);
+                if (!__ag_exists)
+                    return;
 
-            auto __prior_segs_in_wg = sycl::exclusive_scan_over_group(__group, __item_segments, sycl::plus<>());
-            
-            // 3c. Collectively perform a subgroup reduction to determine the first index 
-            // the work group will write to.
-            auto __start_ptr = __seg_ends_acc.get_pointer();
-            auto __end_ptr = __start_ptr + __group_id;
+                __agg_collector = sycl::group_broadcast(__group, __agg_collector);
 
-            auto __wg_num_prior_segs = sycl::joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, sycl::plus<>());
+                // 3b. count the segment ends
+                for (auto __i = __start; __i < __end; ++__i)
+                    if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
+                        ++__item_segments;
 
-            // 3d. Second pass over the keys, reidentifying end segments and applying work group
-            // aggregates if appropriate. Both the key and reduction value are written to the final output at the 
-            // computed index
-            int __item_offset = 0;
-            for (int32_t __i = __start; __i < __end; ++__i) 
-            {
-                if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
+                auto __prior_segs_in_wg = sycl::exclusive_scan_over_group(__group, __item_segments, sycl::plus<>());
+
+                // 3c. Collectively perform a subgroup reduction to determine the first index
+                // the work group will write to.
+                auto __start_ptr = __seg_ends_acc.get_pointer();
+                auto __end_ptr = __start_ptr + __group_id;
+
+                auto __wg_num_prior_segs =
+                    sycl::joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, sycl::plus<>());
+
+                // 3d. Second pass over the keys, reidentifying end segments and applying work group
+                // aggregates if appropriate. Both the key and reduction value are written to the final output at the
+                // computed index
+                int __item_offset = 0;
+                for (int32_t __i = __start; __i < __end; ++__i)
                 {
-                    int __idx = __wg_num_prior_segs + __prior_segs_in_wg + __item_offset;
+                    if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
+                    {
+                        int __idx = __wg_num_prior_segs + __prior_segs_in_wg + __item_offset;
 
-                    // apply the aggregate if it is the first segment end in the workgroup only
-                    if (__prior_segs_in_wg == 0 && __item_offset == 0)
-                        __out_values[__idx] = __binary_op(__agg_collector, __out_values[__idx]);
-                    
-                    ++__item_offset;
-                    
-                    // the last item must write the last index's position to return  
-                    if (__i == __n - 1)
-                        __end_idx_acc[0] = __idx;
+                        // apply the aggregate if it is the first segment end in the workgroup only
+                        if (__prior_segs_in_wg == 0 && __item_offset == 0)
+                            __out_values[__idx] = __binary_op(__agg_collector, __out_values[__idx]);
+
+                        ++__item_offset;
+                    }
                 }
-            }
-        });
-    }).wait();
-    
+            });
+        })
+        .wait();
+
     return 1 + __end_idx.template get_access<sycl::access_mode::read>()[0];
 }
 
@@ -452,9 +456,9 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     auto value_output_buf = keep_value_outputs(result2, result2 + n);
 
     // number of unique keys
-    CountType N = sycl_reduce_by_segment(
-        ::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
-        value_output_buf.all_view(), binary_pred, binary_op);
+    CountType N =
+        sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
+                               key_output_buf.all_view(), value_output_buf.all_view(), binary_pred, binary_op);
     return ::std::make_pair(result1 + N, result2 + N);
 }
 #endif
