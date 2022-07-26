@@ -139,6 +139,9 @@ struct sycl_scan_by_segment_impl
                 int __max_end = 0;
                 
                 bool __first = true;
+                if (__start < __n && __local_id != 0 && __keys[__start] != __keys[__start - 1])
+                   __max_end = __local_id;
+
                 for (int32_t __i = __start; __i < __end; ++__i) 
                 {
                     if (__first)
@@ -155,11 +158,6 @@ struct sycl_scan_by_segment_impl
                     {
                         __accumulator = __init;
                         __max_end = __local_id;
-                        
-                        //// need the id of the next start segment
-                        //if (__i == __end - 1)
-                        //    ++__max_end;
-
                         __first = true;
                     }
                 }
@@ -219,18 +217,19 @@ struct sycl_scan_by_segment_impl
                 int __wg_agg_idx = __group_id - 1;
                 __val_type __agg_collector{};
                 bool __first = true;
+                
+                int __start = __global_id * __vals_per_item;
+                int __end = sycl::minimum{}(__start + __vals_per_item, __n);
 
                 // 2a. Calculate the work group's carry-in value.  
                 // TODO: currently done serially but expected to be fast assuming n >> max_segment_size.
                 // performance expected to degrade if very few segments.
-                bool __ag_exists = true;
+                bool __ag_exists = false;
                 if (__local_id == 0 && __wg_agg_idx >= 0)
                 {
-                    // edge case if segment end is right on work group end, then no aggregate exists
-                    if (__keys[__global_id * __vals_per_item] != __keys[__global_id * __vals_per_item - 1])
-                        __ag_exists = false; 
-                    else 
+                    if (__start < __n && __keys[__start] == __keys[__start - 1])
                     {
+                        __ag_exists = true;
                         for (int32_t __i = __wg_agg_idx; __i >= 0; --__i) 
                         {
                             const auto& __wg_aggregate = __partials_acc[__i];
@@ -250,6 +249,7 @@ struct sycl_scan_by_segment_impl
                         }
                     }
                 }
+
                 __ag_exists = sycl::group_broadcast(__group, __ag_exists);
                 if (!__ag_exists)
                     return;
@@ -257,10 +257,7 @@ struct sycl_scan_by_segment_impl
                 __agg_collector = sycl::group_broadcast(__group, __agg_collector);
 
                 // 2c. Second pass over the keys, reidentifying end segments and applying work group
-                // aggregates if appropriate. Both the key and reduction value are written to the final output
-                int __start = __global_id * __vals_per_item;
-                int __end = sycl::minimum{}(__start + __vals_per_item, __n);
-
+                // aggregates if appropriate. Both the key and reduction value are written to the final output  
                 ::std::size_t __local_min_key_idx = __n - 1;
                 
                 // find the smallest index 
@@ -275,6 +272,7 @@ struct sycl_scan_by_segment_impl
 
                 ::std::size_t __wg_min_seg_end = sycl::reduce_over_group(__group, __local_min_key_idx, sycl::minimum<>());
                 
+                // the first group will never have an aggregate to apply
                 if (__group_id == 0)
                     return;
 
