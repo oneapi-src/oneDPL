@@ -75,6 +75,14 @@ inline bool has_type_support<double>(const sycl::device& device)
     return device.has(sycl::aspect::fp64);
 }
 
+template <>
+inline bool
+has_type_support<long double>(const sycl::device& device)
+{
+    // TODO how to check correctly this type?
+    return has_type_support<double>(device);
+}
+
 template<>
 inline bool has_type_support<sycl::half>(const sycl::device& device)
 {
