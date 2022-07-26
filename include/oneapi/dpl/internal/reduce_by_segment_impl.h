@@ -210,8 +210,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
         oneapi::dpl::__ranges::__require_access(__cgh, __keys, __out_keys, __out_values, __values);
 
         auto __partials_acc = __partials.template get_access<sycl::access_mode::read_write>(__cgh);
-        auto __end_idx_acc = __end_idx.template get_access<sycl::access_mode::write>(__cgh);
-        auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
+        auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::write>(__cgh);
         auto __loc_acc = sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
             2 * __wgroup_size, __cgh};
 
@@ -298,12 +297,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                     else
                         __out_values[__idx] = __loc_partials[__i - __start];
 
-                    __out_keys[__idx] = __keys[__i];
-
-                    // the last item must write the last index's position to return
-                    if (__i == __n - 1)
-                        __end_idx_acc[0] = __idx;
-
+                    __out_keys[__idx] = __keys[__i]; 
                     ++__item_offset;
                 }
             }
@@ -329,6 +323,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
             auto __partials_acc = __partials.template get_access<sycl::access_mode::read>(__cgh);
             auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
+            auto __end_idx_acc = __end_idx.template get_access<sycl::access_mode::write>(__cgh);
 
             __cgh.depends_on(__wg_reduce);
 
@@ -373,9 +368,11 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                         }
                     }
                 }
-
-                __ag_exists = sycl::group_broadcast(__group, __ag_exists);
-                if (!__ag_exists)
+                
+                // Check to see if aggregates exist. 
+                // The last group must always stay to write the final index
+                __ag_exists = sycl::group_broadcast(__group, __ag_exists); 
+                if (!__ag_exists && __group_id != __n_groups - 1)
                     return;
 
                 __agg_collector = sycl::group_broadcast(__group, __agg_collector);
@@ -406,10 +403,13 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                         int __idx = __wg_num_prior_segs + __prior_segs_in_wg + __item_offset;
 
                         // apply the aggregate if it is the first segment end in the workgroup only
-                        if (__prior_segs_in_wg == 0 && __item_offset == 0)
+                        if (__prior_segs_in_wg == 0 && __item_offset == 0 && __ag_exists)
                             __out_values[__idx] = __binary_op(__agg_collector, __out_values[__idx]);
 
                         ++__item_offset;
+                        // the last item must write the last index's position to return
+                        if (__i == __n - 1)
+                            __end_idx_acc[0] = __idx;
                     }
                 }
             });
