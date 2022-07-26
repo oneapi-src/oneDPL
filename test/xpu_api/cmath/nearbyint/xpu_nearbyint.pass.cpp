@@ -30,7 +30,7 @@ constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
 
 template <typename KernelClass, typename Function, typename ValueType>
 void
-test(Function fnc, const std::vector<ValueType>& args, const char* message)
+test_impl(cl::sycl::queue deviceQueue, Function fnc, const std::vector<ValueType>& args, const char* message)
 {
     const auto args_count = args.size();
 
@@ -41,16 +41,6 @@ test(Function fnc, const std::vector<ValueType>& args, const char* message)
 
     // Evaluate results in Kernel
     {
-        cl::sycl::queue deviceQueue(TestUtils::async_handler);
-
-        if (!TestUtils::has_type_support<ValueType>(deviceQueue.get_device()))
-        {
-            std::cout << deviceQueue.get_device().template get_info<sycl::info::device::name>()
-                      << " does not support " << typeid(ValueType).name() << " type,"
-                      << " affected test case have been skipped" << std::endl;
-            return;
-        }
-
         cl::sycl::buffer<ValueType> buffer1(args.data(), args_count);
         cl::sycl::buffer<ValueType> buffer2(output.data(), args_count);
 
@@ -76,6 +66,22 @@ test(Function fnc, const std::vector<ValueType>& args, const char* message)
     }
 }
 
+template <typename KernelClass, typename Function, typename ValueType>
+void
+test(cl::sycl::queue deviceQueue, Function fnc, const std::vector<ValueType>& args, const char* message)
+{
+    if (TestUtils::has_type_support<ValueType>(deviceQueue.get_device()))
+    {
+        test_impl<KernelClass, Function, ValueType>(deviceQueue, fnc, args, message);
+    }
+    else
+    {
+        std::cout << deviceQueue.get_device().template get_info<sycl::info::device::name>() << " does not support "
+                  << typeid(ValueType).name() << " type,"
+                  << " affected test case have been skipped" << std::endl;
+    }
+}
+
 class Test;
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -90,28 +96,33 @@ main()
     //     float  nearbyintf(float arg);
     //     double nearbyint (double arg);
 
+    cl::sycl::queue deviceQueue(TestUtils::async_handler);
+
     ////////////////////////////////////////////////////////
     // float nearbyint(float arg);
     auto f_nearbyint_float = [](float arg) -> float { return oneapi::dpl::nearbyint(arg); };
     const std::vector<float> f_args_float = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
-    test<TestUtils::unique_kernel_name<Test, 1>>(f_nearbyint_float, f_args_float, "float nearbyint(float)");
+    test<TestUtils::unique_kernel_name<Test, 1>>(deviceQueue, f_nearbyint_float, f_args_float, "float nearbyint(float)");
 
     ////////////////////////////////////////////////////////
     // float nearbyintf(float arg);
     auto f_nearbyintf_float = [](float arg) -> float { return oneapi::dpl::nearbyintf(arg); };
-    test<TestUtils::unique_kernel_name<Test, 11>>(f_nearbyintf_float, f_args_float, "float nearbyintf(float)");
-
-    ////////////////////////////////////////////////////////
-    // long double nearbyintl(long double arg);
-    const std::vector<long double> f_args_ld = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
-    auto f_nearbyintl_ld = [](long double arg) -> long double { return oneapi::dpl::nearbyintl(arg); };
-    test<TestUtils::unique_kernel_name<Test, 11>>(f_nearbyintl_ld, f_args_ld, "long double nearbyintl(long double)");
+    test<TestUtils::unique_kernel_name<Test, 11>>(deviceQueue, f_nearbyintf_float, f_args_float, "float nearbyintf(float)");
 
     ////////////////////////////////////////////////////////
     // double nearbyint(double arg);
     auto f_nearbyint_double = [](double arg) -> double { return oneapi::dpl::nearbyint(arg); };
     const std::vector<double> f_args_double = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
-    test<TestUtils::unique_kernel_name<Test, 2>>(f_nearbyint_double, f_args_double, "double nearbyint(double)");
+    test<TestUtils::unique_kernel_name<Test, 2>>(deviceQueue, f_nearbyint_double, f_args_double, "double nearbyint(double)");
+
+    ////////////////////////////////////////////////////////
+    // long double nearbyintl(long double arg);
+    if (deviceQueue.get_device().has(sycl::aspect::fp64))
+    {
+        const std::vector<long double> f_args_ld = {+2.3, +2.5, +3.5, -2.3, -2.5, -3.5};
+        auto f_nearbyintl_ld = [](long double arg) -> long double { return oneapi::dpl::nearbyintl(arg); };
+        test<TestUtils::unique_kernel_name<Test, 11>>(deviceQueue, f_nearbyintl_ld, f_args_ld, "long double nearbyintl(long double)");
+    }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
