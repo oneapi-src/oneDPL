@@ -276,14 +276,14 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                                                          __accumulator, __binary_op, __wgroup_size);
 
             // 2e. Update local partial reductions in first segment and write to global memory.
-            // double check edge cases for applying partials
             bool __apply_aggs = true;
             int __item_offset = 0;
 
             // first item in group does not have any work-group aggregates to apply
             if (__local_id == 0)
                 __apply_aggs = false;
-
+            
+            // apply the aggregates and copy the locally stored values to destination buffer 
             for (int32_t __i = __start; __i < __end; ++__i)
             {
                 if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
@@ -341,7 +341,8 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 int32_t __wg_agg_idx = __group_id - 1;
                 __val_type __agg_collector{};
 
-                // 3a. Find the work group's carry-in value.
+                // 3a. Check to see if an aggregate exists and compute that value in the first 
+                // work item.
                 bool __first = true;
                 bool __ag_exists = false;
                 if (__local_id == 0 && __wg_agg_idx >= 0)
