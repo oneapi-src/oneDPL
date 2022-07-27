@@ -241,12 +241,12 @@ test_with_vector()
                                                output_values.begin(), std::equal_to<int>(), std::plus<int>());
 
             const size_t size = new_end.first - output_keys.begin();
-            EXPECT_TRUE((destLength == 0 && size == 0) || size == 1, "wrong reduce_by_key result");
+            EXPECT_TRUE((destLength == 0 && size == 0) || size == 1, "reduce_by_segment: wrong result");
 
             for (size_t i = 0; i < size; i++)
             {
-                EXPECT_EQ(key_val, output_keys[i], "wrong key");
-                EXPECT_EQ(destLength, output_values[i], "wrong value");
+                EXPECT_EQ(key_val, output_keys[i], "reduce_by_segment: wrong key");
+                EXPECT_EQ(destLength, output_values[i], "reduce_by_segment: wrong value");
             }
         }
     }
