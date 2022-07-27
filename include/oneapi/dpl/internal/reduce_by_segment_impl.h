@@ -153,7 +153,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
     const auto __n = __keys.size();
 
-    constexpr int __vals_per_item = 2; // Each work item serially processes 2 items. Best observered performance on gpu
+    constexpr int __vals_per_item = 2; // Each work item serially processes 2 items. Best observed performance on gpu
 
     ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
