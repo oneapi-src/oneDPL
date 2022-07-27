@@ -301,13 +301,25 @@ struct test_permutation_iterator
                     "wrong result from copy with permutation_iterator");
 
         oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it1(in1.begin(), in2.begin());
-        oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it2(in1.begin(), in2.begin(), in2.size()-1);
-        EXPECT_TRUE(perm_it1 == perm_begin, "wrong result from permutation_iterator(base, map)");
-        EXPECT_TRUE(perm_it2 == perm_begin + in2.size()-1, "wrong result from permutation_iterator(base, map, offset)");
-        EXPECT_TRUE(perm_it1.base() == in1.begin(), "wrong result from permutation_iterator::base");
-        EXPECT_TRUE(perm_it1.map() == in2.begin(), "wrong result from permutation_iterator::map");
+        oneapi::dpl::permutation_iterator<typename ::std::vector<T1>::iterator, typename ::std::vector<T2>::iterator> perm_it2(in1.begin(), in2.begin() + in2.size()-1);
+        EXPECT_TRUE(perm_it1 == perm_begin, "wrong result from permutation_iterator(base_iterator, index_iterator)");
+        EXPECT_TRUE(perm_it2 == perm_begin + in2.size()-1, "wrong result from permutation_iterator(base_iterator, index_iterator)");
+        EXPECT_TRUE(perm_it1.base() == in1.begin(), "wrong result from permutation_iterator::base_iterator");
+        EXPECT_TRUE(perm_it1.map() == in2.begin(), "wrong result from permutation_iterator::index_iterator");
 
         test_random_iterator(perm_begin);
+
+        auto n = in1.size();
+        auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), [n] (auto i) { return n - i - 1;}, 1);
+        EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
+
+        test_random_iterator(perm_it_fun_rev);
+
+        ::std::vector<T1> res(n);
+        perm_it_fun_rev -= 2;
+        ::std::copy(perm_it_fun_rev, perm_it_fun_rev + n, res.begin());
+
+        EXPECT_EQ_N(res.begin(), oneapi::dpl::make_reverse_iterator(in1.end()), n, "wrong result from permutation_iterator(base_iterator, functor)");
     }
 };
 
