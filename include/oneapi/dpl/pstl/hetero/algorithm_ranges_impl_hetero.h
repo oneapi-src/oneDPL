@@ -727,6 +727,12 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
                               ::std::forward<_ExecutionPolicy>(__exec)),
                           __view1, __view2,
                           [__n, __binary_pred, __wgroup_size](const auto& __a) {
+                              // The size of key ranges is one less, so for the last index we do not check the keys,
+                              // and we need the index itself as the boundaries of the last subrange.
+                              const auto index = ::std::get<0>(__a);
+                              if (index == __n - 1)
+                                  return true;
+
                               return ::std::get<0>(__a) % __wgroup_size == 0 ||              // segment size
                                      !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
                           },
@@ -758,11 +764,18 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // element is copied if it is the last element (end of final segment), or has a key not equal to
     // the adjacent element (end of a segment). Artificial segments based on wg size are not created.
+    const auto __m = __view3.size();
     __result_end =
         __pattern_copy_if(oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key2_wrapper>(
                               ::std::forward<_ExecutionPolicy>(__exec)),
                           __view3, __view4,
-                          [__result_end, __binary_pred](const auto& __a) {
+                          [__m, __result_end, __binary_pred](const auto& __a) {
+                              // The size of key ranges is one less, so for the last index we do not check the keys,
+                              // and we need the index itself as the boundaries of the last subrange.
+                              const auto index = ::std::get<0>(__a);
+                              if (index == __m - 1)
+                                  return true;
+
                               return !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
                           },
                           unseq_backend::__brick_assign_key_position{});
