@@ -97,7 +97,6 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
 #if _ONEDPL_BACKEND_SYCL
 
-// TODO: Factor the init value in
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
           typename BinaryPredicate, typename Operator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
