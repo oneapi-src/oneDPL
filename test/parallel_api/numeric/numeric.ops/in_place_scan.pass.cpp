@@ -26,6 +26,7 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "support/utils_sycl.h"
 #    include "support/sycl_alloc_utils.h"
+#    include "support/scan_serial_impl.h"
 
 #include <vector>
 #endif
@@ -49,24 +50,22 @@ int main()
   syclQue.memcpy(excl_input_dev, v.data(), v.size()*sizeof(int)).wait();  
 
   // Inclusive scan (in-place works)
-  std::inclusive_scan(incl_input_host.begin(),
+  inclusive_scan_serial(incl_input_host.begin(),
                       incl_input_host.end(),
                       incl_input_host.begin());
   oneapi::dpl::inclusive_scan( oneapi::dpl::execution::make_device_policy(syclQue),
                                incl_input_dev,
                                incl_input_dev + v.size(),
                                incl_input_dev );
-  int* incl_result_host = new int[v.size()];
-  syclQue.memcpy(incl_result_host, incl_input_dev, v.size()*sizeof(int)).wait();
+  std::vector<int> incl_result_host(v.size());
+  syclQue.memcpy(incl_result_host.data(), incl_input_dev, v.size()*sizeof(int)).wait();
 
-  for (int i=0; i<v.size(); i++) {
-    assert( incl_input_host[i] == incl_result_host[i] );
-  }
-  delete[] incl_result_host;
+  EXPECT_EQ_RANGES(incl_input_host, incl_result_host, "wrong inclusive_scan results");
+
   sycl::free(incl_input_dev, syclQue);
 
   // Exclusive scan (in-place, incorrect results)
-  std::exclusive_scan( excl_input_host.begin(),
+  exclusive_scan_serial( excl_input_host.begin(),
                        excl_input_host.end(),
                        excl_input_host.begin(),
                        0 );
@@ -75,15 +74,11 @@ int main()
                                excl_input_dev + v.size(),
                                excl_input_dev,
                                0 );
-  int* excl_result_host = new int[v.size()];
-  syclQue.memcpy(excl_result_host, excl_input_dev, v.size()*sizeof(int)).wait();
+  std::vector<int> excl_result_host(v.size());
+  syclQue.memcpy(excl_result_host.data(), excl_input_dev, v.size()*sizeof(int)).wait();
 
-  for (int i=0; i<v.size(); i++) {
-    assert( excl_input_host[i] == excl_result_host[i] );    
-  }
-  std::cout << std::endl;
+  EXPECT_EQ_RANGES(excl_input_host, excl_result_host, "wrong exclusive_scan results");
 
-  delete[] excl_result_host;
   sycl::free(excl_input_dev, syclQue);
 #endif
   return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
