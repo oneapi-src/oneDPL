@@ -26,8 +26,9 @@ exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
 {
     for (; first != last; ++first, ++result)
     {
-        *result = init;
+        auto res = init;
         init = init + *first;
+        *result = res;
     }
     return result;
 }
@@ -38,8 +39,9 @@ exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
 {
     for (; first != last; ++first, ++result)
     {
-        *result = init;
+	auto res = init;
         init = binary_op(init, *first);
+        *result = res;
     }
     return result;
 }
