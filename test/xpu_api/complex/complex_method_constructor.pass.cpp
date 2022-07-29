@@ -146,20 +146,20 @@ protected:
         // complex( const T& re = T(), const T& im = T() );
 
         dpl::complex<T> cv1;
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv1.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv1.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv1.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv1.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv1.real() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #1");
         EXPECT_TRUE_EE(errorEngine, cv1.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #2");
 
         dpl::complex<T> cv2(TestUtils::Complex::InitConst<T>::kPartReal);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv2.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv2.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv2.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv2.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv2.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #3");
         EXPECT_TRUE_EE(errorEngine, cv2.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #4");
 
         dpl::complex<T> cv3(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv3.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv3.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv3.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv3.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv3.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #5");
         EXPECT_TRUE_EE(errorEngine, cv3.imag() == TestUtils::Complex::InitConst<T>::kPartImag, "Wrong effect in constructor #6");
 #endif
@@ -172,20 +172,20 @@ protected:
         // constexpr complex( const T& re = T(), const T& im = T() );
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1;
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv1.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv1.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv1.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv1.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv1.real() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #7");
         EXPECT_TRUE_EE(errorEngine, cv1.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #8");
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::InitConst<T>::kPartReal);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv2.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv2.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv2.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv2.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv2.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #9");
         EXPECT_TRUE_EE(errorEngine, cv2.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #10");
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv3(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv3.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv3.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv3.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv3.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv3.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #11");
         EXPECT_TRUE_EE(errorEngine, cv3.imag() == TestUtils::Complex::InitConst<T>::kPartImag, "Wrong effect in constructor #12");
 #endif
@@ -198,8 +198,8 @@ protected:
         // complex( const complex& other );
         const dpl::complex<T> cv_src(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
         const dpl::complex<T> cv_copy(cv_src);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv_copy.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv_copy.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_copy.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_copy.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv_copy.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #13");
         EXPECT_TRUE_EE(errorEngine, cv_copy.imag() == TestUtils::Complex::InitConst<T>::kPartImag, "Wrong effect in constructor #14");
 #endif
@@ -212,8 +212,8 @@ protected:
         // constexpr complex( const complex& other );
         const dpl::complex<T> cv_src(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv_copy(cv_src);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv_copy.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv_copy.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_copy.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_copy.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv_copy.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #15");
         EXPECT_TRUE_EE(errorEngine, cv_copy.imag() == TestUtils::Complex::InitConst<T>::kPartImag, "Wrong effect in constructor #16");
 #endif
@@ -240,8 +240,8 @@ protected:
         // constexpr complex(const complex<X>& other);
         const dpl::complex<T> cv_src(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv_copy(cv_src);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv_copy.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv_copy.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_copy.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_copy.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv_copy.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #19");
         EXPECT_TRUE_EE(errorEngine, cv_copy.imag() == TestUtils::Complex::InitConst<T>::kPartImag, "Wrong effect in constructor #20");
 #endif
@@ -262,20 +262,20 @@ protected:
         // constexpr complex(long double re = 0.0L, long double im = 0.0L);
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1;
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv1.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv1.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv1.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv1.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv1.real() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #7");
         EXPECT_TRUE_EE(errorEngine, cv1.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #8");
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::InitConst<T>::kPartReal);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv2.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv2.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv2.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv2.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv2.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #9");
         EXPECT_TRUE_EE(errorEngine, cv2.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect in constructor #10");
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv3(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv3.real());
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(cv3.imag());
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv3.real(), "Wrong type");
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv3.imag(), "Wrong type");
         EXPECT_TRUE_EE(errorEngine, cv3.real() == TestUtils::Complex::InitConst<T>::kPartReal, "Wrong effect in constructor #11");
         EXPECT_TRUE_EE(errorEngine, cv3.imag() == TestUtils::Complex::InitConst<T>::kPartImag, "Wrong effect in constructor #12");
     }
