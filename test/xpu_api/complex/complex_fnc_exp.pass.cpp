@@ -15,8 +15,6 @@
 
 #include "support/utils_complex_test_support.h"
 
-using TestUtils::Complex::check_type;
-
 ////////////////////////////////////////////////////////////////////////////////
 // class TestComplexExp - testing of std::exp from <complex>
 // 
