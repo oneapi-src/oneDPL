@@ -18,10 +18,49 @@
 
 #include "utils.h"
 
-#define EXPECT_TRUE_EE(errorEngine, condition, message) errorEngine.expect_true(condition, __FILE__, __LINE__, message);
+#define EXPECT_TRUE_EE(errorEngine, condition, message)                     \
+    errorEngine.expect_true(condition, __FILE__, __LINE__, message);
+
+#define EXPECT_EQ_TYPE_EE(errorEngine, expected_type, test_val)             \
+    errorEngine.template expect_eq_type<expected_type>(test_val, __FILE__, __LINE__);
 
 namespace TestUtils
 {
+    inline
+    const char* get_type_name(int)
+    {
+        static const char name[] = "int";
+        return name;
+    }
+
+    inline
+    const char* get_type_name(float)
+    {
+        static const char name[] = "float";
+        return name;
+    }
+
+    inline
+    const char* get_type_name(double)
+    {
+        static const char name[] = "double";
+        return name;
+    }
+
+    inline const char*
+    get_type_name(long double)
+    {
+        static const char name[] = "long double";
+        return name;
+    }
+
+    template <typename T>
+    const char* get_type_name(T)
+    {
+        static const char name[] = "unknown";
+        return name;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     /// struct ErrorEngineHost - error engine for host tests
     struct ErrorEngineHost
@@ -29,6 +68,28 @@ namespace TestUtils
         void expect_true(bool condition, const char* file, std::int32_t line, const char* msg)
         {
             expect(true, condition, file, line, msg);
+        }
+
+        template <typename TExpected, typename TTestedVal>
+        typename ::std::enable_if<!::std::is_same<typename ::std::decay<TTestedVal>::type, TExpected>::value>::type
+        expect_eq_type(TTestedVal testedVal, const char* file, std::int32_t line, const char* msg = "Wrong type")
+        {
+            std::string str;
+            if (msg)
+                str.append(msg);
+            str += ": ";
+            str += get_type_name(TTestedVal());
+            str += ", excepted: ";
+            str += get_type_name(TExpected()); 
+
+            expect(true, false, file, line, str.c_str());
+        }
+
+        template <typename TExpected, typename TTestedVal>
+        typename ::std::enable_if<::std::is_same<typename ::std::decay<TTestedVal>::type, TExpected>::value>::type
+        expect_eq_type(TTestedVal, const char*, std::int32_t, const char* msg = "ok")
+        {
+            // Type is ok
         }
     };
 
@@ -108,9 +169,33 @@ namespace TestUtils
 
         void expect_true(bool condition, const char* file, std::int32_t line, const char* msg)
         {
-            if (condition)
-                return;
+            if (!condition)
+                add_error_info(file, line, msg);
+        }
 
+        template <typename TExpected, typename TTestedVal>
+        typename ::std::enable_if<!::std::is_same<typename ::std::decay<TTestedVal>::type, TExpected>::value>::type
+        expect_eq_type(TTestedVal testedVal, const char* file, std::int32_t line, const char* msg = "Wrong type")
+        {
+            ErrorInfo eiTemp;
+            copy_string(eiTemp.msg, get_buf_size(eiTemp.msg), msg);
+            copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), ": ");
+            copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), get_type_name(TTestedVal()));
+            copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), ", excepted: ");
+            copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), get_type_name(TExpected()));
+
+            add_error_info(file, line, eiTemp.msg);
+        }
+
+        template <typename TExpected, typename TTestedVal>
+        typename ::std::enable_if<::std::is_same<typename ::std::decay<TTestedVal>::type, TExpected>::value>::type
+        expect_eq_type(TTestedVal, const char*, std::int32_t, const char* msg = "ok")
+        {
+            // Type is ok
+        }
+
+        void add_error_info(const char* file, std::int32_t line, const char* msg)
+        {
             assert(index < max_errors_count);
             if (index == max_errors_count)
                 return;
@@ -121,6 +206,16 @@ namespace TestUtils
             error_buf_accessor[index].isError = true;
 
             ++index;
+        }
+
+        ::std::size_t get_str_len(const char* buf) const
+        {
+            ::std::size_t len = 0;
+
+            for (; *buf != 0x00; ++buf)
+                ++len;
+
+            return len;
         }
 
         void copy_string(char* dest, std::size_t dest_size, const char* src)
