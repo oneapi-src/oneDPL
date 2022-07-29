@@ -87,12 +87,6 @@ namespace Complex
         static constexpr double kExpectedResReal = 1.0;
     };
 
-    template <typename TRequiredType, typename TVal>
-    void check_type(TVal val)
-    {
-        static_assert(::std::is_same<typename ::std::decay<TVal>::type, TRequiredType>::value, "Types should be equals");
-    }
-
     // Run test TComplexTestName on host
     template <template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
     void test_on_host()
