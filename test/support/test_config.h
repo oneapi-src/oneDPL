@@ -62,13 +62,6 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 
-// Disable ::std::conj(int) in Kernel for DPCPP
-#if defined(TEST_DPCPP_BACKEND_PRESENT)
-#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN 1
-#else
-#define TEST_COMPLEX_CONJ_FOR_NON_COMPLEX_TYPES_IN_KERNEL_BROKEN 0
-#endif
-
 // May be defined as constexpr later
 #define COMPLEX_TEST_CONSTEXPR
 
