@@ -82,7 +82,6 @@ main()
     TestUtils::Complex::test_on_host<TestComplexAbs>();
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#if !TEST_COMPLEX_ABS_IN_KERNEL_BROKEN
     try
     {
         sycl::queue deviceQueue{ TestUtils::default_selector };
@@ -100,7 +99,6 @@ main()
 
         EXPECT_TRUE(false, errorMsg.c_str());
     }
-#endif // !TEST_COMPLEX_ABS_IN_KERNEL_BROKEN
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done();
