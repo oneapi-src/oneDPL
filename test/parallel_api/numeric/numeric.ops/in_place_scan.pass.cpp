@@ -13,15 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _GLIBCXX_USE_TBB_PAR_BACKEND 0 // libstdc++10
+#include "oneapi/dpl/execution"
+#include "oneapi/dpl/algorithm"
+#include "oneapi/dpl/iterator"
 
 #include "support/test_config.h"
-#include <cassert>
 #include "support/utils.h"
-
-#include _PSTL_TEST_HEADER(execution)
-#include _PSTL_TEST_HEADER(algorithm)
-#include _PSTL_TEST_HEADER(numeric)
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "support/utils_sycl.h"
