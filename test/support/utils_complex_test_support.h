@@ -88,8 +88,11 @@ namespace Complex
     };
 
     // Run test TComplexTestName on host
+    /*
+     * @return bool - true if no errors occurred, false - otherwise.
+     */
     template <template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
-    void test_on_host()
+    bool test_on_host()
     {
         // Prepare host error engine
         TestUtils::ErrorEngineHost error_engine_host;
@@ -97,12 +100,17 @@ namespace Complex
         // Run test on host
         TComplexTestName<TestUtils::ErrorEngineHost, ::std::true_type, ::std::true_type> tcc(error_engine_host);
         tcc.run_test(::std::true_type{});
+
+        return !error_engine_host.bHaveErrors;
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run TComplexTestName test in Kernel
+    /*
+     * @return bool - true if no errors occurred, false - otherwise.
+     */
     template <template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
-    void test_in_kernel(sycl::queue& deviceQueue)
+    bool test_in_kernel(sycl::queue& deviceQueue)
     {
         TestUtils::ErrorEngine_HostPart error_engine_host_part;
 
@@ -156,6 +164,8 @@ namespace Complex
         }
 
         error_engine_host_part.process_errors();
+
+        return !error_engine_host_part.have_errors();
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

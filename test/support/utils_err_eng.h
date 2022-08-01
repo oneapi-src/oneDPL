@@ -80,9 +80,12 @@ namespace TestUtils
             str += ": ";
             str += get_type_name(TTestedVal());
             str += ", excepted: ";
-            str += get_type_name(TExpected()); 
+            str += get_type_name(TExpected());
+            str += " (on host)";
 
-            expect(true, false, file, line, str.c_str());
+            expect(true, false, file, line, str.c_str(), false);
+
+            bHaveErrors = true;
         }
 
         template <typename TExpected, typename TTestedVal>
@@ -91,6 +94,8 @@ namespace TestUtils
         {
             // Type is ok
         }
+
+        bool bHaveErrors = false;
     };
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -122,29 +127,25 @@ namespace TestUtils
             return cl::sycl::buffer<ErrorInfo, 1>(&errors[0], numOfItems);
         }
 
+        bool have_errors() const
+        {
+            return errors[0].isError;
+        }
+
         /// Process errors, occurred in Kernel, end exit if has errors
         void process_errors()
         {
-            bool have_error = false;
-
             for (const auto& error : errors)
             {
                 if (!error.isError)
                     break;
-
-                if (!have_error)
-                    std::cout << "Errors in Kernel:" << std::endl;
 
                 expect(true, false,    // true != false -> is error
                        error.file,
                        error.line,
                        error.msg,
                        false);         // Do not exit on error
-                have_error = true;     // but save sign to exit later
             }
-
-            if (have_error)
-                exit_on_error();
         }
     };
 
@@ -183,6 +184,7 @@ namespace TestUtils
             copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), get_type_name(TTestedVal()));
             copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), ", excepted: ");
             copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), get_type_name(TExpected()));
+            copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), " (in Kernel)");
 
             add_error_info(file, line, eiTemp.msg);
         }
