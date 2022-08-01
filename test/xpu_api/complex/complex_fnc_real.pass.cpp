@@ -104,7 +104,7 @@ protected:
 #if __cplusplus < 201402L
         const T z = TestUtils::Complex::InitConst<T>::kPartReal;
         const auto real_res = dpl::real(z);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(real_res);
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, real_res);
         
         EXPECT_TRUE_EE(errorEngine, TestUtils::Complex::InitConst<T>::kExpectedResReal == real_res, "Wrong effect of dpl::real() #3");
 #endif
@@ -116,7 +116,7 @@ protected:
 #if __cplusplus >= 201402L
         COMPLEX_TEST_CONSTEXPR T z = TestUtils::Complex::InitConst<T>::kPartReal;
         COMPLEX_TEST_CONSTEXPR auto real_res = dpl::real(z);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(real_res);
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, real_res);
 
         EXPECT_TRUE_EE(errorEngine, TestUtils::Complex::InitConst<T>::kExpectedResReal == real_res, "Wrong effect of dpl::real() #4");
 #endif
