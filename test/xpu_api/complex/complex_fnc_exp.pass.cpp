@@ -63,17 +63,23 @@ private:
 int
 main()
 {
-    TestUtils::Complex::test_on_host<TestComplexExp>();
+    bool bSuccess = true;
+
+    if (!TestUtils::Complex::test_on_host<TestComplexExp>())
+        bSuccess = false;
 
 #if TEST_DPCPP_BACKEND_PRESENT
     try
     {
         sycl::queue deviceQueue{ TestUtils::default_selector };
 
-        TestUtils::Complex::test_in_kernel<TestComplexExp>(deviceQueue);
+        if (!TestUtils::Complex::test_in_kernel<TestComplexExp>(deviceQueue))
+            bSuccess = false;
     }
     catch (const std::exception& exc)
     {
+        bSuccess = false;
+
         std::string errorMsg = "Exception occurred";
         if (exc.what())
         {
@@ -84,6 +90,9 @@ main()
         EXPECT_TRUE(false, errorMsg.c_str());
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+    if (!bSuccess)
+        TestUtils::exit_on_error();
 
     return TestUtils::done();
 }
