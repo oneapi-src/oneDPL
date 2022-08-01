@@ -104,7 +104,7 @@ protected:
 #if __cplusplus < 201402L
         const T z = TestUtils::Complex::InitConst<T>::kPartImag;
         const auto imag_res = dpl::imag(z);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(imag_res);
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, imag_res);
 
         const typename TestUtils::Complex::InitConst<T>::DestComplexFieldType imag_res_expected = { };
         EXPECT_TRUE_EE(errorEngine, imag_res_expected == imag_res, "Wrong effect of dpl::imag() #3");
@@ -117,7 +117,8 @@ protected:
 #if __cplusplus >= 201402L
         COMPLEX_TEST_CONSTEXPR T z = TestUtils::Complex::InitConst<T>::kPartImag;
         COMPLEX_TEST_CONSTEXPR auto imag_res = dpl::imag(z);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(imag_res);
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, imag_res);
+
 
         COMPLEX_TEST_CONSTEXPR typename TestUtils::Complex::InitConst<T>::DestComplexFieldType imag_res_expected = { };
         EXPECT_TRUE_EE(errorEngine, imag_res_expected == imag_res, "Wrong effect of dpl::imag() #4");
