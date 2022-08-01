@@ -17,8 +17,6 @@
 
 #include "complex_fnc_abs_cases.h"
 
-using TestUtils::Complex::check_type;
-
 ////////////////////////////////////////////////////////////////////////////////
 // class TestComplexArg - testing of std::arg from <complex>
 // 
@@ -90,7 +88,7 @@ protected:
     {
         const auto cv = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
         const auto arg_res = dpl::arg(cv);
-        check_type<T>(arg_res);
+        EXPECT_EQ_TYPE_EE(errorEngine, T, arg_res);
         auto arg_res_expected = ::std::arg(cv);
 
         EXPECT_TRUE_EE(errorEngine, arg_res == arg_res_expected, "Wrong result in dpl::arg(dpl::complex<T>()) function");
@@ -100,10 +98,9 @@ protected:
     void test_arg_for_non_complex_arg(T val)
     {
         const auto arg_res = dpl::arg(val);
-        TestUtils::Complex::check_type<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType>(arg_res);
+        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, arg_res);
 
         const auto arg_res_expected = ::std::arg(val);
-
         EXPECT_TRUE_EE(errorEngine, arg_res == arg_res_expected, "Wrong result in dpl::arg(dpl::complex<T>()) function #1");
     }
 
@@ -114,7 +111,7 @@ protected:
         {
             const auto cv = testcases[i];
             const double arg_res = dpl::arg(cv);
-            check_type<double>(arg_res);
+            EXPECT_EQ_TYPE_EE(errorEngine, double, arg_res);
             const auto arg_res_expected = ::std::arg(cv);
 
             EXPECT_TRUE_EE(errorEngine, arg_res == arg_res_expected, "Wrong result in dpl::arg(dpl::complex<T>()) function #2");
