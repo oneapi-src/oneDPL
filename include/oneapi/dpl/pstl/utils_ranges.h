@@ -344,37 +344,32 @@ struct is_map_view : decltype(test_map_view<_Map>(0))
 {
 };
 
-template <typename _Map>
-struct is_map_iterator : oneapi::dpl::__internal::__is_random_access_iterator<_Map>
-{
-};
-
-template <typename _Map>
-using is_map_functor = ::std::integral_constant<bool, !is_map_iterator<_Map>::value && !is_map_view<_Map>::value>;
-
 //It is kind of pseudo-view for permutation_iterator support.
 template <typename _R, typename _M, typename = void>
 struct permutation_view_simple;
 
 //permutation view: specialization for an index map functor
 template <typename _R, typename _M>
-struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_functor<_M>::value, void>::type>
+struct permutation_view_simple<_R, _M, typename ::std::enable_if<oneapi::dpl::__internal::__is_functor<_M>>::type>
 {
+    using _Size = oneapi::dpl::__internal::__difference_t<_R>;
+
     _R __r;
     _M __map_fn;
+    _Size __size;
 
-    permutation_view_simple(_R __rng, _M __m) : __r(__rng), __map_fn(__m) {}
+    permutation_view_simple(_R __rng, _M __m, _Size __s) : __r(__rng), __map_fn(__m), __size(__s) {}
 
     template <typename Idx>
-    auto operator[](Idx __i) const -> decltype(__r[__map_fn[__i]])
+    auto operator[](Idx __i) const -> decltype(__r[__map_fn(__i)])
     {
-        return __r[__map_fn[__i]];
+        return __r[__map_fn(__i)];
     }
 
     auto
-    size() const -> decltype(__r.size())
+    size() const -> decltype(__size)
     {
-        return __r.size();
+        return __size;
     }
 
     bool
