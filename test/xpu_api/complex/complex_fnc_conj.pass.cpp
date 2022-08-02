@@ -149,7 +149,7 @@ protected:
         T z = TestUtils::Complex::InitConst<T>::kPartReal;
 
         dpl::complex<T> cv_conj = dpl::conj(z);
-        // TODO do not try to check return type on host because it's really implemented tot as described
+        // TODO do not try to check return type on host because it's really implemented not as described
         // at https://en.cppreference.com/w/cpp/numeric/complex/conj on most platforms
         //EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
         //EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
