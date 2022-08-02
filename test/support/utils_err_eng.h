@@ -67,7 +67,12 @@ namespace TestUtils
     {
         void expect_true(bool condition, const char* file, std::int32_t line, const char* msg)
         {
-            expect(true, condition, file, line, msg);
+            std::string str;
+            if (msg)
+                str.append(msg);
+            str += " (on host)";
+
+            expect(true, condition, file, line, str.c_str(), false);
         }
 
         template <typename TExpected, typename TTestedVal>
@@ -184,7 +189,6 @@ namespace TestUtils
             copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), get_type_name(TTestedVal()));
             copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), ", excepted: ");
             copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), get_type_name(TExpected()));
-            copy_string(eiTemp.msg + get_str_len(eiTemp.msg), get_buf_size(eiTemp.msg) - get_str_len(eiTemp.msg), " (in Kernel)");
 
             add_error_info(file, line, eiTemp.msg);
         }
@@ -202,10 +206,12 @@ namespace TestUtils
             if (index == max_errors_count)
                 return;
 
-            copy_string(error_buf_accessor[index].file, get_buf_size(error_buf_accessor[index].file), file);
-            error_buf_accessor[index].line = line;
-            copy_string(error_buf_accessor[index].msg, get_buf_size(error_buf_accessor[index].msg), msg);
-            error_buf_accessor[index].isError = true;
+            auto& ei = error_buf_accessor[index];
+            copy_string(ei.file, get_buf_size(ei.file), file);
+            ei.line = line;
+            copy_string(ei.msg, get_buf_size(ei.msg), msg);
+            copy_string(ei.msg + get_str_len(ei.msg), get_buf_size(ei.msg) - get_str_len(ei.msg), " (in Kernel)");
+            ei.isError = true;
 
             ++index;
         }
