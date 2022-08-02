@@ -18,11 +18,11 @@
 
 #include "utils.h"
 
-#define EXPECT_TRUE_EE(errorEngine, condition, message)                     \
-    errorEngine.expect_true(condition, __FILE__, __LINE__, message);
+#define EXPECT_TRUE_EE(errors, condition, message)                     \
+    errors.expect_true(condition, __FILE__, __LINE__, message);
 
-#define EXPECT_EQ_TYPE_EE(errorEngine, expected_type, test_val)             \
-    errorEngine.template expect_eq_type<expected_type>(test_val, __FILE__, __LINE__);
+#define EXPECT_EQ_TYPE_EE(errors, expected_type, test_val)             \
+    errors.template expect_eq_type<expected_type>(test_val, __FILE__, __LINE__);
 
 namespace TestUtils
 {
@@ -62,8 +62,8 @@ namespace TestUtils
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    /// struct ErrorEngineHost - error engine for host tests
-    struct ErrorEngineHost
+    /// struct ErrorsContainerOnHost - error container for host tests
+    struct ErrorsContainerOnHost
     {
         void expect_true(bool condition, const char* file, std::int32_t line, const char* msg)
         {
@@ -120,9 +120,9 @@ namespace TestUtils
     };
 
     ////////////////////////////////////////////////////////////////////////////
-    /// struct ErrorEngine_HostPart - host part of error engine for kernel tests
+    /// struct ErrorContainer_HostPart - host part of error container for kernel tests
     template <::std::size_t max_errors_count = kMaxKernelErrorsCount>
-    struct ErrorEngine_HostPart
+    struct ErrorContainer_HostPart
     {
         ErrorInfo errors[max_errors_count] = { };
 
@@ -155,14 +155,14 @@ namespace TestUtils
     };
 
     ////////////////////////////////////////////////////////////////////////////
-    /// struct ErrorEngine_KernelPart - kernel part of error engine for kernel tests
+    /// struct ErrorContairer_KernelPart - kernel part of error container for kernel tests
     template <typename TAccessor, ::std::size_t max_errors_count = kMaxKernelErrorsCount>
-    struct ErrorEngine_KernelPart
+    struct ErrorContairer_KernelPart
     {
         TAccessor error_buf_accessor;
         unsigned index = 0;
 
-        ErrorEngine_KernelPart(TAccessor acc)
+        ErrorContairer_KernelPart(TAccessor acc)
             : error_buf_accessor(acc)
         {
         }

@@ -37,13 +37,13 @@
 //          template< class DoubleOrInteger >
 //          constexpr std::complex<double> conj(DoubleOrInteger z);
 //          constexpr std::complex<long double> conj(long double z);
-template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble>
+template <typename TErrorsContainer, typename IsSupportedDouble, typename IsSupportedLongDouble>
 class TestComplexConj
 {
 public:
 
-    TestComplexConj(TErrorEngine& ee)
-        : errorEngine(ee)
+    TestComplexConj(TErrorsContainer& ee)
+        : errors(ee)
     {
     }
 
@@ -98,15 +98,15 @@ protected:
     {
 #if __cplusplus < 202002L
         const dpl::complex<T> cv(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.real());
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.imag());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.real());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.imag());
 
         const dpl::complex<T> cv_conj = dpl::conj(cv);
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
 
-        EXPECT_TRUE_EE(errorEngine, cv.real() == cv_conj.real(), "Wrong effect of conj #1");
-        EXPECT_TRUE_EE(errorEngine, cv.imag() == cv_conj.imag() * -1, "Wrong effect of conj #2");
+        EXPECT_TRUE_EE(errors, cv.real() == cv_conj.real(), "Wrong effect of conj #1");
+        EXPECT_TRUE_EE(errors, cv.imag() == cv_conj.imag() * -1, "Wrong effect of conj #2");
 #endif
     }
 
@@ -115,15 +115,15 @@ protected:
     {
 #if __cplusplus >= 202002L
         const dpl::complex<T> cv(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.real());
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.imag());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.real());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv.imag());
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv_conj = dpl::conj(cv);
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
 
-        EXPECT_TRUE_EE(errorEngine, cv.real() == cv_conj.real(), "Wrong effect of conj #3");
-        EXPECT_TRUE_EE(errorEngine, cv.imag() == cv_conj.imag() * -1, "Wrong effect of conj #4");
+        EXPECT_TRUE_EE(errors, cv.real() == cv_conj.real(), "Wrong effect of conj #3");
+        EXPECT_TRUE_EE(errors, cv.imag() == cv_conj.imag() * -1, "Wrong effect of conj #4");
 #endif
     }
 
@@ -134,11 +134,11 @@ protected:
         T z = TestUtils::Complex::InitConst<T>::kPartReal;
 
         dpl::complex<T> cv_conj = dpl::conj(z);
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
 
-        EXPECT_TRUE_EE(errorEngine, cv_conj.real() == z, "Wrong effect of conj #5");
-        EXPECT_TRUE_EE(errorEngine, cv_conj.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect of conj #6");
+        EXPECT_TRUE_EE(errors, cv_conj.real() == z, "Wrong effect of conj #5");
+        EXPECT_TRUE_EE(errors, cv_conj.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect of conj #6");
 #endif
     }
 
@@ -151,11 +151,11 @@ protected:
         dpl::complex<T> cv_conj = dpl::conj(z);
         // TODO do not try to check return type on host because it's really implemented not as described
         // at https://en.cppreference.com/w/cpp/numeric/complex/conj on most platforms
-        //EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
-        //EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
+        //EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
+        //EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
 
-        EXPECT_TRUE_EE(errorEngine, cv_conj.real() == z, "Wrong effect of conj #5");
-        EXPECT_TRUE_EE(errorEngine, cv_conj.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect of conj #6");
+        EXPECT_TRUE_EE(errors, cv_conj.real() == z, "Wrong effect of conj #5");
+        EXPECT_TRUE_EE(errors, cv_conj.imag() == TestUtils::Complex::InitConst<T>::kZero, "Wrong effect of conj #6");
 #endif
     }
 
@@ -166,17 +166,17 @@ protected:
         T z = TestUtils::Complex::InitConst<T>::kPartReal;
 
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv_conj = dpl::conj(z);
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
-        EXPECT_EQ_TYPE_EE(errorEngine, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.real());
+        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, cv_conj.imag());
 
-        EXPECT_TRUE_EE(errorEngine, cv_conj.real() == z, "Wrong effect of conj #7");
-        EXPECT_TRUE_EE(errorEngine, cv_conj.imag() == 0, "Wrong effect of conj #8");
+        EXPECT_TRUE_EE(errors, cv_conj.real() == z, "Wrong effect of conj #7");
+        EXPECT_TRUE_EE(errors, cv_conj.imag() == 0, "Wrong effect of conj #8");
 #endif
     }
 
 private:
 
-    TErrorEngine& errorEngine;
+    TErrorsContainer& errors;
 };
 
 int

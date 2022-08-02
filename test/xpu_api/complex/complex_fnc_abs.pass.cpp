@@ -23,13 +23,13 @@
 // Function std::conj described https://en.cppreference.com/w/cpp/numeric/complex/abs :
 //      template< class T >
 //      T abs(const complex<T>& z);
-template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble>
+template <typename TErrorsContainer, typename IsSupportedDouble, typename IsSupportedLongDouble>
 class TestComplexAbs
 {
 public:
 
-    TestComplexAbs(TErrorEngine& ee)
-        : errorEngine(ee)
+    TestComplexAbs(TErrorsContainer& ee)
+        : errors(ee)
     {
     }
 
@@ -56,7 +56,7 @@ protected:
         const auto cv = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
         const auto abs_res = dpl::abs(cv);
         const auto abs_res_expected = ::std::abs(cv);
-        EXPECT_TRUE_EE(errorEngine, abs_res == abs_res_expected, "Wrong result in dpl::abs(dpl::complex<T>()) function");
+        EXPECT_TRUE_EE(errors, abs_res == abs_res_expected, "Wrong result in dpl::abs(dpl::complex<T>()) function");
     }
 
     void test_edges()
@@ -67,13 +67,13 @@ protected:
             const auto cv = testcases[i];
             const auto abs_res = dpl::abs(cv);
             const auto abs_res_expected = ::std::abs(cv);
-            EXPECT_TRUE_EE(errorEngine, abs_res == abs_res_expected, "Wrong result in dpl::abs(dpl::complex<T>()) function #1");
+            EXPECT_TRUE_EE(errors, abs_res == abs_res_expected, "Wrong result in dpl::abs(dpl::complex<T>()) function #1");
         }
     }
 
 private:
 
-    TErrorEngine& errorEngine;
+    TErrorsContainer& errors;
 };
 
 int

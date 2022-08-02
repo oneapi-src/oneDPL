@@ -91,17 +91,17 @@ namespace Complex
     /*
      * @return bool - true if no errors occurred, false - otherwise.
      */
-    template <template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
+    template <template <typename TErrorsContainer, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
     bool test_on_host()
     {
-        // Prepare host error engine
-        TestUtils::ErrorEngineHost error_engine_host;
+        // Prepare host error container
+        TestUtils::ErrorsContainerOnHost errors;
 
         // Run test on host
-        TComplexTestName<TestUtils::ErrorEngineHost, ::std::true_type, ::std::true_type> tcc(error_engine_host);
+        TComplexTestName<TestUtils::ErrorsContainerOnHost, ::std::true_type, ::std::true_type> tcc(errors);
         tcc.run_test(::std::true_type{});
 
-        return !error_engine_host.bHaveErrors;
+        return !errors.bHaveErrors;
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -109,15 +109,15 @@ namespace Complex
     /*
      * @return bool - true if no errors occurred, false - otherwise.
      */
-    template <template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
+    template <template <typename TErrorsContainer, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
     bool test_in_kernel(sycl::queue& deviceQueue)
     {
-        TestUtils::ErrorEngine_HostPart error_engine_host_part;
+        TestUtils::ErrorContainer_HostPart error_container_host_part;
 
         const auto& device = deviceQueue.get_device();
 
         {
-            auto sycl_buf_host_errors = error_engine_host_part.get_sycl_buffer();
+            auto sycl_buf_host_errors = error_container_host_part.get_sycl_buffer();
 
             if (device.has(sycl::aspect::fp64))
             {
@@ -125,17 +125,17 @@ namespace Complex
                     [&](cl::sycl::handler& cgh)
                     {
                         auto accessor_to_sycl_buf_host_errors = sycl_buf_host_errors.template get_access<cl::sycl::access::mode::read_write>(cgh);
-                        using ErrorEngine_KernelPart_Impl = ::TestUtils::ErrorEngine_KernelPart<decltype(accessor_to_sycl_buf_host_errors)>;
-                        using TestType = TComplexTestName<ErrorEngine_KernelPart_Impl, ::std::true_type, ::std::false_type>;
+                        using ErrorContainer_KernelPart_Impl = ::TestUtils::ErrorContairer_KernelPart<decltype(accessor_to_sycl_buf_host_errors)>;
+                        using TestType = TComplexTestName<ErrorContainer_KernelPart_Impl, ::std::true_type, ::std::false_type>;
 
                         cgh.single_task<new_kernel_name<TestType, 0>>(
                             [=]()
                             {
-                                // Prepare kernel part of error engine
-                                ErrorEngine_KernelPart_Impl error_engine_kernel_part(accessor_to_sycl_buf_host_errors);
+                                // Prepare kernel part of error container
+                                ErrorContainer_KernelPart_Impl error_container_kernel_part(accessor_to_sycl_buf_host_errors);
 
                                 // Run test in kernel
-                                TestType tcc(error_engine_kernel_part);
+                                TestType tcc(error_container_kernel_part);
                                 tcc.run_test(::std::false_type{});
                             });
                     });
@@ -146,26 +146,26 @@ namespace Complex
                     [&](cl::sycl::handler& cgh)
                     {
                         auto accessor_to_sycl_buf_host_errors = sycl_buf_host_errors.template get_access<cl::sycl::access::mode::read_write>(cgh);
-                        using ErrorEngine_KernelPart_Impl = ::TestUtils::ErrorEngine_KernelPart<decltype(accessor_to_sycl_buf_host_errors)>;
-                        using TestType = TComplexTestName<ErrorEngine_KernelPart_Impl, ::std::false_type, ::std::false_type>;
+                        using ErrorContainer_KernelPart_Impl = ::TestUtils::ErrorContairer_KernelPart<decltype(accessor_to_sycl_buf_host_errors)>;
+                        using TestType = TComplexTestName<ErrorContainer_KernelPart_Impl, ::std::false_type, ::std::false_type>;
 
                         cgh.single_task<new_kernel_name<TestType, 1>>(
                             [=]()
                             {
-                                // Prepare kernel part of error engine
-                                ErrorEngine_KernelPart_Impl error_engine_kernel_part(accessor_to_sycl_buf_host_errors);
+                                // Prepare kernel part of error container
+                                ErrorContainer_KernelPart_Impl error_container_kernel_part(accessor_to_sycl_buf_host_errors);
 
                                 // Run test in kernel
-                                TestType tcc(error_engine_kernel_part);
+                                TestType tcc(error_container_kernel_part);
                                 tcc.run_test(::std::false_type{});
                             });
                     });
             }
         }
 
-        error_engine_host_part.process_errors();
+        error_container_host_part.process_errors();
 
-        return !error_engine_host_part.have_errors();
+        return !error_container_host_part.have_errors();
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
