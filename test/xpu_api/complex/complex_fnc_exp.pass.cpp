@@ -22,13 +22,13 @@
 // 
 //      template< class T >
 //      complex<T> exp(const complex<T>& z);
-template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble>
+template <typename TErrorsContainer, typename IsSupportedDouble, typename IsSupportedLongDouble>
 class TestComplexExp
 {
 public:
 
-    TestComplexExp(TErrorEngine& ee)
-        : errorEngine(ee)
+    TestComplexExp(TErrorsContainer& ee)
+        : errors(ee)
     {
     }
 
@@ -52,12 +52,12 @@ protected:
         const auto cv = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
         const auto exp_res = dpl::exp(cv);
         auto exp_res_expected = ::std::exp(cv);
-        EXPECT_TRUE_EE(errorEngine, exp_res == exp_res_expected, msg);
+        EXPECT_TRUE_EE(errors, exp_res == exp_res_expected, msg);
     }
 
 private:
 
-    TErrorEngine& errorEngine;
+    TErrorsContainer& errors;
 };
 
 int

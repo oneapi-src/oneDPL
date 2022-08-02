@@ -68,13 +68,13 @@
 //              (since C++20)
 //                  constexpr void imag( long double value );
 //
-template <typename TErrorEngine, typename IsSupportedDouble, typename IsSupportedLongDouble>
+template <typename TErrorsContainer, typename IsSupportedDouble, typename IsSupportedLongDouble>
 class TextComplexMethodImag
 {
 public:
 
-    TextComplexMethodImag(TErrorEngine& ee)
-        : errorEngine(ee)
+    TextComplexMethodImag(TErrorsContainer& ee)
+        : errors(ee)
     {
     }
 
@@ -114,7 +114,7 @@ protected:
     {
 #if __cplusplus < 201402L
         const dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_TRUE_EE(errorEngine, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #1");
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #1");
 #endif
     }
 
@@ -123,7 +123,7 @@ protected:
     {
 #if __cplusplus >= 201402L
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_TRUE_EE(errorEngine, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #2");
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #2");
 #endif
     }
 
@@ -133,7 +133,7 @@ protected:
 #if __cplusplus < 202002L
         dpl::complex<T> complex_val;
         complex_val.imag(TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_TRUE_EE(errorEngine, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #3");
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #3");
 #endif
     }
 
@@ -143,13 +143,13 @@ protected:
 #if __cplusplus >= 202002L
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val;
         complex_val.imag(TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_TRUE_EE(errorEngine, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #4");
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #4");
 #endif
     }
 
 private:
 
-    TErrorEngine& errorEngine;
+    TErrorsContainer& errors;
 };
 
 int
