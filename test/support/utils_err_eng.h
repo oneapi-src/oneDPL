@@ -163,7 +163,7 @@ namespace TestUtils
         }
 
         template <typename T>
-        std::size_t get_buf_size(const T& buf)
+        std::size_t get_buf_size(const T& buf) const
         {
             return sizeof(buf) / sizeof(buf[0]);
         }
@@ -220,7 +220,7 @@ namespace TestUtils
             return len;
         }
 
-        void copy_string(char* dest, std::size_t dest_size, const char* src)
+        void copy_string(char* dest, std::size_t dest_size, const char* src) const
         {
             assert(dest != nullptr);
 
