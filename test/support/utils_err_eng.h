@@ -69,10 +69,10 @@ namespace TestUtils
         {
         }
 
-        cl::sycl::buffer<ErrorInfo, 1> get_sycl_buffer()
+        static cl::sycl::buffer<ErrorInfo, 1> get_sycl_buffer(ErrorContainer_HostPart& host_part)
         {
-            const cl::sycl::range<1> numOfItems{errors.size()};
-            return cl::sycl::buffer<ErrorInfo, 1>(errors.data(), numOfItems);
+            const cl::sycl::range<1> numOfItems{host_part.errors.size()};
+            return cl::sycl::buffer<ErrorInfo, 1>(host_part.errors.data(), numOfItems);
         }
 
         bool have_errors() const

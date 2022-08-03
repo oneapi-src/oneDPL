@@ -119,7 +119,7 @@ namespace Complex
         const auto& device = deviceQueue.get_device();
 
         {
-            auto sycl_buf_host_errors = error_container_host_part.get_sycl_buffer();
+            auto sycl_buf_host_errors = TestUtils::ErrorContainer_HostPart::get_sycl_buffer(error_container_host_part);
 
             if (device.has(sycl::aspect::fp64))
             {
