@@ -132,10 +132,7 @@ private:
 int
 main()
 {
-    bool bSuccess = true;
-
-    if (!TestUtils::Complex::test_on_host<TestComplexFncImag>())
-        bSuccess = false;
+    bool bSuccess = TestUtils::Complex::test_on_host<TestComplexFncImag>();
 
 #if TEST_DPCPP_BACKEND_PRESENT
     try

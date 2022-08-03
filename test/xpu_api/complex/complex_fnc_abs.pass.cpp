@@ -79,10 +79,7 @@ private:
 int
 main()
 {
-    bool bSuccess = true;
-
-    if (!TestUtils::Complex::test_on_host<TestComplexAbs>())
-        bSuccess = false;
+    bool bSuccess = TestUtils::Complex::test_on_host<TestComplexAbs>();
 
 #if TEST_DPCPP_BACKEND_PRESENT
     try
