@@ -134,7 +134,6 @@ protected:
         T z = TestUtils::Complex::InitConst<T>::kPartReal;
 
         dpl::complex<T> cv_conj = dpl::conj(z);
-        // TODO ?
         static_assert(::std::is_same<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, decltype(cv_conj.real())>::value);
         static_assert(::std::is_same<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, decltype(cv_conj.imag())>::value);
 
