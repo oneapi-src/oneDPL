@@ -38,7 +38,7 @@ public:
         test_exp<float>("Wrong result in dpl::exp(dpl::complex<T>()) function (float)");
 
         // Sometimes device, on which SYCL::queue work, may not support double type
-        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble>(), [&](){ test_exp<double>("Wrong result in dpl::exp(dpl::complex<T>()) function (double)"); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&](){ test_exp<double>("Wrong result in dpl::exp(dpl::complex<T>()) function (double)"); });
 
         // Type "long double" not specified in https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#table.types.fundamental
         oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&](){ test_exp<long double>("Wrong result in dpl::exp(dpl::complex<T>()) function (long double)"); });
@@ -70,7 +70,7 @@ main()
     {
         sycl::queue deviceQueue{ TestUtils::default_selector };
 
-        if (!TestUtils::Complex::test_in_kernel<TestComplexExp>(deviceQueue))
+        if (!TestUtils::Complex::test_in_kernel<TestComplexExp>(deviceQueue, TestUtils::kMaxKernelErrorsCount))
             bSuccess = false;
     }
     catch (const std::exception& exc)

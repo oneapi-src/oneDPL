@@ -310,7 +310,7 @@ main()
     {
         sycl::queue deviceQueue{ TestUtils::default_selector };
 
-        if (!TestUtils::Complex::test_in_kernel<TextComplexMethodConstructor>(deviceQueue))
+        if (!TestUtils::Complex::test_in_kernel<TextComplexMethodConstructor>(deviceQueue, TestUtils::kMaxKernelErrorsCount))
             bSuccess = false;
     }
     catch (const std::exception& exc)

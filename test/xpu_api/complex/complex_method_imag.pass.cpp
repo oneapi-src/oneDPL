@@ -162,7 +162,7 @@ main()
     {
         sycl::queue deviceQueue{ TestUtils::default_selector };
 
-        if (!TestUtils::Complex::test_in_kernel<TextComplexMethodImag>(deviceQueue))
+        if (!TestUtils::Complex::test_in_kernel<TextComplexMethodImag>(deviceQueue, TestUtils::kMaxKernelErrorsCount))
             bSuccess = false;
     }
     catch (const std::exception& exc)

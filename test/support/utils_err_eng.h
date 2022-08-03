@@ -16,6 +16,8 @@
 #ifndef __UTILS_ERR_ENG_H
 #define __UTILS_ERR_ENG_H
 
+#include <vector>
+
 #include "utils.h"
 
 #define EXPECT_TRUE_EE(errors, condition, message)                     \
@@ -58,15 +60,19 @@ namespace TestUtils
 
     ////////////////////////////////////////////////////////////////////////////
     /// struct ErrorContainer_HostPart - host part of error container for kernel tests
-    template <::std::size_t max_errors_count = kMaxKernelErrorsCount>
     struct ErrorContainer_HostPart
     {
-        ErrorInfo errors[max_errors_count] = { };
+        std::vector<ErrorInfo> errors;
+
+        ErrorContainer_HostPart(::std::size_t _max_errors_count)
+            : errors(_max_errors_count)
+        {
+        }
 
         cl::sycl::buffer<ErrorInfo, 1> get_sycl_buffer()
         {
-            const cl::sycl::range<1> numOfItems{ max_errors_count };
-            return cl::sycl::buffer<ErrorInfo, 1>(&errors[0], numOfItems);
+            const cl::sycl::range<1> numOfItems{errors.size()};
+            return cl::sycl::buffer<ErrorInfo, 1>(errors.data(), numOfItems);
         }
 
         bool have_errors() const
@@ -93,14 +99,15 @@ namespace TestUtils
 
     ////////////////////////////////////////////////////////////////////////////
     /// struct ErrorContairer_KernelPart - kernel part of error container for kernel tests
-    template <typename TAccessor, ::std::size_t max_errors_count = kMaxKernelErrorsCount>
+    template <typename TAccessor>
     struct ErrorContairer_KernelPart
     {
+        const ::std::size_t max_errors_count = 0;
         TAccessor error_buf_accessor;
         unsigned index = 0;
 
-        ErrorContairer_KernelPart(TAccessor acc)
-            : error_buf_accessor(acc)
+        ErrorContairer_KernelPart(TAccessor acc, ::std::size_t _max_errors_count)
+            : error_buf_accessor(acc), max_errors_count(_max_errors_count)
         {
         }
 

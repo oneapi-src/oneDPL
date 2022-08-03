@@ -137,7 +137,7 @@ main()
     {
         sycl::queue deviceQueue{ TestUtils::default_selector };
 
-        if (!TestUtils::Complex::test_in_kernel<TestComplexFncReal>(deviceQueue))
+        if (!TestUtils::Complex::test_in_kernel<TestComplexFncReal>(deviceQueue, TestUtils::kMaxKernelErrorsCount))
             bSuccess = false;
     }
     catch (const std::exception& exc)

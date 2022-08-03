@@ -112,9 +112,9 @@ namespace Complex
      * @return bool - true if no errors occurred, false - otherwise.
      */
     template <template <typename TErrorsContainer, typename IsSupportedDouble, typename IsSupportedLongDouble> class TComplexTestName>
-    bool test_in_kernel(sycl::queue& deviceQueue)
+    bool test_in_kernel(sycl::queue& deviceQueue, ::std::size_t max_errors_count)
     {
-        TestUtils::ErrorContainer_HostPart error_container_host_part;
+        TestUtils::ErrorContainer_HostPart error_container_host_part(max_errors_count);
 
         const auto& device = deviceQueue.get_device();
 
@@ -134,7 +134,7 @@ namespace Complex
                             [=]()
                             {
                                 // Prepare kernel part of error container
-                                ErrorContainer_KernelPart_Impl error_container_kernel_part(accessor_to_sycl_buf_host_errors);
+                                ErrorContainer_KernelPart_Impl error_container_kernel_part(accessor_to_sycl_buf_host_errors, max_errors_count);
 
                                 // Run test in kernel
                                 TestType tcc(error_container_kernel_part);
@@ -155,7 +155,7 @@ namespace Complex
                             [=]()
                             {
                                 // Prepare kernel part of error container
-                                ErrorContainer_KernelPart_Impl error_container_kernel_part(accessor_to_sycl_buf_host_errors);
+                                ErrorContainer_KernelPart_Impl error_container_kernel_part(accessor_to_sycl_buf_host_errors, max_errors_count);
 
                                 // Run test in kernel
                                 TestType tcc(error_container_kernel_part);
