@@ -154,7 +154,7 @@ main()
             errorMsg += exc.what();
         }
 
-        EXPECT_TRUE(false, errorMsg.c_str());
+        TestUtils::issue_error_message(errorMsg);
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

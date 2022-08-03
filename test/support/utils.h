@@ -80,13 +80,18 @@ exit_on_error()
 // Issue error message from outstr, adding a newline.
 // Real purpose of this routine is to have a place to hang a breakpoint.
 inline void
-issue_error_message(::std::stringstream& outstr, bool exit_if_error = true)
+issue_error_message(const ::std::string& str, bool exit_if_error = true)
 {
-    outstr << ::std::endl;
-    ::std::cerr << outstr.str();
+    ::std::cerr << str << ::std::endl;
 
     if (exit_if_error)
         exit_on_error();
+}
+
+inline void
+issue_error_message(::std::stringstream& outstr, bool exit_if_error = true)
+{
+    issue_error_message(outstr.str(), exit_if_error);
 }
 
 inline void
