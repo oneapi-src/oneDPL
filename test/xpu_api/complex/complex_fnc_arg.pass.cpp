@@ -87,8 +87,8 @@ protected:
     void test_arg()
     {
         const auto cv = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        const auto arg_res = dpl::arg(cv);
-        EXPECT_EQ_TYPE_EE(errors, T, arg_res);
+        auto arg_res = dpl::arg(cv);
+        static_assert(::std::is_same<T, decltype(arg_res)>::value);
         auto arg_res_expected = ::std::arg(cv);
 
         EXPECT_TRUE_EE(errors, arg_res == arg_res_expected, "Wrong result in dpl::arg(dpl::complex<T>()) function");
@@ -97,8 +97,8 @@ protected:
     template <typename T>
     void test_arg_for_non_complex_arg(T val)
     {
-        const auto arg_res = dpl::arg(val);
-        EXPECT_EQ_TYPE_EE(errors, typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, arg_res);
+        auto arg_res = dpl::arg(val);
+        static_assert(::std::is_same<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, decltype(arg_res)>::value);
 
         const auto arg_res_expected = ::std::arg(val);
         EXPECT_TRUE_EE(errors, arg_res == arg_res_expected, "Wrong result in dpl::arg(dpl::complex<T>()) function #1");
@@ -110,8 +110,8 @@ protected:
         for (unsigned i = 0; i < N; ++i)
         {
             const auto cv = testcases[i];
-            const double arg_res = dpl::arg(cv);
-            EXPECT_EQ_TYPE_EE(errors, double, arg_res);
+            auto arg_res = dpl::arg(cv);
+            static_assert(::std::is_same<double, decltype(arg_res)>::value);
             const auto arg_res_expected = ::std::arg(cv);
 
             EXPECT_TRUE_EE(errors, arg_res == arg_res_expected, "Wrong result in dpl::arg(dpl::complex<T>()) function #2");
