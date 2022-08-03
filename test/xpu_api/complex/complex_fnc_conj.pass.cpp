@@ -53,20 +53,20 @@ public:
         test_form_1<float>();
 
         // Sometimes device, on which SYCL::queue work, may not support double type
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_form_1<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_form_1<double>(); });
 
         // Type "long double" not specified in https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#table.types.fundamental
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&]() { test_form_1<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_form_1<long double>(); });
 
         test_form_2<float>(runOnHost);
 
         // Sometimes device, on which SYCL::queue work, may not support double type
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_form_2<double>(runOnHost); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_form_2<double>(runOnHost); });
 
         run_test_integer(runOnHost);
 
         // Type "long double" not specified in https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#table.types.fundamental
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&]() { test_form_2<long double>(runOnHost); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_form_2<long double>(runOnHost); });
     }
 
 protected:

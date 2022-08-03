@@ -97,15 +97,15 @@ public:
     void run_test(RunOnHost /*runOnHost*/)
     {
         test_primary<float>();
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_primary<double>(); });
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&]() { test_primary<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_primary<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_primary<long double>(); });
 
         test_specialization<float>();
 
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_specialization<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_specialization<double>(); });
 
         // Type "long double" not specified in https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#table.types.fundamental
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&]() { test_specialization<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_specialization<long double>(); });
     }
 
 protected:

@@ -52,8 +52,8 @@ public:
     void run_test(RunOnHost /*runOnHost*/)
     {
         test_fnc_real<float>();
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_fnc_real<double>(); });
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&]() { test_fnc_real<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_fnc_real<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_fnc_real<long double>(); });
     }
 
 protected:

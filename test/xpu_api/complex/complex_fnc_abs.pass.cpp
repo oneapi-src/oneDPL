@@ -39,13 +39,13 @@ public:
         test_abs<float>();
 
         // Sometimes device, on which SYCL::queue work, may not support double type
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&](){ test_abs<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&](){ test_abs<double>(); });
 
         // Type "long double" not specified in https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#table.types.fundamental
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&](){ test_abs<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_abs<long double>(); });
 
         // Test cases from libxcxx checks
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_edges(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_edges(); });
     }
 
 protected:

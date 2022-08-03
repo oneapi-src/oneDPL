@@ -82,8 +82,8 @@ public:
     void run_test(RunOnHost /*runOnHost*/)
     {
         test_method_real<float>();
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_method_real<double>(); });
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&]() { test_method_real<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_method_real<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_method_real<long double>(); });
     }
 
 protected:

@@ -82,8 +82,8 @@ public:
     void run_test(RunOnHost /*runOnHost*/)
     {
         test_method_imag<float>();
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_method_imag<double>(); });
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&]() { test_method_imag<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_method_imag<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_method_imag<long double>(); });
     }
 
 protected:

@@ -27,6 +27,8 @@
 #    include <CL/sycl.hpp>
 #endif
 
+#include <oneapi/dpl/pstl/utils.h>
+
 // C++ compiler versions:
 //      C++11 : __cplusplus is 201103L
 //      C++14 : __cplusplus is 201402L

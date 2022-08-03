@@ -46,15 +46,15 @@ public:
         test_arg<float>();
 
         // Sometimes device, on which SYCL::queue work, may not support double type
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&](){ test_arg<double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_arg<double>(); });
 
         // Type "long double" not specified in https://www.khronos.org/registry/SYCL/specs/sycl-2020/html/sycl-2020.html#table.types.fundamental
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()([&](){ test_arg<long double>(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(), [&]() { test_arg<long double>(); });
 
-        TestUtils::invoke_test_if<IsSupportedDouble>()([&]() { test_arg_edges(); });
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(), [&]() { test_arg_edges(); });
 
         // long double arg(long double z);
-        TestUtils::invoke_test_if<IsSupportedLongDouble>()(
+        oneapi::dpl::__internal::__invoke_if(IsSupportedLongDouble(),
             [&]()
             {
                 long double ldVal = 1.2;
@@ -63,7 +63,7 @@ public:
 
         // template< class DoubleOrInteger >
         // double arg(DoubleOrInteger z);
-        TestUtils::invoke_test_if<IsSupportedDouble>()(
+        oneapi::dpl::__internal::__invoke_if(IsSupportedDouble(),
             [&]()
             {
                 double dVal = 1.2;                      // DoubleOrInteger, result type checked
