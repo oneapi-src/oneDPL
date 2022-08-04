@@ -144,7 +144,7 @@ class transform_output_ref_wrapper
 {
   private:
     T& __my_reference_;
-    const _UnaryFunc __my_unary_func_;
+    _UnaryFunc __my_unary_func_;
 
   public:
     transform_output_ref_wrapper(T& __reference, _UnaryFunc __unary_func)
@@ -566,7 +566,7 @@ class transform_output_iterator
 {
   private:
     _Iter __my_it_;
-    const _UnaryFunc __my_unary_func_;
+    _UnaryFunc __my_unary_func_;
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
@@ -584,6 +584,7 @@ class transform_output_iterator
     operator=(const transform_output_iterator& __input)
     {
         __my_it_ = __input.__my_it_;
+        __my_unary_func_ = __input.__my_unary_func_;
         return *this;
     }
     reference operator*() const { return reference{*__my_it_, __my_unary_func_}; }
