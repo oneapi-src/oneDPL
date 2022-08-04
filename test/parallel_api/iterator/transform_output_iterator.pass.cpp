@@ -47,38 +47,28 @@ DEFINE_TEST(test_copy)
 
 void test_simple_copy(size_t buffer_size)
 {
-    // 1. create buffers
-    using TestBaseData = test_base_data_buffer<int>;
-    TestBaseData test_base_data({ { buffer_size, 0 },
-                                  { buffer_size, 0 } });
+    // 1. create buffers - usm to test copying to transform output iterator
+    sycl::queue q{};
+
+    using TestBaseData = test_base_data_usm<sycl::usm::alloc::shared, int>;
+    TestBaseData test_base_data(q, {{ buffer_size, 0 }, 
+                                    { buffer_size, 0 }});
 
     // 2. create iterators over source buffer 
     auto sycl_source_begin = test_base_data.get_start_from(UDTKind::eKeys);
+    auto sycl_result_begin = test_base_data.get_start_from(UDTKind::eVals);
 
     // 3. run algorithms
     auto transformation = [](int item) { return item + 1; };
 
     int identity = 0;
-    {
-        auto& sycl_src_buf = test_base_data.get_buffer(UDTKind::eKeys);
-        auto host_source_acc = sycl_src_buf.get_access<sycl::access::mode::write>();
-        auto host_source_begin = host_source_acc.get_pointer();
-
-        ::std::fill_n(host_source_begin, buffer_size, identity);
-    }
-    auto& sycl_result_buf = test_base_data.get_buffer(UDTKind::eVals);
-
-    decltype(oneapi::dpl::make_transform_output_iterator<int*, decltype(transformation)>) tr_host_result_begin;
-    { 
-        auto host_result_acc = sycl_result_buf.get_access<sycl::access::mode::write>();
-        auto host_result_begin = host_result_acc.get_pointer();
-        tr_host_result_begin = oneapi::dpl::make_transform_output_iterator(host_result_begin, transformation); 
-    }
+    ::std::fill_n(sycl_source_begin, buffer_size, identity);
+    auto tr_host_result_begin = oneapi::dpl::make_transform_output_iterator(sycl_result_begin, transformation); 
 
     ::std::vector<int> expected_res(buffer_size, identity + 1);
 
     test_copy<int> test(test_base_data);
-    TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, 
+    TestUtils::invoke_on_all_hetero_policies<1>()(test, sycl_source_begin, sycl_source_begin + buffer_size, 
         tr_host_result_begin, buffer_size, expected_res.begin());
 }
 
