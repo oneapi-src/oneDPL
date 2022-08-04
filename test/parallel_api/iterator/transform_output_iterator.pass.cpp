@@ -31,8 +31,8 @@ DEFINE_TEST(test_copy)
 {
     DEFINE_TEST_CONSTRUCTOR(test_copy)
 
-    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Size, typename TExpectedValue>
-    void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Size n, TExpectedValue expected_value)
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Size, typename Iterator3>
+    void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Size n, Iterator3 expected_values)
     {
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
@@ -40,10 +40,8 @@ DEFINE_TEST(test_copy)
 
         host_vals.retrieve_data();
         auto res_begin = host_vals.get();
-        for(int i = 0; i != n; ++i) {
-            EXPECT_EQ(expected_value, *res_begin, "Wrong result from copy with transform_output_iterator");
-            ++res_begin;
-        }
+        
+        EXPECT_EQ_N(expected_values, res_begin, n, "Wrong result from copy with transform_output_iterator");
     }
 }; // struct test_copy
 
@@ -61,18 +59,27 @@ void test_simple_copy(size_t buffer_size)
     auto transformation = [](int item) { return item + 1; };
 
     int identity = 0;
-    auto& sycl_src_buf = test_base_data.get_buffer(UDTKind::eKeys);
-    auto host_source_begin = sycl_src_buf.get_access<sycl::access::mode::write>().get_pointer();
+    {
+        auto& sycl_src_buf = test_base_data.get_buffer(UDTKind::eKeys);
+        auto host_source_acc = sycl_src_buf.get_access<sycl::access::mode::write>();
+        auto host_source_begin = host_source_acc.get_pointer();
 
-    ::std::fill_n(host_source_begin, buffer_size, identity);
-    
+        ::std::fill_n(host_source_begin, buffer_size, identity);
+    }
     auto& sycl_result_buf = test_base_data.get_buffer(UDTKind::eVals);
-    auto host_result_begin = sycl_result_buf.get_access<sycl::access::mode::write>().get_pointer();
-    auto tr_host_result_begin = oneapi::dpl::make_transform_output_iterator(host_result_begin, transformation);
+
+    decltype(oneapi::dpl::make_transform_output_iterator<int*, decltype(transformation)>) tr_host_result_begin;
+    { 
+        auto host_result_acc = sycl_result_buf.get_access<sycl::access::mode::write>();
+        auto host_result_begin = host_result_acc.get_pointer();
+        tr_host_result_begin = oneapi::dpl::make_transform_output_iterator(host_result_begin, transformation); 
+    }
+
+    ::std::vector<int> expected_res(buffer_size, identity + 1);
 
     test_copy<int> test(test_base_data);
     TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, 
-        tr_host_result_begin, buffer_size, identity + 1);
+        tr_host_result_begin, buffer_size, expected_res.begin());
 }
 
 void test_multi_transform_copy(size_t buffer_size)
@@ -86,7 +93,8 @@ void test_multi_transform_copy(size_t buffer_size)
     sycl::buffer<int>& source_buf = test_base_data.get_buffer(UDTKind::eKeys);
     sycl::buffer<int>& result_buf = test_base_data.get_buffer(UDTKind::eVals);
 
-    auto host_source_begin = source_buf.template get_access<sycl::access::mode::write>().get_pointer();
+    auto host_source_acc = source_buf.template get_access<sycl::access::mode::write>();
+    auto host_source_begin = host_source_acc.get_pointer();
     auto sycl_result_begin = oneapi::dpl::begin(result_buf);
 
     // 3. Run the algorithm
@@ -104,7 +112,9 @@ void test_multi_transform_copy(size_t buffer_size)
     ::std::fill_n(tr3_host_source_begin, buffer_size, identity);
     test_copy<int> test(test_base_data);
 
-    TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_host_source_begin, tr3_host_source_end, sycl_result_begin, buffer_size, identity + 3);
+    ::std::vector<int> expected_res(buffer_size, identity + 3);
+    
+    TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_host_source_begin, tr3_host_source_end, sycl_result_begin, buffer_size, expected_res.begin());
 }
 
 void test_fill_transform(size_t buffer_size)
@@ -121,17 +131,20 @@ void test_fill_transform(size_t buffer_size)
     auto transformation = [](int item) { return item + 1; };
 
     int identity = 0;
-    auto& sycl_src_buf = test_base_data.get_buffer(UDTKind::eKeys);
-    auto host_source_begin = sycl_src_buf.get_access<sycl::access::mode::write>().get_pointer();
-    auto tr_host_source_begin = oneapi::dpl::make_transform_output_iterator(host_source_begin, transformation);
-
-    ::std::fill_n(tr_host_source_begin, buffer_size, identity);
-    
+    {
+        auto& sycl_src_buf = test_base_data.get_buffer(UDTKind::eKeys);
+        auto host_source_acc = sycl_src_buf.get_access<sycl::access::mode::write>();
+        auto host_source_begin = host_source_acc.get_pointer();
+        auto tr_host_source_begin = oneapi::dpl::make_transform_output_iterator(host_source_begin, transformation);
+        ::std::fill_n(tr_host_source_begin, buffer_size, identity);
+    }
     auto& sycl_result_buf = test_base_data.get_buffer(UDTKind::eVals);
     auto sycl_result_begin = oneapi::dpl::begin(sycl_result_buf);
 
+    ::std::vector<int> expected_res(buffer_size, identity + 1);
+
     test_copy<int> test(test_base_data);
-    TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, sycl_result_begin, buffer_size, identity + 1);
+    TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, sycl_result_begin, buffer_size, expected_res.begin());
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
