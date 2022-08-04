@@ -28,6 +28,7 @@ using ::std::arg;
 using ::std::complex;
 using ::std::conj;
 using ::std::exp;
+using ::std::imag;
 } // namespace dpl
 } // namespace oneapi
 
