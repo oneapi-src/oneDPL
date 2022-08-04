@@ -26,6 +26,7 @@ namespace dpl
 using ::std::abs;
 using ::std::arg;
 using ::std::complex;
+using ::std::conj;
 } // namespace dpl
 } // namespace oneapi
 
