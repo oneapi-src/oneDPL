@@ -301,6 +301,7 @@ class zip_iterator
 
     zip_iterator() : __my_it_() {}
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
+    explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
     zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
     zip_iterator&
     operator=(const zip_iterator& __input)
@@ -424,6 +425,13 @@ zip_iterator<_Tp...>
 make_zip_iterator(_Tp... __args)
 {
     return zip_iterator<_Tp...>(__args...);
+}
+
+template <typename... _Tp>
+zip_iterator<_Tp...>
+make_zip_iterator(std::tuple<_Tp...> __arg)
+{
+    return zip_iterator<_Tp...>(__arg);
 }
 
 template <typename _Iter, typename _UnaryFunc>
@@ -725,7 +733,7 @@ class permutation_iterator
     IndexMap
     map() const
     {
-        return my_index_map;
+        return my_index_map + my_index;
     }
 
     reference operator*() const { return my_source_it[my_index_map[my_index]]; }
@@ -769,7 +777,7 @@ class permutation_iterator
     }
 
     permutation_iterator
-    operator-(difference_type backward)
+    operator-(difference_type backward) const
     {
         return permutation_iterator(my_source_it, my_index_map, my_index - backward);
     }

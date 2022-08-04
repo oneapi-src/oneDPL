@@ -219,6 +219,38 @@ test_with_usm()
     ASSERT_EQUAL(val_res_head_on_host[0], T(1));
 }
 
+void
+test_with_vector()
+{
+    auto policy = oneapi::dpl::execution::dpcpp_default;
+
+    sycl::usm_allocator<int, sycl::usm::alloc::shared> alloc(policy.queue());
+
+    for (int key_val = -1; key_val < 2; ++key_val)
+    {
+        // Check on interval from 0 till 4096 * 3.5 (+1024)
+        for (int destLength = 0; destLength <= 14336; destLength += 100)
+        {
+            std::vector<int, decltype(alloc)> keys(destLength, key_val, alloc);
+            std::vector<int, decltype(alloc)> values(destLength, 1, alloc);
+            std::vector<int, decltype(alloc)> output_keys(destLength, alloc);
+            std::vector<int, decltype(alloc)> output_values(destLength, alloc);
+
+            auto new_end =
+                oneapi::dpl::reduce_by_segment(policy, keys.begin(), keys.end(), values.begin(), output_keys.begin(),
+                                               output_values.begin(), std::equal_to<int>(), std::plus<int>());
+
+            const size_t size = new_end.first - output_keys.begin();
+            EXPECT_TRUE((destLength == 0 && size == 0) || size == 1, "reduce_by_segment: wrong result");
+
+            for (size_t i = 0; i < size; i++)
+            {
+                EXPECT_EQ(key_val, output_keys[i], "reduce_by_segment: wrong key");
+                EXPECT_EQ(destLength, output_values[i], "reduce_by_segment: wrong value");
+            }
+        }
+    }
+}
 #endif
 
 template <typename T>
@@ -256,6 +288,8 @@ int main() {
     // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device, class KernelName5, std::uint64_t>();
     test_with_usm<sycl::usm::alloc::device, class KernelName6, std::complex<float>>();
+
+    test_with_vector();
 #endif
     test_on_host<int>();
     test_on_host<std::complex<float>>();

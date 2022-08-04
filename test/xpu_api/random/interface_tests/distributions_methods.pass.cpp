@@ -278,8 +278,7 @@ test_vec(sycl::queue& queue)
         catch (sycl::exception const& e)
         {
             std::cout << "\t\tSYCL exception during generation\n"
-                      << e.what() << std::endl
-                      << "OpenCL status: " << e.get_cl_code() << std::endl;
+                      << e.what() << std::endl;
             return 1;
         }
 
@@ -328,16 +327,15 @@ test(sycl::queue& queue)
                     acc[offset * 2 + 1] = res1;
                 });
             });
+            queue.wait_and_throw();
         }
         catch (sycl::exception const& e)
         {
             std::cout << "\t\tSYCL exception during generation\n"
-                      << e.what() << std::endl
-                      << "OpenCL status: " << e.get_cl_code() << std::endl;
+                      << e.what() << std::endl;
             return 1;
         }
 
-        queue.wait_and_throw();
         Distr distr;
         sum += check_params(distr);
     }

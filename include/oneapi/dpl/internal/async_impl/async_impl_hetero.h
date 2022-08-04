@@ -230,7 +230,7 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
                               _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op});
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
     return __res.__make_future(__result + __n);
 }
 

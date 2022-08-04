@@ -367,45 +367,55 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
 
 // [partial.sort]
-
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
-partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
-             _RandomAccessIterator __last, _Compare __comp);
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
+// Otherwise, we have compile errors in clang < 13.0
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
              _RandomAccessIterator __last);
 
-// [partial.sort.copy]
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
+             _RandomAccessIterator __last, _Compare __comp);
 
-template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
+// [partial.sort.copy]
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
+// Otherwise, we have compile errors in clang < 13.0
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                   _RandomAccessIterator __d_first, _RandomAccessIterator __d_last);
 
+template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                  _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
+
 // [is.sorted]
-template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
-is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
+// Otherwise, we have compile errors in clang < 13.0
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
-is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
+
+template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
+is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
 // [alg.nth.element]
 
@@ -507,21 +517,25 @@ set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _ForwardIterator __result);
 
 // [is.heap]
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
+// The order of these functions should be equal to the order
+// described at https://gcc.gnu.org/onlinedocs/gcc-4.6.2/libstdc++/api/a01200.html
+// Otherwise, we have compile errors in clang < 13.0
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last);
+
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
+is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp);
 
 // [alg.min.max]
 
