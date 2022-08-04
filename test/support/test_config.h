@@ -55,6 +55,9 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 
+// May be defined as constexpr later
+#define COMPLEX_TEST_CONSTEXPR
+
 #define _PSTL_SYCL_TEST_USM 1
 
 // Enable test when the DPC++ backend is available
