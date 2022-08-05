@@ -48,7 +48,7 @@ wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _I
 
     sycl::group_barrier(__item.get_group());
 
-    for (int32_t __i = 1; __i < __wgroup_size; __i += __i)
+    for (::std::size_t __i = 1; __i < __wgroup_size; __i += __i)
     {
         if (__delta_local_id >= __i)
             __accumulator = __binary_op(__local_acc[__first + __local_id - __i], __accumulator);
@@ -82,7 +82,7 @@ struct sycl_scan_by_segment_impl
         using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
         using __flag_type = bool;
 
-        const int __n = __keys.size();
+        const auto __n = __keys.size();
 
         constexpr int __vals_per_item = 2; // Assigning 2 elements per work item resulted in best performance on gpu.
 
@@ -92,7 +92,7 @@ struct sycl_scan_by_segment_impl
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(
             ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + sizeof(__val_type), __wgroup_size);
 
-        int32_t __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
+        auto __n_groups = 1 + ::std::ceil(__n / (__wgroup_size * __vals_per_item));
 
         // intermediate scan values stored by each work item
         auto __partials =
@@ -129,14 +129,14 @@ struct sycl_scan_by_segment_impl
                     // 1a. Perform a serial scan within the work item over assigned elements. Store partial
                     // reductions in work item memory, and write the accumulated value and number of counted
                     // segments into work group memory.
-                    int32_t __start = __global_id * __vals_per_item;
-                    int32_t __end = sycl::minimum{}(__start + __vals_per_item, __n);
+                    auto __start = __global_id * __vals_per_item;
+                    auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
 
                     if (__global_id == 0 && __local_id == 0)
                         __accumulator = {};
 
                     // Flag indicating if a new segment exists in the work item's search space
-                    int __max_end = 0;
+                    ::std::size_t __max_end = 0;
 
                     bool __first = true;
 
@@ -145,7 +145,7 @@ struct sycl_scan_by_segment_impl
                     if (__start < __n && __local_id != 0 && __keys[__start] != __keys[__start - 1])
                         __max_end = __local_id;
 
-                    for (int32_t __i = __start; __i < __end; ++__i)
+                    for (auto __i = __start; __i < __end; ++__i)
                     {
                         if (__first)
                         {
@@ -200,7 +200,7 @@ struct sycl_scan_by_segment_impl
                         else
                             __partials_acc[__group_id] = __accumulator;
 
-                        bool __seg_present = static_cast<bool>(__closest_seg_id);
+                        bool __seg_present = __closest_seg_id != 0;
                         __seg_ends_acc[__group_id] = __seg_present;
                     }
                 });
@@ -220,15 +220,15 @@ struct sycl_scan_by_segment_impl
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                         auto __group = __item.get_group();
                         auto __group_id = __group.get_group_id(0);
-                        auto __global_id = __item.get_global_id();
+                        ::std::size_t __global_id = __item.get_global_id();
                         auto __local_id = __item.get_local_id();
 
                         int __wg_agg_idx = __group_id - 1;
                         __val_type __agg_collector{};
                         bool __first = true;
 
-                        int __start = __global_id * __vals_per_item;
-                        int __end = sycl::minimum{}(__start + __vals_per_item, __n);
+                        auto __start = __global_id * __vals_per_item;
+                        auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
 
                         // 2a.Check to see if an aggregate exists and compute 
                         // that value in the first work item.
@@ -278,7 +278,7 @@ struct sycl_scan_by_segment_impl
                             }
                         }
 
-                        ::std::size_t __wg_min_seg_end =
+                        auto __wg_min_seg_end =
                             sycl::reduce_over_group(__group, __local_min_key_idx, sycl::minimum<>());
 
                         // the first group will never have an aggregate to apply
@@ -286,7 +286,7 @@ struct sycl_scan_by_segment_impl
                             return;
                         
                         // apply work group aggregates
-                        for (int32_t __i = __start; __i < sycl::minimum{}(__wg_min_seg_end + 1, __end); ++__i)
+                        for (auto __i = __start; __i < sycl::minimum{}(__wg_min_seg_end + 1, __end); ++__i)
                             __out_values[__i] = __binary_op(__agg_collector, __out_values[__i]);
                     });
             })
@@ -298,7 +298,7 @@ struct sycl_scan_by_segment_impl
     void
     sycl_exclusive_scan_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
                                    _Range3&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
-                                   _T __init = _T{})
+                                   _T __init)
     {
         using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
         using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
@@ -345,22 +345,22 @@ struct sycl_scan_by_segment_impl
                     __val_type __accumulator = {};
 
                     auto __group = __item.get_group();
-                    int __global_id = __item.get_global_id();
-                    int __local_id = __group.get_local_id();
+                    ::std::size_t __global_id = __item.get_global_id();
+                    auto __local_id = __group.get_local_id();
 
                     // 1a. Perform a serial scan within the work item over assigned elements. Store partial
                     // reductions in work item memory, and write the accumulated value and number of counted
                     // segments into work group memory.
-                    int __start = __global_id * __vals_per_item;
-                    int __end = sycl::minimum{}(__start + __vals_per_item, __n);
+                    auto __start = __global_id * __vals_per_item;
+                    auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
                     
                     // First work item must set their accumulator to the provided init
                     if (__global_id == 0 && __local_id == 0)
                         __accumulator = __init;
 
-                    int __max_end = 0;
+                    ::std::size_t __max_end = 0;
 
-                    for (int32_t __i = __start; __i < __end; ++__i)
+                    for (auto __i = __start; __i < __end; ++__i)
                     {
                         __out_values[__i] = __accumulator;
                         __accumulator = __binary_op(__accumulator, __values[__i]);
@@ -405,7 +405,7 @@ struct sycl_scan_by_segment_impl
                         else
                             __partials_acc[__group_id] = __accumulator;
 
-                        __flag_type __seg_present = static_cast<__flag_type>(__closest_seg_id);
+                        __flag_type __seg_present = __closest_seg_id != 0;
                         __seg_ends_acc[__group_id] = __seg_present;
                     }
                 });
@@ -425,10 +425,10 @@ struct sycl_scan_by_segment_impl
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                         auto __group = __item.get_group();
                         auto __group_id = __group.get_group_id(0);
-                        int __global_id = __item.get_global_id();
+                        ::std::size_t __global_id = __item.get_global_id();
                         auto __local_id = __item.get_local_id();
 
-                        ::std::size_t __wg_agg_idx = __group_id - 1;
+                        int32_t __wg_agg_idx = __group_id - 1;
                         __val_type __agg_collector{};
 
                         // 2a. Calculate the work group's carry-in value.

@@ -183,11 +183,11 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
         __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
             auto __group = __item.get_group();
             auto __group_id = __group.get_group_id();
-            int __local_id = __group.get_local_id();
-            int __global_id = __item.get_global_id();
+            auto __local_id = __group.get_local_id();
+            ::std::size_t __global_id = __item.get_global_id();
 
-            int __start = __global_id * __vals_per_item;
-            int __end = sycl::minimum{}(__start + __vals_per_item, __n);
+            auto __start = __global_id * __vals_per_item;
+            auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
             int __item_segments = 0;
 
             // 1a. Work item scan to identify segment ends
@@ -220,7 +220,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             auto __group = __item.get_group();
             auto __group_id = __group.get_group_id();
             auto __local_id = __group.get_local_id();
-            auto __global_id = __item.get_global_id();
+            ::std::size_t __global_id = __item.get_global_id();
 
             __val_type __accumulator{};
 
@@ -229,15 +229,15 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             auto __start_ptr = __seg_ends_acc.get_pointer();
             auto __end_ptr = __start_ptr + __group_id;
 
-            int32_t __wg_num_prior_segs =
+            auto __wg_num_prior_segs =
                 sycl::joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, sycl::plus<>());
 
             // 2b. Perform a serial scan within the work item over assigned elements. Store partial
             // reductions in work group local memory.
-            int32_t __start = __global_id * __vals_per_item;
-            int32_t __end = sycl::minimum{}(__start + __vals_per_item, __n);
+            auto __start = __global_id * __vals_per_item;
+            auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
 
-            int32_t __max_end = 0;
+            ::std::size_t __max_end = 0;
             int32_t __item_segments = 0;
 
             bool __first = true;
@@ -331,11 +331,11 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                                                                                                      __item) {
                 auto __group = __item.get_group();
                 auto __group_id = __group.get_group_id(0);
-                auto __global_id = __item.get_global_id();
+                ::std::size_t __global_id = __item.get_global_id();
                 auto __local_id = __item.get_local_id();
 
-                int32_t __start = __global_id * __vals_per_item;
-                int32_t __end = sycl::minimum{}(__start + __vals_per_item, __n);
+                auto __start = __global_id * __vals_per_item;
+                auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
                 int32_t __item_segments = 0;
 
                 int32_t __wg_agg_idx = __group_id - 1;
