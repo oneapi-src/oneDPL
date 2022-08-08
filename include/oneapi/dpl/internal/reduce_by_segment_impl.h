@@ -353,7 +353,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                         for (int32_t __i = __wg_agg_idx; __i >= 0; --__i)
                         {
                             const auto& __wg_aggregate = __partials_acc[__i];
-                            const auto& __b_seg_end = __seg_ends_acc[__i];
+                            const auto __b_seg_end = __seg_ends_acc[__i];
 
                             if (__first)
                             {
