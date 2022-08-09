@@ -190,6 +190,39 @@ __reduce_over_group(_Args... __args)
 
 template <typename... _Args>
 constexpr auto
+__any_of_group(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::any_of_group(__args...);
+#else
+    return sycl::ONEAPI::any_of(__args...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__all_of_group(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::all_of_group(__args...);
+#else
+    return sycl::ONEAPI::all_of(__args...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__none_of_group(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::none_of_group(__args...);
+#else
+    return sycl::ONEAPI::none_of(__args...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
 __joint_exclusive_scan(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -207,6 +240,61 @@ __joint_inclusive_scan(_Args&&... __args)
     return sycl::joint_inclusive_scan(::std::forward<_Args>(__args)...);
 #else
     return sycl::ONEAPI::inclusive_scan(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_inclusive_scan(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_inclusive_scan(__args...);
+#else
+    return sycl::ONEAPI::inclusive_scan(__args...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_reduce(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_reduce(__args...);
+#else
+    return sycl::ONEAPI::reduce(__args...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_any_of(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_any_of(__args...);
+#else
+    return sycl::ONEAPI::any_of(__args...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_all_of(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_all_of(__args...);
+#else
+    return sycl::ONEAPI::all_of(__args...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_none_of(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_none_of(__args...);
+#else
+    return sycl::ONEAPI::none_of(__args...);
 #endif
 }
 
