@@ -46,7 +46,7 @@ wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _I
     _IdxType __first = 0;
     __local_acc[__local_id] = __accumulator;
 
-    sycl::group_barrier(__item.get_group());
+    __dpl_sycl::__group_barrier(__item);
 
     for (::std::size_t __i = 1; __i < __wgroup_size; __i += __i)
     {
@@ -56,7 +56,7 @@ wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _I
         __first = __wgroup_size - __first;
         __local_acc[__first + __local_id] = __accumulator;
 
-        sycl::group_barrier(__item.get_group());
+        __dpl_sycl::__group_barrier(__item);
     }
 
     return (__local_id ? __local_acc[__first + __local_id - 1] : 0);
@@ -93,7 +93,7 @@ struct sycl_scan_by_segment_impl
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(
             ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + sizeof(__val_type), __wgroup_size);
 
-        int __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
+        auto __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
 
         auto __partials =
             oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
@@ -126,7 +126,7 @@ struct sycl_scan_by_segment_impl
                     // reductions in work item memory, and write the accumulated value and number of counted
                     // segments into work group memory.
                     auto __start = __global_id * __vals_per_item;
-                    auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
+                    auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
                     
                     // First work item must set their accumulator to the provided init
                     if (__global_id == 0 && __local_id == 0)
@@ -182,7 +182,8 @@ struct sycl_scan_by_segment_impl
                     __loc_acc[__local_id] = __accumulator;
 
                     // 1b. Perform a work group scan to find the carry in value to apply to each item.
-                    auto __closest_seg_id = sycl::inclusive_scan_over_group(__group, __max_end, sycl::maximum<>());
+                    auto __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(__group, __max_end, 
+                            __dpl_sycl::__maximum<decltype(__max_end)>());
 
                     __val_type __carry_in =
                         wg_segmented_scan(__item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator,
@@ -250,7 +251,7 @@ struct sycl_scan_by_segment_impl
                         ::std::size_t __global_id = __item.get_global_id();
                         auto __local_id = __item.get_local_id();
                         auto __start = __global_id * __vals_per_item;
-                        auto __end = sycl::minimum{}(__start + __vals_per_item, __n);
+                        auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
 
                         int32_t __wg_agg_idx = __group_id - 1;
                         __val_type __agg_collector{};
@@ -284,7 +285,7 @@ struct sycl_scan_by_segment_impl
                                     }
                                 }
                             }
-                            __ag_exists = sycl::group_broadcast(__group, __ag_exists);
+                            __ag_exists = __dpl_sycl::__group_broadcast(__group, __ag_exists);
 
                             if (!__ag_exists)
                                 return;
@@ -307,7 +308,7 @@ struct sycl_scan_by_segment_impl
                             }
                         }
 
-                        __agg_collector = sycl::group_broadcast(__group, __agg_collector);
+                        __agg_collector = __dpl_sycl::__group_broadcast(__group, __agg_collector);
 
                         // 2c. Second pass over the keys, reidentifying end segments and applying work group
                         // aggregates if appropriate.
@@ -323,13 +324,14 @@ struct sycl_scan_by_segment_impl
                             }
                         }
 
-                        int __wg_min_seg_end = sycl::reduce_over_group(__group, __local_min_key_idx, sycl::minimum<>());
+                        int __wg_min_seg_end = __dpl_sycl::__reduce_over_group(__group, 
+                                __local_min_key_idx, __dpl_sycl::__minimum<decltype(__local_min_key_idx)>());
 
                         if (__group_id == 0)
                             return;
                         
                         // apply work group aggregates
-                        for (auto __i = __start; __i < sycl::minimum{}(__wg_min_seg_end + 1, __end); ++__i)
+                        for (auto __i = __start; __i < __dpl_sycl::__minimum<decltype(__end)>{}(__wg_min_seg_end + 1, __end); ++__i)
                             __out_values[__i] = __binary_op(__agg_collector, __out_values[__i]);
                     });
             })
