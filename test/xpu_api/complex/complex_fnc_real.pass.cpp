@@ -116,7 +116,7 @@ protected:
 #if __cplusplus >= 201402L
         TEST_KW_CONSTEXPR T z = TestUtils::Complex::TestConstants<T>::kPartReal;
         TEST_KW_CONSTEXPR auto real_res = dpl::real(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(real_res)>::value);
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, typename ::std::decay<decltype(real_res)>::type>::value);
 
         EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kExpectedResReal == real_res, "Wrong effect of dpl::real() #4");
 #endif
