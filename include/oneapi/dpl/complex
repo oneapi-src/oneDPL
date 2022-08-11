@@ -23,7 +23,13 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::abs;
+template <class T>
+T
+abs(const ::std::complex<T>& z)
+{
+    return ::std::abs(z);
+}
+
 using ::std::arg;
 using ::std::complex;
 using ::std::conj;
