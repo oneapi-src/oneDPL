@@ -21,7 +21,7 @@ Fixed Issues
 ------------
 - Fixed error in ``reduce_by_segment`` algorithm.
 - Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
-- Fixed error in permutation iterator that caused an error in algorithms call with permutation iterator (wrong results).
+- Fixed wrong results error in algorithms call with permutation iterator.
   
 Known Issues and Limitations
 ----------------------------
