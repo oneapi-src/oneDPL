@@ -134,8 +134,8 @@ protected:
         T z = TestUtils::Complex::TestConstants<T>::kPartReal;
 
         dpl::complex<T> cv_conj = dpl::conj(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_conj.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_conj.imag())>::value);
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, typename ::std::decay<decltype(cv_conj.real())>::type>::value);
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, typename ::std::decay<decltype(cv_conj.imag())>::type>::value);
 
         EXPECT_TRUE_EE(errors, cv_conj.real() == z, "Wrong effect of conj #5");
         EXPECT_TRUE_EE(errors, cv_conj.imag() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect of conj #6");
