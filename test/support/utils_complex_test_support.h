@@ -39,10 +39,10 @@ namespace TestUtils
 namespace Complex
 {
     template <typename TComplexDataType>
-    struct InitConst;
+    struct TestConstants;
 
     template <>
-    struct InitConst<float>
+    struct TestConstants<float>
     {
         using DestComplexFieldType = float;
 
@@ -54,7 +54,7 @@ namespace Complex
     };
 
     template <>
-    struct InitConst<double>
+    struct TestConstants<double>
     {
         using DestComplexFieldType = double;
 
@@ -66,7 +66,7 @@ namespace Complex
     };
 
     template <>
-    struct InitConst<long double>
+    struct TestConstants<long double>
     {
         using DestComplexFieldType = long double;
 
@@ -78,7 +78,7 @@ namespace Complex
     };
 
     template <>
-    struct InitConst<int>
+    struct TestConstants<int>
     {
         using DestComplexFieldType = double;
 

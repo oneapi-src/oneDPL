@@ -84,8 +84,8 @@ protected:
     void test_fnc_real_form1_until_CPP14()
     {
 #if __cplusplus < 201402L
-        const dpl::complex<T> cv(TestUtils::Complex::InitConst<T>::kPartReal);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartReal == dpl::real(cv), "Wrong effect of dpl::real() #1");
+        const dpl::complex<T> cv(TestUtils::Complex::TestConstants<T>::kPartReal);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == dpl::real(cv), "Wrong effect of dpl::real() #1");
 #endif
     }
 
@@ -93,8 +93,8 @@ protected:
     void test_fnc_real_form1_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv(TestUtils::Complex::InitConst<T>::kPartReal);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartReal == dpl::real(cv), "Wrong effect of dpl::real() #2");
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv(TestUtils::Complex::TestConstants<T>::kPartReal);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == dpl::real(cv), "Wrong effect of dpl::real() #2");
 #endif
     }
 
@@ -102,11 +102,11 @@ protected:
     void test_fnc_real_form2_until_CPP14()
     {
 #if __cplusplus < 201402L
-        const T z = TestUtils::Complex::InitConst<T>::kPartReal;
+        const T z = TestUtils::Complex::TestConstants<T>::kPartReal;
         auto real_res = dpl::real(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, decltype(real_res)>::value);
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(real_res)>::value);
         
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kExpectedResReal == real_res, "Wrong effect of dpl::real() #3");
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kExpectedResReal == real_res, "Wrong effect of dpl::real() #3");
 #endif
     }
 
@@ -114,11 +114,11 @@ protected:
     void test_fnc_real_form2_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR T z = TestUtils::Complex::InitConst<T>::kPartReal;
+        COMPLEX_TEST_CONSTEXPR T z = TestUtils::Complex::TestConstants<T>::kPartReal;
         COMPLEX_TEST_CONSTEXPR auto real_res = dpl::real(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, decltype(real_res)>::value);
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(real_res)>::value);
 
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kExpectedResReal == real_res, "Wrong effect of dpl::real() #4");
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kExpectedResReal == real_res, "Wrong effect of dpl::real() #4");
 #endif
     }
 

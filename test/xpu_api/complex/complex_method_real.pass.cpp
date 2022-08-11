@@ -113,8 +113,8 @@ protected:
     void test_method_real_get_until_CPP14()
     {
 #if __cplusplus < 201402L
-        const dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #1");
+        const dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #1");
 #endif
     }
 
@@ -122,8 +122,8 @@ protected:
     void test_method_real_get_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #2");
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #2");
 #endif
     }
 
@@ -132,8 +132,8 @@ protected:
     {
 #if __cplusplus < 202002L
         dpl::complex<T> complex_val;
-        complex_val.real(TestUtils::Complex::InitConst<T>::kPartReal);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #3");
+        complex_val.real(TestUtils::Complex::TestConstants<T>::kPartReal);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #3");
 #endif
     }
 
@@ -142,8 +142,8 @@ protected:
     {
 #if __cplusplus >= 202002L
         COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val;
-        complex_val.real(TestUtils::Complex::InitConst<T>::kPartReal);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #4");
+        complex_val.real(TestUtils::Complex::TestConstants<T>::kPartReal);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #4");
 #endif
     }
 

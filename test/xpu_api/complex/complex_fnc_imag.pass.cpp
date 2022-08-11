@@ -84,8 +84,8 @@ protected:
     void test_fnc_imag_form1_until_CPP14()
     {
 #if __cplusplus < 201402L
-        const dpl::complex<T> cv(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartImag == dpl::imag(cv), "Wrong effect of dpl::imag() #1");
+        const dpl::complex<T> cv(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartImag == dpl::imag(cv), "Wrong effect of dpl::imag() #1");
 #endif
     }
 
@@ -93,8 +93,8 @@ protected:
     void test_fnc_imag_form1_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        EXPECT_TRUE_EE(errors, TestUtils::Complex::InitConst<T>::kPartImag == dpl::imag(cv), "Wrong effect of dpl::imag() #2");
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartImag == dpl::imag(cv), "Wrong effect of dpl::imag() #2");
 #endif
     }
 
@@ -102,11 +102,11 @@ protected:
     void test_fnc_imag_form2_until_CPP14()
     {
 #if __cplusplus < 201402L
-        const T z = TestUtils::Complex::InitConst<T>::kPartImag;
+        const T z = TestUtils::Complex::TestConstants<T>::kPartImag;
         auto imag_res = dpl::imag(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, decltype(imag_res)>::value);
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(imag_res)>::value);
 
-        const typename TestUtils::Complex::InitConst<T>::DestComplexFieldType imag_res_expected = { };
+        const typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType imag_res_expected = { };
         EXPECT_TRUE_EE(errors, imag_res_expected == imag_res, "Wrong effect of dpl::imag() #3");
 #endif
     }
@@ -115,11 +115,11 @@ protected:
     void test_fnc_imag_form2_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR T z = TestUtils::Complex::InitConst<T>::kPartImag;
+        COMPLEX_TEST_CONSTEXPR T z = TestUtils::Complex::TestConstants<T>::kPartImag;
         COMPLEX_TEST_CONSTEXPR auto imag_res = dpl::imag(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::InitConst<T>::DestComplexFieldType, decltype(imag_res)>::value);
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(imag_res)>::value);
 
-        COMPLEX_TEST_CONSTEXPR typename TestUtils::Complex::InitConst<T>::DestComplexFieldType imag_res_expected = { };
+        COMPLEX_TEST_CONSTEXPR typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType imag_res_expected = { };
         EXPECT_TRUE_EE(errors, imag_res_expected == imag_res, "Wrong effect of dpl::imag() #4");
 #endif
     }

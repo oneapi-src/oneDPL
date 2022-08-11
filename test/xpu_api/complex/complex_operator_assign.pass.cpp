@@ -84,7 +84,7 @@ protected:
     void test_primary_form_1()
     {
         dpl::complex<T> cv1;
-        constexpr T kConst = TestUtils::Complex::InitConst<T>::kPartReal;
+        constexpr T kConst = TestUtils::Complex::TestConstants<T>::kPartReal;
 
         cv1 = kConst;
 
@@ -96,7 +96,7 @@ protected:
     template <class T>
     void test_primary_form_2()
     {
-        dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         dpl::complex<T> cv2;
 
         cv2 = cv1;

@@ -112,7 +112,7 @@ protected:
     void test_primary_form_1_until_CPP20()
     {
 #if __cplusplus < 202002L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         COMPLEX_TEST_CONSTEXPR bool isEq1 = cv1 == cv1;
         EXPECT_TRUE_EE(errors, isEq1, "Wrong effect in std::complex<T> operator==(const complex<T>& lhs, const complex<T>& rhs)");
@@ -123,8 +123,8 @@ protected:
     void test_primary_form_2_until_CPP20()
     {
 #if __cplusplus < 202002L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal);
-        constexpr T kConst = TestUtils::Complex::InitConst<T>::kPartReal;
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal);
+        constexpr T kConst = TestUtils::Complex::TestConstants<T>::kPartReal;
 
         COMPLEX_TEST_CONSTEXPR bool isEq = cv1 == kConst;
 
@@ -136,8 +136,8 @@ protected:
     void test_primary_form_3_until_CPP20()
     {
 #if __cplusplus < 202002L
-        constexpr T kConst = TestUtils::Complex::InitConst<T>::kPartReal;
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal);
+        constexpr T kConst = TestUtils::Complex::TestConstants<T>::kPartReal;
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal);
 
         COMPLEX_TEST_CONSTEXPR bool isEq = kConst == cv1;
 
@@ -149,7 +149,7 @@ protected:
     void test_primary_form_4_until_CPP20()
     {
 #if __cplusplus < 202002L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         COMPLEX_TEST_CONSTEXPR bool isNotEq = cv1 != cv1;
 
@@ -161,8 +161,8 @@ protected:
     void test_primary_form_5_until_CPP20()
     {
 #if __cplusplus < 202002L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        constexpr T kConst = TestUtils::Complex::InitConst<T>::kPartReal;
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        constexpr T kConst = TestUtils::Complex::TestConstants<T>::kPartReal;
 
         COMPLEX_TEST_CONSTEXPR bool isNotEq = cv1 != kConst;
 
@@ -174,8 +174,8 @@ protected:
     void test_primary_form_6_until_CPP20()
     {
 #if __cplusplus < 202002L
-        constexpr T kConst = TestUtils::Complex::InitConst<T>::kPartReal;
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        constexpr T kConst = TestUtils::Complex::TestConstants<T>::kPartReal;
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         COMPLEX_TEST_CONSTEXPR bool isNotEq = kConst != cv1;
 

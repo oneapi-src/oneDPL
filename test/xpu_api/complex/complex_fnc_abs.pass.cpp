@@ -53,7 +53,7 @@ protected:
     template <typename T>
     void test_abs()
     {
-        const auto cv = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        const auto cv = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         const auto abs_res = dpl::abs(cv);
         const auto abs_res_expected = ::std::abs(cv);
         EXPECT_TRUE_EE(errors, abs_res == abs_res_expected, "Wrong result in dpl::abs(dpl::complex<T>()) function");

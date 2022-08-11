@@ -71,8 +71,8 @@ protected:
     template <class T>
     void test_primary_form_1()
     {
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         COMPLEX_TEST_CONSTEXPR auto cv3 = cv1 + cv2;
         static_assert(::std::is_same<typename ::std::decay<decltype(cv3.real())>::type, T>::value);
@@ -85,8 +85,8 @@ protected:
     template <class T>
     void test_primary_form_2()
     {
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         COMPLEX_TEST_CONSTEXPR auto cv3 = cv1 - cv2;
         static_assert(::std::is_same<typename ::std::decay<decltype(cv3.real())>::type, T>::value);

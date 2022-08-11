@@ -49,7 +49,7 @@ protected:
     template <typename T>
     void test_exp(const char* msg)
     {
-        const auto cv = dpl::complex<T>(TestUtils::Complex::InitConst<T>::kPartReal, TestUtils::Complex::InitConst<T>::kPartImag);
+        const auto cv = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         const auto exp_res = dpl::exp(cv);
         auto exp_res_expected = ::std::exp(cv);
         EXPECT_TRUE_EE(errors, exp_res == exp_res_expected, msg);
