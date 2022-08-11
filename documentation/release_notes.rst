@@ -25,11 +25,6 @@ Fixed Issues
   
 Known Issues and Limitations
 ----------------------------
-New in This Release
-^^^^^^^^^^^^^^^^^^^
-- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
-  the Microsoft* Visual C++ standard library.
-
 Existing Issues
 ^^^^^^^^^^^^^^^
 See oneDPL Guide for other `restrictions and known limitations`_.
@@ -38,6 +33,8 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 - ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
   in the Microsoft* Visual C++ standard library.
 - The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
 
 New in 2021.6.1
 ===============
