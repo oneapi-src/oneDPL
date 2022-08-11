@@ -122,7 +122,7 @@ protected:
     void test_method_imag_get_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #2");
 #endif
     }
@@ -141,7 +141,7 @@ protected:
     void test_method_imag_set_since_CPP20()
     {
 #if __cplusplus >= 202002L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val;
+        TEST_KW_CONSTEXPR dpl::complex<T> complex_val;
         complex_val.imag(TestUtils::Complex::TestConstants<T>::kPartImag);
         EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartImag == complex_val.imag(), "Wrong effect of dpl::complex::imag() #4");
 #endif

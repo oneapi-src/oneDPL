@@ -93,7 +93,7 @@ protected:
     void test_fnc_imag_form1_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartImag == dpl::imag(cv), "Wrong effect of dpl::imag() #2");
 #endif
     }
@@ -115,11 +115,11 @@ protected:
     void test_fnc_imag_form2_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR T z = TestUtils::Complex::TestConstants<T>::kPartImag;
-        COMPLEX_TEST_CONSTEXPR auto imag_res = dpl::imag(z);
+        TEST_KW_CONSTEXPR T z = TestUtils::Complex::TestConstants<T>::kPartImag;
+        TEST_KW_CONSTEXPR auto imag_res = dpl::imag(z);
         static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(imag_res)>::value);
 
-        COMPLEX_TEST_CONSTEXPR typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType imag_res_expected = { };
+        TEST_KW_CONSTEXPR typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType imag_res_expected = { };
         EXPECT_TRUE_EE(errors, imag_res_expected == imag_res, "Wrong effect of dpl::imag() #4");
 #endif
     }

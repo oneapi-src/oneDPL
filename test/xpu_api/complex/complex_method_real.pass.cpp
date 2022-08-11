@@ -122,7 +122,7 @@ protected:
     void test_method_real_get_since_CPP14()
     {
 #if __cplusplus >= 201402L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal);
+        TEST_KW_CONSTEXPR dpl::complex<T> complex_val = dpl::complex<T>(TestUtils::Complex::TestConstants<T>::kPartReal);
         EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #2");
 #endif
     }
@@ -141,7 +141,7 @@ protected:
     void test_method_real_set_since_CPP20()
     {
 #if __cplusplus >= 202002L
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> complex_val;
+        TEST_KW_CONSTEXPR dpl::complex<T> complex_val;
         complex_val.real(TestUtils::Complex::TestConstants<T>::kPartReal);
         EXPECT_TRUE_EE(errors, TestUtils::Complex::TestConstants<T>::kPartReal == complex_val.real(), "Wrong effect of dpl::complex::real() #4");
 #endif

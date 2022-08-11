@@ -126,8 +126,8 @@ protected:
     template <class T>
     void test_primary_form_1()
     {
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         cv2 += cv1;
         EXPECT_TRUE_EE(errors, cv2.real() == 2 * TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in complex& operator+=( const T& other )");
@@ -137,8 +137,8 @@ protected:
     template <class T>
     void test_primary_form_2()
     {
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         cv2 -= cv1;
         EXPECT_TRUE_EE(errors, cv2.real() == dpl::complex<T>().real(), "Wrong effect in complex& operator-=( const T& other )");
@@ -148,8 +148,8 @@ protected:
     template <class T>
     void test_primary_form_3()
     {
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         const auto a1 = cv1.real();
         const auto a2 = cv1.imag();
@@ -164,8 +164,8 @@ protected:
     template <class T>
     void test_primary_form_4()
     {
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv1(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
 
         const T expectedReal = (cv1.real() * cv2.real() + cv1.imag() * cv2.imag()) / (cv2.real() * cv2.real() + cv2.imag() * cv2.imag());
         const T expectedImag = (cv2.real() * cv1.imag() - cv1.real() * cv2.imag()) / (cv2.real() * cv2.real() + cv2.imag() * cv2.imag());

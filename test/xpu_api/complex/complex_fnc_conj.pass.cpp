@@ -118,7 +118,7 @@ protected:
         static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv.real())>::value);
         static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv.imag())>::value);
 
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv_conj = dpl::conj(cv);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv_conj = dpl::conj(cv);
         static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_conj.real())>::value);
         static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_conj.imag())>::value);
 
@@ -165,7 +165,7 @@ protected:
 #if __cplusplus >= 202002L
         T z = TestUtils::Complex::TestConstants<T>::kPartReal;
 
-        COMPLEX_TEST_CONSTEXPR dpl::complex<T> cv_conj = dpl::conj(z);
+        TEST_KW_CONSTEXPR dpl::complex<T> cv_conj = dpl::conj(z);
         static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_conj.real())>::value);
         static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_conj.imag())>::value);
 
