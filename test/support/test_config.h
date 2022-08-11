@@ -56,7 +56,7 @@
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 
 // May be defined as constexpr later
-#define TEST_KW_CONSTEXPR
+#define TEST_KW_CONSTEXPR const
 
 #define _PSTL_SYCL_TEST_USM 1
 
