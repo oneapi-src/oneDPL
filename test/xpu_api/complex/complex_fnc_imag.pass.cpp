@@ -104,7 +104,7 @@ protected:
 #if __cplusplus < 201402L
         const T z = TestUtils::Complex::TestConstants<T>::kPartImag;
         auto imag_res = dpl::imag(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(imag_res)>::value);
+        TestUtils::Complex::check_type<T>(imag_res);
 
         const typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType imag_res_expected = { };
         EXPECT_TRUE_EE(errors, imag_res_expected == imag_res, "Wrong effect of dpl::imag() #3");
@@ -117,7 +117,7 @@ protected:
 #if __cplusplus >= 201402L
         TEST_KW_CONSTEXPR T z = TestUtils::Complex::TestConstants<T>::kPartImag;
         TEST_KW_CONSTEXPR auto imag_res = dpl::imag(z);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, typename ::std::decay<decltype(imag_res)>::type>::value);
+        TestUtils::Complex::check_type<T>(imag_res);
 
         TEST_KW_CONSTEXPR typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType imag_res_expected = { };
         EXPECT_TRUE_EE(errors, imag_res_expected == imag_res, "Wrong effect of dpl::imag() #4");

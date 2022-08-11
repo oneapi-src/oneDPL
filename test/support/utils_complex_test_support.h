@@ -84,6 +84,14 @@ namespace Complex
         static constexpr double kExpectedResReal = 1.0;
     };
 
+    template <typename TType, typename TVal>
+    void
+    check_type(TVal&& val)
+    {
+        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<TType>::DestComplexFieldType,
+                                     typename ::std::decay<decltype(val)>::type>::value);
+    }
+
     // Run test TComplexTestName on host
     /*
      * @return bool - true if no errors occurred, false - otherwise.

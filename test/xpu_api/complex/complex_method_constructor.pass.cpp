@@ -146,20 +146,20 @@ protected:
         // complex( const T& re = T(), const T& im = T() );
 
         dpl::complex<T> cv1;
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv1.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv1.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv1.real());
+        TestUtils::Complex::check_type<T>(cv1.imag());
         EXPECT_TRUE_EE(errors, cv1.real() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #1");
         EXPECT_TRUE_EE(errors, cv1.imag() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #2");
 
         dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv2.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv2.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv2.real());
+        TestUtils::Complex::check_type<T>(cv2.imag());
         EXPECT_TRUE_EE(errors, cv2.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #3");
         EXPECT_TRUE_EE(errors, cv2.imag() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #4");
 
         dpl::complex<T> cv3(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv3.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv3.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv3.real());
+        TestUtils::Complex::check_type<T>(cv3.imag());
         EXPECT_TRUE_EE(errors, cv3.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #5");
         EXPECT_TRUE_EE(errors, cv3.imag() == TestUtils::Complex::TestConstants<T>::kPartImag, "Wrong effect in constructor #6");
 #endif
@@ -172,20 +172,20 @@ protected:
         // constexpr complex( const T& re = T(), const T& im = T() );
 
         TEST_KW_CONSTEXPR dpl::complex<T> cv1;
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv1.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv1.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv1.real());
+        TestUtils::Complex::check_type<T>(cv1.imag());
         EXPECT_TRUE_EE(errors, cv1.real() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #7");
         EXPECT_TRUE_EE(errors, cv1.imag() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #8");
 
         TEST_KW_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv2.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv2.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv2.real());
+        TestUtils::Complex::check_type<T>(cv2.imag());
         EXPECT_TRUE_EE(errors, cv2.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #9");
         EXPECT_TRUE_EE(errors, cv2.imag() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #10");
 
         TEST_KW_CONSTEXPR dpl::complex<T> cv3(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv3.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv3.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv3.real());
+        TestUtils::Complex::check_type<T>(cv3.imag());
         EXPECT_TRUE_EE(errors, cv3.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #11");
         EXPECT_TRUE_EE(errors, cv3.imag() == TestUtils::Complex::TestConstants<T>::kPartImag, "Wrong effect in constructor #12");
 #endif
@@ -198,8 +198,8 @@ protected:
         // complex( const complex& other );
         const dpl::complex<T> cv_src(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         const dpl::complex<T> cv_copy(cv_src);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_copy.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_copy.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv_copy.real());
+        TestUtils::Complex::check_type<T>(cv_copy.imag());
         EXPECT_TRUE_EE(errors, cv_copy.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #13");
         EXPECT_TRUE_EE(errors, cv_copy.imag() == TestUtils::Complex::TestConstants<T>::kPartImag, "Wrong effect in constructor #14");
 #endif
@@ -212,8 +212,8 @@ protected:
         // constexpr complex( const complex& other );
         const dpl::complex<T> cv_src(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         TEST_KW_CONSTEXPR dpl::complex<T> cv_copy(cv_src);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_copy.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_copy.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv_copy.real());
+        TestUtils::Complex::check_type<T>(cv_copy.imag());
         EXPECT_TRUE_EE(errors, cv_copy.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #15");
         EXPECT_TRUE_EE(errors, cv_copy.imag() == TestUtils::Complex::TestConstants<T>::kPartImag, "Wrong effect in constructor #16");
 #endif
@@ -240,8 +240,8 @@ protected:
         // constexpr complex(const complex<X>& other);
         const dpl::complex<T> cv_src(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
         TEST_KW_CONSTEXPR dpl::complex<T> cv_copy(cv_src);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_copy.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv_copy.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv_copy.real());
+        TestUtils::Complex::check_type<T>(cv_copy.imag());
         EXPECT_TRUE_EE(errors, cv_copy.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #19");
         EXPECT_TRUE_EE(errors, cv_copy.imag() == TestUtils::Complex::TestConstants<T>::kPartImag, "Wrong effect in constructor #20");
 #endif
@@ -262,20 +262,20 @@ protected:
         // constexpr complex(long double re = 0.0L, long double im = 0.0L);
 
         TEST_KW_CONSTEXPR dpl::complex<T> cv1;
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv1.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv1.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv1.real());
+        TestUtils::Complex::check_type<T>(cv1.imag());
         EXPECT_TRUE_EE(errors, cv1.real() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #7");
         EXPECT_TRUE_EE(errors, cv1.imag() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #8");
 
         TEST_KW_CONSTEXPR dpl::complex<T> cv2(TestUtils::Complex::TestConstants<T>::kPartReal);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv2.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv2.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv2.real());
+        TestUtils::Complex::check_type<T>(cv2.imag());
         EXPECT_TRUE_EE(errors, cv2.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #9");
         EXPECT_TRUE_EE(errors, cv2.imag() == TestUtils::Complex::TestConstants<T>::kZero, "Wrong effect in constructor #10");
 
         TEST_KW_CONSTEXPR dpl::complex<T> cv3(TestUtils::Complex::TestConstants<T>::kPartReal, TestUtils::Complex::TestConstants<T>::kPartImag);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv3.real())>::value);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(cv3.imag())>::value);
+        TestUtils::Complex::check_type<T>(cv3.real());
+        TestUtils::Complex::check_type<T>(cv3.imag());
         EXPECT_TRUE_EE(errors, cv3.real() == TestUtils::Complex::TestConstants<T>::kPartReal, "Wrong effect in constructor #11");
         EXPECT_TRUE_EE(errors, cv3.imag() == TestUtils::Complex::TestConstants<T>::kPartImag, "Wrong effect in constructor #12");
     }

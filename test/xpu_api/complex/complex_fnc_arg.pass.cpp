@@ -98,7 +98,7 @@ protected:
     void test_arg_for_non_complex_arg(T val)
     {
         auto arg_res = dpl::arg(val);
-        static_assert(::std::is_same<typename TestUtils::Complex::TestConstants<T>::DestComplexFieldType, decltype(arg_res)>::value);
+        TestUtils::Complex::check_type<T>(arg_res);
 
         const auto arg_res_expected = ::std::arg(val);
         EXPECT_TRUE_EE(errors, arg_res == arg_res_expected, "Wrong result in dpl::arg(dpl::complex<T>()) function #1");
