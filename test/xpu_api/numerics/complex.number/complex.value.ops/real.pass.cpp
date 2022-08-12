@@ -21,7 +21,7 @@ template <class T>
 void
 test()
 {
-    std::complex<T> z(1.5, 2.5);
+    dpl::complex<T> z(1.5, 2.5);
     assert(real(z) == 1.5);
 }
 

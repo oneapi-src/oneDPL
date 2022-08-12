@@ -25,7 +25,7 @@ template <class T>
 void
 test()
 {
-    typedef std::complex<T> C;
+    typedef dpl::complex<T> C;
     static_assert((std::is_same<typename C::value_type, T>::value), "");
 }
 

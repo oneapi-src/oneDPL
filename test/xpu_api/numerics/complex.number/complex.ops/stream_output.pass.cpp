@@ -23,7 +23,7 @@
 int main(int, char**) {
     // Basic test
     {
-        std::complex<double> const c(1, 2);
+        dpl::complex<double> const c(1, 2);
         std::ostringstream os;
         os << c;
         assert(os.str() == "(1,2)");
@@ -44,10 +44,10 @@ int main(int, char**) {
     //     return o << s.str();
     //
     // Since operator<< for std::string sets o.width(0), operator<< for
-    // std::complex should do the same.
+    // dpl::complex should do the same.
     {
         for (int width = 0; width <= 5; ++width) {
-            std::complex<double> const c(1, 2);
+            dpl::complex<double> const c(1, 2);
             std::ostringstream os;
             os.width(width);
             os.fill('_');
@@ -56,7 +56,7 @@ int main(int, char**) {
             assert(os.str() == "(1,2)");
         }
         {
-            std::complex<double> const c(1, 2);
+            dpl::complex<double> const c(1, 2);
             std::ostringstream os;
             os.width(6);
             os.fill('_');
@@ -65,7 +65,7 @@ int main(int, char**) {
             assert(os.str() == "_(1,2)");
         }
         {
-            std::complex<double> const c(1, 2);
+            dpl::complex<double> const c(1, 2);
             std::ostringstream os;
             os.width(7);
             os.fill('_');
@@ -74,7 +74,7 @@ int main(int, char**) {
             assert(os.str() == "__(1,2)");
         }
         {
-            std::complex<double> const c(1, 2);
+            dpl::complex<double> const c(1, 2);
             std::ostringstream os;
             os.width(8);
             os.fill('_');
@@ -85,7 +85,7 @@ int main(int, char**) {
         // Insert something after the complex and make sure the
         // stream's width has been reset as expected.
         {
-            std::complex<double> const c(1, 2);
+            dpl::complex<double> const c(1, 2);
             std::ostringstream os;
             os.width(8);
             os.fill('_');
@@ -99,7 +99,7 @@ int main(int, char**) {
         // Test with numbers that result in different output lengths, to
         // make sure we handle custom width() correctly.
         {
-            std::complex<double> const c(123, 456);
+            dpl::complex<double> const c(123, 456);
             std::ostringstream os;
             os.width(4);
             os.fill('_');
@@ -108,7 +108,7 @@ int main(int, char**) {
             assert(os.str() == "(123,456)");
         }
         {
-            std::complex<double> const c(123, 456);
+            dpl::complex<double> const c(123, 456);
             std::ostringstream os;
             os.width(12);
             os.fill('_');
@@ -122,7 +122,7 @@ int main(int, char**) {
 
         // Make sure left fill behaves correctly
         {
-            std::complex<double> const c(123, 456);
+            dpl::complex<double> const c(123, 456);
             std::ostringstream os;
             os.width(12);
             os.fill('_');

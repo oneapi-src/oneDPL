@@ -17,7 +17,7 @@ template <class T>
 void
 test()
 {
-    std::complex<T> z;
+    dpl::complex<T> z;
     T* a = (T*)&z;
     assert(0 == z.real());
     assert(0 == z.imag());

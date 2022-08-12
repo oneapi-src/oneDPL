@@ -20,22 +20,22 @@ int main(int, char**)
     using namespace std::literals;
 
     {
-    std::complex<long double> c1 = 3.0il;
-    assert ( c1 == std::complex<long double>(0, 3.0));
+    dpl::complex<long double> c1 = 3.0il;
+    assert ( c1 == dpl::complex<long double>(0, 3.0));
     auto c2 = 3il;
     assert ( c1 == c2 );
     }
 
     {
-    std::complex<double> c1 = 3.0i;
-    assert ( c1 == std::complex<double>(0, 3.0));
+    dpl::complex<double> c1 = 3.0i;
+    assert ( c1 == dpl::complex<double>(0, 3.0));
     auto c2 = 3i;
     assert ( c1 == c2 );
     }
 
     {
-    std::complex<float> c1 = 3.0if;
-    assert ( c1 == std::complex<float>(0, 3.0));
+    dpl::complex<float> c1 = 3.0if;
+    assert ( c1 == dpl::complex<float>(0, 3.0));
     auto c2 = 3if;
     assert ( c1 == c2 );
     }

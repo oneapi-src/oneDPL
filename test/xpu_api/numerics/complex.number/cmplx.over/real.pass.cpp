@@ -28,7 +28,7 @@ test(typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 #if TEST_STD_VER > 11
     constexpr T val {x};
     static_assert(std::real(val) == val, "");
-    constexpr std::complex<T> t{val, val};
+    constexpr dpl::complex<T> t{val, val};
     static_assert(t.real() == x, "" );
 #endif
 }
@@ -42,7 +42,7 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
 #if TEST_STD_VER > 11
     constexpr T val {x};
     static_assert(std::real(val) == val, "");
-    constexpr std::complex<T> t{val, val};
+    constexpr dpl::complex<T> t{val, val};
     static_assert(t.real() == x, "" );
 #endif
 }

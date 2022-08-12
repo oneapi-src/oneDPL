@@ -24,7 +24,7 @@ template <class T>
 void
 test()
 {
-    std::complex<T> z(1, 0);
+    dpl::complex<T> z(1, 0);
     assert(arg(z) == 0);
 }
 

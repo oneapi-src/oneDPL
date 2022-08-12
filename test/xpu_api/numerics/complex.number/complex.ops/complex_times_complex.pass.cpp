@@ -20,7 +20,7 @@
 
 template <class T>
 void
-test(const std::complex<T>& lhs, const std::complex<T>& rhs, std::complex<T> x)
+test(const dpl::complex<T>& lhs, const dpl::complex<T>& rhs, dpl::complex<T> x)
 {
     assert(lhs * rhs == x);
 }
@@ -29,9 +29,9 @@ template <class T>
 void
 test()
 {
-    std::complex<T> lhs(1.5, 2.5);
-    std::complex<T> rhs(1.5, 2.5);
-    std::complex<T>   x(-4.0, 7.5);
+    dpl::complex<T> lhs(1.5, 2.5);
+    dpl::complex<T> rhs(1.5, 2.5);
+    dpl::complex<T>   x(-4.0, 7.5);
     test(lhs, rhs, x);
 }
 
@@ -44,7 +44,7 @@ void test_edges()
     {
         for (unsigned j = 0; j < N; ++j)
         {
-            std::complex<double> r = testcases[i] * testcases[j];
+            dpl::complex<double> r = testcases[i] * testcases[j];
             switch (classify(testcases[i]))
             {
             case zero:

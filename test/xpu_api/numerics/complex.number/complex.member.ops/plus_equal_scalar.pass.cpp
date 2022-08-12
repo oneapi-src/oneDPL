@@ -19,7 +19,7 @@ template <class T>
 void
 test()
 {
-    std::complex<T> c;
+    dpl::complex<T> c;
     assert(c.real() == 0);
     assert(c.imag() == 0);
     c += 1.5;
