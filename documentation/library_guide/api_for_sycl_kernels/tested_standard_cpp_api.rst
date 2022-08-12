@@ -155,6 +155,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::remove_extent``               Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::abs``                         Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::add_const``                   Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::add_cv``                      Tested     Tested     Tested
