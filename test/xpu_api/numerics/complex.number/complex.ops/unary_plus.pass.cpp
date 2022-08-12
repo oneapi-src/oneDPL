@@ -21,10 +21,10 @@ template <class T>
 void
 test()
 {
-    std::complex<T> z(1.5, 2.5);
+    dpl::complex<T> z(1.5, 2.5);
     assert(z.real() == 1.5);
     assert(z.imag() == 2.5);
-    std::complex<T> c = +z;
+    dpl::complex<T> c = +z;
     assert(c.real() == 1.5);
     assert(c.imag() == 2.5);
 }

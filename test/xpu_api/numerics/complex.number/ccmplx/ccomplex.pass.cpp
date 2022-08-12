@@ -14,7 +14,7 @@
 
 int main(int, char**)
 {
-    std::complex<double> d;
+    dpl::complex<double> d;
     (void)d;
 
   return 0;

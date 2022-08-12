@@ -22,15 +22,15 @@
 int main(int, char**)
 {
     {
-    const std::complex<long double> cd(2.5, 3.5);
-    std::complex<double> cf(cd);
+    const dpl::complex<long double> cd(2.5, 3.5);
+    dpl::complex<double> cf(cd);
     assert(cf.real() == cd.real());
     assert(cf.imag() == cd.imag());
     }
 #if TEST_STD_VER >= 11
     {
-    constexpr std::complex<long double> cd(2.5, 3.5);
-    constexpr std::complex<double> cf(cd);
+    constexpr dpl::complex<long double> cd(2.5, 3.5);
+    constexpr dpl::complex<double> cf(cd);
     static_assert(cf.real() == cd.real(), "");
     static_assert(cf.imag() == cd.imag(), "");
     }

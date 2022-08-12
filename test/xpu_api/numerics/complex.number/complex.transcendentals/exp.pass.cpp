@@ -20,7 +20,7 @@
 
 template <class T>
 void
-test(const std::complex<T>& c, std::complex<T> x)
+test(const dpl::complex<T>& c, dpl::complex<T> x)
 {
     assert(exp(c) == x);
 }
@@ -29,7 +29,7 @@ template <class T>
 void
 test()
 {
-    test(std::complex<T>(0, 0), std::complex<T>(1, 0));
+    test(dpl::complex<T>(0, 0), dpl::complex<T>(1, 0));
 }
 
 void test_edges()
@@ -37,7 +37,7 @@ void test_edges()
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
     {
-        std::complex<double> r = exp(testcases[i]);
+        dpl::complex<double> r = exp(testcases[i]);
         if (testcases[i].real() == 0 && testcases[i].imag() == 0)
         {
             assert(r.real() == 1.0);

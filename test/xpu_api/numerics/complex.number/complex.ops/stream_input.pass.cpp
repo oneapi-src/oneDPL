@@ -24,79 +24,79 @@ int main(int, char**)
 {
     {
         std::istringstream is("5");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(5, 0));
+        assert(c == dpl::complex<double>(5, 0));
         assert(is.eof());
     }
     {
         std::istringstream is(" 5 ");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(5, 0));
+        assert(c == dpl::complex<double>(5, 0));
         assert(is.good());
     }
     {
         std::istringstream is(" 5, ");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(5, 0));
+        assert(c == dpl::complex<double>(5, 0));
         assert(is.good());
     }
     {
         std::istringstream is(" , 5, ");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(0, 0));
+        assert(c == dpl::complex<double>(0, 0));
         assert(is.fail());
     }
     {
         std::istringstream is("5.5 ");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(5.5, 0));
+        assert(c == dpl::complex<double>(5.5, 0));
         assert(is.good());
     }
     {
         std::istringstream is(" ( 5.5 ) ");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(5.5, 0));
+        assert(c == dpl::complex<double>(5.5, 0));
         assert(is.good());
     }
     {
         std::istringstream is("  5.5)");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(5.5, 0));
+        assert(c == dpl::complex<double>(5.5, 0));
         assert(is.good());
     }
     {
         std::istringstream is("(5.5 ");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(0, 0));
+        assert(c == dpl::complex<double>(0, 0));
         assert(is.fail());
     }
     {
         std::istringstream is("(5.5,");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(0, 0));
+        assert(c == dpl::complex<double>(0, 0));
         assert(is.fail());
     }
     {
         std::istringstream is("( -5.5 , -6.5 )");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(-5.5, -6.5));
+        assert(c == dpl::complex<double>(-5.5, -6.5));
         assert(!is.eof());
     }
     {
         std::istringstream is("(-5.5,-6.5)");
-        std::complex<double> c;
+        dpl::complex<double> c;
         is >> c;
-        assert(c == std::complex<double>(-5.5, -6.5));
+        assert(c == dpl::complex<double>(-5.5, -6.5));
         assert(!is.eof());
     }
 

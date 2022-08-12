@@ -20,14 +20,14 @@ template <class T, class X>
 void
 test()
 {
-    std::complex<T> c;
+    dpl::complex<T> c;
     assert(c.real() == 0);
     assert(c.imag() == 0);
-    std::complex<T> c2(1.5, 2.5);
+    dpl::complex<T> c2(1.5, 2.5);
     c = c2;
     assert(c.real() == 1.5);
     assert(c.imag() == 2.5);
-    std::complex<X> c3(3.5, -4.5);
+    dpl::complex<X> c3(3.5, -4.5);
     c = c3;
     assert(c.real() == 3.5);
     assert(c.imag() == -4.5);

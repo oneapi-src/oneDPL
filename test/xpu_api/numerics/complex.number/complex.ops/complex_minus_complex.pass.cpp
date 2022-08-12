@@ -19,7 +19,7 @@
 
 template <class T>
 void
-test(const std::complex<T>& lhs, const std::complex<T>& rhs, std::complex<T> x)
+test(const dpl::complex<T>& lhs, const dpl::complex<T>& rhs, dpl::complex<T> x)
 {
     assert(lhs - rhs == x);
 }
@@ -29,15 +29,15 @@ void
 test()
 {
     {
-    std::complex<T> lhs(1.5, 2.5);
-    std::complex<T> rhs(3.5, 4.5);
-    std::complex<T>   x(-2.0, -2.0);
+    dpl::complex<T> lhs(1.5, 2.5);
+    dpl::complex<T> rhs(3.5, 4.5);
+    dpl::complex<T>   x(-2.0, -2.0);
     test(lhs, rhs, x);
     }
     {
-    std::complex<T> lhs(1.5, -2.5);
-    std::complex<T> rhs(-3.5, 4.5);
-    std::complex<T>   x(5.0, -7.0);
+    dpl::complex<T> lhs(1.5, -2.5);
+    dpl::complex<T> rhs(-3.5, 4.5);
+    dpl::complex<T>   x(5.0, -7.0);
     test(lhs, rhs, x);
     }
 }

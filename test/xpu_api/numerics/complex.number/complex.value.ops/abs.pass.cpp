@@ -22,7 +22,7 @@ template <class T>
 void
 test()
 {
-    std::complex<T> z(3, 4);
+    dpl::complex<T> z(3, 4);
     assert(abs(z) == 5);
 }
 

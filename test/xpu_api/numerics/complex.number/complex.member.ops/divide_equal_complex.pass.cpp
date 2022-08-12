@@ -19,8 +19,8 @@ template <class T>
 void
 test()
 {
-    std::complex<T> c(-4, 7.5);
-    const std::complex<T> c2(1.5, 2.5);
+    dpl::complex<T> c(-4, 7.5);
+    const dpl::complex<T> c2(1.5, 2.5);
     assert(c.real() == -4);
     assert(c.imag() == 7.5);
     c /= c2;
@@ -30,16 +30,16 @@ test()
     assert(c.real() == 1);
     assert(c.imag() == 0);
 
-    std::complex<T> c3;
+    dpl::complex<T> c3;
 
     c3 = c;
-    std::complex<int> ic (1,1);
+    dpl::complex<int> ic (1,1);
     c3 /= ic;
     assert(c3.real() ==  0.5);
     assert(c3.imag() == -0.5);
 
     c3 = c;
-    std::complex<float> fc (1,1);
+    dpl::complex<float> fc (1,1);
     c3 /= fc;
     assert(c3.real() ==  0.5);
     assert(c3.imag() == -0.5);
