@@ -33,7 +33,7 @@ test()
     assert(c.imag() == -4.5);
 }
 
-int main(int, char**)
+void run_test()
 {
     test<float, float>();
     test<float, double>();
@@ -46,6 +46,11 @@ int main(int, char**)
     test<long double, float>();
     test<long double, double>();
     test<long double, long double>();
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

@@ -19,7 +19,7 @@
 
 #include "test_macros.h"
 
-int main(int, char**)
+void run_test()
 {
     {
     const dpl::complex<long double> cd(2.5, 3.5);
@@ -35,6 +35,11 @@ int main(int, char**)
     static_assert(cf.imag() == cd.imag(), "");
     }
 #endif
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }
