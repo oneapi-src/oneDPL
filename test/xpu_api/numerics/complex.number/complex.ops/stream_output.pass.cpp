@@ -20,7 +20,8 @@
 
 #include "test_macros.h"
 
-int main(int, char**) {
+void run_test()
+{
     // Basic test
     {
         dpl::complex<double> const c(1, 2);
@@ -134,6 +135,11 @@ int main(int, char**) {
             assert(os.str() == "(123,456)___xy");
         }
     }
+}
+
+int main(int, char**)
+{
+    run_test();
 
     return 0;
 }

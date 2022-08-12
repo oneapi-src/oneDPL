@@ -20,7 +20,7 @@
 
 #include "test_macros.h"
 
-int main(int, char**)
+void run_test()
 {
     {
         std::istringstream is("5");
@@ -99,6 +99,11 @@ int main(int, char**)
         assert(c == dpl::complex<double>(-5.5, -6.5));
         assert(!is.eof());
     }
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

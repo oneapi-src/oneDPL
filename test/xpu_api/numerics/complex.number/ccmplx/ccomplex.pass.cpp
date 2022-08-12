@@ -12,10 +12,15 @@
 
 #include "test_macros.h"
 
-int main(int, char**)
+void run_test()
 {
     dpl::complex<double> d;
     (void)d;
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

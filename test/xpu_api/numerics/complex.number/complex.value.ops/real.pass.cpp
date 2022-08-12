@@ -25,11 +25,16 @@ test()
     assert(real(z) == 1.5);
 }
 
-int main(int, char**)
+void run_test()
 {
     test<float>();
     test<double>();
     test<long double>();
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

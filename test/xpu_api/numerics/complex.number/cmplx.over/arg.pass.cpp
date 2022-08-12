@@ -46,7 +46,7 @@ test()
     test<T>(10);
 }
 
-int main(int, char**)
+void run_test()
 {
     test<float>();
     test<double>();
@@ -54,6 +54,11 @@ int main(int, char**)
     test<int>();
     test<unsigned>();
     test<long long>();
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

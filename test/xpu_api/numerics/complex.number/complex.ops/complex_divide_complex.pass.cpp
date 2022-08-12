@@ -150,12 +150,17 @@ void test_edges()
     }
 }
 
-int main(int, char**)
+void run_test()
 {
     test<float>();
     test<double>();
     test<long double>();
     test_edges();
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

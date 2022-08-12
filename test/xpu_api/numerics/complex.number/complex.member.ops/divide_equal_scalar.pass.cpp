@@ -37,11 +37,16 @@ test()
     assert(c.imag() == 4);
 }
 
-int main(int, char**)
+void run_test()
 {
     test<float>();
     test<double>();
     test<long double>();
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

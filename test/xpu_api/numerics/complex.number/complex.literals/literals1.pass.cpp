@@ -15,7 +15,7 @@
 
 #include "test_macros.h"
 
-int main(int, char**)
+void run_test()
 {
     using namespace std::literals;
 
@@ -39,6 +39,11 @@ int main(int, char**)
     auto c2 = 3if;
     assert ( c1 == c2 );
     }
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }

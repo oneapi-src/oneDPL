@@ -34,11 +34,16 @@ test()
     test(dpl::complex<T>(-1, -2), dpl::complex<T>(-1, 2));
 }
 
-int main(int, char**)
+void run_test()
 {
     test<float>();
     test<double>();
     test<long double>();
+}
+
+int main(int, char**)
+{
+    run_test();
 
   return 0;
 }
