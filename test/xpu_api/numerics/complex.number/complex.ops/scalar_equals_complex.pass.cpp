@@ -12,10 +12,7 @@
 //   bool
 //   operator==(const T& lhs, const complex<T>& rhs);
 
-#include <complex>
-#include <cassert>
-
-#include "test_macros.h"
+#include "support/test_complex.h"
 
 template <class T>
 void
@@ -73,17 +70,24 @@ test()
     test_constexpr<T> ();
 }
 
-void run_test()
+template <typename EnableDouble, typename EnableLongDouble>
+void
+run_test()
 {
     test<float>();
-    test<double>();
-    test<long double>();
-//     test_constexpr<int>();
+    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<double>(); });
+    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double>(); });
+    //     test_constexpr<int>();
 }
 
 int main(int, char**)
 {
-    run_test();
+    // Run on host
+    run_test<::std::true_type, ::std::true_type>();
 
-  return 0;
+    // Run test in Kernel
+    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
+                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
+
+    return TestUtils::done();
 }
