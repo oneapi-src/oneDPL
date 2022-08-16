@@ -31,6 +31,7 @@
 #include <iterator>
 #include <memory>
 #include <sstream>
+#include <strstream>
 #include <vector>
 
 #include "utils_const.h"
