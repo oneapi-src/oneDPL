@@ -14,11 +14,9 @@
 //   basic_istream<charT, traits>&
 //   operator>>(basic_istream<charT, traits>& is, complex<T>& x);
 
-#include <complex>
 #include <sstream>
-#include <cassert>
 
-#include "support/test_macros.h"
+#include "support/test_complex.h"
 
 void
 run_test()
