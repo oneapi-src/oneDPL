@@ -13,7 +13,7 @@
 #ifndef CASES_H
 #define CASES_H
 
-#include <complex>
+#include <oneapi/dpl/complex>
 #include <cassert>
 
 const dpl::complex<double> testcases[] =
