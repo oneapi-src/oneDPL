@@ -27,6 +27,7 @@ using ::std::complex;
 
 using ::std::arg;
 using ::std::conj;
+using ::std::real;
 
 template <class T>
 T
