@@ -9,29 +9,31 @@
 // UNSUPPORTED: c++03, c++11
 // <complex>
 
-#include <complex>
-#include <type_traits>
-#include <cassert>
+#include "support/test_complex.h"
 
-#include "test_macros.h"
-
-void run_test()
+template <typename EnableDouble, typename EnableLongDouble>
+void
+run_test()
 {
     using namespace std;
 
-    {
-    dpl::complex<long double> c1 = 3.0il;
-    assert ( c1 == dpl::complex<long double>(0, 3.0));
-    auto c2 = 3il;
-    assert ( c1 == c2 );
-    }
+    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{},
+                                         [&]()
+                                         {
+                                             dpl::complex<long double> c1 = 3.0il;
+                                             assert(c1 == dpl::complex<long double>(0, 3.0));
+                                             auto c2 = 3il;
+                                             assert(c1 == c2);
+                                         });
 
-    {
-    dpl::complex<double> c1 = 3.0i;
-    assert ( c1 == dpl::complex<double>(0, 3.0));
-    auto c2 = 3i;
-    assert ( c1 == c2 );
-    }
+    oneapi::dpl::__internal::__invoke_if(EnableDouble{},
+                                         [&]()
+                                         {
+                                             dpl::complex<double> c1 = 3.0i;
+                                             assert(c1 == dpl::complex<double>(0, 3.0));
+                                             auto c2 = 3i;
+                                             assert(c1 == c2);
+                                         });
 
     {
     dpl::complex<float> c1 = 3.0if;
@@ -43,7 +45,12 @@ void run_test()
 
 int main(int, char**)
 {
-    run_test();
+    // Run on host
+    run_test<::std::true_type, ::std::true_type>();
 
-  return 0;
+    // Run test in Kernel
+    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
+                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
+
+    return TestUtils::done();
 }
