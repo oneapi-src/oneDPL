@@ -18,9 +18,10 @@
 #include <sstream>
 #include <cassert>
 
-#include "test_macros.h"
+#include "support/test_macros.h"
 
-void run_test()
+void
+run_test()
 {
     {
         std::istringstream is("5");
@@ -103,7 +104,8 @@ void run_test()
 
 int main(int, char**)
 {
+    // Run on host
     run_test();
 
-  return 0;
+    return TestUtils::done();
 }
