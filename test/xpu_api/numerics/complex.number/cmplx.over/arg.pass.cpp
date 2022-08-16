@@ -14,27 +14,24 @@
 //   T
 //   arg(T x);
 
-#include <complex>
-#include <type_traits>
-#include <cassert>
+#include "support/test_complex.h"
 
-#include "test_macros.h"
 #include "../cases.h"
 
 template <class T>
 void
 test(T x, typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 {
-    static_assert((std::is_same<decltype(std::arg(x)), double>::value), "");
-    assert(std::arg(x) == arg(dpl::complex<double>(static_cast<double>(x), 0)));
+    static_assert((std::is_same<decltype(dpl::arg(x)), double>::value), "");
+    assert(dpl::arg(x) == arg(dpl::complex<double>(static_cast<double>(x), 0)));
 }
 
 template <class T>
 void
 test(T x, typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
 {
-    static_assert((std::is_same<decltype(std::arg(x)), T>::value), "");
-    assert(std::arg(x) == arg(dpl::complex<T>(x, 0)));
+    static_assert((std::is_same<decltype(dpl::arg(x)), T>::value), "");
+    assert(dpl::arg(x) == dpl::arg(dpl::complex<T>(x, 0)));
 }
 
 template <class T>
@@ -46,11 +43,13 @@ test()
     test<T>(10);
 }
 
-void run_test()
+template <typename EnableDouble, typename EnableLongDouble>
+void
+run_test()
 {
     test<float>();
-    test<double>();
-    test<long double>();
+    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<double>(); });
+    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double>(); });
     test<int>();
     test<unsigned>();
     test<long long>();
@@ -58,7 +57,12 @@ void run_test()
 
 int main(int, char**)
 {
-    run_test();
+    // Run on host
+    run_test<::std::true_type, ::std::true_type>();
 
-  return 0;
+    // Run test in Kernel
+    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
+                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
+
+    return TestUtils::done();
 }
