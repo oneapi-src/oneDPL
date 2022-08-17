@@ -12,10 +12,8 @@
 //   T
 //   abs(const complex<T>& x);
 
-#include <complex>
-#include <cassert>
+#include "support/test_complex.h"
 
-#include "test_macros.h"
 #include "../cases.h"
 
 template <class T>
@@ -23,7 +21,7 @@ void
 test()
 {
     dpl::complex<T> z(3, 4);
-    assert(abs(z) == 5);
+    assert(dpl::abs(z) == 5);
 }
 
 void test_edges()
@@ -31,7 +29,7 @@ void test_edges()
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
     {
-        double r = abs(testcases[i]);
+        double r = dpl::abs(testcases[i]);
         switch (classify(testcases[i]))
         {
         case zero:
@@ -54,17 +52,24 @@ void test_edges()
     }
 }
 
-void run_test()
+template <typename EnableDouble, typename EnableLongDouble>
+void
+run_test()
 {
     test<float>();
-    test<double>();
-    test<long double>();
-    test_edges();
+    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<double>(); });
+    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double>(); });
+    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test_edges(); });
 }
 
 int main(int, char**)
 {
-    run_test();
+    // Run on host
+    run_test<::std::true_type, ::std::true_type>();
 
-  return 0;
+    // Run test in Kernel
+    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
+                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
+
+    return TestUtils::done();
 }

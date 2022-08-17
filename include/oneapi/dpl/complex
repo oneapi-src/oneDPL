@@ -25,6 +25,14 @@ namespace dpl
 {
 using ::std::complex;
 using ::std::conj;
+
+template <class T>
+T
+abs(const complex<T>& z)
+{
+    return ::std::abs(z);
+}
+
 } // namespace dpl
 } // namespace oneapi
 
