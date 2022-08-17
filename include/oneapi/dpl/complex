@@ -40,6 +40,26 @@ abs(const complex<T>& z)
     return ::std::abs(z);
 }
 
+template <class T>
+complex<T>
+pow(const complex<T>& x, const complex<T>& y)
+{
+    return ::std::pow(x, y);
+}
+
+template <class T>
+complex<T>
+pow(const complex<T>& x, const T& y)
+{
+    return ::std::pow(x, y);
+}
+
+template <class T>
+complex<T>
+pow(const T& x, const complex<T>& y)
+{
+    return ::std::pow(x, y);
+}
 } // namespace dpl
 } // namespace oneapi
 
