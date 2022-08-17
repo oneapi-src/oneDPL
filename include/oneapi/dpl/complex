@@ -133,36 +133,36 @@ pow(const T& x, const complex<T>& y)
 }
 
 template <class T>
-dpl::complex<T>
-sin(const dpl::complex<T>& z)
+complex<T>
+sin(const complex<T>& z)
 {
     return ::std::sin(z);
 }
 
 template <class T>
-dpl::complex<T>
-sinh(const dpl::complex<T>& z)
+complex<T>
+sinh(const complex<T>& z)
 {
     return ::std::sinh(z);
 }
 
 template <class T>
-dpl::complex<T>
-sqrt(const dpl::complex<T>& z)
+complex<T>
+sqrt(const complex<T>& z)
 {
     return ::std::sqrt(z);
 }
 
 template <class T>
-dpl::complex<T>
-tan(const dpl::complex<T>& z)
+complex<T>
+tan(const complex<T>& z)
 {
     return ::std::tan(z);
 }
 
 template <class T>
-dpl::complex<T>
-tanh(const dpl::complex<T>& z)
+complex<T>
+tanh(const complex<T>& z)
 {
     return ::std::tanh(z);
 }
