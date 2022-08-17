@@ -91,6 +91,13 @@ pow(const T& x, const dpl::complex<T>& y)
 
 template <class T>
 dpl::complex<T>
+sin(const dpl::complex<T>& z)
+{
+    return ::std::sin(z);
+}
+
+template <class T>
+dpl::complex<T>
 tan(const dpl::complex<T>& z)
 {
     return ::std::tan(z);
