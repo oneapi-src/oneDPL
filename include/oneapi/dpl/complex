@@ -97,6 +97,13 @@ tan(const dpl::complex<T>& z)
     return ::std::tan(z);
 }
 
+template <class T>
+dpl::complex<T>
+tanh(const dpl::complex<T>& z)
+{
+    return ::std::tanh(z);
+}
+
 } // namespace dpl
 } // namespace oneapi
 
