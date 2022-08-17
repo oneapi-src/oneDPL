@@ -23,8 +23,8 @@ void
 test(const dpl::complex<T>& a, const T& b, dpl::complex<T> x)
 {
     dpl::complex<T> c = dpl::pow(a, b);
-    is_about(real(c), real(x));
-    is_about(imag(c), imag(x));
+    is_about(dpl::real(c), dpl::real(x));
+    is_about(dpl::imag(c), dpl::imag(x));
 }
 
 template <class T>
@@ -41,19 +41,19 @@ void test_edges()
     {
         for (unsigned j = 0; j < N; ++j)
         {
-            dpl::complex<double> r = dpl::pow(testcases[i], real(testcases[j]));
-            dpl::complex<double> z = dpl::exp(dpl::complex<double>(real(testcases[j])) * log(testcases[i]));
-            if (std::isnan(real(r)))
-                assert(std::isnan(real(z)));
+            dpl::complex<double> r = dpl::pow(testcases[i], dpl::real(testcases[j]));
+            dpl::complex<double> z = dpl::exp(dpl::complex<double>(dpl::real(testcases[j])) * dpl::log(testcases[i]));
+            if (std::isnan(dpl::real(r)))
+                assert(std::isnan(dpl::real(z)));
             else
             {
-                assert(real(r) == real(z));
+                assert(dpl::real(r) == dpl::real(z));
             }
-            if (std::isnan(imag(r)))
-                assert(std::isnan(imag(z)));
+            if (std::isnan(dpl::imag(r)))
+                assert(std::isnan(dpl::imag(z)));
             else
             {
-                assert(imag(r) == imag(z));
+                assert(dpl::imag(r) == dpl::imag(z));
             }
         }
     }
