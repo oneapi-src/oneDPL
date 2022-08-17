@@ -214,8 +214,7 @@ pipeline {
                                         exit -1
                                     fi
                                     cd ${env.OneAPI_Package_Date}
-                                    mv ./build/linux_prod/dpl/linux/include/oneapi/dpl include.bak
-                                    cp -rf ../src/include/oneapi/dpl ./build/linux_prod/dpl/linux/include/oneapi/
+                                    cp -rf ../src/include/oneapi ./build/linux_prod/dpcpp-ct/include
                                 """, label: "Generate environment vars"
                             }
                             catch (e) {
@@ -315,3 +314,4 @@ pipeline {
     }
 
 }
+

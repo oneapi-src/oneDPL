@@ -247,7 +247,7 @@ pipeline {
                                         d:
                                         cd ${env.WORKSPACE}
                                         call D:\\netbatch\\iusers\\oneDPL_CI\\setup_env.bat ${env.OneAPI_Package_Date}
-                                        wcontext && call ${env.WORKSPACE}\\win_prod\\compiler\\env\\vars.bat && call ${env.WORKSPACE}\\win_prod\\dpl\\env\\vars.bat && set>envs_tobe_loaded.txt
+                                        wcontext && call ${env.WORKSPACE}\\win_prod\\compiler\\env\\vars.bat && call ${env.WORKSPACE}\\win_prod\\dpcpp-ct\\env\\vars.bat && set>envs_tobe_loaded.txt
                                      """
                                 oneapi_env = readFile('envs_tobe_loaded.txt').split('\r\n') as List
                             }
@@ -403,3 +403,4 @@ pipeline {
     }
 
 }
+
