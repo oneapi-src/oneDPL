@@ -35,6 +35,7 @@ using ::std::complex;
 using ::std::conj;
 using ::std::exp;
 using ::std::imag;
+using ::std::norm;
 using ::std::real;
 } // namespace dpl
 } // namespace oneapi
