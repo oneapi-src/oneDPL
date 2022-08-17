@@ -85,8 +85,8 @@ void test_edges()
                 assert(classify(z) == inf);
                 if (classify(theta) != NaN && classify(theta) != inf)
                 {
-                    assert(classify(real(z)) != NaN);
-                    assert(classify(imag(z)) != NaN);
+                    assert(classify(dpl::real(z)) != NaN);
+                    assert(classify(dpl::imag(z)) != NaN);
                 }
             }
             break;
