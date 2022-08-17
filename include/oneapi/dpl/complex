@@ -63,6 +63,13 @@ asin(const dpl::complex<T>& z)
 
 template <class T>
 dpl::complex<T>
+asinh(const dpl::complex<T>& z)
+{
+    return ::std::asinh(z);
+}
+
+template <class T>
+dpl::complex<T>
 cos(const dpl::complex<T>& z)
 {
     return ::std::cos(z);
