@@ -64,6 +64,13 @@ asin(const complex<T>& z)
 
 template <class T>
 complex<T>
+asinh(const complex<T>& z)
+{
+    return ::std::asinh(z);
+}
+
+template <class T>
+complex<T>
 cos(const complex<T>& z)
 {
     return ::std::cos(z);
