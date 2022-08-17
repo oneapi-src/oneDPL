@@ -89,6 +89,14 @@ pow(const T& x, const complex<T>& y)
 {
     return ::std::pow(x, y);
 }
+
+template <class T>
+dpl::complex<T>
+tan(const dpl::complex<T>& z)
+{
+    return ::std::tan(z);
+}
+
 } // namespace dpl
 } // namespace oneapi
 
