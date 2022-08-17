@@ -20,16 +20,16 @@ template <class T>
 void
 test(T x, typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 {
-    static_assert((std::is_same<decltype(std::norm(x)), double>::value), "");
-    assert(std::norm(x) == dpl::norm(dpl::complex<double>(static_cast<double>(x), 0)));
+    static_assert((std::is_same<decltype(dpl::norm(x)), double>::value), "");
+    assert(dpl::norm(x) == dpl::norm(dpl::complex<double>(static_cast<double>(x), 0)));
 }
 
 template <class T>
 void
 test(T x, typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
 {
-    static_assert((std::is_same<decltype(std::norm(x)), T>::value), "");
-    assert(std::norm(x) == dpl::norm(dpl::complex<T>(x, 0)));
+    static_assert((std::is_same<decltype(dpl::norm(x)), T>::value), "");
+    assert(dpl::norm(x) == dpl::norm(dpl::complex<T>(x, 0)));
 }
 
 template <class T>
