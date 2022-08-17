@@ -77,6 +77,13 @@ atan(const dpl::complex<T>& z)
 
 template <class T>
 dpl::complex<T>
+atanh(const dpl::complex<T>& z)
+{
+    return ::std::atanh(z);
+}
+
+template <class T>
+dpl::complex<T>
 cos(const dpl::complex<T>& z)
 {
     return ::std::cos(z);
