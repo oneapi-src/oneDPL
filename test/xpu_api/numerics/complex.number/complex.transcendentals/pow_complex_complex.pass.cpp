@@ -23,8 +23,8 @@ void
 test(const dpl::complex<T>& a, const dpl::complex<T>& b, dpl::complex<T> x)
 {
     dpl::complex<T> c = dpl::pow(a, b);
-    is_about(real(c), real(x));
-    is_about(imag(c), imag(x));
+    is_about(dpl::real(c), dpl::real(x));
+    is_about(dpl::imag(c), dpl::imag(x));
 }
 
 template <class T>
@@ -42,20 +42,20 @@ void test_edges()
         for (unsigned j = 0; j < N; ++j)
         {
             dpl::complex<double> r = dpl::pow(testcases[i], testcases[j]);
-            dpl::complex<double> z = dpl::exp(testcases[j] * log(testcases[i]));
-            if (std::isnan(real(r)))
-                assert(std::isnan(real(z)));
+            dpl::complex<double> z = dpl::exp(testcases[j] * dpl::log(testcases[i]));
+            if (std::isnan(dpl::real(r)))
+                assert(std::isnan(dpl::real(z)));
             else
             {
-                assert(real(r) == real(z));
-                assert(std::signbit(real(r)) == std::signbit(real(z)));
+                assert(dpl::real(r) == dpl::real(z));
+                assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
             }
-            if (std::isnan(imag(r)))
-                assert(std::isnan(imag(z)));
+            if (std::isnan(dpl::imag(r)))
+                assert(std::isnan(dpl::imag(z)));
             else
             {
-                assert(imag(r) == imag(z));
-                assert(std::signbit(imag(r)) == std::signbit(imag(z)));
+                assert(dpl::imag(r) == dpl::imag(z));
+                assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
             }
         }
     }
