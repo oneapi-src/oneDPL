@@ -148,6 +148,13 @@ sinh(const dpl::complex<T>& z)
 
 template <class T>
 dpl::complex<T>
+sqrt(const dpl::complex<T>& z)
+{
+    return ::std::sqrt(z);
+}
+
+template <class T>
+dpl::complex<T>
 tan(const dpl::complex<T>& z)
 {
     return ::std::tan(z);
