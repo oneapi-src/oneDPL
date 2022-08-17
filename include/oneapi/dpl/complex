@@ -56,6 +56,13 @@ acosh(const dpl::complex<T>& z)
 
 template <class T>
 dpl::complex<T>
+cos(const dpl::complex<T>& z)
+{
+    return ::std::cos(z);
+}
+
+template <class T>
+dpl::complex<T>
 pow(const dpl::complex<T>& x, const dpl::complex<T>& y)
 {
     return ::std::pow(x, y);
