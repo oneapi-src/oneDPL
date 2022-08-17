@@ -24,6 +24,8 @@ namespace oneapi
 namespace dpl
 {
 using ::std::complex;
+
+using ::std::arg;
 using ::std::conj;
 
 template <class T>
