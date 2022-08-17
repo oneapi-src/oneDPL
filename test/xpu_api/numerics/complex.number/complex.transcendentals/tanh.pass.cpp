@@ -57,7 +57,7 @@ void test_edges()
         {
             assert(r.real() == (testcases[i].real() > 0 ? 1 : -1));
             assert(r.imag() == 0);
-            assert(std::signbit(r.imag()) == std::signbit(sin(2 * testcases[i].imag())));
+            assert(std::signbit(r.imag()) == std::signbit(dpl::sin(2 * testcases[i].imag())));
         }
         else if (std::isinf(testcases[i].real()) && std::isinf(testcases[i].imag()))
         {
