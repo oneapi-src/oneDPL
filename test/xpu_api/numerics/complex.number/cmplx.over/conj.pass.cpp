@@ -22,16 +22,16 @@ template <class T>
 void
 test(T x, typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 {
-    static_assert((std::is_same<decltype(::std::conj(x)), dpl::complex<double> >::value), "");
-    assert(::std::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
+    static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<double> >::value), "");
+    assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
 }
 
 template <class T>
 void
 test(T x, typename std::enable_if<std::is_floating_point<T>::value>::type* = 0)
 {
-    static_assert((std::is_same<decltype(::std::conj(x)), dpl::complex<T>>::value), "");
-    assert(::std::conj(x) == dpl::conj(dpl::complex<T>(x, 0)));
+    static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<T>>::value), "");
+    assert(dpl::conj(x) == dpl::conj(dpl::complex<T>(x, 0)));
 }
 
 template <class T>
@@ -39,8 +39,8 @@ void
 test(T x, typename std::enable_if<!std::is_integral<T>::value &&
                                   !std::is_floating_point<T>::value>::type* = 0)
 {
-    static_assert((std::is_same<decltype(::std::conj(x)), dpl::complex<T>>::value), "");
-    assert(::std::conj(x) == dpl::conj(dpl::complex<T>(x, 0)));
+    static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<T>>::value), "");
+    assert(dpl::conj(x) == dpl::conj(dpl::complex<T>(x, 0)));
 }
 
 template <class T>
