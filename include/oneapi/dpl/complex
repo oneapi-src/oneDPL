@@ -30,6 +30,7 @@ using ::std::conj;
 using ::std::exp;
 using ::std::imag;
 using ::std::norm;
+using ::std::polar;
 using ::std::proj;
 using ::std::real;
 
