@@ -44,13 +44,13 @@ void test_edges()
         case zero:
         case non_zero:
             assert(r == testcases[i]);
-            assert(std::signbit(real(r)) == std::signbit(real(testcases[i])));
-            assert(std::signbit(imag(r)) == std::signbit(imag(testcases[i])));
+            assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(testcases[i])));
+            assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(testcases[i])));
             break;
         case inf:
-            assert(std::isinf(real(r)) && real(r) > 0);
-            assert(imag(r) == 0);
-            assert(std::signbit(imag(r)) == std::signbit(imag(testcases[i])));
+            assert(std::isinf(dpl::real(r)) && dpl::real(r) > 0);
+            assert(dpl::imag(r) == 0);
+            assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(testcases[i])));
             break;
         case NaN:
         case non_zero_nan:
