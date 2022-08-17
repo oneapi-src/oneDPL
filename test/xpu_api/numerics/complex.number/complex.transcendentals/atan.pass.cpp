@@ -39,21 +39,21 @@ void test_edges()
     {
         dpl::complex<double> r = dpl::atan(testcases[i]);
         dpl::complex<double> t1(-imag(testcases[i]), real(testcases[i]));
-        dpl::complex<double> t2 = atanh(t1);
+        dpl::complex<double> t2 = dpl::atanh(t1);
         dpl::complex<double> z(imag(t2), -real(t2));
-        if (std::isnan(real(r)))
-            assert(std::isnan(real(z)));
+        if (std::isnan(dpl::real(r)))
+            assert(std::isnan(dpl::real(z)));
         else
         {
-            assert(real(r) == real(z));
-            assert(std::signbit(real(r)) == std::signbit(real(z)));
+            assert(dpl::real(r) == dpl::real(z));
+            assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
         }
-        if (std::isnan(imag(r)))
-            assert(std::isnan(imag(z)));
+        if (std::isnan(dpl::imag(r)))
+            assert(std::isnan(dpl::imag(z)));
         else
         {
-            assert(imag(r) == imag(z));
-            assert(std::signbit(imag(r)) == std::signbit(imag(z)));
+            assert(dpl::imag(r) == dpl::imag(z));
+            assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
         }
     }
 }
