@@ -106,6 +106,13 @@ log(const complex<T>& z)
 
 template <class T>
 complex<T>
+log10(const complex<T>& z)
+{
+    return ::std::log10(z);
+}
+
+template <class T>
+complex<T>
 pow(const complex<T>& x, const complex<T>& y)
 {
     return ::std::pow(x, y);
