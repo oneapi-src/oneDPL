@@ -23,7 +23,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <complex>
+#include <oneapi/dpl/complex>
 
 template<typename _T1, typename _T2>
 void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
@@ -281,18 +281,18 @@ void test_on_host() {
 int main() {
 #if TEST_DPCPP_BACKEND_PRESENT
     test_with_buffers<class KernelName1, std::uint64_t>();
-    test_with_buffers<class KernelName2, std::complex<float>>();
+    test_with_buffers<class KernelName2, dpl::complex<float>>();
     // Run tests for USM shared memory
     test_with_usm<sycl::usm::alloc::shared, class KernelName3, std::uint64_t>();
-    test_with_usm<sycl::usm::alloc::shared, class KernelName4, std::complex<float>>();
+    test_with_usm<sycl::usm::alloc::shared, class KernelName4, dpl::complex<float>>();
     // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device, class KernelName5, std::uint64_t>();
-    test_with_usm<sycl::usm::alloc::device, class KernelName6, std::complex<float>>();
+    test_with_usm<sycl::usm::alloc::device, class KernelName6, dpl::complex<float>>();
 
     test_with_vector();
 #endif
     test_on_host<int>();
-    test_on_host<std::complex<float>>();
+    test_on_host<dpl::complex<float>>();
 
     return TestUtils::done();
 }
