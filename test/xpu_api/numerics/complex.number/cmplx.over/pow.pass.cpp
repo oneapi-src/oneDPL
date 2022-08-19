@@ -100,4 +100,6 @@ ONEDPL_TEST_NUM_MAIN
 
     RUN_IF_LDOUBLE_SUPPORT(test<long double, float>())
     RUN_IF_LDOUBLE_SUPPORT(test<long double, double>())
+
+  return 0;
 }
