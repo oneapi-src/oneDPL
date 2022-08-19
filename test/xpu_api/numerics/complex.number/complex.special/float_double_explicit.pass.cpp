@@ -16,9 +16,7 @@
 
 #include "support/test_complex.h"
 
-template <typename EnableDouble, typename EnableLongDouble>
-void
-run_test()
+ONEDPL_TEST_NUM_MAIN
 {
     oneapi::dpl::__internal::__invoke_if(EnableDouble{},
                                          [&]()
@@ -38,16 +36,4 @@ run_test()
                                              static_assert(cf.imag() == cd.imag(), "");
                                          });
 #endif
-}
-
-int main(int, char**)
-{
-    // Run on host
-    run_test<::std::true_type, ::std::true_type>();
-
-    // Run test in Kernel
-    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
-                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
-
-    return TestUtils::done();
 }
