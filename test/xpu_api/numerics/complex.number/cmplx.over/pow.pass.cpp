@@ -81,23 +81,23 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
 ONEDPL_TEST_NUM_MAIN
 {
     test<int, float>();
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<int, double>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<int, long double>(); });
+    RUN_IF_DOUBLE_SUPPORT(test<int, double>())
+    RUN_IF_LDOUBLE_SUPPORT(test<int, long double>())
 
     test<unsigned, float>();
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<unsigned, double>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<unsigned, long double>(); });
+    RUN_IF_DOUBLE_SUPPORT(test<unsigned, double>())
+    RUN_IF_LDOUBLE_SUPPORT(test<unsigned, long double>())
 
     test<long long, float>();
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<long long, double>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long long, long double>(); });
+    RUN_IF_DOUBLE_SUPPORT(test<long long, double>())
+    RUN_IF_LDOUBLE_SUPPORT(test<long long, long double>())
 
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<float, double>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<float, long double>(); });
+    RUN_IF_DOUBLE_SUPPORT(test<float, double>())
+    RUN_IF_LDOUBLE_SUPPORT(test<float, long double>())
 
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<double, float>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<double, long double>(); });
+    RUN_IF_DOUBLE_SUPPORT(test<double, float>())
+    RUN_IF_LDOUBLE_SUPPORT(test<double, long double>())
 
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double, float>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double, double>(); });
+    RUN_IF_LDOUBLE_SUPPORT(test<long double, float>())
+    RUN_IF_LDOUBLE_SUPPORT(test<long double, double>())
 }
