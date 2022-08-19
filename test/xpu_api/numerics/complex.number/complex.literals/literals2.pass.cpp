@@ -11,9 +11,7 @@
 
 #include "support/test_complex.h"
 
-template <typename EnableDouble, typename EnableLongDouble>
-void
-run_test()
+ONEDPL_TEST_NUM_MAIN
 {
     using namespace std;
 
@@ -41,16 +39,4 @@ run_test()
     auto c2 = 3if;
     assert ( c1 == c2 );
     }
-}
-
-int main(int, char**)
-{
-    // Run on host
-    run_test<::std::true_type, ::std::true_type>();
-
-    // Run test in Kernel
-    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
-                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
-
-    return TestUtils::done();
 }
