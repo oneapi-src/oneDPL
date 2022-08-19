@@ -27,6 +27,25 @@
 
 #include "test_macros.h"
 
+#define ONEDPL_TEST_NUM_MAIN                                                                    \
+template <typename EnableDouble, typename EnableLongDouble>                                     \
+void                                                                                            \
+run_test();                                                                                     \
+                                                                                                \
+int main(int, char**)                                                                           \
+{                                                                                               \
+    run_test<::std::true_type, ::std::true_type>();                                             \
+                                                                                                \
+    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },   \
+                                  [&]() { run_test<::std::false_type, ::std::false_type>(); }); \
+                                                                                                \
+    return TestUtils::done();                                                                   \
+}                                                                                               \
+                                                                                                \
+template <typename EnableDouble, typename EnableLongDouble>                                     \
+void                                                                                            \
+run_test()
+
 namespace TestUtils
 {
     /**
