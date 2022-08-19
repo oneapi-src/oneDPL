@@ -49,24 +49,10 @@ test()
     test_constexpr<T> ();
 }
 
-template <typename EnableDouble, typename EnableLongDouble>
-void
-run_test()
+ONEDPL_TEST_NUM_MAIN
 {
     test<float>();
     oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<double>(); });
     oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double>(); });
     //    test_constexpr<int> ();
-}
-
-int main(int, char**)
-{
-    // Run on host
-    run_test<::std::true_type, ::std::true_type>();
-
-    // Run test in Kernel
-    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
-                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
-
-    return TestUtils::done();
 }
