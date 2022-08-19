@@ -74,7 +74,7 @@ ONEDPL_TEST_NUM_MAIN
 {
     test<float>();
     INVOKE_IF_DOUBLE_SUPPORT(test<double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double>())
     //     test_constexpr<int>();
 
   return 0;

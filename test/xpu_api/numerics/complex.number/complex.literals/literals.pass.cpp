@@ -23,10 +23,10 @@ ONEDPL_TEST_NUM_MAIN
     static_assert ( std::is_same<decltype( 3.0if ), dpl::complex<float>>::value, "" );
     static_assert ( std::is_same<decltype( 3if   ), dpl::complex<float>>::value, "" );
 
-    RUN_IF_LDOUBLE_SUPPORT(dpl::complex<long double> c1 = 3.0il;
-                           assert(c1 == dpl::complex<long double>(0, 3.0));
-                           auto c2 = 3il;
-                           assert(c1 == c2))
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(dpl::complex<long double> c1 = 3.0il;
+                                  assert(c1 == dpl::complex<long double>(0, 3.0));
+                                  auto c2 = 3il;
+                                  assert(c1 == c2))
 
     INVOKE_IF_DOUBLE_SUPPORT(dpl::complex<double> c1 = 3.0i;
                           assert(c1 == dpl::complex<double>(0, 3.0));
