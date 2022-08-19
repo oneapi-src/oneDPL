@@ -29,7 +29,7 @@
 
 #define ONEDPL_TEST_NUM_MAIN                                                                    \
 template <typename EnableDouble, typename EnableLongDouble>                                     \
-void                                                                                            \
+int                                                                                             \
 run_test();                                                                                     \
                                                                                                 \
 int main(int, char**)                                                                           \
@@ -43,7 +43,7 @@ int main(int, char**)                                                           
 }                                                                                               \
                                                                                                 \
 template <typename EnableDouble, typename EnableLongDouble>                                     \
-void                                                                                            \
+int                                                                                             \
 run_test()
 
 #define RUN_IF_DOUBLE_SUPPORT(x)                                                                \
