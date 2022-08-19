@@ -34,15 +34,15 @@ ONEDPL_TEST_NUM_MAIN
 {
     test<float, float>();
     INVOKE_IF_DOUBLE_SUPPORT(test<float, double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<float, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<float, long double>())
 
     INVOKE_IF_DOUBLE_SUPPORT(test<double, float>())
     INVOKE_IF_DOUBLE_SUPPORT(test<double, double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<double, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<double, long double>())
 
-    RUN_IF_LDOUBLE_SUPPORT(test<long double, float>())
-    RUN_IF_LDOUBLE_SUPPORT(test<long double, double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<long double, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double, float>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double, double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double, long double>())
 
   return 0;
 }

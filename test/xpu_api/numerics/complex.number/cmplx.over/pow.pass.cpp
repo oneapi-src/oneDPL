@@ -82,24 +82,24 @@ ONEDPL_TEST_NUM_MAIN
 {
     test<int, float>();
     INVOKE_IF_DOUBLE_SUPPORT(test<int, double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<int, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<int, long double>())
 
     test<unsigned, float>();
     INVOKE_IF_DOUBLE_SUPPORT(test<unsigned, double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<unsigned, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<unsigned, long double>())
 
     test<long long, float>();
     INVOKE_IF_DOUBLE_SUPPORT(test<long long, double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<long long, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long long, long double>())
 
     INVOKE_IF_DOUBLE_SUPPORT(test<float, double>())
-    RUN_IF_LDOUBLE_SUPPORT(test<float, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<float, long double>())
 
     INVOKE_IF_DOUBLE_SUPPORT(test<double, float>())
-    RUN_IF_LDOUBLE_SUPPORT(test<double, long double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<double, long double>())
 
-    RUN_IF_LDOUBLE_SUPPORT(test<long double, float>())
-    RUN_IF_LDOUBLE_SUPPORT(test<long double, double>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double, float>())
+    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double, double>())
 
   return 0;
 }
