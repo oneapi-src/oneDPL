@@ -18,13 +18,13 @@
 
 ONEDPL_TEST_NUM_MAIN
 {
-    RUN_IF_DOUBLE_SUPPORT(const dpl::complex<float> cd(2.5, 3.5);
+    INVOKE_IF_DOUBLE_SUPPORT(const dpl::complex<float> cd(2.5, 3.5);
                           dpl::complex<double> cf = cd;
                           assert(cf.real() == cd.real());
                           assert(cf.imag() == cd.imag()))
 
 #if TEST_STD_VER >= 11
-    RUN_IF_DOUBLE_SUPPORT(constexpr dpl::complex<float> cd(2.5, 3.5);
+    INVOKE_IF_DOUBLE_SUPPORT(constexpr dpl::complex<float> cd(2.5, 3.5);
                           constexpr dpl::complex<double> cf = cd;
                           static_assert(cf.real() == cd.real(), "");
                           static_assert(cf.imag() == cd.imag(), ""))

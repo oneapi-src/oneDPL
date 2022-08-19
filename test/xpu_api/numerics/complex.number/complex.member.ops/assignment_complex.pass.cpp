@@ -33,11 +33,11 @@ test()
 ONEDPL_TEST_NUM_MAIN
 {
     test<float, float>();
-    RUN_IF_DOUBLE_SUPPORT(test<float, double>())
+    INVOKE_IF_DOUBLE_SUPPORT(test<float, double>())
     RUN_IF_LDOUBLE_SUPPORT(test<float, long double>())
 
-    RUN_IF_DOUBLE_SUPPORT(test<double, float>())
-    RUN_IF_DOUBLE_SUPPORT(test<double, double>())
+    INVOKE_IF_DOUBLE_SUPPORT(test<double, float>())
+    INVOKE_IF_DOUBLE_SUPPORT(test<double, double>())
     RUN_IF_LDOUBLE_SUPPORT(test<double, long double>())
 
     RUN_IF_LDOUBLE_SUPPORT(test<long double, float>())
