@@ -76,4 +76,6 @@ ONEDPL_TEST_NUM_MAIN
     RUN_IF_DOUBLE_SUPPORT(test<double>())
     RUN_IF_LDOUBLE_SUPPORT(test<long double>())
     //     test_constexpr<int>();
+
+  return 0;
 }
