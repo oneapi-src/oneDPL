@@ -15,23 +15,15 @@ ONEDPL_TEST_NUM_MAIN
 {
     using namespace std::literals;
 
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{},
-                                         [&]()
-                                         {
-                                             dpl::complex<long double> c1 = 3.0il;
-                                             assert(c1 == dpl::complex<long double>(0, 3.0));
-                                             auto c2 = 3il;
-                                             assert(c1 == c2);
-                                         });
+    RUN_IF_LDOUBLE_SUPPORT(dpl::complex<long double> c1 = 3.0il;
+                           assert(c1 == dpl::complex<long double>(0, 3.0));
+                           auto c2 = 3il;
+                           assert(c1 == c2))
 
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{},
-                                         [&]()
-                                         {
-                                             dpl::complex<double> c1 = 3.0i;
-                                             assert(c1 == dpl::complex<double>(0, 3.0));
-                                             auto c2 = 3i;
-                                             assert(c1 == c2);
-                                         });
+    RUN_IF_DOUBLE_SUPPORT(dpl::complex<double> c1 = 3.0i;
+                          assert(c1 == dpl::complex<double>(0, 3.0));
+                          auto c2 = 3i;
+                          assert(c1 == c2))
 
     {
     dpl::complex<float> c1 = 3.0if;
