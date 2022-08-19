@@ -78,9 +78,7 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
     test(dpl::complex<T>(3, 4), dpl::complex<U>(5, 6));
 }
 
-template <typename EnableDouble, typename EnableLongDouble>
-void
-run_test()
+ONEDPL_TEST_NUM_MAIN
 {
     test<int, float>();
     oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<int, double>(); });
@@ -102,17 +100,4 @@ run_test()
 
     oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double, float>(); });
     oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double, double>(); });
-}
-
-int
-main(int, char**)
-{
-    // Run on host
-    run_test<::std::true_type, ::std::true_type>();
-
-    // Run test in Kernel
-    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },
-                                  [&]() { run_test<::std::false_type, ::std::false_type>(); });
-
-    return TestUtils::done();
 }
