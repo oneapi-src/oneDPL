@@ -28,4 +28,6 @@ ONEDPL_TEST_NUM_MAIN
                            static_assert(cf.real() == cd.real(), "");
                            static_assert(cf.imag() == cd.imag(), ""))
 #endif
+
+  return 0;
 }
