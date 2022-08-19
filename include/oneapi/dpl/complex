@@ -27,7 +27,6 @@ using ::std::complex;
 
 using ::std::arg;
 using ::std::conj;
-using ::std::exp;
 using ::std::imag;
 using ::std::norm;
 using ::std::polar;
@@ -95,6 +94,13 @@ complex<T>
 cosh(const complex<T>& z)
 {
     return ::std::cosh(z);
+}
+
+template <class T>
+complex<T>
+exp(const complex<T>& z)
+{
+    return ::std::exp(z);
 }
 
 template <class T>
