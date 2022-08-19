@@ -33,14 +33,14 @@ test()
 ONEDPL_TEST_NUM_MAIN
 {
     test<float, float>();
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<float, double>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<float, long double>(); });
+    RUN_IF_DOUBLE_SUPPORT(test<float, double>())
+    RUN_IF_LDOUBLE_SUPPORT(test<float, long double>())
 
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<double, float>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&]() { test<double, double>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<double, long double>(); });
+    RUN_IF_DOUBLE_SUPPORT(test<double, float>())
+    RUN_IF_DOUBLE_SUPPORT(test<double, double>())
+    RUN_IF_LDOUBLE_SUPPORT(test<double, long double>())
 
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double, float>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double, double>(); });
-    oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&]() { test<long double, long double>(); });
+    RUN_IF_LDOUBLE_SUPPORT(test<long double, float>())
+    RUN_IF_LDOUBLE_SUPPORT(test<long double, double>())
+    RUN_IF_LDOUBLE_SUPPORT(test<long double, long double>())
 }
