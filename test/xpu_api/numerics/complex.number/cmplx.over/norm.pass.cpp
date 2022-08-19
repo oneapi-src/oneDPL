@@ -49,4 +49,6 @@ ONEDPL_TEST_NUM_MAIN
     test<int>();
     test<unsigned>();
     test<long long>();
+
+  return 0;
 }
