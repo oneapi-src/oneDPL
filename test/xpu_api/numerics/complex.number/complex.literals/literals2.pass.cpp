@@ -31,4 +31,6 @@ ONEDPL_TEST_NUM_MAIN
     auto c2 = 3if;
     assert ( c1 == c2 );
     }
+
+  return 0;
 }
