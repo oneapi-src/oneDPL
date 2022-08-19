@@ -46,6 +46,13 @@ template <typename EnableDouble, typename EnableLongDouble>                     
 void                                                                                            \
 run_test()
 
+#define RUN_IF_DOUBLE_SUPPORT(x)                                                                \
+oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&] { x; });
+
+#define RUN_IF_LDOUBLE_SUPPORT(x)                                                               \
+oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&] { x; });
+
+
 namespace TestUtils
 {
     /**
