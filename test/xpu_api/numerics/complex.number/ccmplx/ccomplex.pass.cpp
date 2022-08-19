@@ -15,4 +15,6 @@ ONEDPL_TEST_NUM_MAIN
 {
     dpl::complex<double> d;
     (void)d;
+
+  return 0;
 }
