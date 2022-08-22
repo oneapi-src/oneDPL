@@ -18,8 +18,8 @@ ONEDPL_TEST_NUM_MAIN
 //  Make sure the types are right
     INVOKE_IF_LONG_DOUBLE_SUPPORT(static_assert ( std::is_same<decltype( 3.0il ), dpl::complex<long double>>::value, "" ))
     INVOKE_IF_LONG_DOUBLE_SUPPORT(static_assert ( std::is_same<decltype( 3il   ), dpl::complex<long double>>::value, "" ))
-    static_assert ( std::is_same<decltype( 3.0i  ), dpl::complex<double>>::value, "" );
-    static_assert ( std::is_same<decltype( 3i    ), dpl::complex<double>>::value, "" );
+    INVOKE_IF_DOUBLE_SUPPORT(static_assert(std::is_same<decltype(3.0i), dpl::complex<double>>::value, ""))
+    INVOKE_IF_DOUBLE_SUPPORT(static_assert(std::is_same<decltype(3i), dpl::complex<double>>::value, "" ))
     static_assert ( std::is_same<decltype( 3.0if ), dpl::complex<float>>::value, "" );
     static_assert ( std::is_same<decltype( 3if   ), dpl::complex<float>>::value, "" );
 
