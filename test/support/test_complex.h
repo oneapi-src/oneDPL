@@ -47,10 +47,10 @@ int                                                                             
 run_test()
 
 #define INVOKE_IF_DOUBLE_SUPPORT(x)                                                             \
-oneapi::dpl::__internal::__invoke_if(EnableDouble{}, [&] { x; });
+    if constexpr (EnableDouble::value) { x; }
 
-#define INVOKE_IF_LONG_DOUBLE_SUPPORT(x)                                \
-oneapi::dpl::__internal::__invoke_if(EnableLongDouble{}, [&] { x; });
+#define INVOKE_IF_LONG_DOUBLE_SUPPORT(x)                                                        \
+    if constexpr (EnableLongDouble::value) { x; }
 
 
 namespace TestUtils
