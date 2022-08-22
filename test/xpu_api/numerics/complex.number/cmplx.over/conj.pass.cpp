@@ -57,9 +57,9 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     INVOKE_IF_DOUBLE_SUPPORT(test<double>())
     INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    test<int>();
-    test<unsigned>();
-    test<long long>();
+    INVOKE_IF_DOUBLE_SUPPORT(test<int>())
+    INVOKE_IF_DOUBLE_SUPPORT(test<unsigned>())
+    INVOKE_IF_DOUBLE_SUPPORT(test<long long>())
 
   return 0;
 }
