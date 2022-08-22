@@ -18,7 +18,7 @@ New Features
   
 Fixed Issues
 ------------
-- Added namespace alias ``dpl = oneapi::dpl``.
+- Added namespace alias ``dpl = oneapi::dpl`` into all public headers.
 - Fixed error in ``reduce_by_segment`` algorithm.
 - Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
 - Fixed wrong results error in algorithms call with permutation iterator.
