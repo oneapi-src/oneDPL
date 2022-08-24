@@ -13,7 +13,7 @@
 
 ONEDPL_TEST_NUM_MAIN
 {
-    INVOKE_IF_DOUBLE_SUPPORT(dpl::complex<double> d; (void)d)
+    IF_DOUBLE_SUPPORT_IN_RUNTIME(dpl::complex<double> d; (void)d)
 
   return 0;
 }

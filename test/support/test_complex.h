@@ -28,7 +28,7 @@
 #include "test_macros.h"
 
 #define ONEDPL_TEST_NUM_MAIN                                                                    \
-template <typename EnableDouble, typename EnableLongDouble>                                     \
+template <typename HasRuntimeDoubleSupport, typename CanCompileCodeWithLongDoubleType>          \
 int                                                                                             \
 run_test();                                                                                     \
                                                                                                 \
@@ -42,15 +42,15 @@ int main(int, char**)                                                           
     return TestUtils::done();                                                                   \
 }                                                                                               \
                                                                                                 \
-template <typename EnableDouble, typename EnableLongDouble>                                     \
+template <typename HasRuntimeDoubleSupport, typename CanCompileCodeWithLongDoubleType>          \
 int                                                                                             \
 run_test()
 
-#define INVOKE_IF_DOUBLE_SUPPORT(x)                                                             \
-    if constexpr (EnableDouble::value) { x; }
+#define IF_DOUBLE_SUPPORT_IN_RUNTIME(x)                                                         \
+    if constexpr (HasRuntimeDoubleSupport::value) { x; }
 
-#define INVOKE_IF_LONG_DOUBLE_SUPPORT(x)                                                        \
-    if constexpr (EnableLongDouble::value) { x; }
+#define IF_CAN_COMPILE_LONG_DOUBLE(x)                                                           \
+    if constexpr (CanCompileCodeWithLongDoubleType::value) { x; }
 
 
 namespace TestUtils
