@@ -36,8 +36,21 @@ int main(int, char**)                                                           
 {                                                                                               \
     run_test<::std::true_type, ::std::true_type>();                                             \
                                                                                                 \
-    TestUtils::run_test_in_kernel([&]() { run_test<::std::true_type, ::std::false_type>(); },   \
-                                  [&]() { run_test<::std::false_type, ::std::false_type>(); }); \
+    /* Sometimes we may start test on device, which don't support type double. */               \
+    /* In this case generates run-time error.                                  */               \
+    /* This two types allow us to avoid this situation.                        */               \
+    using HasDoubleTypeSupport = ::std::true_type;                                              \
+    using HasntDoubleTypeSupport = ::std::false_type;                                           \
+                                                                                                \
+    /* long double type generate compile-time error in Kernel code             */               \
+    /* and we never can use this type inside Kernel                            */               \
+    using DoNotCompileCodeWithLongDouble = ::std::false_type;                                   \
+                                                                                                \
+    TestUtils::run_test_in_kernel(                                                              \
+        /* labbda for the case when we have support of double type on device */                 \
+        [&]() { run_test<HasDoubleTypeSupport, DoNotCompileCodeWithLongDouble>(); },            \
+        /* labbda for the case when we haven't support of double type on device */              \
+        [&]() { run_test<HasntDoubleTypeSupport, DoNotCompileCodeWithLongDouble>(); });         \
                                                                                                 \
     return TestUtils::done();                                                                   \
 }                                                                                               \
@@ -46,6 +59,9 @@ template <typename HasRuntimeDoubleSupport, typename CanCompileCodeWithLongDoubl
 int                                                                                             \
 run_test()
 
+// We should use this macros in cases when some code make
+// instantioation of with dpl::complex<double>
+// Example:
 #define IF_DOUBLE_SUPPORT_IN_RUNTIME(x)                                                         \
     if constexpr (HasRuntimeDoubleSupport::value) { x; }
 
