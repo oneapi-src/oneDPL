@@ -241,7 +241,12 @@ classify(double x)
 
 void is_about(float x, float y)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wliteral-range"
+
     assert(std::abs((x-y)/(x+y)) < 1.e-6);
+
+#pragma clang diagnostic pop
 }
 
 void is_about(double x, double y)

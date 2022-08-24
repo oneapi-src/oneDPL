@@ -22,9 +22,14 @@ template <class T>
 void
 test(const T& a, const dpl::complex<T>& b, dpl::complex<T> x)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wliteral-range"
+
     dpl::complex<T> c = dpl::pow(a, b);
     is_about(dpl::real(c), dpl::real(x));
     assert(std::abs(dpl::imag(c)) < 1.e-6);
+
+#pragma clang diagnostic pop
 }
 
 template <class T>
