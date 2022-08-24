@@ -91,6 +91,7 @@ run_test()
 #define IF_DOUBLE_SUPPORT_IN_RUNTIME(x)                                                         \
     if constexpr (HasRuntimeDoubleSupport::value) { x; }
 
+// We should use this macros to avoid compile code with long double type in Kernel
 #define IF_CAN_COMPILE_LONG_DOUBLE(x)                                                           \
     if constexpr (CanCompileCodeWithLongDoubleType::value) { x; }
 
