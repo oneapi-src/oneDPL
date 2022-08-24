@@ -81,25 +81,35 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
 ONEDPL_TEST_NUM_MAIN
 {
     test<int, float>();
-    INVOKE_IF_DOUBLE_SUPPORT(test<int, double>())
-    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<int, long double>())
-
+    if constexpr (EnableDouble::value)
+        test<int, double>();
+    if constexpr (EnableLongDouble::value)
+        test<int, long double>();
     test<unsigned, float>();
-    INVOKE_IF_DOUBLE_SUPPORT(test<unsigned, double>())
-    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<unsigned, long double>())
-
+    if constexpr (EnableDouble::value)
+        test<unsigned, double>();
+    if constexpr (EnableLongDouble::value)
+        test<unsigned, long double>();
     test<long long, float>();
-    INVOKE_IF_DOUBLE_SUPPORT(test<long long, double>())
-    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long long, long double>())
+    if constexpr (EnableDouble::value)
+        test<long long, double>();
+    if constexpr (EnableLongDouble::value)
+        test<long long, long double>();
 
-    INVOKE_IF_DOUBLE_SUPPORT(test<float, double>())
-    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<float, long double>())
+    if constexpr (EnableDouble::value)
+        test<float, double>();
+    if constexpr (EnableLongDouble::value)
+        test<float, long double>();
 
-    INVOKE_IF_DOUBLE_SUPPORT(test<double, float>())
-    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<double, long double>())
+    if constexpr (EnableDouble::value)
+        test<double, float>();
+    if constexpr (EnableLongDouble::value)
+        test<double, long double>();
 
-    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double, float>())
-    INVOKE_IF_LONG_DOUBLE_SUPPORT(test<long double, double>())
+    if constexpr (EnableLongDouble::value)
+        test<long double, float>();
+    if constexpr (EnableLongDouble::value)
+        test<long double, double>();
 
   return 0;
 }
