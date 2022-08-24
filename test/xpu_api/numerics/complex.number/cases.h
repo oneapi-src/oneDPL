@@ -195,8 +195,8 @@ template <class T>
 int
 classify(const dpl::complex<T>& x)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+CLANG_DIAGNOSTIC_PUSH
+CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
     if (x == dpl::complex<T>())
         return zero;
@@ -218,15 +218,15 @@ classify(const dpl::complex<T>& x)
     }
     return non_zero;
 
-#pragma clang diagnostic pop
+CLANG_DIAGNOSTIC_POP
 }
 
 inline
 int
 classify(double x)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+CLANG_DIAGNOSTIC_PUSH
+CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
     if (x == 0)
         return zero;
@@ -236,17 +236,17 @@ classify(double x)
         return NaN;
     return non_zero;
 
-#pragma clang diagnostic pop
+CLANG_DIAGNOSTIC_POP
 }
 
 void is_about(float x, float y)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wliteral-range"
+CLANG_DIAGNOSTIC_PUSH
+CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
 
     assert(std::abs((x-y)/(x+y)) < 1.e-6);
 
-#pragma clang diagnostic pop
+CLANG_DIAGNOSTIC_POP
 }
 
 void is_about(double x, double y)

@@ -22,14 +22,14 @@ template <class T>
 void
 test(const T& a, const dpl::complex<T>& b, dpl::complex<T> x)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wliteral-range"
+CLANG_DIAGNOSTIC_PUSH
+CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
 
     dpl::complex<T> c = dpl::pow(a, b);
     is_about(dpl::real(c), dpl::real(x));
     assert(std::abs(dpl::imag(c)) < 1.e-6);
 
-#pragma clang diagnostic pop
+CLANG_DIAGNOSTIC_POP
 }
 
 template <class T>
@@ -41,8 +41,8 @@ test()
 
 void test_edges()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+CLANG_DIAGNOSTIC_PUSH
+CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -66,7 +66,7 @@ void test_edges()
         }
     }
 
-#pragma clang diagnostic pop
+CLANG_DIAGNOSTIC_POP
 }
 
 ONEDPL_TEST_NUM_MAIN

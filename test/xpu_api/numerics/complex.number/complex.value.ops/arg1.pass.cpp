@@ -28,8 +28,8 @@ test()
 
 void test_edges()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+CLANG_DIAGNOSTIC_PUSH
+CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
     const double pi = std::atan2(+0., -0.);
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
@@ -128,7 +128,7 @@ void test_edges()
         }
     }
 
-#pragma clang diagnostic pop
+CLANG_DIAGNOSTIC_POP
 }
 
 ONEDPL_TEST_NUM_MAIN
