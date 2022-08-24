@@ -61,7 +61,33 @@ run_test()
 
 // We should use this macros in cases when some code make
 // instantioation of with dpl::complex<double>
+// 
 // Example:
+//     template <class T>
+//     void
+//     test(T x, typename std::enable_if<std::is_integral<T>::value>::type* = 0)
+//     {
+//         static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<double>>::value), "");
+// 
+//         // HERE IS THE CODE WHICH CALL WE SHOUD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
+//         assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
+//     }
+//     
+//     template <class T>
+//     void
+//     test()
+//     {
+//         // ...
+//         test<T>(1);
+//         // ...
+//     }
+//     
+//     ONEDPL_TEST_NUM_MAIN
+//     {
+//         // ...
+//         IF_DOUBLE_SUPPORT_IN_RUNTIME(test<int>())
+//         // ...
+//     }
 #define IF_DOUBLE_SUPPORT_IN_RUNTIME(x)                                                         \
     if constexpr (HasRuntimeDoubleSupport::value) { x; }
 
