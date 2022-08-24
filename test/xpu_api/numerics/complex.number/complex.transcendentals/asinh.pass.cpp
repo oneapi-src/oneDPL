@@ -34,6 +34,9 @@ test()
 
 void test_edges()
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+
     const double pi = std::atan2(+0., -0.);
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -116,6 +119,8 @@ void test_edges()
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
         }
     }
+
+#pragma clang diagnostic pop
 }
 
 ONEDPL_TEST_NUM_MAIN

@@ -195,6 +195,9 @@ template <class T>
 int
 classify(const dpl::complex<T>& x)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+
     if (x == dpl::complex<T>())
         return zero;
     if (std::isinf(x.real()) || std::isinf(x.imag()))
@@ -214,12 +217,17 @@ classify(const dpl::complex<T>& x)
         return non_zero_nan;
     }
     return non_zero;
+
+#pragma clang diagnostic pop
 }
 
 inline
 int
 classify(double x)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+
     if (x == 0)
         return zero;
     if (std::isinf(x))
@@ -227,6 +235,8 @@ classify(double x)
     if (std::isnan(x))
         return NaN;
     return non_zero;
+
+#pragma clang diagnostic pop
 }
 
 void is_about(float x, float y)
