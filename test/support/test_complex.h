@@ -72,16 +72,15 @@ run_test()
 //         // HERE IS THE CODE WHICH CALL WE SHOUD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
 //         assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
 //     }
-//     
+//
 //     template <class T>
-//     void
-//     test()
+//     void test()
 //     {
 //         // ...
 //         test<T>(1);
 //         // ...
 //     }
-//     
+//
 //     ONEDPL_TEST_NUM_MAIN
 //     {
 //         // ...
@@ -98,17 +97,11 @@ run_test()
 
 namespace TestUtils
 {
-    /**
-     * Run test in Kernel as single task.
-     * 
-     * If an exception occurred, it logged into std::cerr and application finish with EXIT_FAILURE return code.
-     * 
-     * @param TFncTest1 fncDoubleSupported - lambda for call if double is supported on device
-     * @param TFncTest1 fncDoubleNotSupported - lambda for call if double is not supported on device
-     */
-    template <typename TFncTest1, typename TFncTest2>
+    // Run test in Kernel as single task
+    template <typename TFncDoubleHasSupportInRuntime, typename TFncDoubleHasntSupportInRuntime>
     void
-    run_test_in_kernel(TFncTest1 fncDoubleSupported, TFncTest2 fncDoubleNotSupported)
+    run_test_in_kernel(TFncDoubleHasSupportInRuntime fncDoubleHasSupportInRuntime,
+                       TFncDoubleHasntSupportInRuntime fncDoubleHasntSupportInRuntime)
     {
 #if TEST_DPCPP_BACKEND_PRESENT
         try
@@ -125,9 +118,9 @@ namespace TestUtils
                         [=]()
                         { 
                             if (double_supported)
-                                fncDoubleSupported();
+                                fncDoubleHasSupportInRuntime();
                             else
-                                fncDoubleNotSupported();
+                                fncDoubleHasntSupportInRuntime();
                         });
                 });
         }
