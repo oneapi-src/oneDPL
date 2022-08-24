@@ -25,153 +25,31 @@ namespace dpl
 {
 using ::std::complex;
 
+using ::std::abs;
+using ::std::acos;
+using ::std::acosh;
 using ::std::arg;
+using ::std::asin;
+using ::std::asinh;
+using ::std::atan;
+using ::std::atanh;
 using ::std::conj;
+using ::std::cos;
+using ::std::cosh;
+using ::std::exp;
 using ::std::imag;
+using ::std::log;
+using ::std::log10;
 using ::std::norm;
 using ::std::polar;
+using ::std::pow;
 using ::std::proj;
 using ::std::real;
-
-template <class T>
-T
-abs(const complex<T>& z)
-{
-    return ::std::abs(z);
-}
-
-template <class T>
-complex<T>
-acos(const complex<T>& z)
-{
-    return ::std::acos(z);
-}
-
-template <class T>
-complex<T>
-acosh(const complex<T>& z)
-{
-    return ::std::acosh(z);
-}
-
-template <class T>
-complex<T>
-asin(const complex<T>& z)
-{
-    return ::std::asin(z);
-}
-
-template <class T>
-complex<T>
-asinh(const complex<T>& z)
-{
-    return ::std::asinh(z);
-}
-
-template <class T>
-complex<T>
-atan(const complex<T>& z)
-{
-    return ::std::atan(z);
-}
-
-template <class T>
-complex<T>
-atanh(const complex<T>& z)
-{
-    return ::std::atanh(z);
-}
-
-template <class T>
-complex<T>
-cos(const complex<T>& z)
-{
-    return ::std::cos(z);
-}
-
-template <class T>
-complex<T>
-cosh(const complex<T>& z)
-{
-    return ::std::cosh(z);
-}
-
-template <class T>
-complex<T>
-exp(const complex<T>& z)
-{
-    return ::std::exp(z);
-}
-
-template <class T>
-complex<T>
-log(const complex<T>& z)
-{
-    return ::std::log(z);
-}
-
-template <class T>
-complex<T>
-log10(const complex<T>& z)
-{
-    return ::std::log10(z);
-}
-
-template <class T>
-complex<T>
-pow(const complex<T>& x, const complex<T>& y)
-{
-    return ::std::pow(x, y);
-}
-
-template <class T>
-complex<T>
-pow(const complex<T>& x, const T& y)
-{
-    return ::std::pow(x, y);
-}
-
-template <class T>
-complex<T>
-pow(const T& x, const complex<T>& y)
-{
-    return ::std::pow(x, y);
-}
-
-template <class T>
-complex<T>
-sin(const complex<T>& z)
-{
-    return ::std::sin(z);
-}
-
-template <class T>
-complex<T>
-sinh(const complex<T>& z)
-{
-    return ::std::sinh(z);
-}
-
-template <class T>
-complex<T>
-sqrt(const complex<T>& z)
-{
-    return ::std::sqrt(z);
-}
-
-template <class T>
-complex<T>
-tan(const complex<T>& z)
-{
-    return ::std::tan(z);
-}
-
-template <class T>
-complex<T>
-tanh(const complex<T>& z)
-{
-    return ::std::tanh(z);
-}
+using ::std::sin;
+using ::std::sinh;
+using ::std::sqrt;
+using ::std::tan;
+using ::std::tanh;
 
 } // namespace dpl
 } // namespace oneapi
