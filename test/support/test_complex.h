@@ -69,7 +69,7 @@ run_test()
 //     {
 //         static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<double>>::value), "");
 // 
-//         // HERE IS THE CODE WHICH CALL WE SHOUD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
+//         // HERE IS THE CODE WHICH CALL WE SHOULD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
 //         assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
 //     }
 //
