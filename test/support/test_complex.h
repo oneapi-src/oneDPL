@@ -60,8 +60,7 @@ template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCom
 int                                                                                                   \
 run_test()
 
-// We should use this macros in cases when some code make
-// instantioation of with dpl::complex<double>
+// We should use this macros to avoid runtime-error if type double dosn't supported on device.
 // 
 // Example:
 //     template <class T>
@@ -88,11 +87,11 @@ run_test()
 //         IF_DOUBLE_SUPPORT_IN_RUNTIME(test<int>())
 //         // ...
 //     }
-#define IF_DOUBLE_SUPPORT_IN_RUNTIME(x)                                                         \
+#define IF_DOUBLE_SUPPORT_IN_RUNTIME(x)                                                               \
     if constexpr (HasDoubleSupportInRuntime::value) { x; }
 
-// We should use this macros to avoid compile code with long double type in Kernel
-#define IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(x)                                                \
+// We should use this macros to avoid compile-time error in code with long double type in Kernel.
+#define IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(x)                                                      \
     if constexpr (HasLongDoubleSupportInCompiletime::value) { x; }
 
 namespace TestUtils
