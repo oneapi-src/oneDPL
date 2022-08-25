@@ -34,15 +34,15 @@ ONEDPL_TEST_NUM_MAIN
 {
     test<float, float>();
     IF_DOUBLE_SUPPORT_IN_RUNTIME(test<float, double>())
-    IF_CAN_COMPILE_LONG_DOUBLE(test<float, long double>())
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(test<float, long double>())
 
     IF_DOUBLE_SUPPORT_IN_RUNTIME(test<double, float>())
     IF_DOUBLE_SUPPORT_IN_RUNTIME(test<double, double>())
-    IF_CAN_COMPILE_LONG_DOUBLE(test<double, long double>())
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(test<double, long double>())
 
-    IF_CAN_COMPILE_LONG_DOUBLE(test<long double, float>())
-    IF_CAN_COMPILE_LONG_DOUBLE(test<long double, double>())
-    IF_CAN_COMPILE_LONG_DOUBLE(test<long double, long double>())
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(test<long double, float>())
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(test<long double, double>())
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(test<long double, long double>())
 
   return 0;
 }

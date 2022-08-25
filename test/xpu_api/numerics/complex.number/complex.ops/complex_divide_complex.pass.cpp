@@ -152,7 +152,7 @@ ONEDPL_TEST_NUM_MAIN
 {
     test<float>();
     IF_DOUBLE_SUPPORT_IN_RUNTIME(test<double>())
-    IF_CAN_COMPILE_LONG_DOUBLE(test<long double>())
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(test<long double>())
     IF_DOUBLE_SUPPORT_IN_RUNTIME(test_edges())
 
   return 0;

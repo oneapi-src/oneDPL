@@ -16,17 +16,17 @@ ONEDPL_TEST_NUM_MAIN
     using namespace std::literals::complex_literals;
 
 //  Make sure the types are right
-    IF_CAN_COMPILE_LONG_DOUBLE(static_assert ( std::is_same<decltype( 3.0il ), dpl::complex<long double>>::value, "" ))
-    IF_CAN_COMPILE_LONG_DOUBLE(static_assert ( std::is_same<decltype( 3il   ), dpl::complex<long double>>::value, "" ))
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(static_assert ( std::is_same<decltype( 3.0il ), dpl::complex<long double>>::value, "" ))
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(static_assert ( std::is_same<decltype( 3il   ), dpl::complex<long double>>::value, "" ))
     IF_DOUBLE_SUPPORT_IN_RUNTIME(static_assert(std::is_same<decltype(3.0i), dpl::complex<double>>::value, ""))
     IF_DOUBLE_SUPPORT_IN_RUNTIME(static_assert(std::is_same<decltype(3i), dpl::complex<double>>::value, ""))
     static_assert ( std::is_same<decltype( 3.0if ), dpl::complex<float>>::value, "" );
     static_assert ( std::is_same<decltype( 3if   ), dpl::complex<float>>::value, "" );
 
-    IF_CAN_COMPILE_LONG_DOUBLE(dpl::complex<long double> c1 = 3.0il;
-                               assert(c1 == dpl::complex<long double>(0, 3.0));
-                               auto c2 = 3il;
-                               assert(c1 == c2))
+    IF_LONG_DOUBLE_SUPPORT_IN_COMPILETIME(dpl::complex<long double> c1 = 3.0il;
+                                          assert(c1 == dpl::complex<long double>(0, 3.0));
+                                          auto c2 = 3il;
+                                          assert(c1 == c2))
 
     IF_DOUBLE_SUPPORT_IN_RUNTIME(dpl::complex<double> c1 = 3.0i;
                                  assert(c1 == dpl::complex<double>(0, 3.0));
