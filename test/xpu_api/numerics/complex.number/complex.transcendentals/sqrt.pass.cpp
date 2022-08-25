@@ -22,6 +22,7 @@ template <class T>
 void
 test(const dpl::complex<T>& c, dpl::complex<T> x)
 {
+// Suppress clang warning: floating-point comparison is always true; constant cannot be represented exactly in type 'float' [-Wliteral-range]
 CLANG_DIAGNOSTIC_PUSH
 CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
 
