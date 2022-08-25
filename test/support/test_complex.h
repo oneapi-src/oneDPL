@@ -28,36 +28,36 @@
 
 #include "test_macros.h"
 
-#define ONEDPL_TEST_NUM_MAIN                                                                    \
-template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>       \
-int                                                                                             \
-run_test();                                                                                     \
-                                                                                                \
-int main(int, char**)                                                                           \
-{                                                                                               \
-    run_test<::std::true_type, ::std::true_type>();                                             \
-                                                                                                \
-    /* Sometimes we may start test on device, which don't support type double. */               \
-    /* In this case generates run-time error.                                  */               \
-    /* This two types allow us to avoid this situation.                        */               \
-    using HasDoubleTypeSupport = ::std::true_type;                                              \
-    using HasntDoubleTypeSupport = ::std::false_type;                                           \
-                                                                                                \
-    /* long double type generate compile-time error in Kernel code             */               \
-    /* and we never can use this type inside Kernel                            */               \
-    using DoNotCompileCodeWithLongDouble = ::std::false_type;                                   \
-                                                                                                \
-    TestUtils::run_test_in_kernel(                                                              \
-        /* labbda for the case when we have support of double type on device */                 \
-        [&]() { run_test<HasDoubleTypeSupport, DoNotCompileCodeWithLongDouble>(); },            \
-        /* labbda for the case when we haven't support of double type on device */              \
-        [&]() { run_test<HasntDoubleTypeSupport, DoNotCompileCodeWithLongDouble>(); });         \
-                                                                                                \
-    return TestUtils::done();                                                                   \
-}                                                                                               \
-                                                                                                \
-template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>       \
-int                                                                                             \
+#define ONEDPL_TEST_NUM_MAIN                                                                          \
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
+int                                                                                                   \
+run_test();                                                                                           \
+                                                                                                      \
+int main(int, char**)                                                                                 \
+{                                                                                                     \
+    run_test<::std::true_type, ::std::true_type>();                                                   \
+                                                                                                      \
+    /* Sometimes we may start test on device, which don't support type double. */                     \
+    /* In this case generates run-time error.                                  */                     \
+    /* This two types allow us to avoid this situation.                        */                     \
+    using HasDoubleTypeSupportInRuntime = ::std::true_type;                                           \
+    using HasntDoubleTypeSupportInRuntime = ::std::false_type;                                        \
+                                                                                                      \
+    /* long double type generate compile-time error in Kernel code             */                     \
+    /* and we never can use this type inside Kernel                            */                     \
+    using HasntLongDoubleSupportInCompiletime = ::std::false_type;                                    \
+                                                                                                      \
+    TestUtils::run_test_in_kernel(                                                                    \
+        /* labbda for the case when we have support of double type on device */                       \
+        [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },    \
+        /* labbda for the case when we haven't support of double type on device */                    \
+        [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); }); \
+                                                                                                      \
+    return TestUtils::done();                                                                         \
+}                                                                                                     \
+                                                                                                      \
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
+int                                                                                                   \
 run_test()
 
 // We should use this macros in cases when some code make
