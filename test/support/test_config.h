@@ -90,6 +90,7 @@
 #endif
 #endif //!defined(_ENABLE_RANGES_TESTING)
 
+// to prevent the compilation warning in clang
 #ifdef __clang__
 #define STR(X) #X
 #define CLANG_DIAGNOSTIC_PUSH                                 _Pragma(STR(clang diagnostic push))
