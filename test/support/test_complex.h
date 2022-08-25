@@ -29,7 +29,7 @@
 #include "test_macros.h"
 
 #define ONEDPL_TEST_NUM_MAIN                                                                    \
-template <typename HasDoubleSupportInRuntime, typename CanCompileCodeWithLongDoubleType>        \
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>       \
 int                                                                                             \
 run_test();                                                                                     \
                                                                                                 \
@@ -56,7 +56,7 @@ int main(int, char**)                                                           
     return TestUtils::done();                                                                   \
 }                                                                                               \
                                                                                                 \
-template <typename HasDoubleSupportInRuntime, typename CanCompileCodeWithLongDoubleType>        \
+template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>       \
 int                                                                                             \
 run_test()
 
@@ -93,7 +93,7 @@ run_test()
 
 // We should use this macros to avoid compile code with long double type in Kernel
 #define IF_CAN_COMPILE_LONG_DOUBLE(x)                                                           \
-    if constexpr (CanCompileCodeWithLongDoubleType::value) { x; }
+    if constexpr (HasLongDoubleSupportInCompiletime::value) { x; }
 
 namespace TestUtils
 {
