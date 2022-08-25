@@ -60,7 +60,7 @@ template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCom
 int                                                                                                   \
 run_test()
 
-// We should use this macros to avoid runtime-error if type double dosn't supported on device.
+// We should use this macros to avoid runtime-error if type double doesn't supported on device.
 // 
 // Example:
 //     template <class T>
