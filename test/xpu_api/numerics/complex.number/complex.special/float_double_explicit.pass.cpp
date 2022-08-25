@@ -19,14 +19,14 @@
 ONEDPL_TEST_NUM_MAIN
 {
     IF_DOUBLE_SUPPORT_IN_RUNTIME(const dpl::complex<double> cd(2.5, 3.5);
-                                            dpl::complex<float> cf(cd);
-                                            assert(cf.real() == cd.real());
-                                            assert(cf.imag() == cd.imag())
+                                 dpl::complex<float> cf(cd);
+                                 assert(cf.real() == cd.real());
+                                 assert(cf.imag() == cd.imag())
 #if TEST_STD_VER >= 11
     IF_DOUBLE_SUPPORT_IN_RUNTIME(constexpr dpl::complex<double> cd(2.5, 3.5);
-                                            constexpr dpl::complex<float> cf(cd);
-                                            static_assert(cf.real() == cd.real(), "");
-                                            static_assert(cf.imag() == cd.imag(), ""))
+                                 constexpr dpl::complex<float> cf(cd);
+                                 static_assert(cf.real() == cd.real(), "");
+                                 static_assert(cf.imag() == cd.imag(), ""))
 #endif
 
   return 0;
