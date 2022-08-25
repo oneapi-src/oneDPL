@@ -33,6 +33,7 @@ test()
 
 void test_edges()
 {
+// Suppress clang warning: comparison with NaN always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
 CLANG_DIAGNOSTIC_PUSH
 CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 

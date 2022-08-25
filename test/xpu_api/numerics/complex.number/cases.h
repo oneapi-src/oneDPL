@@ -195,6 +195,7 @@ template <class T>
 int
 classify(const dpl::complex<T>& x)
 {
+// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
 CLANG_DIAGNOSTIC_PUSH
 CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
@@ -225,6 +226,7 @@ inline
 int
 classify(double x)
 {
+// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
 CLANG_DIAGNOSTIC_PUSH
 CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
