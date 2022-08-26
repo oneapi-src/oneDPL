@@ -84,10 +84,10 @@ run_test()
 //     ONEDPL_TEST_NUM_MAIN
 //     {
 //         // ...
-//         IF_DOUBLE_SUPPORT_IN_RUNTIME(test<int>())
+//         IF_DOUBLE_SUPPORT(test<int>())
 //         // ...
 //     }
-#define IF_DOUBLE_SUPPORT_IN_RUNTIME(x)                                                               \
+#define IF_DOUBLE_SUPPORT(x)                                                                          \
     if constexpr (HasDoubleSupportInRuntime::value) { x; }
 
 // We should use this macros to avoid compile-time error in code with long double type in Kernel.

@@ -55,11 +55,11 @@ test()
 ONEDPL_TEST_NUM_MAIN
 {
     test<float>();
-    IF_DOUBLE_SUPPORT_IN_RUNTIME(test<double>())
+    IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT_IN_RUNTIME(test<int>())
-    IF_DOUBLE_SUPPORT_IN_RUNTIME(test<unsigned>())
-    IF_DOUBLE_SUPPORT_IN_RUNTIME(test<long long>())
+    IF_DOUBLE_SUPPORT(test<int>())
+    IF_DOUBLE_SUPPORT(test<unsigned>())
+    IF_DOUBLE_SUPPORT(test<long long>())
 
   return 0;
 }
