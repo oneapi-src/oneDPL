@@ -36,7 +36,7 @@ test()
     assert(c.real() == 10.5);
     assert(c.imag() == -9.5);
     }
-#if TEST_STD_VER >= 11
+
     {
     constexpr dpl::complex<T> c;
     static_assert(c.real() == 0, "");
@@ -57,7 +57,6 @@ test()
     static_assert(c.real() == 10.5, "");
     static_assert(c.imag() == -9.5, "");
     }
-#endif
 }
 
 ONEDPL_TEST_NUM_MAIN

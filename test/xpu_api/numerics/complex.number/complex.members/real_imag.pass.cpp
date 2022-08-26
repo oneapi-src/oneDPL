@@ -17,7 +17,6 @@ template <class T>
 void
 test_constexpr()
 {
-#if TEST_STD_VER > 11
     constexpr dpl::complex<T> c1;
     static_assert(c1.real() == 0, "");
     static_assert(c1.imag() == 0, "");
@@ -27,7 +26,6 @@ test_constexpr()
     constexpr dpl::complex<T> c3(3, 4);
     static_assert(c3.real() == 3, "");
     static_assert(c3.imag() == 4, "");
-#endif
 }
 
 template <class T>

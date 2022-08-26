@@ -22,12 +22,11 @@ ONEDPL_TEST_NUM_MAIN
                            dpl::complex<long double> cf(cd);
                            assert(cf.real() == cd.real());
                            assert(cf.imag() == cd.imag()))
-#if TEST_STD_VER >= 11
+
     IF_LONG_DOUBLE_SUPPORT(constexpr dpl::complex<double> cd(2.5, 3.5);
                            constexpr dpl::complex<long double> cf(cd);
                            static_assert(cf.real() == cd.real(), "");
                            static_assert(cf.imag() == cd.imag(), ""))
-#endif
 
   return 0;
 }

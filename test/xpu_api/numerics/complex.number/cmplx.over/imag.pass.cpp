@@ -22,12 +22,11 @@ test(typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 {
     static_assert((std::is_same<decltype(dpl::imag(T(x))), double>::value), "");
     assert(dpl::imag(x) == 0);
-#if TEST_STD_VER > 11
+
     constexpr T val {x};
     static_assert(dpl::imag(val) == 0, "");
     constexpr dpl::complex<T> t{val, val};
     static_assert(t.imag() == x, "" );
-#endif
 }
 
 template <class T, int x>
@@ -36,12 +35,11 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
 {
     static_assert((std::is_same<decltype(dpl::imag(T(x))), T>::value), "");
     assert(dpl::imag(x) == 0);
-#if TEST_STD_VER > 11
+
     constexpr T val {x};
     static_assert(dpl::imag(val) == 0, "");
     constexpr dpl::complex<T> t{val, val};
     static_assert(t.imag() == x, "" );
-#endif
 }
 
 template <class T>

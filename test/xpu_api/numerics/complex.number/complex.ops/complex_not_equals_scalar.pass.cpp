@@ -18,7 +18,6 @@ template <class T>
 void
 test_constexpr()
 {
-#if TEST_STD_VER > 11
     {
     constexpr dpl::complex<T> lhs(1.5,  2.5);
     constexpr T rhs(-2.5);
@@ -39,7 +38,6 @@ test_constexpr()
     constexpr T rhs(1.5);
     static_assert( !(lhs != rhs), "");
     }
-#endif
 }
 
 template <class T>

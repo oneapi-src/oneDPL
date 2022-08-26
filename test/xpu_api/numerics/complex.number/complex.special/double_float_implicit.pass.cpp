@@ -23,12 +23,10 @@ ONEDPL_TEST_NUM_MAIN
                       assert(cf.real() == cd.real());
                       assert(cf.imag() == cd.imag()))
 
-#if TEST_STD_VER >= 11
     IF_DOUBLE_SUPPORT(constexpr dpl::complex<float> cd(2.5, 3.5);
                       constexpr dpl::complex<double> cf = cd;
                       static_assert(cf.real() == cd.real(), "");
                       static_assert(cf.imag() == cd.imag(), ""))
-#endif
 
   return 0;
 }
