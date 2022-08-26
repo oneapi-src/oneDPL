@@ -26,8 +26,6 @@
 #include <type_traits>
 #include <cassert>
 
-#include "test_macros.h"
-
 #define ONEDPL_TEST_NUM_MAIN                                                                          \
 template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
 int                                                                                                   \
