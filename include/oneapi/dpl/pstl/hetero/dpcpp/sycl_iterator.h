@@ -19,6 +19,7 @@
 #include <iterator>
 #include "../../onedpl_config.h"
 #include "sycl_defs.h"
+#include <CL/sycl/buffer.hpp>
 
 namespace oneapi
 {
