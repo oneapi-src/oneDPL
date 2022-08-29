@@ -564,15 +564,15 @@ struct __functor_concept
 template <typename _T>
 inline constexpr bool __is_functor = decltype(__functor_concept::test<_T>(0))::value;
 
-} //__internal
+} // namespace __internal
 
-template <typename SourceIterator, typename _Permutation, 
-    typename IndexMap = typename std::conditional<!__internal::__is_functor<_Permutation>, _Permutation,
-    transform_iterator<counting_iterator<typename ::std::iterator_traits<SourceIterator>::difference_type>,
-    _Permutation>>::type>
+template <typename SourceIterator, typename _Permutation>
 class permutation_iterator
 {
   public:
+    typedef typename std::conditional<!__internal::__is_functor<_Permutation>, _Permutation,
+        transform_iterator<counting_iterator<typename ::std::iterator_traits<SourceIterator>::difference_type>,
+        _Permutation>>::type IndexMap;
     typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_type;
     typedef typename ::std::iterator_traits<SourceIterator>::value_type value_type;
     typedef typename ::std::iterator_traits<SourceIterator>::pointer pointer;
@@ -584,8 +584,7 @@ class permutation_iterator
     permutation_iterator() = default;
 
     template <typename _T = _Permutation, typename ::std::enable_if<!__internal::__is_functor<_T>, int>::type = 0>
-    permutation_iterator(SourceIterator input1, _Permutation input2)
-        : my_source_it(input1), my_index(input2)
+    permutation_iterator(SourceIterator input1, _Permutation input2) : my_source_it(input1), my_index(input2)
     {
     }
 
@@ -594,38 +593,30 @@ class permutation_iterator
         : my_source_it(input1), my_index(counting_iterator<difference_type>(__idx), __f)
     {
     }
+
   private:
     template <typename _T = _Permutation, typename ::std::enable_if<__internal::__is_functor<_T>, int>::type = 0>
-    permutation_iterator(SourceIterator input1, IndexMap input2)
-        : my_source_it(input1), my_index(input2)
+    permutation_iterator(SourceIterator input1, IndexMap input2) : my_source_it(input1), my_index(input2)
     {
     }
 
-public:
+  public:
     SourceIterator
     base() const
     {
         return my_source_it;
     }
 
-    template <typename _T = IndexMap, typename ::std::enable_if<!__internal::__is_functor<_T>, int>::type = 0>
     IndexMap
     map() const
     {
-        return my_index;
+        if constexpr (__internal::__is_functor<_T>)
+            return my_index.functor();
+        else
+            return my_index;
     }
 
-    template <typename _T = IndexMap, typename ::std::enable_if<__internal::__is_functor<_T>, int>::type = 0>
-    IndexMap
-    map() const
-    {
-        return my_index.functor();
-    }
-
-    reference operator*() const
-    {
-        return my_source_it[*my_index]; 
-    }
+    reference operator*() const { return my_source_it[*my_index]; }
 
     reference operator[](difference_type __i) const { return *(*this + __i); }
 
@@ -733,7 +724,7 @@ public:
     IndexMap my_index;
 };
 
-template <typename SourceIterator, typename IndexMap, typename ...StartIndex>
+template <typename SourceIterator, typename IndexMap, typename... StartIndex>
 permutation_iterator<SourceIterator, IndexMap>
 make_permutation_iterator(SourceIterator source, IndexMap map, StartIndex... idx)
 {

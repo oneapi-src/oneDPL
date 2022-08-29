@@ -394,63 +394,38 @@ struct __get_sycl_range
     }
 
   private:
-    //helper SFINAE utilities for a permutation_iterator support
-    template <typename _Map, typename _Size>
-    auto
-    __get_it_map_view(_Map __m, _Size __n) ->
-        typename ::std::enable_if<is_map_iterator<_Map>::value,
-                                  decltype(::std::declval<__get_sycl_range<AccMode, _Iterator>>()(__m,
-                                                                                                  __m + __n))>::type
-    {
-        return this->operator()(__m, __m + __n);
-    }
-    template <typename _Map, typename _Size>
-    auto
-    __get_it_map_view(_Map __m, _Size __n) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Size>::type
-    {
-        return _Size(0);
-    }
-    template <typename _Map, typename _T>
+    template <typename _R, typename _Map, typename _Size,
+              typename ::std::enable_if<oneapi::dpl::__internal::__is_functor<_Map>, int>::type = 0>
     static auto
-    __get_all_view(_Map __m, _T __t) ->
-        typename ::std::enable_if<is_map_iterator<_Map>::value, decltype(__t.all_view())>::type
+    __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
-        return __t.all_view();
+        return oneapi::dpl::__ranges::permutation_view_simple<_R, _Map>{__r, __m, __s};
     }
-    template <typename _Map, typename _T>
-    static auto
-    __get_all_view(_Map __m, _T __t) -> typename ::std::enable_if<is_map_functor<_Map>::value, _Map>::type
+
+    template <
+        typename _R, typename _Map, typename _Size,
+        typename ::std::enable_if<oneapi::dpl::__internal::__is_random_access_iterator<_Map>::value, int>::type = 0>
+    auto
+    __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
-        return __m;
+        auto view_map = this->operator()(__m, __m + __s).all_view();
+        return oneapi::dpl::__ranges::permutation_view_simple<_R, decltype(view_map)>{__r, view_map};
     }
 
   public:
     //specialization for permutation_iterator using sycl_iterator as source
-    template <typename _It, typename _Map>
+    template <typename _It, typename _Map, typename ::std::enable_if<is_hetero_it<_It>::value, int>::type = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
-               oneapi::dpl::permutation_iterator<_It, _Map> __last) ->
-        typename ::std::enable_if<
-            is_hetero_it<_It>::value,
-            __range_holder<oneapi::dpl::__ranges::permutation_view_simple<
-                decltype(::std::declval<__get_sycl_range<AccMode, _Iterator>>()(
-                             __first.base(),
-                             __first.base() + __dpl_sycl::__get_buffer_size(__first.base().get_buffer()))
-                             .all_view()),
-                decltype(__get_all_view(__first.map(), ::std::declval<__get_sycl_range<AccMode, _Iterator>>()
-                                                           .__get_it_map_view(__first.map(), __last - __first)))>>>::
-            type
+               oneapi::dpl::permutation_iterator<_It, _Map> __last)
     {
         auto __n = __last - __first;
         assert(__n > 0);
 
         auto res_src = this->operator()(__first.base(),
                                         __first.base() + __dpl_sycl::__get_buffer_size(__first.base().get_buffer()));
-        auto res_idx = __get_it_map_view(__first.map(), __n);
 
-        auto rng = oneapi::dpl::__ranges::permutation_view_simple<decltype(res_src.all_view()),
-                                                                  decltype(__get_all_view(__first.map(), res_idx))>{
-            res_src.all_view(), __get_all_view(__first.map(), res_idx)};
+        auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
 
         return __range_holder<decltype(rng)>{rng};
     }
@@ -458,18 +433,10 @@ struct __get_sycl_range
     // TODO Add specialization for general case, e.g., permutation_iterator using host
     // or another fancy iterator.
     //specialization for permutation_iterator using USM pointer as source
-    template <typename _It, typename _Map>
+    template <typename _It, typename _Map, typename ::std::enable_if<!is_hetero_it<_It>::value, int>::type = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
-               oneapi::dpl::permutation_iterator<_It, _Map> __last) ->
-        typename ::std::enable_if<
-            !is_hetero_it<_It>::value,
-            __range_holder<oneapi::dpl::__ranges::permutation_view_simple<
-                decltype(
-                    ::std::declval<__get_sycl_range<AccMode, _Iterator>>()(__first.base(), __first.base()).all_view()),
-                decltype(__get_all_view(__first.map(), ::std::declval<__get_sycl_range<AccMode, _Iterator>>()
-                                                           .__get_it_map_view(__first.map(), __last - __first)))>>>::
-            type
+               oneapi::dpl::permutation_iterator<_It, _Map> __last)
     {
         auto __n = __last - __first;
         assert(__n > 0);
@@ -477,11 +444,8 @@ struct __get_sycl_range
         // The size of the source range is unknown. Use non-zero size to create the view.
         // permutation_view_simple access is controlled by the map range view.
         auto res_src = this->operator()(__first.base(), __first.base() + 1 /*source size*/);
-        auto res_idx = __get_it_map_view(__first.map(), __n);
 
-        auto rng = oneapi::dpl::__ranges::permutation_view_simple<decltype(res_src.all_view()),
-                                                                  decltype(__get_all_view(__first.map(), res_idx))>{
-            res_src.all_view(), __get_all_view(__first.map(), res_idx)};
+        auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
 
         return __range_holder<decltype(rng)>{rng};
     }
