@@ -6,13 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/cmath>
+
 #include <assert.h>
-#include <cmath>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
-
-#include "test_macros.h"
 
 template<class T>
 struct correct_size_int
@@ -27,23 +28,23 @@ void test_abs()
     Source pos_val = 5;
     Result res = 5;
 
-    ASSERT_SAME_TYPE(decltype(std::abs(neg_val)), Result);
+    static_assert(::std::is_same<decltype(dpl::abs(neg_val)), Result>::value);
 
-    assert(std::abs(neg_val) == res);
-    assert(std::abs(pos_val) == res);
+    assert(dpl::abs(neg_val) == res);
+    assert(dpl::abs(pos_val) == res);
 }
 
 void test_big()
 {
     long long int big_value = std::numeric_limits<long long int>::max(); // a value too big for ints to store
     long long int negative_big_value = -big_value;
-    assert(std::abs(negative_big_value) == big_value); // make sure it doesn't get casted to a smaller type
+    assert(dpl::abs(negative_big_value) == big_value); // make sure it doesn't get casted to a smaller type
 }
 
 // The following is helpful to keep in mind:
 // 1byte == char <= short <= int <= long <= long long
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
     // On some systems char is unsigned.
     // If that is the case, we should just test signed char twice.
@@ -68,8 +69,10 @@ int main(int, char**)
     test_abs<std::int32_t, correct_size_int<std::int32_t>::type>();
     test_abs<std::int64_t, correct_size_int<std::int64_t>::type>();
 
-    test_abs<long double, long double>();
-    test_abs<double, double>();
+    if constexpr (HasLongDoubleSupportInCompiletime::value)
+        test_abs<long double, long double>();
+    if constexpr (HasDoubleSupportInRuntime::value)
+        test_abs<double, double>();
     test_abs<float, float>();
 
     test_big();
