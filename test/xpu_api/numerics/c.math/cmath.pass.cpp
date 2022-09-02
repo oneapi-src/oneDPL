@@ -35,15 +35,19 @@ template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCom
 void test_nearbyint()
 {
     static_assert((std::is_same<decltype(dpl::nearbyint((float)0)), float>::value), "");
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((bool)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((unsigned short)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((int)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((unsigned int)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((long)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((long long)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long long)0)), double>::value), ""))
-    IF_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((double)0)), double>::value), ""))
+    auto fnc = []()
+    {
+        static_assert((std::is_same<decltype(dpl::nearbyint((bool)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned short)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::nearbyint((double)0)), double>::value), "");
+    };
+    IF_DOUBLE_SUPPORT(fnc())
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((long double)0)), long double>::value), ""))
     static_assert((std::is_same<decltype(dpl::nearbyintf(0)), float>::value), "");
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyintl(0)), long double>::value), ""))
@@ -53,7 +57,7 @@ void test_nearbyint()
 
 ONEDPL_TEST_NUM_MAIN
 {
-    ONEDPL_TEST_NUM_CALL(test_nearbyint)
+    test_nearbyint<HasDoubleSupportInRuntime, HasLongDoubleSupportInCompiletime>();
 
     return 0;
 }
