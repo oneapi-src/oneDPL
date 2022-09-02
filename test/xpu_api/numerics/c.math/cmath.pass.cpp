@@ -37,15 +37,15 @@ void test_nearbyint()
     static_assert((std::is_same<decltype(dpl::nearbyint((float)0)), float>::value), "");
     auto fnc = []()
     {
-        static_assert((std::is_same<decltype(dpl::nearbyint((bool)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned short)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((int)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned int)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((long)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((long long)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long long)0)), double>::value), "");
-        static_assert((std::is_same<decltype(dpl::nearbyint((double)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((bool)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((unsigned short)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((int)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((unsigned int)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((long)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((long long)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((unsigned long long)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nearbyint((double)0)), double>::value), "");
     };
     IF_DOUBLE_SUPPORT(fnc())
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::nearbyint((long double)0)), long double>::value), ""))
