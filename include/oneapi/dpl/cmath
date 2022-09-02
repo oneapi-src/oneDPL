@@ -54,7 +54,6 @@ using ::std::logb;
 using ::std::modf;
 using ::std::nearbyint;
 using ::std::nearbyintf;
-using ::std::nearbyintl;
 using ::std::nextafter;
 using ::std::pow;
 using ::std::remainder;
