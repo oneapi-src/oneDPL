@@ -207,6 +207,18 @@ constexpr __target __target_device =
     __target::global_buffer;
 #endif
 
+template <typename DataT>
+using __buffer_allocator =
+#if __LIBSYCL_VERSION >= 50700
+    sycl::buffer_allocator<DataT>;
+#else
+#    ifdef SYCL2020_CONFORMANT_APIS
+    sycl::buffer_allocator<DataT>;
+#    else
+    sycl::buffer_allocator;
+#    endif
+#endif
+
 } // namespace __dpl_sycl
 
 #endif /* _ONEDPL_sycl_defs_H */
