@@ -209,14 +209,10 @@ constexpr __target __target_device =
 
 template <typename DataT>
 using __buffer_allocator =
-#if __LIBSYCL_VERSION >= 50700
+#if __LIBSYCL_VERSION >= 50704 || defined(SYCL2020_CONFORMANT_APIS)
     sycl::buffer_allocator<DataT>;
 #else
-#    ifdef SYCL2020_CONFORMANT_APIS
-    sycl::buffer_allocator<DataT>;
-#    else
     sycl::buffer_allocator;
-#    endif
 #endif
 
 } // namespace __dpl_sycl
