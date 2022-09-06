@@ -548,7 +548,7 @@ New in 2021.1-beta03
 New Features
 -------------
 - Added support for Data Parallel C++ (DPC++) to Parallel STL algorithms. For a complete list of Parallel STL algorithms see the ISO/IEC 14882:2017 standard (C++17).
-- Added ``dpstd::begin``, ``dpstd::end`` helper functions to pass the ``cl::sycl::buffer`` into Parallel STL algorithms.
+- Added ``dpstd::begin``, ``dpstd::end`` helper functions to pass the ``sycl::buffer`` into Parallel STL algorithms.
 - Added initial support for Unified Shared Memory in Parallel STL algorithms.
 - More than 80 C++ standard APIs from ``<algorithm>``, ``<array>``, ``<tuple>``, ``<utility>``, ``<functional>``, ``<type_traits>``, ``<initializer_list>`` were tested for use in DPC++ kernels. For more information, see the library guide.
 - Added ``counting_iterator``, ``zip_iterator``, ``transform_iterator``, ``reduce_by_key``, ``inclusive_scan_by_key``, and ``exclusive_scan_by_key`` to the extension API.
@@ -556,7 +556,7 @@ New Features
 
 Changes to Existing Features
 ----------------------------
-- Construction of a DPC++ execution policy from the ``cl::sycl::ordered`` queue.
+- Construction of a DPC++ execution policy from the ``sycl::ordered`` queue.
 
 Fixed Issues
 ------------
