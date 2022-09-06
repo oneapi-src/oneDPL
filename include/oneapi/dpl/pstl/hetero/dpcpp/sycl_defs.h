@@ -215,6 +215,12 @@ using __buffer_allocator =
     sycl::buffer_allocator;
 #endif
 
+#if __LIBSYCL_VERSION >= 50700
+#    define SYCL_CL cl
+#else
+#    define SYCL_CL
+#endif
+
 } // namespace __dpl_sycl
 
 #endif /* _ONEDPL_sycl_defs_H */
