@@ -53,7 +53,7 @@ using oneapi::dpl::make_zip_iterator;
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    cl::sycl::buffer<int, 1> buf{ cl::sycl::range<1>(10) };
+    SYCL_CL::sycl::buffer<int, 1> buf{SYCL_CL::sycl::range<1>(10)};
 
     auto b = oneapi::dpl::begin(buf);
     auto e = oneapi::dpl::end(buf);

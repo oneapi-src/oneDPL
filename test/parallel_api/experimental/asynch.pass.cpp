@@ -120,7 +120,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    cl::sycl::queue q;
+    SYCL_CL::sycl::queue q;
 
     constexpr int n = 1024;
     constexpr int n_small = 13;
