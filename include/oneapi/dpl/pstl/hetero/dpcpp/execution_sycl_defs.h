@@ -386,7 +386,7 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
 {
     const sycl::device& __device = __policy.queue().get_device();
     const ::std::size_t __max_wg_size =
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
+#if __LIBSYCL_VERSION >= 50700 || _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
 #else
         __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
