@@ -378,7 +378,7 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 //-----------------------------------------------------------------------------
 
 // 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
-#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214)
+#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (__LIBSYCL_VERSION >= 50700)
 
 template <typename _ExecutionPolicy>
 ::std::size_t
@@ -386,7 +386,7 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
 {
     const sycl::device& __device = __policy.queue().get_device();
     const ::std::size_t __max_wg_size =
-#if __LIBSYCL_VERSION >= 50700 || _USE_KERNEL_DEVICE_SPECIFIC_API
+#if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
 #else
         __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
