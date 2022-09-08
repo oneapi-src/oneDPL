@@ -744,14 +744,13 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                         __temp_local.get_pointer());
 #else
                     // connect global atomic with global memory
-                    sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed,
-                                sycl::memory_scope::work_group,
-                                sycl::access::address_space::global_space> __found(__temp_acc[0]);
+                    sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group,
+                                     sycl::access::address_space::global_space>
+                        __found(__temp_acc[0]);
                     // connect local atomic with local memory
-                    sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed,
-                                sycl::memory_scope::work_group,
-                                sycl::access::address_space::local_space> __found_local(
-                        __temp_local[0]);
+                    sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group,
+                                     sycl::access::address_space::local_space>
+                        __found_local(__temp_local[0]);
 #endif // !_ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
                     // 1. Set initial value to local atomic
