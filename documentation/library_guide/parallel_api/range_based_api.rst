@@ -19,7 +19,7 @@ The range adaptors may be combined into a pipeline with a ``base`` range at the 
 
 .. code:: cpp
 
-    sycl::buffer<int> buf(data, sycl::range<1>(10));
+    cl::sycl::buffer<int> buf(data, cl::sycl::range<1>(10));
     auto range_1 = iota_view(0, 10) | views::reverse();
     auto range_2 = all_view(buf) | views::reverse();
 
@@ -112,11 +112,11 @@ Example of Range-Based API Usage
     using namespace oneapi::dpl::experimental::ranges;
 
     {
-        sycl::buffer<int> A(data, sycl::range<1>(max_n));
-        sycl::buffer<int> B(data2, sycl::range<1>(max_n));
+        cl::sycl::buffer<int> A(data, cl::sycl::range<1>(max_n));
+        cl::sycl::buffer<int> B(data2, cl::sycl::range<1>(max_n));
 
         auto view = all_view(A) | views::reverse();
-        auto range_res = all_view<int, sycl::access::mode::write>(B);
+        auto range_res = all_view<int, cl::sycl::access::mode::write>(B);
 
         copy(oneapi::dpl::execution::dpcpp_default, view, range_res);
     }
