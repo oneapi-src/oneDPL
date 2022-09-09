@@ -10,7 +10,9 @@
 
 // <cmath>
 
-#include <cmath>
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/cmath>
 #include <limits>
 #include <type_traits>
 #include <cassert>
@@ -1579,7 +1581,7 @@ void test_trunc()
     assert(std::trunc(1) == 1);
 }
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
     test_abs();
     test_acos();
