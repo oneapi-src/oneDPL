@@ -228,7 +228,7 @@ struct __Atomic :
     sycl::atomic<_AtomicType, _Space>
 {
     template <typename __Accessor>
-    __Atomic(__Accessor _acc) : sycl::atomic<_AtomicType, _Space>(_acc.get_pointer())
+    __Atomic(__Accessor _acc, ::std::size_t _offset) : sycl::atomic<_AtomicType, _Space>(_acc.get_pointer() + _offset)
     {
     }
 };
@@ -236,8 +236,9 @@ struct __Atomic :
     sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>
 {
     template <typename __Accessor>
-    __Atomic(__Accessor _acc)
-        : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(_acc[0])
+    __Atomic(__Accessor _acc, ::std::size_t _offset)
+        : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(
+              _acc[_offset])
     {
     }
 };
