@@ -222,6 +222,27 @@ using __buffer_allocator =
 #    define SYCL_CL
 #endif
 
+template <typename _AtomicType, sycl::access::address_space _Space>
+struct __Atomic :
+#if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
+    sycl::atomic<_AtomicType, _Space>
+{
+    template <typename __Accessor>
+    __Atomic(__Accessor _acc) : sycl::atomic<_AtomicType, _Space>(_acc.get_pointer())
+    {
+    }
+};
+#else
+    sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>
+{
+    template <typename __Accessor>
+    __Atomic(__Accessor _acc)
+        : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(_acc[0])
+    {
+    }
+};
+#endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
+
 } // namespace __dpl_sycl
 
 #endif /* _ONEDPL_sycl_defs_H */
