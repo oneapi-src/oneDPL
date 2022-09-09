@@ -737,9 +737,9 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                 [=](sycl::nd_item</*dim=*/1> __item_id) {
                     auto __local_idx = __item_id.get_local_id(0);
 
-                    __dpl_sycl::__Atomic<_AtomicType, sycl::access::address_space::global_space> __found(__temp_acc);
+                    __dpl_sycl::__Atomic<_AtomicType, sycl::access::address_space::global_space> __found(__temp_acc, 0);
                     __dpl_sycl::__Atomic<_AtomicType, sycl::access::address_space::local_space> __found_local(
-                        __temp_local);
+                        __temp_local, 0);
 
                     // 1. Set initial value to local atomic
                     if (__local_idx == 0)
