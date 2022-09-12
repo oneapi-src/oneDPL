@@ -45,6 +45,8 @@ using ::std::expm1;
 using ::std::fabs;
 using ::std::fabsf;
 using ::std::fdim;
+using ::std::floor;
+using ::std::floorf;
 using ::std::fma;
 using ::std::fmod;
 using ::std::frexp;

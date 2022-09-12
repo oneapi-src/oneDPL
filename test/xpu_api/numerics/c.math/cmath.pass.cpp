@@ -167,21 +167,26 @@ void test_fabs()
 
 void test_floor()
 {
-    static_assert((std::is_same<decltype(std::floor((float)0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::floor((bool)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((unsigned short)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((unsigned int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((unsigned long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((unsigned long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::floor((long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::floorf(0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::floorl(0)), long double>::value), "");
+    static_assert((std::is_same<decltype(dpl::floor((float)0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::floor((bool)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((unsigned short)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((unsigned int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((unsigned long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((unsigned long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::floor((double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::floor((long double)0)), long double>::value), "");
+    }
+    static_assert((std::is_same<decltype(dpl::floorf(0)), float>::value), "");
+    if constexpr (HasLongDoubleSupportInCompiletime::value)
+        static_assert((std::is_same<decltype(dpl::floorl(0)), long double>::value), "");        // TODO is it required?
     static_assert((std::is_same<decltype(floor(Ambiguous())), Ambiguous>::value), "");
-    assert(std::floor(1) == 1);
+    assert(dpl::floor(1) == 1);
 }
 
 void test_isgreater()
