@@ -42,6 +42,8 @@ using ::std::exp;
 using ::std::expf;
 using ::std::exp2;
 using ::std::expm1;
+using ::std::fabs;
+using ::std::fabsf;
 using ::std::fdim;
 using ::std::fma;
 using ::std::fmod;

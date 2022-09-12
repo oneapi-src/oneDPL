@@ -143,21 +143,26 @@ void test_exp()
 
 void test_fabs()
 {
-    static_assert((std::is_same<decltype(std::fabs((float)0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((bool)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((unsigned short)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((unsigned int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((unsigned long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((unsigned long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fabs((long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::fabsf(0.0f)), float>::value), "");
-    static_assert((std::is_same<decltype(std::fabsl(0.0L)), long double>::value), "");
+    static_assert((std::is_same<decltype(dpl::fabs((float)0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::fabs((bool)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((unsigned short)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((unsigned int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((unsigned long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((unsigned long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fabs((double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::fabs((long double)0)), long double>::value), "");
+    }
+    static_assert((std::is_same<decltype(dpl::fabsf(0.0f)), float>::value), "");
+    if constexpr (HasLongDoubleSupportInCompiletime::value)
+        static_assert((std::is_same<decltype(dpl::fabsl(0.0L)), long double>::value), "");
     static_assert((std::is_same<decltype(fabs(Ambiguous())), Ambiguous>::value), "");
-    assert(std::fabs(-1) == 1);
+    assert(dpl::fabs(-1) == 1);
 }
 
 void test_floor()
