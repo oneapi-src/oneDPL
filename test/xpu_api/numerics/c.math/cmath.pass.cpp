@@ -467,25 +467,40 @@ void test_fmax()
 
 void test_fmin()
 {
-    static_assert((std::is_same<decltype(std::fmin((float)0, (float)0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((bool)0, (float)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((unsigned short)0, (double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((int)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((float)0, (unsigned int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((double)0, (long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((long double)0, (unsigned long)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((int)0, (long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((int)0, (unsigned long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((double)0, (double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((long double)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((float)0, (double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((float)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((double)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::fminf(0,0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::fminl(0,0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::fmin((int)0, (int)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::fmin((float)0, (float)0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::fmin((bool)0, (float)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fmin((unsigned short)0, (double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::fmin((int)0, (long double)0)), long double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fmin((float)0, (unsigned int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fmin((double)0, (long)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::fmin((long double)0, (unsigned long)0)), long double>::value), "");
+            static_assert((std::is_same<decltype(dpl::fmin((int)0, (long long)0)), double>::value), "");
+        }
+        static_assert((std::is_same<decltype(dpl::fmin((int)0, (unsigned long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fmin((double)0, (double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::fmin((long double)0, (long double)0)), long double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fmin((float)0, (double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::fmin((float)0, (long double)0)), long double>::value), "");
+            static_assert((std::is_same<decltype(dpl::fmin((double)0, (long double)0)), long double>::value), "");
+        }
+    }
+    static_assert((std::is_same<decltype(dpl::fminf(0,0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::fminl(0,0)), long double>::value), "");
+        static_assert((std::is_same<decltype(dpl::fmin((int)0, (int)0)), double>::value), "");
+    }
     static_assert((std::is_same<decltype(fmin(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
-    assert(std::fmin(1,0) == 0);
+    assert(dpl::fmin(1,0) == 0);
 }
 
 void test_nan()
