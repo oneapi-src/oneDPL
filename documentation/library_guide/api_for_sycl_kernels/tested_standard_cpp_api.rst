@@ -405,6 +405,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::isinf``                       Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::isless``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::partial_sort``                Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::partial_sort_copy``           Tested     Tested     Tested

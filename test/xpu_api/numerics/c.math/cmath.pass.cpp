@@ -279,18 +279,25 @@ void test_isless()
 #ifdef isless
 #error isless defined
 #endif
-    static_assert((std::is_same<decltype(std::isless((float)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((float)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((float)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless(0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((double)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((long double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((long double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isless((long double)0, (long double)0)), bool>::value), "");
+    static_assert((std::is_same<decltype(dpl::isless((float)0, (float)0)), bool>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::isless((float)0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::isless((float)0, (long double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isless((double)0, (float)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isless((double)0, (double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isless(0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::isless((double)0, (long double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isless((long double)0, (float)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isless((long double)0, (double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isless((long double)0, (long double)0)), bool>::value), "");
+        }
+    }
     static_assert((std::is_same<decltype(isless(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
-    assert(std::isless(-1.0, 0.F) == true);
+    assert(dpl::isless(-1.0, 0.F) == true);
 }
 
 void test_islessequal()
