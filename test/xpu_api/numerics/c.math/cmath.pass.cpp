@@ -220,18 +220,25 @@ void test_isgreaterequal()
 #ifdef isgreaterequal
 #error isgreaterequal defined
 #endif
-    static_assert((std::is_same<decltype(std::isgreaterequal((float)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((float)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((float)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal(0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((double)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((long double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((long double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreaterequal((long double)0, (long double)0)), bool>::value), "");
+    static_assert((std::is_same<decltype(dpl::isgreaterequal((float)0, (float)0)), bool>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::isgreaterequal((float)0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::isgreaterequal((float)0, (long double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isgreaterequal((double)0, (float)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isgreaterequal((double)0, (double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isgreaterequal(0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::isgreaterequal((double)0, (long double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isgreaterequal((long double)0, (float)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isgreaterequal((long double)0, (double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isgreaterequal((long double)0, (long double)0)), bool>::value), "");
+        }
+    }
     static_assert((std::is_same<decltype(isgreaterequal(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
-    assert(std::isgreaterequal(-1.0, 0.F) == false);
+    assert(dpl::isgreaterequal(-1.0, 0.F) == false);
 }
 
 void test_isinf()
