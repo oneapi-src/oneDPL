@@ -10,8 +10,10 @@
 
 // quiet_NaN()
 
-#include <limits>
-#include <cmath>
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/limits>
+#include <oneapi/dpl/cmath>
 #include <type_traits>
 #include <cassert>
 
@@ -21,20 +23,20 @@ template <class T>
 void
 test_imp(std::true_type)
 {
-    assert(std::isnan(std::numeric_limits<T>::quiet_NaN()));
-    assert(std::isnan(std::numeric_limits<const T>::quiet_NaN()));
-    assert(std::isnan(std::numeric_limits<volatile T>::quiet_NaN()));
-    assert(std::isnan(std::numeric_limits<const volatile T>::quiet_NaN()));
+    assert(dpl::isnan(dpl::numeric_limits<T>::quiet_NaN()));
+    assert(dpl::isnan(dpl::numeric_limits<const T>::quiet_NaN()));
+    assert(dpl::isnan(dpl::numeric_limits<volatile T>::quiet_NaN()));
+    assert(dpl::isnan(dpl::numeric_limits<const volatile T>::quiet_NaN()));
 }
 
 template <class T>
 void
 test_imp(std::false_type)
 {
-    assert(std::numeric_limits<T>::quiet_NaN() == T());
-    assert(std::numeric_limits<const T>::quiet_NaN() == T());
-    assert(std::numeric_limits<volatile T>::quiet_NaN() == T());
-    assert(std::numeric_limits<const volatile T>::quiet_NaN() == T());
+    assert(dpl::numeric_limits<T>::quiet_NaN() == T());
+    assert(dpl::numeric_limits<const T>::quiet_NaN() == T());
+    assert(dpl::numeric_limits<volatile T>::quiet_NaN() == T());
+    assert(dpl::numeric_limits<const volatile T>::quiet_NaN() == T());
 }
 
 template <class T>
@@ -45,7 +47,7 @@ test()
     test_imp<T>(std::is_floating_point<T>());
 }
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
     test<bool>();
     test<char>();
@@ -72,8 +74,8 @@ int main(int, char**)
     test<__uint128_t>();
 #endif
     test<float>();
-    test<double>();
-    test<long double>();
+    IF_DOUBLE_SUPPORT(test<double>())
+    IF_LONG_DOUBLE_SUPPORT(test<long double>())
 
   return 0;
 }
