@@ -54,6 +54,7 @@ using ::std::hypot;
 using ::std::ilogb;
 using ::std::isgreater;
 using ::std::isgreaterequal;
+using ::std::isinf;
 using ::std::ldexp;
 using ::std::lgamma;
 using ::std::log;

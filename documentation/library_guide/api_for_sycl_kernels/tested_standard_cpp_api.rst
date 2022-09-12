@@ -403,6 +403,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::isgreaterequal``              Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::isinf``                       Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::partial_sort``                Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::partial_sort_copy``           Tested     Tested     Tested
