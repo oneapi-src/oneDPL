@@ -446,6 +446,10 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::round``                       Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::roundf``                      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::trunc``                       Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::truncf``                      Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

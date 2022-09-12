@@ -89,6 +89,8 @@ using ::std::sqrt;
 using ::std::tan;
 using ::std::tanh;
 using ::std::tgamma;
+using ::std::trunc;
+using ::std::truncf;
 } // namespace dpl
 } // namespace oneapi
 

@@ -539,21 +539,26 @@ void test_round()
 
 void test_trunc()
 {
-    static_assert((std::is_same<decltype(std::trunc((float)0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((bool)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((unsigned short)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((unsigned int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((unsigned long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((unsigned long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::trunc((long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::truncf(0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::truncl(0)), long double>::value), "");
+    static_assert((std::is_same<decltype(dpl::trunc((float)0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::trunc((bool)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((unsigned short)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((unsigned int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((unsigned long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((unsigned long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::trunc((double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::trunc((long double)0)), long double>::value), "");
+    }
+    static_assert((std::is_same<decltype(dpl::truncf(0)), float>::value), "");
+    if constexpr (HasLongDoubleSupportInCompiletime::value)
+        static_assert((std::is_same<decltype(dpl::truncl(0)), long double>::value), "");
     static_assert((std::is_same<decltype(trunc(Ambiguous())), Ambiguous>::value), "");
-    assert(std::trunc(1) == 1);
+    assert(dpl::trunc(1) == 1);
 }
 
 ONEDPL_TEST_NUM_MAIN
