@@ -514,21 +514,27 @@ void test_nan()
 
 void test_round()
 {
-    static_assert((std::is_same<decltype(std::round((float)0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::round((bool)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((unsigned short)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((unsigned int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((unsigned long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((unsigned long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::round((long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::roundf(0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::roundl(0)), long double>::value), "");
+    static_assert((std::is_same<decltype(dpl::round((float)0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::round((bool)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::round((unsigned short)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::round((int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::round((unsigned int)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::round((long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::round((unsigned long)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::round((long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::round((unsigned long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::round((double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::round((long double)0)), long double>::value), "");
+    }
+    static_assert((std::is_same<decltype(dpl::roundf(0)), float>::value), "");
+    if constexpr (HasLongDoubleSupportInCompiletime::value)
+        static_assert((std::is_same<decltype(dpl::roundl(0)), long double>::value), "");
     static_assert((std::is_same<decltype(round(Ambiguous())), Ambiguous>::value), "");
-    assert(std::round(1) == 1);
+    assert(dpl::round(1) == 1);
 }
 
 void test_trunc()

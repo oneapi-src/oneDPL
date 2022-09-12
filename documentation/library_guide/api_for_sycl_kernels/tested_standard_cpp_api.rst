@@ -442,6 +442,10 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::push_heap``                   Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::pop_heap``                    Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::round``                       Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::roundf``                      Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

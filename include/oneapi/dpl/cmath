@@ -81,6 +81,8 @@ using ::std::nextafter;
 using ::std::pow;
 using ::std::remainder;
 using ::std::remquo;
+using ::std::round;
+using ::std::roundf;
 using ::std::sin;
 using ::std::sinh;
 using ::std::sqrt;
