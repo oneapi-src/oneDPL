@@ -139,6 +139,7 @@ using ::std::is_sorted_until;
 using ::std::lower_bound;
 using ::std::max;
 using ::std::make_heap;
+using ::std::min;
 using ::std::move;
 using ::std::move_backward;
 using ::std::none_of;

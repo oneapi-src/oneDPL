@@ -14,31 +14,33 @@
 //   T
 //   min(initializer_list<T> t, Compare comp);
 
-#include <algorithm>
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/algorithm>
 #include <functional>
 #include <cassert>
 
 #include "test_macros.h"
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
-    int i = std::min({2, 3, 1}, std::greater<int>());
+    int i = dpl::min({2, 3, 1}, dpl::greater<int>());
     assert(i == 3);
-    i = std::min({2, 1, 3}, std::greater<int>());
+    i = dpl::min({2, 1, 3}, dpl::greater<int>());
     assert(i == 3);
-    i = std::min({3, 1, 2}, std::greater<int>());
+    i = dpl::min({3, 1, 2}, dpl::greater<int>());
     assert(i == 3);
-    i = std::min({3, 2, 1}, std::greater<int>());
+    i = dpl::min({3, 2, 1}, dpl::greater<int>());
     assert(i == 3);
-    i = std::min({1, 2, 3}, std::greater<int>());
+    i = dpl::min({1, 2, 3}, dpl::greater<int>());
     assert(i == 3);
-    i = std::min({1, 3, 2}, std::greater<int>());
+    i = dpl::min({1, 3, 2}, dpl::greater<int>());
     assert(i == 3);
 #if TEST_STD_VER >= 14
     {
-    static_assert(std::min({1, 3, 2}, std::greater<int>()) == 3, "");
-    static_assert(std::min({2, 1, 3}, std::greater<int>()) == 3, "");
-    static_assert(std::min({3, 2, 1}, std::greater<int>()) == 3, "");
+    static_assert(dpl::min({1, 3, 2}, dpl::greater<int>()) == 3, "");
+    static_assert(dpl::min({2, 1, 3}, dpl::greater<int>()) == 3, "");
+    static_assert(dpl::min({3, 2, 1}, dpl::greater<int>()) == 3, "");
     }
 #endif
 
