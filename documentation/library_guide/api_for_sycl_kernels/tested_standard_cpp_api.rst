@@ -443,6 +443,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::nanf``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::numeric_limits<T>::infinity`` Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::numeric_limits<T>::lowest``   Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::numeric_limits<T>::quiet_NaN``Tested     Tested     Tested

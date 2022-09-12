@@ -10,7 +10,9 @@
 
 // infinity()
 
-#include <limits>
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/limits>
 #include <cfloat>
 #include <cassert>
 
@@ -20,15 +22,15 @@ template <class T>
 void
 test(T expected)
 {
-    assert(std::numeric_limits<T>::infinity() == expected);
-    assert(std::numeric_limits<const T>::infinity() == expected);
-    assert(std::numeric_limits<volatile T>::infinity() == expected);
-    assert(std::numeric_limits<const volatile T>::infinity() == expected);
+    assert(dpl::numeric_limits<T>::infinity() == expected);
+    assert(dpl::numeric_limits<const T>::infinity() == expected);
+    assert(dpl::numeric_limits<volatile T>::infinity() == expected);
+    assert(dpl::numeric_limits<const volatile T>::infinity() == expected);
 }
 
 extern float zero;
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
     test<bool>(false);
     test<char>(0);
@@ -55,8 +57,8 @@ int main(int, char**)
     test<__uint128_t>(0);
 #endif
     test<float>(1.f/zero);
-    test<double>(1./zero);
-    test<long double>(1./zero);
+    IF_DOUBLE_SUPPORT(test<double>(1./zero))
+    IF_LONG_DOUBLE_SUPPORT(test<long double>(1./zero))
 
   return 0;
 }
