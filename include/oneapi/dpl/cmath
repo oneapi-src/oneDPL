@@ -73,6 +73,8 @@ using ::std::log2;
 using ::std::logb;
 using ::std::modf;
 using ::std::isnan;
+using ::std::nan;
+using ::std::nanf;
 using ::std::nearbyint;
 using ::std::nearbyintf;
 using ::std::nextafter;

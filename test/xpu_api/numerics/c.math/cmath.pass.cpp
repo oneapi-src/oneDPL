@@ -505,9 +505,11 @@ void test_fmin()
 
 void test_nan()
 {
-    static_assert((std::is_same<decltype(std::nan("")), double>::value), "");
-    static_assert((std::is_same<decltype(std::nanf("")), float>::value), "");
-    static_assert((std::is_same<decltype(std::nanl("")), long double>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+        static_assert((std::is_same<decltype(dpl::nan("")), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::nanf("")), float>::value), "");
+    if constexpr (HasLongDoubleSupportInCompiletime::value)
+        static_assert((std::is_same<decltype(dpl::nanl("")), long double>::value), "");
 }
 
 void test_round()
