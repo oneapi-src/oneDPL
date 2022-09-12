@@ -447,6 +447,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::numeric_limits<T>::lowest``   Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::numeric_limits<T>::max``      Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::numeric_limits<T>::quiet_NaN``Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::push_heap``                   Tested     Tested     Tested

@@ -10,7 +10,9 @@
 
 // max()
 
-#include <limits>
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/limits>
 #include <climits>
 #include <cfloat>
 #include <cassert>
@@ -25,17 +27,17 @@ template <class T>
 void
 test(T expected)
 {
-    assert(std::numeric_limits<T>::max() == expected);
-    assert(std::numeric_limits<T>::is_bounded);
-    assert(std::numeric_limits<const T>::max() == expected);
-    assert(std::numeric_limits<const T>::is_bounded);
-    assert(std::numeric_limits<volatile T>::max() == expected);
-    assert(std::numeric_limits<volatile T>::is_bounded);
-    assert(std::numeric_limits<const volatile T>::max() == expected);
-    assert(std::numeric_limits<const volatile T>::is_bounded);
+    assert(dpl::numeric_limits<T>::max() == expected);
+    assert(dpl::numeric_limits<T>::is_bounded);
+    assert(dpl::numeric_limits<const T>::max() == expected);
+    assert(dpl::numeric_limits<const T>::is_bounded);
+    assert(dpl::numeric_limits<volatile T>::max() == expected);
+    assert(dpl::numeric_limits<volatile T>::is_bounded);
+    assert(dpl::numeric_limits<const volatile T>::max() == expected);
+    assert(dpl::numeric_limits<const volatile T>::is_bounded);
 }
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
     test<bool>(true);
     test<char>(CHAR_MAX);
@@ -64,8 +66,8 @@ int main(int, char**)
     test<__uint128_t>(__uint128_t(-1));
 #endif
     test<float>(FLT_MAX);
-    test<double>(DBL_MAX);
-    test<long double>(LDBL_MAX);
+    IF_DOUBLE_SUPPORT(test<double>(DBL_MAX))
+    IF_LONG_DOUBLE_SUPPORT(test<long double>(LDBL_MAX))
 
   return 0;
 }
