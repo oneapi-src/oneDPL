@@ -12,7 +12,9 @@
 //   const T&
 //   max(const T& a, const T& b);
 
-#include <algorithm>
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/algorithm>
 #include <cassert>
 
 #include "test_macros.h"
@@ -21,10 +23,10 @@ template <class T>
 void
 test(const T& a, const T& b, const T& x)
 {
-    assert(&std::max(a, b) == &x);
+    assert(&dpl::max(a, b) == &x);
 }
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
     {
     int x = 0;
@@ -48,8 +50,8 @@ int main(int, char**)
     {
     constexpr int x = 1;
     constexpr int y = 0;
-    static_assert(std::max(x, y) == x, "" );
-    static_assert(std::max(y, x) == x, "" );
+    static_assert(dpl::max(x, y) == x, "" );
+    static_assert(dpl::max(y, x) == x, "" );
     }
 #endif
 

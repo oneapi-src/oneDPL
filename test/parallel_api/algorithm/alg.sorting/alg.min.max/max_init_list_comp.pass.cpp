@@ -14,31 +14,33 @@
 //   T
 //   max(initializer_list<T> t, Compare comp);
 
-#include <algorithm>
+#include "support/test_complex.h"
+
+#include <oneapi/dpl/algorithm>
 #include <functional>
 #include <cassert>
 
 #include "test_macros.h"
 
-int main(int, char**)
+ONEDPL_TEST_NUM_MAIN
 {
-    int i = std::max({2, 3, 1}, std::greater<int>());
+    int i = dpl::max({2, 3, 1}, dpl::greater<int>());
     assert(i == 1);
-    i = std::max({2, 1, 3}, std::greater<int>());
+    i = dpl::max({2, 1, 3}, dpl::greater<int>());
     assert(i == 1);
-    i = std::max({3, 1, 2}, std::greater<int>());
+    i = dpl::max({3, 1, 2}, dpl::greater<int>());
     assert(i == 1);
-    i = std::max({3, 2, 1}, std::greater<int>());
+    i = dpl::max({3, 2, 1}, dpl::greater<int>());
     assert(i == 1);
-    i = std::max({1, 2, 3}, std::greater<int>());
+    i = dpl::max({1, 2, 3}, dpl::greater<int>());
     assert(i == 1);
-    i = std::max({1, 3, 2}, std::greater<int>());
+    i = dpl::max({1, 3, 2}, dpl::greater<int>());
     assert(i == 1);
 #if TEST_STD_VER >= 14
     {
-    static_assert(std::max({1, 3, 2}, std::greater<int>()) == 1, "");
-    static_assert(std::max({2, 1, 3}, std::greater<int>()) == 1, "");
-    static_assert(std::max({3, 2, 1}, std::greater<int>()) == 1, "");
+    static_assert(dpl::max({1, 3, 2}, dpl::greater<int>()) == 1, "");
+    static_assert(dpl::max({2, 1, 3}, dpl::greater<int>()) == 1, "");
+    static_assert(dpl::max({3, 2, 1}, dpl::greater<int>()) == 1, "");
     }
 #endif
 
