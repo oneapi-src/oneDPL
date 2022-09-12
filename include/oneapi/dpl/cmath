@@ -32,6 +32,8 @@ using ::std::atan;
 using ::std::atan2;
 using ::std::atanh;
 using ::std::cbrt;
+using ::std::ceil;
+using ::std::ceilf;
 using ::std::cos;
 using ::std::cosh;
 using ::std::erf;
