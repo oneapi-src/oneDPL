@@ -57,6 +57,7 @@ using ::std::isgreaterequal;
 using ::std::isinf;
 using ::std::isless;
 using ::std::islessequal;
+using ::std::isunordered;
 using ::std::ldexp;
 using ::std::lgamma;
 using ::std::log;

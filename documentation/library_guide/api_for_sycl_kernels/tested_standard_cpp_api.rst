@@ -411,6 +411,8 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::isnan``                       Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::isunordered``                 Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::partial_sort``                Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::partial_sort_copy``           Tested     Tested     Tested

@@ -363,18 +363,25 @@ void test_isunordered()
 #ifdef isunordered
 #error isunordered defined
 #endif
-    static_assert((std::is_same<decltype(std::isunordered((float)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((float)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((float)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered(0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((double)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((long double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((long double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isunordered((long double)0, (long double)0)), bool>::value), "");
+    static_assert((std::is_same<decltype(dpl::isunordered((float)0, (float)0)), bool>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::isunordered((float)0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::isunordered((float)0, (long double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isunordered((double)0, (float)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isunordered((double)0, (double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isunordered(0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::isunordered((double)0, (long double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isunordered((long double)0, (float)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isunordered((long double)0, (double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isunordered((long double)0, (long double)0)), bool>::value), "");
+        }
+    }
     static_assert((std::is_same<decltype(isunordered(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
-    assert(std::isunordered(-1.0, 0.F) == false);
+    assert(dpl::isunordered(-1.0, 0.F) == false);
 }
 
 void test_copysign()
