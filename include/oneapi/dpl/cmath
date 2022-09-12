@@ -34,6 +34,8 @@ using ::std::atanh;
 using ::std::cbrt;
 using ::std::ceil;
 using ::std::ceilf;
+using ::std::copysign;
+using ::std::copysignf;
 using ::std::cos;
 using ::std::cosh;
 using ::std::erf;

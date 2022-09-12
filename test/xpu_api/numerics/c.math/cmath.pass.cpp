@@ -386,25 +386,43 @@ void test_isunordered()
 
 void test_copysign()
 {
-    static_assert((std::is_same<decltype(std::copysign((float)0, (float)0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((bool)0, (float)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((unsigned short)0, (double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((int)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((float)0, (unsigned int)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((double)0, (long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((long double)0, (unsigned long)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((int)0, (long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((int)0, (unsigned long long)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((double)0, (double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((long double)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((float)0, (double)0)), double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((float)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((double)0, (long double)0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::copysignf(0,0)), float>::value), "");
-    static_assert((std::is_same<decltype(std::copysignl(0,0)), long double>::value), "");
-    static_assert((std::is_same<decltype(std::copysign((int)0, (int)0)), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::copysign((float)0, (float)0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::copysign((bool)0, (float)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::copysign((unsigned short)0, (double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::copysign((int)0, (long double)0)), long double>::value), "");
+    }
+    static_assert((std::is_same<decltype(dpl::copysign((float)0, (unsigned int)0)), double>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::copysign((double)0, (long)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::copysign((long double)0, (unsigned long)0)), long double>::value), "");
+            static_assert((std::is_same<decltype(dpl::copysign((int)0, (long long)0)), double>::value), "");
+        }
+        static_assert((std::is_same<decltype(dpl::copysign((int)0, (unsigned long long)0)), double>::value), "");
+        static_assert((std::is_same<decltype(dpl::copysign((double)0, (double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::copysign((long double)0, (long double)0)), long double>::value), "");
+        static_assert((std::is_same<decltype(dpl::copysign((float)0, (double)0)), double>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::copysign((float)0, (long double)0)), long double>::value), "");
+            static_assert((std::is_same<decltype(dpl::copysign((double)0, (long double)0)), long double>::value), "");
+        }
+    }
+    static_assert((std::is_same<decltype(dpl::copysignf(0,0)), float>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::copysignl(0,0)), long double>::value), "");
+        static_assert((std::is_same<decltype(dpl::copysign((int)0, (int)0)), double>::value), "");
+    }
     static_assert((std::is_same<decltype(copysign(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
-    assert(std::copysign(1,1) == 1);
+    assert(dpl::copysign(1,1) == 1);
 }
 
 void test_fmax()
