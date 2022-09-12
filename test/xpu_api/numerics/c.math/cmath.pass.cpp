@@ -13,7 +13,7 @@
 #include "support/test_complex.h"
 
 #include <oneapi/dpl/cmath>
-#include <limits>
+#include <oneapi/dpl/limits>
 #include <type_traits>
 #include <cassert>
 
