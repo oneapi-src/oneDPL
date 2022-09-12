@@ -65,6 +65,7 @@ using ::std::log1p;
 using ::std::log2;
 using ::std::logb;
 using ::std::modf;
+using ::std::isnan;
 using ::std::nearbyint;
 using ::std::nearbyintf;
 using ::std::nextafter;

@@ -331,28 +331,31 @@ void test_isnan()
 #ifdef isnan
 #error isnan defined
 #endif
-    static_assert((std::is_same<decltype(std::isnan((float)0)), bool>::value), "");
+    static_assert((std::is_same<decltype(dpl::isnan((float)0)), bool>::value), "");
 
-    typedef decltype(std::isnan((double)0)) DoubleRetType;
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        typedef decltype(dpl::isnan((double)0)) DoubleRetType;
 #if !defined(__linux__) || defined(__clang__)
-    static_assert((std::is_same<DoubleRetType, bool>::value), "");
+        static_assert((std::is_same<DoubleRetType, bool>::value), "");
 #else
-    // GLIBC < 2.23 defines 'isinf(double)' with a return type of 'int' in
-    // all C++ dialects. The test should tolerate this when libc++ can't work
-    // around it.
-    // See: https://sourceware.org/bugzilla/show_bug.cgi?id=19439
-    static_assert((std::is_same<DoubleRetType, bool>::value
-                || std::is_same<DoubleRetType, int>::value), "");
+        // GLIBC < 2.23 defines 'isinf(double)' with a return type of 'int' in
+        // all C++ dialects. The test should tolerate this when libc++ can't work
+        // around it.
+        // See: https://sourceware.org/bugzilla/show_bug.cgi?id=19439
+        static_assert((std::is_same<DoubleRetType, bool>::value || std::is_same<DoubleRetType, int>::value), "");
 #endif
+    }
 
-    static_assert((std::is_same<decltype(std::isnan(0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isnan((long double)0)), bool>::value), "");
-    assert(std::isnan(-1.0) == false);
-    assert(std::isnan(0) == false);
-    assert(std::isnan(1) == false);
-    assert(std::isnan(-1) == false);
-    assert(std::isnan(std::numeric_limits<int>::max()) == false);
-    assert(std::isnan(std::numeric_limits<int>::min()) == false);
+    static_assert((std::is_same<decltype(dpl::isnan(0)), bool>::value), "");
+    if constexpr (HasLongDoubleSupportInCompiletime::value)
+        static_assert((std::is_same<decltype(dpl::isnan((long double)0)), bool>::value), "");
+    assert(dpl::isnan(-1.0) == false);
+    assert(dpl::isnan(0) == false);
+    assert(dpl::isnan(1) == false);
+    assert(dpl::isnan(-1) == false);
+    assert(dpl::isnan(dpl::numeric_limits<int>::max()) == false);
+    assert(dpl::isnan(dpl::numeric_limits<int>::min()) == false);
 }
 
 void test_isunordered()
