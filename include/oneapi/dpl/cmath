@@ -52,6 +52,7 @@ using ::std::fmod;
 using ::std::frexp;
 using ::std::hypot;
 using ::std::ilogb;
+using ::std::isgreater;
 using ::std::ldexp;
 using ::std::lgamma;
 using ::std::log;

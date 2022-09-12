@@ -194,18 +194,25 @@ void test_isgreater()
 #ifdef isgreater
 #error isgreater defined
 #endif
-    static_assert((std::is_same<decltype(std::isgreater((float)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((float)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((float)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater(0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((double)0, (long double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((long double)0, (float)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((long double)0, (double)0)), bool>::value), "");
-    static_assert((std::is_same<decltype(std::isgreater((long double)0, (long double)0)), bool>::value), "");
+    static_assert((std::is_same<decltype(dpl::isgreater((float)0, (float)0)), bool>::value), "");
+    if constexpr (HasDoubleSupportInRuntime::value)
+    {
+        static_assert((std::is_same<decltype(dpl::isgreater((float)0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+            static_assert((std::is_same<decltype(dpl::isgreater((float)0, (long double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isgreater((double)0, (float)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isgreater((double)0, (double)0)), bool>::value), "");
+        static_assert((std::is_same<decltype(dpl::isgreater(0, (double)0)), bool>::value), "");
+        if constexpr (HasLongDoubleSupportInCompiletime::value)
+        {
+            static_assert((std::is_same<decltype(dpl::isgreater((double)0, (long double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isgreater((long double)0, (float)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isgreater((long double)0, (double)0)), bool>::value), "");
+            static_assert((std::is_same<decltype(dpl::isgreater((long double)0, (long double)0)), bool>::value), "");
+        }
+    }
     static_assert((std::is_same<decltype(isgreater(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
-    assert(std::isgreater(-1.0, 0.F) == false);
+    assert(dpl::isgreater(-1.0, 0.F) == false);
 }
 
 void test_isgreaterequal()
