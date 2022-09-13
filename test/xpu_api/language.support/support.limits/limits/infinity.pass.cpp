@@ -16,8 +16,6 @@
 #include <cfloat>
 #include <cassert>
 
-#include "test_macros.h"
-
 template <class T>
 void
 test(T expected)

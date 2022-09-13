@@ -17,8 +17,6 @@
 #include <cfloat>
 #include <cassert>
 
-#include "test_macros.h"
-
 #ifndef TEST_HAS_NO_WIDE_CHARACTERS
 #   include <cwchar>
 #endif

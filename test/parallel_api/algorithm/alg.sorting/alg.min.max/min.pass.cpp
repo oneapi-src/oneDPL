@@ -17,8 +17,6 @@
 #include <oneapi/dpl/algorithm>
 #include <cassert>
 
-#include "test_macros.h"
-
 template <class T>
 void
 test(const T& a, const T& b, const T& x)

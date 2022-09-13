@@ -20,8 +20,6 @@
 #include <functional>
 #include <cassert>
 
-#include "test_macros.h"
-
 ONEDPL_TEST_NUM_MAIN
 {
     int i = dpl::min({2, 3, 1}, dpl::greater<int>());
