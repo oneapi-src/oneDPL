@@ -15,11 +15,10 @@
 //   max(initializer_list<T> t);
 
 #include "support/test_complex.h"
+#include "support/test_macros.h"
 
 #include <oneapi/dpl/algorithm>
 #include <cassert>
-
-#include "test_macros.h"
 
 ONEDPL_TEST_NUM_MAIN
 {

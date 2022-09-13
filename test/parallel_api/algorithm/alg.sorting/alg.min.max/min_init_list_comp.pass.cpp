@@ -15,12 +15,11 @@
 //   min(initializer_list<T> t, Compare comp);
 
 #include "support/test_complex.h"
+#include "support/test_macros.h"
 
 #include <oneapi/dpl/algorithm>
 #include <functional>
 #include <cassert>
-
-#include "test_macros.h"
 
 ONEDPL_TEST_NUM_MAIN
 {

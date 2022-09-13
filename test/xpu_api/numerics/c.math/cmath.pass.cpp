@@ -11,13 +11,12 @@
 // <cmath>
 
 #include "support/test_complex.h"
+#include "support/test_macros.h"
 
 #include <oneapi/dpl/cmath>
 #include <oneapi/dpl/limits>
 #include <type_traits>
 #include <cassert>
-
-#include "test_macros.h"
 
 // convertible to int/float/double/etc
 template <class T, int N=0>

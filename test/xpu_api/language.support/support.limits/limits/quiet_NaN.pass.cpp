@@ -11,13 +11,12 @@
 // quiet_NaN()
 
 #include "support/test_complex.h"
+#include "support/test_macros.h"
 
 #include <oneapi/dpl/limits>
 #include <oneapi/dpl/cmath>
 #include <type_traits>
 #include <cassert>
-
-#include "test_macros.h"
 
 template <class T>
 void
