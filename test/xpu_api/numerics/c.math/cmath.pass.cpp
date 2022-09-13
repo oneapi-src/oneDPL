@@ -109,7 +109,6 @@ void test_ceil()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::ceil((long double)0)), long double>::value), "");
     }
-    static_assert((std::is_same<decltype(dpl::ceilf(0)), float>::value), "");
     if constexpr (HasLongDoubleSupportInCompiletime::value)
         static_assert((std::is_same<decltype(dpl::ceill(0)), long double>::value), "");
     static_assert((std::is_same<decltype(ceil(Ambiguous())), Ambiguous>::value), "");

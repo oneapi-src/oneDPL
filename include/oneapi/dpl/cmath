@@ -33,7 +33,6 @@ using ::std::atan2;
 using ::std::atanh;
 using ::std::cbrt;
 using ::std::ceil;
-using ::std::ceilf;
 using ::std::copysign;
 using ::std::copysignf;
 using ::std::cos;

@@ -367,8 +367,6 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::ceil``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
-``std::ceilf``                       Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
 ``std::copy``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::copy_backward``               Tested     Tested     Tested
