@@ -132,7 +132,6 @@ void test_exp()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::exp((long double)0)), long double>::value), "");
     }
-    static_assert((std::is_same<decltype(dpl::expf(0)), float>::value), "");
     if constexpr (HasLongDoubleSupportInCompiletime::value)
         static_assert((std::is_same<decltype(dpl::expl(0)), long double>::value), "");
     static_assert((std::is_same<decltype(exp(Ambiguous())), Ambiguous>::value), "");

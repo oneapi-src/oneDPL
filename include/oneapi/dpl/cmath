@@ -41,7 +41,6 @@ using ::std::erf;
 using ::std::erfc;
 using ::std::exp;
 using ::std::exp2;
-using ::std::expf;
 using ::std::expm1;
 using ::std::fabs;
 using ::std::fabsf;
