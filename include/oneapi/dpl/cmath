@@ -43,7 +43,6 @@ using ::std::exp;
 using ::std::exp2;
 using ::std::expm1;
 using ::std::fabs;
-using ::std::fabsf;
 using ::std::fdim;
 using ::std::floor;
 using ::std::floorf;

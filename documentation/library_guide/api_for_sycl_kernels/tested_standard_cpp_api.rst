@@ -379,8 +379,6 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::fabs``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
-``std::fabsf``                       Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
 ``std::is_permutation``              Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::fill``                        Tested     Tested     Tested

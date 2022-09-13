@@ -155,7 +155,6 @@ void test_fabs()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::fabs((long double)0)), long double>::value), "");
     }
-    static_assert((std::is_same<decltype(dpl::fabsf(0.0f)), float>::value), "");
     if constexpr (HasLongDoubleSupportInCompiletime::value)
         static_assert((std::is_same<decltype(dpl::fabsl(0.0L)), long double>::value), "");
     static_assert((std::is_same<decltype(fabs(Ambiguous())), Ambiguous>::value), "");
