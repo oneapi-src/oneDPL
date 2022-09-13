@@ -19,6 +19,8 @@
 #include <functional>
 #include <cassert>
 
+#include "test_macros.h"
+
 template <class T, class C>
 void
 test(const T& a, const T& b, C c, const T& x)

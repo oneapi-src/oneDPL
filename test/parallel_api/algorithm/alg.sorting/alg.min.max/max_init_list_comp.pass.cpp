@@ -20,6 +20,8 @@
 #include <functional>
 #include <cassert>
 
+#include "test_macros.h"
+
 ONEDPL_TEST_NUM_MAIN
 {
     int i = dpl::max({2, 3, 1}, dpl::greater<int>());

@@ -17,6 +17,8 @@
 #include <type_traits>
 #include <cassert>
 
+#include "test_macros.h"
+
 // convertible to int/float/double/etc
 template <class T, int N=0>
 struct Value {
