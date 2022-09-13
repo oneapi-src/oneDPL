@@ -109,8 +109,6 @@ void test_ceil()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::ceil((long double)0)), long double>::value), "");
     }
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        static_assert((std::is_same<decltype(dpl::ceill(0)), long double>::value), "");
     static_assert((std::is_same<decltype(ceil(Ambiguous())), Ambiguous>::value), "");
     assert(dpl::ceil(0) == 0);
 }
@@ -132,8 +130,6 @@ void test_exp()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::exp((long double)0)), long double>::value), "");
     }
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        static_assert((std::is_same<decltype(dpl::expl(0)), long double>::value), "");
     static_assert((std::is_same<decltype(exp(Ambiguous())), Ambiguous>::value), "");
     assert(dpl::exp(0) == 1);
 }
@@ -155,8 +151,6 @@ void test_fabs()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::fabs((long double)0)), long double>::value), "");
     }
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        static_assert((std::is_same<decltype(dpl::fabsl(0.0L)), long double>::value), "");
     static_assert((std::is_same<decltype(fabs(Ambiguous())), Ambiguous>::value), "");
     assert(dpl::fabs(-1) == 1);
 }
@@ -178,8 +172,6 @@ void test_floor()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::floor((long double)0)), long double>::value), "");
     }
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        static_assert((std::is_same<decltype(dpl::floorl(0)), long double>::value), "");        // TODO is it required?
     static_assert((std::is_same<decltype(floor(Ambiguous())), Ambiguous>::value), "");
     assert(dpl::floor(1) == 1);
 }
@@ -411,11 +403,7 @@ void test_copysign()
     }
     static_assert((std::is_same<decltype(dpl::copysignf(0,0)), float>::value), "");
     if constexpr (HasDoubleSupportInRuntime::value)
-    {
-        if constexpr (HasLongDoubleSupportInCompiletime::value)
-            static_assert((std::is_same<decltype(dpl::copysignl(0,0)), long double>::value), "");
         static_assert((std::is_same<decltype(dpl::copysign((int)0, (int)0)), double>::value), "");
-    }
     static_assert((std::is_same<decltype(copysign(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
     assert(dpl::copysign(1,1) == 1);
 }
@@ -451,11 +439,7 @@ void test_fmax()
     }
     static_assert((std::is_same<decltype(dpl::fmaxf(0,0)), float>::value), "");
     if constexpr (HasDoubleSupportInRuntime::value)
-    {
-        if constexpr (HasLongDoubleSupportInCompiletime::value)
-            static_assert((std::is_same<decltype(dpl::fmaxl(0, 0)), long double>::value), "");
         static_assert((std::is_same<decltype(dpl::fmax((int)0, (int)0)), double>::value), "");
-    }
     static_assert((std::is_same<decltype(fmax(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
     assert(dpl::fmax(1,0) == 1);
 }
@@ -489,11 +473,7 @@ void test_fmin()
     }
     static_assert((std::is_same<decltype(dpl::fminf(0,0)), float>::value), "");
     if constexpr (HasDoubleSupportInRuntime::value)
-    {
-        if constexpr (HasLongDoubleSupportInCompiletime::value)
-            static_assert((std::is_same<decltype(dpl::fminl(0,0)), long double>::value), "");
         static_assert((std::is_same<decltype(dpl::fmin((int)0, (int)0)), double>::value), "");
-    }
     static_assert((std::is_same<decltype(fmin(Ambiguous(), Ambiguous())), Ambiguous>::value), "");
     assert(dpl::fmin(1,0) == 0);
 }
@@ -503,8 +483,6 @@ void test_nan()
     if constexpr (HasDoubleSupportInRuntime::value)
         static_assert((std::is_same<decltype(dpl::nan("")), double>::value), "");
     static_assert((std::is_same<decltype(dpl::nanf("")), float>::value), "");
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        static_assert((std::is_same<decltype(dpl::nanl("")), long double>::value), "");
 }
 
 void test_round()
@@ -526,8 +504,6 @@ void test_round()
             static_assert((std::is_same<decltype(dpl::round((long double)0)), long double>::value), "");
     }
     static_assert((std::is_same<decltype(dpl::roundf(0)), float>::value), "");
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        static_assert((std::is_same<decltype(dpl::roundl(0)), long double>::value), "");
     static_assert((std::is_same<decltype(round(Ambiguous())), Ambiguous>::value), "");
     assert(dpl::round(1) == 1);
 }
@@ -550,8 +526,6 @@ void test_trunc()
             static_assert((std::is_same<decltype(dpl::trunc((long double)0)), long double>::value), "");
     }
     static_assert((std::is_same<decltype(dpl::truncf(0)), float>::value), "");
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        static_assert((std::is_same<decltype(dpl::truncl(0)), long double>::value), "");
     static_assert((std::is_same<decltype(trunc(Ambiguous())), Ambiguous>::value), "");
     assert(dpl::trunc(1) == 1);
 }
