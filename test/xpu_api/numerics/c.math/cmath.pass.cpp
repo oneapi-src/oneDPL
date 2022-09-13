@@ -178,7 +178,6 @@ void test_floor()
         if constexpr (HasLongDoubleSupportInCompiletime::value)
             static_assert((std::is_same<decltype(dpl::floor((long double)0)), long double>::value), "");
     }
-    static_assert((std::is_same<decltype(dpl::floorf(0)), float>::value), "");
     if constexpr (HasLongDoubleSupportInCompiletime::value)
         static_assert((std::is_same<decltype(dpl::floorl(0)), long double>::value), "");        // TODO is it required?
     static_assert((std::is_same<decltype(floor(Ambiguous())), Ambiguous>::value), "");
