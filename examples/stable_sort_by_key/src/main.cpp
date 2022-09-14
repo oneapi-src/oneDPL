@@ -9,7 +9,7 @@
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/iterator>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include <iostream>
 
 int main() {
