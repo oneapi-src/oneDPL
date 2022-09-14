@@ -40,7 +40,7 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
   #include <oneapi/dpl/execution>
   #include <oneapi/dpl/algorithm>
   #include <oneapi/dpl/iterator>
-  #include <CL/sycl.hpp>
+  #include <sycl.hpp>
   int main(){
     sycl::buffer<int> buf { 1000 };
     auto buf_begin = oneapi::dpl::begin(buf);
@@ -65,7 +65,7 @@ the buffer were created for the same queue. For example:
 
   #include <oneapi/dpl/execution>
   #include <oneapi/dpl/algorithm>
-  #include <CL/sycl.hpp>
+  #include <sycl.hpp>
   int main(){
     sycl::queue q;
     const int n = 1000;
@@ -83,7 +83,7 @@ Alternatively, use ``std::vector`` with a USM allocator. For example:
 
   #include <oneapi/dpl/execution>
   #include <oneapi/dpl/algorithm>
-  #include <CL/sycl.hpp>
+  #include <sycl.hpp>
   int main(){
     const int n = 1000;
     auto policy = oneapi::dpl::execution::dpcpp_default;

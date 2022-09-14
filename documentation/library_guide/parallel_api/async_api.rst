@@ -52,7 +52,7 @@ Example of Async API Usage
 
     #include <oneapi/dpl/execution>
     #include <oneapi/dpl/async>
-    #include <CL/sycl.hpp>
+    #include <sycl.hpp>
     
     int main() {
         using namespace oneapi;
