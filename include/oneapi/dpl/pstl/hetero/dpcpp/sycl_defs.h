@@ -216,12 +216,6 @@ using __buffer_allocator =
     sycl::buffer_allocator;
 #endif
 
-#if __LIBSYCL_VERSION >= 50700
-#    define SYCL_CL cl
-#else
-#    define SYCL_CL
-#endif
-
 template <typename _AtomicType, sycl::access::address_space _Space>
 struct __Atomic :
 #if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT

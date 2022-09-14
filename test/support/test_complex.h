@@ -122,7 +122,7 @@ namespace TestUtils
             const bool double_supported = has_type_support<double>(device);
 
             deviceQueue.submit(
-                [&](SYCL_CL::sycl::handler& cgh)
+                [&](sycl::handler& cgh)
                 {
                     cgh.single_task<TestUtils::new_kernel_name<class TestType, 0>>(
                         [=]()

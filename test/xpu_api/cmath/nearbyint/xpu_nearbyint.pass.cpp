@@ -25,8 +25,8 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 #include <CL/sycl.hpp>
 
-constexpr SYCL_CL::sycl::access::mode sycl_read = SYCL_CL::sycl::access::mode::read;
-constexpr SYCL_CL::sycl::access::mode sycl_write = SYCL_CL::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <typename KernelClass, typename Function, typename ValueType>
 void
@@ -36,12 +36,12 @@ test(Function fnc, const std::vector<ValueType>& args, const char* message)
 
     std::vector<ValueType> output(args_count);
 
-    SYCL_CL::sycl::range<1> numOfItems1{args_count};
-    SYCL_CL::sycl::range<1> numOfItems2{args_count};
+    sycl::range<1> numOfItems1{args_count};
+    sycl::range<1> numOfItems2{args_count};
 
     // Evaluate results in Kernel
     {
-        SYCL_CL::sycl::queue deviceQueue(TestUtils::async_handler);
+        sycl::queue deviceQueue(TestUtils::async_handler);
 
         if (!TestUtils::has_type_support<ValueType>(deviceQueue.get_device()))
         {
@@ -51,11 +51,11 @@ test(Function fnc, const std::vector<ValueType>& args, const char* message)
             return;
         }
 
-        SYCL_CL::sycl::buffer<ValueType> buffer1(args.data(), args_count);
-        SYCL_CL::sycl::buffer<ValueType> buffer2(output.data(), args_count);
+        sycl::buffer<ValueType> buffer1(args.data(), args_count);
+        sycl::buffer<ValueType> buffer2(output.data(), args_count);
 
         deviceQueue.submit(
-            [&](SYCL_CL::sycl::handler& cgh)
+            [&](sycl::handler& cgh)
             {
                 auto in = buffer1.template get_access<sycl_read>(cgh);
                 auto out = buffer2.template get_access<sycl_write>(cgh);

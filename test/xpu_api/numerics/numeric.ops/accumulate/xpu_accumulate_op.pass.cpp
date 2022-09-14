@@ -21,8 +21,8 @@
 
 #include "support/test_iterators.h"
 
-constexpr SYCL_CL::sycl::access::mode sycl_read = SYCL_CL::sycl::access::mode::read;
-constexpr SYCL_CL::sycl::access::mode sycl_write = SYCL_CL::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class T> class KernelTest;
 
@@ -33,16 +33,16 @@ template <typename _T1, typename _T2> void ASSERT_EQUAL(_T1 &&X, _T2 &&Y) {
 }
 
 template <class Iter> void test() {
-  SYCL_CL::sycl::queue deviceQueue;
+  sycl::queue deviceQueue;
   int input[6] = {1, 2, 3, 4, 5, 6};
   int output[8] = {};
-  SYCL_CL::sycl::range<1> numOfItems1{6};
-  SYCL_CL::sycl::range<1> numOfItems2{8};
+  sycl::range<1> numOfItems1{6};
+  sycl::range<1> numOfItems2{8};
 
   {
-    SYCL_CL::sycl::buffer<int, 1> buffer1(input, numOfItems1);
-    SYCL_CL::sycl::buffer<int, 1> buffer2(output, numOfItems2);
-    deviceQueue.submit([&](SYCL_CL::sycl::handler &cgh) {
+    sycl::buffer<int, 1> buffer1(input, numOfItems1);
+    sycl::buffer<int, 1> buffer2(output, numOfItems2);
+    deviceQueue.submit([&](sycl::handler &cgh) {
       auto in = buffer1.get_access<sycl_read>(cgh);
       auto out = buffer2.get_access<sycl_write>(cgh);
       cgh.single_task<KernelTest<Iter>>([=]() {
