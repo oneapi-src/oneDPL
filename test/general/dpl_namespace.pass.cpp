@@ -30,8 +30,6 @@
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    namespace sycl = SYCL_CL::sycl;
-
     const int n = 1000;
     const int k = 1000;
     using T = std::uint64_t;

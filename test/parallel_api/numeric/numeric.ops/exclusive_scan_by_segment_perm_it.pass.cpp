@@ -170,7 +170,7 @@ main(int argc, char* argv[])
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue q;
 #if _ONEDPL_DEBUG_SYCL
-    std::cout << "    Device Name = " << q.get_device().get_info<SYCL_CL::sycl::info::device::name>().c_str() << "\n";
+    std::cout << "    Device Name = " << q.get_device().get_info<sycl::info::device::name>().c_str() << "\n";
 #    endif // _ONEDPL_DEBUG_SYCL
 
     // Run tests for USM shared memory
