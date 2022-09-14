@@ -21,7 +21,7 @@
 #ifndef _ONEDPL_sycl_defs_H
 #define _ONEDPL_sycl_defs_H
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
