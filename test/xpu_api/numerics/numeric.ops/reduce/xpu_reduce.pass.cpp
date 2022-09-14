@@ -16,7 +16,7 @@
 
 #include <oneapi/dpl/numeric>
 #include <cassert>
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 #include "support/test_iterators.h"
 

@@ -17,7 +17,7 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 using oneapi::dpl::all_of;
 

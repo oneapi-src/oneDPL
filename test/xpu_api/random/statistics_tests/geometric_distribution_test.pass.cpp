@@ -21,7 +21,7 @@
 #include <iostream>
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include <limits>
 #include <oneapi/dpl/random>
 #include <math.h>

@@ -24,7 +24,7 @@
 #include <iostream>
 
 #ifndef ONEDPL_STANDARD_POLICIES_ONLY
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #else
 #include <vector>
 #endif

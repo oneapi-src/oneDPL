@@ -20,7 +20,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #   include "oneapi/dpl/async"
-#   include <CL/sycl.hpp>
+#   include <sycl.hpp>
 #endif
 
 #include <iostream>

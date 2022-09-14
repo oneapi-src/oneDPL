@@ -25,7 +25,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 template<typename Policy>
 void test_policy_instance(const Policy& policy)

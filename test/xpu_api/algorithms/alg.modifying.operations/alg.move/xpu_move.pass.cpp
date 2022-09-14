@@ -17,7 +17,7 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 template <typename _T1, typename _T2>
 void

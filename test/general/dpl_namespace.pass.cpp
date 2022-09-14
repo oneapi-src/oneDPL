@@ -24,7 +24,7 @@
 #include <tuple>
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#   include <CL/sycl.hpp>
+#   include <sycl.hpp>
 #endif
 
 int main()
