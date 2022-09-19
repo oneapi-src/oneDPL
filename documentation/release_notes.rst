@@ -8,26 +8,23 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
-New in 2021.7.0
+New in 2021.7.1
 ===============
 
-Deprecation Notice
-------------------
-- Deprecated support of C++11 for Parallel API with host execution policies (``seq``, ``unseq``, ``par``, ``par_unseq``).
-  C++17 is the minimal required version going forward.
+New Features
+------------
+- Added possibility to construct a zip_iterator out of a std::tuple of iterators.
+- Added 9 more serial-based versions of algorithms: ``is_heap``, ``is_heap_until``, ``make_heap``, ``push_heap``, ``pop_heap``, ``is_sorted``, ``is_sorted_until``, ``partial_sort``, ``partial_sort_copy``. Please refer to `Tested Standard C++ API Reference https://github.com/oneapi-src/oneDPL/blob/main/documentation/library_guide/tested_standard_cpp_api.rst#tested-standard-c-api-reference`.
   
 Fixed Issues
 ------------
-- Fixed a kernel name definition error in range-based algorithms and ``reduce_by_segment`` used with
-  a device_policy object that has no explicit kernel name.
+- Added namespace alias ``dpl = oneapi::dpl`` into all public headers.
+- Fixed error in ``reduce_by_segment`` algorithm.
+- Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
+- Fixed wrong results error in algorithms call with permutation iterator.
   
 Known Issues and Limitations
 ----------------------------
-New in This Release
-^^^^^^^^^^^^^^^^^^^
-- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
-  the Microsoft* Visual C++ standard library.
-
 Existing Issues
 ^^^^^^^^^^^^^^^
 See oneDPL Guide for other `restrictions and known limitations`_.
@@ -36,6 +33,8 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 - ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
   in the Microsoft* Visual C++ standard library.
 - The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
 
 New in 2021.6.1
 ===============
