@@ -217,12 +217,13 @@ using __buffer_allocator =
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
-struct __Atomic :
+struct __atomic_ref :
 #if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
     sycl::atomic<_AtomicType, _Space>
 {
     template <typename __Accessor>
-    __Atomic(__Accessor _acc, ::std::size_t _offset) : sycl::atomic<_AtomicType, _Space>(_acc.get_pointer() + _offset)
+    __atomic_ref(__Accessor _acc, ::std::size_t _offset)
+        : sycl::atomic<_AtomicType, _Space>(_acc.get_pointer() + _offset)
     {
     }
 };
@@ -230,7 +231,7 @@ struct __Atomic :
     sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>
 {
     template <typename __Accessor>
-    __Atomic(__Accessor _acc, ::std::size_t _offset)
+    __atomic_ref(__Accessor _acc, ::std::size_t _offset)
         : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(
               _acc[_offset])
     {
