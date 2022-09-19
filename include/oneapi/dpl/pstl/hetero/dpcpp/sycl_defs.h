@@ -23,6 +23,8 @@
 
 #include <CL/sycl.hpp>
 
+#include <memory>
+
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
 #    define __LIBSYCL_VERSION                                                                                          \
@@ -217,25 +219,12 @@ using __buffer_allocator =
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
-struct __atomic_ref :
 #if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
-    sycl::atomic<_AtomicType, _Space>
-{
-    template <typename __Accessor>
-    __atomic_ref(__Accessor _acc, ::std::size_t _offset)
-        : sycl::atomic<_AtomicType, _Space>(_acc.get_pointer() + _offset)
-    {
-    }
-};
+using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
 #else
-    sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>
+struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 {
-    template <typename __Accessor>
-    __atomic_ref(__Accessor _acc, ::std::size_t _offset)
-        : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(
-              _acc[_offset])
-    {
-    }
+    explicit __atomic_ref(_AtomicType& data) : sycl::atomic<_AtomicType, _Space>(::std::addressof(data)){};
 };
 #endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
