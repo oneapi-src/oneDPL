@@ -115,7 +115,6 @@ using ::std::is_literal_type;
 using ::std::result_of;
 #endif // __cplusplus <= 201703L
 
-#if __cplusplus > 201103L
 using ::std::add_const_t;
 using ::std::add_cv_t;
 using ::std::add_lvalue_reference_t;
@@ -141,7 +140,6 @@ using ::std::underlying_type_t;
 #    if __cplusplus <= 201703L
 using ::std::result_of_t;
 #    endif
-#endif // __cplusplus > 201103L
 
 #if __cplusplus > 201402L
 using ::std::alignment_of_v;
