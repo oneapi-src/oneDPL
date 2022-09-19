@@ -34,7 +34,6 @@ namespace dpl
 using ::std::advance;
 using ::std::begin;
 using ::std::bidirectional_iterator_tag;
-#if __cplusplus > 201103L
 using ::std::cbegin;
 using ::std::cend;
 using ::std::crbegin;
@@ -42,7 +41,6 @@ using ::std::crend;
 using ::std::make_reverse_iterator;
 using ::std::rbegin;
 using ::std::rend;
-#endif // __cplusplus > 201103L
 using ::std::distance;
 #if __cplusplus > 201402L
 using ::std::empty;

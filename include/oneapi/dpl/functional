@@ -57,10 +57,7 @@ using ::std::not1;
 using ::std::not2;
 using ::std::unary_negate;
 #endif // __cplusplus < 202002L
-
-#if __cplusplus > 201103L
 using ::std::bit_not;
-#endif // __cplusplus > 201103L
 
 struct identity
 {
