@@ -155,8 +155,6 @@
         (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
 #define _ONEDPL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                    \
     (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
-#define _ONEDPL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT                                                                    \
-    (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
 #define _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                       \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700)
 #define _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT                                                             \
