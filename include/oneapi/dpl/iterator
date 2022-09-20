@@ -38,10 +38,10 @@ using ::std::cbegin;
 using ::std::cend;
 using ::std::crbegin;
 using ::std::crend;
+using ::std::distance;
 using ::std::make_reverse_iterator;
 using ::std::rbegin;
 using ::std::rend;
-using ::std::distance;
 #if __cplusplus > 201402L
 using ::std::empty;
 using ::std::size;
