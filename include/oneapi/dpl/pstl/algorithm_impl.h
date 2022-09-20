@@ -3832,14 +3832,7 @@ template <class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredica
 __mismatch_serial(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
                   _ForwardIterator2 __last2, _BinaryPredicate __pred)
 {
-#if (_PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT || _ONEDPL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT)
     return ::std::mismatch(__first1, __last1, __first2, __last2, __pred);
-#else
-    for (; __first1 != __last1 && __first2 != __last2 && __pred(*__first1, *__first2); ++__first1, ++__first2)
-    {
-    }
-    return ::std::make_pair(__first1, __first2);
-#endif
 }
 
 template <class _ForwardIterator1, class _ForwardIterator2, class _Predicate>
