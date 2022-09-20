@@ -304,28 +304,28 @@ struct tuple<T1, T...>
     using tuple_type = ::std::tuple<T1, T...>;
 
     template <::std::size_t I>
-    _ONEDPL_CPP14_CONSTEXPR auto
+    constexpr auto
     get() & -> decltype(get_impl<I>()(*this))
     {
         return get_impl<I>()(*this);
     }
 
     template <::std::size_t I>
-    _ONEDPL_CPP14_CONSTEXPR auto
+    constexpr auto
     get() const& -> decltype(get_impl<I>()(*this))
     {
         return get_impl<I>()(*this);
     }
 
     template <::std::size_t I>
-    _ONEDPL_CPP14_CONSTEXPR auto
+    constexpr auto
     get() && -> decltype(get_impl<I>()(::std::move(*this)))
     {
         return get_impl<I>()(::std::move(*this));
     }
 
     template <::std::size_t I>
-    _ONEDPL_CPP14_CONSTEXPR auto
+    constexpr auto
     get() const&& -> decltype(get_impl<I>()(::std::move(*this)))
     {
         return get_impl<I>()(::std::move(*this));
