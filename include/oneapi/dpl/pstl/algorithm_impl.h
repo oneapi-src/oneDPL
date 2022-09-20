@@ -556,23 +556,7 @@ bool
 __brick_equal(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
               _ForwardIterator2 __last2, _BinaryPredicate __p, /* IsVector = */ ::std::false_type) noexcept
 {
-#if (_PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT || _ONEDPL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT)
     return ::std::equal(__first1, __last1, __first2, __last2, __p);
-#else
-    return __invoke_if_else(typename __is_random_access_iterator<_ForwardIterator1, _ForwardIterator2>::type(),
-                            [&]() {
-                                if (::std::distance(__first1, __last1) != ::std::distance(__first2, __last2))
-                                    return false;
-                                return ::std::equal(__first1, __last1, __first2, __p);
-                            },
-                            [&]() {
-                                for (; __first1 != __last1 && __first2 != __last2; __first1++, __first2++)
-                                    if (!__p(*__first1, *__first2))
-                                        return false;
-
-                                return __first1 == __last1 && __first2 == __last2;
-                            });
-#endif
 }
 
 template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _BinaryPredicate>
