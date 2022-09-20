@@ -21,10 +21,7 @@
 #include <new>
 #include <iterator>
 #include <type_traits>
-
-#if (_PSTL_CPP14_INTEGER_SEQUENCE_PRESENT || _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT)
-#    include <utility>
-#endif
+#include <utility>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/sycl_defs.h"
@@ -495,35 +492,10 @@ __pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __v
     return __pstl_upper_bound(__a, __beg, __end, __val, __reorder_pred<_Compare>{__comp});
 }
 
-#if (_PSTL_CPP14_INTEGER_SEQUENCE_PRESENT || _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT)
-
 template <::std::size_t... _Sp>
 using __index_sequence = ::std::index_sequence<_Sp...>;
 template <::std::size_t _Np>
 using __make_index_sequence = ::std::make_index_sequence<_Np>;
-
-#else
-
-template <::std::size_t... _Sp>
-class __index_sequence
-{
-};
-
-template <::std::size_t _Np, ::std::size_t... _Sp>
-struct __make_index_sequence_impl : __make_index_sequence_impl<_Np - 1, _Np - 1, _Sp...>
-{
-};
-
-template <::std::size_t... _Sp>
-struct __make_index_sequence_impl<0, _Sp...>
-{
-    using type = __index_sequence<_Sp...>;
-};
-
-template <::std::size_t _Np>
-using __make_index_sequence = typename oneapi::dpl::__internal::__make_index_sequence_impl<_Np>::type;
-
-#endif /* _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT || _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT */
 
 // Required to support GNU libstdc++ below 5.x
 template <typename _Tp>
