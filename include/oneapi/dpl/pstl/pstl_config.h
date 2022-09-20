@@ -104,7 +104,6 @@
 
 #define _PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                      \
     (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
-#define _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
 #define _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                         \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
 
