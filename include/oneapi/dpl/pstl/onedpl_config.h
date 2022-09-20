@@ -50,19 +50,8 @@
 #endif
 
 // macros for deprecation
-#if (__cplusplus >= 201402L)
-#    define _DPSTD_DEPRECATED [[deprecated]]
-#    define _DPSTD_DEPRECATED_MSG(msg) [[deprecated(msg)]]
-#elif _MSC_VER
-#    define _DPSTD_DEPRECATED __declspec(deprecated)
-#    define _DPSTD_DEPRECATED_MSG(msg) __declspec(deprecated(msg))
-#elif (__GNUC__ || __clang__)
-#    define _DPSTD_DEPRECATED __attribute__((deprecated))
-#    define _DPSTD_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
-#else
-#    define _DPSTD_DEPRECATED
-#    define _DPSTD_DEPRECATED_MSG(msg)
-#endif
+#define _DPSTD_DEPRECATED [[deprecated]]
+#define _DPSTD_DEPRECATED_MSG(msg) [[deprecated(msg)]]
 
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND)
 #    define _ONEDPL_PAR_BACKEND_TBB 1
