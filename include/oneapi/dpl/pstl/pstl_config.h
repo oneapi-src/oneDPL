@@ -102,8 +102,6 @@
     (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
         (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
 
-#define _PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                      \
-    (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
 #define _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                         \
     (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700)
 
