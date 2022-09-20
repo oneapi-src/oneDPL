@@ -158,7 +158,7 @@
 #define _ONEDPL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT                                                                    \
     (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
 #define _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                       \
-    (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
+    (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700)
 #define _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT                                                             \
     (_LIBCPP_VERSION || _MSC_VER >= 1700 || (_GLIBCXX_RELEASE >= 7 || _ONEDPL_LIBSTDCXX_5_OR_GREATER))
 
