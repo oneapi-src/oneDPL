@@ -81,35 +81,22 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
 ONEDPL_TEST_NUM_MAIN
 {
     test<int, float>();
-    if constexpr (EnableDouble::value)
-        test<int, double>();
-    if constexpr (EnableLongDouble::value)
-        test<int, long double>();
+    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<int, double>(); });
     test<unsigned, float>();
-    if constexpr (EnableDouble::value)
-        test<unsigned, double>();
-    if constexpr (EnableLongDouble::value)
-        test<unsigned, long double>();
+    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<unsigned, double>(); });
+    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<unsigned, long double>(); });
     test<long long, float>();
-    if constexpr (EnableDouble::value)
-        test<long long, double>();
-    if constexpr (EnableLongDouble::value)
-        test<long long, long double>();
+    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<long long, double>(); });
+    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long long, long double>(); });
 
-    if constexpr (EnableDouble::value)
-        test<float, double>();
-    if constexpr (EnableLongDouble::value)
-        test<float, long double>();
+    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<float, double>(); });
+    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<float, long double>(); });
 
-    if constexpr (EnableDouble::value)
-        test<double, float>();
-    if constexpr (EnableLongDouble::value)
-        test<double, long double>();
+    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<double, float>(); });
+    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<double, long double>(); });
 
-    if constexpr (EnableLongDouble::value)
-        test<long double, float>();
-    if constexpr (EnableLongDouble::value)
-        test<long double, double>();
+    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long double, float>(); });
+    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long double, double>(); });
 
   return 0;
 }
