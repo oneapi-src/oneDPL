@@ -69,10 +69,8 @@ ONEDPL_TEST_NUM_MAIN
     test_abs<std::int32_t, correct_size_int<std::int32_t>::type>();
     test_abs<std::int64_t, correct_size_int<std::int64_t>::type>();
 
-    if constexpr (HasLongDoubleSupportInCompiletime::value)
-        test_abs<long double, long double>();
-    if constexpr (HasDoubleSupportInRuntime::value)
-        test_abs<double, double>();
+    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test_abs<long double, long double>(); });
+    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test_abs<double, double>(); });
     test_abs<float, float>();
 
     test_big();
