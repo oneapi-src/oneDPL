@@ -81,22 +81,22 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
 ONEDPL_TEST_NUM_MAIN
 {
     test<int, float>();
-    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<int, double>(); });
+    TestUtils::invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<int, double>(); });
     test<unsigned, float>();
-    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<unsigned, double>(); });
-    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<unsigned, long double>(); });
+    TestUtils::invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<unsigned, double>(); });
+    TestUtils::invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<unsigned, long double>(); });
     test<long long, float>();
-    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<long long, double>(); });
-    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long long, long double>(); });
+    TestUtils::invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<long long, double>(); });
+    TestUtils::invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long long, long double>(); });
 
-    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<float, double>(); });
-    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<float, long double>(); });
+    TestUtils::invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<float, double>(); });
+    TestUtils::invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<float, long double>(); });
 
-    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<double, float>(); });
-    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<double, long double>(); });
+    TestUtils::invoke_test_if<>(HasDoubleSupportInRuntime(), []() { test<double, float>(); });
+    TestUtils::invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<double, long double>(); });
 
-    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long double, float>(); });
-    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long double, double>(); });
+    TestUtils::invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long double, float>(); });
+    TestUtils::invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { test<long double, double>(); });
 
   return 0;
 }

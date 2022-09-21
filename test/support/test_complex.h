@@ -86,23 +86,24 @@ run_test()
 //         // ...
 //     }
 #define IF_DOUBLE_SUPPORT(x)                                                                          \
-    TestUtils::__invoke_test_if<>(HasDoubleSupportInRuntime(), [](){ x; });
+    TestUtils::invoke_test_if<>(HasDoubleSupportInRuntime(), [](){ x; });
 
 // We should use this macros to avoid compile-time error in code with long double type in Kernel.
 #define IF_LONG_DOUBLE_SUPPORT(x)                                                                     \
-    TestUtils::__invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { x; });
+    TestUtils::invoke_test_if<>(HasLongDoubleSupportInCompiletime(), []() { x; });
 
 namespace TestUtils
 {
     template <typename _FncTest>
     void
-    __invoke_test_if(::std::true_type, _FncTest __fncTest)
+    invoke_test_if(::std::true_type, _FncTest __fncTest)
     {
         __fncTest();
     }
 
     template <typename _FncTest>
-    void __invoke_test_if(::std::false_type, _FncTest)
+    void
+    invoke_test_if(::std::false_type, _FncTest)
     {
     }
 
