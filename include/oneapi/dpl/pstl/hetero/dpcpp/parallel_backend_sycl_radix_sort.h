@@ -392,7 +392,8 @@ struct __radix_global_scan_caller
     {
     }
 
-    void operator()(sycl::nd_item<1> __self_item) const
+    void
+    operator()(sycl::nd_item<1> __self_item) const
     {
         ::std::size_t __self_lidx = __self_item.get_local_id(0);
 
@@ -431,7 +432,7 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
                ,
                _LocalScanKernel& __local_scan_kernel
 #endif
-               ) const
+    ) const
     {
         using _CountT = typename _CountBuf::value_type;
 
@@ -608,10 +609,8 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 {
     using _Ascending = std::conditional_t<__is_comp_asc, std::true_type, std::false_type>;
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-    using _RadixCountKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_count_kernel, _CustomName,
-                                                                               __decay_t<_InRange>, __decay_t<_TmpBuf>,
-                                                                               _Ascending>;
+    using _RadixCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        __radix_sort_count_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>, _Ascending>;
     using _RadixLocalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_scan_kernel_1, _CustomName,
                                                                                __decay_t<_TmpBuf>>;
