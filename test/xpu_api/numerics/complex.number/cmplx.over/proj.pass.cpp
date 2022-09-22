@@ -55,13 +55,18 @@ test()
 ONEDPL_TEST_NUM_MAIN
 {
     test<float>();
-    IF_DOUBLE_SUPPORT(test<double>())
-    IF_LONG_DOUBLE_SUPPORT(test<long double>())
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), []() { test<double>(); });
+    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), []() {
+        test<long double>(); });
     // This check required to avoid code with dpl::complex<double> instantiation
     // when double type not supported on device
-    IF_DOUBLE_SUPPORT(test<int>())
-    IF_DOUBLE_SUPPORT(test<unsigned>())
-    IF_DOUBLE_SUPPORT(test<long long>())
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(),
+                              []()
+                              {
+                                  test<int>();
+                                  test<unsigned>();
+                                  test<long long>();
+                              });
 
   return 0;
 }

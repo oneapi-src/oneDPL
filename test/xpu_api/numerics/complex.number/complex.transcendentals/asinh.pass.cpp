@@ -127,9 +127,9 @@ CLANG_DIAGNOSTIC_POP
 ONEDPL_TEST_NUM_MAIN
 {
     test<float>();
-    IF_DOUBLE_SUPPORT(test<double>())
-    IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    IF_DOUBLE_SUPPORT(test_edges())
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), []() { test<double>(); });
+    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), []() { test<long double>(); });
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), []() { test_edges(); });
 
   return 0;
 }

@@ -18,15 +18,23 @@
 
 ONEDPL_TEST_NUM_MAIN
 {
-    IF_LONG_DOUBLE_SUPPORT(const dpl::complex<long double> cd(2.5, 3.5);
-                           dpl::complex<double> cf(cd);
-                           assert(cf.real() == cd.real());
-                           assert(cf.imag() == cd.imag()))
+    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(),
+                              []()
+                              {
+                                  const dpl::complex<long double> cd(2.5, 3.5);
+                                  dpl::complex<double> cf(cd);
+                                  assert(cf.real() == cd.real());
+                                  assert(cf.imag() == cd.imag());
+                              });
 
-    IF_LONG_DOUBLE_SUPPORT(constexpr dpl::complex<long double> cd(2.5, 3.5);
-                           constexpr dpl::complex<double> cf(cd);
-                           static_assert(cf.real() == cd.real(), "");
-                           static_assert(cf.imag() == cd.imag(), ""))
+    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(),
+                              []()
+                              {
+                                  constexpr dpl::complex<long double> cd(2.5, 3.5);
+                                  constexpr dpl::complex<double> cf(cd);
+                                  static_assert(cf.real() == cd.real(), "");
+                                  static_assert(cf.imag() == cd.imag(), "");
+                              });
 
   return 0;
 }
