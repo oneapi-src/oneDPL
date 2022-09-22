@@ -82,15 +82,9 @@ run_test()
 //     ONEDPL_TEST_NUM_MAIN
 //     {
 //         // ...
-//         IF_DOUBLE_SUPPORT(test<int>())
+//         TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), [](){ test<int>(); });
 //         // ...
 //     }
-#define IF_DOUBLE_SUPPORT(x)                                                                          \
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), [](){ x; });
-
-// We should use this macros to avoid compile-time error in code with long double type in Kernel.
-#define IF_LONG_DOUBLE_SUPPORT(x)                                                                     \
-    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), []() { x; });
 
 namespace TestUtils
 {
