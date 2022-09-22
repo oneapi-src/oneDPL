@@ -392,8 +392,7 @@ struct __radix_global_scan_caller
     {
     }
 
-    void
-    operator()(sycl::nd_item<1> __self_item) const
+    void operator()(sycl::nd_item<1> __self_item) const
     {
         ::std::size_t __self_lidx = __self_item.get_local_id(0);
 
@@ -432,7 +431,7 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
                ,
                _LocalScanKernel& __local_scan_kernel
 #endif
-    ) const
+               ) const
     {
         using _CountT = typename _CountBuf::value_type;
 
