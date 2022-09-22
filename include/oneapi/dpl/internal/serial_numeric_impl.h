@@ -18,9 +18,9 @@
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
 #if (__cplusplus >= 201703L)
-#    include <functional>
-#    include <iterator>
-#    include <numeric>
+#    include <functional>       // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/utility/functional/function - since C++11
+#    include <iterator>         // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/header/iterator
+#    include <numeric>          // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/header/numeric
 namespace oneapi
 {
 namespace dpl
@@ -49,9 +49,9 @@ reduce(_InputIterator __first, _InputIterator __last)
     return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
 #    else
-using ::std::reduce;
+using ::std::reduce;    // // KSATODO: leve as is: https://en.cppreference.com/w/cpp/algorithm/reduce - since C++17
 #    endif
 } // namespace dpl
 } // namespace oneapi
-#endif
+#endif  // __cplusplus >= 201703L
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */

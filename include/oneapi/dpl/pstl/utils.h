@@ -545,7 +545,7 @@ struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const> : ::std::tr
 {
 };
 
-#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L          // KSATODO ?
 template <typename _R, typename _U, typename... _Args>
 struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const noexcept> : ::std::true_type
 {

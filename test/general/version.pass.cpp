@@ -27,7 +27,7 @@
 #define HAS_EXECUTION_HEADER 0
 #endif
 
-#if __cplusplus < 201703L || !HAS_EXECUTION_HEADER
+#if __cplusplus < 201703L || !HAS_EXECUTION_HEADER      // KSATODO ?
 static_assert(_PSTL_VERSION == 11000, "");
 static_assert(_PSTL_VERSION_MAJOR == 11, "");
 static_assert(_PSTL_VERSION_MINOR == 00, "");

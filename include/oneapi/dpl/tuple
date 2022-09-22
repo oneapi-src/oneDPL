@@ -32,9 +32,9 @@ using ::std::tuple;
 using ::std::tuple_cat;
 using ::std::tuple_element;
 using ::std::tuple_size;
-#if __cplusplus > 201402L
-using ::std::apply;
-using ::std::make_from_tuple;
+#if __cplusplus > 201402L               // KSATODO: leave as is
+using ::std::apply;                     // KSATODO: leave as is: https://en.cppreference.com/w/cpp/utility/apply - since C++17
+using ::std::make_from_tuple;           // KSATODO: liave as is: https://en.cppreference.com/w/cpp/utility/make_from_tuple - since C++17
 #endif // __cplusplus > 201402L
 } // namespace dpl
 } // namespace oneapi

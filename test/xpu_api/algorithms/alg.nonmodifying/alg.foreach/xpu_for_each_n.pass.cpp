@@ -105,7 +105,7 @@ test(sycl::queue& deviceQueue)
 int
 main(int, char**)
 {
-#if __cplusplus >= 201703L
+#if __cplusplus >= 201703L          // KSATODO: leave as is: https://en.cppreference.com/w/cpp/algorithm/for_each_n - since C++17
     sycl::queue deviceQueue;
     test(deviceQueue);
 
