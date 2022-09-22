@@ -117,7 +117,7 @@ class fpga_policy : public device_policy<KernelName>
 // But for c++11 we need to simulate this feature using local static variable and inline function to achieve
 // a single definition across all TUs. As it's required for underlying sycl's queue to behave in the same way
 // as it's copy, we simply copy-construct a static variable from a reference to that object.
-#    if __cplusplus >= 201703L
+#    if __cplusplus >= 201703L                  // KSATODO: liave as is: Parallel API is an implementation of the C++ standard libraries algorithms and execution policies, as specified in the ISO / IEC 14882 : 2017 standard(commonly called C++ 17)
 
 inline device_policy<> dpcpp_default{};
 #        if _ONEDPL_FPGA_DEVICE

@@ -100,7 +100,7 @@
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define _PSTL_CPP17_EXECUTION_POLICIES_PRESENT                                                                         \
     (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
-        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
+        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)                                            // KSATODO: liave as is, it's execution policies from C++17 (_PSTL_CPP17_EXECUTION_POLICIES_PRESENT)
 
 #define _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700)
 

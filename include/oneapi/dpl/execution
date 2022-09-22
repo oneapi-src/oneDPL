@@ -20,7 +20,7 @@
 // ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
 #if __cplusplus >= 201703L
 #    if __has_include(<execution>)
-#        include <execution>
+#        include <execution>                    // KSATODO: leve as is: https://en.cppreference.com/w/cpp/header/execution - Standard library header <execution> (C++17)
 #    endif // __has_include(<execution>)
 #endif     // __cplusplus >= 201703L
 

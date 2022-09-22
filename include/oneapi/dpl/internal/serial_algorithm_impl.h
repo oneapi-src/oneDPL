@@ -18,8 +18,8 @@
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
 #if (__cplusplus >= 201703L)
-#    include <algorithm>
-#    include <iterator>
+#    include <algorithm>            // KSATODO: we may include this file without __cplusplus check
+#    include <iterator>             // KSATODO: we may include this file without __cplusplus check
 namespace oneapi
 {
 namespace dpl
@@ -39,9 +39,9 @@ for_each_n(_InputIterator __first, _Size __n, _Function __f)
 }
 
 #    else
-using ::std::for_each_n;
+using ::std::for_each_n;        // KSATODO: https://en.cppreference.com/w/cpp/algorithm/for_each_n - since C++17
 #    endif
 } // namespace dpl
 } // namespace oneapi
-#endif
+#endif  // __cplusplus >= 201703L
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */

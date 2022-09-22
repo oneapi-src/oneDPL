@@ -69,7 +69,7 @@
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
 
-#if (__cplusplus >= 201703L)
+#if (__cplusplus >= 201703L)                        // KSATODO: ? used in C:\Work\github-oneapi\include\oneapi\dpl\pstl\utils_ranges.h
 #    define _ONEDPL_CONSTEXPR_FUN constexpr
 #    define _ONEDPL_CONSTEXPR_VAR inline constexpr
 #else
@@ -156,7 +156,7 @@
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT                                                                       \
     (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
-        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
+        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)                                            // KSATODO ?
 #define _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700)
 #define _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT                                                             \
     (_LIBCPP_VERSION || _MSC_VER >= 1700 || (_GLIBCXX_RELEASE >= 7 || _ONEDPL_LIBSTDCXX_5_OR_GREATER))
@@ -249,7 +249,7 @@
 // Some  C++ standard libraries contain 'exclusive_scan' declaration (version with binary_op)
 // w/o "enable_if". So, a call 'exclusive_scan' may be ambiguous in case of a custom policy using.
 #define _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY                                                                \
-    (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)
+    (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)                                                       // KSATODO ?
 
 // some algorithms in <numeric> such as 'reduce' were added since libstdc++-9.3, we
 // have to provide our own implementation if legacy libstdc++ is in use.
@@ -296,7 +296,7 @@
 //'present' macros
 // shift_left, shift_right; GCC 10; VS 2019 16.1
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
-    (__cplusplus >= 202002L && ((_GLIBCXX_RELEASE >= 10) || (_MSC_VER >= 1921)))
+    (__cplusplus >= 202002L && ((_GLIBCXX_RELEASE >= 10) || (_MSC_VER >= 1921)))                                            // KSATODO ?
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
