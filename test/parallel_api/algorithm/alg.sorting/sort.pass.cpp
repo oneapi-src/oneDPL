@@ -308,9 +308,9 @@ struct test_sort_op
     }
 };
 
-template <typename T, typename Compare, typename Convert>
+template <typename T, typename Convert>
 void
-test_sort_n(Compare compare, Convert convert, size_t n)
+test_default_name_gen(Convert convert, size_t n)
 {
     LastIndex = n + 2;
     // The rand()%(2*n+1) encourages generation of some duplicates.
@@ -318,14 +318,15 @@ test_sort_n(Compare compare, Convert convert, size_t n)
     TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
     TestUtils::Sequence<T> expected(in);
     TestUtils::Sequence<T> tmp(in);
-#ifdef _PSTL_TEST_WITHOUT_PREDICATE
-    TestUtils::invoke_on_all_policies<0>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                            expected.end(), in.begin(), in.end(), in.size());
-#endif // _PSTL_TEST_WITHOUT_PREDICATE
-#ifdef _PSTL_TEST_WITH_PREDICATE
-    TestUtils::invoke_on_all_policies<1>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                            expected.end(), in.begin(), in.end(), in.size(), compare);
-#endif // _PSTL_TEST_WITH_PREDICATE
+    auto my_policy = oneapi::dpl::execution::make_device_policy(TestUtils::get_test_queue());
+    
+    TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+                my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
+                    in.size(), ::std::greater<void>());
+    TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+                my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
+                    in.size(), ::std::less<void>());
+
 }
 
 template <typename T, typename Compare, typename Convert>
@@ -334,7 +335,20 @@ test_sort(Compare compare, Convert convert)
 {
     for (size_t n = 0; n < 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        test_sort_n<T>(compare, convert, n);
+        LastIndex = n + 2;
+        // The rand()%(2*n+1) encourages generation of some duplicates.
+        // Sequence is padded with an extra element at front and back, to detect overwrite bugs.
+        TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
+        TestUtils::Sequence<T> expected(in);
+        TestUtils::Sequence<T> tmp(in);
+#ifdef _PSTL_TEST_WITHOUT_PREDICATE
+        TestUtils::invoke_on_all_policies<0>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
+                                            expected.end(), in.begin(), in.end(), in.size());
+#endif // _PSTL_TEST_WITHOUT_PREDICATE
+#ifdef _PSTL_TEST_WITH_PREDICATE
+        TestUtils::invoke_on_all_policies<1>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
+                                            expected.end(), in.begin(), in.end(), in.size(), compare);
+#endif // _PSTL_TEST_WITH_PREDICATE
     }
 }
 
@@ -385,9 +399,13 @@ main()
             [](size_t, size_t val) { return std::int32_t(val); });
     }
 
+#if TEST_DPCPP_BACKEND_PRESENT
+#ifdef _PSTL_TEST_WITH_PREDICATE
     // testing potentially clashing naming for radix sort descending / ascending with minimal timing impact
-    test_sort_n<std::int32_t>(std::greater<void>(), [](size_t, size_t val) { return std::int32_t(val); }, 10);
-    test_sort_n<std::int32_t>(std::less<void>(), [](size_t, size_t val) { return std::int32_t(val); }, 10);
+    test_default_name_gen<std::int32_t>([](size_t, size_t val) { return std::int32_t(val); },
+                                        10);
+#endif //_PSTL_TEST_WITH_PREDICATE
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 #if !ONEDPL_FPGA_DEVICE
     TestUtils::test_algo_basic_single<int32_t>(TestUtils::run_for_rnd<test_non_const<int32_t>>());
