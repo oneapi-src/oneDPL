@@ -308,6 +308,7 @@ struct test_sort_op
     }
 };
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <typename T, typename Convert>
 void
 test_default_name_gen(Convert convert, size_t n)
@@ -328,6 +329,8 @@ test_default_name_gen(Convert convert, size_t n)
                     in.size(), ::std::less<void>());
 
 }
+#endif //TEST_DPCPP_BACKEND_PRESENT
+
 
 template <typename T, typename Compare, typename Convert>
 void
