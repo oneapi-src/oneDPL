@@ -608,10 +608,9 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 {
     // Injecting ascending / descending status into custom name to prevent clashing kernel names
     using _Ascending = std::conditional_t<__is_comp_asc, std::true_type, std::false_type>;
-    using _CustomName = typename  __decay_t<_ExecutionPolicy>::kernel_name;
-    using _RadixCountKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_count_kernel, _CustomName,
-                                                                               __decay_t<_InRange>, __decay_t<_TmpBuf>, _Ascending>;
+    using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
+    using _RadixCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        __radix_sort_count_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>, _Ascending>;
     using _RadixLocalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_scan_kernel_1, _CustomName,
                                                                                __decay_t<_TmpBuf>>;
