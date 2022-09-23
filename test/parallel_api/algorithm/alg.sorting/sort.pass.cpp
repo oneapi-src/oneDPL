@@ -346,11 +346,11 @@ test_sort(Compare compare, Convert convert)
         TestUtils::Sequence<T> tmp(in);
 #ifdef _PSTL_TEST_WITHOUT_PREDICATE
         TestUtils::invoke_on_all_policies<0>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                            expected.end(), in.begin(), in.end(), in.size());
+                                               expected.end(), in.begin(), in.end(), in.size());
 #endif // _PSTL_TEST_WITHOUT_PREDICATE
 #ifdef _PSTL_TEST_WITH_PREDICATE
         TestUtils::invoke_on_all_policies<1>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                            expected.end(), in.begin(), in.end(), in.size(), compare);
+                                               expected.end(), in.begin(), in.end(), in.size(), compare);
 #endif // _PSTL_TEST_WITH_PREDICATE
     }
 }
