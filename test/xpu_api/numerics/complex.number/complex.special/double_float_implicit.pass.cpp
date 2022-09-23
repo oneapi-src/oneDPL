@@ -18,23 +18,15 @@
 
 ONEDPL_TEST_NUM_MAIN
 {
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(),
-                              []()
-                              {
-                                  const dpl::complex<float> cd(2.5, 3.5);
-                                  dpl::complex<double> cf = cd;
-                                  assert(cf.real() == cd.real());
-                                  assert(cf.imag() == cd.imag());
-                              });
+    IF_DOUBLE_SUPPORT(const dpl::complex<float> cd(2.5, 3.5);
+                      dpl::complex<double> cf = cd;
+                      assert(cf.real() == cd.real());
+                      assert(cf.imag() == cd.imag()))
 
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(),
-                              []()
-                              {
-                                  constexpr dpl::complex<float> cd(2.5, 3.5);
-                                  constexpr dpl::complex<double> cf = cd;
-                                  static_assert(cf.real() == cd.real(), "");
-                                  static_assert(cf.imag() == cd.imag(), "");
-                              });
+    IF_DOUBLE_SUPPORT(constexpr dpl::complex<float> cd(2.5, 3.5);
+                      constexpr dpl::complex<double> cf = cd;
+                      static_assert(cf.real() == cd.real(), "");
+                      static_assert(cf.imag() == cd.imag(), ""))
 
   return 0;
 }

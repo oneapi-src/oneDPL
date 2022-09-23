@@ -13,12 +13,8 @@
 
 ONEDPL_TEST_NUM_MAIN
 {
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(),
-                              []()
-                              {
-                                  dpl::complex<double> d;
-                                  (void)d;
-                              });
+    IF_DOUBLE_SUPPORT(dpl::complex<double> d;
+                      (void)d)
 
   return 0;
 }
