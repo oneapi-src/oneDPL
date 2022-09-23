@@ -84,26 +84,26 @@ ONEDPL_TEST_NUM_MAIN
     test<unsigned, float>();
     test<long long, float>();
 
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(),
-                              []()
-                              {
-                                  test<int, double>();
-                                  test<unsigned, double>();
-                                  test<long long, double>();
-                                  test<float, double>();
-                                  test<double, float>();
-                              });
+    auto fnc1 = []()
+    {
+        test<int, double>();
+        test<unsigned, double>();
+        test<long long, double>();
+        test<float, double>();
+        test<double, float>();
+    };
+    IF_DOUBLE_SUPPORT(fnc1);
 
-    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(),
-                              []()
-                              {
-                                  test<unsigned, long double>();
-                                  test<long long, long double>();
-                                  test<float, long double>();
-                                  test<double, long double>();
-                                  test<long double, float>();
-                                  test<long double, double>();
-                              });
+    auto fnc2 = []()
+    {
+        test<unsigned, long double>();
+        test<long long, long double>();
+        test<float, long double>();
+        test<double, long double>();
+        test<long double, float>();
+        test<long double, double>();
+    };
+    IF_LONG_DOUBLE_SUPPORT(fnc2);
 
   return 0;
 }
