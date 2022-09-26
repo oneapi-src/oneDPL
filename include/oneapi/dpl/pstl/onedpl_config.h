@@ -27,6 +27,10 @@
 #define ONEDPL_VERSION_MINOR 1
 #define ONEDPL_VERSION_PATCH 0
 
+#if __cplusplus < 201402L
+#    error The oneDPL library requires C++14 or greater
+#endif
+
 #if defined(ONEDPL_USE_DPCPP_BACKEND)
 #    undef _ONEDPL_BACKEND_SYCL
 #    define _ONEDPL_BACKEND_SYCL ONEDPL_USE_DPCPP_BACKEND
