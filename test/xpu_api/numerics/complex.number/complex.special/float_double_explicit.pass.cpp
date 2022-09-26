@@ -21,7 +21,7 @@ ONEDPL_TEST_NUM_MAIN
     IF_DOUBLE_SUPPORT(const dpl::complex<double> cd(2.5, 3.5);
                       dpl::complex<float> cf(cd);
                       assert(cf.real() == cd.real());
-                      assert(cf.imag() == cd.imag())
+                      assert(cf.imag() == cd.imag()))
 
     IF_DOUBLE_SUPPORT(constexpr dpl::complex<double> cd(2.5, 3.5);
                       constexpr dpl::complex<float> cf(cd);
