@@ -23,6 +23,8 @@
 
 #include <CL/sycl.hpp>
 
+#include <memory>
+
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
 #    define __LIBSYCL_VERSION                                                                                          \
@@ -45,6 +47,7 @@
 #define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (__LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (__LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (__LIBSYCL_VERSION >= 50500)
 
 namespace __dpl_sycl
 {
@@ -214,6 +217,16 @@ using __buffer_allocator =
 #else
     sycl::buffer_allocator;
 #endif
+
+template <typename _AtomicType, sycl::access::address_space _Space>
+#if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
+using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
+#else
+struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
+{
+    explicit __atomic_ref(_AtomicType& data) : sycl::atomic<_AtomicType, _Space>(::std::addressof(data)){};
+};
+#endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
 } // namespace __dpl_sycl
 

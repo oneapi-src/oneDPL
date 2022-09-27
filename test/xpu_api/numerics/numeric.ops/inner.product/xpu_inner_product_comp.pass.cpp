@@ -40,18 +40,18 @@ template <class Iter1, class Iter2>
 void
 test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     int input1[6] = {1, 2, 3, 4, 5, 6};
     int input2[6] = {6, 5, 4, 3, 2, 1};
     int output[8] = {};
-    cl::sycl::range<1> numOfItems1{6};
-    cl::sycl::range<1> numOfItems2{8};
+    sycl::range<1> numOfItems1{6};
+    sycl::range<1> numOfItems2{8};
 
     {
-        cl::sycl::buffer<int, 1> buffer1(input1, numOfItems1);
-        cl::sycl::buffer<int, 1> buffer2(input2, numOfItems1);
-        cl::sycl::buffer<int, 1> buffer3(output, numOfItems2);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<int, 1> buffer1(input1, numOfItems1);
+        sycl::buffer<int, 1> buffer2(input2, numOfItems1);
+        sycl::buffer<int, 1> buffer3(output, numOfItems2);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto in1 = buffer1.get_access<sycl_read>(cgh);
             auto in2 = buffer2.get_access<sycl_read>(cgh);
             auto out = buffer3.get_access<sycl_write>(cgh);

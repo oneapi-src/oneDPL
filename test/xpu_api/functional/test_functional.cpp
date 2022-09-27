@@ -104,11 +104,11 @@ int main() {
         using T = int;
 
         // create buffer
-        cl::sycl::buffer<T, 1> src_buf{ cl::sycl::range<1>(8) };
-        cl::sycl::buffer<T, 1> dst_buf{ cl::sycl::range<1>(8) };
+        sycl::buffer<T, 1> src_buf{sycl::range<1>(8)};
+        sycl::buffer<T, 1> dst_buf{sycl::range<1>(8)};
 
         {
-            auto data = src_buf.template get_access<cl::sycl::access::mode::write>();
+            auto data = src_buf.template get_access<sycl::access::mode::write>();
             data[0] = 1; data[1] = 0; data[2] = 0; data[3] = 1;
             data[4] = 0; data[5] = 1; data[6] = 0; data[7] = 1;
         }
@@ -133,12 +133,12 @@ int main() {
         using T = int;
 
         // create buffer
-        cl::sycl::buffer<T, 1> src_buf{ cl::sycl::range<1>(8) };
-        cl::sycl::buffer<T, 1> dst_buf{ cl::sycl::range<1>(8) };
+        sycl::buffer<T, 1> src_buf{sycl::range<1>(8)};
+        sycl::buffer<T, 1> dst_buf{sycl::range<1>(8)};
 
         {   
-            auto src = src_buf.template get_access<cl::sycl::access::mode::write>();
-            auto dst = dst_buf.template get_access<cl::sycl::access::mode::write>();
+            auto src = src_buf.template get_access<sycl::access::mode::write>();
+            auto dst = dst_buf.template get_access<sycl::access::mode::write>();
             src[0] = -3; src[1] = 1; src[2] = 4; src[3] = -1; src[4] = 5; src[5] = 9; src[6] = -2; src[7] = 6;
             dst[0] = 0;  dst[1] = 0; dst[2] = 0;  dst[3] = 0; dst[4] = 0;  dst[5] = 0; dst[6] = 0; dst[7] = 0;
         }
@@ -152,7 +152,7 @@ int main() {
         // call algorithm:
         std::exclusive_scan(new_policy, src_it, src_end_it, dst_it, T(0), oneapi::dpl::maximum<T>());
         
-        auto dst = dst_buf.template get_access<cl::sycl::access::mode::read>();
+        auto dst = dst_buf.template get_access<sycl::access::mode::read>();
         ASSERT_EQUAL(dst[0], 0);
         ASSERT_EQUAL(dst[1], 0);
         ASSERT_EQUAL(dst[2], 1);
@@ -168,12 +168,12 @@ int main() {
         using T = int;
 
         // create buffer
-        cl::sycl::buffer<T, 1> src_buf{ cl::sycl::range<1>(8) };
-        cl::sycl::buffer<T, 1> dst_buf{ cl::sycl::range<1>(8) };
+        sycl::buffer<T, 1> src_buf{sycl::range<1>(8)};
+        sycl::buffer<T, 1> dst_buf{sycl::range<1>(8)};
     
         {   
-            auto src = src_buf.template get_access<cl::sycl::access::mode::write>();
-            auto dst = dst_buf.template get_access<cl::sycl::access::mode::write>();
+            auto src = src_buf.template get_access<sycl::access::mode::write>();
+            auto dst = dst_buf.template get_access<sycl::access::mode::write>();
 
             src[0] = 3; src[1] = -1; src[2] = -4; src[3] = 1; src[4] = -5; src[5] = -9; src[6] = 2; src[7] = 6;
             dst[0] = 0;  dst[1] = 0; dst[2] = 0;  dst[3] = 0; dst[4] = 0;  dst[5] = 0; dst[6] = 0; dst[7] = 0;
@@ -188,7 +188,7 @@ int main() {
         // call algorithm:
         std::exclusive_scan(new_policy, src_it, src_end_it, dst_it, T(0), oneapi::dpl::minimum<T>());
     
-        auto dst = dst_buf.template get_access<cl::sycl::access::mode::read>();
+        auto dst = dst_buf.template get_access<sycl::access::mode::read>();
         ASSERT_EQUAL(dst[0], 0);
         ASSERT_EQUAL(dst[1], 0);
         ASSERT_EQUAL(dst[2], -1);
