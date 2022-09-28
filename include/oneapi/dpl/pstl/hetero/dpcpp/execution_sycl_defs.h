@@ -117,35 +117,11 @@ class fpga_policy : public device_policy<KernelName>
 // But for c++11 we need to simulate this feature using local static variable and inline function to achieve
 // a single definition across all TUs. As it's required for underlying sycl's queue to behave in the same way
 // as it's copy, we simply copy-construct a static variable from a reference to that object.
-#    if __cplusplus >= 201703L                  // KSATODO: liave as is: Parallel API is an implementation of the C++ standard libraries algorithms and execution policies, as specified in the ISO / IEC 14882 : 2017 standard(commonly called C++ 17)
 
 inline device_policy<> dpcpp_default{};
-#        if _ONEDPL_FPGA_DEVICE
+#    if _ONEDPL_FPGA_DEVICE
 inline fpga_policy<> dpcpp_fpga{};
-#        endif // _ONEDPL_FPGA_DEVICE
-
-#    else
-
-template <typename DeviceSelector>
-inline device_policy<>&
-__get_default_policy_object(DeviceSelector selector)
-{
-    static device_policy<> __single_base_obj(selector);
-    return __single_base_obj;
-}
-static device_policy<> dpcpp_default{__get_default_policy_object(sycl::default_selector{})};
-
-#        if _ONEDPL_FPGA_DEVICE
-inline fpga_policy<>&
-__get_fpga_policy_object()
-{
-    static fpga_policy<> __single_base_obj{};
-    return __single_base_obj;
-}
-static fpga_policy<> dpcpp_fpga{__get_fpga_policy_object()};
-#        endif // _ONEDPL_FPGA_DEVICE
-
-#    endif // __cplusplus >= 201703L
+#    endif // _ONEDPL_FPGA_DEVICE
 
 #endif // _ONEDPL_PREDEFINED_POLICIES
 
