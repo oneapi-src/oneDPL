@@ -215,9 +215,9 @@ using ::std::is_volatile_v;                         // KSATODO: leave as is: // 
 using ::std::negation;                              // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/negation					- since C++17
 using ::std::rank_v;                                // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/rank						- since C++17
 using ::std::void_t;                                // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/void_t						- since C++17
-#    if __cplusplus == 201703L                      // KSATODO: leave as is:
+#if __cplusplus < 202002L
 using ::std::is_literal_type_v;                     // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_literal_type				- since C++17, derpecated, removed in C++20
-#    endif // __cplusplus == 201703L                // KSATODO: leave as is:
+#endif // __cplusplus < 202002L
 } // namespace dpl
 } // namespace oneapi
 
