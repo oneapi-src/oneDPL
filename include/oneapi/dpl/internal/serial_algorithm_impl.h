@@ -17,8 +17,8 @@
 #ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
-#include <algorithm>            // KSATODO: we may include this file without __cplusplus check
-#include <iterator>             // KSATODO: we may include this file without __cplusplus check
+#include <algorithm>
+#include <iterator>
 namespace oneapi
 {
 namespace dpl
@@ -38,7 +38,7 @@ for_each_n(_InputIterator __first, _Size __n, _Function __f)
 }
 
 #else
-using ::std::for_each_n;        // KSATODO: https://en.cppreference.com/w/cpp/algorithm/for_each_n - since C++17
+using ::std::for_each_n;
 #endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi

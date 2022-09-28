@@ -42,8 +42,8 @@ using ::std::distance;
 using ::std::make_reverse_iterator;
 using ::std::rbegin;
 using ::std::rend;
-using ::std::empty;         // KSATODO: leve as is: https://en.cppreference.com/w/cpp/iterator/empty - since С++17
-using ::std::size;          // KSATODO: leve as is: https://en.cppreference.com/w/cpp/iterator/size - since С++17
+using ::std::empty;
+using ::std::size;
 using ::std::end;
 using ::std::forward_iterator_tag;
 using ::std::input_iterator_tag;

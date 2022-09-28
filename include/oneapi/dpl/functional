@@ -48,9 +48,9 @@ using ::std::plus;
 using ::std::ref;
 using ::std::reference_wrapper;
 #if __cplusplus < 202002L
-using ::std::binary_negate;     // KSATODO: leve as is: https://en.cppreference.com/w/cpp/utility/functional/binary_negate - deprecated in C++17
-using ::std::not1;              // KSATODO: leve as is: https://en.cppreference.com/w/cpp/utility/functional/not1 - since C++14, deprecated in C++17, removed in C++20
-using ::std::not2;              // KSATODO: leve as is: https://en.cppreference.com/w/cpp/utility/functional/not2 - deprecated in C++17, removed in C++20
+using ::std::binary_negate;
+using ::std::not1;
+using ::std::not2;
 using ::std::unary_negate;
 #endif // __cplusplus < 202002L
 using ::std::bit_not;
