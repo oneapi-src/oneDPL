@@ -52,10 +52,8 @@
 #define _PSTL_TEST_STABLE_SORT
 #define _PSTL_TEST_LEXICOGRAPHICAL_COMPIARE
 #define _PSTL_TEST_COUNTING_ZIP_TRANSFORM
-#if (__cplusplus >= 201703L)                                // KSATODO: leave as is:
-#   define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING           // KSATODO: leave as is: https://en.cppreference.com/w/cpp/language/structured_binding - since C++17
-#   define _PSTL_TEST_EQUAL_STRUCTURED_BINDING              // KSATODO: leave as is: https://en.cppreference.com/w/cpp/language/structured_binding - since C++17
-#endif
+#define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING           // KSATODO: leave as is: https://en.cppreference.com/w/cpp/language/structured_binding - since C++17
+#define _PSTL_TEST_EQUAL_STRUCTURED_BINDING              // KSATODO: leave as is: https://en.cppreference.com/w/cpp/language/structured_binding - since C++17
 #endif
 
 using namespace TestUtils;
