@@ -97,9 +97,8 @@ test(sycl::queue& deviceQueue)
 int
 main(int, char**)
 {
-#if __cplusplus >= 201703L      // KSATODO: https://en.cppreference.com/w/cpp/algorithm/reduce - since C++17
     sycl::queue deviceQueue;
     test(deviceQueue);
-#endif
+
     return 0;
 }
