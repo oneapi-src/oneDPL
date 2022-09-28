@@ -112,8 +112,8 @@ using ::std::true_type;
 using ::std::underlying_type;
 #if __cplusplus < 202002L
 using ::std::is_literal_type; // Deprecated in C++17, removed in C++20
-using ::std::result_of; // Deprecated in C++17, removed in C++20
-#endif // __cplusplus < 202002L
+using ::std::result_of;       // Deprecated in C++17, removed in C++20
+#endif                        // __cplusplus < 202002L
 
 using ::std::add_const_t;
 using ::std::add_cv_t;
@@ -139,7 +139,7 @@ using ::std::remove_volatile_t;
 using ::std::underlying_type_t;
 #if __cplusplus < 202002L
 using ::std::result_of_t; // Deprecated in C++17, removed in C++20
-#endif // __cplusplus < 202002L
+#endif                    // __cplusplus < 202002L
 
 using ::std::alignment_of_v;
 using ::std::conjunction;
@@ -217,7 +217,7 @@ using ::std::rank_v;
 using ::std::void_t;
 #if __cplusplus < 202002L
 using ::std::is_literal_type_v; // Deprecated in C++17, removed in C++20
-#endif // __cplusplus < 202002L
+#endif                          // __cplusplus < 202002L
 } // namespace dpl
 } // namespace oneapi
 
