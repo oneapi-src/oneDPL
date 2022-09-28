@@ -141,7 +141,6 @@ using ::std::underlying_type_t;
 using ::std::result_of_t;           // KSATODO: leave as is: https://en.cppreference.com/w/cpp/types/result_of - since C++11, deprecated in C++17, removed in C++20
 #endif // __cplusplus < 202002L
 
-#if __cplusplus > 201402L                           // KSATODO: leave as is:
 using ::std::alignment_of_v;                        // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/result_of 					- since C++17
 using ::std::conjunction;                           // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/conjunction 				- since C++17
 using ::std::conjunction_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/conjunction 				- since C++17
@@ -219,7 +218,6 @@ using ::std::void_t;                                // KSATODO: leave as is: // 
 #    if __cplusplus == 201703L                      // KSATODO: leave as is:
 using ::std::is_literal_type_v;                     // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_literal_type				- since C++17, derpecated, removed in C++20
 #    endif // __cplusplus == 201703L                // KSATODO: leave as is:
-#endif // __cplusplus > 201402L                     // KSATODO: leave as is:
 } // namespace dpl
 } // namespace oneapi
 
