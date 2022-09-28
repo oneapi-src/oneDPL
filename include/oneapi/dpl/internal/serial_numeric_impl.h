@@ -17,15 +17,14 @@
 #ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
-#if (__cplusplus >= 201703L)
-#    include <functional>       // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/utility/functional/function - since C++11
-#    include <iterator>         // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/header/iterator
-#    include <numeric>          // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/header/numeric
+#include <functional>       // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/utility/functional/function - since C++11
+#include <iterator>         // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/header/iterator
+#include <numeric>          // KSATODO: we may include this file without __cplusplus check https://en.cppreference.com/w/cpp/header/numeric
 namespace oneapi
 {
 namespace dpl
 {
-#    if _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
+#if _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 template <class _InputIterator, class _Tp, class _BinaryOp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init, _BinaryOp __b)
@@ -48,10 +47,9 @@ reduce(_InputIterator __first, _InputIterator __last)
 {
     return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
-#    else
+#else
 using ::std::reduce;    // // KSATODO: leve as is: https://en.cppreference.com/w/cpp/algorithm/reduce - since C++17
-#    endif
+#endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi
-#endif  // __cplusplus >= 201703L
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
