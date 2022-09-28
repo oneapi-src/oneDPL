@@ -69,14 +69,6 @@
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
 
-#if (__cplusplus >= 201703L)                        // KSATODO: ? used in C:\Work\github-oneapi\include\oneapi\dpl\pstl\utils_ranges.h
-#    define _ONEDPL_CONSTEXPR_FUN constexpr
-#    define _ONEDPL_CONSTEXPR_VAR inline constexpr
-#else
-#    define _ONEDPL_CONSTEXPR_FUN inline
-#    define _ONEDPL_CONSTEXPR_VAR constexpr
-#endif
-
 // Check the user-defined macro for warnings
 #if !defined(_PSTL_USAGE_WARNINGS) && defined(PSTL_USAGE_WARNINGS)
 #    define _PSTL_USAGE_WARNINGS PSTL_USAGE_WARNINGS
