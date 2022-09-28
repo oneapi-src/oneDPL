@@ -101,7 +101,7 @@ template <sycl::access::mode AccMode = sycl::access::mode::read_write,
 struct all_view_fn
 {
     template <typename _T>
-    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>
+    constexpr oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>
     operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
                typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
     {
@@ -118,16 +118,16 @@ struct all_view_fn
 
 namespace views
 {
-_ONEDPL_CONSTEXPR_VAR
+inline constexpr
 all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all;
 
-_ONEDPL_CONSTEXPR_VAR
+inline constexpr
 all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all_read;
 
-_ONEDPL_CONSTEXPR_VAR
+inline constexpr
 all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all_write;
 
-_ONEDPL_CONSTEXPR_VAR
+inline constexpr
 all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target::host_buffer, sycl::access::placeholder::false_t>
     host_all;
 } // namespace views
@@ -259,7 +259,7 @@ template <typename _R>
 struct __range_holder
 {
     _R __r;
-    _ONEDPL_CONSTEXPR_FUN _R
+    constexpr _R
     all_view() const
     {
         return __r;
@@ -296,7 +296,7 @@ struct __buffer_holder
 {
     buf_type<_T> __buf;
 
-    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
+    constexpr oneapi::dpl::__ranges::all_view<_T, AccMode>
     all_view() const
     {
         return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf);
