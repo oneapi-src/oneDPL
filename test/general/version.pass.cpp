@@ -21,13 +21,9 @@
 
 #include "support/utils.h"
 
-#if defined(__has_include)
 #define HAS_EXECUTION_HEADER __has_include(<execution>)
-#else
-#define HAS_EXECUTION_HEADER 0
-#endif
 
-#if __cplusplus < 201703L || !HAS_EXECUTION_HEADER      // KSATODO ?
+#if !HAS_EXECUTION_HEADER
 static_assert(_PSTL_VERSION == 11000, "");
 static_assert(_PSTL_VERSION_MAJOR == 11, "");
 static_assert(_PSTL_VERSION_MINOR == 00, "");
