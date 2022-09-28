@@ -606,17 +606,18 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
                                 _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf,
                                 sycl::event __dependency_event)
 {
+    // Injecting ascending / descending status into custom name to prevent clashing kernel names
+    using _Ascending = std::conditional_t<__is_comp_asc, std::true_type, std::false_type>;
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-    using _RadixCountKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_count_kernel, _CustomName,
-                                                                               __decay_t<_InRange>, __decay_t<_TmpBuf>>;
+    using _RadixCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        __radix_sort_count_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>, _Ascending>;
     using _RadixLocalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_scan_kernel_1, _CustomName,
                                                                                __decay_t<_TmpBuf>>;
     using _RadixGlobalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
     using _RadixReorderKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-        __radix_sort_reorder_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
+        __radix_sort_reorder_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>, _Ascending>;
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);

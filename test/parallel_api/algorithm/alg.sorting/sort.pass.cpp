@@ -308,6 +308,30 @@ struct test_sort_op
     }
 };
 
+#if TEST_DPCPP_BACKEND_PRESENT
+template <typename T, typename Convert>
+void
+test_default_name_gen(Convert convert, size_t n)
+{
+    LastIndex = n + 2;
+    // The rand()%(2*n+1) encourages generation of some duplicates.
+    // Sequence is padded with an extra element at front and back, to detect overwrite bugs.
+    TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
+    TestUtils::Sequence<T> expected(in);
+    TestUtils::Sequence<T> tmp(in);
+    auto my_policy = oneapi::dpl::execution::make_device_policy(TestUtils::get_test_queue());
+    
+    TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+                my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
+                    in.size(), ::std::greater<void>());
+    TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+                my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
+                    in.size(), ::std::less<void>());
+
+}
+#endif //TEST_DPCPP_BACKEND_PRESENT
+
+
 template <typename T, typename Compare, typename Convert>
 void
 test_sort(Compare compare, Convert convert)
@@ -377,6 +401,14 @@ main()
             [](std::int32_t x, std::int32_t y) { return x > y; }, // Reversed so accidental use of < will be detected.
             [](size_t, size_t val) { return std::int32_t(val); });
     }
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#ifdef _PSTL_TEST_WITH_PREDICATE
+    // testing potentially clashing naming for radix sort descending / ascending with minimal timing impact
+    test_default_name_gen<std::int32_t>([](size_t, size_t val) { return std::int32_t(val); },
+                                        10);
+#endif //_PSTL_TEST_WITH_PREDICATE
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 #if !ONEDPL_FPGA_DEVICE
     TestUtils::test_algo_basic_single<int32_t>(TestUtils::run_for_rnd<test_non_const<int32_t>>());
