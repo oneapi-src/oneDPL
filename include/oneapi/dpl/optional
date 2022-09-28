@@ -23,10 +23,10 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::make_optional;     // KSATODO: leave as is: https://en.cppreference.com/w/cpp/utility/optional/make_optional - since C++17
-using ::std::nullopt;           // KSATODO: leave as is: https://en.cppreference.com/w/cpp/utility/optional/nullopt - since C++17
-using ::std::nullopt_t;         // KSATODO: leave as is: https://en.cppreference.com/w/cpp/types/nullptr_t - since C++17
-using ::std::optional;          // KSATODO: leave as is: https://en.cppreference.com/w/cpp/utility/optional - since C++17
+using ::std::make_optional;
+using ::std::nullopt;
+using ::std::nullopt_t;
+using ::std::optional;
 } // namespace dpl
 } // namespace oneapi
 

@@ -35,8 +35,8 @@ using ::std::piecewise_construct;
 using ::std::swap;
 using ::std::tuple_element;
 using ::std::tuple_size;
-using ::std::in_place;              // KSATODO: leave as is: https://en.cppreference.com/w/cpp/utility/in_place - since C++17
-using ::std::in_place_t;            // KSATODO: leave as is https://en.cppreference.com/w/cpp/utility/in_place - since C++17
+using ::std::in_place;
+using ::std::in_place_t;
 } // namespace dpl
 } // namespace oneapi
 

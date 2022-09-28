@@ -111,8 +111,8 @@ using ::std::remove_volatile;
 using ::std::true_type;
 using ::std::underlying_type;
 #if __cplusplus < 202002L
-using ::std::is_literal_type;   // KSATODO: leave as is: https://en.cppreference.com/w/cpp/types/is_literal_type - since C++11, deprecated in C++17, removed in C++20
-using ::std::result_of;         // KSATODO: leave as is: https://en.cppreference.com/w/cpp/types/result_of - since C++11, deprecated in C++17, removed in C++20
+using ::std::is_literal_type;
+using ::std::result_of;
 #endif // __cplusplus < 202002L
 
 using ::std::add_const_t;
@@ -138,85 +138,85 @@ using ::std::remove_reference_t;
 using ::std::remove_volatile_t;
 using ::std::underlying_type_t;
 #if __cplusplus < 202002L
-using ::std::result_of_t;           // KSATODO: leave as is: https://en.cppreference.com/w/cpp/types/result_of - since C++11, deprecated in C++17, removed in C++20
+using ::std::result_of_t;
 #endif // __cplusplus < 202002L
 
-using ::std::alignment_of_v;                        // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/result_of 					- since C++17
-using ::std::conjunction;                           // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/conjunction 				- since C++17
-using ::std::conjunction_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/conjunction 				- since C++17
-using ::std::disjunction;                           // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/disjunction 				- since C++17
-using ::std::disjunction_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/disjunction 				- since C++17
-using ::std::extent_v;                              // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/extent 						- since C++17
-using ::std::has_virtual_destructor_v;              // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/has_virtual_destructor 		- since C++17
-using ::std::invoke_result;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/result_of 					- since C++17
-using ::std::invoke_result_t;                       // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/result_of 					- since C++17
-using ::std::is_abstract_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_abstract					- since C++17
-using ::std::is_arithmetic_v;                       // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_arithmetic				- since C++17
-using ::std::is_array_v;                            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_array					- since C++17
-using ::std::is_assignable_v;                       // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_assignable				- since C++17
-using ::std::is_base_of_v;                          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_base_of					- since C++17
-using ::std::is_class_v;                            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_class					- since C++17
-using ::std::is_compound_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_compound					- since C++17
-using ::std::is_const_v;                            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_const					- since C++17
-using ::std::is_constructible_v;                    // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_constructible			- since C++17
-using ::std::is_convertible_v;                      // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_convertible				- since C++17
-using ::std::is_copy_assignable_v;                  // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_copy_assignable			- since C++17
-using ::std::is_copy_constructible_v;               // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_copy_constructible		- since C++17
-using ::std::is_default_constructible_v;            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_default_constructible 	- since C++17
-using ::std::is_destructible_v;                     // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_destructible				- since C++17
-using ::std::is_empty_v;                            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_empty					- since C++17
-using ::std::is_enum_v;                             // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_enum						- since C++17
-using ::std::is_floating_point_v;                   // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_floating_point			- since C++17
-using ::std::is_function_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_function					- since C++17
-using ::std::is_fundamental_v;                      // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_fundamental				- since C++17
-using ::std::is_integral_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_integral					- since C++17
-using ::std::is_invocable;                          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_invocable				- since C++17
-using ::std::is_invocable_r;                        // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_invocable				- since C++17
-using ::std::is_lvalue_reference_v;                 // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_lvalue_reference			- since C++17
-using ::std::is_member_function_pointer_v;          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_member_function_pointer	- since C++17
-using ::std::is_member_object_pointer_v;            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_member_object_pointer	- since C++17
-using ::std::is_member_pointer_v;                   // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_member_pointer			- since C++17
-using ::std::is_move_assignable_v;                  // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_move_assignable			- since C++17
-using ::std::is_move_constructible_v;               // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_move_constructible		- since C++17
-using ::std::is_nothrow_assignable_v;               // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_assignable				- since C++17
-using ::std::is_nothrow_constructible_v;            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_constructible			- since C++17
-using ::std::is_nothrow_copy_assignable_v;          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_copy_assignable			- since C++17
-using ::std::is_nothrow_copy_constructible_v;       // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_copy_constructible		- since C++17
-using ::std::is_nothrow_default_constructible_v;    // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_default_constructible	- since C++17
-using ::std::is_nothrow_destructible_v;             // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_destructible				- since C++17
-using ::std::is_nothrow_invocable;                  // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_invocable				- since C++17
-using ::std::is_nothrow_invocable_r;                // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_invocable				- since C++17
-using ::std::is_nothrow_move_assignable_v;          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_move_assignable			- since C++17
-using ::std::is_nothrow_move_constructible_v;       // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_move_constructible		- since C++17
-using ::std::is_object_v;                           // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_object					- since C++17
-using ::std::is_pod_v;                              // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_pod						- since C++17, deprecatred in C++20
-using ::std::is_pointer_v;                          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_pointer					- since C++17
-using ::std::is_polymorphic_v;                      // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_polymorphic				- since C++17
-using ::std::is_reference_v;                        // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_reference				- since C++17
-using ::std::is_rvalue_reference_v;                 // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_rvalue_reference			- since C++17
-using ::std::is_same_v;                             // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_same						- since C++17
-using ::std::is_scalar_v;                           // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_scalar					- since C++17
-using ::std::is_signed_v;                           // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_signed					- since C++17
-using ::std::is_standard_layout_v;                  // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_standard_layout			- since C++17
-using ::std::is_trivial_v;                          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_trivial					- since C++17
-using ::std::is_trivially_assignable_v;             // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_assignable				- since C++17
-using ::std::is_trivially_constructible_v;          // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_constructible			- since C++17
-using ::std::is_trivially_copy_assignable_v;        // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_copy_assignable			- since C++17
-using ::std::is_trivially_copy_constructible_v;     // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_copy_constructible		- since C++17
-using ::std::is_trivially_copyable_v;               // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_trivially_copyable		- since C++17
-using ::std::is_trivially_default_constructible_v;  // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_default_constructible	- since C++17
-using ::std::is_trivially_destructible_v;           // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_destructible				- since C++17
-using ::std::is_trivially_move_assignable_v;        // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_move_assignable			- since C++17
-using ::std::is_trivially_move_constructible_v;     // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_move_constructible		- since C++17
-using ::std::is_union_v;                            // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_union					- since C++17
-using ::std::is_unsigned_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_unsigned					- since C++17
-using ::std::is_void_v;                             // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_void						- since C++17
-using ::std::is_volatile_v;                         // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_volatile					- since C++17
-using ::std::negation;                              // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/negation					- since C++17
-using ::std::rank_v;                                // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/rank						- since C++17
-using ::std::void_t;                                // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/void_t						- since C++17
+using ::std::alignment_of_v;
+using ::std::conjunction;
+using ::std::conjunction_v;
+using ::std::disjunction;
+using ::std::disjunction_v;
+using ::std::extent_v;
+using ::std::has_virtual_destructor_v;
+using ::std::invoke_result;
+using ::std::invoke_result_t;
+using ::std::is_abstract_v;
+using ::std::is_arithmetic_v;
+using ::std::is_array_v;
+using ::std::is_assignable_v;
+using ::std::is_base_of_v;
+using ::std::is_class_v;
+using ::std::is_compound_v;
+using ::std::is_const_v;
+using ::std::is_constructible_v;
+using ::std::is_convertible_v;
+using ::std::is_copy_assignable_v;
+using ::std::is_copy_constructible_v;
+using ::std::is_default_constructible_v;
+using ::std::is_destructible_v;
+using ::std::is_empty_v;
+using ::std::is_enum_v;
+using ::std::is_floating_point_v;
+using ::std::is_function_v;
+using ::std::is_fundamental_v;
+using ::std::is_integral_v;
+using ::std::is_invocable;
+using ::std::is_invocable_r;
+using ::std::is_lvalue_reference_v;
+using ::std::is_member_function_pointer_v;
+using ::std::is_member_object_pointer_v;
+using ::std::is_member_pointer_v;
+using ::std::is_move_assignable_v;
+using ::std::is_move_constructible_v;
+using ::std::is_nothrow_assignable_v;
+using ::std::is_nothrow_constructible_v;
+using ::std::is_nothrow_copy_assignable_v;
+using ::std::is_nothrow_copy_constructible_v;
+using ::std::is_nothrow_default_constructible_v;
+using ::std::is_nothrow_destructible_v;
+using ::std::is_nothrow_invocable;
+using ::std::is_nothrow_invocable_r;
+using ::std::is_nothrow_move_assignable_v;
+using ::std::is_nothrow_move_constructible_v;
+using ::std::is_object_v;
+using ::std::is_pod_v;
+using ::std::is_pointer_v;
+using ::std::is_polymorphic_v;
+using ::std::is_reference_v;
+using ::std::is_rvalue_reference_v;
+using ::std::is_same_v;
+using ::std::is_scalar_v;
+using ::std::is_signed_v;
+using ::std::is_standard_layout_v;
+using ::std::is_trivial_v;
+using ::std::is_trivially_assignable_v;
+using ::std::is_trivially_constructible_v;
+using ::std::is_trivially_copy_assignable_v;
+using ::std::is_trivially_copy_constructible_v;
+using ::std::is_trivially_copyable_v;
+using ::std::is_trivially_default_constructible_v;
+using ::std::is_trivially_destructible_v;
+using ::std::is_trivially_move_assignable_v;
+using ::std::is_trivially_move_constructible_v;
+using ::std::is_union_v;
+using ::std::is_unsigned_v;
+using ::std::is_void_v;
+using ::std::is_volatile_v;
+using ::std::negation;
+using ::std::rank_v;
+using ::std::void_t;
 #if __cplusplus < 202002L
-using ::std::is_literal_type_v;                     // KSATODO: leave as is: // https://en.cppreference.com/w/cpp/types/is_literal_type				- since C++17, derpecated, removed in C++20
+using ::std::is_literal_type_v;
 #endif // __cplusplus < 202002L
 } // namespace dpl
 } // namespace oneapi
