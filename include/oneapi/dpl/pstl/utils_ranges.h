@@ -122,8 +122,7 @@ class zip_view
         return ::std::get<0>(__m_ranges).size();
     }
 
-    constexpr auto
-    operator[](int32_t __i) const
+    constexpr auto operator[](int32_t __i) const
         -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i,
                                    oneapi::dpl::__internal::__make_index_sequence<__num_ranges>()))
     {
