@@ -49,10 +49,10 @@ using ::std::ref;
 using ::std::reference_wrapper;
 #if __cplusplus < 202002L
 using ::std::binary_negate; // Deprecated in C++17, removed in C++20
-using ::std::not1; // Deprecated in C++17, removed in C++20
-using ::std::not2; // Deprecated in C++17, removed in C++20
-using ::std::unary_negate; // Deprecated in C++17, removed in C++20
-#endif // __cplusplus < 202002L
+using ::std::not1;          // Deprecated in C++17, removed in C++20
+using ::std::not2;          // Deprecated in C++17, removed in C++20
+using ::std::unary_negate;  // Deprecated in C++17, removed in C++20
+#endif                      // __cplusplus < 202002L
 using ::std::bit_not;
 
 struct identity
