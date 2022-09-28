@@ -47,10 +47,6 @@ using ::std::not_equal_to;
 using ::std::plus;
 using ::std::ref;
 using ::std::reference_wrapper;
-#if __cplusplus < 201703L
-using ::std::binary_function;   // KSATODO: leve as is: https://en.cppreference.com/w/cpp/utility/functional/binary_function - deprecated in C++11, removed in C++17
-using ::std::unary_function;    // https://en.cppreference.com/w/cpp/utility/functional/unary_function - deprecated in C++11, removed in C++17
-#endif // __cplusplus < 201703L
 #if __cplusplus < 202002L
 using ::std::binary_negate;     // KSATODO: leve as is: https://en.cppreference.com/w/cpp/utility/functional/binary_negate - deprecated in C++17
 using ::std::not1;              // KSATODO: leve as is: https://en.cppreference.com/w/cpp/utility/functional/not1 - since C++14, deprecated in C++17, removed in C++20
