@@ -27,7 +27,7 @@
 #include "support/test_config.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#    include <oneapi/dpl/sycl.hpp>
 #endif
 
 template <typename Policy, typename NewName>

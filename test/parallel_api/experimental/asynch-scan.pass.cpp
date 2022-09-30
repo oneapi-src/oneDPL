@@ -19,8 +19,8 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#   include "oneapi/dpl/async"
-#   include <CL/sycl.hpp>
+#    include "oneapi/dpl/async"
+#    include <oneapi/dpl/sycl.hpp>
 #endif
 
 #include <iostream>

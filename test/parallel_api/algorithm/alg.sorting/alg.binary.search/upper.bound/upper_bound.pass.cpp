@@ -22,7 +22,7 @@
 #include "support/binary_search_utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include <CL/sycl.hpp>
+#    include <oneapi/dpl/sycl.hpp>
 
 using namespace oneapi::dpl::execution;
 #endif

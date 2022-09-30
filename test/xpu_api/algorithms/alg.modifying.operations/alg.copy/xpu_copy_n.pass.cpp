@@ -17,7 +17,7 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
+#include <oneapi/dpl/sycl.hpp>
 
 template <class Iter1, class Iter2>
 class KernelTest;

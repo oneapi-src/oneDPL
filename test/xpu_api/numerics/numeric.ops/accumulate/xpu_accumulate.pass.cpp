@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <oneapi/dpl/sycl.hpp>
 #include <oneapi/dpl/numeric>
 
 #include "support/test_iterators.h"

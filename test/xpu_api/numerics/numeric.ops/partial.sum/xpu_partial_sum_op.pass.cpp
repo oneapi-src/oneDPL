@@ -14,7 +14,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <CL/sycl.hpp>
+#include <oneapi/dpl/sycl.hpp>
 #include <iostream>
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/numeric>

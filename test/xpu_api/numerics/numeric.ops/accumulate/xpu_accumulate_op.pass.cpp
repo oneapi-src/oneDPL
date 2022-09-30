@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <oneapi/dpl/sycl.hpp>
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/numeric>
 

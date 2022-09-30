@@ -20,7 +20,7 @@
 #ifndef _ONEDPL_RANDOM_DEVICE_TESTS_COMMON
 #define _ONEDPL_RANDOM_DEVICE_TESTS_COMMON
 
-#include <CL/sycl.hpp>
+#include <oneapi/dpl/sycl.hpp>
 #include <oneapi/dpl/random>
 #include <limits>
 #include <iostream>
