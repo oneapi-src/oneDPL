@@ -21,7 +21,7 @@
 #ifndef _ONEDPL_sycl_defs_H
 #define _ONEDPL_sycl_defs_H
 
-#include <CL/sycl.hpp>
+#include <oneapi/dpl/sycl.hpp>
 
 #include <memory>
 
