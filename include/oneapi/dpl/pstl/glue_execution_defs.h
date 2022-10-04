@@ -25,13 +25,11 @@ namespace std
 {
 // Type trait
 using oneapi::dpl::execution::is_execution_policy;
-#    if (_PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT || _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT)
-#        if __INTEL_COMPILER
+#    if __INTEL_COMPILER
 template <class T>
 constexpr bool is_execution_policy_v = is_execution_policy<T>::value;
-#        else
+#    else
 using oneapi::dpl::execution::is_execution_policy_v;
-#        endif
 #    endif
 
 namespace execution
