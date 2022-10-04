@@ -144,10 +144,8 @@ struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::
 {
 };
 
-#if (_PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT || _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT)
 template <class T>
 constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<T>::value;
-#endif
 
 } // namespace v1
 } // namespace execution
