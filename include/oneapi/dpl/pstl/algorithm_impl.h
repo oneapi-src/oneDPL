@@ -1738,12 +1738,7 @@ _ForwardIterator
 __brick_rotate(_ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last,
                /*is_vector=*/::std::false_type) noexcept
 {
-#if (_PSTL_CPP11_STD_ROTATE_BROKEN || _ONEDPL_CPP11_STD_ROTATE_BROKEN)
-    ::std::rotate(__first, __middle, __last);
-    return ::std::next(__first, ::std::distance(__middle, __last));
-#else
     return ::std::rotate(__first, __middle, __last);
-#endif
 }
 
 template <class _RandomAccessIterator>

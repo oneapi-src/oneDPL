@@ -232,9 +232,6 @@
 #    endif
 #endif
 
-// broken macros
-#define _ONEDPL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
-
 // Some  C++ standard libraries contain 'exclusive_scan' declaration (version with binary_op)
 // w/o "enable_if". So, a call 'exclusive_scan' may be ambiguous in case of a custom policy using.
 #define _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY (__GLIBCXX__ && __GLIBCXX__ > 20190503)
