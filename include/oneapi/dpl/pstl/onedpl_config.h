@@ -31,6 +31,10 @@
 #    error The oneDPL library requires C++17 or greater
 #endif
 
+#if !__has_include(<execution>)
+#    error Required STL version with <execution> file support
+#endif
+
 #if defined(ONEDPL_USE_DPCPP_BACKEND)
 #    undef _ONEDPL_BACKEND_SYCL
 #    define _ONEDPL_BACKEND_SYCL ONEDPL_USE_DPCPP_BACKEND
