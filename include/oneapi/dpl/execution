@@ -55,17 +55,11 @@
 #    include "oneapi/dpl/pstl/glue_numeric_ranges_impl.h"
 #endif // _ONEDPL_NUMERIC_RANGES_FORWARD_DECLARED
 
-#if _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 _PSTL_PRAGMA_MESSAGE_POLICIES(
     "The <Parallel STL> execution policies are defined in the namespace oneapi::dpl::execution")
-#    include "oneapi/dpl/pstl/algorithm_impl.h"
-#    include "oneapi/dpl/pstl/numeric_impl.h"
-#    include "oneapi/dpl/pstl/parallel_backend.h"
-#else
-#    include "oneapi/dpl/pstl/glue_execution_defs.h"
-_PSTL_PRAGMA_MESSAGE_POLICIES(
-    "The <Parallel STL> execution policies are injected into the standard namespace std::execution")
-#endif // _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
+#include "oneapi/dpl/pstl/algorithm_impl.h"
+#include "oneapi/dpl/pstl/numeric_impl.h"
+#include "oneapi/dpl/pstl/parallel_backend.h"
 
 namespace dpl = oneapi::dpl;
 
