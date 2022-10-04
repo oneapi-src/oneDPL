@@ -497,16 +497,6 @@ using __index_sequence = ::std::index_sequence<_Sp...>;
 template <::std::size_t _Np>
 using __make_index_sequence = ::std::make_index_sequence<_Np>;
 
-// Required to support GNU libstdc++ below 5.x
-template <typename _Tp>
-using __has_trivial_copy_assignemnt =
-#if _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT
-    ::std::is_trivially_copy_assignable<
-#else
-    ::std::has_trivial_copy_assign<
-#endif /* _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT */
-        _Tp>;
-
 // Aliases for adjacent_find compile-time dispatching
 using __or_semantic = ::std::true_type;
 using __first_semantic = ::std::false_type;

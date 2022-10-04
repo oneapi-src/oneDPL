@@ -149,8 +149,6 @@
 #define _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT                                                                       \
     (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) || (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503)
 #define _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700)
-#define _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT                                                             \
-    (_LIBCPP_VERSION || _MSC_VER >= 1700 || (_GLIBCXX_RELEASE >= 7 || _ONEDPL_LIBSTDCXX_5_OR_GREATER))
 
 #define _ONEDPL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #if (defined(_PSTL_PRAGMA_SIMD_EARLYEXIT) && _PSTL_EARLYEXIT_PRESENT)
