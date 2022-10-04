@@ -168,7 +168,6 @@
 #endif
 
 // broken macros
-#define _PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
 
 #define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
