@@ -22,10 +22,19 @@ template <class T>
 void
 test_imp(std::true_type)
 {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+#endif
+
     assert(dpl::isnan(dpl::numeric_limits<T>::quiet_NaN()));
     assert(dpl::isnan(dpl::numeric_limits<const T>::quiet_NaN()));
     assert(dpl::isnan(dpl::numeric_limits<volatile T>::quiet_NaN()));
     assert(dpl::isnan(dpl::numeric_limits<const volatile T>::quiet_NaN()));
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 }
 
 template <class T>
