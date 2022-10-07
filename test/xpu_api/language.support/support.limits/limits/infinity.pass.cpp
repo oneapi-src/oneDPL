@@ -21,13 +21,22 @@ template <class T>
 void
 test(T expected)
 {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+#endif
+
     assert(dpl::numeric_limits<T>::infinity() == expected);
     assert(dpl::numeric_limits<const T>::infinity() == expected);
     assert(dpl::numeric_limits<volatile T>::infinity() == expected);
     assert(dpl::numeric_limits<const volatile T>::infinity() == expected);
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 }
 
-extern float zero;
+extern const float zero;
 
 ONEDPL_TEST_NUM_MAIN
 {
@@ -62,4 +71,4 @@ ONEDPL_TEST_NUM_MAIN
   return 0;
 }
 
-float zero = 0;
+const float zero = 0;
