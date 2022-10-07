@@ -21,9 +21,7 @@
 
 #include "support/utils.h"
 
-#define HAS_EXECUTION_HEADER __has_include(<execution>)
-
-#if !HAS_EXECUTION_HEADER
+#if !__has_include(<execution>)
 static_assert(_PSTL_VERSION == 11000, "");
 static_assert(_PSTL_VERSION_MAJOR == 11, "");
 static_assert(_PSTL_VERSION_MINOR == 00, "");
