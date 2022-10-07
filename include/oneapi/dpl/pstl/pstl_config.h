@@ -166,7 +166,6 @@
 #endif
 
 // broken macros
-
 #define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
 #endif /* _PSTL_CONFIG_H */
