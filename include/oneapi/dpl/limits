@@ -1,0 +1,33 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef __ONEDPL_limits
+#define __ONEDPL_limits
+
+#include "oneapi/dpl/internal/common_config.h"
+#include <limits>
+
+namespace oneapi
+{
+namespace dpl
+{
+template <typename T>
+using numeric_limits = ::std::numeric_limits<T>;
+} // namespace dpl
+} // namespace oneapi
+
+namespace dpl = oneapi::dpl;
+
+#endif // __ONEDPL_limits

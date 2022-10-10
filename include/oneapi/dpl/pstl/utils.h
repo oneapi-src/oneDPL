@@ -21,6 +21,7 @@
 #include <new>
 #include <iterator>
 #include <type_traits>
+#include <tuple>
 
 #if (_PSTL_CPP14_INTEGER_SEQUENCE_PRESENT || _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT)
 #    include <utility>

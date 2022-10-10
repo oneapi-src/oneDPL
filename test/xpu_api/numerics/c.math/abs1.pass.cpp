@@ -70,9 +70,9 @@ ONEDPL_TEST_NUM_MAIN
     test_abs<std::int64_t, correct_size_int<std::int64_t>::type>();
 
     auto fnc1 = []() { test_abs<long double, long double>(); };
-    IF_LONG_DOUBLE_SUPPORT(fnc1);
+    IF_LONG_DOUBLE_SUPPORT_L(fnc1);
     auto fnc2 = []() { test_abs<double, double>(); };
-    IF_DOUBLE_SUPPORT(fnc2);
+    IF_DOUBLE_SUPPORT_L(fnc2);
 
     test_abs<float, float>();
 

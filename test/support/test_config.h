@@ -104,4 +104,6 @@
 #define CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
 #endif
 
+#define TEST_HAS_NO_INT128
+
 #endif /* _TEST_config_H */
