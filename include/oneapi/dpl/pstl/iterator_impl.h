@@ -140,6 +140,10 @@ class zip_forward_iterator
 };
 
 template <typename T, typename _UnaryFunc>
+auto
+make_transform_output_ref_wrapper(T&& __reference, _UnaryFunc __unary_func);
+
+template <typename T, typename _UnaryFunc>
 class transform_output_ref_wrapper
 {
   private:
@@ -147,12 +151,21 @@ class transform_output_ref_wrapper
     _UnaryFunc __my_unary_func_;
 
   public:
+    typedef ::std::true_type IsTransformOutputIterRefWrapper;
     transform_output_ref_wrapper(T& __reference, _UnaryFunc __unary_func)
         : __my_reference_(__reference), __my_unary_func_(__unary_func)
     {
     }
 
     operator T&() { return __my_reference_; }
+
+    template <typename _UnaryFuncOuter>
+    auto
+    make_composite_wrapper(_UnaryFuncOuter __unary_func_outer)
+    {
+        return make_transform_output_ref_wrapper(__my_reference_,
+                                                 [=](auto x) { return __my_unary_func_(__unary_func_outer(x)); });
+    }
 
     transform_output_ref_wrapper&
     operator=(const T& e)
@@ -161,6 +174,49 @@ class transform_output_ref_wrapper
         return *this;
     }
 };
+
+namespace CollapsibleTypes
+{
+struct Collapsible
+{
+};
+struct NotCollapsible
+{
+};
+} // namespace CollapsibleTypes
+template <typename T, typename = void>
+struct GetCollapsibleType
+{
+    typedef CollapsibleTypes::NotCollapsible Type;
+};
+
+template <typename T>
+struct GetCollapsibleType<T, typename std::__void_t<typename T::IsTransformOutputIterRefWrapper>>
+{
+    typedef CollapsibleTypes::Collapsible Type;
+};
+
+template <typename T, typename _UnaryFunc>
+auto
+inner_make_transform_output_ref_wrapper(T&& __reference, _UnaryFunc __unary_func, CollapsibleTypes::NotCollapsible)
+{
+    return transform_output_ref_wrapper(std::forward<T>(__reference), __unary_func);
+}
+
+template <typename T, typename _UnaryFunc>
+auto
+inner_make_transform_output_ref_wrapper(T __reference, _UnaryFunc __unary_func, CollapsibleTypes::Collapsible)
+{
+    return __reference.make_composite_wrapper(__unary_func);
+}
+
+template <typename T, typename _UnaryFunc>
+auto
+make_transform_output_ref_wrapper(T&& __reference, _UnaryFunc __unary_func)
+{
+    typedef typename GetCollapsibleType<T>::Type CollapsibleType;
+    return inner_make_transform_output_ref_wrapper(std::forward<T>(__reference), __unary_func, CollapsibleType());
+}
 
 } // namespace __internal
 } // namespace dpl
@@ -579,7 +635,8 @@ class transform_output_iterator
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
     typedef typename ::std::iterator_traits<_Iter>::value_type value_type;
-    typedef __internal::transform_output_ref_wrapper<value_type, decltype(__my_unary_func_)> reference;
+    typedef typename ::std::iterator_traits<_Iter>::reference inner_reference;
+    typedef __internal::transform_output_ref_wrapper<inner_reference, decltype(__my_unary_func_)> reference;
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
@@ -595,8 +652,11 @@ class transform_output_iterator
         __my_unary_func_ = __input.__my_unary_func_;
         return *this;
     }
-    reference operator*() const { return reference{*__my_it_, __my_unary_func_}; }
-    reference operator[](difference_type __i) const { return reference{*(*this + __i), __my_unary_func_}; }
+    auto operator*() const { return __internal::make_transform_output_ref_wrapper(*__my_it_, __my_unary_func_); }
+    auto operator[](difference_type __i) const
+    {
+        return __internal::make_transform_output_ref_wrapper(*(__my_it_ + __i), __my_unary_func_);
+    }
     transform_output_iterator&
     operator++()
     {
@@ -699,7 +759,7 @@ class transform_output_iterator
 };
 
 template <typename _Iter, typename _UnaryFunc>
-transform_output_iterator<_Iter, _UnaryFunc>
+auto
 make_transform_output_iterator(_Iter __it, _UnaryFunc __unary_func)
 {
     return transform_output_iterator<_Iter, _UnaryFunc>(__it, __unary_func);

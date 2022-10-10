@@ -75,36 +75,34 @@ void test_simple_copy(size_t buffer_size)
 void test_multi_transform_copy(size_t buffer_size)
 {
     // 1. create buffers
-    using TestBaseData = test_base_data_buffer<int>;
-    TestBaseData test_base_data({ { buffer_size, 0 },
-                                  { buffer_size, 0 } });
+    sycl::queue q{};
+
+    using TestBaseData = test_base_data_usm<sycl::usm::alloc::shared, int>;
+    TestBaseData test_base_data(q, {{buffer_size, 0}, {buffer_size, 0}});
 
     // 2. create iterators over buffers
-    sycl::buffer<int>& source_buf = test_base_data.get_buffer(UDTKind::eKeys);
-    sycl::buffer<int>& result_buf = test_base_data.get_buffer(UDTKind::eVals);
-
-    auto host_source_acc = source_buf.template get_access<sycl::access::mode::write>();
-    auto host_source_begin = host_source_acc.get_pointer();
-    auto sycl_result_begin = oneapi::dpl::begin(result_buf);
+    auto sycl_source_begin = test_base_data.get_start_from(UDTKind::eKeys);
+    auto sycl_result_begin = test_base_data.get_start_from(UDTKind::eVals);
 
     // 3. Run the algorithm
 
     auto transformation1 = [](int item) { return item + 1; };
-    auto transformation2 = [](int item) { return item + 2; };
+    auto transformation2 = [](int item) { return item * 2; };
     auto transformation3 = [](int item) { return item + 3; };
 
-    auto tr_host_source_begin = oneapi::dpl::make_transform_output_iterator(host_source_begin, transformation1);
-    auto tr2_host_source_begin = oneapi::dpl::make_transform_output_iterator(tr_host_source_begin, transformation2);
-    auto tr3_host_source_begin = oneapi::dpl::make_transform_output_iterator(tr2_host_source_begin, transformation3);
-    auto tr3_host_source_end = tr3_host_source_begin + buffer_size;
-
     int identity = 0;
-    ::std::fill_n(tr3_host_source_begin, buffer_size, identity);
+    ::std::fill_n(sycl_source_begin, buffer_size, identity);
+
+    auto tr_sycl_result_begin = oneapi::dpl::make_transform_output_iterator(sycl_result_begin, transformation1);
+    auto tr2_sycl_result_begin = oneapi::dpl::make_transform_output_iterator(tr_sycl_result_begin, transformation2);
+    auto tr3_sycl_result_begin = oneapi::dpl::make_transform_output_iterator(tr2_sycl_result_begin, transformation3);
+
     test_copy<int> test(test_base_data);
 
-    ::std::vector<int> expected_res(buffer_size, identity + 3);
+    ::std::vector<int> expected_res(buffer_size, ((identity + 3) * 2) + 1);
     
-    TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_host_source_begin, tr3_host_source_end, sycl_result_begin, buffer_size, expected_res.begin());
+    TestUtils::invoke_on_all_hetero_policies<2>()(test, sycl_source_begin, sycl_source_begin + buffer_size,
+                                                  tr3_sycl_result_begin, buffer_size, expected_res.begin());
 }
 
 void test_fill_transform(size_t buffer_size)
