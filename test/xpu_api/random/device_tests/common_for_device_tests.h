@@ -22,6 +22,7 @@
 
 #include <CL/sycl.hpp>
 #include <oneapi/dpl/random>
+#include <oneapi/dpl/cmath>
 #include <limits>
 #include <iostream>
 #include <iomanip>
@@ -51,7 +52,7 @@ int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
                 ++numErrors;
             }
         } else {
-            auto diff = std::fabs(r0[i] - r1[i]);
+            auto diff = dpl::fabs(r0[i] - r1[i]);
             auto norm = std::fmax(fabs(r0[i]), fabs(r1[i]));
             if (diff > norm * 1000 * 16 * std::numeric_limits<Fp>::epsilon()) {
                 std::cout <<  "mismatch in " << i << " element: "  << std::endl;
