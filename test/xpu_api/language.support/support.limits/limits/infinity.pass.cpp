@@ -36,8 +36,6 @@ test(T expected)
 #endif
 }
 
-extern const float zero;
-
 ONEDPL_TEST_NUM_MAIN
 {
     test<bool>(false);
@@ -64,11 +62,10 @@ ONEDPL_TEST_NUM_MAIN
     test<__int128_t>(0);
     test<__uint128_t>(0);
 #endif
+    float zero = 0;
     test<float>(1.f/zero);
-    IF_DOUBLE_SUPPORT(test<double>(1./zero))
-    IF_LONG_DOUBLE_SUPPORT(test<long double>(1./zero))
+    IF_DOUBLE_SUPPORT_L([&zero]() { test<double>(1. / zero); })
+    IF_LONG_DOUBLE_SUPPORT_L([&zero]() { test<long double>(1. / zero); })
 
   return 0;
 }
-
-const float zero = 0;
