@@ -15,6 +15,7 @@
 
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
+#include "oneapi/dpl/cmath"
 #include "oneapi/dpl/pstl/experimental/algorithm"
 
 #include "support/utils.h"
@@ -192,7 +193,7 @@ test_body_for_loop_strided_n_integral(Policy&& exec, Iterator first, Iterator /*
 
     auto flip = Flip<T>(1);
 
-    auto loop_stride_abs = ::std::abs(loop_stride);
+    auto loop_stride_abs = dpl::abs(loop_stride);
 
     auto num_iters = n / loop_stride_abs + !!(n % loop_stride_abs);
 
@@ -202,7 +203,7 @@ test_body_for_loop_strided_n_integral(Policy&& exec, Iterator first, Iterator /*
     // need to care about which base iterator to use: simply use first for both cases.
     ::std::experimental::for_loop_n_strided(exec, S(0), S(num_iters), loop_stride, [&flip, first](S idx) {
         auto iter = first;
-        ::std::advance(iter, ::std::abs(idx));
+        ::std::advance(iter, dpl::abs(idx));
         flip(*iter);
     });
 

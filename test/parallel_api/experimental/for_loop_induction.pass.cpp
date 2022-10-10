@@ -119,14 +119,14 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
             ::std::forward<Policy>(exec), new_first, new_last, loop_stride, ::std::experimental::induction(lval_ind),
             [ind_init, loop_stride, new_first](Iterator iter, T ind) {
                 auto dist = (loop_stride > 0) ? ::std::distance(new_first, iter) : ::std::distance(iter, new_first);
-                auto real_idx = dist / ::std::abs(loop_stride);
+                auto real_idx = dist / dpl::abs(loop_stride);
 
                 EXPECT_TRUE(ind == (ind_init + real_idx), "wrong induction value");
             });
 
         if (loop_stride < 0 && n > 0)
         {
-            EXPECT_TRUE(lval_ind == ((n - 1) / ::std::abs(loop_stride) + !!((n - 1) % ::std::abs(loop_stride))),
+            EXPECT_TRUE(lval_ind == ((n - 1) / dpl::abs(loop_stride) + !!((n - 1) % dpl::abs(loop_stride))),
                         "wrong result of induction");
         }
         else

@@ -48,7 +48,7 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(std::signbit(r.real()) == std::signbit(testcases[i].real()));
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
         }
-        else if (testcases[i].real() == 0 && std::abs(testcases[i].imag()) == 1)
+        else if (testcases[i].real() == 0 && dpl::abs(testcases[i].imag()) == 1)
         {
             assert(r.real() == 0);
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));

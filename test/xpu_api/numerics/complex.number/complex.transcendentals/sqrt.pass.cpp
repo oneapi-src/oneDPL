@@ -28,7 +28,7 @@ CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
 
     dpl::complex<T> a = dpl::sqrt(c);
     is_about(dpl::real(a), dpl::real(x));
-    assert(std::abs(dpl::imag(c)) < 1.e-6);
+    assert(dpl::abs(dpl::imag(c)) < 1.e-6);
 
 CLANG_DIAGNOSTIC_POP
 }
