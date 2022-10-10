@@ -14,6 +14,7 @@
 #define CASES_H
 
 #include <oneapi/dpl/complex>
+#include <oneapi/dpl/cmath>
 #include <cassert>
 
 const dpl::complex<double> testcases[] =
@@ -201,7 +202,7 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
     if (x == dpl::complex<T>())
         return zero;
-    if (std::isinf(x.real()) || std::isinf(x.imag()))
+    if (dpl::isinf(x.real()) || dpl::isinf(x.imag()))
         return inf;
     if (std::isnan(x.real()) && std::isnan(x.imag()))
         return NaN;
@@ -232,7 +233,7 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
 
     if (x == 0)
         return zero;
-    if (std::isinf(x))
+    if (dpl::isinf(x))
         return inf;
     if (std::isnan(x))
         return NaN;

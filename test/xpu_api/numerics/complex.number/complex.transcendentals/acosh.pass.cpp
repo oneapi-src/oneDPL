@@ -67,9 +67,9 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             else
                 is_about(r.imag(),  pi);
         }
-        else if (std::isfinite(testcases[i].real()) && std::isinf(testcases[i].imag()))
+        else if (std::isfinite(testcases[i].real()) && dpl::isinf(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
+            assert(dpl::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
                 is_about(r.imag(), -pi/2);
@@ -81,43 +81,43 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(std::isnan(r.real()));
             assert(std::isnan(r.imag()));
         }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() < 0 && std::isfinite(testcases[i].imag()))
+        else if (dpl::isinf(testcases[i].real()) && testcases[i].real() < 0 && std::isfinite(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
+            assert(dpl::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
                 is_about(r.imag(), -pi);
             else
                 is_about(r.imag(),  pi);
         }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isfinite(testcases[i].imag()))
+        else if (dpl::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isfinite(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
+            assert(dpl::isinf(r.real()));
             assert(r.real() > 0);
             assert(r.imag() == 0);
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
         }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() < 0 && std::isinf(testcases[i].imag()))
+        else if (dpl::isinf(testcases[i].real()) && testcases[i].real() < 0 && dpl::isinf(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
+            assert(dpl::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
                 is_about(r.imag(), -0.75 * pi);
             else
                 is_about(r.imag(),  0.75 * pi);
         }
-        else if (std::isinf(testcases[i].real()) && testcases[i].real() > 0 && std::isinf(testcases[i].imag()))
+        else if (dpl::isinf(testcases[i].real()) && testcases[i].real() > 0 && dpl::isinf(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
+            assert(dpl::isinf(r.real()));
             assert(r.real() > 0);
             if (std::signbit(testcases[i].imag()))
                 is_about(r.imag(), -0.25 * pi);
             else
                 is_about(r.imag(),  0.25 * pi);
         }
-        else if (std::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
+        else if (dpl::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
+            assert(dpl::isinf(r.real()));
             assert(r.real() > 0);
             assert(std::isnan(r.imag()));
         }
@@ -126,9 +126,9 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(std::isnan(r.real()));
             assert(std::isnan(r.imag()));
         }
-        else if (std::isnan(testcases[i].real()) && std::isinf(testcases[i].imag()))
+        else if (std::isnan(testcases[i].real()) && dpl::isinf(testcases[i].imag()))
         {
-            assert(std::isinf(r.real()));
+            assert(dpl::isinf(r.real()));
             assert(r.real() > 0);
             assert(std::isnan(r.imag()));
         }
