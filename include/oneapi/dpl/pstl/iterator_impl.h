@@ -191,7 +191,7 @@ struct GetCollapsibleType
 };
 
 template <typename T>
-struct GetCollapsibleType<T, typename std::__void_t<typename T::IsTransformOutputIterRefWrapper>>
+struct GetCollapsibleType<T, __void_type<typename T::IsTransformOutputIterRefWrapper>>
 {
     typedef CollapsibleTypes::Collapsible Type;
 };
