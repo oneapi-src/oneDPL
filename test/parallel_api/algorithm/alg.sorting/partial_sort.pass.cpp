@@ -20,7 +20,7 @@
 
 #include "support/utils.h"
 
-#include <cmath>
+#include <oneapi/dpl/cmath>
 
 using namespace TestUtils;
 
@@ -83,7 +83,7 @@ struct test_brick_partial_sort
             //checking upper bound number of comparisons; O(p*(last-first)log(middle-first)); where p - number of threads;
             if (m1 - tmp_first > 1)
             {
-                auto complex = ::std::ceil(n * ::std::log(float32_t(m1 - tmp_first)));
+                auto complex = dpl::ceil(n * ::std::log(float32_t(m1 - tmp_first)));
 #if TEST_TBB_BACKEND_PRESENT
                 auto p = tbb::this_task_arena::max_concurrency();
 #else

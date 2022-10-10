@@ -16,6 +16,7 @@
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
+#include <oneapi/dpl/cmath>
 
 #include "support/test_config.h"
 #include "support/utils.h"
@@ -45,7 +46,7 @@ DEFINE_TEST(test_lower_bound)
         int num_values = n * .01 > 1 ? n * .01 : 1; // # search values expected to be << n
         for (int i = 0; i != num_values; ++i)
         {
-            EXPECT_TRUE((std::ceil(value[i] / 2.)) * 2 == result[i], "wrong effect from lower_bound");
+            EXPECT_TRUE((dpl::ceil(value[i] / 2.)) * 2 == result[i], "wrong effect from lower_bound");
             // clean result for next test case
             result[i] = 0;
         }
