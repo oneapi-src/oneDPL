@@ -47,15 +47,15 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
         {
             dpl::complex<double> r = dpl::pow(testcases[i], testcases[j]);
             dpl::complex<double> z = dpl::exp(testcases[j] * dpl::log(testcases[i]));
-            if (std::isnan(dpl::real(r)))
-                assert(std::isnan(dpl::real(z)));
+            if (dpl::isnan(dpl::real(r)))
+                assert(dpl::isnan(dpl::real(z)));
             else
             {
                 assert(dpl::real(r) == dpl::real(z));
                 assert(std::signbit(dpl::real(r)) == std::signbit(dpl::real(z)));
             }
-            if (std::isnan(dpl::imag(r)))
-                assert(std::isnan(dpl::imag(z)));
+            if (dpl::isnan(dpl::imag(r)))
+                assert(dpl::isnan(dpl::imag(z)));
             else
             {
                 assert(dpl::imag(r) == dpl::imag(z));

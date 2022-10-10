@@ -47,10 +47,10 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(dpl::isinf(r) && r > 0);
             break;
         case NaN:
-            assert(std::isnan(r));
+            assert(dpl::isnan(r));
             break;
         case non_zero_nan:
-            assert(std::isnan(r));
+            assert(dpl::isnan(r));
             break;
         }
     }

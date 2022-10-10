@@ -55,16 +55,16 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(dpl::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
         }
-        else if ( testcases[i].real() == 0 && std::isnan(testcases[i].imag()))
+        else if ( testcases[i].real() == 0 && dpl::isnan(testcases[i].imag()))
         {
             assert(r.real() == 0);
             assert(std::signbit(testcases[i].real()) == std::signbit(r.real()));
-            assert(std::isnan(r.imag()));
+            assert(dpl::isnan(r.imag()));
         }
-        else if (std::isfinite(testcases[i].real()) && std::isnan(testcases[i].imag()))
+        else if (std::isfinite(testcases[i].real()) && dpl::isnan(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
+            assert(dpl::isnan(r.real()));
+            assert(dpl::isnan(r.imag()));
         }
         else if (dpl::isinf(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
@@ -84,26 +84,26 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(dpl::isinf(r.imag()));
             assert(std::signbit(testcases[i].imag()) == std::signbit(r.imag()));
         }
-        else if (dpl::isinf(testcases[i].real()) && std::isnan(testcases[i].imag()))
+        else if (dpl::isinf(testcases[i].real()) && dpl::isnan(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
+            assert(dpl::isnan(r.real()));
             assert(dpl::isinf(r.imag()));
             assert(std::signbit(testcases[i].real()) != std::signbit(r.imag()));
         }
-        else if (std::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
+        else if (dpl::isnan(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
+            assert(dpl::isnan(r.real()));
+            assert(dpl::isnan(r.imag()));
         }
-        else if (std::isnan(testcases[i].real()) && dpl::isinf(testcases[i].imag()))
+        else if (dpl::isnan(testcases[i].real()) && dpl::isinf(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
+            assert(dpl::isnan(r.real()));
             assert(dpl::isinf(r.imag()));
         }
-        else if (std::isnan(testcases[i].real()) && std::isnan(testcases[i].imag()))
+        else if (dpl::isnan(testcases[i].real()) && dpl::isnan(testcases[i].imag()))
         {
-            assert(std::isnan(r.real()));
-            assert(std::isnan(r.imag()));
+            assert(dpl::isnan(r.real()));
+            assert(dpl::isnan(r.imag()));
         }
         else
         {
