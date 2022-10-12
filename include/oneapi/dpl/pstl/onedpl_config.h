@@ -147,7 +147,8 @@
 
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT                                                                       \
-    (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) || (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503)
+    (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
+        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
 
 #define _ONEDPL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #if (defined(_PSTL_PRAGMA_SIMD_EARLYEXIT) && _PSTL_EARLYEXIT_PRESENT)
@@ -233,7 +234,8 @@
 
 // Some  C++ standard libraries contain 'exclusive_scan' declaration (version with binary_op)
 // w/o "enable_if". So, a call 'exclusive_scan' may be ambiguous in case of a custom policy using.
-#define _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY (__GLIBCXX__ && __GLIBCXX__ > 20190503)
+#define _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY                                                                \
+    (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)
 
 // some algorithms in <numeric> such as 'reduce' were added since libstdc++-9.3, we
 // have to provide our own implementation if legacy libstdc++ is in use.
