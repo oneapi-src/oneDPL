@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
-#define _ONEDPL_SERIAL_NUMERIC_IMPL_H
+#ifndef _ONEDPL_SERIAL_ALGORITHM_IMPL_H
+#define _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 
 #include <algorithm>
 #include <iterator>
@@ -42,4 +42,4 @@ using ::std::for_each_n;
 #endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi
-#endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
+#endif // _ONEDPL_SERIAL_ALGORITHM_IMPL_H
