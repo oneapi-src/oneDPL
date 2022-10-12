@@ -137,7 +137,7 @@ class discard_block_engine
     typename ::std::enable_if<(_N == 0), scalar_type>::type
     generate_internal_scalar()
     {
-        if (n_ >= static_cast<int>(used_block))
+        if (n_ >= used_block)
         {
             engine_.discard(static_cast<unsigned long long>(block_size - used_block));
             n_ = 0;
@@ -150,7 +150,7 @@ class discard_block_engine
     typename ::std::enable_if<(N > 0), scalar_type>::type
     generate_internal_scalar()
     {
-        if (n_ >= static_cast<int>(used_block))
+        if (n_ >= used_block)
         {
             engine_.discard(static_cast<unsigned long long>(block_size - used_block));
             n_ = 0;
@@ -172,10 +172,10 @@ class discard_block_engine
     generate_internal()
     {
         result_type __res;
-        if (_N < (used_block - n_))
+        if (static_cast<size_t>(_N) < (used_block - n_))
         {
             __res = engine_();
-            n_ += _N;
+            n_ += static_cast<size_t>(_N);
         }
         else
         {
@@ -205,7 +205,7 @@ class discard_block_engine
     }
 
     _Engine engine_;
-    int n_ = 0;
+    size_t n_ = 0;
 };
 
 } // namespace dpl
