@@ -17,14 +17,15 @@
 #ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
-#include <functional>
-#include <iterator>
-#include <numeric>
+#if (__cplusplus >= 201703L)
+#    include <functional>
+#    include <iterator>
+#    include <numeric>
 namespace oneapi
 {
 namespace dpl
 {
-#if _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
+#    if _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 template <class _InputIterator, class _Tp, class _BinaryOp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init, _BinaryOp __b)
@@ -47,9 +48,10 @@ reduce(_InputIterator __first, _InputIterator __last)
 {
     return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
 }
-#else
+#    else
 using ::std::reduce;
-#endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
+#    endif
 } // namespace dpl
 } // namespace oneapi
+#endif // __cplusplus >= 201703L
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
