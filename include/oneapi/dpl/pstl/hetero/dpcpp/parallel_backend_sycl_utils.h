@@ -159,10 +159,10 @@ class __kernel_name_composer
 
     template <::std::size_t... _Is>
     static __composite_kernel_name<__name[_Is]...>
-    __compose_kernel_name(oneapi::dpl::__internal::__index_sequence<_Is...>);
+    __compose_kernel_name(::std::index_sequence<_Is...>);
 
   public:
-    using type = decltype(__compose_kernel_name(oneapi::dpl::__internal::__make_index_sequence<__name_size>{}));
+    using type = decltype(__compose_kernel_name(::std::make_index_sequence<__name_size>{}));
 };
 #endif // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
 
@@ -198,8 +198,7 @@ class __kernel_compiler
             __exec.queue().get_context(), {__exec.queue().get_device()}, __kernel_ids);
 
         if constexpr (sizeof...(_KernelNames) > 1)
-            return __make_kernels_array(__kernel_bundle, __kernel_ids,
-                                        oneapi::dpl::__internal::__make_index_sequence<__kernel_count>());
+            return __make_kernels_array(__kernel_bundle, __kernel_ids, ::std::make_index_sequence<__kernel_count>());
         else
             return __kernel_bundle.template get_kernel(__kernel_ids[0]);
     }
@@ -207,8 +206,7 @@ class __kernel_compiler
   private:
     template <typename _KernelBundle, typename _KernelIds, ::std::size_t... _Ip>
     static auto
-    __make_kernels_array(_KernelBundle __kernel_bundle, _KernelIds& __kernel_ids,
-                         oneapi::dpl::__internal::__index_sequence<_Ip...>)
+    __make_kernels_array(_KernelBundle __kernel_bundle, _KernelIds& __kernel_ids, ::std::index_sequence<_Ip...>)
     {
         return __kernel_array_type{__kernel_bundle.template get_kernel(__kernel_ids[_Ip])...};
     }

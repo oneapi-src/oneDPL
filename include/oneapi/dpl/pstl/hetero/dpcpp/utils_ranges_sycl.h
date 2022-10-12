@@ -211,7 +211,7 @@ __require_access_zip(sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_Rang
 {
     const ::std::size_t __num_ranges = sizeof...(_Ranges);
     oneapi::dpl::__ranges::invoke(__zip.tuple(), _require_access_args<decltype(__cgh)>{__cgh},
-                                  oneapi::dpl::__internal::__make_index_sequence<__num_ranges>());
+                                  ::std::make_index_sequence<__num_ranges>());
 }
 
 //__require_access utility
@@ -351,7 +351,7 @@ struct __get_sycl_range
 
     template <typename _TupleType, typename _DiffType, ::std::size_t... _Ip>
     auto
-    gen_zip_view(_TupleType __t, _DiffType __n, oneapi::dpl::__internal::__index_sequence<_Ip...>)
+    gen_zip_view(_TupleType __t, _DiffType __n, ::std::index_sequence<_Ip...>)
         -> decltype(oneapi::dpl::__ranges::make_zip_view(gen_view(*this, ::std::get<_Ip>(__t), __n).all_view()...))
     {
         auto tmp = oneapi::dpl::__internal::make_tuple(gen_view(*this, ::std::get<_Ip>(__t), __n)...);
@@ -363,17 +363,15 @@ struct __get_sycl_range
 
     template <typename... Iters>
     auto
-    operator()(oneapi::dpl::zip_iterator<Iters...> __first, oneapi::dpl::zip_iterator<Iters...> __last) -> decltype(
-        __range_holder<decltype(gen_zip_view(__first.base(), __last - __first,
-                                             oneapi::dpl::__internal::__make_index_sequence<sizeof...(Iters)>()))>{
-            gen_zip_view(__first.base(), __last - __first,
-                         oneapi::dpl::__internal::__make_index_sequence<sizeof...(Iters)>())})
+    operator()(oneapi::dpl::zip_iterator<Iters...> __first, oneapi::dpl::zip_iterator<Iters...> __last)
+        -> decltype(__range_holder<decltype(gen_zip_view(__first.base(), __last - __first,
+                                                         ::std::make_index_sequence<sizeof...(Iters)>()))>{
+            gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<sizeof...(Iters)>())})
     {
         assert(__first < __last);
 
         const ::std::size_t __num_it = sizeof...(Iters);
-        auto rng =
-            gen_zip_view(__first.base(), __last - __first, oneapi::dpl::__internal::__make_index_sequence<__num_it>());
+        auto rng = gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<__num_it>());
         return __range_holder<decltype(rng)>{rng};
     }
 

@@ -68,7 +68,7 @@ struct __make_references
 {
     template <typename _TupleType, ::std::size_t... _Ip>
     _TupleReturnType
-    operator()(const _TupleType& __t, oneapi::dpl::__internal::__index_sequence<_Ip...>)
+    operator()(const _TupleType& __t, ::std::index_sequence<_Ip...>)
     {
         return _TupleReturnType(*::std::get<_Ip>(__t)...);
     }
@@ -101,7 +101,7 @@ class zip_forward_iterator
 
     reference operator*() const
     {
-        return __make_references<reference>()(__my_it_, __make_index_sequence<__num_types>());
+        return __make_references<reference>()(__my_it_, ::std::make_index_sequence<__num_types>());
     }
 
     zip_forward_iterator&
@@ -289,8 +289,8 @@ class zip_iterator
 
     reference operator*() const
     {
-        return oneapi::dpl::__internal::__make_references<reference>()(
-            __my_it_, oneapi::dpl::__internal::__make_index_sequence<__num_types>());
+        return oneapi::dpl::__internal::__make_references<reference>()(__my_it_,
+                                                                       ::std::make_index_sequence<__num_types>());
     }
 
     reference operator[](difference_type __i) const { return *(*this + __i); }
@@ -875,11 +875,9 @@ struct make_zipiterator_functor
 template <typename F, template <typename...> class TBig, typename... T, typename... RestTuples>
 auto
 map_zip(F f, TBig<T...> in, RestTuples... rest)
-    -> decltype(map_tuple_impl(make_zipiterator_functor{},
-                               oneapi::dpl::__internal::__make_index_sequence<sizeof...(T)>(), in, rest...))
+    -> decltype(map_tuple_impl(make_zipiterator_functor{}, ::std::make_index_sequence<sizeof...(T)>(), in, rest...))
 {
-    return map_tuple_impl(make_zipiterator_functor{}, f, oneapi::dpl::__internal::__make_index_sequence<sizeof...(T)>(),
-                          in, rest...);
+    return map_tuple_impl(make_zipiterator_functor{}, f, ::std::make_index_sequence<sizeof...(T)>(), in, rest...);
 }
 
 } // namespace __internal

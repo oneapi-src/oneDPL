@@ -493,11 +493,6 @@ __pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __v
     return __pstl_upper_bound(__a, __beg, __end, __val, __reorder_pred<_Compare>{__comp});
 }
 
-template <::std::size_t... _Sp>
-using __index_sequence = ::std::index_sequence<_Sp...>;
-template <::std::size_t _Np>
-using __make_index_sequence = ::std::make_index_sequence<_Np>;
-
 // Aliases for adjacent_find compile-time dispatching
 using __or_semantic = ::std::true_type;
 using __first_semantic = ::std::false_type;
