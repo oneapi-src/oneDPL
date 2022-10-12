@@ -99,7 +99,8 @@
 
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define _PSTL_CPP17_EXECUTION_POLICIES_PRESENT                                                                         \
-    (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) || (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503)
+    (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
+        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
 
 #define _PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
