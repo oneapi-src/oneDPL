@@ -17,13 +17,14 @@
 #ifndef _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 #define _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 
-#include <algorithm>
-#include <iterator>
+#if (__cplusplus >= 201703L)
+#    include <algorithm>
+#    include <iterator>
 namespace oneapi
 {
 namespace dpl
 {
-#if _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
+#    if _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 template <typename _InputIterator, typename _Size, typename _Function>
 _InputIterator
 for_each_n(_InputIterator __first, _Size __n, _Function __f)
@@ -36,10 +37,8 @@ for_each_n(_InputIterator __first, _Size __n, _Function __f)
     }
     return __first;
 }
-
-#else
-using ::std::for_each_n;
-#endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
+#    endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi
+#endif // __cplusplus >= 201703L
 #endif // _ONEDPL_SERIAL_ALGORITHM_IMPL_H
