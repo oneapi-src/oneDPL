@@ -135,6 +135,44 @@ void test_fill_transform(size_t buffer_size)
     TestUtils::invoke_on_all_hetero_policies<0>()(test, sycl_source_begin, sycl_source_begin + buffer_size, sycl_result_begin, buffer_size, expected_res.begin());
 }
 
+void
+test_type_shift(size_t buffer_size)
+{
+
+    // 1. create buffers
+    using TestBaseOutputData = test_base_data_buffer<int>;
+    TestBaseOutputData test_base_output_data({{buffer_size, 0}});
+    using TestBaseInputData = test_base_data_buffer<double>;
+    TestBaseInputData test_base_input_data({{buffer_size, 0}});
+
+    // 2. create iterators over source buffer
+    auto sycl_source_begin = test_base_input_data.get_start_from(UDTKind::eKeys);
+    auto sycl_result_begin = test_base_output_data.get_start_from(UDTKind::eKeys);
+
+    // 3. run algorithms
+    auto transformation1 = [](float item) { return (int)(item)*2; };
+    auto transformation2 = [](double item) { return (float)item + 1.0f; };
+
+    double identity = 0.0;
+    auto& sycl_src_buf = test_base_input_data.get_buffer(UDTKind::eKeys);
+    auto host_src_acc = sycl_src_buf.get_access<sycl::access::mode::write>();
+    auto host_src_begin = host_src_acc.get_pointer();
+    ::std::fill_n(host_src_begin, buffer_size, identity);
+
+    auto& sycl_res_buf = test_base_output_data.get_buffer(UDTKind::eKeys);
+    auto host_res_acc = sycl_res_buf.get_access<sycl::access::mode::write>();
+    auto host_res_begin = host_res_acc.get_pointer();
+
+    auto tr1_host_result_begin = oneapi::dpl::make_transform_output_iterator(host_res_begin, transformation1);
+    auto tr2_host_result_begin = oneapi::dpl::make_transform_output_iterator(tr1_host_result_begin, transformation2);
+
+    ::std::vector<int> expected_res(buffer_size, (int)((float)identity + 1.0f) * 2);
+
+    test_copy<int> test(test_base_output_data);
+    TestUtils::invoke_on_all_hetero_policies<3>()(test, sycl_source_begin, sycl_source_begin + buffer_size,
+                                                  tr2_host_result_begin, buffer_size, expected_res.begin());
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 std::int32_t
