@@ -22,7 +22,6 @@
 #include <cstdint>
 #include <type_traits>
 #include <limits>
-#include "oneapi/dpl/pstl/onedpl_config.h"
 
 #include "internal/random_impl/random_common.h"
 #include "internal/random_impl/linear_congruential_engine.h"

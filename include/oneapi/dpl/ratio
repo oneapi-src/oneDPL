@@ -18,7 +18,6 @@
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <ratio>
-#include "oneapi/dpl/pstl/onedpl_config.h"
 
 namespace oneapi
 {
