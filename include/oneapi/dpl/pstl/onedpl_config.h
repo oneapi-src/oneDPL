@@ -27,10 +27,6 @@
 #define ONEDPL_VERSION_MINOR 7
 #define ONEDPL_VERSION_PATCH 1
 
-#if __cplusplus < 201703L
-#    error oneDPL requires the C++ language version not less than C++17
-#endif
-
 #if defined(ONEDPL_USE_DPCPP_BACKEND)
 #    undef _ONEDPL_BACKEND_SYCL
 #    define _ONEDPL_BACKEND_SYCL ONEDPL_USE_DPCPP_BACKEND
