@@ -18,6 +18,7 @@
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <tuple>
+#include "oneapi/dpl/pstl/onedpl_config.h"
 
 namespace oneapi
 {
