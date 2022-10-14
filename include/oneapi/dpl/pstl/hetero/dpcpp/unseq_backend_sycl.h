@@ -14,8 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
-#ifndef _ONEDPL_unseq_backend_sycl_H
-#define _ONEDPL_unseq_backend_sycl_H
+#ifndef _ONEDPL_UNSEQ_BACKEND_SYCL_H
+#define _ONEDPL_UNSEQ_BACKEND_SYCL_H
 
 #include <type_traits>
 
@@ -976,4 +976,4 @@ struct __brick_reduce_idx
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_unseq_backend_sycl_H */
+#endif /* _ONEDPL_UNSEQ_BACKEND_SYCL_H */
