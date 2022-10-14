@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_array
-#define __ONEDPL_array
+#ifndef __ONEDPL_ARRAY
+#define __ONEDPL_ARRAY
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <array>
@@ -33,4 +33,4 @@ using ::std::tuple_size;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_array
+#endif // __ONEDPL_ARRAY
