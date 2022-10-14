@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_experimental_induction_H
-#define _ONEDPL_experimental_induction_H
+#ifndef _ONEDPL_EXPERIMENTAL_INDUCTION_H
+#define _ONEDPL_EXPERIMENTAL_INDUCTION_H
 
 #include <type_traits>
 
@@ -48,4 +48,4 @@ induction(_Tp&& __var, _Sp __stride)
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_experimental_induction_H */
+#endif /* _ONEDPL_EXPERIMENTAL_INDUCTION_H */
