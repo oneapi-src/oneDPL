@@ -82,9 +82,10 @@ struct sycl_scan_by_segment_impl
         using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
         using __flag_type = bool;
 
-        const int __n = __keys.size();
+        const ::std::size_t __n = __keys.size();
 
-        constexpr int __vals_per_item = 2; // Assigning 2 elements per work item resulted in best performance on gpu.
+        constexpr ::std::size_t __vals_per_item =
+            2; // Assigning 2 elements per work item resulted in best performance on gpu.
 
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
@@ -92,7 +93,7 @@ struct sycl_scan_by_segment_impl
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                              2 * sizeof(__val_type), __wgroup_size);
 
-        auto __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
+        ::std::size_t __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
 
         auto __partials =
             oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
@@ -119,13 +120,13 @@ struct sycl_scan_by_segment_impl
 
                     auto __group = __item.get_group();
                     ::std::size_t __global_id = __item.get_global_id();
-                    auto __local_id = __group.get_local_id();
+                    ::std::size_t __local_id = __group.get_local_id();
 
                     // 1a. Perform a serial scan within the work item over assigned elements. Store partial
                     // reductions in work item memory, and write the accumulated value and number of counted
                     // segments into work group memory.
-                    auto __start = __global_id * __vals_per_item;
-                    auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+                    ::std::size_t __start = __global_id * __vals_per_item;
+                    ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
 
                     // First work item must set their accumulator to the provided init
                     if (__global_id == 0 && __local_id == 0)
@@ -142,7 +143,7 @@ struct sycl_scan_by_segment_impl
                             __max_end = __local_id;
                     }
 
-                    for (auto __i = __start; __i < __end; ++__i)
+                    for (::std::size_t __i = __start; __i < __end; ++__i)
                     {
                         if constexpr (__scan_type == scan_type::inclusive)
                         {
@@ -181,7 +182,7 @@ struct sycl_scan_by_segment_impl
                     __loc_acc[__local_id] = __accumulator;
 
                     // 1b. Perform a work group scan to find the carry in value to apply to each item.
-                    auto __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
+                    ::std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                         __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
                     __val_type __carry_in =
@@ -191,13 +192,13 @@ struct sycl_scan_by_segment_impl
                     // 1c. Update local partial reductions and write to global memory.
                     if constexpr (__scan_type == scan_type::inclusive)
                     {
-                        if (__local_id != 0 && __start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
+                        if (__local_id != 0 && __binary_pred(__keys[__start], __keys[__start - 1]))
                         {
-                            for (int32_t __i = __start; __i < __end; ++__i)
+                            for (::std::size_t __i = __start; __i < __end; ++__i)
                             {
                                 __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
 
-                                if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
+                                if (__i >= __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                                     break;
                             }
                         }
@@ -206,7 +207,7 @@ struct sycl_scan_by_segment_impl
                     {
                         if (__local_id != 0)
                         {
-                            for (int32_t __i = __start; __i < __end; ++__i)
+                            for (::std::size_t __i = __start; __i < __end; ++__i)
                             {
                                 __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
 
@@ -218,7 +219,7 @@ struct sycl_scan_by_segment_impl
 
                     if (__local_id == __wgroup_size - 1) // last work item writes the group's carry out
                     {
-                        auto __group_id = __group.get_group_id(0);
+                        ::std::size_t __group_id = __group.get_group_id(0);
 
                         // If no segment ends in the item, the aggregates from previous work groups must be applied.
                         if (__max_end == 0)
@@ -252,7 +253,7 @@ struct sycl_scan_by_segment_impl
                         auto __start = __global_id * __vals_per_item;
                         auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
 
-                        int32_t __wg_agg_idx = __group_id - 1;
+                        auto __wg_agg_idx = __group_id - 1;
                         __val_type __agg_collector{};
 
                         // 2a. Calculate the work group's carry-in value.
@@ -265,7 +266,7 @@ struct sycl_scan_by_segment_impl
                                 if (__start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
                                 {
                                     __ag_exists = true;
-                                    for (int32_t __i = __wg_agg_idx; __i >= 0; --__i)
+                                    for (auto __i = __wg_agg_idx; __i >= 0; --__i)
                                     {
                                         const auto& __wg_aggregate = __partials_acc[__i];
                                         const auto __b_seg_end = __seg_ends_acc[__i];
@@ -293,7 +294,7 @@ struct sycl_scan_by_segment_impl
                         {
                             if (__local_id == 0 && __wg_agg_idx >= 0)
                             {
-                                for (int32_t __i = __wg_agg_idx; __i >= 0; --__i)
+                                for (auto __i = __wg_agg_idx; __i >= 0; --__i)
                                 {
                                     const auto& __wg_aggregate = __partials_acc[__i];
                                     const auto __b_seg_end = __seg_ends_acc[__i];
@@ -311,10 +312,10 @@ struct sycl_scan_by_segment_impl
 
                         // 2c. Second pass over the keys, reidentifying end segments and applying work group
                         // aggregates if appropriate.
-                        int __local_min_key_idx = __n - 1;
+                        auto __local_min_key_idx = __n - 1;
 
                         // Find the smallest index in the work group
-                        for (int32_t __i = __start; __i < __end; ++__i)
+                        for (auto __i = __start; __i < __end; ++__i)
                         {
                             if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                             {
@@ -323,7 +324,7 @@ struct sycl_scan_by_segment_impl
                             }
                         }
 
-                        int __wg_min_seg_end = __dpl_sycl::__reduce_over_group(
+                        auto __wg_min_seg_end = __dpl_sycl::__reduce_over_group(
                             __group, __local_min_key_idx, __dpl_sycl::__minimum<decltype(__local_min_key_idx)>());
 
                         if (__group_id == 0)
