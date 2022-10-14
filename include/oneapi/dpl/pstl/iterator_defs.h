@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_iterator_defs_H
-#define _ONEDPL_iterator_defs_H
+#ifndef _ONEDPL_ITERATOR_DEFS_H
+#define _ONEDPL_ITERATOR_DEFS_H
 
 #include <iterator>
 #include <type_traits>
@@ -109,4 +109,4 @@ struct is_passed_directly<Iter, typename ::std::enable_if<::std::is_pointer<Iter
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_iterator_defs_H */
+#endif /* _ONEDPL_ITERATOR_DEFS_H */
