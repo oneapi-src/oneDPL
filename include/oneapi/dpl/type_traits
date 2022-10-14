@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_type_traits
-#define __ONEDPL_type_traits
+#ifndef __ONEDPL_TYPE_TRAITS
+#define __ONEDPL_TYPE_TRAITS
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <type_traits>
@@ -220,4 +220,4 @@ using ::std::result_of_t;       // Deprecated in C++17, removed in C++20
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_type_traits
+#endif // __ONEDPL_TYPE_TRAITS
