@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_parallel_backend_sycl_radix_sort_H
-#define _ONEDPL_parallel_backend_sycl_radix_sort_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_RADIX_SORT_H
+#define _ONEDPL_PARALLEL_BACKEND_SYCL_RADIX_SORT_H
 
 #include <limits>
 
@@ -742,4 +742,4 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_parallel_backend_sycl_radix_sort_H */
+#endif /* _ONEDPL_PARALLEL_BACKEND_SYCL_RADIX_SORT_H */
