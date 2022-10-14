@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_cstring
-#define __ONEDPL_cstring
+#ifndef __ONEDPL_CSTRING
+#define __ONEDPL_CSTRING
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <cstring>
@@ -31,4 +31,4 @@ using ::std::memset;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_cstring
+#endif // __ONEDPL_CSTRING
