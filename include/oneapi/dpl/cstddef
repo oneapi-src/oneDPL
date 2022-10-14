@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_cstddef
-#define __ONEDPL_cstddef
+#ifndef __ONEDPL_CSTDDEF
+#define __ONEDPL_CSTDDEF
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <cstddef>
@@ -32,4 +32,4 @@ using ::std::size_t;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_cstddef
+#endif // __ONEDPL_CSTDDEF
