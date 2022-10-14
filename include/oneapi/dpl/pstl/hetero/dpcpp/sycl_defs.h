@@ -18,8 +18,8 @@
 //
 // Include this header instead of sycl.hpp throughout the project
 
-#ifndef _ONEDPL_sycl_defs_H
-#define _ONEDPL_sycl_defs_H
+#ifndef _ONEDPL_SYCL_DEFS_H
+#define _ONEDPL_SYCL_DEFS_H
 
 #include <CL/sycl.hpp>
 
@@ -230,4 +230,4 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 
 } // namespace __dpl_sycl
 
-#endif /* _ONEDPL_sycl_defs_H */
+#endif /* _ONEDPL_SYCL_DEFS_H */
