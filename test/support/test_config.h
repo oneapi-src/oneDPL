@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _TEST_config_H
-#define _TEST_config_H
+#ifndef _TEST_CONFIG_H
+#define _TEST_CONFIG_H
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
@@ -106,4 +106,4 @@
 
 #define TEST_HAS_NO_INT128
 
-#endif /* _TEST_config_H */
+#endif /* _TEST_CONFIG_H */
