@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_sycl_iterator_H
-#define _ONEDPL_sycl_iterator_H
+#ifndef _ONEDPL_SYCL_ITERATOR_H
+#define _ONEDPL_SYCL_ITERATOR_H
 
 #include <iterator>
 #include "../../onedpl_config.h"
@@ -192,4 +192,4 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_sycl_iterator_H */
+#endif /* _ONEDPL_SYCL_ITERATOR_H */
