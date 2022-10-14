@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_experimental_for_loop_impl_H
-#define _ONEDPL_experimental_for_loop_impl_H
+#ifndef _ONEDPL_EXPERIMENTAL_FOR_LOOP_IMPL_H
+#define _ONEDPL_EXPERIMENTAL_FOR_LOOP_IMPL_H
 
 #include <iterator>
 #include <type_traits>
@@ -583,4 +583,4 @@ __for_loop_repack_n(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Sp __str
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_experimental_for_loop_impl_H */
+#endif /* _ONEDPL_EXPERIMENTAL_FOR_LOOP_IMPL_H */
