@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_optional
-#define __ONEDPL_optional
+#ifndef __ONEDPL_OPTIONAL
+#define __ONEDPL_OPTIONAL
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <optional>
@@ -32,4 +32,4 @@ using ::std::optional;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_optional
+#endif // __ONEDPL_OPTIONAL
