@@ -138,7 +138,7 @@ struct sycl_scan_by_segment_impl
                     {
                         // Edge case for when the first element is the start of a new segment. We do
                         // not want to apply a null aggregate since there is no guarantee it is an identity
-                        if (__start < __n && __local_id != 0 && __keys[__start] != __keys[__start - 1])
+                        if (__start < __n && __local_id != 0 && !__binary_pred(__keys[__start], __keys[__start - 1]))
                             __max_end = __local_id;
                     }
 
@@ -157,7 +157,7 @@ struct sycl_scan_by_segment_impl
                             __out_values[__i] = __accumulator;
 
                             // clear the accumulator if we reach end of segment
-                            if (__n - 1 == __i || __keys[__i] != __keys[__i + 1])
+                            if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
                             {
                                 __accumulator = {};
                                 __max_end = __local_id;
@@ -170,7 +170,7 @@ struct sycl_scan_by_segment_impl
                             __accumulator = __binary_op(__accumulator, __values[__i]);
 
                             // reset the accumulator to init if we reach the end of a segment
-                            if (__n - 1 == __i || __keys[__i] != __keys[__i + 1])
+                            if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
                             {
                                 __accumulator = __init;
                                 __max_end = __local_id;
@@ -191,13 +191,13 @@ struct sycl_scan_by_segment_impl
                     // 1c. Update local partial reductions and write to global memory.
                     if constexpr (__scan_type == scan_type::inclusive)
                     {
-                        if (__local_id != 0 && __start < __n && __keys[__start] == __keys[__start - 1])
+                        if (__local_id != 0 && __start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
                         {
                             for (int32_t __i = __start; __i < __end; ++__i)
                             {
                                 __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
 
-                                if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
+                                if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                                     break;
                             }
                         }
@@ -210,7 +210,7 @@ struct sycl_scan_by_segment_impl
                             {
                                 __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
 
-                                if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
+                                if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                                     break;
                             }
                         }
@@ -262,7 +262,7 @@ struct sycl_scan_by_segment_impl
                             bool __ag_exists = false;
                             if (__local_id == 0 && __wg_agg_idx >= 0)
                             {
-                                if (__start < __n && __keys[__start] == __keys[__start - 1])
+                                if (__start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
                                 {
                                     __ag_exists = true;
                                     for (int32_t __i = __wg_agg_idx; __i >= 0; --__i)
@@ -316,7 +316,7 @@ struct sycl_scan_by_segment_impl
                         // Find the smallest index in the work group
                         for (int32_t __i = __start; __i < __end; ++__i)
                         {
-                            if (__i == __n - 1 || __keys[__i] != __keys[__i + 1])
+                            if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                             {
                                 if (__i < __local_min_key_idx)
                                     __local_min_key_idx = __i;
