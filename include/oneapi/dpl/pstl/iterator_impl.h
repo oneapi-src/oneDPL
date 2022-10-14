@@ -163,8 +163,8 @@ class transform_output_ref_wrapper
     auto
     make_composite_wrapper(_UnaryFuncOuter __unary_func_outer)
     {
-        return make_transform_output_ref_wrapper(__my_reference_,
-                                                 [=](const auto& x) { return __my_unary_func_(__unary_func_outer(x)); });
+        return make_transform_output_ref_wrapper(
+            __my_reference_, [=](const auto& x) { return __my_unary_func_(__unary_func_outer(x)); });
     }
 
     transform_output_ref_wrapper&
