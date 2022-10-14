@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_iterator_impl_H
-#define _ONEDPL_iterator_impl_H
+#ifndef _ONEDPL_ITERATOR_IMPL_H
+#define _ONEDPL_ITERATOR_IMPL_H
 
 #include <iterator>
 #include <tuple>
@@ -884,4 +884,4 @@ map_zip(F f, TBig<T...> in, RestTuples... rest)
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_iterator_impl_H */
+#endif /* _ONEDPL_ITERATOR_IMPL_H */
