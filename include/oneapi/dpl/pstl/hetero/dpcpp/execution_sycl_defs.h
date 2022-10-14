@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_execution_sycl_defs_H
-#define _ONEDPL_execution_sycl_defs_H
+#ifndef _ONEDPL_EXECUTION_SYCL_DEFS_H
+#define _ONEDPL_EXECUTION_SYCL_DEFS_H
 
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
@@ -398,4 +398,4 @@ __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kerne
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_execution_sycl_defs_H */
+#endif /* _ONEDPL_EXECUTION_SYCL_DEFS_H */
