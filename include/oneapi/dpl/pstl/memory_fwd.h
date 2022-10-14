@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_memory_fwd_H
-#define _ONEDPL_memory_fwd_H
+#ifndef _ONEDPL_MEMORY_FWD_H
+#define _ONEDPL_MEMORY_FWD_H
 
 namespace oneapi
 {
@@ -45,4 +45,4 @@ struct __op_uninitialized_value_construct;
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_memory_fwd_H */
+#endif /* _ONEDPL_MEMORY_FWD_H */
