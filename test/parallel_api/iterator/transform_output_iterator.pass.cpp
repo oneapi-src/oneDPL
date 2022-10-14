@@ -45,6 +45,23 @@ DEFINE_TEST(test_copy)
     }
 }; // struct test_copy
 
+
+DEFINE_TEST(test_copy_typeshift)
+{
+    DEFINE_TEST_CONSTRUCTOR(test_copy_typeshift)
+
+    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2, typename Size, typename Iterator3>
+    void operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Size n, Iterator3 expected_values)
+    {
+
+        ::std::copy(::std::forward<ExecutionPolicy>(exec), first1, last1, first2);
+
+      
+        EXPECT_EQ_N(expected_values, first2, n, "Wrong result from copy with transform_output_iterator");
+    }
+}; // struct test_copy_typeshift
+
+
 void test_simple_copy(size_t buffer_size)
 {
     // 1. create buffers - usm to test copying to transform output iterator
@@ -140,10 +157,12 @@ test_type_shift(size_t buffer_size)
 {
 
     // 1. create buffers
-    using TestBaseOutputData = test_base_data_buffer<int>;
-    TestBaseOutputData test_base_output_data({{buffer_size, 0}});
-    using TestBaseInputData = test_base_data_buffer<double>;
-    TestBaseInputData test_base_input_data({{buffer_size, 0}});
+    sycl::queue q{};
+
+    using TestBaseOutputData = test_base_data_usm<sycl::usm::alloc::shared, int>;
+    TestBaseOutputData test_base_output_data(q, {{buffer_size, 0}});
+    using TestBaseInputData = test_base_data_usm<sycl::usm::alloc::shared, double>;
+    TestBaseInputData test_base_input_data(q, {{buffer_size, 0}});
 
     // 2. create iterators over source buffer
     auto sycl_source_begin = test_base_input_data.get_start_from(UDTKind::eKeys);
@@ -154,23 +173,18 @@ test_type_shift(size_t buffer_size)
     auto transformation2 = [](double item) { return (float)item + 1.0f; };
 
     double identity = 0.0;
-    auto& sycl_src_buf = test_base_input_data.get_buffer(UDTKind::eKeys);
-    auto host_src_acc = sycl_src_buf.get_access<sycl::access::mode::write>();
-    auto host_src_begin = host_src_acc.get_pointer();
-    ::std::fill_n(host_src_begin, buffer_size, identity);
 
-    auto& sycl_res_buf = test_base_output_data.get_buffer(UDTKind::eKeys);
-    auto host_res_acc = sycl_res_buf.get_access<sycl::access::mode::write>();
-    auto host_res_begin = host_res_acc.get_pointer();
+    ::std::fill_n(sycl_source_begin, buffer_size, identity);
 
-    auto tr1_host_result_begin = oneapi::dpl::make_transform_output_iterator(host_res_begin, transformation1);
+
+    auto tr1_host_result_begin = oneapi::dpl::make_transform_output_iterator(sycl_result_begin, transformation1);
     auto tr2_host_result_begin = oneapi::dpl::make_transform_output_iterator(tr1_host_result_begin, transformation2);
 
     ::std::vector<int> expected_res(buffer_size, (int)((float)identity + 1.0f) * 2);
 
-    test_copy<int> test(test_base_output_data);
+    test_copy_typeshift<int> test(test_base_output_data);
     TestUtils::invoke_on_all_hetero_policies<3>()(test, sycl_source_begin, sycl_source_begin + buffer_size,
-                                                  tr2_host_result_begin, buffer_size, expected_res.begin());
+                                                   tr2_host_result_begin, buffer_size, expected_res.begin());
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -185,6 +199,7 @@ main()
         test_simple_copy(n);
         test_multi_transform_copy(n);
         test_fill_transform(n);
+        test_type_shift(n);
     }
 #endif
 
