@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_algorithm_ranges_impl_hetero_H
-#define _ONEDPL_algorithm_ranges_impl_hetero_H
+#ifndef _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H
+#define _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H
 
 #include "../algorithm_fwd.h"
 #include "../parallel_backend.h"
@@ -797,4 +797,4 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_algorithm_ranges_impl_hetero_H */
+#endif /* _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H */
