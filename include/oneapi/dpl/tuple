@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_tuple
-#define __ONEDPL_tuple
+#ifndef __ONEDPL_TUPLE
+#define __ONEDPL_TUPLE
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <tuple>
@@ -39,4 +39,4 @@ using ::std::tuple_size;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_tuple
+#endif // __ONEDPL_TUPLE
