@@ -123,7 +123,7 @@ inline fpga_policy<> dpcpp_fpga{};
 
 #    endif // __cplusplus >= 201703L
 
-#endif     // _ONEDPL_PREDEFINED_POLICIES
+#endif // _ONEDPL_PREDEFINED_POLICIES
 
 // make_policy functions
 template <typename KernelName = DefaultKernelName>
