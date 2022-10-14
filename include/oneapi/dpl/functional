@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_functional
-#define __ONEDPL_functional
+#ifndef __ONEDPL_FUNCTIONAL
+#define __ONEDPL_FUNCTIONAL
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <functional>
@@ -91,4 +91,4 @@ struct minimum
 
 namespace dpl = oneapi::dpl;
 
-#endif // __DPSTD_functional
+#endif // __ONEDPL_FUNCTIONAL
