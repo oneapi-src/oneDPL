@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_random
-#define _ONEDPL_random
+#ifndef _ONEDPL_RANDOM
+#define _ONEDPL_RANDOM
 
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
@@ -73,4 +73,4 @@ using ranlux48_vec = discard_block_engine<ranlux48_base_vec<_N>, 389, 11>;
 
 namespace dpl = oneapi::dpl;
 
-#endif // _ONEDPL_random
+#endif // _ONEDPL_RANDOM
