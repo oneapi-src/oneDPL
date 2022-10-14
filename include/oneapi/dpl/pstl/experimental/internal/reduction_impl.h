@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_experimental_reduction_impl_H
-#define _ONEDPL_experimental_reduction_impl_H
+#ifndef _ONEDPL_EXPERIMENTAL_REDUCTION_IMPL_H
+#define _ONEDPL_EXPERIMENTAL_REDUCTION_IMPL_H
 
 #include <type_traits>
 #include <algorithm>
@@ -92,4 +92,4 @@ class __reduction_object
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_experimental_reduction_impl_H */
+#endif /* _ONEDPL_EXPERIMENTAL_REDUCTION_IMPL_H */
