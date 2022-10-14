@@ -49,7 +49,6 @@ struct adjacent_find_fn
 
     // the functor is being used instead of a lambda because
     // at this level we don't know what type we get during zip_iterator unpack
-    // whereas lambdas with auto in arg parameters are supported since C++14
     template <typename _Pack>
     bool
     operator()(const _Pack& __packed_neighbor_values) const
