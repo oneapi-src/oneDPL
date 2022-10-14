@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_experimental_algorithm
-#define _ONEDPL_experimental_algorithm
+#ifndef _ONEDPL_EXPERIMENTAL_ALGORITHM
+#define _ONEDPL_EXPERIMENTAL_ALGORITHM
 
 #define __cpp_lib_experimental_parallel_for_loop 201711
 
@@ -50,4 +50,4 @@ using oneapi::dpl::experimental::reduction_plus;
 } // namespace experimental
 } // namespace std
 
-#endif /* _ONEDPL_experimental_algorithm */
+#endif /* _ONEDPL_EXPERIMENTAL_ALGORITHM */
