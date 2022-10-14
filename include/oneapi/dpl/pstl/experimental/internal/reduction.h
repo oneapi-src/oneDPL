@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_experimental_reduction_H
-#define _ONEDPL_experimental_reduction_H
+#ifndef _ONEDPL_EXPERIMENTAL_REDUCTION_H
+#define _ONEDPL_EXPERIMENTAL_REDUCTION_H
 
 #include <type_traits>
 #include <functional>
@@ -95,4 +95,4 @@ reduction_max(_Tp& __var)
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_experimental_reduction_H */
+#endif /* _ONEDPL_EXPERIMENTAL_REDUCTION_H */
