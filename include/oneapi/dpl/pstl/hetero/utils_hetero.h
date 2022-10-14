@@ -18,8 +18,8 @@
 //
 // Include this header instead of sycl.hpp throughout the project
 
-#ifndef _ONEDPL_utils_hetero_H
-#define _ONEDPL_utils_hetero_H
+#ifndef _ONEDPL_UTILS_HETERO_H
+#define _ONEDPL_UTILS_HETERO_H
 
 namespace oneapi
 {
@@ -148,4 +148,4 @@ struct acc_handler_count
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_utils_hetero_H */
+#endif /* _ONEDPL_UTILS_HETERO_H */
