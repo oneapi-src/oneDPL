@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_complex
-#define __ONEDPL_complex
+#ifndef __ONEDPL_COMPLEX
+#define __ONEDPL_COMPLEX
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <complex>
@@ -56,4 +56,4 @@ using ::std::tanh;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_complex
+#endif // __ONEDPL_COMPLEX
