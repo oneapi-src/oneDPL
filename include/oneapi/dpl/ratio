@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_ratio
-#define __ONEDPL_ratio
+#ifndef __ONEDPL_RATIO
+#define __ONEDPL_RATIO
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <ratio>
@@ -39,4 +39,4 @@ using ::std::ratio_subtract;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_ratio
+#endif // __ONEDPL_RATIO
