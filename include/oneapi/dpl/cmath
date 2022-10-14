@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_cmath
-#define __ONEDPL_cmath
+#ifndef __ONEDPL_CMATH
+#define __ONEDPL_CMATH
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <cmath>
@@ -92,4 +92,4 @@ using ::std::truncf;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_cmath
+#endif // __ONEDPL_CMATH
