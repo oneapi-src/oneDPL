@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_tuple_impl_H
-#define _ONEDPL_tuple_impl_H
+#ifndef _ONEDPL_TUPLE_IMPL_H
+#define _ONEDPL_TUPLE_IMPL_H
 
 #include <iterator>
 #include <tuple>
@@ -650,4 +650,4 @@ get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 }
 } // namespace std
 
-#endif /* _ONEDPL_tuple_impl_H */
+#endif /* _ONEDPL_TUPLE_IMPL_H */
