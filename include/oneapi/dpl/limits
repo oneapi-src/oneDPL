@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __ONEDPL_limits
-#define __ONEDPL_limits
+#ifndef __ONEDPL_LIMITS
+#define __ONEDPL_LIMITS
 
 #include "oneapi/dpl/internal/common_config.h"
 #include <limits>
@@ -30,4 +30,4 @@ using numeric_limits = ::std::numeric_limits<T>;
 
 namespace dpl = oneapi::dpl;
 
-#endif // __ONEDPL_limits
+#endif // __ONEDPL_LIMITS
