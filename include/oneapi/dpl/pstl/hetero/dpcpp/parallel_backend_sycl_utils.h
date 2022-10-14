@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_parallel_backend_sycl_utils_H
-#define _ONEDPL_parallel_backend_sycl_utils_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
+#define _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #include <type_traits>
@@ -509,4 +509,4 @@ class __future : private std::tuple<_Args...>
 } // namespace dpl
 } // namespace oneapi
 
-#endif //_ONEDPL_parallel_backend_sycl_utils_H
+#endif //_ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
