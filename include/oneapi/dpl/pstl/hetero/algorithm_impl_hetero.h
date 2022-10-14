@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_algorithm_impl_hetero_H
-#define _ONEDPL_algorithm_impl_hetero_H
+#ifndef _ONEDPL_ALGORITHM_IMPL_HETERO_H
+#define _ONEDPL_ALGORITHM_IMPL_HETERO_H
 
 #include "../algorithm_fwd.h"
 
@@ -1982,4 +1982,4 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_algorithm_impl_hetero_H */
+#endif /* _ONEDPL_ALGORITHM_IMPL_HETERO_H */
