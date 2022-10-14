@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_experimental_for_loop_H
-#define _ONEDPL_experimental_for_loop_H
+#ifndef _ONEDPL_EXPERIMENTAL_FOR_LOOP_H
+#define _ONEDPL_EXPERIMENTAL_FOR_LOOP_H
 
 #include <tuple>
 
@@ -124,4 +124,4 @@ for_loop_n_strided(_Ip __start, _Size __n, _Sp __stride, _Rest&&... __rest)
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_experimental_for_loop_H */
+#endif /* _ONEDPL_EXPERIMENTAL_FOR_LOOP_H */
