@@ -122,6 +122,7 @@ inline fpga_policy<> dpcpp_fpga{};
 #        endif // _ONEDPL_FPGA_DEVICE
 
 #    endif // __cplusplus >= 201703L
+
 #endif     // _ONEDPL_PREDEFINED_POLICIES
 
 // make_policy functions
