@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_numeric_impl_hetero_H
-#define _ONEDPL_numeric_impl_hetero_H
+#ifndef _ONEDPL_NUMERIC_IMPL_HETERO_H
+#define _ONEDPL_NUMERIC_IMPL_HETERO_H
 
 #include <iterator>
 #include "../parallel_backend.h"
@@ -254,4 +254,4 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_numeric_impl_hetero_H */
+#endif /* _ONEDPL_NUMERIC_IMPL_HETERO_H */
