@@ -151,9 +151,10 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
     using __flag_type = bool;
 
-    const auto __n = __keys.size();
+    const ::std::size_t __n = __keys.size();
 
-    constexpr int __vals_per_item = 2; // Each work item serially processes 2 items. Best observed performance on gpu
+    constexpr ::std::size_t __vals_per_item =
+        2; // Each work item serially processes 2 items. Best observed performance on gpu
 
     ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
@@ -161,7 +162,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(
         ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + sizeof(__val_type), __wgroup_size);
 
-    int __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
+    ::std::size_t __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
 
     // intermediate reductions within a workgroup
     auto __partials =
@@ -182,22 +183,22 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
         __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
             auto __group = __item.get_group();
-            auto __group_id = __group.get_group_id();
-            auto __local_id = __group.get_local_id();
+            ::std::size_t __group_id = __group.get_group_id();
+            ::std::size_t __local_id = __group.get_local_id();
             ::std::size_t __global_id = __item.get_global_id();
 
-            auto __start = __global_id * __vals_per_item;
-            auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
-            int __item_segments = 0;
+            ::std::size_t __start = __global_id * __vals_per_item;
+            ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+            ::std::size_t __item_segments = 0;
 
             // 1a. Work item scan to identify segment ends
-            for (int32_t __i = __start; __i < __end; ++__i)
+            for (::std::size_t __i = __start; __i < __end; ++__i)
                 if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
                     ++__item_segments;
 
             // 1b. Work group reduction
-            auto __num_segs = __dpl_sycl::__reduce_over_group(__group, __item_segments,
-                                                              __dpl_sycl::__plus<decltype(__item_segments)>());
+            ::std::size_t __num_segs = __dpl_sycl::__reduce_over_group(__group, __item_segments,
+                                                                       __dpl_sycl::__plus<decltype(__item_segments)>());
 
             // 1c. First work item writes segment count to global memory
             if (__local_id == 0)
@@ -219,8 +220,8 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             ::std::array<__val_type, __vals_per_item> __loc_partials;
 
             auto __group = __item.get_group();
-            auto __group_id = __group.get_group_id();
-            auto __local_id = __group.get_local_id();
+            ::std::size_t __group_id = __group.get_group_id();
+            ::std::size_t __local_id = __group.get_local_id();
             ::std::size_t __global_id = __item.get_global_id();
 
             __val_type __accumulator{};
@@ -235,14 +236,14 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
             // 2b. Perform a serial scan within the work item over assigned elements. Store partial
             // reductions in work group local memory.
-            auto __start = __global_id * __vals_per_item;
-            auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+            ::std::size_t __start = __global_id * __vals_per_item;
+            ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
 
             ::std::size_t __max_end = 0;
-            int32_t __item_segments = 0;
+            ::std::size_t __item_segments = 0;
 
             bool __first = true;
-            for (int32_t __i = __start; __i < __end; ++__i)
+            for (::std::size_t __i = __start; __i < __end; ++__i)
             {
                 if (__first)
                 {
@@ -266,12 +267,12 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             }
 
             // 2c. Count the number of prior work segments cooperatively over group
-            int __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
+            ::std::size_t __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
                 __group, __item_segments, __dpl_sycl::__plus<decltype(__item_segments)>());
-            auto __start_idx = __wg_num_prior_segs + __prior_segs_in_wg;
+            ::std::size_t __start_idx = __wg_num_prior_segs + __prior_segs_in_wg;
 
             // 2d. Find the greatest segment end less than the current index (inclusive)
-            auto __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
+            ::std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                 __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
             __val_type __carry_in =
@@ -280,18 +281,18 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
             // 2e. Update local partial reductions in first segment and write to global memory.
             bool __apply_aggs = true;
-            int __item_offset = 0;
+            ::std::size_t __item_offset = 0;
 
             // first item in group does not have any work-group aggregates to apply
             if (__local_id == 0)
                 __apply_aggs = false;
 
             // apply the aggregates and copy the locally stored values to destination buffer
-            for (int32_t __i = __start; __i < __end; ++__i)
+            for (::std::size_t __i = __start; __i < __end; ++__i)
             {
                 if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                 {
-                    auto __idx = __start_idx + __item_offset;
+                    ::std::size_t __idx = __start_idx + __item_offset;
                     if (__apply_aggs)
                     {
                         __out_values[__idx] = __binary_op(__carry_in, __loc_partials[__i - __start]);
@@ -333,15 +334,15 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1>
                                                                                                      __item) {
                 auto __group = __item.get_group();
-                auto __group_id = __group.get_group_id(0);
+                ::std::size_t __group_id = __group.get_group_id(0);
                 ::std::size_t __global_id = __item.get_global_id();
-                auto __local_id = __item.get_local_id();
+                ::std::size_t __local_id = __item.get_local_id();
 
-                auto __start = __global_id * __vals_per_item;
-                auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
-                int32_t __item_segments = 0;
+                ::std::size_t __start = __global_id * __vals_per_item;
+                ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+                ::std::size_t __item_segments = 0;
 
-                int32_t __wg_agg_idx = __group_id - 1;
+                ::std::size_t __wg_agg_idx = __group_id - 1;
                 __val_type __agg_collector{};
 
                 // 3a. Check to see if an aggregate exists and compute that value in the first
@@ -353,7 +354,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                     if (__start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
                     {
                         __ag_exists = true;
-                        for (int32_t __i = __wg_agg_idx; __i >= 0; --__i)
+                        for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
                         {
                             const auto& __wg_aggregate = __partials_acc[__i];
                             const auto __b_seg_end = __seg_ends_acc[__i];
@@ -382,11 +383,11 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 __agg_collector = __dpl_sycl::__group_broadcast(__group, __agg_collector);
 
                 // 3b. count the segment ends
-                for (auto __i = __start; __i < __end; ++__i)
+                for (::std::size_t __i = __start; __i < __end; ++__i)
                     if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                         ++__item_segments;
 
-                auto __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
+                ::std::size_t __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
                     __group, __item_segments, __dpl_sycl::__plus<decltype(__item_segments)>());
 
                 // 3c. Collectively perform a subgroup reduction to determine the first index
@@ -394,18 +395,18 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 auto __start_ptr = __seg_ends_acc.get_pointer();
                 auto __end_ptr = __start_ptr + __group_id;
 
-                auto __wg_num_prior_segs = __dpl_sycl::__joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr,
-                                                                      __dpl_sycl::__plus<int>());
+                ::std::size_t __wg_num_prior_segs = __dpl_sycl::__joint_reduce(__item.get_sub_group(), __start_ptr,
+                                                                               __end_ptr, __dpl_sycl::__plus<int>());
 
                 // 3d. Second pass over the keys, reidentifying end segments and applying work group
                 // aggregates if appropriate. Both the key and reduction value are written to the final output at the
                 // computed index
-                int __item_offset = 0;
-                for (int32_t __i = __start; __i < __end; ++__i)
+                ::std::size_t __item_offset = 0;
+                for (::std::size_t __i = __start; __i < __end; ++__i)
                 {
                     if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                     {
-                        int __idx = __wg_num_prior_segs + __prior_segs_in_wg + __item_offset;
+                        ::std::size_t __idx = __wg_num_prior_segs + __prior_segs_in_wg + __item_offset;
 
                         // apply the aggregate if it is the first segment end in the workgroup only
                         if (__prior_segs_in_wg == 0 && __item_offset == 0 && __ag_exists)
