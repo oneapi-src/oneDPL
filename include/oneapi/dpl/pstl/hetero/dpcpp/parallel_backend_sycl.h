@@ -17,8 +17,8 @@
 
 // This header guard is used to check inclusion of DPC++ backend.
 // Changing this macro may result in broken tests.
-#ifndef _ONEDPL_parallel_backend_sycl_H
-#define _ONEDPL_parallel_backend_sycl_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_H
+#define _ONEDPL_PARALLEL_BACKEND_SYCL_H
 
 #include <cassert>
 #include <algorithm>
@@ -1452,4 +1452,4 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_parallel_backend_sycl_H */
+#endif /* _ONEDPL_PARALLEL_BACKEND_SYCL_H */
