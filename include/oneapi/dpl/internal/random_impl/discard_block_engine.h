@@ -20,12 +20,18 @@
 #ifndef _ONEDPL_DISCARD_BLOCK_ENGINE
 #define _ONEDPL_DISCARD_BLOCK_ENGINE
 
+#include <cstddef>
+#include <utility>
+#include <type_traits>
+
+#include "random_common.h"
+
 namespace oneapi
 {
 namespace dpl
 {
 
-template <class _Engine, size_t _P, size_t _R>
+template <class _Engine, ::std::size_t _P, ::std::size_t _R>
 class discard_block_engine
 {
   public:
@@ -34,8 +40,8 @@ class discard_block_engine
     using scalar_type = internal::element_type_t<result_type>;
 
     // Engine characteristics
-    static constexpr size_t block_size = _P;
-    static constexpr size_t used_block = _R;
+    static constexpr ::std::size_t block_size = _P;
+    static constexpr ::std::size_t used_block = _R;
     static constexpr scalar_type
     min()
     {
@@ -129,8 +135,7 @@ class discard_block_engine
 
   private:
     // Static asserts
-    static_assert((0 < _R) && (_R <= _P) && (_R <= std::numeric_limits<int>::max()),
-                  "oneapi::dpl::discard_block_engine. Error: unsupported parameters");
+    static_assert((0 < _R) && (_R <= _P), "oneapi::dpl::discard_block_engine. Error: unsupported parameters");
 
     // Function for state adjustment
     template <int _N>
@@ -172,10 +177,10 @@ class discard_block_engine
     generate_internal()
     {
         result_type __res;
-        if (static_cast<size_t>(_N) < (used_block - n_))
+        if (static_cast<::std::size_t>(_N) < (used_block - n_))
         {
             __res = engine_();
-            n_ += static_cast<size_t>(_N);
+            n_ += static_cast<::std::size_t>(_N);
         }
         else
         {
@@ -205,7 +210,7 @@ class discard_block_engine
     }
 
     _Engine engine_;
-    size_t n_ = 0;
+    ::std::size_t n_ = 0;
 };
 
 } // namespace dpl
