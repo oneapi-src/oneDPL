@@ -32,4 +32,8 @@
 #    endif // __has_include(<tbb/version.h>)
 #endif     // __cplusplus >= 201703L
 
+// macros for deprecation
+#define _DPSTD_DEPRECATED [[deprecated]]
+#define _DPSTD_DEPRECATED_MSG(msg) [[deprecated(msg)]]
+
 #endif
