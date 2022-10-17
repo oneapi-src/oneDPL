@@ -160,8 +160,8 @@ class transform_output_ref_wrapper
     operator T&() { return __my_reference_; }
 
     //Create a new composite transform_output_ref_wrapper which composes the unary functions of this and
-    // the param, first appling the incoming unary function, then applying the one in this transform_output_ref_wrapper.
-    // The new transform_output_ref_wrapper uses the same reference data.
+    // the param, first applying the incoming unary function, then applying the one in this
+    // transform_output_ref_wrapper.  The new transform_output_ref_wrapper uses the same reference data.
     template <typename _UnaryFuncOuter>
     auto
     make_composite_wrapper(_UnaryFuncOuter __unary_func_outer)
