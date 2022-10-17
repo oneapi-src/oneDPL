@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
-#define _ONEDPL_SERIAL_NUMERIC_IMPL_H
+#ifndef _ONEDPL_SERIAL_ALGORITHM_IMPL_H
+#define _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 
 #if (__cplusplus >= 201703L)
 #    include <algorithm>
@@ -37,11 +37,8 @@ for_each_n(_InputIterator __first, _Size __n, _Function __f)
     }
     return __first;
 }
-
-#    else
-using ::std::for_each_n;
-#    endif
+#    endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi
-#endif
-#endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
+#endif // __cplusplus >= 201703L
+#endif // _ONEDPL_SERIAL_ALGORITHM_IMPL_H

@@ -106,14 +106,14 @@ class __reduction_pack
 
     template <typename _Fp, typename _Ip, typename _Position, ::std::size_t... _Is>
     void
-    __apply_func_impl(_Fp&& __f, _Ip __current, _Position __p, oneapi::dpl::__internal::__index_sequence<_Is...>)
+    __apply_func_impl(_Fp&& __f, _Ip __current, _Position __p, ::std::index_sequence<_Is...>)
     {
         ::std::forward<_Fp>(__f)(__current, ::std::get<_Is>(__objects_).__get_induction_or_reduction_value(__p)...);
     }
 
     template <::std::size_t... _Is>
     void
-    __combine_impl(const __reduction_pack& __other, oneapi::dpl::__internal::__index_sequence<_Is...>)
+    __combine_impl(const __reduction_pack& __other, ::std::index_sequence<_Is...>)
     {
         (void)::std::initializer_list<int>{
             0, ((void)::std::get<_Is>(__objects_).__combine(::std::get<_Is>(__other.__objects_)), 0)...};
@@ -121,7 +121,7 @@ class __reduction_pack
 
     template <typename _RangeSize, ::std::size_t... _Is>
     void
-    __finalize_impl(const _RangeSize __n, oneapi::dpl::__internal::__index_sequence<_Is...>)
+    __finalize_impl(const _RangeSize __n, ::std::index_sequence<_Is...>)
     {
         (void)::std::initializer_list<int>{0, ((void)::std::get<_Is>(__objects_).__finalize(__n), 0)...};
     }
@@ -143,22 +143,21 @@ class __reduction_pack
     void
     __combine(const __reduction_pack& __other)
     {
-        __combine_impl(__other, oneapi::dpl::__internal::__make_index_sequence<sizeof...(_Ts)>{});
+        __combine_impl(__other, ::std::make_index_sequence<sizeof...(_Ts)>{});
     }
 
     template <typename _Fp, typename _Ip, typename _Position>
     void
     __apply_func(_Fp&& __f, _Ip __current, _Position __p)
     {
-        __apply_func_impl(::std::forward<_Fp>(__f), __current, __p,
-                          oneapi::dpl::__internal::__make_index_sequence<sizeof...(_Ts)>{});
+        __apply_func_impl(::std::forward<_Fp>(__f), __current, __p, ::std::make_index_sequence<sizeof...(_Ts)>{});
     }
 
     template <typename _RangeSize>
     void
     __finalize(const _RangeSize __n)
     {
-        __finalize_impl(__n, oneapi::dpl::__internal::__make_index_sequence<sizeof...(_Ts)>{});
+        __finalize_impl(__n, ::std::make_index_sequence<sizeof...(_Ts)>{});
     }
 };
 
@@ -538,7 +537,7 @@ __use_parallelization(_ExecutionPolicy&& __exec)
 template <typename _ExecutionPolicy, typename _Ip, typename _Fp, typename _Sp, typename... _Rest, ::std::size_t... _Is>
 void
 __for_loop_impl(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Fp&& __f, _Sp __stride,
-                ::std::tuple<_Rest...>&& __t, oneapi::dpl::__internal::__index_sequence<_Is...>)
+                ::std::tuple<_Rest...>&& __t, ::std::index_sequence<_Is...>)
 {
     oneapi::dpl::__internal::__pattern_for_loop(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __f, __stride,
@@ -551,7 +550,7 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Fp,
           ::std::size_t... _Is>
 void
 __for_loop_n_impl(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Fp&& __f, _Sp __stride,
-                  ::std::tuple<_Rest...>&& __t, oneapi::dpl::__internal::__index_sequence<_Is...>)
+                  ::std::tuple<_Rest...>&& __t, ::std::index_sequence<_Is...>)
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __n, __f, __stride,
@@ -567,7 +566,7 @@ __for_loop_repack(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Sp __st
     // Extract a callable object from the parameter pack and put it before the other elements
     oneapi::dpl::__internal::__for_loop_impl(::std::forward<_ExecutionPolicy>(__exec), __start, __finish,
                                              ::std::get<sizeof...(_Rest) - 1>(__t), __stride, ::std::move(__t),
-                                             oneapi::dpl::__internal::__make_index_sequence<sizeof...(_Rest) - 1>());
+                                             ::std::make_index_sequence<sizeof...(_Rest) - 1>());
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Sp, typename... _Rest>
@@ -577,7 +576,7 @@ __for_loop_repack_n(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Sp __str
     // Extract a callable object from the parameter pack and put it before the other elements
     oneapi::dpl::__internal::__for_loop_n_impl(::std::forward<_ExecutionPolicy>(__exec), __start, __n,
                                                ::std::get<sizeof...(_Rest) - 1>(__t), __stride, ::std::move(__t),
-                                               oneapi::dpl::__internal::__make_index_sequence<sizeof...(_Rest) - 1>());
+                                               ::std::make_index_sequence<sizeof...(_Rest) - 1>());
 }
 
 } // namespace __internal

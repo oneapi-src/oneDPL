@@ -102,14 +102,6 @@
     (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
         (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
 
-#define _PSTL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                      \
-    (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
-#define _PSTL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT                                                                      \
-    (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
-#define _PSTL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
-#define _PSTL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                         \
-    (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
-
 #define _PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
 
@@ -175,8 +167,6 @@
 #endif
 
 // broken macros
-#define _PSTL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
-
 #define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
 #endif /* _PSTL_CONFIG_H */

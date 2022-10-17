@@ -101,7 +101,7 @@ template <sycl::access::mode AccMode = sycl::access::mode::read_write,
 struct all_view_fn
 {
     template <typename _T>
-    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>
+    constexpr oneapi::dpl::__ranges::all_view<_T, AccMode, _Target, _Placeholder>
     operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
                typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
     {
@@ -118,17 +118,18 @@ struct all_view_fn
 
 namespace views
 {
-_ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all;
+inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target_device,
+                             sycl::access::placeholder::true_t>
+    all;
 
-_ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all_read;
+inline constexpr all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
+    all_read;
 
-_ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t> all_write;
+inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
+    all_write;
 
-_ONEDPL_CONSTEXPR_VAR
-all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target::host_buffer, sycl::access::placeholder::false_t>
+inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target::host_buffer,
+                             sycl::access::placeholder::false_t>
     host_all;
 } // namespace views
 
@@ -210,7 +211,7 @@ __require_access_zip(sycl::handler& __cgh, oneapi::dpl::__ranges::zip_view<_Rang
 {
     const ::std::size_t __num_ranges = sizeof...(_Ranges);
     oneapi::dpl::__ranges::invoke(__zip.tuple(), _require_access_args<decltype(__cgh)>{__cgh},
-                                  oneapi::dpl::__internal::__make_index_sequence<__num_ranges>());
+                                  ::std::make_index_sequence<__num_ranges>());
 }
 
 //__require_access utility
@@ -259,7 +260,7 @@ template <typename _R>
 struct __range_holder
 {
     _R __r;
-    _ONEDPL_CONSTEXPR_FUN _R
+    constexpr _R
     all_view() const
     {
         return __r;
@@ -296,7 +297,7 @@ struct __buffer_holder
 {
     buf_type<_T> __buf;
 
-    _ONEDPL_CONSTEXPR_FUN oneapi::dpl::__ranges::all_view<_T, AccMode>
+    constexpr oneapi::dpl::__ranges::all_view<_T, AccMode>
     all_view() const
     {
         return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf);
@@ -350,7 +351,7 @@ struct __get_sycl_range
 
     template <typename _TupleType, typename _DiffType, ::std::size_t... _Ip>
     auto
-    gen_zip_view(_TupleType __t, _DiffType __n, oneapi::dpl::__internal::__index_sequence<_Ip...>)
+    gen_zip_view(_TupleType __t, _DiffType __n, ::std::index_sequence<_Ip...>)
         -> decltype(oneapi::dpl::__ranges::make_zip_view(gen_view(*this, ::std::get<_Ip>(__t), __n).all_view()...))
     {
         auto tmp = oneapi::dpl::__internal::make_tuple(gen_view(*this, ::std::get<_Ip>(__t), __n)...);
@@ -362,17 +363,15 @@ struct __get_sycl_range
 
     template <typename... Iters>
     auto
-    operator()(oneapi::dpl::zip_iterator<Iters...> __first, oneapi::dpl::zip_iterator<Iters...> __last) -> decltype(
-        __range_holder<decltype(gen_zip_view(__first.base(), __last - __first,
-                                             oneapi::dpl::__internal::__make_index_sequence<sizeof...(Iters)>()))>{
-            gen_zip_view(__first.base(), __last - __first,
-                         oneapi::dpl::__internal::__make_index_sequence<sizeof...(Iters)>())})
+    operator()(oneapi::dpl::zip_iterator<Iters...> __first, oneapi::dpl::zip_iterator<Iters...> __last)
+        -> decltype(__range_holder<decltype(gen_zip_view(__first.base(), __last - __first,
+                                                         ::std::make_index_sequence<sizeof...(Iters)>()))>{
+            gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<sizeof...(Iters)>())})
     {
         assert(__first < __last);
 
         const ::std::size_t __num_it = sizeof...(Iters);
-        auto rng =
-            gen_zip_view(__first.base(), __last - __first, oneapi::dpl::__internal::__make_index_sequence<__num_it>());
+        auto rng = gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<__num_it>());
         return __range_holder<decltype(rng)>{rng};
     }
 

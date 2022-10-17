@@ -1,4 +1,4 @@
-// -*- C++ -*-
+﻿// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
@@ -34,32 +34,28 @@ namespace dpl
 using ::std::advance;
 using ::std::begin;
 using ::std::bidirectional_iterator_tag;
-#if __cplusplus > 201103L
 using ::std::cbegin;
 using ::std::cend;
 using ::std::crbegin;
 using ::std::crend;
-using ::std::make_reverse_iterator;
-using ::std::rbegin;
-using ::std::rend;
-#endif // __cplusplus > 201103L
 using ::std::distance;
-#if __cplusplus > 201402L
 using ::std::empty;
-using ::std::size;
-#endif // __cplusplus > 201402L
 using ::std::end;
 using ::std::forward_iterator_tag;
 using ::std::input_iterator_tag;
 using ::std::iterator;
 using ::std::iterator_traits;
 using ::std::make_move_iterator;
+using ::std::make_reverse_iterator;
 using ::std::move_iterator;
 using ::std::next;
 using ::std::output_iterator_tag;
 using ::std::prev;
 using ::std::random_access_iterator_tag;
+using ::std::rbegin;
+using ::std::rend;
 using ::std::reverse_iterator;
+using ::std::size;
 } // namespace dpl
 } // namespace oneapi
 namespace dpl = oneapi::dpl;

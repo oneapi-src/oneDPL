@@ -65,7 +65,7 @@ struct pipeline_base_range
     Range rng;
 
     pipeline_base_range(Range r) : rng(r) {}
-    _ONEDPL_CONSTEXPR_FUN Range
+    constexpr Range
     base_range()
     {
         return rng;
@@ -79,7 +79,7 @@ struct pipeline_base_range<Range, typename ::std::enable_if<is_pipeline_object<R
     Range rng;
 
     pipeline_base_range(Range r) : rng(r) {}
-    _ONEDPL_CONSTEXPR_FUN auto
+    constexpr auto
     base_range() -> decltype(pipeline_base_range<decltype(rng.base())>(rng.base()).base_range())
     {
         return pipeline_base_range<decltype(rng.base())>(rng.base()).base_range();
@@ -88,7 +88,7 @@ struct pipeline_base_range<Range, typename ::std::enable_if<is_pipeline_object<R
 
 template <typename _TupleType, typename _F, ::std::size_t... _Ip>
 void
-invoke(const _TupleType& __t, _F __f, oneapi::dpl::__internal::__index_sequence<_Ip...>)
+invoke(const _TupleType& __t, _F __f, ::std::index_sequence<_Ip...>)
 {
     __f(::std::get<_Ip>(__t)...);
 }
@@ -102,7 +102,7 @@ class zip_view
 
     template <::std::size_t... _Ip>
     auto
-    make_reference(_tuple_ranges_t __t, int32_t __i, oneapi::dpl::__internal::__index_sequence<_Ip...>) const
+    make_reference(_tuple_ranges_t __t, int32_t __i, ::std::index_sequence<_Ip...>) const
         -> decltype(oneapi::dpl::__internal::tuple<decltype(::std::declval<_Ranges&>().operator[](__i))...>(
             ::std::get<_Ip>(__t).operator[](__i)...))
     {
@@ -122,11 +122,10 @@ class zip_view
         return ::std::get<0>(__m_ranges).size();
     }
 
-    _ONEDPL_CONSTEXPR_FUN auto operator[](int32_t __i) const
-        -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i,
-                                   oneapi::dpl::__internal::__make_index_sequence<__num_ranges>()))
+    constexpr auto operator[](int32_t __i) const
+        -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i, ::std::make_index_sequence<__num_ranges>()))
     {
-        return make_reference(__m_ranges, __i, oneapi::dpl::__internal::__make_index_sequence<__num_ranges>());
+        return make_reference(__m_ranges, __i, ::std::make_index_sequence<__num_ranges>());
     }
 
     bool

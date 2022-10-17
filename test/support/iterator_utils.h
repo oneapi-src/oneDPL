@@ -154,11 +154,7 @@ struct ReverseAdapter
     iterator_type
     operator()(Iterator it)
     {
-#if _PSTL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT
         return ::std::make_reverse_iterator(it);
-#else
-        return iterator_type(it);
-#endif
     }
 };
 

@@ -105,10 +105,8 @@ test(sycl::queue& deviceQueue)
 int
 main(int, char**)
 {
-#if __cplusplus >= 201703L
     sycl::queue deviceQueue;
     test(deviceQueue);
 
-#endif
     return 0;
 }

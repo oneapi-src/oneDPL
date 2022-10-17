@@ -49,21 +49,6 @@
 #    define _ONEDPL_PREDEFINED_POLICIES 1
 #endif
 
-// macros for deprecation
-#if (__cplusplus >= 201402L)
-#    define _DPSTD_DEPRECATED [[deprecated]]
-#    define _DPSTD_DEPRECATED_MSG(msg) [[deprecated(msg)]]
-#elif _MSC_VER
-#    define _DPSTD_DEPRECATED __declspec(deprecated)
-#    define _DPSTD_DEPRECATED_MSG(msg) __declspec(deprecated(msg))
-#elif (__GNUC__ || __clang__)
-#    define _DPSTD_DEPRECATED __attribute__((deprecated))
-#    define _DPSTD_DEPRECATED_MSG(msg) __attribute__((deprecated(msg)))
-#else
-#    define _DPSTD_DEPRECATED
-#    define _DPSTD_DEPRECATED_MSG(msg)
-#endif
-
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND)
 #    define _ONEDPL_PAR_BACKEND_TBB 1
 #endif
@@ -74,20 +59,6 @@
 
 #if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
-#endif
-
-#if (__cplusplus >= 201703L)
-#    define _ONEDPL_CONSTEXPR_FUN constexpr
-#    define _ONEDPL_CONSTEXPR_VAR inline constexpr
-#else
-#    define _ONEDPL_CONSTEXPR_FUN inline
-#    define _ONEDPL_CONSTEXPR_VAR constexpr
-#endif
-
-#if (__cplusplus >= 201402L)
-#    define _ONEDPL_CPP14_CONSTEXPR constexpr
-#else
-#    define _ONEDPL_CPP14_CONSTEXPR
 #endif
 
 // Check the user-defined macro for warnings
@@ -170,15 +141,6 @@
 #define _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT                                                                       \
     (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
         (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
-#define _ONEDPL_CPP14_2RANGE_MISMATCH_EQUAL_PRESENT                                                                    \
-    (_MSC_VER >= 1900 || __cplusplus >= 201300L || __cpp_lib_robust_nonmodifying_seq_ops == 201304)
-#define _ONEDPL_CPP14_MAKE_REVERSE_ITERATOR_PRESENT                                                                    \
-    (_MSC_VER >= 1900 || __cplusplus >= 201402L || __cpp_lib_make_reverse_iterator == 201402)
-#define _ONEDPL_CPP14_INTEGER_SEQUENCE_PRESENT (_MSC_VER >= 1900 || __cplusplus >= 201402L)
-#define _ONEDPL_CPP14_VARIABLE_TEMPLATES_PRESENT                                                                       \
-    (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700) && (_MSC_FULL_VER >= 190023918 || __cplusplus >= 201402L)
-#define _ONEDPL_CPP11_IS_TRIVIALLY_COPY_ASSIGNABLE_PRESENT                                                             \
-    (_LIBCPP_VERSION || _MSC_VER >= 1700 || (_GLIBCXX_RELEASE >= 7 || _ONEDPL_LIBSTDCXX_5_OR_GREATER))
 
 #define _ONEDPL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #if (defined(_PSTL_PRAGMA_SIMD_EARLYEXIT) && _PSTL_EARLYEXIT_PRESENT)
@@ -261,9 +223,6 @@
 #        define _PSTL_PRAGMA_MESSAGE_POLICIES(x)
 #    endif
 #endif
-
-// broken macros
-#define _ONEDPL_CPP11_STD_ROTATE_BROKEN ((__GLIBCXX__ && __GLIBCXX__ < 20150716) || (_MSC_VER && _MSC_VER < 1800))
 
 // Some  C++ standard libraries contain 'exclusive_scan' declaration (version with binary_op)
 // w/o "enable_if". So, a call 'exclusive_scan' may be ambiguous in case of a custom policy using.
