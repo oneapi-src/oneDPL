@@ -49,6 +49,10 @@
 #    define _ONEDPL_PREDEFINED_POLICIES 1
 #endif
 
+// macros for deprecation
+#define _DPSTD_DEPRECATED [[deprecated]]
+#define _DPSTD_DEPRECATED_MSG(msg) [[deprecated(msg)]]
+
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND)
 #    define _ONEDPL_PAR_BACKEND_TBB 1
 #endif
