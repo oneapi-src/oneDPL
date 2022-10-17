@@ -218,6 +218,19 @@ make_transform_output_ref_wrapper(T&& __reference, _UnaryFunc __unary_func)
     return inner_make_transform_output_ref_wrapper(std::forward<T>(__reference), __unary_func, CollapsibleType());
 }
 
+template <typename _UnaryFunc>
+struct _Unary_Out
+{
+    _Unary_Out(_UnaryFunc __f_) : __f(__f_) {}
+    _UnaryFunc __f;
+    template <typename T>
+    auto
+    operator()(T&& val) const
+    {
+        return make_transform_output_ref_wrapper(std::forward<T>(val), __f);
+    }
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
@@ -626,143 +639,10 @@ make_transform_iterator(_Iter __it, _UnaryFunc __unary_func)
 }
 
 template <typename _Iter, typename _UnaryFunc>
-class transform_output_iterator
-{
-  private:
-    _Iter __my_it_;
-    _UnaryFunc __my_unary_func_;
-
-  public:
-    typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
-    typedef typename ::std::iterator_traits<_Iter>::value_type value_type;
-    typedef typename ::std::iterator_traits<_Iter>::reference inner_reference;
-    typedef __internal::transform_output_ref_wrapper<inner_reference, decltype(__my_unary_func_)> reference;
-    typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
-    typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
-
-    transform_output_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc())
-        : __my_it_(__it), __my_unary_func_(__unary_func)
-    {
-    }
-    transform_output_iterator(const transform_output_iterator& __input) = default;
-    transform_output_iterator&
-    operator=(const transform_output_iterator& __input)
-    {
-        __my_it_ = __input.__my_it_;
-        __my_unary_func_ = __input.__my_unary_func_;
-        return *this;
-    }
-    auto operator*() const { return __internal::make_transform_output_ref_wrapper(*__my_it_, __my_unary_func_); }
-    auto operator[](difference_type __i) const
-    {
-        return __internal::make_transform_output_ref_wrapper(*(__my_it_ + __i), __my_unary_func_);
-    }
-    transform_output_iterator&
-    operator++()
-    {
-        ++__my_it_;
-        return *this;
-    }
-    transform_output_iterator&
-    operator--()
-    {
-        --__my_it_;
-        return *this;
-    }
-    transform_output_iterator
-    operator++(int)
-    {
-        transform_output_iterator __it(*this);
-        ++(*this);
-        return __it;
-    }
-    transform_output_iterator
-    operator--(int)
-    {
-        transform_output_iterator __it(*this);
-        --(*this);
-        return __it;
-    }
-    transform_output_iterator
-    operator+(difference_type __forward) const
-    {
-        return {__my_it_ + __forward, __my_unary_func_};
-    }
-    transform_output_iterator
-    operator-(difference_type __backward) const
-    {
-        return {__my_it_ - __backward, __my_unary_func_};
-    }
-    transform_output_iterator&
-    operator+=(difference_type __forward)
-    {
-        __my_it_ += __forward;
-        return *this;
-    }
-    transform_output_iterator&
-    operator-=(difference_type __backward)
-    {
-        __my_it_ -= __backward;
-        return *this;
-    }
-    friend transform_output_iterator
-    operator+(difference_type __forward, const transform_output_iterator& __it)
-    {
-        return __it + __forward;
-    }
-    difference_type
-    operator-(const transform_output_iterator& __it) const
-    {
-        return __my_it_ - __it.__my_it_;
-    }
-    bool
-    operator==(const transform_output_iterator& __it) const
-    {
-        return __my_it_ == __it.__my_it_;
-    }
-    bool
-    operator!=(const transform_output_iterator& __it) const
-    {
-        return !(*this == __it);
-    }
-    bool
-    operator<(const transform_output_iterator& __it) const
-    {
-        return *this - __it < 0;
-    }
-    bool
-    operator>(const transform_output_iterator& __it) const
-    {
-        return __it < *this;
-    }
-    bool
-    operator<=(const transform_output_iterator& __it) const
-    {
-        return !(*this > __it);
-    }
-    bool
-    operator>=(const transform_output_iterator& __it) const
-    {
-        return !(*this < __it);
-    }
-
-    _Iter
-    base() const
-    {
-        return __my_it_;
-    }
-    _UnaryFunc
-    functor() const
-    {
-        return __my_unary_func_;
-    }
-};
-
-template <typename _Iter, typename _UnaryFunc>
 auto
 make_transform_output_iterator(_Iter __it, _UnaryFunc __unary_func)
 {
-    return transform_output_iterator<_Iter, _UnaryFunc>(__it, __unary_func);
+    return transform_iterator(__it, __internal::_Unary_Out<_UnaryFunc>(__unary_func));
 }
 
 template <typename SourceIterator, typename IndexMap>
