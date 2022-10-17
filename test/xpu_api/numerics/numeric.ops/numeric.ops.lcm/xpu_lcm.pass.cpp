@@ -25,6 +25,8 @@
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
+using oneapi::dpl::lcm;
+
 template <typename T1, typename T2>
 class KernelName;
 
@@ -34,9 +36,9 @@ test0(int in1, int in2, int out)
 {
     auto value1 = static_cast<Input1>(in1);
     auto value2 = static_cast<Input2>(in2);
-    static_assert(dpl::is_same<Output, decltype(dpl::lcm(value1, value2))>::value, "");
-    static_assert(dpl::is_same<Output, decltype(dpl::lcm(value2, value1))>::value, "");
-    return static_cast<Output>(out) == dpl::lcm(value1, value2);
+    static_assert(dpl::is_sameis_same<Output, decltype(lcm(value1, value2))>::value, "");
+    static_assert(dpl::is_sameis_same<Output, decltype(lcm(value2, value1))>::value, "");
+    return static_cast<Output>(out) == lcm(value1, value2);
 }
 
 template <typename Input1, typename Input2 = Input1>
@@ -97,7 +99,7 @@ do_test(sycl::queue& deviceQueue)
                     }
                 }
                 {
-                    auto res1 = dpl::lcm(static_cast<std::int64_t>(1234), INT32_MIN);
+                    auto res1 = oneapi::dpl::lcm(static_cast<std::int64_t>(1234), INT32_MIN);
                     out[0] &= (res1 == 1324997410816LL);
                 }
             });
