@@ -27,6 +27,12 @@ namespace dpl
 
 namespace internal
 {
+// We need have own implementation instead of std::gcd and std::lcm because
+// usually std::gcd and std::lcm implemented in STL as recursive function.
+// When we try to compile the call of recursive implemented function
+// from Kernel, we will have next compile error:
+// Recursion is not allowed in a device function.
+
 template <typename _Result, typename _Source>
 _Result
 __abs_impl(_Source __t, ::std::true_type)
@@ -55,11 +61,6 @@ __get_abs(_Source __t)
 } // namespace internal
 
 // gcd
-// We need have own implementation instead of std::gcd because
-// usually std::gcd implemented in STL as recursive function.
-// When we try to compile the call of recursive implemented function
-// from Kernel, we will have next compile error:
-// Recursion is not allowed in a device function.
 template <typename _Mn, typename _Nn>
 constexpr ::std::common_type_t<_Mn, _Nn>
 gcd(_Mn __m, _Nn __n)
@@ -83,11 +84,6 @@ gcd(_Mn __m, _Nn __n)
 }
 
 // lcm
-// We need have own implementation instead of std::lcm because
-// usually std::lcm implemented in STL as recursive function.
-// When we try to compile the call of recursive implemented function
-// from Kernel, we will have next compile error:
-// Recursion is not allowed in a device function.
 template <typename _Mn, typename _Nn>
 constexpr ::std::common_type_t<_Mn, _Nn>
 lcm(_Mn __m, _Nn __n)
