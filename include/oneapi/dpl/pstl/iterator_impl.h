@@ -143,6 +143,19 @@ template <typename T, typename _UnaryFunc>
 auto
 make_transform_output_ref_wrapper(T&& __reference, _UnaryFunc __unary_func);
 
+// Wrapper class returned from a dereferenced transform_iterator which was created using
+//  make_transform_output_iterator(). Used to apply the supplied transform function when writing
+//  into an object of this class.
+//
+// Example:
+// int a[] = {0, 1, 2, 3, 4};
+// int* p = a;
+// auto f = [](auto v) {return v*v;};
+// auto tr_out = make_transform_output_iterator(p+1, f);
+// auto wrap = *tr_out;         // wrap is a transform_output_ref_wrapper
+// std::cout<<wrap<<std::endl;  // '1'
+// wrap = 2;                    // apply function, store 2*2=4
+// std::cout<<wrap<<std::endl;  // '4'
 template <typename T, typename _UnaryFunc>
 class transform_output_ref_wrapper
 {
@@ -157,11 +170,13 @@ class transform_output_ref_wrapper
     {
     }
 
+    // Conversion operator to wrapped reference type to allow use of this wrapper interchangeably with the reference
+    //  it wraps
     operator T&() { return __my_reference_; }
 
-    //Create a new composite transform_output_ref_wrapper which composes the unary functions of this and
-    // the param, first applying the incoming unary function, then applying the one in this
-    // transform_output_ref_wrapper.  The new transform_output_ref_wrapper uses the same reference data.
+    // Create a new composite transform_output_ref_wrapper which composes the unary functions of this and
+    //  the param, first applying the incoming unary function, then applying the one in this
+    //  transform_output_ref_wrapper.  The new transform_output_ref_wrapper uses the same reference data.
     template <typename _UnaryFuncOuter>
     auto
     make_composite_wrapper(_UnaryFuncOuter __unary_func_outer)
@@ -170,6 +185,7 @@ class transform_output_ref_wrapper
             __my_reference_, [=](const auto& x) { return __my_unary_func_(__unary_func_outer(x)); });
     }
 
+    // When writing to an object of this type, apply the supplied unary function, then write to the wrapped reference
     template <typename UnaryInputType>
     transform_output_ref_wrapper&
     operator=(const UnaryInputType& e)
@@ -197,7 +213,7 @@ struct GetCollapsibleType
 };
 
 //If the type is already a transform_output_reference_wrapper, we can collapse it when using that to create another
-// transform_output_reference_wrapper, so we call it collapsible
+// transform_output_reference_wrapper, so we consider it collapsible
 template <typename T>
 struct GetCollapsibleType<T, __void_type<typename T::IsTransformOutputIterRefWrapper>>
 {
