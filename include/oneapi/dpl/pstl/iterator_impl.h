@@ -170,8 +170,9 @@ class transform_output_ref_wrapper
             __my_reference_, [=](const auto& x) { return __my_unary_func_(__unary_func_outer(x)); });
     }
 
+    template <typename UnaryInputType>
     transform_output_ref_wrapper&
-    operator=(const T& e)
+    operator=(const UnaryInputType& e)
     {
         __my_reference_ = __my_unary_func_(e);
         return *this;

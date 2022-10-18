@@ -169,18 +169,17 @@ test_type_shift(size_t buffer_size)
     auto sycl_result_begin = test_base_output_data.get_start_from(UDTKind::eKeys);
 
     // 3. run algorithms
-    auto transformation1 = [](float item) { return (int)(item)*2; };
-    auto transformation2 = [](double item) { return (float)item + 1.0f; };
+    auto transformation1 = [](float item) { return (int)(item * 2.0f); };
+    auto transformation2 = [](double item) { return (float)(item + 1.0); };
 
-    double identity = 0.0;
+    double init = 0.5;
 
-    ::std::fill_n(sycl_source_begin, buffer_size, identity);
-
+    ::std::fill_n(sycl_source_begin, buffer_size, init);
 
     auto tr1_host_result_begin = oneapi::dpl::make_transform_output_iterator(sycl_result_begin, transformation1);
     auto tr2_host_result_begin = oneapi::dpl::make_transform_output_iterator(tr1_host_result_begin, transformation2);
 
-    ::std::vector<int> expected_res(buffer_size, (int)((float)identity + 1.0f) * 2);
+    ::std::vector<int> expected_res(buffer_size, (int)((float)(init + 1.0) * 2.0f));
 
     test_copy_typeshift<int> test(test_base_output_data);
     TestUtils::invoke_on_all_hetero_policies<3>()(test, sycl_source_begin, sycl_source_begin + buffer_size,
