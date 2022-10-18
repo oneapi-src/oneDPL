@@ -111,7 +111,7 @@ jobs:
             device_type: HOST
           - os: ubuntu-20.04
             cxx_compiler: g++
-            std: 11
+            std: 17
             build_type: release
             backend: tbb
             device_type: HOST
@@ -129,7 +129,7 @@ jobs:
             device_type: HOST
           - os: ubuntu-18.04
             cxx_compiler: clang++
-            std: 11
+            std: 17
             build_type: release
             backend: tbb
             device_type: HOST
