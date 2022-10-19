@@ -127,8 +127,6 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::not1/2``                      Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
-``std::unary_function``              Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
 ``std::initializer_list``            Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::forward``                     Tested     Tested     Tested
