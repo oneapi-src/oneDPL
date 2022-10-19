@@ -16,6 +16,12 @@
 #ifndef _ONEDPL_RANGES_DEFS_H
 #define _ONEDPL_RANGES_DEFS_H
 
+// Avoid incompatibilities with STL internals
+// that nanorange tries to forward declare without this.
+#ifndef NANORANGE_NO_STD_FORWARD_DECLARATIONS
+  #define NANORANGE_NO_STD_FORWARD_DECLARATIONS
+#endif
+
 #include "ranges/nanorange.hpp"
 #include "ranges/nanorange_ext.h"
 
