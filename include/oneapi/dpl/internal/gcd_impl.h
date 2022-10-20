@@ -54,6 +54,10 @@ __get_abs(_Source __t)
 
 } // namespace internal
 
+// Some C++ standard libraries implement std::gcd and std::lcm as recursive functions,
+// which prevents their use in SYCL kernels (see the SYCL specification for more details).
+// Therefore oneDPL provides its own implementation.
+
 // gcd
 template <typename _Mn, typename _Nn>
 constexpr ::std::common_type_t<_Mn, _Nn>
