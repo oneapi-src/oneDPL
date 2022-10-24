@@ -14,9 +14,9 @@
 //   basic_istream<charT, traits>&
 //   operator>>(basic_istream<charT, traits>& is, complex<T>& x);
 
-#include <sstream>
-
 #include "support/test_complex.h"
+
+#include <sstream>
 
 void
 run_test()
