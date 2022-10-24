@@ -37,6 +37,8 @@ for_each_n(_InputIterator __first, _Size __n, _Function __f)
     }
     return __first;
 }
+#    else
+using ::std::for_each_n;
 #    endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi
