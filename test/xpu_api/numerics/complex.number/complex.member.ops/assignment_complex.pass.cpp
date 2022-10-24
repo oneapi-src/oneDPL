@@ -33,16 +33,24 @@ test()
 ONEDPL_TEST_NUM_MAIN
 {
     test<float, float>();
-    IF_DOUBLE_SUPPORT(test<float, double>())
-    IF_LONG_DOUBLE_SUPPORT(test<float, long double>())
 
-    IF_DOUBLE_SUPPORT(test<double, float>())
-    IF_DOUBLE_SUPPORT(test<double, double>())
-    IF_LONG_DOUBLE_SUPPORT(test<double, long double>())
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(),
+                              []()
+                              {
+                                  test<float, double>();
+                                  test<double, float>();
+                                  test<double, double>();
+                              });
 
-    IF_LONG_DOUBLE_SUPPORT(test<long double, float>())
-    IF_LONG_DOUBLE_SUPPORT(test<long double, double>())
-    IF_LONG_DOUBLE_SUPPORT(test<long double, long double>())
+    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(),
+                              []()
+                              {
+                                  test<float, long double>();
+                                  test<double, long double>();
+                                  test<long double, float>();
+                                  test<long double, double>();
+                                  test<long double, long double>();
+                              });
 
   return 0;
 }
