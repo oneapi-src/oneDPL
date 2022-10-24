@@ -30,10 +30,12 @@ test()
     dpl::complex<T> c3;
 
     c3 = c;
+#if !TEST_OF_COMPLEX_MINUS_EQUAL_BROKEN
     dpl::complex<int> ic (1,1);
     c3 -= ic;
     assert(c3.real() == -4);
     assert(c3.imag() == -6);
+#endif // !TEST_OF_COMPLEX_MINUS_EQUAL_BROKEN
 
     c3 = c;
     dpl::complex<float> fc (1,1);
