@@ -219,12 +219,19 @@ using __buffer_allocator =
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
+struct __atomic_ref :
 #if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
-using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
-#else
-struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
+    sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>
 {
-    explicit __atomic_ref(_AtomicType& data) : sycl::atomic<_AtomicType, _Space>(::std::addressof(data)){};
+    template <typename _PointerT>
+    explicit __atomic_ref(_PointerT data)
+        : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(*data){};
+};
+#else
+    sycl::atomic<_AtomicType, _Space>
+{
+    template <typename _PointerT>
+    explicit __atomic_ref(_PointerT data) : sycl::atomic<_AtomicType, _Space>(data){};
 };
 #endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
