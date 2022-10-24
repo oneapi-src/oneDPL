@@ -28,17 +28,15 @@ ONEDPL_TEST_NUM_MAIN
                            auto c2 = 3il;
                            assert(c1 == c2))
 
-    IF_DOUBLE_SUPPORT(dpl::complex<double> c1 = 3.0i;
-                      assert(c1 == dpl::complex<double>(0, 3.0));
-                      auto c2 = 3i;
-                      assert(c1 == c2));
+    IF_LONG_DOUBLE_SUPPORT(dpl::complex<double> c1 = 3.0i;
+                           assert(c1 == dpl::complex<double>(0, 3.0));
+                           auto c2 = 3i;
+                           assert(c1 == c2))
 
-    {
-    dpl::complex<float> c1 = 3.0if;
-    assert ( c1 == dpl::complex<float>(0, 3.0));
-    auto c2 = 3if;
-    assert ( c1 == c2 );
-    }
+    IF_LONG_DOUBLE_SUPPORT(dpl::complex<float> c1 = 3.0if;
+                           assert(c1 == dpl::complex<float>(0, 3.0));
+                           auto c2 = 3if;
+                           assert(c1 == c2))
 
   return 0;
 }
