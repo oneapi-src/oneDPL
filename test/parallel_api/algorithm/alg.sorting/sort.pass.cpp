@@ -309,6 +309,7 @@ struct test_sort_op
 };
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#    if __SYCL_UNNAMED_LAMBDA__
 template <typename T, typename Convert>
 void
 test_default_name_gen(Convert convert, size_t n)
@@ -327,8 +328,9 @@ test_default_name_gen(Convert convert, size_t n)
     TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
                     in.size(), ::std::less<void>());
-
+                    
 }
+#    endif //__SYCL_UNNAMED_LAMBDA__
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
 
@@ -403,12 +405,13 @@ main()
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#ifdef _PSTL_TEST_WITH_PREDICATE
+#    ifdef _PSTL_TEST_WITH_PREDICATE
+#        if __SYCL_UNNAMED_LAMBDA__
     // testing potentially clashing naming for radix sort descending / ascending with minimal timing impact
-    test_default_name_gen<std::int32_t>([](size_t, size_t val) { return std::int32_t(val); },
-                                        10);
-#endif //_PSTL_TEST_WITH_PREDICATE
-#endif //TEST_DPCPP_BACKEND_PRESENT
+    test_default_name_gen<std::int32_t>([](size_t, size_t val) { return std::int32_t(val); }, 10);
+#        endif //__SYCL_UNNAMED_LAMBDA__
+#    endif     //_PSTL_TEST_WITH_PREDICATE
+#endif         //TEST_DPCPP_BACKEND_PRESENT
 
 #if !ONEDPL_FPGA_DEVICE
     TestUtils::test_algo_basic_single<int32_t>(TestUtils::run_for_rnd<test_non_const<int32_t>>());
