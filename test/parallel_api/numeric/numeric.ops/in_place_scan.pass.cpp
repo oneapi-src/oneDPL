@@ -50,7 +50,7 @@ int main()
   inclusive_scan_serial(incl_input_host.begin(),
                       incl_input_host.end(),
                       incl_input_host.begin());
-  oneapi::dpl::inclusive_scan( oneapi::dpl::execution::make_device_policy(syclQue),
+  oneapi::dpl::inclusive_scan(oneapi::dpl::execution::make_device_policy<class TempKernelName1>(syclQue),
                                incl_input_dev,
                                incl_input_dev + v.size(),
                                incl_input_dev );
@@ -66,7 +66,7 @@ int main()
                        excl_input_host.end(),
                        excl_input_host.begin(),
                        0 );
-  oneapi::dpl::exclusive_scan( oneapi::dpl::execution::make_device_policy(syclQue),
+  oneapi::dpl::exclusive_scan( oneapi::dpl::execution::make_device_policy<class TempKernelName2>(syclQue),
                                excl_input_dev,
                                excl_input_dev + v.size(),
                                excl_input_dev,
