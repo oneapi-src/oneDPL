@@ -524,7 +524,7 @@ struct __get_sycl_range
 
         const auto __offset = __first - oneapi::dpl::begin(__first.get_buffer());
         const auto __n = __last - __first;
-        const auto __size = __first.get_buffer().size();
+        const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
         assert(__offset + __n <= __size);
 
         return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>{
