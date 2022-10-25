@@ -36,8 +36,11 @@ test_exclusive_scan(sycl::queue q,
     TestUtils::usm_data_transfer<alloc_type, TestValueType> dt_helper_vals(q, srcVals.begin(), N);
     TestUtils::usm_data_transfer<alloc_type, TestValueType> dt_helper_res (q, N);
 
+    auto policy = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
+        TestUtils::unique_kernel_name<class KernelName, 1>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
+
     oneapi::dpl::exclusive_scan_by_segment(
-        oneapi::dpl::execution::make_device_policy(q),
+        policy,
         dt_helper_keys.get_data(),          /* key begin */
         dt_helper_keys.get_data() + N,      /* key end */
         dt_helper_vals.get_data(),          /* input value begin */
@@ -67,8 +70,11 @@ test_exclusive_scan(sycl::queue q,
     auto it_key_begin = oneapi::dpl::make_permutation_iterator(dt_helper_keys.get_data(), dt_helper_perm.get_data());
     auto it_key_end = it_key_begin + N;
 
+    auto policy = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
+        TestUtils::unique_kernel_name<class KernelName, 2>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
+
     oneapi::dpl::exclusive_scan_by_segment(
-        oneapi::dpl::execution::make_device_policy(q),
+        policy,
         it_key_begin,               /* key begin */
         it_key_end,                 /* key end */
         dt_helper_vals.get_data(),  /* input value begin */
