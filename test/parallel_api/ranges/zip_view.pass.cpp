@@ -43,7 +43,7 @@ main()
 
     const size_t max_int32p2 = (size_t)::std::numeric_limits<int32_t>::max() + 2UL;
     ::std::vector<char> large_data(max_int32p2);
-    ::std::vector<size_t> large_keys(max_int32p2);
+    ::std::vector<char> large_keys(max_int32p2);
 
     auto large_z = zip_view(nano::views::all(large_data), nano::views::all(large_keys));
     sycl::queue q{};
@@ -52,12 +52,12 @@ main()
     size_t i = large_data.size() - 1;
 
     large_data[i] = i % ::std::numeric_limits<char>::max();
-    large_keys[i] = i;
+    large_keys[i] = (i + 1) % ::std::numeric_limits<char>::max();
 
-    auto expected_key = i;
-    auto actual_key = ::std::get<1>(large_z[i]);
+    char expected_key = large_keys[i];
+    char actual_key = ::std::get<1>(large_z[i]);
     EXPECT_EQ(expected_key, actual_key, "wrong effect with zip_view bracket operator");
-    char expected_data = i % ::std::numeric_limits<char>::max();
+    char expected_data = large_data[i];
     char actual_data = ::std::get<0>(large_z[i]);
     EXPECT_EQ(expected_data, actual_data, "wrong effect with zip_view bracket operator");
 
