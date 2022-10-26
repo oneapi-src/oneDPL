@@ -225,6 +225,9 @@ struct __atomic_ref : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed,
     template <typename _PointerT>
     explicit __atomic_ref(_PointerT data)
         : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(*data){};
+
+    __atomic_ref(const __atomic_ref& other) noexcept
+        : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(other){};
 };
 #else
 using __atomic_ref = sycl::atomic<_AtomicType, _Space>;
