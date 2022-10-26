@@ -46,7 +46,6 @@ main()
     ::std::vector<char> large_keys(max_int32p2);
 
     auto large_z = zip_view(nano::views::all(large_data), nano::views::all(large_keys));
-    sycl::queue q{};
 
     //check that zip_view ranges can be larger than a signed 32 bit integer
     size_t i = large_data.size() - 1;
