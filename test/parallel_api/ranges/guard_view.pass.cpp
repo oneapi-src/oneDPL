@@ -36,14 +36,12 @@ main()
 
     oneapi::dpl::__ranges::guard_view<CountItr> gview{count_itr, max_int32p2};
 
-    using namespace oneapi::dpl::experimental::ranges;
-
-    //check access
+    //check simple access
     for (int i = 0; i < 10; i++)
     {
         EXPECT_TRUE(gview[i] == i, "wrong effect with guard_view");
     }
-
+    //check access with index greater than 32 bit integer max
     EXPECT_TRUE(gview[max_int32p2] == max_int32p2, "wrong effect with guard_view with index greater than max int32");
 
 #endif //_ENABLE_RANGES_TESTING
