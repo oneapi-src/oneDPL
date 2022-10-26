@@ -219,8 +219,8 @@ using __buffer_allocator =
 #endif
 
 template <typename _AtomicType, sycl::access::address_space _Space>
-struct __atomic_ref :
 #if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
+struct __atomic_ref :
     sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>
 {
     template <typename _PointerT>
@@ -228,11 +228,7 @@ struct __atomic_ref :
         : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(*data){};
 };
 #else
-    sycl::atomic<_AtomicType, _Space>
-{
-    template <typename _PointerT>
-    explicit __atomic_ref(_PointerT data) : sycl::atomic<_AtomicType, _Space>(data){};
-};
+using __atomic_ref = sycl::atomic<_AtomicType, _Space>;
 #endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
 } // namespace __dpl_sycl
