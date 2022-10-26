@@ -18,7 +18,7 @@
 #include "support/test_config.h"
 
 #if _ENABLE_RANGES_TESTING
-#include <oneapi/dpl/ranges>
+#    include <oneapi/dpl/ranges>
 #endif
 
 #include "support/utils.h"
@@ -40,6 +40,27 @@ main()
 
     //check access
     EXPECT_TRUE(::std::get<0>(z[2]) == 'g', "wrong effect with zip_view");
+
+    const size_t max_int32p2 = (size_t)::std::numeric_limits<int32_t>::max() + 2UL;
+    ::std::vector<char> large_data(max_int32p2);
+    ::std::vector<size_t> large_keys(max_int32p2);
+
+    auto large_z = zip_view(nano::views::all(large_data), nano::views::all(large_keys));
+    sycl::queue q{};
+
+    //check that zip_view ranges can be larger than a signed 32 bit integer
+    size_t i = large_data.size() - 1;
+
+    large_data[i] = i % ::std::numeric_limits<char>::max();
+    large_keys[i] = i;
+
+    auto expected_key = i;
+    auto actual_key = ::std::get<1>(large_z[i]);
+    EXPECT_EQ(expected_key, actual_key, "wrong effect with zip_view bracket operator");
+    char expected_data = i % ::std::numeric_limits<char>::max();
+    char actual_data = ::std::get<0>(large_z[i]);
+    EXPECT_EQ(expected_data, actual_data, "wrong effect with zip_view bracket operator");
+
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

@@ -100,9 +100,9 @@ class zip_view
 
     using _tuple_ranges_t = oneapi::dpl::__internal::tuple<_Ranges...>;
 
-    template <::std::size_t... _Ip>
+    template <typename Idx, ::std::size_t... _Ip>
     auto
-    make_reference(_tuple_ranges_t __t, int32_t __i, ::std::index_sequence<_Ip...>) const
+    make_reference(_tuple_ranges_t __t, Idx __i, ::std::index_sequence<_Ip...>) const
         -> decltype(oneapi::dpl::__internal::tuple<decltype(::std::declval<_Ranges&>().operator[](__i))...>(
             ::std::get<_Ip>(__t).operator[](__i)...))
     {
@@ -122,7 +122,8 @@ class zip_view
         return ::std::get<0>(__m_ranges).size();
     }
 
-    constexpr auto operator[](int32_t __i) const
+    template <typename Idx>
+    constexpr auto operator[](Idx __i) const
         -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i, ::std::make_index_sequence<__num_ranges>()))
     {
         return make_reference(__m_ranges, __i, ::std::make_index_sequence<__num_ranges>());
@@ -180,7 +181,11 @@ class guard_view
         return begin() + size();
     }
 
-    auto operator[](int32_t i) const -> decltype(begin()[i]) { return begin()[i]; }
+    template <typename Idx>
+    auto operator[](Idx i) const -> decltype(begin()[i])
+    {
+        return begin()[i];
+    }
 
     diff_type
     size() const
