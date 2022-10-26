@@ -29,12 +29,13 @@ test()
 
     dpl::complex<T> c3;
 
-    // Commented to avoid compile error: no viable conversion from 'std::complex<int>' to 'const std::complex<long double>::_ComplexT' (aka 'const _Complex long double')
-    //c3 = c;
-    //dpl::complex<int> ic (1,1);
-    //c3 /= ic;
-    //assert(c3.real() ==  0.5);
-    //assert(c3.imag() == -0.5);
+#if !TEST_OF_COMPLEX_DIVIDE_EQUAL_BROKEN
+    c3 = c;
+    dpl::complex<int> ic (1,1);
+    c3 /= ic;
+    assert(c3.real() ==  0.5);
+    assert(c3.imag() == -0.5);
+#endif // !TEST_OF_COMPLEX_DIVIDE_EQUAL_BROKEN
 
     c3 = c;
     dpl::complex<float> fc (1,1);

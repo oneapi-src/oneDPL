@@ -47,10 +47,11 @@ template <class T, class U>
 void
 test(const dpl::complex<T>& x, U y)
 {
-    // Commented to avoid compile error: static_assert failed due to requirement 'std::is_same<std::complex<float>, std::complex<double>>::value' ""
-    //typedef decltype(promote(dpl::real(x)) + promote(y)) V;
-    //static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
-    //assert(dpl::pow(x, y) == dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y, 0)));
+#if !TEST_OF_COMPLEX_POW_BROKEN
+    typedef decltype(promote(dpl::real(x)) + promote(y)) V;
+    static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
+    assert(dpl::pow(x, y) == dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y, 0)));
+#endif // !TEST_OF_COMPLEX_POW_BROKEN
 }
 
 template <class T, class U>

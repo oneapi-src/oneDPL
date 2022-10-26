@@ -29,12 +29,13 @@ test()
 
     dpl::complex<T> c3;
 
-    // Commented to avoid compile error: no viable conversion from 'std::complex<int>' to 'const std::complex<float>::_ComplexT' (aka 'const _Complex float')
-    //c3 = c;
-    //dpl::complex<int> ic (1,1);
-    //c3 *= ic;
-    //assert(c3.real() == -11.5);
-    //assert(c3.imag() ==   3.5);
+#if !TEST_OF_COMPLEX_TIMES_EQUAL_BROKEN
+    c3 = c;
+    dpl::complex<int> ic (1,1);
+    c3 *= ic;
+    assert(c3.real() == -11.5);
+    assert(c3.imag() ==   3.5);
+#endif // !TEST_OF_COMPLEX_TIMES_EQUAL_BROKEN
 
     c3 = c;
     dpl::complex<float> fc (1,1);
