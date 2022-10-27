@@ -107,5 +107,6 @@
 #define TEST_HAS_NO_INT128
 
 #define TEST_OF_COMPLEX_POW_BROKEN          1
+#define TEST_OF_COMPLEX_DIVIDE_EQUAL_BROKEN 1
 
 #endif /* _TEST_config_H */
