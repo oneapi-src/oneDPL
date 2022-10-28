@@ -44,6 +44,12 @@ class __radix_sort_scan_kernel_2;
 template <typename... _Name>
 class __radix_sort_reorder_kernel;
 
+template <typename... _Name>
+class __radix_sort_reorder_popcount_kernel;
+
+template <typename... _Name>
+class __radix_sort_reorder_group_ballot_kernel;
+
 template <typename _Name>
 class __odd_iteration;
 
@@ -596,6 +602,261 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 }
 
 //-----------------------------------------------------------------------
+// radix sort: a function for reorder phase of one iteration using
+// a peer mask
+//-----------------------------------------------------------------------
+template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, typename _ExecutionPolicy,
+          typename _InRange, typename _OutRange, typename _OffsetBuf
+#if _ONEDPL_COMPILE_KERNEL
+          ,
+          typename _Kernel
+#endif
+          >
+sycl::event
+__radix_sort_reorder_peer_mask_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
+                                      ::std::size_t __sg_size, ::std::uint32_t __radix_iter, _InRange&& __input_rng,
+                                      _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
+#if _ONEDPL_COMPILE_KERNEL
+                                      ,
+                                      _Kernel& __kernel
+#endif
+)
+{
+    // typedefs
+    using _InputT = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _OffsetT = typename _OffsetBuf::value_type;
+
+    // item info
+    const ::std::size_t __it_size = __block_size / __sg_size;
+    const auto __inout_buf_size = __output_rng.size();
+
+    // iteration space info
+    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+    const ::std::size_t __blocks_total = __get_roundedup_div(__inout_buf_size, __block_size);
+    const ::std::size_t __blocks_per_segment = __get_roundedup_div(__blocks_total, __segments);
+
+    auto __offset_rng =
+        oneapi::dpl::__ranges::all_view<::std::uint32_t, __par_backend_hetero::access_mode::read>(__offset_buf);
+
+    // submit to reorder values
+    sycl::event __reorder_event = __exec.queue().submit([&](sycl::handler& __hdl) {
+        __hdl.depends_on(__dependency_event);
+
+        // access with offsets from each work group
+        oneapi::dpl::__ranges::__require_access(__hdl, __offset_rng);
+
+        // access with values to reorder and reordered values
+        oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
+
+        // local mask to compute the offset IDs for each radix state
+        auto __peer_mask =
+            sycl::accessor<::std::uint32_t, 1, sycl::access::mode::read_write, sycl::access::target::local>(1, __hdl);
+
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+        __hdl.parallel_for<_KernelName>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+            __kernel,
+#endif
+            sycl::nd_range<1>(__segments * __sg_size, __sg_size), [=](sycl::nd_item<1> __self_item) {
+                // item info
+                const ::std::size_t __self_lidx = __self_item.get_local_id(0);
+                const ::std::size_t __wgroup_idx = __self_item.get_group(0);
+                const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
+
+                // mask with 1s for local IDs less the the processing work item's ID
+                ::std::uint32_t __item_mask = ~(~0u << (__self_lidx));
+                sycl::atomic_ref<::std::uint32_t, sycl::memory_order_relaxed, sycl::memory_scope::sub_group,
+                                 sycl::access::address_space::local_space>
+                    __atomic_peer_mask(__peer_mask[0]);
+
+                // 1. create a private array for storing offset values
+                //    and add total offset and offset for compute unit for a certain radix state
+                _OffsetT __offset_arr[__radix_states];
+                const ::std::uint32_t __global_offset_start_idx = (__segments + 1) * __radix_states;
+                for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                {
+                    const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state_idx;
+                    const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
+                    __offset_arr[__radix_state_idx] =
+                        __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
+                }
+
+                // find offsets for the same values within a segment and fill the resulting buffer
+                for (::std::size_t __block_idx = 0; __block_idx < __blocks_per_segment * __it_size; ++__block_idx)
+                {
+                    const ::std::size_t __val_idx = __start_idx + __sg_size * __block_idx;
+
+                    // get value, convert it to ordered (in terms of bitness)
+                    // if the index is outside of the range, use fake value which will not affect other values
+                    __ordered_t<_InputT> __batch_val = __val_idx < __inout_buf_size
+                                                           ? __convert_to_ordered(__input_rng[__val_idx])
+                                                           : __get_last_value<__ordered_t<_InputT>, __is_comp_asc>();
+
+                    // get bit values in a certain bucket of a value
+                    ::std::uint32_t __bucket_val =
+                        __get_bucket_value<__radix_bits, __is_comp_asc>(__batch_val, __radix_iter);
+
+                    _OffsetT __new_offset_idx = 0;
+                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                    {
+                        ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+                        const auto& __sgroup = __self_item.get_sub_group();
+
+                        // reset mask for each radix state
+                        if (__self_lidx == 0)
+                            __atomic_peer_mask.store(0U);
+                        // set local id's bit to 1 if the bucket value matches the radix state
+                        __atomic_peer_mask.fetch_or(__is_current_bucket << __self_lidx);
+                        sycl::group_barrier(__sgroup);
+                        ::std::uint32_t __peer_mask_bits = __atomic_peer_mask.load();
+                        sycl::group_barrier(__sgroup);
+                        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
+
+                        // get the local offset index from the bits set in the peer mask with index less than the work
+                        // items's ID
+                        __peer_mask_bits &= __item_mask;
+                        __new_offset_idx |=
+                            __is_current_bucket * (__offset_arr[__radix_state_idx] + sycl::popcount(__peer_mask_bits));
+
+                        __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
+                    }
+
+                    if (__val_idx < __inout_buf_size)
+                        __output_rng[__new_offset_idx] = __input_rng[__val_idx];
+                }
+            });
+    });
+
+    return __reorder_event;
+}
+
+//-----------------------------------------------------------------------
+// radix sort: a function for reorder phase of one iteration using
+// group ballot
+//-----------------------------------------------------------------------
+template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, typename _ExecutionPolicy,
+          typename _InRange, typename _OutRange, typename _OffsetBuf
+#if _ONEDPL_COMPILE_KERNEL
+          ,
+          typename _Kernel
+#endif
+          >
+sycl::event
+__radix_sort_reorder_group_ballot_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
+                                         ::std::size_t __block_size, ::std::size_t __sg_size,
+                                         ::std::uint32_t __radix_iter, _InRange&& __input_rng, _OutRange&& __output_rng,
+                                         _OffsetBuf& __offset_buf, sycl::event __dependency_event
+#if _ONEDPL_COMPILE_KERNEL
+                                         ,
+                                         _Kernel& __kernel
+#endif
+)
+{
+    // typedefs
+    using _InputT = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _OffsetT = typename _OffsetBuf::value_type;
+
+    // item info
+    const ::std::size_t __it_size = __block_size / __sg_size;
+    const auto __inout_buf_size = __output_rng.size();
+
+    // iteration space info
+    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+    const ::std::size_t __blocks_total = __get_roundedup_div(__inout_buf_size, __block_size);
+    const ::std::size_t __blocks_per_segment = __get_roundedup_div(__blocks_total, __segments);
+
+    auto __offset_rng =
+        oneapi::dpl::__ranges::all_view<::std::uint32_t, __par_backend_hetero::access_mode::read>(__offset_buf);
+
+    // submit to reorder values
+    sycl::event __reorder_event = __exec.queue().submit([&](sycl::handler& __hdl) {
+        __hdl.depends_on(__dependency_event);
+
+        // access with offsets from each work group
+        oneapi::dpl::__ranges::__require_access(__hdl, __offset_rng);
+
+        // access with values to reorder and reordered values
+        oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+        __hdl.parallel_for<_KernelName>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+            __kernel,
+#endif
+            sycl::nd_range<1>(__segments * __sg_size, __sg_size), [=](sycl::nd_item<1> __self_item) {
+                // item info
+                const ::std::size_t __self_lidx = __self_item.get_local_id(0);
+                const ::std::size_t __wgroup_idx = __self_item.get_group(0);
+                const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
+
+                // mask with 1s for local IDs less the the processing work item's ID
+                ::std::uint32_t __item_mask = ~(~0u << (__self_lidx));
+                auto __item_sg_mask =
+                    sycl::ext::oneapi::detail::Builder::createSubGroupMask<sycl::ext::oneapi::sub_group_mask>(
+                        __item_mask, __sg_size);
+
+                // 1. create a private array for storing offset values
+                //    and add total offset and offset for compute unit for a certain radix state
+                _OffsetT __offset_arr[__radix_states];
+                const ::std::uint32_t __global_offset_start_idx = (__segments + 1) * __radix_states;
+                for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                {
+                    const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state_idx;
+                    const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
+                    __offset_arr[__radix_state_idx] =
+                        __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
+                }
+
+                // find offsets for the same values within a segment and fill the resulting buffer
+                for (::std::size_t __block_idx = 0; __block_idx < __blocks_per_segment * __it_size; ++__block_idx)
+                {
+                    const ::std::size_t __val_idx = __start_idx + __sg_size * __block_idx;
+
+                    // get value, convert it to ordered (in terms of bitness)
+                    // if the index is outside of the range, use fake value which will not affect other values
+                    __ordered_t<_InputT> __batch_val = __val_idx < __inout_buf_size
+                                                           ? __convert_to_ordered(__input_rng[__val_idx])
+                                                           : __get_last_value<__ordered_t<_InputT>, __is_comp_asc>();
+
+                    // get bit values in a certain bucket of a value
+                    ::std::uint32_t __bucket_val =
+                        __get_bucket_value<__radix_bits, __is_comp_asc>(__batch_val, __radix_iter);
+
+                    _OffsetT __new_offset_idx = 0;
+                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                    {
+                        ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+                        const auto& __sgroup = __self_item.get_sub_group();
+
+                        // set local id's bit to 1 if the bucket value matches the radix state
+                        auto __peer_mask = sycl::ext::oneapi::group_ballot(__sgroup, __is_current_bucket);
+                        ::std::uint32_t __peer_mask_bits;
+                        __peer_mask.extract_bits(__peer_mask_bits);
+                        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
+
+                        // get the local offset index from the bits set in the peer mask with index less than the work
+                        // items's ID
+                        __peer_mask &= __item_sg_mask;
+                        __peer_mask.extract_bits(__peer_mask_bits);
+                        __new_offset_idx |=
+                            __is_current_bucket * (__offset_arr[__radix_state_idx] + sycl::popcount(__peer_mask_bits));
+
+                        __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
+                    }
+
+                    if (__val_idx < __inout_buf_size)
+                        __output_rng[__new_offset_idx] = __input_rng[__val_idx];
+                }
+            });
+    });
+
+    return __reorder_event;
+}
+
+//-----------------------------------------------------------------------
 // radix sort: a function for one iteration
 //-----------------------------------------------------------------------
 
@@ -618,6 +879,10 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
     using _RadixReorderKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
         __radix_sort_reorder_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>, _Ascending>;
+    using _RadixReorderPopcountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        __radix_sort_reorder_popcount_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>, _Ascending>;
+    using _RadixReorderGroupBallotKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        __radix_sort_reorder_group_ballot_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>, _Ascending>;
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -627,10 +892,13 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     // correct __block_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernels =
-        __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderKernel>::__compile(__exec);
+        __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderKernel,
+                                      _RadixReorderPopcountKernel, _RadixReorderGroupBallotKernel>::__compile(__exec);
     auto __count_kernel = __kernels[0];
     auto __local_scan_kernel = __kernels[1];
     auto __reorder_kernel = __kernels[2];
+    auto __reorder_pocount_kernel = __kernels[3];
+    auto __reorder_group_ballot_kernel = __kernels[4];
     ::std::size_t __count_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __count_kernel);
     __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
     __scan_wg_size =
@@ -670,14 +938,45 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         );
 
     // 3. Reorder Phase
-    sycl::event __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc>(
-        __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
-        ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
+    sycl::event __reorder_event{};
+    if (__reorder_sg_size == 8 || __reorder_sg_size == 16 || __reorder_sg_size == 32)
+    {
+        if (SYCL_EXT_ONEAPI_SUB_GROUP_MASK)
+        {
+            __reorder_event =
+                __radix_sort_reorder_group_ballot_submit<_RadixReorderGroupBallotKernel, __radix_bits, __is_comp_asc>(
+                    __exec, __segments, __block_size, __reorder_sg_size, __radix_iter,
+                    ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
-        ,
-        __reorder_kernel
+                    ,
+                    __reorder_group_ballot_kernel
 #endif
-    );
+                );
+        }
+        else
+        {
+            __reorder_event =
+                __radix_sort_reorder_peer_mask_submit<_RadixReorderPopcountKernel, __radix_bits, __is_comp_asc>(
+                    __exec, __segments, __block_size, __reorder_sg_size, __radix_iter,
+                    ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
+#if _ONEDPL_COMPILE_KERNEL
+                    ,
+                    __reorder_pocount_kernel
+#endif
+                );
+        }
+    }
+    else
+    {
+        __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc>(
+            __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
+            ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
+#if _ONEDPL_COMPILE_KERNEL
+            ,
+            __reorder_kernel
+#endif
+        );
+    }
 
     return __reorder_event;
 }
