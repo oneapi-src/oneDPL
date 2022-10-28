@@ -80,7 +80,10 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
 
 ONEDPL_TEST_NUM_MAIN
 {
+#if !TEST_OF_COMPLEX_POW_BROKEN
     test<int, float>();
+#endif // !TEST_OF_COMPLEX_POW_BROKEN
+
     test<unsigned, float>();
     test<long long, float>();
 
