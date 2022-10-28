@@ -179,8 +179,6 @@ struct sycl_scan_by_segment_impl
                         }
                     }
 
-                    __loc_acc[__local_id] = __accumulator;
-
                     // 1b. Perform a work group scan to find the carry in value to apply to each item.
                     ::std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                         __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
