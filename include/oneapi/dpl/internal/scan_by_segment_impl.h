@@ -310,6 +310,10 @@ struct sycl_scan_by_segment_impl
 
                         // 2c. Second pass over the keys, reidentifying end segments and applying work group
                         // aggregates if appropriate.
+
+                        if (__group_id == 0)
+                            return;
+
                         auto __local_min_key_idx = __n - 1;
 
                         // Find the smallest index in the work group
@@ -324,9 +328,6 @@ struct sycl_scan_by_segment_impl
 
                         auto __wg_min_seg_end = __dpl_sycl::__reduce_over_group(
                             __group, __local_min_key_idx, __dpl_sycl::__minimum<decltype(__local_min_key_idx)>());
-
-                        if (__group_id == 0)
-                            return;
 
                         // apply work group aggregates
                         for (auto __i = __start;
