@@ -6,7 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/test_support.h"
 #include "support/test_complex.h"
 
 #include <ccomplex>
