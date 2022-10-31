@@ -395,7 +395,8 @@ struct __radix_global_scan_caller
     {
     }
 
-    void operator()(sycl::nd_item<1> __self_item) const
+    void
+    operator()(sycl::nd_item<1> __self_item) const
     {
         ::std::size_t __self_lidx = __self_item.get_local_id(0);
 
@@ -434,7 +435,7 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
                ,
                _LocalScanKernel& __local_scan_kernel
 #endif
-               ) const
+    ) const
     {
         using _CountT = typename _CountBuf::value_type;
 
@@ -490,8 +491,10 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
 
 struct __empty_peer_temp_storage
 {
-    template<typename... T>
-    __empty_peer_temp_storage(T&&...) { }
+    template <typename... T>
+    __empty_peer_temp_storage(T&&...)
+    {
+    }
 };
 
 enum class __peer_prefix_algo
@@ -501,14 +504,16 @@ enum class __peer_prefix_algo
     scan_then_broadcast
 };
 
-template<typename _OffsetT, __peer_prefix_algo _Algo>
+template <typename _OffsetT, __peer_prefix_algo _Algo>
 struct __peer_prefix_helper;
 
-template<typename _OffsetT>
+template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 {
-    using _AtomicT = sycl::atomic_ref<::std::uint32_t, sycl::memory_order_relaxed, sycl::memory_scope::sub_group, sycl::access::address_space::local_space>;
-    using _TempStorageT = sycl::accessor<::std::uint32_t, 1, sycl::access::mode::read_write, sycl::access::target::local>;
+    using _AtomicT = sycl::atomic_ref<::std::uint32_t, sycl::memory_order_relaxed, sycl::memory_scope::sub_group,
+                                      sycl::access::address_space::local_space>;
+    using _TempStorageT =
+        sycl::accessor<::std::uint32_t, 1, sycl::access::mode::read_write, sycl::access::target::local>;
 
     sycl::sub_group __sgroup;
     ::std::uint32_t __self_lidx;
@@ -516,14 +521,13 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
     _AtomicT __atomic_peer_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
-        : __sgroup(__self_item.get_sub_group())
-        , __self_lidx(__self_item.get_local_linear_id())
-        , __item_mask(~(~0u << (__self_lidx)))
-        , __atomic_peer_mask(__lacc[0])
+        : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
+          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(__lacc[0])
     {
     }
 
-    ::std::uint32_t __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    ::std::uint32_t
+    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
     {
         // reset mask for each radix state
         if (__self_lidx == 0)
@@ -538,13 +542,12 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
         // get the local offset index from the bits set in the peer mask with index less than the work
         // items's ID
         __peer_mask_bits &= __item_mask;
-        __new_offset_idx |=
-            __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
+        __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
         return __sg_total_offset;
     }
 };
 
-template<typename _OffsetT>
+template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
 {
     using _TempStorageT = __empty_peer_temp_storage;
@@ -553,26 +556,26 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
     ::std::uint32_t __sg_size;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __sgroup(__self_item.get_sub_group())
-        , __sg_size(__sgroup.get_local_linear_range())
+        : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_linear_range())
     {
     }
 
-    ::std::uint32_t __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    ::std::uint32_t
+    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
     {
         ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
             __sgroup, static_cast<::std::uint32_t>(__is_current_bucket), __dpl_sycl::__plus<::std::uint32_t>());
 
         __new_offset_idx |= __is_current_bucket * (__offset_prefix + __sg_item_offset);
         // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
-        ::std::uint32_t __sg_total_offset = __dpl_sycl::__group_broadcast(
-            __sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
+        ::std::uint32_t __sg_total_offset =
+            __dpl_sycl::__group_broadcast(__sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
         return __sg_total_offset;
     }
 };
 
-template<typename _OffsetT>
+template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 {
     using _TempStorageT = __empty_peer_temp_storage;
@@ -582,14 +585,14 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
     sycl::ext::oneapi::sub_group_mask __item_sg_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __sgroup(__self_item.get_sub_group())
-        , __self_lidx(__self_item.get_local_linear_id())
-        , __item_sg_mask(sycl::ext::oneapi::detail::Builder::createSubGroupMask<sycl::ext::oneapi::sub_group_mask>(
-                        ~(~0u << (__self_lidx)), __sgroup.get_local_linear_range()))
+        : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
+          __item_sg_mask(sycl::ext::oneapi::detail::Builder::createSubGroupMask<sycl::ext::oneapi::sub_group_mask>(
+              ~(~0u << (__self_lidx)), __sgroup.get_local_linear_range()))
     {
     }
 
-    ::std::uint32_t __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    ::std::uint32_t
+    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
     {
         // set local id's bit to 1 if the bucket value matches the radix state
         auto __peer_mask = sycl::ext::oneapi::group_ballot(__sgroup, __is_current_bucket);
@@ -601,8 +604,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
         // items's ID
         __peer_mask &= __item_sg_mask;
         __peer_mask.extract_bits(__peer_mask_bits);
-        __new_offset_idx |=
-            __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
+        __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
 
         return __sg_total_offset;
     }
@@ -611,8 +613,8 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 //-----------------------------------------------------------------------
 // radix sort: a function for reorder phase of one iteration
 //-----------------------------------------------------------------------
-template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, __peer_prefix_algo _PeerAlgo, typename _ExecutionPolicy,
-          typename _InRange, typename _OutRange, typename _OffsetBuf
+template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, __peer_prefix_algo _PeerAlgo,
+          typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf
 #if _ONEDPL_COMPILE_KERNEL
           ,
           typename _Kernel
@@ -620,11 +622,11 @@ template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc
           >
 sycl::event
 __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
-                                      ::std::size_t __sg_size, ::std::uint32_t __radix_iter, _InRange&& __input_rng,
-                                      _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
+                            ::std::size_t __sg_size, ::std::uint32_t __radix_iter, _InRange&& __input_rng,
+                            _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                                      ,
-                                      _Kernel& __kernel
+                            ,
+                            _Kernel& __kernel
 #endif
 )
 {
@@ -644,7 +646,6 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
     auto __offset_rng =
         oneapi::dpl::__ranges::all_view<::std::uint32_t, __par_backend_hetero::access_mode::read>(__offset_buf);
-
 
     // submit to reorder values
     sycl::event __reorder_event = __exec.queue().submit([&](sycl::handler& __hdl) {
@@ -704,7 +705,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
                     {
                         ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
-                        ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(__new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
+                        ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
+                            __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
                         __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                     }
 
@@ -743,7 +745,6 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     using _RadixReorderPeerKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
         __radix_sort_reorder_peer_kernel, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>, _Ascending>;
 
-
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
     ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     ::std::size_t __block_size = __max_sg_size;
@@ -751,8 +752,8 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 
     // correct __block_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernels =
-        __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderKernel, _RadixReorderPeerKernel>::__compile(__exec);
+    auto __kernels = __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderKernel,
+                                                   _RadixReorderPeerKernel>::__compile(__exec);
     auto __count_kernel = __kernels[0];
     auto __local_scan_kernel = __kernels[1];
     auto __reorder_kernel = __kernels[2];
@@ -800,30 +801,31 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     if (__reorder_sg_size == 8 || __reorder_sg_size == 16 || __reorder_sg_size == 32)
     {
 #if SYCL_EXT_ONEAPI_SUB_GROUP_MASK
-            __reorder_event =
-                __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_comp_asc, __peer_prefix_algo::subgroup_ballot>(
-                    __exec, __segments, __block_size, __reorder_sg_size, __radix_iter,
-                    ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
-#if _ONEDPL_COMPILE_KERNEL
-                    ,
-                    __reorder_peer_kernel
-#endif
-                );
+        __reorder_event = __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_comp_asc,
+                                                      __peer_prefix_algo::subgroup_ballot>(
+            __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
+            ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
+#    if _ONEDPL_COMPILE_KERNEL
+            ,
+            __reorder_peer_kernel
+#    endif
+        );
 #else
-            __reorder_event =
-                __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_comp_asc, __peer_prefix_algo::atomic_fetch_or>(
-                    __exec, __segments, __block_size, __reorder_sg_size, __radix_iter,
-                    ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
-#if _ONEDPL_COMPILE_KERNEL
-                    ,
-                    __reorder_peer_kernel
-#endif
-                );
+        __reorder_event = __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_comp_asc,
+                                                      __peer_prefix_algo::atomic_fetch_or>(
+            __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
+            ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
+#    if _ONEDPL_COMPILE_KERNEL
+            ,
+            __reorder_peer_kernel
+#    endif
+        );
 #endif
     }
     else
     {
-        __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc, __peer_prefix_algo::scan_then_broadcast>(
+        __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc,
+                                                      __peer_prefix_algo::scan_then_broadcast>(
             __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
             ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
