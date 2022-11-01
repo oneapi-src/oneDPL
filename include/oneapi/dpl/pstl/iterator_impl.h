@@ -551,6 +551,7 @@ class permutation_iterator
 {
   public:
     typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_base_type;
     typedef typename ::std::iterator_traits<SourceIterator>::value_type value_type;
     typedef typename ::std::iterator_traits<SourceIterator>::pointer pointer;
     typedef typename ::std::iterator_traits<SourceIterator>::reference reference;
@@ -560,8 +561,8 @@ class permutation_iterator
 
     permutation_iterator() = default;
 
-    permutation_iterator(const SourceIterator& input1, const IndexMap& input2, ::std::size_t index = 0)
-        : my_source_it(input1), my_index_map(input2), my_index(index)
+    permutation_iterator(const SourceIterator& input1, difference_base_type base_count, const IndexMap& input2, difference_type index = 0)
+        : my_source_it(input1), my_index_map(input2), my_index(index), my_base_count(base_count)
     {
     }
 
@@ -569,6 +570,12 @@ class permutation_iterator
     base() const
     {
         return my_source_it;
+    }
+
+    difference_base_type
+    base_count() const
+    {
+        return my_base_count;
     }
 
     IndexMap
@@ -614,13 +621,13 @@ class permutation_iterator
     permutation_iterator
     operator+(difference_type forward) const
     {
-        return permutation_iterator(my_source_it, my_index_map, my_index + forward);
+        return permutation_iterator(my_source_it, my_base_count, my_index_map, my_index + forward);
     }
 
     permutation_iterator
     operator-(difference_type backward) const
     {
-        return permutation_iterator(my_source_it, my_index_map, my_index - backward);
+        return permutation_iterator(my_source_it, my_base_count, my_index_map, my_index - backward);
     }
 
     permutation_iterator&
@@ -646,7 +653,7 @@ class permutation_iterator
     friend permutation_iterator
     operator+(difference_type forward, const permutation_iterator& it)
     {
-        return permutation_iterator(it.my_source_it, it.my_index_map, it.my_index + forward);
+        return permutation_iterator(it.my_source_it, it.my_base_count, it.my_index_map, it.my_index + forward);
     }
 
     bool
@@ -683,14 +690,15 @@ class permutation_iterator
   private:
     SourceIterator my_source_it;
     IndexMap my_index_map;
-    difference_type my_index;
+    difference_type my_index = 0;
+    difference_base_type my_base_count = 0;
 };
 
 template <typename SourceIterator, typename IndexMap>
 permutation_iterator<SourceIterator, IndexMap>
-make_permutation_iterator(SourceIterator source, IndexMap map)
+make_permutation_iterator(const SourceIterator& source, typename ::std::iterator_traits<SourceIterator>::difference_type base_count, const IndexMap& map)
 {
-    return permutation_iterator<SourceIterator, IndexMap>(source, map);
+    return permutation_iterator<SourceIterator, IndexMap>(source, base_count, map);
 }
 
 namespace internal
