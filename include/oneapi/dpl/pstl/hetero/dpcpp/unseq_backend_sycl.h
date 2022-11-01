@@ -609,16 +609,20 @@ struct __scan
         __init_processing<_Tp> __use_init{};
 
         ::std::size_t __shift = 0;
-        __internal::__invoke_if_not(_Inclusive{}, [&]() { __shift = 1; });
+        __internal::__invoke_if_not(_Inclusive{}, [&__shift]() { __shift = 1; });
 
         ::std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
+        //cache the input value for the next iteration of exclusive in-place scan
+        auto __tmp = __data_acc(__adjusted_global_id + __shift, __acc);
         for (_ItersPerWG __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
             if (__adjusted_global_id < __n)
             {
-                // get input data
-                __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc);
+                __internal::__invoke_if_else(_Inclusive{},
+                    [&]() { __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc); },
+                    [&]() { __local_acc[__local_id] = __tmp; });
+
                 // apply unary op
                 __local_acc[__local_id] = __unary_op(__local_id, __local_acc);
             }
@@ -668,7 +672,13 @@ struct __scan
             __adder = __local_acc[__wgroup_size - 1];
 
             if (__adjusted_global_id + __shift < __n)
+            {
+                //cache the input value for the next iteration of exclusive in-place scan
+                __internal::__invoke_if_not(_Inclusive{},
+                    [&]() { __tmp = __data_acc(__adjusted_global_id + __shift, __acc); });
+
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
+            }
 
             if (__adjusted_global_id == __n - 1)
                 __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
@@ -691,14 +701,18 @@ struct __scan
         auto __use_init = __init_processing<_Tp>{};
 
         auto __shift = 0;
-        __internal::__invoke_if_not(_Inclusive{}, [&]() { __shift = 1; });
+        __internal::__invoke_if_not(_Inclusive{}, [&__shift]() { __shift = 1; });
 
         auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
+        //cache the input value for the next iteration of exclusive in-place scan
+        auto __tmp = __data_acc(__adjusted_global_id + __shift, __acc);
         for (auto __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
             if (__adjusted_global_id < __n)
-                __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc);
+                __internal::__invoke_if_else(_Inclusive{},
+                    [&]() { __local_acc[__local_id] = __data_acc(__adjusted_global_id, __acc); },
+                    [&]() { __local_acc[__local_id] = __tmp; });
             else
                 __local_acc[__local_id] = _Tp{__known_identity<_BinaryOperation, _Tp>};
 
@@ -716,7 +730,13 @@ struct __scan
             __adder = __local_acc[__wgroup_size - 1];
 
             if (__adjusted_global_id + __shift < __n)
+            {
+                //cache the input value for the next iteration of exclusive in-place scan
+                __internal::__invoke_if_not(_Inclusive{},
+                    [&]() { __tmp = __data_acc(__adjusted_global_id + __shift, __acc); });
+
                 __gl_assigner(__acc, __out_acc, __adjusted_global_id + __shift, __local_acc, __local_id);
+            }
 
             if (__adjusted_global_id == __n - 1)
                 __wg_assigner(__wg_sums_acc, __group_id, __local_acc, __local_id);
