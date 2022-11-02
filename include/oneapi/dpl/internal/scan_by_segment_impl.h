@@ -133,7 +133,6 @@ struct sycl_scan_by_segment_impl
                         __accumulator = __init;
 
                     ::std::size_t __max_end = 0;
-                    bool __first = true;
 
                     if constexpr (__scan_type == scan_type::inclusive)
                     {
@@ -147,13 +146,7 @@ struct sycl_scan_by_segment_impl
                     {
                         if constexpr (__scan_type == scan_type::inclusive)
                         {
-                            if (__first)
-                            {
-                                __accumulator = __values[__i];
-                                __first = false;
-                            }
-                            else
-                                __accumulator = __binary_op(__accumulator, __values[__i]);
+                            __accumulator = __binary_op(__accumulator, __values[__i]);
 
                             __out_values[__i] = __accumulator;
 
@@ -162,7 +155,6 @@ struct sycl_scan_by_segment_impl
                             {
                                 __accumulator = __identity;
                                 __max_end = __local_id;
-                                __first = true;
                             }
                         }
                         else // exclusive scan
@@ -257,7 +249,6 @@ struct sycl_scan_by_segment_impl
                         // 2a. Calculate the work group's carry-in value.
                         if constexpr (__scan_type == scan_type::inclusive)
                         {
-                            bool __first = true;
                             bool __ag_exists = false;
                             if (__local_id == 0 && __wg_agg_idx >= 0)
                             {
@@ -269,13 +260,7 @@ struct sycl_scan_by_segment_impl
                                         const auto& __wg_aggregate = __partials_acc[__i];
                                         const auto __b_seg_end = __seg_ends_acc[__i];
 
-                                        if (__first)
-                                        {
-                                            __agg_collector = __wg_aggregate;
-                                            __first = false;
-                                        }
-                                        else
-                                            __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
+                                        __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
 
                                         // current aggregate is the last aggregate
                                         if (__b_seg_end)
