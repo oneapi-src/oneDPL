@@ -29,13 +29,13 @@ test()
 
     dpl::complex<T> c3;
 
-#if !TEST_OF_COMPLEX_TIMES_EQUAL_BROKEN
+#if !OP_EQUAL_FOR_COMPLEX_INT_BROKEN
     c3 = c;
     dpl::complex<int> ic (1,1);
     c3 *= ic;
     assert(c3.real() == -11.5);
     assert(c3.imag() ==   3.5);
-#endif // !TEST_OF_COMPLEX_TIMES_EQUAL_BROKEN
+#endif // !OP_EQUAL_FOR_COMPLEX_INT_BROKEN
 
     c3 = c;
     dpl::complex<float> fc (1,1);
