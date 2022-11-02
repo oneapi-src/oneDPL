@@ -16,6 +16,10 @@
 #ifndef _ONEDPL_COMMON_CONFIG_H
 #define _ONEDPL_COMMON_CONFIG_H
 
+#if !defined(__cplusplus)
+#    error "C++ compiler required or please define __cplusplus state"
+#endif
+
 #if __cplusplus < 201703L
 #    error "oneDPL requires the C++ language version not less than C++17"
 #endif
