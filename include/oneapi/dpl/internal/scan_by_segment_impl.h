@@ -75,7 +75,7 @@ struct sycl_scan_by_segment_impl
               typename _BinaryPredicate, typename _BinaryOperator, typename _T>
     void
     sycl_scan_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
-                         _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init)
+                         _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
         using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
         using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
@@ -116,7 +116,7 @@ struct sycl_scan_by_segment_impl
 
             __cgh.parallel_for(
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
-                    __val_type __accumulator = {};
+                    __val_type __accumulator = __identity;
 
                     auto __group = __item.get_group();
                     ::std::size_t __global_id = __item.get_global_id();
@@ -160,7 +160,7 @@ struct sycl_scan_by_segment_impl
                             // clear the accumulator if we reach end of segment
                             if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
                             {
-                                __accumulator = {};
+                                __accumulator = __identity;
                                 __max_end = __local_id;
                                 __first = true;
                             }
@@ -245,14 +245,14 @@ struct sycl_scan_by_segment_impl
                 __cgh.parallel_for(
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                         auto __group = __item.get_group();
-                        auto __group_id = __group.get_group_id(0);
+                        ::std::size_t __group_id = __group.get_group_id(0);
                         ::std::size_t __global_id = __item.get_global_id();
-                        auto __local_id = __item.get_local_id();
-                        auto __start = __global_id * __vals_per_item;
-                        auto __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+                        ::std::size_t __local_id = __item.get_local_id();
+                        ::std::size_t __start = __global_id * __vals_per_item;
+                        ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
 
-                        auto __wg_agg_idx = __group_id - 1;
-                        __val_type __agg_collector{};
+                        ::std::size_t __wg_agg_idx = __group_id - 1;
+                        __val_type __agg_collector = __identity;
 
                         // 2a. Calculate the work group's carry-in value.
                         if constexpr (__scan_type == scan_type::inclusive)
@@ -264,7 +264,7 @@ struct sycl_scan_by_segment_impl
                                 if (__start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
                                 {
                                     __ag_exists = true;
-                                    for (auto __i = __wg_agg_idx; __i >= 0; --__i)
+                                    for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
                                     {
                                         const auto& __wg_aggregate = __partials_acc[__i];
                                         const auto __b_seg_end = __seg_ends_acc[__i];
@@ -292,7 +292,7 @@ struct sycl_scan_by_segment_impl
                         {
                             if (__local_id == 0 && __wg_agg_idx >= 0)
                             {
-                                for (auto __i = __wg_agg_idx; __i >= 0; --__i)
+                                for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
                                 {
                                     const auto& __wg_aggregate = __partials_acc[__i];
                                     const auto __b_seg_end = __seg_ends_acc[__i];
@@ -341,11 +341,11 @@ struct sycl_scan_by_segment_impl
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename T>
     void operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
-                    _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, T __init = T{})
+                    _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, T __init = T{}, T __identity = T{})
     {
         sycl_scan_by_segment(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys),
                              ::std::forward<_Range2>(__values), ::std::forward<_Range3>(__out_values), __binary_pred,
-                             __binary_op, __init);
+                             __binary_op, __init, __identity);
     }
 };
 
