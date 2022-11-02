@@ -85,16 +85,16 @@ run_test()
 //         IF_DOUBLE_SUPPORT(test<int>())
 //         // ...
 //     }
-#define IF_DOUBLE_SUPPORT(x)                                                                          \
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), [](){ x; });
-#define IF_DOUBLE_SUPPORT_L(x)                                                                        \
-    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), x);
+#define IF_DOUBLE_SUPPORT(...)                                                                        \
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), []() { __VA_ARGS__; });
+#define IF_DOUBLE_SUPPORT_L(...)                                                                      \
+    TestUtils::invoke_test_if(HasDoubleSupportInRuntime(), __VA_ARGS__);
 
 // We should use this macros to avoid compile-time error in code with long double type in Kernel.
-#define IF_LONG_DOUBLE_SUPPORT(x)                                                                     \
-    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), []() { x; });
-#define IF_LONG_DOUBLE_SUPPORT_L(x)                                                                   \
-    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), x);
+#define IF_LONG_DOUBLE_SUPPORT(...)                                                                   \
+    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), []() { __VA_ARGS__; });
+#define IF_LONG_DOUBLE_SUPPORT_L(...)                                                                 \
+    TestUtils::invoke_test_if(HasLongDoubleSupportInCompiletime(), __VA_ARGS__);
 
 namespace TestUtils
 {
