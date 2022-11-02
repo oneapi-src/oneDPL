@@ -96,12 +96,13 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     auto value_output_buf = keep_value_outputs(result, result + n);
     auto buf_view = key_buf.all_view();
 
+    //Assumes default constructor is the identity
     auto identity = oneapi::dpl::__internal::__value_t<decltype(value_buf.all_view())>{};
 
     sycl_scan_by_segment_impl<scan_type::inclusive> scan;
 
     scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), value_output_buf.all_view(),
-         binary_pred, binary_op, identity);
+         binary_pred, binary_op, identity, identity);
 
     return result + n;
 }
