@@ -21,8 +21,8 @@
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
 
-
 #if TEST_DPCPP_BACKEND_PRESENT
+#    include <CL/sycl.hpp>
 
 using namespace oneapi::dpl::execution;
 #endif
@@ -39,23 +39,22 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
     // TODO: replace data generation with random data and update check to compare result to
     // the result of a serial implementation of the algorithm
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    void
-    initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_val_res, Size n)
+    void initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_val_res, Size n)
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, ... };
 
         Size segment_length = 1;
-        for (Size i = 0; i != n; )
+        for (Size i = 0; i != n;)
         {
-          for (Size j = 0; j != 4*segment_length && i != n; ++j)
-          {
-              host_keys[i] = j/segment_length + 1;
-              host_vals[i] = 1;
-              host_val_res[i] = 0;
-              ++i;
-          }
-          ++segment_length;
+            for (Size j = 0; j != 4 * segment_length && i != n; ++j)
+            {
+                host_keys[i] = j / segment_length + 1;
+                host_vals[i] = 1;
+                host_val_res[i] = 0;
+                ++i;
+            }
+            ++segment_length;
         }
     }
 
@@ -76,9 +75,8 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size,
               typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
-    void
-    check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n,
-                 BinaryOperationCheck op = BinaryOperationCheck())
+    void check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n,
+                      BinaryOperationCheck op = BinaryOperationCheck())
     {
         // https://docs.oneapi.io/versions/latest/onedpl/extension_api.html
         // keys:   [ 0, 0, 0, 1, 1, 1 ]
@@ -89,7 +87,7 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
         std::cout << "check_values(n = " << n << ") : " << std::endl;
         display_param("keys:   ", host_keys, n);
         display_param("values: ", host_vals, n);
-        display_param("result: ", val_res,   n);
+        display_param("result: ", val_res, n);
 #endif // DUMP_CHECK_RESULTS
 
         if (n < 1)
@@ -122,7 +120,7 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
-        TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, n);
+        TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
 
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
 
@@ -131,7 +129,8 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
         update_data(host_keys, host_vals, host_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        auto res1 = oneapi::dpl::inclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
+        auto res1 =
+            oneapi::dpl::inclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res);
@@ -142,8 +141,9 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
         update_data(host_keys, host_vals, host_res);
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        auto res2 = oneapi::dpl::inclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
-                                                           [](KeyT first, KeyT second) { return first == second; });
+        auto res2 =
+            oneapi::dpl::inclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
+                                                   [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res);
@@ -154,9 +154,9 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
         update_data(host_keys, host_vals, host_res);
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
-        auto res3 = oneapi::dpl::inclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
-                                                           [](KeyT first, KeyT second) { return first == second; },
-                                                           BinaryOperation());
+        auto res3 = oneapi::dpl::inclusive_scan_by_segment(
+            new_policy3, keys_first, keys_last, vals_first, val_res_first,
+            [](KeyT first, KeyT second) { return first == second; }, BinaryOperation());
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res);
@@ -206,16 +206,18 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
     }
 };
 
-template<typename _Tp>
+template <typename _Tp>
 struct UserBinaryOperation
 {
-    _Tp operator()(const _Tp& __x, const _Tp& __y) const
+    _Tp
+    operator()(const _Tp& __x, const _Tp& __y) const
     {
         return __x * __y;
     }
 };
 
-int main()
+int
+main()
 {
     {
         using ValueType = ::std::uint64_t;
@@ -247,13 +249,12 @@ int main()
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-#if TEST_DPCPP_BACKEND_PRESENT
+#    if TEST_DPCPP_BACKEND_PRESENT
         test_algo_three_sequences<test_inclusive_scan_by_segment<ValueType, BinaryOperation>>();
-#else
+#    else
         test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
-#endif // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-
+#    endif // TEST_DPCPP_BACKEND_PRESENT
+#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
     }
     return TestUtils::done();
 }
