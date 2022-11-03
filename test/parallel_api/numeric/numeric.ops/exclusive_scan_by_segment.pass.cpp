@@ -28,7 +28,7 @@ using namespace oneapi::dpl::execution;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
 
-DEFINE_TEST(test_exclusive_scan_by_segment)
+DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
 {
     DEFINE_TEST_CONSTRUCTOR(test_exclusive_scan_by_segment)
 
@@ -190,8 +190,8 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res4 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
                                                            [](KeyT first, KeyT second) { return first == second; },
-                                                           [](ValT first, ValT second) { return first + second; });
-        check_values(keys_first, vals_first, val_res_first, init, n);
+                                                           BinaryOperation());
+        check_values(keys_first, vals_first, val_res_first, init, n, BinaryOperation());
     }
 
     // specialization for non-random_access iterators
@@ -204,23 +204,53 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
     }
 };
 
+template <typename _Tp>
+struct UserBinaryOperation
+{
+    _Tp
+    operator()(const _Tp& __x, const _Tp& __y) const
+    {
+        return __x * __y;
+    }
+};
+
 int
 main()
 {
-    using ValueType = std::uint64_t;
+    {
+        using ValueType = std::uint64_t;
+        using BinaryOperation = ::std::plus<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    // Run tests for USM shared memory
-    test3buffers<sycl::usm::alloc::shared, test_exclusive_scan_by_segment<ValueType>>();
-    // Run tests for USM device memory
-    test3buffers<sycl::usm::alloc::device, test_exclusive_scan_by_segment<ValueType>>();
+        // Run tests for USM shared memory
+        test3buffers<sycl::usm::alloc::shared, test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
+        // Run tests for USM device memory
+        test3buffers<sycl::usm::alloc::device, test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType>>();
+        test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
 #else
-    test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
+        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
+    }
+    {
+        using ValueType = std::int64_t;
+        using BinaryOperation = UserBinaryOperation<ValueType>;
+
+#if TEST_DPCPP_BACKEND_PRESENT
+        // Run tests for USM shared memory
+        test3buffers<sycl::usm::alloc::shared, test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
+        // Run tests for USM device memory
+        test3buffers<sycl::usm::alloc::device, test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if TEST_DPCPP_BACKEND_PRESENT
+        test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
+#else
+        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+    }
 
     return TestUtils::done();
 }
