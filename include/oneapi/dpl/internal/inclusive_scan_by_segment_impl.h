@@ -76,8 +76,9 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
-inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
+inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                                      InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
+                                      BinaryOperator binary_op, ::std::true_type /* has_known_identity */)
 {
 
     const auto n = ::std::distance(first1, last1);
@@ -95,9 +96,10 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     auto keep_value_outputs = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator>();
     auto value_output_buf = keep_value_outputs(result, result + n);
     auto buf_view = key_buf.all_view();
+    using iter_value_t = typename ::std::iterator_traits<InputIterator1>::value_type;
 
     //Assumes default constructor is the identity
-    auto identity = oneapi::dpl::__internal::__value_t<decltype(value_buf.all_view())>{};
+    iter_value_t identity = __dpl_sycl::__known_identity<BinaryOperator, iter_value_t>::value;
 
     sycl_scan_by_segment_impl<scan_type::inclusive> scan;
 
@@ -105,6 +107,57 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
          binary_pred, binary_op, identity, identity);
 
     return result + n;
+}
+
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+          typename BinaryPredicate, typename BinaryOperator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                                      InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
+                                      BinaryOperator binary_op, ::std::false_type /* has_known_identity */)
+{
+
+    typedef unsigned int FlagType;
+    typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
+    typedef typename ::std::decay<Policy>::type policy_type;
+
+    const auto n = ::std::distance(first1, last1);
+
+    // Check for empty element ranges
+    if (n <= 0)
+        return result;
+
+    FlagType initial_mask = 1;
+
+    internal::__buffer<policy_type, FlagType> _mask(policy, n);
+    {
+        auto mask_buf = _mask.get_buffer();
+        auto mask = mask_buf.template get_access<sycl::access::mode::read_write>();
+
+        mask[0] = initial_mask;
+    }
+
+    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
+              oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
+
+    typename internal::rebind_policy<policy_type, InclusiveScan1<policy_type>>::type policy1(policy);
+    transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
+                             make_zip_iterator(first2, _mask.get()) + n, make_zip_iterator(result, _mask.get()),
+                             internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
+                             oneapi::dpl::__internal::__no_op());
+    return result + n;
+}
+
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+          typename BinaryPredicate, typename BinaryOperator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+                               OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
+{
+    return internal::inclusive_scan_by_segment_impl_helper(
+        ::std::forward<Policy>(policy), first1, last1, first2, result, binary_pred, binary_op,
+        typename __dpl_sycl::__has_known_identity<BinaryOperator,
+                                                  typename ::std::iterator_traits<InputIterator1>::value_type>::type{});
 }
 
 #endif
