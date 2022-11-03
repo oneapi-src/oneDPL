@@ -30,12 +30,12 @@ test()
     dpl::complex<T> c3;
 
     c3 = c;
-#if !OP_EQUAL_FOR_COMPLEX_INT_BROKEN
+#if _LIBCPP_MSC_OP_EQUAL_FOR_COMPLEX_INT_NOT_BROKEN
     dpl::complex<int> ic (1,1);
     c3 -= ic;
     assert(c3.real() == -4);
     assert(c3.imag() == -6);
-#endif // !OP_EQUAL_FOR_COMPLEX_INT_BROKEN
+#endif // _LIBCPP_MSC_OP_EQUAL_FOR_COMPLEX_INT_NOT_BROKEN
 
     c3 = c;
     dpl::complex<float> fc (1,1);

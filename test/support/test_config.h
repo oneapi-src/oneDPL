@@ -106,12 +106,7 @@
 
 #define TEST_HAS_NO_INT128
 
-#if defined(_LIBCPP_VERSION) || defined(_MSC_VER)
-#    define TEST_OF_COMPLEX_POW_BROKEN           0
-#    define OP_EQUAL_FOR_COMPLEX_INT_BROKEN      0
-#else
-#    define TEST_OF_COMPLEX_POW_BROKEN           1
-#    define OP_EQUAL_FOR_COMPLEX_INT_BROKEN      1
-#endif
+#define _LIBCPP_MSC_TEST_OF_COMPLEX_POW__NOT_BROKEN (_LIBCPP_VERSION || _MSC_VER)
+#define _LIBCPP_MSC_OP_EQUAL_FOR_COMPLEX_INT_NOT_BROKEN (_LIBCPP_VERSION || _MSC_VER)
 
 #endif /* _TEST_config_H */
