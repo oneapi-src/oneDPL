@@ -257,13 +257,10 @@ struct sycl_scan_by_segment_impl
                                     __ag_exists = true;
                                     for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
                                     {
-                                        const auto& __wg_aggregate = __partials_acc[__i];
-                                        const auto __b_seg_end = __seg_ends_acc[__i];
-
-                                        __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
+                                        __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
 
                                         // current aggregate is the last aggregate
-                                        if (__b_seg_end)
+                                        if (__seg_ends_acc[__i])
                                             break;
                                     }
                                 }
@@ -279,13 +276,11 @@ struct sycl_scan_by_segment_impl
                             {
                                 for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
                                 {
-                                    const auto& __wg_aggregate = __partials_acc[__i];
-                                    const auto __b_seg_end = __seg_ends_acc[__i];
 
-                                    __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
+                                    __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
 
                                     // current aggregate is the last aggregate
-                                    if (__b_seg_end)
+                                    if (__seg_ends_acc[__i])
                                         break;
                                 }
                             }
