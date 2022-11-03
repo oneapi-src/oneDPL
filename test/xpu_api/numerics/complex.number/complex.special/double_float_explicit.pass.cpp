@@ -28,8 +28,8 @@ ONEDPL_TEST_NUM_MAIN
     {
     constexpr dpl::complex<float> cd(2.5, 3.5);
     constexpr dpl::complex<double> cf(cd);
-    static_assert(cf.real() == cd.real(), "");
-    static_assert(cf.imag() == cd.imag(), "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(cf.real() == cd.real(), "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(cf.imag() == cd.imag(), "");
     }
 
   return 0;

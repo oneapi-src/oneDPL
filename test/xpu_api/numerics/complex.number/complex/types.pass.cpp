@@ -23,7 +23,7 @@ void
 test()
 {
     typedef dpl::complex<T> C;
-    static_assert((std::is_same<typename C::value_type, T>::value), "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT((std::is_same<typename C::value_type, T>::value), "");
 }
 
 ONEDPL_TEST_NUM_MAIN

@@ -39,7 +39,7 @@ void
 test(T x, const dpl::complex<U>& y)
 {
     typedef decltype(promote(x) + promote(dpl::real(y))) V;
-    static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
     assert(dpl::pow(x, y) == dpl::pow(dpl::complex<V>(x, 0), dpl::complex<V>(y)));
 }
 
@@ -48,7 +48,7 @@ void
 test(const dpl::complex<T>& x, U y)
 {
     typedef decltype(promote(dpl::real(x)) + promote(y)) V;
-    static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
     assert(dpl::pow(x, y) == dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y, 0)));
 }
 
@@ -57,7 +57,7 @@ void
 test(const dpl::complex<T>& x, const dpl::complex<U>& y)
 {
     typedef decltype(promote(dpl::real(x)) + promote(dpl::real(y))) V;
-    static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
     assert(dpl::pow(x, y) == dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y)));
 }
 

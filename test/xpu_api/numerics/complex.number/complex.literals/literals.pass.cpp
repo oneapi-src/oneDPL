@@ -16,12 +16,12 @@ ONEDPL_TEST_NUM_MAIN
     using namespace std::literals::complex_literals;
 
 //  Make sure the types are right
-    IF_LONG_DOUBLE_SUPPORT(static_assert ( std::is_same<decltype( 3.0il ), dpl::complex<long double>>::value, "" ))
-    IF_LONG_DOUBLE_SUPPORT(static_assert ( std::is_same<decltype( 3il   ), dpl::complex<long double>>::value, "" ))
-    IF_DOUBLE_SUPPORT(static_assert(std::is_same<decltype(3.0i), dpl::complex<double>>::value, ""))
-    IF_DOUBLE_SUPPORT(static_assert(std::is_same<decltype(3i), dpl::complex<double>>::value, ""))
-    static_assert ( std::is_same<decltype( 3.0if ), dpl::complex<float>>::value, "" );
-    static_assert ( std::is_same<decltype( 3if   ), dpl::complex<float>>::value, "" );
+    IF_LONG_DOUBLE_SUPPORT(STD_COMPLEX_TESTS_STATIC_ASSERT ( std::is_same<decltype( 3.0il ), dpl::complex<long double>>::value, "" ))
+    IF_LONG_DOUBLE_SUPPORT(STD_COMPLEX_TESTS_STATIC_ASSERT ( std::is_same<decltype( 3il   ), dpl::complex<long double>>::value, "" ))
+    IF_DOUBLE_SUPPORT(STD_COMPLEX_TESTS_STATIC_ASSERT(std::is_same<decltype(3.0i), dpl::complex<double>>::value, ""))
+    IF_DOUBLE_SUPPORT(STD_COMPLEX_TESTS_STATIC_ASSERT(std::is_same<decltype(3i), dpl::complex<double>>::value, ""))
+    STD_COMPLEX_TESTS_STATIC_ASSERT ( std::is_same<decltype( 3.0if ), dpl::complex<float>>::value, "" );
+    STD_COMPLEX_TESTS_STATIC_ASSERT ( std::is_same<decltype( 3if   ), dpl::complex<float>>::value, "" );
 
     IF_LONG_DOUBLE_SUPPORT(dpl::complex<long double> c1 = 3.0il;
                            assert(c1 == dpl::complex<long double>(0, 3.0));
