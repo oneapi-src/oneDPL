@@ -29,13 +29,13 @@ test()
 
     dpl::complex<T> c3;
 
-#if _LIBCPP_MSC_OP_EQUAL_FOR_COMPLEX_INT_NOT_BROKEN
+#if !_PSTL_GLIBCXX_TEST_COMPLEX_TIMES_EQ_BROKEN
     c3 = c;
     dpl::complex<int> ic (1,1);
     c3 *= ic;
     assert(c3.real() == -11.5);
     assert(c3.imag() ==   3.5);
-#endif // _LIBCPP_MSC_OP_EQUAL_FOR_COMPLEX_INT_NOT_BROKEN
+#endif // !_PSTL_GLIBCXX_TEST_COMPLEX_TIMES_EQ_BROKEN
 
     c3 = c;
     dpl::complex<float> fc (1,1);
