@@ -29,8 +29,8 @@ test()
 
     dpl::complex<T> c3;
 
-    c3 = c;
 #if _LIBCPP_MSC_OP_EQUAL_FOR_COMPLEX_INT_NOT_BROKEN
+    c3 = c;
     dpl::complex<int> ic (1,1);
     c3 += ic;
     assert(c3.real() == 4);
