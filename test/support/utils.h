@@ -74,11 +74,13 @@ const_size(const T (&)[N]) noexcept
 // Issue error message from outstr, adding a newline.
 // Real purpose of this routine is to have a place to hang a breakpoint.
 inline void
-issue_error_message(::std::stringstream& outstr)
+issue_error_message(::std::stringstream& outstr, bool bExit = true)
 {
     outstr << ::std::endl;
     ::std::cerr << outstr.str();
-    ::std::exit(EXIT_FAILURE);
+
+    if (bExit)
+        ::std::exit(EXIT_FAILURE);
 }
 
 inline void

@@ -51,13 +51,13 @@ int main(int, char**)                                                           
     /* and we never can use this type inside Kernel                            */                     \
     using HasntLongDoubleSupportInCompiletime = ::std::false_type;                                    \
                                                                                                       \
-    TestUtils::run_test_in_kernel(                                                                    \
+    const int result = TestUtils::run_test_in_kernel(                                                 \
         /* labbda for the case when we have support of double type on device */                       \
         [&]() { run_test<HasDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); },    \
         /* labbda for the case when we haven't support of double type on device */                    \
         [&]() { run_test<HasntDoubleTypeSupportInRuntime, HasntLongDoubleSupportInCompiletime>(); }); \
                                                                                                       \
-    return TestUtils::done();                                                                         \
+    return TestUtils::done(result);                                                                   \
 }                                                                                                     \
                                                                                                       \
 template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
@@ -119,10 +119,12 @@ namespace TestUtils
 
     // Run test in Kernel as single task
     template <typename TFncDoubleHasSupportInRuntime, typename TFncDoubleHasntSupportInRuntime>
-    void
+    int
     run_test_in_kernel(TFncDoubleHasSupportInRuntime fncDoubleHasSupportInRuntime,
                        TFncDoubleHasntSupportInRuntime fncDoubleHasntSupportInRuntime)
     {
+        int result = 0;
+
 #if TEST_DPCPP_BACKEND_PRESENT
         try
         {
@@ -151,18 +153,48 @@ namespace TestUtils
                             [fncDoubleHasntSupportInRuntime]() { fncDoubleHasntSupportInRuntime(); });
                     });
             }
+
+            // Test done
+            result = 1;
+        }
+        catch (const sycl::exception& exc)
+        {
+            std::stringstream str;
+            str << "Exception occurred in Kernel test : " << "\n";
+
+            if (exc.what())
+            {
+                static const std::string kSkipExcStr = "Double type is not supported on this platform";
+
+                const std::string whatStr(exc.what());
+                if (std::string::npos != whatStr.find(kSkipExcStr))
+                {
+                    str << "    reason : " << kSkipExcStr  << "- skip this test" << "\n";
+                    str << "    details : " << whatStr;
+
+                    // Put error info info into log without exit with error code
+                    TestUtils::issue_error_message(str, false);
+
+                    // Suppress this exception and skip test
+                    return result;
+                }
+            }
+
+            TestUtils::issue_error_message(str);
         }
         catch (const std::exception& exc)
         {
             std::stringstream str;
 
-            str << "Exception occurred";
+            str << "Exception occurred in Kernel test : " << "\n";
             if (exc.what())
                 str << " : " << exc.what();
 
             TestUtils::issue_error_message(str);
         }
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+        return result;
     }
 
 } /* namespace TestUtils */
