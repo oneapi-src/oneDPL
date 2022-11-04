@@ -80,9 +80,9 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
 
 ONEDPL_TEST_NUM_MAIN
 {
-#if _LIBCPP_MSC_TEST_OF_COMPLEX_POW__NOT_BROKEN
+#if _LIBCPP_MSC_TEST_OF_COMPLEX_POW_NOT_BROKEN
     test<int, float>();
-#endif // _LIBCPP_MSC_TEST_OF_COMPLEX_POW__NOT_BROKEN
+#endif // _LIBCPP_MSC_TEST_OF_COMPLEX_POW_NOT_BROKEN
 
     test<unsigned, float>();
     test<long long, float>();
