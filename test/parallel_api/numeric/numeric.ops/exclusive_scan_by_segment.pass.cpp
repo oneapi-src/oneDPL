@@ -28,6 +28,10 @@ using namespace oneapi::dpl::execution;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
 
+// This macro may be used to analyze source data and test results in test_inclusive_scan_by_segment
+// WARNING: in the case of using this macro debug output is very large.
+//#define DUMP_CHECK_RESULTS
+
 DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
 {
     DEFINE_TEST_CONSTRUCTOR(test_exclusive_scan_by_segment)
@@ -55,6 +59,21 @@ DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
         }
     }
 
+#ifdef DUMP_CHECK_RESULTS
+    template <typename Iterator, typename Size>
+    void display_param(const char* msg, Iterator it, Size n)
+    {
+        std::cout << msg;
+        for (Size i = 8000; i < n; ++i)
+        {
+            if (i > 0)
+                std::cout << ", ";
+            std::cout << it[i];
+        }
+        std::cout << std::endl;
+    }
+#endif // DUMP_CHECK_RESULTS
+
     template <typename Accessor1, typename Accessor2, typename Accessor3, typename T, typename Size,
               typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
     void check_values(Accessor1 host_keys, Accessor2 host_vals, Accessor3 val_res, T init, Size n,
@@ -62,6 +81,13 @@ DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
+
+#ifdef DUMP_CHECK_RESULTS
+        std::cout << "check_values(n = " << n << ") : " << std::endl;
+        display_param("         keys:   ", host_keys, n);
+        display_param("         values: ", host_vals, n);
+        display_param("         result: ", val_res, n);
+#endif // DUMP_CHECK_RESULTS
 
         assert(init == 0 || init == 1);
         int segment_length = 1;
@@ -73,7 +99,9 @@ DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
 
         std::vector<value_type> expected_val_res(n);
         exclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, init, op);
-
+#ifdef DUMP_CHECK_RESULTS
+        display_param("expected result: ", expected_val_res.data(), n);
+#endif // DUMP_CHECK_RESULTS
         for (int i = 0; i != n; ++i)
         {
             if (val_res[i] != expected_val_res[i])
