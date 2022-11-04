@@ -26,7 +26,7 @@
 #include <type_traits>
 #include <cassert>
 
-#if !_MSVC_STL_CPP17_COMPLEX_CONSTEXPR_FNC_BROKEN
+#if !_PSTL_MSVC_CPP17_COMPLEX_CONSTEXPR_FNC_BROKEN
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(...) static_assert(__VA_ARGS__)
 #else
 template <typename T>
@@ -42,7 +42,7 @@ __complex_tests_assert(T condition, const char*)
     assert(condition);
 }
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(...) __complex_tests_assert(__VA_ARGS__)
-#endif // !_MSVC_STL_CPP17_COMPLEX_CONSTEXPR_FNC_BROKEN
+#endif // !_PSTL_MSVC_CPP17_COMPLEX_CONSTEXPR_FNC_BROKEN
 
 #define ONEDPL_TEST_NUM_MAIN                                                                          \
 template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
