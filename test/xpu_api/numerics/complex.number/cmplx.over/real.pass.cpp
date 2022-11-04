@@ -20,7 +20,7 @@ template <class T, int x>
 void
 test(typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 {
-    STD_COMPLEX_TESTS_STATIC_ASSERT((std::is_same<decltype(dpl::real(T(x))), double>::value), "");
+    static_assert((std::is_same<decltype(dpl::real(T(x))), double>::value), "");
     assert(dpl::real(x) == x);
 
     constexpr T val {x};
@@ -33,7 +33,7 @@ template <class T, int x>
 void
 test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
 {
-    STD_COMPLEX_TESTS_STATIC_ASSERT((std::is_same<decltype(dpl::real(T(x))), T>::value), "");
+    static_assert((std::is_same<decltype(dpl::real(T(x))), T>::value), "");
     assert(dpl::real(x) == x);
 
     constexpr T val {x};
