@@ -27,21 +27,9 @@
 #include <cassert>
 
 #if !_PSTL_MSVC_CPP17_COMPLEX_CONSTEXPR_FNC_BROKEN
-#    define STD_COMPLEX_TESTS_STATIC_ASSERT(...) static_assert(__VA_ARGS__)
+#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) static_assert(arg, msg)
 #else
-template <typename T>
-void
-__complex_tests_assert(T condition)
-{
-    assert(condition);
-}
-template <typename T>
-void
-__complex_tests_assert(T condition, const char*)
-{
-    assert(condition);
-}
-#    define STD_COMPLEX_TESTS_STATIC_ASSERT(...) __complex_tests_assert(__VA_ARGS__)
+#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) assert(arg)
 #endif // !_PSTL_MSVC_CPP17_COMPLEX_CONSTEXPR_FNC_BROKEN
 
 #define ONEDPL_TEST_NUM_MAIN                                                                          \
