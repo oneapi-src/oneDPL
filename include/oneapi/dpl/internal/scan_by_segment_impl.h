@@ -134,14 +134,6 @@ struct sycl_scan_by_segment_impl
 
                     ::std::size_t __max_end = 0;
 
-                    if constexpr (__scan_type == scan_type::inclusive)
-                    {
-                        // Edge case for when the first element is the start of a new segment. We do
-                        // not want to apply a null aggregate since there is no guarantee it is an identity
-                        if (__start < __n && __local_id != 0 && !__binary_pred(__keys[__start], __keys[__start - 1]))
-                            __max_end = __local_id;
-                    }
-
                     for (::std::size_t __i = __start; __i < __end; ++__i)
                     {
                         if constexpr (__scan_type == scan_type::inclusive)
@@ -149,25 +141,19 @@ struct sycl_scan_by_segment_impl
                             __accumulator = __binary_op(__accumulator, __values[__i]);
 
                             __out_values[__i] = __accumulator;
-
-                            // clear the accumulator if we reach end of segment
-                            if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
-                            {
-                                __accumulator = __identity;
-                                __max_end = __local_id;
-                            }
                         }
                         else // exclusive scan
                         {
                             __out_values[__i] = __accumulator;
                             __accumulator = __binary_op(__accumulator, __values[__i]);
+                        }
 
-                            // reset the accumulator to init if we reach the end of a segment
-                            if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
-                            {
-                                __accumulator = __init;
-                                __max_end = __local_id;
-                            }
+                        // reset the accumulator to init if we reach the end of a segment
+                        // (init for inclusive scan is the identity)
+                        if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
+                        {
+                            __accumulator = __init;
+                            __max_end = __local_id;
                         }
                     }
 
@@ -180,31 +166,12 @@ struct sycl_scan_by_segment_impl
                                           __binary_op, __wgroup_size); // need to use exclusive scan delta
 
                     // 1c. Update local partial reductions and write to global memory.
-                    if constexpr (__scan_type == scan_type::inclusive)
+                    for (::std::size_t __i = __start; __i < __end; ++__i)
                     {
-                        if (__local_id != 0 && __binary_pred(__keys[__start], __keys[__start - 1]))
-                        {
-                            for (::std::size_t __i = __start; __i < __end; ++__i)
-                            {
-                                __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
+                        __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
 
-                                if (__i >= __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
-                                    break;
-                            }
-                        }
-                    }
-                    else // exclusive scan
-                    {
-                        if (__local_id != 0)
-                        {
-                            for (::std::size_t __i = __start; __i < __end; ++__i)
-                            {
-                                __out_values[__i] = __binary_op(__carry_in, __out_values[__i]);
-
-                                if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
-                                    break;
-                            }
-                        }
+                        if (__i >= __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
+                            break;
                     }
 
                     if (__local_id == __wgroup_size - 1) // last work item writes the group's carry out
@@ -246,22 +213,30 @@ struct sycl_scan_by_segment_impl
                         ::std::size_t __wg_agg_idx = __group_id - 1;
                         __val_type __agg_collector = __identity;
 
-                        // 2a. Calculate the work group's carry-in value.
-                        if constexpr (__scan_type == scan_type::inclusive)
+                        //TODO:  just launch with one fewer group and adjust indexing since group zero can skip phase
+                        if (__group_id != 0)
                         {
+                            // 2a. Calculate the work group's carry-in value.
                             bool __ag_exists = false;
                             if (__local_id == 0 && __wg_agg_idx >= 0)
                             {
-                                if (__start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
+                                if (__start < __n)
                                 {
                                     __ag_exists = true;
-                                    for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
+                                    if (__binary_pred(__keys[__start], __keys[__start - 1]))
                                     {
-                                        __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
+                                        for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
+                                        {
+                                            __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
 
-                                        // current aggregate is the last aggregate
-                                        if (__seg_ends_acc[__i])
-                                            break;
+                                            // current aggregate is the last aggregate
+                                            if (__seg_ends_acc[__i])
+                                                break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        __agg_collector = __init;
                                     }
                                 }
                             }
@@ -269,50 +244,35 @@ struct sycl_scan_by_segment_impl
 
                             if (!__ag_exists)
                                 return;
-                        }
-                        else // exclusive scan
-                        {
-                            if (__local_id == 0 && __wg_agg_idx >= 0)
+
+                            __agg_collector = __dpl_sycl::__group_broadcast(__group, __agg_collector);
+
+                            // 2c. Second pass over the keys, reidentifying end segments and applying work group
+                            // aggregates if appropriate.
+
+                            ::std::size_t __end_nm1_cap =
+                                __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n - 1);
+                            ::std::size_t __local_min_key_idx = __n - 1;
+
+                            // Find the smallest index in the work group
+                            for (::std::size_t __i = __end_nm1_cap - 1; __i >= __start; --__i)
                             {
-                                for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
+                                if (!__binary_pred(__keys[__i], __keys[__i + 1]))
                                 {
-
-                                    __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
-
-                                    // current aggregate is the last aggregate
-                                    if (__seg_ends_acc[__i])
-                                        break;
+                                    __local_min_key_idx = __i;
                                 }
                             }
-                        }
 
-                        __agg_collector = __dpl_sycl::__group_broadcast(__group, __agg_collector);
+                            ::std::size_t __wg_min_seg_end = __dpl_sycl::__reduce_over_group(
+                                __group, __local_min_key_idx, __dpl_sycl::__minimum<decltype(__local_min_key_idx)>());
 
-                        // 2c. Second pass over the keys, reidentifying end segments and applying work group
-                        // aggregates if appropriate.
-
-                        if (__group_id == 0)
-                            return;
-
-                        auto __local_min_key_idx = __n - 1;
-
-                        // Find the smallest index in the work group
-                        for (auto __i = __start; __i < __end; ++__i)
-                        {
-                            if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
+                            // apply work group aggregates
+                            for (::std::size_t __i = __start;
+                                 __i < __dpl_sycl::__minimum<decltype(__end)>{}(__wg_min_seg_end + 1, __end); ++__i)
                             {
-                                if (__i < __local_min_key_idx)
-                                    __local_min_key_idx = __i;
+                                __out_values[__i] = __binary_op(__agg_collector, __out_values[__i]);
                             }
                         }
-
-                        auto __wg_min_seg_end = __dpl_sycl::__reduce_over_group(
-                            __group, __local_min_key_idx, __dpl_sycl::__minimum<decltype(__local_min_key_idx)>());
-
-                        // apply work group aggregates
-                        for (auto __i = __start;
-                             __i < __dpl_sycl::__minimum<decltype(__end)>{}(__wg_min_seg_end + 1, __end); ++__i)
-                            __out_values[__i] = __binary_op(__agg_collector, __out_values[__i]);
                     });
             })
             .wait();
