@@ -26,6 +26,12 @@
 #include <type_traits>
 #include <cassert>
 
+#if !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
+#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) static_assert(arg, msg)
+#else
+#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) assert(arg)
+#endif // !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
+
 #define ONEDPL_TEST_NUM_MAIN                                                                          \
 template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
 int                                                                                                   \

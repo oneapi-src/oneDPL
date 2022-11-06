@@ -24,9 +24,9 @@ test(typename std::enable_if<std::is_integral<T>::value>::type* = 0)
     assert(dpl::imag(x) == 0);
 
     constexpr T val {x};
-    static_assert(dpl::imag(val) == 0, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(dpl::imag(val) == 0, "");
     constexpr dpl::complex<T> t{val, val};
-    static_assert(t.imag() == x, "" );
+    STD_COMPLEX_TESTS_STATIC_ASSERT(t.imag() == x, "" );
 }
 
 template <class T, int x>
@@ -37,9 +37,9 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
     assert(dpl::imag(x) == 0);
 
     constexpr T val {x};
-    static_assert(dpl::imag(val) == 0, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(dpl::imag(val) == 0, "");
     constexpr dpl::complex<T> t{val, val};
-    static_assert(t.imag() == x, "" );
+    STD_COMPLEX_TESTS_STATIC_ASSERT(t.imag() == x, "" );
 }
 
 template <class T>
