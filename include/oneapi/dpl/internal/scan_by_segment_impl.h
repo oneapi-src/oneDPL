@@ -130,9 +130,13 @@ struct sycl_scan_by_segment_impl
 
                     // First work item must set their accumulator to the provided init
                     if (__global_id == 0 && __local_id == 0)
+                    {
                         __accumulator = __init;
+                    }
 
-                    ::std::size_t __max_end = 0;
+                    const int64_t NO_SEGMENT_BREAK = -1;
+                    // signed to allow flag for no segment break found
+                    int64_t __max_end = NO_SEGMENT_BREAK;
 
                     for (::std::size_t __i = __start; __i < __end; ++__i)
                     {
@@ -158,12 +162,15 @@ struct sycl_scan_by_segment_impl
                     }
 
                     // 1b. Perform a work group scan to find the carry in value to apply to each item.
-                    ::std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
+                    int64_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                         __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
-                    __val_type __carry_in =
-                        wg_segmented_scan(__item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator,
-                                          __binary_op, __wgroup_size); // need to use exclusive scan delta
+                    __flag_type __group_has_segment_break = (__closest_seg_id != NO_SEGMENT_BREAK);
+
+                    __closest_seg_id = ::std::max(0L, __closest_seg_id); //get rid of no segment end found flag
+                    __val_type __carry_in = wg_segmented_scan(__item, __loc_acc, __local_id,
+                                                              __local_id - __closest_seg_id, __accumulator, __binary_op,
+                                                              __wgroup_size); // need to use exclusive scan delta
 
                     // 1c. Update local partial reductions and write to global memory.
                     for (::std::size_t __i = __start; __i < __end; ++__i)
@@ -178,15 +185,16 @@ struct sycl_scan_by_segment_impl
                     {
                         ::std::size_t __group_id = __group.get_group_id(0);
 
-                        // If no segment ends in the item, the aggregates from previous work groups must be applied.
-                        if (__max_end == 0)
+                        __seg_ends_acc[__group_id] = __group_has_segment_break;
+
+                        if (__max_end == NO_SEGMENT_BREAK)
+                        {
                             __partials_acc[__group_id] = __binary_op(__carry_in, __accumulator);
-
+                        }
                         else
+                        {
                             __partials_acc[__group_id] = __accumulator;
-
-                        __flag_type __seg_present = __closest_seg_id != 0;
-                        __seg_ends_acc[__group_id] = __seg_present;
+                        }
                     }
                 });
         });
@@ -223,20 +231,14 @@ struct sycl_scan_by_segment_impl
                                 if (__start < __n)
                                 {
                                     __ag_exists = true;
-                                    if (__binary_pred(__keys[__start], __keys[__start - 1]))
-                                    {
-                                        for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
-                                        {
-                                            __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
 
-                                            // current aggregate is the last aggregate
-                                            if (__seg_ends_acc[__i])
-                                                break;
-                                        }
-                                    }
-                                    else
+                                    for (int64_t __i = __wg_agg_idx; __i >= 0; --__i)
                                     {
-                                        __agg_collector = __init;
+                                        __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
+
+                                        // current aggregate is the last aggregate
+                                        if (__seg_ends_acc[__i])
+                                            break;
                                     }
                                 }
                             }
@@ -287,10 +289,10 @@ struct sycl_scan_by_segment_impl
                              ::std::forward<_Range2>(__values), ::std::forward<_Range3>(__out_values), __binary_pred,
                              __binary_op, __init, __identity);
     }
-};
+}; // namespace internal
 
-} // end namespace internal
-} // end namespace dpl
-} // end namespace oneapi
+} // namespace internal
+} // namespace dpl
+} // namespace oneapi
 #endif
 #endif
