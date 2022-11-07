@@ -282,8 +282,9 @@ struct sycl_scan_by_segment_impl
 
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename T>
-    void operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
-                    _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, T __init = T{}, T __identity = T{})
+    void
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
+               _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, T __init, T __identity)
     {
         sycl_scan_by_segment(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys),
                              ::std::forward<_Range2>(__values), ::std::forward<_Range3>(__out_values), __binary_pred,
