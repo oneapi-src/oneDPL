@@ -19,7 +19,10 @@
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "../../pstl/hetero/dpcpp/sycl_defs.h"
+#    include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
 #endif
+
+#include <type_traits>
 
 namespace oneapi
 {
