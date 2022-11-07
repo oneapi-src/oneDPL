@@ -17,7 +17,11 @@
 #define _ONEDPL_COMMON_CONFIG_H
 
 #if !defined(__cplusplus)
-#    error "C++ compiler required or please define __cplusplus state"
+#    error "oneDPL requires correct state of __cplusplus : it's undefined"
+#endif
+
+#if __cplusplus == 199711L
+#    error "oneDPL requires correct state of __cplusplus : use /Zc:__cplusplus for Microsoft C++ compiler"
 #endif
 
 #if __cplusplus < 201703L
