@@ -22,7 +22,6 @@
 
 #if __cplusplus < 201703L
 #    error "oneDPL requires the C++ language version not less than C++17"
-#    error __cplusplus
 #endif
 
 // Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
