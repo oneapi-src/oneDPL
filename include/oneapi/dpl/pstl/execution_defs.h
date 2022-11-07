@@ -116,10 +116,10 @@ class unsequenced_policy
 };
 
 // 2.8, Execution policy objects
-constexpr sequenced_policy seq{};
-constexpr parallel_policy par{};
-constexpr parallel_unsequenced_policy par_unseq{};
-constexpr unsequenced_policy unseq{};
+inline constexpr sequenced_policy seq{};
+inline constexpr parallel_policy par{};
+inline constexpr parallel_unsequenced_policy par_unseq{};
+inline constexpr unsequenced_policy unseq{};
 
 // 2.3, Execution policy type trait
 template <class T>
@@ -145,7 +145,7 @@ struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::
 };
 
 template <class T>
-constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<T>::value;
+inline constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<T>::value;
 
 } // namespace v1
 } // namespace execution
