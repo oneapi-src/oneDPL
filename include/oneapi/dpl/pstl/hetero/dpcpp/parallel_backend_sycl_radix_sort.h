@@ -503,11 +503,11 @@ enum class __peer_prefix_algo
     scan_then_broadcast
 };
 
-template <typename _OffsetT, __peer_prefix_algo _Algo>
+template <typename _OffsetT, ::std::uint32_t __radix_bits, __peer_prefix_algo _Algo>
 struct __peer_prefix_helper;
 
-template <typename _OffsetT>
-struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
+template <typename _OffsetT, ::std::uint32_t __radix_bits>
+struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::atomic_fetch_or>
 {
     using _AtomicT = sycl::atomic_ref<::std::uint32_t, sycl::memory_order_relaxed, sycl::memory_scope::sub_group,
                                       sycl::access::address_space::local_space>;
@@ -516,39 +516,65 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 
     sycl::sub_group __sgroup;
     ::std::uint32_t __self_lidx;
-    ::std::uint32_t __item_mask;
+    ::std::uint32_t __item_sg_mask;
     _AtomicT __atomic_peer_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
         : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
-          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(__lacc[0])
+          __item_sg_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(__lacc[0])
     {
     }
 
-    ::std::uint32_t
-    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    _OffsetT
+    operator()(const ::std::uint32_t __bucket_val, _OffsetT* __offset_arr)
     {
-        // reset mask for each radix state
-        if (__self_lidx == 0)
-            __atomic_peer_mask.store(0U);
+        _OffsetT __new_offset_idx = __offset_arr[__bucket_val];
         sycl::group_barrier(__sgroup);
-        // set local id's bit to 1 if the bucket value matches the radix state
-        __atomic_peer_mask.fetch_or(__is_current_bucket << __self_lidx);
-        sycl::group_barrier(__sgroup);
-        ::std::uint32_t __peer_mask_bits = __atomic_peer_mask.load();
-        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
 
-        // get the local offset index from the bits set in the peer mask with index less than the work
-        // items's ID
-        __peer_mask_bits &= __item_mask;
-        __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
-        return __sg_total_offset;
+        // Figure out how many work-items in my subgroup have the same bucket value
+        ::std::uint32_t __peer_mask = ~0;
+        for (::std::uint32_t __radix_bit = 0; __radix_bit < __radix_bits; ++__radix_bit)
+        {
+            // reset atomic for each radix bit
+            if (__self_lidx == 0)
+                __atomic_peer_mask.store(0U);
+            sycl::group_barrier(__sgroup);
+
+            ::std::uint32_t __current_bit_mask = 1 << __radix_bit;
+            bool __is_bit_set = (__bucket_val & __current_bit_mask) != 0;
+            __atomic_peer_mask.fetch_or(__is_bit_set << __self_lidx);
+            sycl::group_barrier(__sgroup);
+            ::std::uint32_t __is_bit_set_vote = __atomic_peer_mask.load();
+
+            // Flip the votes if my bit wasn't set
+            if (!__is_bit_set)
+                __is_bit_set_vote = ~__is_bit_set_vote;
+            __peer_mask &= __is_bit_set_vote;
+        }
+
+        ::std::uint32_t __num_bucket_peers = sycl::popcount(__peer_mask);
+        __peer_mask &= __item_sg_mask;
+        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask);
+
+        // Lowest ranked work-item with this bucket should update shared array of offsets
+        if (__sg_total_offset == 0)
+        {
+            __offset_arr[__bucket_val] += __num_bucket_peers;
+        }
+
+        __new_offset_idx += __sg_total_offset;
+
+        // TODO: is this barrier needed?
+        sycl::group_barrier(__sgroup);
+
+        return __new_offset_idx;
     }
 };
 
-template <typename _OffsetT>
-struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
+template <typename _OffsetT, ::std::uint32_t __radix_bits>
+struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::scan_then_broadcast>
 {
+    static constexpr ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
     using _TempStorageT = __empty_peer_temp_storage;
 
     sycl::sub_group __sgroup;
@@ -559,54 +585,87 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
     {
     }
 
-    ::std::uint32_t
-    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    _OffsetT
+    operator()(const ::std::uint32_t __bucket_val, _OffsetT* __offset_arr)
     {
-        ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
-            __sgroup, static_cast<::std::uint32_t>(__is_current_bucket), __dpl_sycl::__plus<::std::uint32_t>());
+        _OffsetT __new_offset_idx = 0;
+        for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+        {
+            ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+            ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
+                __sgroup, __is_current_bucket, __dpl_sycl::__plus<::std::uint32_t>());
+            __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
+            sycl::group_barrier(__sgroup);
+            // The last scanned value may not contain number of all copies, thus adding __is_current_bucket
+            ::std::uint32_t __sg_total_offset = __dpl_sycl::__group_broadcast(
+                __sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
-        __new_offset_idx |= __is_current_bucket * (__offset_prefix + __sg_item_offset);
-        // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
-        ::std::uint32_t __sg_total_offset =
-            __dpl_sycl::__group_broadcast(__sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
+            // Lowest ranked work-item with this bucket should update shared array of offsets
+            if (__is_current_bucket && __sg_item_offset == 0)
+            {
+                __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
+            }
 
-        return __sg_total_offset;
+            sycl::group_barrier(__sgroup);
+        }
+        return __new_offset_idx;
     }
 };
 
 #if SYCL_EXT_ONEAPI_SUB_GROUP_MASK
-template <typename _OffsetT>
-struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
+template <typename _OffsetT, ::std::uint32_t __radix_bits>
+struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::subgroup_ballot>
 {
     using _TempStorageT = __empty_peer_temp_storage;
 
     sycl::sub_group __sgroup;
-    ::std::uint32_t __self_lidx;
-    sycl::ext::oneapi::sub_group_mask __item_sg_mask;
+    const ::std::uint32_t __self_lidx;
+    const ::std::uint32_t __item_sg_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
         : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
-          __item_sg_mask(sycl::ext::oneapi::detail::Builder::createSubGroupMask<sycl::ext::oneapi::sub_group_mask>(
-              ~(~0u << (__self_lidx)), __sgroup.get_local_linear_range()))
+          __item_sg_mask(~(~0u << (__self_lidx)))
     {
     }
 
-    ::std::uint32_t
-    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    _OffsetT
+    operator()(const ::std::uint32_t __bucket_val, _OffsetT* __offset_arr)
     {
-        // set local id's bit to 1 if the bucket value matches the radix state
-        auto __peer_mask = sycl::ext::oneapi::group_ballot(__sgroup, __is_current_bucket);
-        ::std::uint32_t __peer_mask_bits{};
-        __peer_mask.extract_bits(__peer_mask_bits);
-        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
+        _OffsetT __new_offset_idx = __offset_arr[__bucket_val];
+        sycl::group_barrier(__sgroup);
 
-        // get the local offset index from the bits set in the peer mask with index less than the work
-        // items's ID
+        // Figure out how many work-items in my subgroup have the same bucket value
+        ::std::uint32_t __peer_mask = ~0;
+        for (::std::uint32_t __radix_bit = 0; __radix_bit < __radix_bits; ++__radix_bit)
+        {
+            ::std::uint32_t __current_bit_mask = 1 << __radix_bit;
+            bool __is_bit_set = (__bucket_val & __current_bit_mask) != 0;
+            auto __is_bit_set_vote = sycl::ext::oneapi::group_ballot(__sgroup, __is_bit_set);
+            ::std::uint32_t __is_bit_set_vote_mask{};
+            __is_bit_set_vote.extract_bits(__is_bit_set_vote_mask);
+
+            // Flip the votes if my bit wasn't set
+            if (!__is_bit_set)
+                __is_bit_set_vote_mask = ~__is_bit_set_vote_mask;
+            __peer_mask &= __is_bit_set_vote_mask;
+        }
+
+        ::std::uint32_t __num_bucket_peers = sycl::popcount(__peer_mask);
         __peer_mask &= __item_sg_mask;
-        __peer_mask.extract_bits(__peer_mask_bits);
-        __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
+        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask);
 
-        return __sg_total_offset;
+        // Lowest ranked work-item with this bucket should update shared array of offsets
+        if (__sg_total_offset == 0)
+        {
+            __offset_arr[__bucket_val] += __num_bucket_peers;
+        }
+
+        __new_offset_idx += __sg_total_offset;
+
+        // TODO: is this barrier needed?
+        sycl::group_barrier(__sgroup);
+
+        return __new_offset_idx;
     }
 };
 #endif
@@ -634,7 +693,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
     // typedefs
     using _InputT = oneapi::dpl::__internal::__value_t<_InRange>;
     using _OffsetT = typename _OffsetBuf::value_type;
-    using _PeerHelper = __peer_prefix_helper<_OffsetT, _PeerAlgo>;
+    using _PeerHelper = __peer_prefix_helper<_OffsetT, __radix_bits, _PeerAlgo>;
 
     // item info
     const ::std::size_t __it_size = __block_size / __sg_size;
@@ -660,6 +719,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
         typename _PeerHelper::_TempStorageT __peer_temp(1, __hdl);
 
+        auto __offset_arr = sycl::accessor<_OffsetT, 1, access_mode::read_write, __dpl_sycl::__target::local>(__radix_states, __hdl);
+
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
@@ -672,20 +733,22 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                 const ::std::size_t __wgroup_idx = __self_item.get_group(0);
                 const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
+                auto __sgroup = __self_item.get_sub_group();
 
                 _PeerHelper __peer_prefix_hlp(__self_item, __peer_temp);
 
-                // 1. create a private array for storing offset values
-                //    and add total offset and offset for compute unit for a certain radix state
-                _OffsetT __offset_arr[__radix_states];
+                // 1. cooperatively fill a shared array for offsets with sum of
+                //      total offset and offset for compute unit for a certain radix state
                 const ::std::uint32_t __global_offset_start_idx = (__segments + 1) * __radix_states;
-                for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                for (::std::uint32_t __radix_state = __self_lidx; __radix_state < __radix_states; __radix_state += __sg_size)
                 {
-                    const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state_idx;
-                    const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
-                    __offset_arr[__radix_state_idx] =
+                    const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state;
+                    const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state;
+                    __offset_arr[__radix_state] =
                         __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
                 }
+
+                sycl::group_barrier(__sgroup);
 
                 // find offsets for the same values within a segment and fill the resulting buffer
                 for (::std::size_t __block_idx = 0; __block_idx < __blocks_per_segment * __it_size; ++__block_idx)
@@ -702,14 +765,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     ::std::uint32_t __bucket_val =
                         __get_bucket_value<__radix_bits, __is_comp_asc>(__batch_val, __radix_iter);
 
-                    _OffsetT __new_offset_idx = 0;
-                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
-                    {
-                        ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
-                        ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
-                            __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
-                        __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
-                    }
+                    // get offset for this bucket and update offset array for other work-items in this subgroup
+                    _OffsetT __new_offset_idx = __peer_prefix_hlp(__bucket_val, __offset_arr.get_pointer());
 
                     if (__val_idx < __inout_buf_size)
                         __output_rng[__new_offset_idx] = __input_rng[__val_idx];
