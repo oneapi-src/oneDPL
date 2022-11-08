@@ -285,7 +285,14 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
             // first item in group does not have any work-group aggregates to apply
             if (__local_id == 0)
+            {
                 __apply_aggs = false;
+                if (__global_id == 0 && __n > 0)
+                {
+                    // first segment identifier is always the first key
+                    __out_keys[0] = __keys[0];
+                }
+            }
 
             // apply the aggregates and copy the locally stored values to destination buffer
             for (::std::size_t __i = __start; __i < __end; ++__i)
@@ -299,9 +306,13 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                         __apply_aggs = false;
                     }
                     else
+                    {
                         __out_values[__idx] = __loc_partials[__i - __start];
-
-                    __out_keys[__idx] = __keys[__i];
+                    }
+                    if (__i != __n - 1)
+                    {
+                        __out_keys[__idx + 1] = __keys[__i + 1];
+                    }
                     ++__item_offset;
                 }
             }
@@ -311,11 +322,14 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             {
                 // If no segment ends in the item, the aggregates from previous work groups must be applied.
                 if (__max_end == 0)
-                    __partials_acc[__group_id] =
-                        __binary_op(__carry_in, __accumulator); // needs to be inclusive with last element
-
+                {
+                    // needs to be inclusive with last element
+                    __partials_acc[__group_id] = __binary_op(__carry_in, __accumulator);
+                }
                 else
+                {
                     __partials_acc[__group_id] = __accumulator;
+                }
             }
         });
     });
@@ -365,7 +379,9 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                                 __first = false;
                             }
                             else
+                            {
                                 __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
+                            }
 
                             // current aggregate is the last aggregate
                             if (__b_seg_end)
