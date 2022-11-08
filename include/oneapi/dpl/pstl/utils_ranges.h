@@ -100,9 +100,9 @@ class zip_view
 
     using _tuple_ranges_t = oneapi::dpl::__internal::tuple<_Ranges...>;
 
-    template <::std::size_t... _Ip>
+    template <typename Idx, ::std::size_t... _Ip>
     auto
-    make_reference(_tuple_ranges_t __t, int32_t __i, ::std::index_sequence<_Ip...>) const
+    make_reference(_tuple_ranges_t __t, Idx __i, ::std::index_sequence<_Ip...>) const
         -> decltype(oneapi::dpl::__internal::tuple<decltype(::std::declval<_Ranges&>().operator[](__i))...>(
             ::std::get<_Ip>(__t).operator[](__i)...))
     {
@@ -122,7 +122,9 @@ class zip_view
         return ::std::get<0>(__m_ranges).size();
     }
 
-    constexpr auto operator[](int32_t __i) const
+    //TODO: C++ Standard states that the operator[] index should be the diff_type of the underlying range.
+    template <typename Idx>
+    constexpr auto operator[](Idx __i) const
         -> decltype(make_reference(::std::declval<_tuple_ranges_t>(), __i, ::std::make_index_sequence<__num_ranges>()))
     {
         return make_reference(__m_ranges, __i, ::std::make_index_sequence<__num_ranges>());
@@ -180,7 +182,12 @@ class guard_view
         return begin() + size();
     }
 
-    auto operator[](int32_t i) const -> decltype(begin()[i]) { return begin()[i]; }
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying iterator
+    template <typename Idx>
+    auto operator[](Idx i) const -> decltype(begin()[i])
+    {
+        return begin()[i];
+    }
 
     diff_type
     size() const
@@ -204,6 +211,7 @@ struct reverse_view_simple
 {
     _R __r;
 
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
     {
@@ -238,6 +246,7 @@ struct take_view_simple
 
     take_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n < __r.size()); }
 
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
     {
@@ -272,6 +281,7 @@ struct drop_view_simple
 
     drop_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n < __r.size()); }
 
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
     {
@@ -304,6 +314,7 @@ struct transform_view_simple
     _R __r;
     _F __f;
 
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__f(__r[__i]))
     {
@@ -364,6 +375,7 @@ struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_functor<
 
     permutation_view_simple(_R __rng, _M __m) : __r(__rng), __map_fn(__m) {}
 
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__map_fn[__i]])
     {
@@ -397,6 +409,7 @@ struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_view<_M>
 
     permutation_view_simple(_R __r, _M __m) : __data(__r, __m) {}
 
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(::std::get<0>(__data.tuple())[::std::get<1>(__data.tuple())[__i]])
     {
