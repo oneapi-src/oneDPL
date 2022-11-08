@@ -98,7 +98,6 @@ inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     auto buf_view = key_buf.all_view();
     using iter_value_t = typename ::std::iterator_traits<InputIterator1>::value_type;
 
-    //Assumes default constructor is the identity
     iter_value_t identity = __dpl_sycl::__known_identity<BinaryOperator, iter_value_t>::value;
 
     sycl_scan_by_segment_impl<scan_type::inclusive> scan;
