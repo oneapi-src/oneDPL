@@ -16,6 +16,8 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
+#include "oneapi/dpl/internal/cpp_version.h"
+
 #ifndef _PSTL_VERSION
 #    define _PSTL_VERSION 11000
 #    define _PSTL_VERSION_MAJOR (_PSTL_VERSION / 1000)
@@ -274,7 +276,7 @@
 //'present' macros
 // shift_left, shift_right; GCC 10; VS 2019 16.1
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
-    (__cplusplus >= 202002L && ((_GLIBCXX_RELEASE >= 10) || (_MSC_VER >= 1921)))
+    (_ONEDPL_CPLUSPLUS >= 202002L && ((_GLIBCXX_RELEASE >= 10) || (_MSC_VER >= 1921)))
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
