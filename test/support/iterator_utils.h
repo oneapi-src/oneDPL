@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- iterator_utils.h --------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __iterator_utils_H
-#define __iterator_utils_H
+#ifndef _ITERATOR_UTILS_H
+#define _ITERATOR_UTILS_H
 
 #include "test_config.h"
 
@@ -83,13 +83,13 @@ class BidirectionalIterator : public ForwardIterator<Iterator, IteratorTag>
     explicit BidirectionalIterator(Iterator i) : base_type(i) {}
     BidirectionalIterator(const base_type& i) : base_type(i.iterator()) {}
 
-    BidirectionalIterator
+    BidirectionalIterator&
     operator++()
     {
         ++base_type::my_iterator;
         return *this;
     }
-    BidirectionalIterator
+    BidirectionalIterator&
     operator--()
     {
         --base_type::my_iterator;
@@ -564,4 +564,4 @@ struct invoke_on_all_iterator_types
     }
 };
 } /* namespace TestUtils */
-#endif /* __iterator_utils_H */
+#endif // _ITERATOR_UTILS_H

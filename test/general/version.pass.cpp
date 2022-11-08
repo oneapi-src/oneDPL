@@ -36,7 +36,7 @@ static_assert(_PSTL_VERSION_PATCH == 0, "");
 
 static_assert(ONEDPL_VERSION_MAJOR == 2021, "");
 static_assert(ONEDPL_VERSION_MINOR == 7, "");
-static_assert(ONEDPL_VERSION_PATCH == 0, "");
+static_assert(ONEDPL_VERSION_PATCH == 1, "");
 
 int main() {
 

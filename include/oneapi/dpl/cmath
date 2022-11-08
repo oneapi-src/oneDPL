@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- cmath -------------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -12,8 +12,10 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef __ONEDPL_cmath
 #define __ONEDPL_cmath
+
 #include "oneapi/dpl/internal/common_config.h"
 #include <cmath>
 
@@ -50,6 +52,8 @@ using ::std::log1p;
 using ::std::log2;
 using ::std::logb;
 using ::std::modf;
+using ::std::nearbyint;
+using ::std::nearbyintf;
 using ::std::nextafter;
 using ::std::pow;
 using ::std::remainder;
@@ -62,4 +66,7 @@ using ::std::tanh;
 using ::std::tgamma;
 } // namespace dpl
 } // namespace oneapi
-#endif
+
+namespace dpl = oneapi::dpl;
+
+#endif // __ONEDPL_cmath

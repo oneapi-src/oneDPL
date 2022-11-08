@@ -315,6 +315,10 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ------------------------------------ ---------- ---------- ----------
 ``std::nextafter``                   Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
+``std::nearbyint``                   Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::nearbyintf``                  Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
 ``std::fdim``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::optional``                    Tested     Tested     Tested
@@ -358,6 +362,24 @@ C++ Standard API                     libstdc++  libc++     MSVC
 ``std::move``                        Tested     Tested     Tested
 ------------------------------------ ---------- ---------- ----------
 ``std::move_backward``               Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::is_sorted``                   Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::is_sorted_until``             Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::partial_sort``                Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::partial_sort_copy``           Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::is_heap``                     Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::is_heap_until``               Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::make_heap``                   Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::push_heap``                   Tested     Tested     Tested
+------------------------------------ ---------- ---------- ----------
+``std::pop_heap``                    Tested     Tested     Tested
 ==================================== ========== ========== ==========
 
 These tests were done for the following versions of the standard C++ library:

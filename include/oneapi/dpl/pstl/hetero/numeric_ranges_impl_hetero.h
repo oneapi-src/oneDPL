@@ -132,7 +132,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
                               _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation>{__binary_op})
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
         .wait();
     return __rng1.size();
 }

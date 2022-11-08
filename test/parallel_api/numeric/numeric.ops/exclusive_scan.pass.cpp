@@ -66,7 +66,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm(sycl::queue& q)
 {
-    for (::std::size_t n = 0; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (::std::size_t n = 0; n <= TestUtils::max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         test_with_usm<alloc_type>(q, n);
     }

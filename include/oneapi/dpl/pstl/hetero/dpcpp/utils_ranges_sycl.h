@@ -32,40 +32,40 @@ namespace __ranges
 {
 
 //A SYCL range over SYCL buffer
-template <typename _T, sycl::access::mode AccMode = sycl::access::mode::read,
+template <typename _T, sycl::access::mode _AccMode = sycl::access::mode::read,
           __dpl_sycl::__target _Target = __dpl_sycl::__target_device,
           sycl::access::placeholder _Placeholder = sycl::access::placeholder::true_t>
 class all_view
 {
-    using return_t = typename ::std::conditional<AccMode == sycl::access::mode::read, const _T, _T>::type;
-    using diff_type = typename ::std::iterator_traits<_T*>::difference_type;
-    using accessor_t = sycl::accessor<_T, 1, AccMode, _Target, _Placeholder>;
+    using __return_t = typename ::std::conditional<_AccMode == sycl::access::mode::read, const _T, _T>::type;
+    using __diff_type = typename ::std::iterator_traits<_T*>::difference_type;
+    using __accessor_t = sycl::accessor<_T, 1, _AccMode, _Target, _Placeholder>;
 
   public:
-    all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), diff_type __offset = 0, diff_type __n = 0)
-        : m_acc(__buf, sycl::range<1>(__n > 0 ? __n : __dpl_sycl::__get_buffer_size(__buf)), __offset)
+    all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), __diff_type __offset = 0, __diff_type __n = 0)
+        : __m_acc(__create_accessor(__buf, __offset, __n))
     {
     }
 
-    all_view(accessor_t acc) : m_acc(acc) {}
+    all_view(__accessor_t __acc) : __m_acc(__acc) {}
 
-    return_t*
+    __return_t*
     begin() const
     {
-        return &m_acc[0];
+        return &__m_acc[0];
     } //or “honest” iterator over an accessor and a sentinel
 
-    return_t*
+    __return_t*
     end() const
     {
         return begin() + size();
     }
-    return_t& operator[](diff_type i) const { return begin()[i]; }
+    __return_t& operator[](__diff_type i) const { return begin()[i]; }
 
-    diff_type
+    __diff_type
     size() const
     {
-        return __dpl_sycl::__get_accessor_size(m_acc);
+        return __dpl_sycl::__get_accessor_size(__m_acc);
     }
     bool
     empty() const
@@ -74,13 +74,25 @@ class all_view
     }
 
     void
-    require_access(sycl::handler& cgh)
+    require_access(sycl::handler& __cgh)
     {
-        cgh.require(m_acc);
+        __cgh.require(__m_acc);
     }
 
   private:
-    accessor_t m_acc;
+    static __accessor_t __create_accessor(sycl::buffer<_T, 1>& __buf, __diff_type __offset, __diff_type __n)
+    {
+        auto __n_buf = __dpl_sycl::__get_buffer_size(__buf);
+        auto __n_acc = (__n > 0 ? __n : __n_buf);
+
+        assert(__offset + __n_acc <= __n_buf &&
+               "The sum of accessRange and accessOffset should not exceed the range of buffer");
+
+        return {__buf, sycl::range<1>(__n_acc), __offset};
+    }
+
+  private:
+    __accessor_t __m_acc;
 };
 
 template <sycl::access::mode AccMode = sycl::access::mode::read_write,
@@ -510,10 +522,15 @@ struct __get_sycl_range
     {
         assert(__first < __last);
         using value_type = val_t<_Iter>;
+
+        const auto __offset = __first - oneapi::dpl::begin(__first.get_buffer());
+        const auto __n = __last - __first;
+        const auto __size = __first.get_buffer().size();
+        assert(__offset + __n <= __size);
+
         return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>{
-            oneapi::dpl::__ranges::all_view<value_type, AccMode>(__first.get_buffer(),
-                                                                 __first - oneapi::dpl::begin(__first.get_buffer()),
-                                                                 __last - __first)}; //{buffer, offset, size}
+            oneapi::dpl::__ranges::all_view<value_type, AccMode>(__first.get_buffer() /* buffer */,
+                                                                 __offset /* offset*/, __n /* size*/)};
     }
 
     //specialization for a host iterator
