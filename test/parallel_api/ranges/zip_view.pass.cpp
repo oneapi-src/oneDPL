@@ -41,22 +41,28 @@ main()
     //check access
     EXPECT_TRUE(::std::get<0>(z[2]) == 'g', "wrong effect with zip_view");
 
-    const size_t max_int32p2 = (size_t)::std::numeric_limits<int32_t>::max() + 2UL;
-    ::std::vector<char> large_data(max_int32p2);
-    ::std::vector<char> large_keys(max_int32p2);
+    int64_t max_int32p2 = (size_t)::std::numeric_limits<int32_t>::max() + 2L;
 
-    auto large_z = zip_view(nano::views::all(large_data), nano::views::all(large_keys));
+    auto base_view = views::iota(0L, max_int32p2);
+
+    //avoiding allocating large amounts of memory, just reusing small data container
+    auto transform_data_idx = [&max_n, &data](auto idx) { return data[idx % max_n]; };
+    auto data_large_view = views::transform(base_view, transform_data_idx);
+
+    //avoiding allocating large amounts of memory, just reusing small data container
+    auto transform_key_idx = [&max_n, &key](auto idx) { return key[idx % max_n]; };
+    auto key_large_view = views::transform(base_view, transform_key_idx);
+
+    auto large_z = zip_view(data_large_view, key_large_view);
 
     //check that zip_view ranges can be larger than a signed 32 bit integer
-    size_t i = large_data.size() - 1;
+    size_t i = large_z.size() - 1;
 
-    large_data[i] = i % ::std::numeric_limits<char>::max();
-    large_keys[i] = (i + 1) % ::std::numeric_limits<char>::max();
-
-    char expected_key = large_keys[i];
-    char actual_key = ::std::get<1>(large_z[i]);
+    auto expected_key = key[i % max_n];
+    auto actual_key = ::std::get<1>(large_z[i]);
     EXPECT_EQ(expected_key, actual_key, "wrong effect with zip_view bracket operator");
-    char expected_data = large_data[i];
+
+    char expected_data = data[i % max_n];
     char actual_data = ::std::get<0>(large_z[i]);
     EXPECT_EQ(expected_data, actual_data, "wrong effect with zip_view bracket operator");
 
