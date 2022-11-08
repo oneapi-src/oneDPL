@@ -334,7 +334,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1>
                                                                                                      __item) {
                 auto __group = __item.get_group();
-                ::std::size_t __group_id = __group.get_group_id(0);
+                int64_t __group_id = __group.get_group_id(0);
                 ::std::size_t __global_id = __item.get_global_id();
                 ::std::size_t __local_id = __item.get_local_id();
 
@@ -342,7 +342,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
                 ::std::size_t __item_segments = 0;
 
-                ::std::size_t __wg_agg_idx = __group_id - 1;
+                int64_t __wg_agg_idx = __group_id - 1;
                 __val_type __agg_collector{};
 
                 // 3a. Check to see if an aggregate exists and compute that value in the first
@@ -354,7 +354,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                     if (__start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
                     {
                         __ag_exists = true;
-                        for (::std::size_t __i = __wg_agg_idx; __i >= 0; --__i)
+                        for (int64_t __i = __wg_agg_idx; __i >= 0; --__i)
                         {
                             const auto& __wg_aggregate = __partials_acc[__i];
                             const auto __b_seg_end = __seg_ends_acc[__i];
