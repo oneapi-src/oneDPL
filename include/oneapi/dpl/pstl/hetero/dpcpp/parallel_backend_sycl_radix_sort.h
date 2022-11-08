@@ -42,10 +42,10 @@ template <typename... _Name>
 class __radix_sort_scan_kernel_2;
 
 template <typename... _Name>
-class __radix_sort_reorder_kernel;
+class __radix_sort_reorder_peer_kernel;
 
 template <typename... _Name>
-class __radix_sort_reorder_peer_kernel;
+class __radix_sort_reorder_kernel;
 
 template <typename _Name>
 class __odd_iteration;
