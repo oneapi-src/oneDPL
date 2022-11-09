@@ -144,7 +144,23 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range3>>
 sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                       _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
+                       _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
+                       ::std::false_type /* has_known_identity */)
+{
+    typedef uint64_t CountType;
+    CountType N = oneapi::dpl::experimental::ranges::reduce_by_segment(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys), ::std::forward<_Range2>(__values),
+        ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
+    return N;
+}
+
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
+          typename _BinaryPredicate, typename _BinaryOperator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
+                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
+sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
+                       _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
+                       ::std::true_type /* has_known_identity */)
 {
     using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
     using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
@@ -224,8 +240,6 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             ::std::size_t __local_id = __group.get_local_id();
             ::std::size_t __global_id = __item.get_global_id();
 
-            __val_type __accumulator{};
-
             // 2a. Compute the number of segments in prior workgroups. Do this collectively in
             // subgroups to eliminate barriers.
             auto __start_ptr = __seg_ends_acc.get_pointer();
@@ -242,27 +256,19 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             ::std::size_t __max_end = 0;
             ::std::size_t __item_segments = 0;
 
+            __val_type __accumulator = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
             bool __first = true;
             for (::std::size_t __i = __start; __i < __end; ++__i)
             {
-                if (__first)
-                {
-                    __accumulator = __values[__i];
-                    __first = false;
-                }
 
-                else
-                    __accumulator = __binary_op(__accumulator, __values[__i]);
+                __accumulator = __binary_op(__accumulator, __values[__i]);
 
-                // clear the accumulator if we reach end of segment
                 if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
                 {
                     __loc_partials[__i - __start] = __accumulator;
-                    __accumulator = {};
                     ++__item_segments;
-
                     __max_end = __local_id;
-                    __first = true;
+                    __accumulator = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
                 }
             }
 
@@ -357,7 +363,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 ::std::size_t __item_segments = 0;
 
                 int64_t __wg_agg_idx = __group_id - 1;
-                __val_type __agg_collector{};
+                __val_type __agg_collector = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
 
                 // 3a. Check to see if an aggregate exists and compute that value in the first
                 // work item.
@@ -370,21 +376,9 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                         __ag_exists = true;
                         for (int64_t __i = __wg_agg_idx; __i >= 0; --__i)
                         {
-                            const auto& __wg_aggregate = __partials_acc[__i];
-                            const auto __b_seg_end = __seg_ends_acc[__i];
-
-                            if (__first)
-                            {
-                                __agg_collector = __wg_aggregate;
-                                __first = false;
-                            }
-                            else
-                            {
-                                __agg_collector = __binary_op(__wg_aggregate, __agg_collector);
-                            }
-
+                            __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
                             // current aggregate is the last aggregate
-                            if (__b_seg_end)
+                            if (__seg_ends_acc[__i])
                                 break;
                         }
                     }
@@ -477,10 +471,15 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     auto keep_value_outputs = __ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator2>();
     auto value_output_buf = keep_value_outputs(result2, result2 + n);
 
+    using has_known_identity =
+        typename __dpl_sycl::__has_known_identity<BinaryOperator,
+                                                  typename ::std::iterator_traits<InputIterator1>::value_type>::type;
+
     // number of unique keys
-    CountType N =
-        sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-                               key_output_buf.all_view(), value_output_buf.all_view(), binary_pred, binary_op);
+    CountType N = sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
+                                         key_output_buf.all_view(), value_output_buf.all_view(), binary_pred, binary_op,
+                                         has_known_identity{});
+
     return ::std::make_pair(result1 + N, result2 + N);
 }
 #endif
