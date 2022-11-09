@@ -3,13 +3,14 @@
 //
 // SPDX-License-Identifier: MIT
 // =============================================================
+
+#include "support/test_config.h"
+
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#include "support/utils_sycl.h"
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#include "support/utils.h"
 
 #include <iostream>
 
