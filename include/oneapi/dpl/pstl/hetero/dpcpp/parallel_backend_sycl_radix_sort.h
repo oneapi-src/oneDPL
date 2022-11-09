@@ -562,11 +562,9 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::atomic_f
             __offset_arr[__bucket_val] += __num_bucket_peers;
         }
 
-        __new_offset_idx += __sg_total_offset;
-
-        // TODO: is this barrier needed?
         sycl::group_barrier(__sgroup);
 
+        __new_offset_idx += __sg_total_offset;
         return __new_offset_idx;
     }
 };
