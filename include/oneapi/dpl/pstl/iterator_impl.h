@@ -607,10 +607,10 @@ class permutation_iterator
         return my_source_it;
     }
 
-    IndexMap
+    auto
     map() const
     {
-        if constexpr (__internal::__is_functor<_T>)
+        if constexpr (__internal::__is_functor<_Permutation>)
             return my_index.functor();
         else
             return my_index;
