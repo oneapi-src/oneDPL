@@ -509,8 +509,7 @@ struct __peer_prefix_helper;
 template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 {
-    using _AtomicT = sycl::atomic_ref<::std::uint32_t, sycl::memory_order_relaxed, sycl::memory_scope::sub_group,
-                                      sycl::access::address_space::local_space>;
+    using _AtomicT = __dpl_sycl::__atomic_ref<::std::uint32_t, sycl::access::address_space::local_space>;
     using _TempStorageT =
         sycl::accessor<::std::uint32_t, 1, sycl::access::mode::read_write, sycl::access::target::local>;
 
@@ -521,7 +520,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
         : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
-          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(__lacc[0])
+          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(__lacc.get_pointer())
     {
     }
 
@@ -574,7 +573,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
     }
 };
 
-#if SYCL_EXT_ONEAPI_SUB_GROUP_MASK
+#if _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
 template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 {
@@ -801,7 +800,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     sycl::event __reorder_event{};
     if (__reorder_sg_size == 8 || __reorder_sg_size == 16 || __reorder_sg_size == 32)
     {
-#if SYCL_EXT_ONEAPI_SUB_GROUP_MASK
+#if _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
         constexpr auto __peer_algorithm = __peer_prefix_algo::subgroup_ballot;
 #else
         constexpr auto __peer_algorithm = __peer_prefix_algo::atomic_fetch_or;
