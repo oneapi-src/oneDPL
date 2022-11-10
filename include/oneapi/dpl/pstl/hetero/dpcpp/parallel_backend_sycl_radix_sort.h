@@ -506,6 +506,7 @@ enum class __peer_prefix_algo
 template <typename _OffsetT, __peer_prefix_algo _Algo>
 struct __peer_prefix_helper;
 
+#if (__LIBSYCL_VERSION >= 50700)
 template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 {
@@ -544,17 +545,20 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
         return __sg_total_offset;
     }
 };
+#endif // (__LIBSYCL_VERSION >= 50700)
 
 template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
 {
     using _TempStorageT = __empty_peer_temp_storage;
+    using _ItemType = sycl::nd_item<1>;
+    using _SubGroupType = decltype(std::declval<_ItemType>().get_sub_group());
 
-    sycl::sub_group __sgroup;
+    _SubGroupType __sgroup;
     ::std::uint32_t __sg_size;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_linear_range())
+        : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_range()[0])
     {
     }
 
@@ -608,7 +612,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
         return __sg_total_offset;
     }
 };
-#endif
+#endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
 
 //-----------------------------------------------------------------------
 // radix sort: a function for reorder phase of one iteration
@@ -802,9 +806,12 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
     {
 #if _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
         constexpr auto __peer_algorithm = __peer_prefix_algo::subgroup_ballot;
-#else
+#elif (__LIBSYCL_VERSION >= 50700)
         constexpr auto __peer_algorithm = __peer_prefix_algo::atomic_fetch_or;
-#endif
+#else
+        constexpr auto __peer_algorithm = __peer_prefix_algo::scan_then_broadcast;
+#endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
+
         __reorder_event =
             __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_comp_asc, __peer_algorithm>(
                 __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
