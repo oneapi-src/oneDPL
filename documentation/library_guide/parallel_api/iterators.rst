@@ -99,7 +99,7 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
 
     struct multiply_index_by_two {
         template <typename Index>
-        Index operator[](const Index& i) const
+        Index operator()(const Index& i) const
         { return i*2; }
     };
 
