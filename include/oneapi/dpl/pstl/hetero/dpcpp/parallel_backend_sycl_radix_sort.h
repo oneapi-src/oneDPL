@@ -515,13 +515,15 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::atomic_f
         sycl::accessor<::std::uint32_t, 1, sycl::access::mode::read_write, sycl::access::target::local>;
 
     sycl::sub_group __sgroup;
+    ::std::uint32_t __sg_size;
     ::std::uint32_t __self_lidx;
     ::std::uint32_t __item_sg_mask;
     _AtomicT __atomic_peer_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
-        : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
-          __item_sg_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(__lacc[0])
+        : __sgroup(__self_item.get_sub_group()),  __sg_size(__sgroup.get_local_linear_range()),
+          __self_lidx(__self_item.get_local_linear_id()), __item_sg_mask(~(~0u << (__self_lidx))),
+          __atomic_peer_mask(__lacc[0])
     {
     }
 
@@ -532,7 +534,7 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::atomic_f
         sycl::group_barrier(__sgroup);
 
         // Figure out how many work-items in my subgroup have the same bucket value
-        ::std::uint32_t __peer_mask = ~0;
+        ::std::uint32_t __peer_mask = ~((~0ull) << __sg_size);
         for (::std::uint32_t __radix_bit = 0; __radix_bit < __radix_bits; ++__radix_bit)
         {
             // reset atomic for each radix bit
@@ -617,12 +619,13 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::subgroup
     using _TempStorageT = __empty_peer_temp_storage;
 
     sycl::sub_group __sgroup;
+    ::std::uint32_t __sg_size;
     const ::std::uint32_t __self_lidx;
     const ::std::uint32_t __item_sg_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
-          __item_sg_mask(~(~0u << (__self_lidx)))
+        : __sgroup(__self_item.get_sub_group()),  __sg_size(__sgroup.get_local_linear_range()),
+          __self_lidx(__self_item.get_local_linear_id()), __item_sg_mask(~(~0u << (__self_lidx)))
     {
     }
 
@@ -633,7 +636,7 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::subgroup
         sycl::group_barrier(__sgroup);
 
         // Figure out how many work-items in my subgroup have the same bucket value
-        ::std::uint32_t __peer_mask = ~0;
+        ::std::uint32_t __peer_mask = ~((~0ull) << __sg_size);
         for (::std::uint32_t __radix_bit = 0; __radix_bit < __radix_bits; ++__radix_bit)
         {
             ::std::uint32_t __current_bit_mask = 1 << __radix_bit;
