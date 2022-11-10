@@ -117,6 +117,49 @@ namespace TestUtils
     {
     }
 
+    template <typename TFncDoubleHasSupportInRuntime>
+    class KernelFunctorWithDouble
+    {
+    public:
+
+        KernelFunctorWithDouble(TFncDoubleHasSupportInRuntime fnc)
+          : m_fnc(fnc)
+        {
+        }
+
+        [[sycl::device_has(sycl::aspect::fp64)]]
+        void
+        operator()() const
+        {
+            m_fnc();
+        };
+
+    private:
+
+        TFncDoubleHasSupportInRuntime m_fnc;
+    };
+
+    template <typename TFncDoubleHasntSupportInRuntime>
+    class KernelFunctorWithoutDouble
+    {
+    public:
+
+        KernelFunctorWithoutDouble(TFncDoubleHasntSupportInRuntime fnc)
+          : m_fnc(fnc)
+        {
+        }
+
+        void
+        operator()() const
+        {
+            m_fnc();
+        };
+
+    private:
+
+        TFncDoubleHasntSupportInRuntime m_fnc;
+    };
+
     // Run test in Kernel as single task
     template <typename TFncDoubleHasSupportInRuntime, typename TFncDoubleHasntSupportInRuntime>
     int
@@ -139,19 +182,19 @@ namespace TestUtils
             // https://www.intel.com/content/www/us/en/develop/documentation/oneapi-gpu-optimization-guide/top/compilation/jitting.html
             if (has_type_support<double>(device))
             {
+                KernelFunctorWithDouble fnc(fncDoubleHasSupportInRuntime);
+
                 deviceQueue.submit(
-                    [&](sycl::handler& cgh) {
-                        cgh.single_task<TestUtils::new_kernel_name<class TestType, 0>>(
-                            [fncDoubleHasSupportInRuntime]() { fncDoubleHasSupportInRuntime(); });
-                    });
+                    [fnc](sycl::handler& cgh)
+                    { cgh.single_task<TestUtils::new_kernel_name<class TestType, 0>>([fnc]() { fnc(); }); });
             }
             else
             {
+                KernelFunctorWithoutDouble fnc(fncDoubleHasntSupportInRuntime);
+
                 deviceQueue.submit(
-                    [&](sycl::handler& cgh) {
-                        cgh.single_task<TestUtils::new_kernel_name<class TestType, 1>>(
-                            [fncDoubleHasntSupportInRuntime]() { fncDoubleHasntSupportInRuntime(); });
-                    });
+                    [fnc](sycl::handler& cgh)
+                    { cgh.single_task<TestUtils::new_kernel_name<class TestType, 1>>([fnc]() { fnc(); }); });
             }
 
             // Test done
