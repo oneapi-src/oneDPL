@@ -235,7 +235,7 @@ struct rotate_view_fn
 
 namespace views
 {
-NANO_INLINE_VAR(nano::detail::rotate_view_fn, rotate)
+NANO_INLINE_VAR(::nano::detail::rotate_view_fn, rotate)
 }
 
 namespace detail
@@ -265,8 +265,8 @@ struct fill_view_fn
 
 namespace views
 {
-NANO_INLINE_VAR(nano::detail::generate_view_fn, generate)
-NANO_INLINE_VAR(nano::detail::fill_view_fn, fill)
+NANO_INLINE_VAR(::nano::detail::generate_view_fn, generate)
+NANO_INLINE_VAR(::nano::detail::fill_view_fn, fill)
 } // namespace views
 
 NANO_END_NAMESPACE

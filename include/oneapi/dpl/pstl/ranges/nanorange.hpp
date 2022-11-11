@@ -537,7 +537,7 @@ struct binary_common_type
 
 template <typename T, typename U>
 struct binary_common_type<T, U, ::std::enable_if_t<!same_decayed_v<T, U>>>
-    : nano::common_type<::std::decay_t<T>, ::std::decay_t<U>>
+    : ::nano::common_type<::std::decay_t<T>, ::std::decay_t<U>>
 {
 };
 
@@ -1311,7 +1311,7 @@ struct fn
 } // namespace invoke_
 } // namespace detail
 
-NANO_INLINE_VAR(nano::detail::invoke_::fn, invoke)
+NANO_INLINE_VAR(::nano::detail::invoke_::fn, invoke)
 
 namespace detail
 {
@@ -1322,10 +1322,10 @@ struct invoke_result_helper
 };
 
 template <typename F, typename... Args>
-struct invoke_result_helper<::std::void_t<decltype(nano::invoke(::std::declval<F>(), ::std::declval<Args>()...))>, F,
+struct invoke_result_helper<::std::void_t<decltype(::nano::invoke(::std::declval<F>(), ::std::declval<Args>()...))>, F,
                             Args...>
 {
-    using type = decltype(nano::invoke(::std::declval<F>(), ::std::declval<Args>()...));
+    using type = decltype(::nano::invoke(::std::declval<F>(), ::std::declval<Args>()...));
 };
 
 } // namespace detail
@@ -1409,7 +1409,7 @@ struct invocable_concept
 #                            else
     template <typename F, typename... Args>
     auto
-    requires_(F&& f, Args&&... args) -> decltype(nano::invoke(::std::forward<F>(f), ::std::forward<Args>(args)...));
+    requires_(F&& f, Args&&... args) -> decltype(::nano::invoke(::std::forward<F>(f), ::std::forward<Args>(args)...));
 #                            endif
 };
 
@@ -4325,7 +4325,7 @@ struct adjacent_find_fn
 
         while (next != last)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *first), nano::invoke(proj, *next)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *first), ::nano::invoke(proj, *next)))
             {
                 return first;
             }
@@ -4350,7 +4350,7 @@ struct adjacent_find_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Pred pred = Pred{}, Proj proj = Proj{}) const
     {
-        return adjacent_find_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return adjacent_find_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -4387,7 +4387,7 @@ struct all_of_fn
     {
         while (first != last)
         {
-            if (!nano::invoke(pred, nano::invoke(proj, *first)))
+            if (!::nano::invoke(pred, ::nano::invoke(proj, *first)))
             {
                 return false;
             }
@@ -4410,7 +4410,7 @@ struct all_of_fn
                                  bool>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return all_of_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return all_of_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -4450,7 +4450,7 @@ struct any_of_fn
     {
         while (first != last)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *first)) == true)
+            if (::nano::invoke(pred, ::nano::invoke(proj, *first)) == true)
             {
                 return true;
             }
@@ -4473,7 +4473,7 @@ struct any_of_fn
                                  bool>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return any_of_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return any_of_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -4546,9 +4546,9 @@ struct partition_point_fn
         {
             const auto half = n / 2;
 
-            auto middle = nano::next(first, half);
+            auto middle = ::nano::next(first, half);
 
-            if (nano::invoke(pred, nano::invoke(proj, *middle)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *middle)))
             {
                 first = ::std::move(++middle);
                 n -= half + 1;
@@ -4566,7 +4566,7 @@ struct partition_point_fn
     static constexpr ::std::enable_if_t<sized_sentinel_for<S, I>, I>
     impl(I first, S last, Pred& pred, Proj& proj)
     {
-        const auto n = nano::distance(first, ::std::move(last));
+        const auto n = ::nano::distance(first, ::std::move(last));
         return partition_point_fn::impl_n(::std::move(first), n, pred, proj);
     }
 
@@ -4581,8 +4581,8 @@ struct partition_point_fn
         while (true)
         {
             auto m = first;
-            auto d = nano::advance(m, n, last);
-            if (m == last || !nano::invoke(pred, nano::invoke(proj, *m)))
+            auto d = ::nano::advance(m, n, last);
+            if (m == last || !::nano::invoke(pred, ::nano::invoke(proj, *m)))
             {
                 n -= d;
                 return partition_point_fn::impl_n(::std::move(first), n, pred, proj);
@@ -4606,7 +4606,7 @@ struct partition_point_fn
                        borrowed_iterator_t<Rng>> constexpr
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return partition_point_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return partition_point_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -4639,7 +4639,7 @@ struct lower_bound_fn
         constexpr bool
         operator()(U&& u) const
         {
-            return nano::invoke(comp, ::std::forward<U>(u), val);
+            return ::nano::invoke(comp, ::std::forward<U>(u), val);
         }
     };
 
@@ -4667,7 +4667,7 @@ struct lower_bound_fn
                        borrowed_iterator_t<Rng>> constexpr
     operator()(Rng&& rng, const T& value, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return lower_bound_fn::impl(nano::begin(rng), nano::end(rng), value, comp, proj);
+        return lower_bound_fn::impl(::nano::begin(rng), ::nano::end(rng), value, comp, proj);
     }
 };
 
@@ -4692,7 +4692,7 @@ struct binary_search_fn
     impl(I first, S last, const T& value, Comp& comp, Proj& proj)
     {
         first = lower_bound_fn::impl(::std::move(first), last, value, comp, proj);
-        return (first != last && !nano::invoke(comp, value, nano::invoke(proj, *first)));
+        return (first != last && !::nano::invoke(comp, value, ::nano::invoke(proj, *first)));
     }
 
   public:
@@ -4711,7 +4711,7 @@ struct binary_search_fn
                        bool> constexpr
     operator()(Rng&& rng, const T& value, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return binary_search_fn::impl(nano::begin(rng), nano::end(rng), value, comp, proj);
+        return binary_search_fn::impl(::nano::begin(rng), ::nano::end(rng), value, comp, proj);
     }
 };
 
@@ -4739,16 +4739,16 @@ namespace detail
 
 struct clamp_fn
 {
-    template <typename T, typename Proj = identity, typename Comp = nano::less>
+    template <typename T, typename Proj = identity, typename Comp = ::nano::less>
     constexpr ::std::enable_if_t<indirect_strict_weak_order<Comp, projected<const T*, Proj>>, const T&>
     operator()(const T& value, const T& low, const T& high, Comp comp = {}, Proj proj = Proj{}) const
     {
-        auto&& projected_value = nano::invoke(proj, value);
-        if (nano::invoke(comp, projected_value, nano::invoke(proj, low)))
+        auto&& projected_value = ::nano::invoke(proj, value);
+        if (::nano::invoke(comp, projected_value, ::nano::invoke(proj, low)))
         {
             return low;
         }
-        else if (nano::invoke(comp, nano::invoke(proj, high), projected_value))
+        else if (::nano::invoke(comp, ::nano::invoke(proj, high), projected_value))
         {
             return high;
         }
@@ -4996,7 +4996,7 @@ struct copy_fn
                                  copy_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result) const
     {
-        return copy_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), priority_tag<1>{});
+        return copy_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), priority_tag<1>{});
     }
 };
 
@@ -5047,7 +5047,7 @@ struct copy_if_fn
     {
         while (first != last)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *first)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *first)))
             {
                 *result = *first;
                 ++result;
@@ -5075,7 +5075,7 @@ struct copy_if_fn
                                  copy_if_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result, Pred pred, Proj proj = Proj{}) const
     {
-        return copy_if_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), ::std::move(pred),
+        return copy_if_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), ::std::move(pred),
                                 ::std::move(proj));
     }
 };
@@ -5097,7 +5097,7 @@ struct copy_backward_fn
     static constexpr copy_backward_result<I1, I2>
     impl(I1 first, S1 last, I2 result)
     {
-        I1 last_it = nano::next(first, ::std::move(last));
+        I1 last_it = ::nano::next(first, ::std::move(last));
         I1 it = last_it;
 
         while (it != first)
@@ -5124,7 +5124,7 @@ struct copy_backward_fn
                                  copy_backward_result<borrowed_iterator_t<Rng>, I>>
     operator()(Rng&& rng, I result) const
     {
-        return copy_backward_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result));
+        return copy_backward_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result));
     }
 };
 
@@ -5166,7 +5166,7 @@ struct count_if_fn
 
         for (; first != last; ++first)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *first)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *first)))
             {
                 ++counter;
             }
@@ -5190,7 +5190,7 @@ struct count_if_fn
                                  range_difference_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return count_if_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return count_if_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 } // namespace detail
@@ -5219,7 +5219,7 @@ struct count_fn
     operator()(Rng&& rng, const T& value, Proj proj = Proj{}) const
     {
         const auto pred = [&value](const auto& t) { return t == value; };
-        return count_if_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return count_if_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -5254,7 +5254,7 @@ struct equal_fn
     {
         while (first1 != last1 && first2 != last2)
         {
-            if (!nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (!::nano::invoke(pred, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 return false;
             }
@@ -5271,7 +5271,7 @@ struct equal_fn
     {
         while (first1 != last1)
         {
-            if (!nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (!::nano::invoke(pred, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 return false;
             }
@@ -5338,12 +5338,12 @@ struct equal_fn
                                  bool>
     operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        if (nano::distance(rng1) != nano::distance(rng2))
+        if (::nano::distance(rng1) != ::nano::distance(rng2))
         {
             return false;
         }
 
-        return equal_fn::impl3(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), pred, proj1, proj2);
+        return equal_fn::impl3(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), pred, proj1, proj2);
     }
 
     // Two ranges, not both sized
@@ -5355,7 +5355,7 @@ struct equal_fn
                                  bool>
     operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return equal_fn::impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred, proj1,
+        return equal_fn::impl4(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2), pred, proj1,
                                proj2);
     }
 
@@ -5368,7 +5368,7 @@ struct equal_fn
         bool>
     operator()(Rng1&& rng1, I2&& first2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return equal_fn::impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2), pred, proj1, proj2);
+        return equal_fn::impl3(::nano::begin(rng1), ::nano::end(rng1), ::std::forward<I2>(first2), pred, proj1, proj2);
     }
 };
 
@@ -5418,7 +5418,7 @@ struct upper_bound_fn
         constexpr bool
         operator()(U&& u) const
         {
-            return !nano::invoke(comp, val, ::std::forward<U>(u));
+            return !::nano::invoke(comp, val, ::std::forward<U>(u));
         }
     };
 
@@ -5446,7 +5446,7 @@ struct upper_bound_fn
                        borrowed_iterator_t<Rng>> constexpr
     operator()(Rng&& rng, const T& value, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return upper_bound_fn::impl(nano::begin(rng), nano::end(rng), value, comp, proj);
+        return upper_bound_fn::impl(::nano::begin(rng), ::nano::end(rng), value, comp, proj);
     }
 };
 
@@ -6254,7 +6254,7 @@ struct equal_range_fn
                        borrowed_subrange_t<Rng>> constexpr
     operator()(Rng&& rng, const T& value, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return equal_range_fn::impl(nano::begin(rng), nano::end(rng), value, comp, proj);
+        return equal_range_fn::impl(::nano::begin(rng), ::nano::end(rng), value, comp, proj);
     }
 };
 
@@ -6308,7 +6308,7 @@ struct fill_fn
     constexpr ::std::enable_if_t<output_range<Rng, const T&>, borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, const T& value) const
     {
-        return fill_fn::impl(nano::begin(rng), nano::end(rng), value);
+        return fill_fn::impl(::nano::begin(rng), ::nano::end(rng), value);
     }
 };
 
@@ -6384,7 +6384,7 @@ struct find_if_fn
     {
         while (first != last)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *first)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *first)))
             {
                 return first;
             }
@@ -6407,7 +6407,7 @@ struct find_if_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return find_if_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return find_if_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 } // namespace detail
@@ -6435,7 +6435,7 @@ struct find_fn
     operator()(Rng&& rng, const T& value, Proj proj = Proj{}) const
     {
         const auto pred = [&value](const auto& t) { return t == value; };
-        return find_if_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return find_if_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 } // namespace detail
@@ -6457,7 +6457,7 @@ struct find_if_not_fn
         constexpr bool
         operator()(T&& t) const
         {
-            return !nano::invoke(p, ::std::forward<T>(t));
+            return !::nano::invoke(p, ::std::forward<T>(t));
         }
     };
 
@@ -6477,7 +6477,7 @@ struct find_if_not_fn
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
         const auto find_if_pred = not_pred<Pred>{pred};
-        return find_if_fn::impl(nano::begin(rng), nano::end(rng), find_if_pred, proj);
+        return find_if_fn::impl(::nano::begin(rng), ::nano::end(rng), find_if_pred, proj);
     }
 };
 } // namespace detail
@@ -6536,7 +6536,7 @@ struct search_fn
                 {
                     return {it1, it1};
                 }
-                if (!nano::invoke(pred, nano::invoke(proj1, *it1), nano::invoke(proj2, *it2)))
+                if (!::nano::invoke(pred, ::nano::invoke(proj1, *it1), ::nano::invoke(proj2, *it2)))
                 {
                     break;
                 }
@@ -6568,7 +6568,7 @@ struct search_fn
                                  borrowed_subrange_t<Rng1>>
     operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return search_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred, proj1,
+        return search_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2), pred, proj1,
                                proj2);
     }
 };
@@ -6597,7 +6597,7 @@ struct find_end_fn
     {
         if (first2 == last2)
         {
-            auto last_it = nano::next(first1, last1);
+            auto last_it = ::nano::next(first1, last1);
             return {last_it, last_it};
         }
 
@@ -6642,7 +6642,7 @@ struct find_end_fn
                                  borrowed_subrange_t<Rng1>>
     operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return find_end_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred, proj1,
+        return find_end_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2), pred, proj1,
                                  proj2);
     }
 };
@@ -6682,7 +6682,7 @@ struct find_first_of_fn
         {
             for (I2 it = first2; it != last2; ++it)
             {
-                if (nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *it)))
+                if (::nano::invoke(pred, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *it)))
                 {
                     return first1;
                 }
@@ -6714,7 +6714,7 @@ struct find_first_of_fn
         borrowed_iterator_t<Rng1>>
     operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return find_first_of_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred,
+        return find_first_of_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2), pred,
                                       proj1, proj2);
     }
 };
@@ -6754,7 +6754,7 @@ struct for_each_fn
     {
         while (first != last)
         {
-            nano::invoke(fun, nano::invoke(proj, *first));
+            ::nano::invoke(fun, ::nano::invoke(proj, *first));
             ++first;
         }
         return {first, ::std::move(fun)};
@@ -6775,7 +6775,7 @@ struct for_each_fn
                                  for_each_result<borrowed_iterator_t<Rng>, Fun>>
     operator()(Rng&& rng, Fun fun, Proj proj = Proj{}) const
     {
-        return for_each_fn::impl(nano::begin(rng), nano::end(rng), fun, proj);
+        return for_each_fn::impl(::nano::begin(rng), ::nano::end(rng), fun, proj);
     }
 };
 } // namespace detail
@@ -6797,7 +6797,7 @@ struct for_each_n_fn
     {
         while (n-- > 0)
         {
-            nano::invoke(fun, nano::invoke(proj, *first));
+            ::nano::invoke(fun, ::nano::invoke(proj, *first));
             ++first;
         }
         return {::std::move(first), ::std::move(fun)};
@@ -6855,7 +6855,7 @@ struct generate_fn
     constexpr ::std::enable_if_t<invocable<F&> && output_range<Rng, invoke_result_t<F&>>, borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, F gen) const
     {
-        return generate_fn::impl(nano::begin(rng), nano::end(rng), gen);
+        return generate_fn::impl(::nano::begin(rng), ::nano::end(rng), gen);
     }
 };
 
@@ -6937,7 +6937,7 @@ struct includes_fn
 
             // If the current element of r2 is less than the current
             // element of r1, then it is not in r1 => not a subset
-            if (nano::invoke(comp, nano::invoke(proj2, *first2), nano::invoke(proj1, *first1)))
+            if (::nano::invoke(comp, ::nano::invoke(proj2, *first2), ::nano::invoke(proj1, *first1)))
             {
                 return false;
             }
@@ -6945,7 +6945,7 @@ struct includes_fn
             // Now we know that that !(r2 < r1). If we also have !(r1 < r2),
             // then it must be equal, so in range1 -- so move onto the next
             // element
-            if (!nano::invoke(comp, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (!::nano::invoke(comp, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 ++first2;
             }
@@ -6978,7 +6978,7 @@ struct includes_fn
         bool>
     operator()(Rng1&& rng1, Rng2&& rng2, Comp comp = Comp{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return includes_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), comp, proj1,
+        return includes_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2), comp, proj1,
                                  proj2);
     }
 };
@@ -7046,7 +7046,7 @@ struct merge_fn
             // elements from the first range directly
             if (first2 == last2)
             {
-                auto res = nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
+                auto res = ::nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
                 first1 = ::std::move(res.in);
                 result = ::std::move(res.out);
                 break;
@@ -7054,7 +7054,7 @@ struct merge_fn
 
             // (Only) if the element from range2 compares less than the element
             // from range1, copy it. Otherwise copy the element from the first
-            if (nano::invoke(comp, nano::invoke(proj2, *first2), nano::invoke(proj1, *first1)))
+            if (::nano::invoke(comp, ::nano::invoke(proj2, *first2), ::nano::invoke(proj1, *first1)))
             {
                 *result = *first2;
                 ++first2;
@@ -7069,7 +7069,7 @@ struct merge_fn
 
         // We've reached the end of range1, so copy any remaining elements
         // from range2
-        auto res = nano::copy(::std::move(first2), ::std::move(last2), ::std::move(result));
+        auto res = ::nano::copy(::std::move(first2), ::std::move(last2), ::std::move(result));
         first2 = ::std::move(res.in);
         result = ::std::move(res.out);
 
@@ -7098,7 +7098,7 @@ struct merge_fn
     operator()(Rng1&& rng1, Rng2&& rng2, O result, Comp comp = Comp{}, Proj1 proj1 = Proj1{},
                Proj2 proj2 = Proj2{}) const
     {
-        return merge_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+        return merge_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2),
                               ::std::move(result), comp, proj1, proj2);
     }
 };
@@ -7132,8 +7132,8 @@ struct min_fn
     static constexpr iter_value_t<iterator_t<Rng>>
     impl(Rng&& rng, Comp& comp, Proj& proj)
     {
-        auto first = nano::begin(rng);
-        const auto last = nano::end(rng);
+        auto first = ::nano::begin(rng);
+        const auto last = ::nano::end(rng);
 
         // Empty ranges not allowed
         auto result = *first;
@@ -7141,7 +7141,7 @@ struct min_fn
         while (++first != last)
         {
             auto&& val = *first;
-            if (nano::invoke(comp, nano::invoke(proj, val), nano::invoke(proj, result)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, val), ::nano::invoke(proj, result)))
             {
                 result = ::std::forward<decltype(val)>(val);
             }
@@ -7155,7 +7155,7 @@ struct min_fn
     constexpr ::std::enable_if_t<indirect_strict_weak_order<Comp, projected<const T*, Proj>>, const T&>
     operator()(const T& a, const T& b, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return nano::invoke(comp, nano::invoke(proj, b), nano::invoke(proj, a)) ? b : a;
+        return ::nano::invoke(comp, ::nano::invoke(proj, b), ::nano::invoke(proj, a)) ? b : a;
     }
 
     template <typename T, typename Comp = ranges::less, typename Proj = identity>
@@ -7211,7 +7211,7 @@ struct move_fn
 
         for (iter_difference_t<I> i{0}; i < dist; i++)
         {
-            *result = nano::iter_move(first);
+            *result = ::nano::iter_move(first);
             ++first;
             ++result;
         }
@@ -7225,7 +7225,7 @@ struct move_fn
     {
         while (first != last)
         {
-            *result = nano::iter_move(first);
+            *result = ::nano::iter_move(first);
             ++first;
             ++result;
         }
@@ -7248,7 +7248,7 @@ struct move_fn
                                  move_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result) const
     {
-        return move_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), priority_tag<1>{});
+        return move_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), priority_tag<1>{});
     }
 };
 
@@ -7273,7 +7273,7 @@ struct move_backward_fn
 
         while (it != first)
         {
-            *--result = nano::iter_move(--it);
+            *--result = ::nano::iter_move(--it);
         }
 
         return {::std::move(last), ::std::move(result)};
@@ -7283,7 +7283,7 @@ struct move_backward_fn
     static constexpr ::std::enable_if_t<!same_as<I, S>, move_backward_result<I, O>>
     impl(I first, S sent, O result)
     {
-        I last = nano::next(first, sent);
+        I last = ::nano::next(first, sent);
         return impl(::std::move(first), ::std::move(last), ::std::move(result));
     }
 
@@ -7303,7 +7303,7 @@ struct move_backward_fn
                                  move_backward_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result) const
     {
-        return move_backward_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result));
+        return move_backward_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result));
     }
 };
 
@@ -7349,7 +7349,7 @@ struct swap_ranges_fn
     {
         while (first1 != last1 && first2 != last2)
         {
-            nano::iter_swap(first1, first2);
+            ::nano::iter_swap(first1, first2);
             ++first1;
             ++first2;
         }
@@ -7362,7 +7362,7 @@ struct swap_ranges_fn
     {
         while (first1 != last1)
         {
-            nano::iter_swap(first1, first2);
+            ::nano::iter_swap(first1, first2);
             ++first1;
             ++first2;
         }
@@ -7394,7 +7394,7 @@ struct swap_ranges_fn
                                  swap_ranges_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>>>
     operator()(Rng1&& rng1, Rng2&& rng2) const
     {
-        return swap_ranges_fn::impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2));
+        return swap_ranges_fn::impl4(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2));
     }
 
     template <typename Rng1, typename I2>
@@ -7403,7 +7403,7 @@ struct swap_ranges_fn
                                                  swap_ranges_result<borrowed_iterator_t<Rng1>, I2>>
     operator()(Rng1&& rng1, I2 first2) const
     {
-        return swap_ranges_fn::impl3(nano::begin(rng1), nano::end(rng1), ::std::move(first2));
+        return swap_ranges_fn::impl3(::nano::begin(rng1), ::nano::end(rng1), ::std::move(first2));
     }
 };
 
@@ -7478,8 +7478,8 @@ struct rotate_fn
     do_rotate_one_left(I first, S last)
     {
         // Stash the first element and move everything one place
-        iter_value_t<I> val = nano::iter_move(first);
-        auto ret = nano::move(nano::next(first), ::std::move(last), first);
+        iter_value_t<I> val = ::nano::iter_move(first);
+        auto ret = ::nano::move(::nano::next(first), ::std::move(last), first);
         *ret.out = ::std::move(val);
         return {::std::move(ret.out), ::std::move(ret.in)};
     }
@@ -7488,9 +7488,9 @@ struct rotate_fn
     static constexpr subrange<I>
     do_rotate_one_right(I first, I middle)
     {
-        I last = nano::next(middle);
-        iter_value_t<I> val = nano::iter_move(middle);
-        nano::move_backward(first, middle, last);
+        I last = ::nano::next(middle);
+        iter_value_t<I> val = ::nano::iter_move(middle);
+        ::nano::move_backward(first, middle, last);
         *first = ::std::move(val);
         return {::std::move(++first), ::std::move(last)};
     }
@@ -7501,8 +7501,8 @@ struct rotate_fn
     {
         constexpr bool is_tma = ::std::is_trivially_move_assignable<iter_value_t<I>>::value;
 
-        auto i = nano::distance(first, middle);
-        auto j = nano::distance(first, last) - i;
+        auto i = ::nano::distance(first, middle);
+        auto j = ::nano::distance(first, last) - i;
         I out = first + (last - middle);
 
         while (i != j)
@@ -7512,9 +7512,9 @@ struct rotate_fn
                 if (is_tma && j == 1)
                 {
                     do_rotate_one_right(middle - i, middle);
-                    return {::std::move(out), nano::next(first, last)};
+                    return {::std::move(out), ::nano::next(first, last)};
                 }
-                nano::swap_ranges(middle - i, unreachable_sentinel, middle, middle + j);
+                ::nano::swap_ranges(middle - i, unreachable_sentinel, middle, middle + j);
                 i -= j;
             }
             else
@@ -7522,22 +7522,22 @@ struct rotate_fn
                 if (is_tma && i == 1)
                 {
                     do_rotate_one_left(middle - i, middle + j);
-                    return {::std::move(out), nano::next(first, last)};
+                    return {::std::move(out), ::nano::next(first, last)};
                 }
-                nano::swap_ranges(middle - i, middle, middle + j - i, unreachable_sentinel);
+                ::nano::swap_ranges(middle - i, middle, middle + j - i, unreachable_sentinel);
                 j -= i;
             }
         }
-        nano::swap_ranges(middle - i, middle, middle, unreachable_sentinel);
+        ::nano::swap_ranges(middle - i, middle, middle, unreachable_sentinel);
 
-        return {::std::move(out), nano::next(first, last)};
+        return {::std::move(out), ::nano::next(first, last)};
     }
 
     template <typename I, typename S>
     static constexpr ::std::enable_if_t<bidirectional_iterator<I>, subrange<I>>
     do_rotate(I first, I middle, S last, priority_tag<1>)
     {
-        if (::std::is_trivially_move_assignable<iter_value_t<I>>::value && nano::next(middle) == last)
+        if (::std::is_trivially_move_assignable<iter_value_t<I>>::value && ::nano::next(middle) == last)
         {
             return do_rotate_one_right(::std::move(first), ::std::move(middle));
         }
@@ -7549,15 +7549,15 @@ struct rotate_fn
     static constexpr subrange<I>
     do_rotate(I first, I middle, S last, priority_tag<0>)
     {
-        if (::std::is_trivially_move_assignable<iter_value_t<I>>::value && nano::next(first) == middle)
+        if (::std::is_trivially_move_assignable<iter_value_t<I>>::value && ::nano::next(first) == middle)
         {
             return do_rotate_one_left(::std::move(first), ::std::move(last));
         }
 
         if (sized_sentinel_for<I, I> && sized_sentinel_for<S, I> &&
-            nano::distance(first, middle) == nano::distance(middle, last))
+            ::nano::distance(first, middle) == ::nano::distance(middle, last))
         {
-            auto ret = nano::swap_ranges(first, middle, middle, unreachable_sentinel);
+            auto ret = ::nano::swap_ranges(first, middle, middle, unreachable_sentinel);
             return {::std::move(ret.in1), ::std::move(ret.in2)};
         }
 
@@ -7565,7 +7565,7 @@ struct rotate_fn
 
         do
         {
-            nano::iter_swap(first++, next++);
+            ::nano::iter_swap(first++, next++);
             if (first == middle)
             {
                 middle = next;
@@ -7577,7 +7577,7 @@ struct rotate_fn
 
         while (next != last)
         {
-            nano::iter_swap(first++, next++);
+            ::nano::iter_swap(first++, next++);
             if (first == middle)
             {
                 middle = next;
@@ -7597,7 +7597,7 @@ struct rotate_fn
     {
         if (first == middle)
         {
-            auto ret = nano::next(first, last);
+            auto ret = ::nano::next(first, last);
             return {ret, ret};
         }
         if (middle == last)
@@ -7620,7 +7620,7 @@ struct rotate_fn
     constexpr ::std::enable_if_t<forward_range<Rng> && permutable<iterator_t<Rng>>, borrowed_subrange_t<Rng>>
     operator()(Rng&& rng, iterator_t<Rng> middle) const
     {
-        return rotate_fn::impl(nano::begin(rng), ::std::move(middle), nano::end(rng));
+        return rotate_fn::impl(::nano::begin(rng), ::std::move(middle), ::nano::end(rng));
     }
 };
 
@@ -8096,7 +8096,7 @@ struct destroy_fn
     {
         for (; first != last; ++first)
         {
-            nano::destroy_at(::std::addressof(*first));
+            ::nano::destroy_at(::std::addressof(*first));
         }
         return first;
     }
@@ -8114,7 +8114,7 @@ struct destroy_fn
                        borrowed_iterator_t<Rng>>
     operator()(Rng&& rng) const noexcept
     {
-        return destroy_fn::impl(nano::begin(rng), nano::end(rng));
+        return destroy_fn::impl(::nano::begin(rng), ::nano::end(rng));
     }
 };
 
@@ -8131,7 +8131,7 @@ struct destroy_n_fn
     ::std::enable_if_t<no_throw_input_iterator<I> && destructible<iter_value_t<I>>, I>
     operator()(I first, iter_difference_t<I> n) const noexcept
     {
-        return nano::destroy(make_counted_iterator(::std::move(first), n), default_sentinel).base();
+        return ::nano::destroy(make_counted_iterator(::std::move(first), n), default_sentinel).base();
     }
 };
 
@@ -8184,13 +8184,13 @@ struct temporary_vector
     temporary_vector&
     operator=(temporary_vector&& other) noexcept
     {
-        nano::swap(start_, other.start_);
-        nano::swap(end_, other.end_);
-        nano::swap(end_cap_, other.end_cap_);
+        ::nano::swap(start_, other.start_);
+        ::nano::swap(end_, other.end_);
+        ::nano::swap(end_cap_, other.end_cap_);
         return *this;
     }
 
-    ~temporary_vector() { nano::destroy(begin(), end()); }
+    ~temporary_vector() { ::nano::destroy(begin(), end()); }
 
     ::std::size_t
     size() const
@@ -8248,7 +8248,7 @@ struct temporary_vector
     void
     clear()
     {
-        nano::destroy(begin(), end());
+        ::nano::destroy(begin(), end());
         end_ = start_.get();
     }
 
@@ -8704,7 +8704,7 @@ struct inplace_merge_fn
                 {
                     return;
                 }
-                if (nano::invoke(pred, nano::invoke(proj, *middle), nano::invoke(proj, *first)))
+                if (::nano::invoke(pred, ::nano::invoke(proj, *middle), ::nano::invoke(proj, *first)))
                 {
                     break;
                 }
@@ -8733,9 +8733,9 @@ struct inplace_merge_fn
             {
                 // len >= 1, len2 >= 2
                 len21 = len2 / 2;
-                m2 = nano::next(middle, len21);
-                m1 = nano::upper_bound(first, middle, nano::invoke(proj, *m2), ::std::ref(pred), ::std::ref(proj));
-                len11 = nano::distance(first, m1);
+                m2 = ::nano::next(middle, len21);
+                m1 = ::nano::upper_bound(first, middle, ::nano::invoke(proj, *m2), ::std::ref(pred), ::std::ref(proj));
+                len11 = ::nano::distance(first, m1);
             }
             else
             {
@@ -8743,20 +8743,20 @@ struct inplace_merge_fn
                 {
                     // len1 >= len2 && len2 > 0, therefore len2 == 1
                     // It is known *first > *middle
-                    nano::iter_swap(first, middle);
+                    ::nano::iter_swap(first, middle);
                     return;
                 }
                 // len1 >= 2, len2 >= 1
                 len11 = len1 / 2;
-                m1 = nano::next(first, len11);
-                m2 = nano::lower_bound(middle, last, nano::invoke(proj, *m1), ::std::ref(pred), ::std::ref(proj));
-                len21 = nano::distance(middle, m2);
+                m1 = ::nano::next(first, len11);
+                m2 = ::nano::lower_bound(middle, last, ::nano::invoke(proj, *m1), ::std::ref(pred), ::std::ref(proj));
+                len21 = ::nano::distance(middle, m2);
             }
             dist_t len12 = len1 - len11; // distance(m1, middle)
             dist_t len22 = len2 - len21; // distance(m2, end)
             // [first, m1) [m1, middle) [middle, m2) [m2, end)
             // swap middle two partitions
-            middle = nano::rotate(m1, ::std::move(middle), m2).begin();
+            middle = ::nano::rotate(m1, ::std::move(middle), m2).begin();
             // len12 and len21 now have swapped meanings
             // merge smaller range with recursive call and larger with tail recursion elimination
             if (len11 + len21 < len12 + len22)
@@ -8785,22 +8785,22 @@ struct inplace_merge_fn
     {
         if (len1 <= len2)
         {
-            nano::move(first, middle, nano::back_inserter(buf));
-            nano::merge(nano::make_move_iterator(buf.begin()), nano::make_move_sentinel(buf.end()),
-                        nano::make_move_iterator(::std::move(middle)), nano::make_move_sentinel(::std::move(last)),
+            ::nano::move(first, middle, ::nano::back_inserter(buf));
+            ::nano::merge(::nano::make_move_iterator(buf.begin()), ::nano::make_move_sentinel(buf.end()),
+                        ::nano::make_move_iterator(::std::move(middle)), ::nano::make_move_sentinel(::std::move(last)),
                         ::std::move(first), ::std::ref(comp), ::std::ref(proj), ::std::ref(proj));
         }
         else
         {
-            nano::move(middle, last, nano::back_inserter(buf));
-            using ri_t = nano::reverse_iterator<I>;
+            ::nano::move(middle, last, ::nano::back_inserter(buf));
+            using ri_t = ::nano::reverse_iterator<I>;
             // TODO: C++17's not_fn would be useful
             auto not_comp = [&comp](auto&& a, auto&& b) {
-                return !nano::invoke(comp, ::std::forward<decltype(a)>(a), ::std::forward<decltype(b)>(b));
+                return !::nano::invoke(comp, ::std::forward<decltype(a)>(a), ::std::forward<decltype(b)>(b));
             };
-            nano::merge(nano::make_move_iterator(ri_t{::std::move(middle)}),
-                        nano::make_move_sentinel(ri_t{::std::move(first)}), nano::make_move_iterator(nano::rbegin(buf)),
-                        nano::make_move_sentinel(nano::rend(buf)), nano::make_reverse_iterator(::std::move(last)),
+            ::nano::merge(::nano::make_move_iterator(ri_t{::std::move(middle)}),
+                        ::nano::make_move_sentinel(ri_t{::std::move(first)}), ::nano::make_move_iterator(::nano::rbegin(buf)),
+                        ::nano::make_move_sentinel(::nano::rend(buf)), ::nano::make_reverse_iterator(::std::move(last)),
                         not_comp, ::std::ref(proj), ::std::ref(proj));
         }
     }
@@ -8809,7 +8809,7 @@ struct inplace_merge_fn
     static I
     impl(I first, I middle, S last, Comp& comp, Proj& proj)
     {
-        auto dist1 = nano::distance(first, middle);
+        auto dist1 = ::nano::distance(first, middle);
         I ilast = middle;
         iter_difference_t<I> dist2 = 0;
         while (ilast != last)
@@ -8818,7 +8818,7 @@ struct inplace_merge_fn
             ++dist2;
         }
 
-        const auto sz = nano::min(dist1, dist2);
+        const auto sz = ::nano::min(dist1, dist2);
         auto buf = detail::temporary_vector<iter_value_t<I>>(sz);
 
         if (buf.capacity() >= static_cast<::std::size_t>(sz))
@@ -8845,7 +8845,7 @@ struct inplace_merge_fn
     ::std::enable_if_t<bidirectional_range<Rng> && sortable<iterator_t<Rng>, Comp, Proj>, borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, iterator_t<Rng> middle, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return inplace_merge_fn::impl(nano::begin(rng), ::std::move(middle), nano::end(rng), comp, proj);
+        return inplace_merge_fn::impl(::nano::begin(rng), ::std::move(middle), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -8902,7 +8902,7 @@ struct is_heap_until_fn
         {
             I cp = first + c;
 
-            if (nano::invoke(comp, nano::invoke(proj, *pp), nano::invoke(proj, *cp)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, *pp), ::nano::invoke(proj, *cp)))
             {
                 return cp;
             }
@@ -8910,7 +8910,7 @@ struct is_heap_until_fn
             ++c;
             ++cp;
 
-            if (c == n || nano::invoke(comp, nano::invoke(proj, *pp), nano::invoke(proj, *cp)))
+            if (c == n || ::nano::invoke(comp, ::nano::invoke(proj, *pp), ::nano::invoke(proj, *cp)))
             {
                 return cp;
             }
@@ -8930,7 +8930,7 @@ struct is_heap_until_fn
         random_access_iterator<I> && sentinel_for<S, I> && indirect_strict_weak_order<Comp, projected<I, Proj>>, I>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        auto n = nano::distance(first, last);
+        auto n = ::nano::distance(first, last);
         return is_heap_until_fn::impl(::std::move(first), n, comp, proj);
     }
 
@@ -8940,7 +8940,7 @@ struct is_heap_until_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return is_heap_until_fn::impl(nano::begin(rng), nano::distance(rng), comp, proj);
+        return is_heap_until_fn::impl(::nano::begin(rng), ::nano::distance(rng), comp, proj);
     }
 };
 
@@ -8964,7 +8964,7 @@ struct is_heap_fn
         random_access_iterator<I> && sentinel_for<S, I> && indirect_strict_weak_order<Comp, projected<I, Proj>>, bool>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto n = nano::distance(first, last);
+        const auto n = ::nano::distance(first, last);
         return is_heap_until_fn::impl(::std::move(first), n, comp, proj) == last;
     }
 
@@ -8973,7 +8973,7 @@ struct is_heap_fn
                        bool>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return is_heap_until_fn::impl(nano::begin(rng), nano::distance(rng), comp, proj) == nano::end(rng);
+        return is_heap_until_fn::impl(::nano::begin(rng), ::nano::distance(rng), comp, proj) == ::nano::end(rng);
     }
 };
 
@@ -9006,8 +9006,8 @@ struct is_partitioned_fn
     static constexpr bool
     impl(I first, S last, Pred& pred, Proj& proj)
     {
-        first = nano::find_if_not(::std::move(first), last, pred, proj);
-        return nano::find_if(::std::move(first), last, pred, proj) == last;
+        first = ::nano::find_if_not(::std::move(first), last, pred, proj);
+        return ::nano::find_if(::std::move(first), last, pred, proj) == last;
     }
 
   public:
@@ -9024,7 +9024,7 @@ struct is_partitioned_fn
                                  bool>
     operator()(Rng&& rng, Pred pred = Pred{}, Proj proj = Proj{}) const
     {
-        return is_partitioned_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return is_partitioned_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -9073,7 +9073,7 @@ struct mismatch_fn
     static constexpr mismatch_result<I1, I2>
     impl3(I1 first1, S1 last1, I2 first2, Pred& pred, Proj1& proj1, Proj2& proj2)
     {
-        while (first1 != last1 && nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+        while (first1 != last1 && ::nano::invoke(pred, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
         {
             ++first1;
             ++first2;
@@ -9087,7 +9087,7 @@ struct mismatch_fn
     impl4(I1 first1, S1 last1, I2 first2, S2 last2, Pred& pred, Proj1& proj1, Proj2& proj2)
     {
         while (first1 != last1 && first2 != last2 &&
-               nano::invoke(pred, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+               ::nano::invoke(pred, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
         {
             ++first1;
             ++first2;
@@ -9119,7 +9119,7 @@ struct mismatch_fn
         mismatch_result<borrowed_iterator_t<Rng1>, ::std::decay_t<I2>>>
     operator()(Rng1&& rng1, I2&& first2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return mismatch_fn::impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2), pred, proj1, proj2);
+        return mismatch_fn::impl3(::nano::begin(rng1), ::nano::end(rng1), ::std::forward<I2>(first2), pred, proj1, proj2);
     }
 
     // four legged
@@ -9145,7 +9145,7 @@ struct mismatch_fn
         mismatch_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>>>
     operator()(Rng1&& rng1, Rng2&& rng2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return mismatch_fn::impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred, proj1,
+        return mismatch_fn::impl4(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2), pred, proj1,
                                   proj2);
     }
 };
@@ -9172,8 +9172,8 @@ struct is_permutation_fn
     {
         for (auto it = first1; it != last1; ++it)
         {
-            const auto comp = [&pred, val = nano::invoke(proj1, *it)](const auto& t) {
-                return nano::invoke(pred, t, val);
+            const auto comp = [&pred, val = ::nano::invoke(proj1, *it)](const auto& t) {
+                return ::nano::invoke(pred, t, val);
             };
 
             // Check whether we have already seen this value
@@ -9193,7 +9193,7 @@ struct is_permutation_fn
 
             // Count how many times *it appears in the remainder of range1
             // (we can start from one)
-            const auto count2 = iter_difference_t<I1>{1} + count_if_fn::impl(nano::next(it), last1, comp, proj1);
+            const auto count2 = iter_difference_t<I1>{1} + count_if_fn::impl(::nano::next(it), last1, comp, proj1);
 
             if (count1 != count2)
             {
@@ -9219,13 +9219,13 @@ struct is_permutation_fn
         }
 
         // If we have only one value left in range1, it can't be in range2
-        const auto d = nano::distance(first1, last1);
+        const auto d = ::nano::distance(first1, last1);
         if (d == 1)
         {
             return false;
         }
 
-        auto last2 = nano::next(first2, d);
+        auto last2 = ::nano::next(first2, d);
 
         return is_permutation_fn::process_tail(::std::move(first1), ::std::move(last1), ::std::move(first2),
                                                ::std::move(last2), pred, proj1, proj2);
@@ -9248,7 +9248,7 @@ struct is_permutation_fn
 
         // If we have different numbers of elements left in the ranges,
         // they are not permutations of one another
-        if (nano::distance(first1, last1) != nano::distance(first2, last2))
+        if (::nano::distance(first1, last1) != ::nano::distance(first2, last2))
         {
             return false;
         }
@@ -9269,7 +9269,7 @@ struct is_permutation_fn
     {
         if constexpr (sized_sentinel_for<S1, I1> && sized_sentinel_for<S2, I2>)
         {
-            if (nano::distance(first1, last1) != nano::distance(first2, last2))
+            if (::nano::distance(first1, last1) != ::nano::distance(first2, last2))
             {
                 return false;
             }
@@ -9303,15 +9303,15 @@ struct is_permutation_fn
     {
         if (sized_range<Rng1> && sized_range<Rng2>)
         {
-            if (nano::distance(rng1) != nano::distance(rng2))
+            if (::nano::distance(rng1) != ::nano::distance(rng2))
             {
                 return false;
             }
 
-            return is_permutation_fn::impl3(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), pred, proj1, proj2);
+            return is_permutation_fn::impl3(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), pred, proj1, proj2);
         }
 
-        return is_permutation_fn::impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2), pred,
+        return is_permutation_fn::impl4(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2), pred,
                                         proj1, proj2);
     }
 
@@ -9324,7 +9324,7 @@ struct is_permutation_fn
                                                  bool>
     operator()(Rng1&& rng1, I2&& first2, Pred pred = Pred{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return is_permutation_fn::impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2), pred, proj1,
+        return is_permutation_fn::impl3(::nano::begin(rng1), ::nano::end(rng1), ::std::forward<I2>(first2), pred, proj1,
                                         proj2);
     }
 };
@@ -9378,7 +9378,7 @@ struct is_sorted_until_fn
 
         while (n != last)
         {
-            if (nano::invoke(comp, nano::invoke(proj, *n), nano::invoke(proj, *first)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, *n), ::nano::invoke(proj, *first)))
             {
                 return n;
             }
@@ -9404,7 +9404,7 @@ struct is_sorted_until_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return is_sorted_until_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
+        return is_sorted_until_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -9436,7 +9436,7 @@ struct is_sorted_fn
         forward_range<Rng> && indirect_strict_weak_order<Comp, projected<iterator_t<Rng>, Proj>>, bool>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return is_sorted_until_fn::impl(nano::begin(rng), nano::end(rng), comp, proj) == nano::end(rng);
+        return is_sorted_until_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj) == ::nano::end(rng);
     }
 };
 
@@ -9471,11 +9471,11 @@ struct lexicographical_compare_fn
     {
         while (first1 != last1 && first2 != last2)
         {
-            if (nano::invoke(comp, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (::nano::invoke(comp, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 return true;
             }
-            if (nano::invoke(comp, nano::invoke(proj2, *first2), nano::invoke(proj1, *first1)))
+            if (::nano::invoke(comp, ::nano::invoke(proj2, *first2), ::nano::invoke(proj1, *first1)))
             {
                 return false;
             }
@@ -9508,7 +9508,7 @@ struct lexicographical_compare_fn
         bool>
     operator()(Rng1&& rng1, Rng2&& rng2, Comp comp = Comp{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return lexicographical_compare_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+        return lexicographical_compare_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2),
                                                 comp, proj1, proj2);
     }
 };
@@ -9583,12 +9583,12 @@ sift_up_n(I first, iter_difference_t<I> n, Comp& comp, Proj& proj)
         I last = first + n;
         n = (n - 2) / 2;
         I i = first + n;
-        if (nano::invoke(comp, nano::invoke(proj, *i), nano::invoke(proj, *--last)))
+        if (::nano::invoke(comp, ::nano::invoke(proj, *i), ::nano::invoke(proj, *--last)))
         {
-            iter_value_t<I> v = nano::iter_move(last);
+            iter_value_t<I> v = ::nano::iter_move(last);
             do
             {
-                *last = nano::iter_move(i);
+                *last = ::nano::iter_move(i);
                 last = i;
                 if (n == 0)
                 {
@@ -9596,7 +9596,7 @@ sift_up_n(I first, iter_difference_t<I> n, Comp& comp, Proj& proj)
                 }
                 n = (n - 1) / 2;
                 i = first + n;
-            } while (nano::invoke(comp, nano::invoke(proj, *i), nano::invoke(proj, v)));
+            } while (::nano::invoke(comp, ::nano::invoke(proj, *i), ::nano::invoke(proj, v)));
             *last = ::std::move(v);
         }
     }
@@ -9618,7 +9618,7 @@ sift_down_n(I first, iter_difference_t<I> n, I start, Comp& comp, Proj& proj)
     child = 2 * child + 1;
     I child_i = first + child;
 
-    if ((child + 1) < n && nano::invoke(comp, nano::invoke(proj, *child_i), nano::invoke(proj, *(child_i + 1))))
+    if ((child + 1) < n && ::nano::invoke(comp, ::nano::invoke(proj, *child_i), ::nano::invoke(proj, *(child_i + 1))))
     {
         // right-child exists and is greater than left-child
         ++child_i;
@@ -9626,17 +9626,17 @@ sift_down_n(I first, iter_difference_t<I> n, I start, Comp& comp, Proj& proj)
     }
 
     // check if we are in heap-order
-    if (nano::invoke(comp, nano::invoke(proj, *child_i), nano::invoke(proj, *start)))
+    if (::nano::invoke(comp, ::nano::invoke(proj, *child_i), ::nano::invoke(proj, *start)))
     {
         // we are, start is larger than its largest child
         return;
     }
 
-    iter_value_t<I> top = nano::iter_move(start);
+    iter_value_t<I> top = ::nano::iter_move(start);
     do
     {
         // we are not in heap-order, swap the parent with it's largest child
-        *start = nano::iter_move(child_i);
+        *start = ::nano::iter_move(child_i);
         start = child_i;
 
         if ((n - 2) / 2 < child)
@@ -9648,7 +9648,7 @@ sift_down_n(I first, iter_difference_t<I> n, I start, Comp& comp, Proj& proj)
         child = 2 * child + 1;
         child_i = first + child;
 
-        if ((child + 1) < n && nano::invoke(comp, nano::invoke(proj, *child_i), nano::invoke(proj, *(child_i + 1))))
+        if ((child + 1) < n && ::nano::invoke(comp, ::nano::invoke(proj, *child_i), ::nano::invoke(proj, *(child_i + 1))))
         {
             // right-child exists and is greater than left-child
             ++child_i;
@@ -9656,7 +9656,7 @@ sift_down_n(I first, iter_difference_t<I> n, I start, Comp& comp, Proj& proj)
         }
 
         // check if we are in heap-order
-    } while (!nano::invoke(comp, nano::invoke(proj, *child_i), nano::invoke(proj, top)));
+    } while (!::nano::invoke(comp, ::nano::invoke(proj, *child_i), ::nano::invoke(proj, top)));
     *start = ::std::move(top);
 }
 
@@ -9696,7 +9696,7 @@ struct make_heap_fn
     constexpr ::std::enable_if_t<random_access_iterator<I> && sentinel_for<S, I> && sortable<I, Comp, Proj>, I>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto n = nano::distance(first, last);
+        const auto n = ::nano::distance(first, last);
         return make_heap_fn::impl(::std::move(first), n, comp, proj);
     }
 
@@ -9704,7 +9704,7 @@ struct make_heap_fn
     constexpr ::std::enable_if_t<random_access_range<Rng> && sortable<iterator_t<Rng>, Comp>, borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return make_heap_fn::impl(nano::begin(rng), nano::distance(rng), comp, proj);
+        return make_heap_fn::impl(::nano::begin(rng), ::nano::distance(rng), comp, proj);
     }
 };
 
@@ -9737,8 +9737,8 @@ struct max_fn
     static constexpr iter_value_t<iterator_t<Rng>>
     impl(Rng&& rng, Comp& comp, Proj& proj)
     {
-        auto first = nano::begin(rng);
-        const auto last = nano::end(rng);
+        auto first = ::nano::begin(rng);
+        const auto last = ::nano::end(rng);
 
         // Empty ranges not allowed
         auto result = *first;
@@ -9746,7 +9746,7 @@ struct max_fn
         while (++first != last)
         {
             auto&& val = *first;
-            if (nano::invoke(comp, nano::invoke(proj, result), nano::invoke(proj, val)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, result), ::nano::invoke(proj, val)))
             {
                 result = ::std::forward<decltype(val)>(val);
             }
@@ -9761,7 +9761,7 @@ struct max_fn
     operator()(const T& a, const T& b, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
         // *sigh*, this should be fixed in STL2
-        return !nano::invoke(comp, nano::invoke(proj, a), nano::invoke(proj, b)) ? a : b;
+        return !::nano::invoke(comp, ::nano::invoke(proj, a), ::nano::invoke(proj, b)) ? a : b;
     }
 
     template <typename T, typename Comp = ranges::less, typename Proj = identity>
@@ -9814,10 +9814,10 @@ struct max_element_fn
             return first;
         }
 
-        I i = nano::next(first);
+        I i = ::nano::next(first);
         while (i != last)
         {
-            if (!nano::invoke(comp, nano::invoke(proj, *i), nano::invoke(proj, *first)))
+            if (!::nano::invoke(comp, ::nano::invoke(proj, *i), ::nano::invoke(proj, *first)))
             {
                 first = i;
             }
@@ -9842,7 +9842,7 @@ struct max_element_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return max_element_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
+        return max_element_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -9882,10 +9882,10 @@ struct min_element_fn
             return first;
         }
 
-        I i = nano::next(first);
+        I i = ::nano::next(first);
         while (i != last)
         {
-            if (nano::invoke(comp, nano::invoke(proj, *i), nano::invoke(proj, *first)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, *i), ::nano::invoke(proj, *first)))
             {
                 first = i;
             }
@@ -9910,7 +9910,7 @@ struct min_element_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return min_element_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
+        return min_element_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -9949,8 +9949,8 @@ struct minmax_fn
     static constexpr minmax_result<T>
     impl(Rng&& rng, Comp& comp, Proj& proj)
     {
-        auto first = nano::begin(rng);
-        const auto last = nano::end(rng);
+        auto first = ::nano::begin(rng);
+        const auto last = ::nano::end(rng);
 
         // Empty ranges not allowed
         auto temp = *first;
@@ -9960,11 +9960,11 @@ struct minmax_fn
         {
             {
                 auto&& val = *first;
-                if (nano::invoke(comp, nano::invoke(proj, val), nano::invoke(proj, result.min)))
+                if (::nano::invoke(comp, ::nano::invoke(proj, val), ::nano::invoke(proj, result.min)))
                 {
                     result.min = ::std::forward<decltype(val)>(val);
                 }
-                else if (!nano::invoke(comp, nano::invoke(proj, val), nano::invoke(proj, result.max)))
+                else if (!::nano::invoke(comp, ::nano::invoke(proj, val), ::nano::invoke(proj, result.max)))
                 {
                     result.max = ::std::forward<decltype(val)>(val);
                 }
@@ -9977,11 +9977,11 @@ struct minmax_fn
                 // Last iteration
                 if (++first == last)
                 {
-                    if (nano::invoke(comp, nano::invoke(proj, val1), nano::invoke(proj, result.min)))
+                    if (::nano::invoke(comp, ::nano::invoke(proj, val1), ::nano::invoke(proj, result.min)))
                     {
                         result.min = ::std::move(val1);
                     }
-                    else if (!nano::invoke(comp, nano::invoke(proj, val1), nano::invoke(proj, result.max)))
+                    else if (!::nano::invoke(comp, ::nano::invoke(proj, val1), ::nano::invoke(proj, result.max)))
                     {
                         result.max = ::std::move(val1);
                     }
@@ -9989,24 +9989,24 @@ struct minmax_fn
                 }
 
                 auto&& val2 = *first;
-                if (nano::invoke(comp, nano::invoke(proj, val2), nano::invoke(proj, val1)))
+                if (::nano::invoke(comp, ::nano::invoke(proj, val2), ::nano::invoke(proj, val1)))
                 {
-                    if (nano::invoke(comp, nano::invoke(proj, val2), nano::invoke(proj, result.min)))
+                    if (::nano::invoke(comp, ::nano::invoke(proj, val2), ::nano::invoke(proj, result.min)))
                     {
                         result.min = ::std::forward<decltype(val2)>(val2);
                     }
-                    if (!nano::invoke(comp, nano::invoke(proj, val1), nano::invoke(proj, result.max)))
+                    if (!::nano::invoke(comp, ::nano::invoke(proj, val1), ::nano::invoke(proj, result.max)))
                     {
                         result.max = ::std::move(val1);
                     }
                 }
                 else
                 {
-                    if (nano::invoke(comp, nano::invoke(proj, val1), nano::invoke(proj, result.min)))
+                    if (::nano::invoke(comp, ::nano::invoke(proj, val1), ::nano::invoke(proj, result.min)))
                     {
                         result.min = ::std::move(val1);
                     }
-                    if (!nano::invoke(comp, nano::invoke(proj, val2), nano::invoke(proj, result.max)))
+                    if (!::nano::invoke(comp, ::nano::invoke(proj, val2), ::nano::invoke(proj, result.max)))
                     {
                         result.max = ::std::forward<decltype(val2)>(val2);
                     }
@@ -10022,7 +10022,7 @@ struct minmax_fn
     constexpr ::std::enable_if_t<indirect_strict_weak_order<Comp, projected<const T*, Proj>>, minmax_result<const T&>>
     operator()(const T& a, const T& b, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        if (nano::invoke(comp, nano::invoke(proj, b), nano::invoke(proj, a)))
+        if (::nano::invoke(comp, ::nano::invoke(proj, b), ::nano::invoke(proj, a)))
         {
             return {b, a};
         }
@@ -10092,11 +10092,11 @@ struct minmax_element_fn
             return result;
         }
 
-        if (nano::invoke(comp, nano::invoke(proj, *first), nano::invoke(proj, *result.min)))
+        if (::nano::invoke(comp, ::nano::invoke(proj, *first), ::nano::invoke(proj, *result.min)))
         {
             result.min = first;
         }
-        else if (!nano::invoke(comp, nano::invoke(proj, *first), nano::invoke(proj, *result.max)))
+        else if (!::nano::invoke(comp, ::nano::invoke(proj, *first), ::nano::invoke(proj, *result.max)))
         {
             result.max = first;
         }
@@ -10108,35 +10108,35 @@ struct minmax_element_fn
             // Last iteration
             if (++first == last)
             {
-                if (nano::invoke(comp, nano::invoke(proj, *it), nano::invoke(proj, *result.min)))
+                if (::nano::invoke(comp, ::nano::invoke(proj, *it), ::nano::invoke(proj, *result.min)))
                 {
                     result.min = ::std::move(it);
                 }
-                else if (!nano::invoke(comp, nano::invoke(proj, *it), nano::invoke(proj, *result.max)))
+                else if (!::nano::invoke(comp, ::nano::invoke(proj, *it), ::nano::invoke(proj, *result.max)))
                 {
                     result.max = ::std::move(it);
                 }
                 break;
             }
 
-            if (nano::invoke(comp, nano::invoke(proj, *first), nano::invoke(proj, *it)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, *first), ::nano::invoke(proj, *it)))
             {
-                if (nano::invoke(comp, nano::invoke(proj, *first), nano::invoke(proj, *result.min)))
+                if (::nano::invoke(comp, ::nano::invoke(proj, *first), ::nano::invoke(proj, *result.min)))
                 {
                     result.min = first;
                 }
-                if (!nano::invoke(comp, nano::invoke(proj, *it), nano::invoke(proj, *result.max)))
+                if (!::nano::invoke(comp, ::nano::invoke(proj, *it), ::nano::invoke(proj, *result.max)))
                 {
                     result.max = it;
                 }
             }
             else
             {
-                if (nano::invoke(comp, nano::invoke(proj, *it), nano::invoke(proj, *result.min)))
+                if (::nano::invoke(comp, ::nano::invoke(proj, *it), ::nano::invoke(proj, *result.min)))
                 {
                     result.min = it;
                 }
-                if (!nano::invoke(comp, nano::invoke(proj, *first), nano::invoke(proj, *result.max)))
+                if (!::nano::invoke(comp, ::nano::invoke(proj, *first), ::nano::invoke(proj, *result.max)))
                 {
                     result.max = first;
                 }
@@ -10162,7 +10162,7 @@ struct minmax_element_fn
                                  minmax_element_result<borrowed_iterator_t<Rng>>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return minmax_element_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
+        return minmax_element_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -10220,7 +10220,7 @@ struct reverse_fn
         I ret = last;
         while (first != last && first != --last)
         {
-            nano::iter_swap(first, last);
+            ::nano::iter_swap(first, last);
             ++first;
         }
 
@@ -10247,7 +10247,7 @@ struct reverse_fn
     constexpr ::std::enable_if_t<bidirectional_range<Rng>, borrowed_iterator_t<Rng>>
     operator()(Rng&& rng) const
     {
-        return reverse_fn::impl(nano::begin(rng), nano::end(rng));
+        return reverse_fn::impl(::nano::begin(rng), ::nano::end(rng));
     }
 };
 
@@ -10279,7 +10279,7 @@ struct next_permutation_fn
             return {::std::move(first), false};
         }
 
-        I last_it = nano::next(first, last);
+        I last_it = ::nano::next(first, last);
         I i = last_it;
 
         if (first == --i)
@@ -10291,20 +10291,20 @@ struct next_permutation_fn
         {
             I ip1 = i;
 
-            if (nano::invoke(comp, nano::invoke(proj, *--i), nano::invoke(proj, *ip1)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, *--i), ::nano::invoke(proj, *ip1)))
             {
                 I j = last_it;
-                while (!nano::invoke(comp, nano::invoke(proj, *i), nano::invoke(proj, *--j)))
+                while (!::nano::invoke(comp, ::nano::invoke(proj, *i), ::nano::invoke(proj, *--j)))
                     ;
 
-                nano::iter_swap(i, j);
-                nano::reverse(ip1, last_it);
+                ::nano::iter_swap(i, j);
+                ::nano::reverse(ip1, last_it);
                 return {::std::move(last_it), true};
             }
 
             if (i == first)
             {
-                nano::reverse(first, last_it);
+                ::nano::reverse(first, last_it);
                 return {::std::move(last_it), false};
             }
         }
@@ -10324,7 +10324,7 @@ struct next_permutation_fn
                                  next_permutation_result<borrowed_iterator_t<Rng>>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return next_permutation_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
+        return next_permutation_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -10368,7 +10368,7 @@ struct none_of_fn
                                  bool>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return !any_of_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return !any_of_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -10419,8 +10419,8 @@ struct nth_element_fn
         constexpr iter_difference_t<I> limit = 7;
 
         const auto pred = [&comp, &proj](auto&& t, auto&& u) {
-            return nano::invoke(comp, nano::invoke(proj, ::std::forward<decltype(t)>(t)),
-                                nano::invoke(proj, ::std::forward<decltype(u)>(u)));
+            return ::nano::invoke(comp, ::nano::invoke(proj, ::std::forward<decltype(t)>(t)),
+                                ::nano::invoke(proj, ::std::forward<decltype(u)>(u)));
         };
 
         I end = last;
@@ -10642,8 +10642,8 @@ struct nth_element_fn
     sort3(I x, I y, I z, Comp& comp, Proj& proj)
     {
         const auto pred = [&comp, &proj](auto&& t, auto&& u) {
-            return nano::invoke(comp, nano::invoke(proj, ::std::forward<decltype(t)>(t)),
-                                nano::invoke(proj, ::std::forward<decltype(u)>(u)));
+            return ::nano::invoke(comp, ::nano::invoke(proj, ::std::forward<decltype(t)>(t)),
+                                ::nano::invoke(proj, ::std::forward<decltype(u)>(u)));
         };
 
         if (!pred(*y, *x))
@@ -10695,7 +10695,7 @@ struct nth_element_fn
     ::std::enable_if_t<random_access_iterator<I> && sentinel_for<S, I> && sortable<I, Comp, Proj>, I> constexpr
     operator()(I first, I nth, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const I ilast = nano::next(nth, last);
+        const I ilast = ::nano::next(nth, last);
         impl(::std::move(first), nth, ::std::move(ilast), comp, proj);
         return ilast;
     }
@@ -10705,8 +10705,8 @@ struct nth_element_fn
                        borrowed_iterator_t<Rng>> constexpr
     operator()(Rng&& rng, iterator_t<Rng> nth, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto last = nano::next(nth, nano::end(rng));
-        impl(nano::begin(rng), ::std::move(nth), last, comp, proj);
+        const auto last = ::nano::next(nth, ::nano::end(rng));
+        impl(::nano::begin(rng), ::std::move(nth), last, comp, proj);
         return last;
     }
 };
@@ -10765,7 +10765,7 @@ struct pop_heap_fn
     {
         if (n > 1)
         {
-            nano::iter_swap(first, first + (n - 1));
+            ::nano::iter_swap(first, first + (n - 1));
             detail::sift_down_n(first, n - 1, first, comp, proj);
         }
 
@@ -10777,7 +10777,7 @@ struct pop_heap_fn
     constexpr ::std::enable_if_t<random_access_iterator<I> && sentinel_for<S, I> && sortable<I, Comp, Proj>, I>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto n = nano::distance(first, last);
+        const auto n = ::nano::distance(first, last);
         return pop_heap_fn::impl(::std::move(first), n, comp, proj);
     }
 
@@ -10786,7 +10786,7 @@ struct pop_heap_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return pop_heap_fn::impl(nano::begin(rng), nano::distance(rng), comp, proj);
+        return pop_heap_fn::impl(::nano::begin(rng), ::nano::distance(rng), comp, proj);
     }
 };
 
@@ -10828,7 +10828,7 @@ struct sort_heap_fn
     constexpr ::std::enable_if_t<random_access_iterator<I> && sentinel_for<S, I> && sortable<I, Comp, Proj>, I>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto n = nano::distance(first, last);
+        const auto n = ::nano::distance(first, last);
         return sort_heap_fn::impl(::std::move(first), n, comp, proj);
     }
 
@@ -10837,7 +10837,7 @@ struct sort_heap_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return sort_heap_fn::impl(nano::begin(rng), nano::distance(rng), comp, proj);
+        return sort_heap_fn::impl(::nano::begin(rng), ::nano::distance(rng), comp, proj);
     }
 };
 
@@ -10861,20 +10861,20 @@ struct partial_sort_fn
     static constexpr I
     impl(I first, I middle, S last, Comp& comp, Proj& proj)
     {
-        nano::make_heap(first, middle, comp, proj);
-        const auto len = nano::distance(first, middle);
+        ::nano::make_heap(first, middle, comp, proj);
+        const auto len = ::nano::distance(first, middle);
         I i = middle;
 
         while (i != last)
         {
-            if (nano::invoke(comp, nano::invoke(proj, *i), nano::invoke(proj, *first)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, *i), ::nano::invoke(proj, *first)))
             {
-                nano::iter_swap(i, first);
+                ::nano::iter_swap(i, first);
                 detail::sift_down_n(first, len, first, comp, proj);
             }
             ++i;
         }
-        nano::sort_heap(first, middle, comp, proj);
+        ::nano::sort_heap(first, middle, comp, proj);
         return i;
     }
 
@@ -10891,7 +10891,7 @@ struct partial_sort_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, iterator_t<Rng> middle, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return partial_sort_fn::impl(nano::begin(rng), ::std::move(middle), nano::end(rng), comp, proj);
+        return partial_sort_fn::impl(::nano::begin(rng), ::std::move(middle), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -10930,8 +10930,8 @@ struct partial_sort_copy_fn
         I2 r = result_first;
         if (r == result_last)
         {
-            // ::std::move(nano::next()) is needed to avoid GCC ICE.
-            return {::std::move(nano::next(first, last)), ::std::move(result_first)};
+            // ::std::move(::nano::next()) is needed to avoid GCC ICE.
+            return {::std::move(::nano::next(first, last)), ::std::move(result_first)};
         }
 
         while (r != result_last && first != last)
@@ -10941,13 +10941,13 @@ struct partial_sort_copy_fn
             ++first;
         }
 
-        nano::make_heap(result_first, r, comp, proj2);
-        const auto len = nano::distance(result_first, r);
+        ::nano::make_heap(result_first, r, comp, proj2);
+        const auto len = ::nano::distance(result_first, r);
 
         while (first != last)
         {
             iter_reference_t<I1>&& x = *first;
-            if (nano::invoke(comp, nano::invoke(proj1, x), nano::invoke(proj2, *result_first)))
+            if (::nano::invoke(comp, ::nano::invoke(proj1, x), ::nano::invoke(proj2, *result_first)))
             {
                 *result_first = ::std::forward<iter_reference_t<I1>>(x);
                 detail::sift_down_n(result_first, len, result_first, comp, proj2);
@@ -10955,7 +10955,7 @@ struct partial_sort_copy_fn
             ++first;
         }
 
-        nano::sort_heap(result_first, r, comp, proj2);
+        ::nano::sort_heap(result_first, r, comp, proj2);
 
         return {::std::move(first), ::std::move(r)};
     }
@@ -10983,8 +10983,8 @@ struct partial_sort_copy_fn
         partial_sort_copy_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>>>
     operator()(Rng1&& rng, Rng2&& result_rng, Comp comp = Comp{}, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return partial_sort_copy_fn::impl(nano::begin(rng), nano::end(rng), nano::begin(result_rng),
-                                          nano::end(result_rng), comp, proj1, proj2);
+        return partial_sort_copy_fn::impl(::nano::begin(rng), ::nano::end(rng), ::nano::begin(result_rng),
+                                          ::nano::end(result_rng), comp, proj1, proj2);
     }
 };
 
@@ -11017,20 +11017,20 @@ struct partition_fn
     static constexpr subrange<I>
     impl(I first, S last, Pred& pred, Proj& proj)
     {
-        I it = nano::find_if_not(first, last, pred, proj);
+        I it = ::nano::find_if_not(first, last, pred, proj);
 
         if (it == last)
         {
-            return {::std::move(it), ::std::move(nano::next(first, last))};
+            return {::std::move(it), ::std::move(::nano::next(first, last))};
         }
 
-        auto n = nano::next(it);
+        auto n = ::nano::next(it);
 
         while (n != last)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *n)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *n)))
             {
-                nano::iter_swap(n, it);
+                ::nano::iter_swap(n, it);
                 ++it;
             }
             ++n;
@@ -11053,7 +11053,7 @@ struct partition_fn
                                  borrowed_subrange_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return partition_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return partition_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -11092,7 +11092,7 @@ struct partition_copy_fn
         while (first != last)
         {
             auto&& val = *first;
-            if (nano::invoke(pred, nano::invoke(proj, val)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, val)))
             {
                 *out_true = ::std::forward<decltype(val)>(val);
                 ++out_true;
@@ -11128,7 +11128,7 @@ struct partition_copy_fn
                                  partition_copy_result<borrowed_iterator_t<Rng>, O1, O2>>
     operator()(Rng&& rng, O1 out_true, O2 out_false, Pred pred, Proj proj = Proj{}) const
     {
-        return partition_copy_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(out_true), ::std::move(out_false),
+        return partition_copy_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(out_true), ::std::move(out_false),
                                        pred, proj);
     }
 };
@@ -11183,7 +11183,7 @@ struct prev_permutation_fn
             return {::std::move(first), false};
         }
 
-        I last_it = nano::next(first, last);
+        I last_it = ::nano::next(first, last);
         I i = last_it;
 
         if (first == --i)
@@ -11195,21 +11195,21 @@ struct prev_permutation_fn
         {
             I ip1 = i;
 
-            if (nano::invoke(comp, nano::invoke(proj, *ip1), nano::invoke(proj, *--i)))
+            if (::nano::invoke(comp, ::nano::invoke(proj, *ip1), ::nano::invoke(proj, *--i)))
             {
                 I j = last_it;
 
-                while (!nano::invoke(comp, nano::invoke(proj, *--j), nano::invoke(proj, *i)))
+                while (!::nano::invoke(comp, ::nano::invoke(proj, *--j), ::nano::invoke(proj, *i)))
                     ;
 
-                nano::iter_swap(i, j);
-                nano::reverse(ip1, last_it);
+                ::nano::iter_swap(i, j);
+                ::nano::reverse(ip1, last_it);
                 return {::std::move(last_it), true};
             }
 
             if (i == first)
             {
-                nano::reverse(first, last_it);
+                ::nano::reverse(first, last_it);
                 return {::std::move(last_it), false};
             }
         }
@@ -11229,7 +11229,7 @@ struct prev_permutation_fn
                                  prev_permutation_result<borrowed_iterator_t<Rng>>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        return prev_permutation_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
+        return prev_permutation_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -11261,7 +11261,7 @@ struct push_heap_fn
     constexpr ::std::enable_if_t<random_access_iterator<I> && sentinel_for<S, I> && sortable<I, Comp, Proj>, I>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto n = nano::distance(first, last);
+        const auto n = ::nano::distance(first, last);
         detail::sift_up_n(first, n, comp, proj);
         return first + n;
     }
@@ -11271,9 +11271,9 @@ struct push_heap_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto n = nano::distance(rng);
-        detail::sift_up_n(nano::begin(rng), n, comp, proj);
-        return nano::begin(rng) + n;
+        const auto n = ::nano::distance(rng);
+        detail::sift_up_n(::nano::begin(rng), n, comp, proj);
+        return ::nano::begin(rng) + n;
     }
 };
 
@@ -11306,7 +11306,7 @@ struct remove_fn
     static constexpr I
     impl(I first, S last, const T& value, Proj& proj)
     {
-        first = nano::find(::std::move(first), last, value, proj);
+        first = ::nano::find(::std::move(first), last, value, proj);
 
         if (first == last)
         {
@@ -11315,9 +11315,9 @@ struct remove_fn
 
         for (auto i = next(first); i != last; ++i)
         {
-            if (!(nano::invoke(proj, *i) == value))
+            if (!(::nano::invoke(proj, *i) == value))
             {
-                *first = nano::iter_move(i);
+                *first = ::nano::iter_move(i);
                 ++first;
             }
         }
@@ -11341,7 +11341,7 @@ struct remove_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, const T& value, Proj proj = Proj{}) const
     {
-        return remove_fn::impl(nano::begin(rng), nano::end(rng), value, proj);
+        return remove_fn::impl(::nano::begin(rng), ::nano::end(rng), value, proj);
     }
 };
 
@@ -11380,7 +11380,7 @@ struct remove_copy_fn
         while (first != last)
         {
             auto&& ref = *first;
-            if (!(nano::invoke(proj, ref) == value))
+            if (!(::nano::invoke(proj, ref) == value))
             {
                 *result = ::std::forward<decltype(ref)>(ref);
                 ++result;
@@ -11408,7 +11408,7 @@ struct remove_copy_fn
                                  remove_copy_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result, const T& value, Proj proj = Proj{}) const
     {
-        return remove_copy_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), value, proj);
+        return remove_copy_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), value, proj);
     }
 };
 
@@ -11447,7 +11447,7 @@ struct remove_copy_if_fn
         while (first != last)
         {
             auto&& ref = *first;
-            if (!nano::invoke(pred, nano::invoke(proj, ref)))
+            if (!::nano::invoke(pred, ::nano::invoke(proj, ref)))
             {
                 *result = ::std::forward<decltype(ref)>(ref);
                 ++result;
@@ -11474,7 +11474,7 @@ struct remove_copy_if_fn
                                  remove_copy_if_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result, Pred pred, Proj proj = Proj{}) const
     {
-        return remove_copy_if_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), pred, proj);
+        return remove_copy_if_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), pred, proj);
     }
 };
 
@@ -11507,7 +11507,7 @@ struct remove_if_fn
     static constexpr I
     impl(I first, S last, Pred& pred, Proj& proj)
     {
-        first = nano::find_if(::std::move(first), last, pred, proj);
+        first = ::nano::find_if(::std::move(first), last, pred, proj);
 
         if (first == last)
         {
@@ -11516,9 +11516,9 @@ struct remove_if_fn
 
         for (auto i = next(first); i != last; ++i)
         {
-            if (!nano::invoke(pred, nano::invoke(proj, *i)))
+            if (!::nano::invoke(pred, ::nano::invoke(proj, *i)))
             {
-                *first = nano::iter_move(i);
+                *first = ::nano::iter_move(i);
                 ++first;
             }
         }
@@ -11542,7 +11542,7 @@ struct remove_if_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return remove_if_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return remove_if_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -11577,7 +11577,7 @@ struct replace_fn
     {
         while (first != last)
         {
-            if (nano::invoke(proj, *first) == old_value)
+            if (::nano::invoke(proj, *first) == old_value)
             {
                 *first = new_value;
             }
@@ -11603,7 +11603,7 @@ struct replace_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, const T1& old_value, const T2& new_value, Proj proj = Proj{}) const
     {
-        return replace_fn::impl(nano::begin(rng), nano::end(rng), old_value, new_value, proj);
+        return replace_fn::impl(::nano::begin(rng), ::nano::end(rng), old_value, new_value, proj);
     }
 };
 
@@ -11641,7 +11641,7 @@ struct replace_copy_fn
     {
         while (first != last)
         {
-            if (nano::invoke(proj, *first) == old_value)
+            if (::nano::invoke(proj, *first) == old_value)
             {
                 *result = new_value;
             }
@@ -11675,7 +11675,7 @@ struct replace_copy_fn
                                  replace_copy_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result, const T1& old_value, const T2& new_value, Proj proj = Proj{}) const
     {
-        return replace_copy_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), old_value, new_value, proj);
+        return replace_copy_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), old_value, new_value, proj);
     }
 };
 
@@ -11713,7 +11713,7 @@ struct replace_copy_if_fn
     {
         while (first != last)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *first)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *first)))
             {
                 *result = new_value;
             }
@@ -11746,7 +11746,7 @@ struct replace_copy_if_fn
                                  replace_copy_if_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result, Pred pred, const T& new_value, Proj proj = Proj{}) const
     {
-        return replace_copy_if_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), pred, new_value, proj);
+        return replace_copy_if_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), pred, new_value, proj);
     }
 };
 
@@ -11781,7 +11781,7 @@ struct replace_if_fn
     {
         while (first != last)
         {
-            if (nano::invoke(pred, nano::invoke(proj, *first)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *first)))
             {
                 *first = new_value;
             }
@@ -11807,7 +11807,7 @@ struct replace_if_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Pred pred, const T2& new_value, Proj proj = Proj{}) const
     {
-        return replace_if_fn::impl(nano::begin(rng), nano::end(rng), pred, new_value, proj);
+        return replace_if_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, new_value, proj);
     }
 };
 
@@ -11857,7 +11857,7 @@ struct reverse_copy_fn
     static constexpr ::std::enable_if_t<!same_as<I, S>, reverse_copy_result<I, O>>
     impl(I first, S bound, O result)
     {
-        return reverse_copy_fn::impl(::std::move(first), nano::next(first, bound), ::std::move(result));
+        return reverse_copy_fn::impl(::std::move(first), ::nano::next(first, bound), ::std::move(result));
     }
 
   public:
@@ -11876,7 +11876,7 @@ struct reverse_copy_fn
                                  reverse_copy_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result) const
     {
-        return reverse_copy_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result));
+        return reverse_copy_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result));
     }
 };
 
@@ -11912,8 +11912,8 @@ struct rotate_copy_fn
     static constexpr rotate_copy_result<I, O>
     impl(I first, I middle, S last, O result)
     {
-        auto ret = nano::copy(middle, ::std::move(last), ::std::move(result));
-        ret.out = nano::copy(::std::move(first), ::std::move(middle), ret.out).out;
+        auto ret = ::nano::copy(middle, ::std::move(last), ::std::move(result));
+        ret.out = ::nano::copy(::std::move(first), ::std::move(middle), ret.out).out;
         return ret;
     }
 
@@ -11933,7 +11933,7 @@ struct rotate_copy_fn
                                  rotate_copy_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, iterator_t<Rng> middle, O result) const
     {
-        return rotate_copy_fn::impl(nano::begin(rng), ::std::move(middle), nano::end(rng), ::std::move(result));
+        return rotate_copy_fn::impl(::nano::begin(rng), ::std::move(middle), ::nano::end(rng), ::std::move(result));
     }
 };
 
@@ -11973,7 +11973,7 @@ struct search_n_fn
 
         for (; first != last; ++first)
         {
-            if (!nano::invoke(pred, nano::invoke(proj, *first), value))
+            if (!::nano::invoke(pred, ::nano::invoke(proj, *first), value))
             {
                 continue;
             }
@@ -11986,7 +11986,7 @@ struct search_n_fn
                 if (running_count++ == count)
                 {
                     // Success
-                    return {save, nano::next(first)};
+                    return {save, ::nano::next(first)};
                 }
 
                 if (++first == last)
@@ -11995,7 +11995,7 @@ struct search_n_fn
                     return {first, first};
                 }
 
-                if (!nano::invoke(pred, nano::invoke(proj, *first), value))
+                if (!::nano::invoke(pred, ::nano::invoke(proj, *first), value))
                 {
                     break;
                 }
@@ -12021,7 +12021,7 @@ struct search_n_fn
         -> ::std::enable_if_t<forward_range<Rng> && indirectly_comparable<iterator_t<Rng>, const T*, Pred, Proj>,
                               borrowed_subrange_t<Rng>>
     {
-        return search_n_fn::impl(nano::begin(rng), nano::end(rng), count, value, pred, proj);
+        return search_n_fn::impl(::nano::begin(rng), ::nano::end(rng), count, value, pred, proj);
     }
 };
 
@@ -12064,7 +12064,7 @@ struct set_difference_fn
             {
                 // We've reached the end of range2, so copy all the remaining
                 // elements from range1 and exit
-                auto res = nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
+                auto res = ::nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
                 first1 = ::std::move(res.in);
                 result = ::std::move(res.out);
 
@@ -12073,7 +12073,7 @@ struct set_difference_fn
 
             // If the element from r1 compares less than the one from r2, then
             // copy it
-            if (nano::invoke(comp, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (::nano::invoke(comp, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 *result = *first1;
                 ++first1;
@@ -12083,7 +12083,7 @@ struct set_difference_fn
             {
                 // We now know that !(r1 < r2). If !(r2 < r1) as well, then
                 // elements are equal and we can skip
-                if (!nano::invoke(comp, nano::invoke(proj2, *first2), nano::invoke(proj1, *first1)))
+                if (!::nano::invoke(comp, ::nano::invoke(proj2, *first2), ::nano::invoke(proj1, *first1)))
                 {
                     ++first1;
                 }
@@ -12116,7 +12116,7 @@ struct set_difference_fn
     operator()(Rng1&& rng1, Rng2&& rng2, O result, Comp comp = Comp{}, Proj1 proj1 = Proj1{},
                Proj2 proj2 = Proj2{}) const
     {
-        return set_difference_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+        return set_difference_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2),
                                        ::std::move(result), comp, proj1, proj2);
     }
 };
@@ -12153,13 +12153,13 @@ struct set_intersection_fn
     {
         while (first1 != last1 && first2 != last2)
         {
-            if (nano::invoke(comp, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (::nano::invoke(comp, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 ++first1;
             }
             else
             {
-                if (!nano::invoke(comp, nano::invoke(proj2, *first2), nano::invoke(proj1, *first1)))
+                if (!::nano::invoke(comp, ::nano::invoke(proj2, *first2), ::nano::invoke(proj1, *first1)))
                 {
                     *result = *first1;
                     ++result;
@@ -12194,7 +12194,7 @@ struct set_intersection_fn
     operator()(Rng1&& rng1, Rng2&& rng2, O result, Comp comp = Comp{}, Proj1 proj1 = Proj1{},
                Proj2 proj2 = Proj2{}) const
     {
-        return set_intersection_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+        return set_intersection_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2),
                                          ::std::move(result), comp, proj1, proj2);
     }
 };
@@ -12236,19 +12236,19 @@ struct set_symmetric_difference_fn
         {
             if (first1 == last1)
             {
-                auto copy_res = nano::copy(::std::move(first2), ::std::move(last2), ::std::move(result));
+                auto copy_res = ::nano::copy(::std::move(first2), ::std::move(last2), ::std::move(result));
 
                 return {::std::move(first1), ::std::move(copy_res.in), ::std::move(copy_res.out)};
             }
 
             if (first2 == last2)
             {
-                auto copy_res = nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
+                auto copy_res = ::nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
                 return {::std::move(copy_res.in), ::std::move(first2), ::std::move(copy_res.out)};
             }
 
             // If r1 is less than r2, copy it to the output
-            if (nano::invoke(comp, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (::nano::invoke(comp, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 *result = *first1;
                 ++result;
@@ -12258,7 +12258,7 @@ struct set_symmetric_difference_fn
             {
                 // We now know that !(r1 < r2). If !(r2 < r1) as well then
                 // the elements are equal -- so skip
-                if (!nano::invoke(comp, nano::invoke(proj2, *first2), nano::invoke(proj1, *first1)))
+                if (!::nano::invoke(comp, ::nano::invoke(proj2, *first2), ::nano::invoke(proj1, *first1)))
                 {
                     ++first1;
                 }
@@ -12295,7 +12295,7 @@ struct set_symmetric_difference_fn
     operator()(Rng1&& rng1, Rng2&& rng2, O result, Comp comp = Comp{}, Proj1 proj1 = Proj1{},
                Proj2 proj2 = Proj2{}) const
     {
-        return set_symmetric_difference_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+        return set_symmetric_difference_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2),
                                                  ::std::move(result), comp, proj1, proj2);
     }
 };
@@ -12339,7 +12339,7 @@ struct set_union_fn
             // elements from the first range and quit
             if (first2 == last2)
             {
-                auto copy_res = nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
+                auto copy_res = ::nano::copy(::std::move(first1), ::std::move(last1), ::std::move(result));
 
                 first1 = ::std::move(copy_res.in);
                 result = ::std::move(copy_res.out);
@@ -12349,7 +12349,7 @@ struct set_union_fn
 
             // If this element from r1 is less than the current element from r2,
             // copy it and move on
-            if (nano::invoke(comp, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2)))
+            if (::nano::invoke(comp, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2)))
             {
                 *result = *first1;
                 ++first1;
@@ -12358,7 +12358,7 @@ struct set_union_fn
             {
                 // Now, we know that !(r1 < r2). If we also have !(r2 < r1) then
                 // the elements compare equal, so skip it
-                if (!nano::invoke(comp, nano::invoke(proj2, *first2), nano::invoke(proj1, *first1)))
+                if (!::nano::invoke(comp, ::nano::invoke(proj2, *first2), ::nano::invoke(proj1, *first1)))
                 {
                     ++first1;
                 }
@@ -12370,7 +12370,7 @@ struct set_union_fn
 
         // We've run out of elements of range1, so copy all the remaining
         // elements of range2
-        auto copy_res = nano::copy(::std::move(first2), ::std::move(last2), ::std::move(result));
+        auto copy_res = ::nano::copy(::std::move(first2), ::std::move(last2), ::std::move(result));
 
         return {::std::move(first1), ::std::move(copy_res.in), ::std::move(copy_res.out)};
     }
@@ -12397,7 +12397,7 @@ struct set_union_fn
     operator()(Rng1&& rng1, Rng2&& rng2, O result, Comp comp = Comp{}, Proj1 proj1 = Proj1{},
                Proj2 proj2 = Proj2{}) const
     {
-        return set_union_fn::impl(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+        return set_union_fn::impl(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2),
                                   ::std::move(result), comp, proj1, proj2);
     }
 };
@@ -12497,9 +12497,9 @@ struct sample_fn
 
         distr_t D;
 
-        auto unsampled_size = nano::distance(first, last);
+        auto unsampled_size = ::nano::distance(first, last);
 
-        for (n = nano::min(n, unsampled_size); n != 0; ++first)
+        for (n = ::nano::min(n, unsampled_size); n != 0; ++first)
         {
             if (D(g, param_t(0, --unsampled_size)) < n)
             {
@@ -12536,14 +12536,14 @@ struct sample_fn
             }
         }
 
-        return out + nano::min(n, k);
+        return out + ::nano::min(n, k);
     }
 
     template <typename I, typename S, typename O, typename Gen>
     static O
     impl(I first, S last, O out, iter_difference_t<I> n, Gen& g)
     {
-        if constexpr (nano::forward_iterator<I>)
+        if constexpr (::nano::forward_iterator<I>)
         {
             return impl_fwd(::std::move(first), ::std::move(last), ::std::move(out), n, g);
         }
@@ -12572,7 +12572,7 @@ struct sample_fn
                        O>
     operator()(Rng&& rng, O out, range_difference_t<Rng> n, Gen&& gen) const
     {
-        return sample_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(out), ::std::move(n),
+        return sample_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(out), ::std::move(n),
                                ::std::forward<Gen>(gen));
     }
 };
@@ -12617,7 +12617,7 @@ struct shuffle_fn
 
         for (diff_t i = 0; i < n; i++)
         {
-            nano::iter_swap(first + i, first + D(g, param_t(0, i)));
+            ::nano::iter_swap(first + i, first + D(g, param_t(0, i)));
         }
 
         return next(first, last);
@@ -12641,7 +12641,7 @@ struct shuffle_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Gen&& gen) const
     {
-        return shuffle_fn::impl(nano::begin(rng), nano::end(rng), ::std::forward<Gen>(gen));
+        return shuffle_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::forward<Gen>(gen));
     }
 };
 
@@ -12702,11 +12702,11 @@ struct is_default_compare : ::std::false_type
 {
 };
 template <>
-struct is_default_compare<nano::less> : ::std::true_type
+struct is_default_compare<::nano::less> : ::std::true_type
 {
 };
 template <>
-struct is_default_compare<nano::greater> : ::std::true_type
+struct is_default_compare<::nano::greater> : ::std::true_type
 {
 };
 template <typename T>
@@ -12751,14 +12751,14 @@ insertion_sort(I begin, I end, Comp& comp, Proj& proj)
 
         // Compare first so we can avoid 2 moves for an element already
         // positioned correctly.
-        if (nano::invoke(comp, nano::invoke(proj, *sift), nano::invoke(proj, *sift_1)))
+        if (::nano::invoke(comp, ::nano::invoke(proj, *sift), ::nano::invoke(proj, *sift_1)))
         {
-            T tmp = nano::iter_move(sift);
+            T tmp = ::nano::iter_move(sift);
 
             do
             {
-                *sift-- = nano::iter_move(sift_1);
-            } while (sift != begin && nano::invoke(comp, nano::invoke(proj, tmp), nano::invoke(proj, *--sift_1)));
+                *sift-- = ::nano::iter_move(sift_1);
+            } while (sift != begin && ::nano::invoke(comp, ::nano::invoke(proj, tmp), ::nano::invoke(proj, *--sift_1)));
 
             *sift = ::std::move(tmp);
         }
@@ -12787,14 +12787,14 @@ unguarded_insertion_sort(I begin, I end, Comp& comp, Proj& proj)
 
         // Compare first so we can avoid 2 moves for an element already
         // positioned correctly.
-        if (nano::invoke(comp, nano::invoke(proj, *sift), nano::invoke(proj, *sift_1)))
+        if (::nano::invoke(comp, ::nano::invoke(proj, *sift), ::nano::invoke(proj, *sift_1)))
         {
-            T tmp = nano::iter_move(sift);
+            T tmp = ::nano::iter_move(sift);
 
             do
             {
-                *sift-- = nano::iter_move(sift_1);
-            } while (nano::invoke(comp, nano::invoke(proj, tmp), nano::invoke(proj, *--sift_1)));
+                *sift-- = ::nano::iter_move(sift_1);
+            } while (::nano::invoke(comp, ::nano::invoke(proj, tmp), ::nano::invoke(proj, *--sift_1)));
 
             *sift = ::std::move(tmp);
         }
@@ -12828,14 +12828,14 @@ partial_insertion_sort(I begin, I end, Comp& comp, Proj& proj)
 
         // Compare first so we can avoid 2 moves for an element already
         // positioned correctly.
-        if (nano::invoke(comp, nano::invoke(proj, *sift), nano::invoke(proj, *sift_1)))
+        if (::nano::invoke(comp, ::nano::invoke(proj, *sift), ::nano::invoke(proj, *sift_1)))
         {
-            T tmp = nano::iter_move(sift);
+            T tmp = ::nano::iter_move(sift);
 
             do
             {
-                *sift-- = nano::iter_move(sift_1);
-            } while (sift != begin && nano::invoke(comp, nano::invoke(proj, tmp), nano::invoke(proj, *--sift_1)));
+                *sift-- = ::nano::iter_move(sift_1);
+            } while (sift != begin && ::nano::invoke(comp, ::nano::invoke(proj, tmp), ::nano::invoke(proj, *--sift_1)));
 
             *sift = ::std::move(tmp);
             limit += cur - sift;
@@ -12849,9 +12849,9 @@ template <typename I, typename Comp, typename Proj>
 constexpr void
 sort2(I a, I b, Comp& comp, Proj& proj)
 {
-    if (nano::invoke(comp, nano::invoke(proj, *b), nano::invoke(proj, *a)))
+    if (::nano::invoke(comp, ::nano::invoke(proj, *b), ::nano::invoke(proj, *a)))
     {
-        nano::iter_swap(a, b);
+        ::nano::iter_swap(a, b);
     }
 }
 
@@ -12876,22 +12876,22 @@ swap_offsets(I first, I last, unsigned char* offsets_l, unsigned char* offsets_r
         // to have proper swapping for pdqsort to remain O(n).
         for (int i = 0; i < num; ++i)
         {
-            nano::iter_swap(first + offsets_l[i], last - offsets_r[i]);
+            ::nano::iter_swap(first + offsets_l[i], last - offsets_r[i]);
         }
     }
     else if (num > 0)
     {
         I l = first + offsets_l[0];
         I r = last - offsets_r[0];
-        T tmp(nano::iter_move(l));
-        *l = nano::iter_move(r);
+        T tmp(::nano::iter_move(l));
+        *l = ::nano::iter_move(r);
 
         for (int i = 1; i < num; ++i)
         {
             l = first + offsets_l[i];
-            *r = nano::iter_move(l);
+            *r = ::nano::iter_move(l);
             r = last - offsets_r[i];
-            *l = nano::iter_move(r);
+            *l = ::nano::iter_move(r);
         }
         *r = ::std::move(tmp);
     }
@@ -12910,25 +12910,25 @@ partition_right_branchless(I begin, I end, Comp& comp, Pred& pred)
     using T = iter_value_t<I>;
 
     // Move pivot into local for speed.
-    T pivot(nano::iter_move(begin));
+    T pivot(::nano::iter_move(begin));
     I first = begin;
     I last = end;
 
     // Find the first element greater than or equal than the pivot (the median
     // of 3 guarantees this exists).
-    while (nano::invoke(comp, nano::invoke(pred, *++first), nano::invoke(pred, pivot)))
+    while (::nano::invoke(comp, ::nano::invoke(pred, *++first), ::nano::invoke(pred, pivot)))
         ;
 
     // Find the first element strictly smaller than the pivot. We have to guard
     // this search if there was no element before *first.
     if (first - 1 == begin)
     {
-        while (first < last && !nano::invoke(comp, nano::invoke(pred, *--last), nano::invoke(pred, pivot)))
+        while (first < last && !::nano::invoke(comp, ::nano::invoke(pred, *--last), ::nano::invoke(pred, pivot)))
             ;
     }
     else
     {
-        while (!nano::invoke(comp, nano::invoke(pred, *--last), nano::invoke(pred, pivot)))
+        while (!::nano::invoke(comp, ::nano::invoke(pred, *--last), ::nano::invoke(pred, pivot)))
             ;
     }
 
@@ -12937,7 +12937,7 @@ partition_right_branchless(I begin, I end, Comp& comp, Pred& pred)
     bool already_partitioned = first >= last;
     if (!already_partitioned)
     {
-        nano::iter_swap(first, last);
+        ::nano::iter_swap(first, last);
         ++first;
     }
 
@@ -12960,28 +12960,28 @@ partition_right_branchless(I begin, I end, Comp& comp, Pred& pred)
             for (unsigned char i = 0; i < pdqsort_block_size;)
             {
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
                 offsets_l[num_l] = i++;
-                num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+                num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
                 ++it;
             }
         }
@@ -12992,26 +12992,26 @@ partition_right_branchless(I begin, I end, Comp& comp, Pred& pred)
             for (unsigned char i = 0; i < pdqsort_block_size;)
             {
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
                 offsets_r[num_r] = ++i;
-                num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+                num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
             }
         }
 
         // Swap elements and update block sizes and first/last boundaries.
-        int num = (nano::min)(num_l, num_r);
+        int num = (::nano::min)(num_l, num_r);
         swap_offsets(first, last, offsets_l + start_l, offsets_r + start_r, num, num_l == num_r);
         num_l -= num;
         num_r -= num;
@@ -13052,7 +13052,7 @@ partition_right_branchless(I begin, I end, Comp& comp, Pred& pred)
         for (unsigned char i = 0; i < l_size;)
         {
             offsets_l[num_l] = i++;
-            num_l += !nano::invoke(comp, nano::invoke(pred, *it), nano::invoke(pred, pivot));
+            num_l += !::nano::invoke(comp, ::nano::invoke(pred, *it), ::nano::invoke(pred, pivot));
             ++it;
         }
     }
@@ -13063,11 +13063,11 @@ partition_right_branchless(I begin, I end, Comp& comp, Pred& pred)
         for (unsigned char i = 0; i < r_size;)
         {
             offsets_r[num_r] = ++i;
-            num_r += nano::invoke(comp, nano::invoke(pred, *--it), nano::invoke(pred, pivot));
+            num_r += ::nano::invoke(comp, ::nano::invoke(pred, *--it), ::nano::invoke(pred, pivot));
         }
     }
 
-    int num = (nano::min)(num_l, num_r);
+    int num = (::nano::min)(num_l, num_r);
     swap_offsets(first, last, offsets_l + start_l, offsets_r + start_r, num, num_l == num_r);
     num_l -= num;
     num_r -= num;
@@ -13084,20 +13084,20 @@ partition_right_branchless(I begin, I end, Comp& comp, Pred& pred)
     {
         offsets_l += start_l;
         while (num_l--)
-            nano::iter_swap(first + offsets_l[num_l], --last);
+            ::nano::iter_swap(first + offsets_l[num_l], --last);
         first = last;
     }
     if (num_r)
     {
         offsets_r += start_r;
         while (num_r--)
-            nano::iter_swap(last - offsets_r[num_r], first), ++first;
+            ::nano::iter_swap(last - offsets_r[num_r], first), ++first;
         last = first;
     }
 
     // Put the pivot in the right place.
     I pivot_pos = first - 1;
-    *begin = nano::iter_move(pivot_pos);
+    *begin = ::nano::iter_move(pivot_pos);
     *pivot_pos = ::std::move(pivot);
 
     return ::std::make_pair(::std::move(pivot_pos), already_partitioned);
@@ -13115,14 +13115,14 @@ partition_right(I begin, I end, Comp& comp, Proj& proj)
     using T = iter_value_t<I>;
 
     // Move pivot into local for speed.
-    T pivot(nano::iter_move(begin));
+    T pivot(::nano::iter_move(begin));
 
     I first = begin;
     I last = end;
 
     // Find the first element greater than or equal than the pivot (the median
     // of 3 guarantees this exists).
-    while (nano::invoke(comp, nano::invoke(proj, *++first), nano::invoke(proj, pivot)))
+    while (::nano::invoke(comp, ::nano::invoke(proj, *++first), ::nano::invoke(proj, pivot)))
     {
     }
 
@@ -13130,13 +13130,13 @@ partition_right(I begin, I end, Comp& comp, Proj& proj)
     // this search if there was no element before *first.
     if (first - 1 == begin)
     {
-        while (first < last && !nano::invoke(comp, nano::invoke(proj, *--last), nano::invoke(proj, pivot)))
+        while (first < last && !::nano::invoke(comp, ::nano::invoke(proj, *--last), ::nano::invoke(proj, pivot)))
         {
         }
     }
     else
     {
-        while (!nano::invoke(comp, nano::invoke(proj, *--last), nano::invoke(proj, pivot)))
+        while (!::nano::invoke(comp, ::nano::invoke(proj, *--last), ::nano::invoke(proj, pivot)))
         {
         }
     }
@@ -13150,16 +13150,16 @@ partition_right(I begin, I end, Comp& comp, Proj& proj)
     // iteration is special-cased above.
     while (first < last)
     {
-        nano::iter_swap(first, last);
-        while (nano::invoke(comp, nano::invoke(proj, *++first), nano::invoke(proj, pivot)))
+        ::nano::iter_swap(first, last);
+        while (::nano::invoke(comp, ::nano::invoke(proj, *++first), ::nano::invoke(proj, pivot)))
             ;
-        while (!nano::invoke(comp, nano::invoke(proj, *--last), nano::invoke(proj, pivot)))
+        while (!::nano::invoke(comp, ::nano::invoke(proj, *--last), ::nano::invoke(proj, pivot)))
             ;
     }
 
     // Put the pivot in the right place.
     I pivot_pos = first - 1;
-    *begin = nano::iter_move(pivot_pos);
+    *begin = ::nano::iter_move(pivot_pos);
     *pivot_pos = ::std::move(pivot);
 
     return ::std::make_pair(::std::move(pivot_pos), already_partitioned);
@@ -13176,35 +13176,35 @@ partition_left(I begin, I end, Comp& comp, Proj& proj)
 {
     using T = iter_value_t<I>;
 
-    T pivot(nano::iter_move(begin));
+    T pivot(::nano::iter_move(begin));
     I first = begin;
     I last = end;
 
-    while (nano::invoke(comp, nano::invoke(proj, pivot), nano::invoke(proj, *--last)))
+    while (::nano::invoke(comp, ::nano::invoke(proj, pivot), ::nano::invoke(proj, *--last)))
         ;
 
     if (last + 1 == end)
     {
-        while (first < last && !nano::invoke(comp, nano::invoke(proj, pivot), nano::invoke(proj, *++first)))
+        while (first < last && !::nano::invoke(comp, ::nano::invoke(proj, pivot), ::nano::invoke(proj, *++first)))
             ;
     }
     else
     {
-        while (!nano::invoke(comp, nano::invoke(proj, pivot), nano::invoke(proj, *++first)))
+        while (!::nano::invoke(comp, ::nano::invoke(proj, pivot), ::nano::invoke(proj, *++first)))
             ;
     }
 
     while (first < last)
     {
-        nano::iter_swap(first, last);
-        while (nano::invoke(comp, nano::invoke(proj, pivot), nano::invoke(proj, *--last)))
+        ::nano::iter_swap(first, last);
+        while (::nano::invoke(comp, ::nano::invoke(proj, pivot), ::nano::invoke(proj, *--last)))
             ;
-        while (!nano::invoke(comp, nano::invoke(proj, pivot), nano::invoke(proj, *++first)))
+        while (!::nano::invoke(comp, ::nano::invoke(proj, pivot), ::nano::invoke(proj, *++first)))
             ;
     }
 
     I pivot_pos = last;
-    *begin = nano::iter_move(pivot_pos);
+    *begin = ::nano::iter_move(pivot_pos);
     *pivot_pos = ::std::move(pivot);
 
     return pivot_pos;
@@ -13219,7 +13219,7 @@ pdqsort_loop(I begin, I end, Comp& comp, Proj& proj, int bad_allowed, bool leftm
     // Use a while loop for tail recursion elimination.
     while (true)
     {
-        diff_t size = nano::distance(begin, end);
+        diff_t size = ::nano::distance(begin, end);
 
         // Insertion sort is faster for small arrays.
         if (size < pdqsort_insertion_sort_threshold)
@@ -13243,7 +13243,7 @@ pdqsort_loop(I begin, I end, Comp& comp, Proj& proj, int bad_allowed, bool leftm
             sort3(begin + 1, begin + (s2 - 1), end - 2, comp, proj);
             sort3(begin + 2, begin + (s2 + 1), end - 3, comp, proj);
             sort3(begin + (s2 - 1), begin + s2, begin + (s2 + 1), comp, proj);
-            nano::iter_swap(begin, begin + s2);
+            ::nano::iter_swap(begin, begin + s2);
         }
         else
         {
@@ -13256,7 +13256,7 @@ pdqsort_loop(I begin, I end, Comp& comp, Proj& proj, int bad_allowed, bool leftm
         // *(begin - 1) we change strategy, putting equal elements in the left
         // partition, greater elements in the right partition. We do not have to
         // recurse on the left partition, since it's sorted (all equal).
-        if (!leftmost && !nano::invoke(comp, nano::invoke(proj, *(begin - 1)), nano::invoke(proj, *begin)))
+        if (!leftmost && !::nano::invoke(comp, ::nano::invoke(proj, *(begin - 1)), ::nano::invoke(proj, *begin)))
         {
             begin = partition_left(begin, end, comp, proj) + 1;
             continue;
@@ -13281,36 +13281,36 @@ pdqsort_loop(I begin, I end, Comp& comp, Proj& proj, int bad_allowed, bool leftm
             // guarantee O(n log n).
             if (--bad_allowed == 0)
             {
-                nano::make_heap(begin, end, comp, proj);
-                nano::sort_heap(begin, end, comp, proj);
+                ::nano::make_heap(begin, end, comp, proj);
+                ::nano::sort_heap(begin, end, comp, proj);
                 return;
             }
 
             if (l_size >= pdqsort_insertion_sort_threshold)
             {
-                nano::iter_swap(begin, begin + l_size / 4);
-                nano::iter_swap(pivot_pos - 1, pivot_pos - l_size / 4);
+                ::nano::iter_swap(begin, begin + l_size / 4);
+                ::nano::iter_swap(pivot_pos - 1, pivot_pos - l_size / 4);
 
                 if (l_size > pdqsort_ninther_threshold)
                 {
-                    nano::iter_swap(begin + 1, begin + (l_size / 4 + 1));
-                    nano::iter_swap(begin + 2, begin + (l_size / 4 + 2));
-                    nano::iter_swap(pivot_pos - 2, pivot_pos - (l_size / 4 + 1));
-                    nano::iter_swap(pivot_pos - 3, pivot_pos - (l_size / 4 + 2));
+                    ::nano::iter_swap(begin + 1, begin + (l_size / 4 + 1));
+                    ::nano::iter_swap(begin + 2, begin + (l_size / 4 + 2));
+                    ::nano::iter_swap(pivot_pos - 2, pivot_pos - (l_size / 4 + 1));
+                    ::nano::iter_swap(pivot_pos - 3, pivot_pos - (l_size / 4 + 2));
                 }
             }
 
             if (r_size >= pdqsort_insertion_sort_threshold)
             {
-                nano::iter_swap(pivot_pos + 1, pivot_pos + (1 + r_size / 4));
-                nano::iter_swap(end - 1, end - r_size / 4);
+                ::nano::iter_swap(pivot_pos + 1, pivot_pos + (1 + r_size / 4));
+                ::nano::iter_swap(end - 1, end - r_size / 4);
 
                 if (r_size > pdqsort_ninther_threshold)
                 {
-                    nano::iter_swap(pivot_pos + 2, pivot_pos + (2 + r_size / 4));
-                    nano::iter_swap(pivot_pos + 3, pivot_pos + (3 + r_size / 4));
-                    nano::iter_swap(end - 2, end - (1 + r_size / 4));
-                    nano::iter_swap(end - 3, end - (2 + r_size / 4));
+                    ::nano::iter_swap(pivot_pos + 2, pivot_pos + (2 + r_size / 4));
+                    ::nano::iter_swap(pivot_pos + 3, pivot_pos + (3 + r_size / 4));
+                    ::nano::iter_swap(end - 2, end - (1 + r_size / 4));
+                    ::nano::iter_swap(end - 3, end - (2 + r_size / 4));
                 }
             }
         }
@@ -13343,7 +13343,7 @@ pdqsort(I begin, I end, Comp& comp, Proj& proj)
     }
 
     detail::pdqsort_loop<Branchless>(::std::move(begin), ::std::move(end), comp, proj,
-                                     detail::log2(nano::distance(begin, end)));
+                                     detail::log2(::nano::distance(begin, end)));
 }
 
 } // namespace detail
@@ -13363,7 +13363,7 @@ struct sort_fn
     constexpr ::std::enable_if_t<random_access_iterator<I> && sentinel_for<S, I> && sortable<I, Comp, Proj>, I>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        I last_it = nano::next(first, last);
+        I last_it = ::nano::next(first, last);
         detail::pdqsort(::std::move(first), last_it, comp, proj);
         return last_it;
     }
@@ -13373,8 +13373,8 @@ struct sort_fn
                                  borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        iterator_t<Rng> last_it = nano::next(nano::begin(rng), nano::end(rng));
-        detail::pdqsort(nano::begin(rng), last_it, comp, proj);
+        iterator_t<Rng> last_it = ::nano::next(::nano::begin(rng), ::nano::end(rng));
+        detail::pdqsort(::nano::begin(rng), last_it, comp, proj);
         return last_it;
     }
 };
@@ -13418,19 +13418,19 @@ struct stable_partition_fn
     impl_buffered(I first, I last, Buf& buf, Pred& pred, Proj& proj)
     {
         // first is known to be false, so pop it straight into the buffer
-        buf.push_back(nano::iter_move(first));
+        buf.push_back(::nano::iter_move(first));
 
         const auto res =
-            nano::partition_copy(nano::make_move_iterator(nano::next(first)), nano::make_move_sentinel(--last), first,
-                                 nano::back_inserter(buf), ::std::ref(pred), ::std::ref(proj));
+            ::nano::partition_copy(::nano::make_move_iterator(::nano::next(first)), ::nano::make_move_sentinel(--last), first,
+                                 ::nano::back_inserter(buf), ::std::ref(pred), ::std::ref(proj));
 
         // last is known to be true, move that to the correct pos
         first = ::std::move(res.out1);
-        *first = nano::iter_move(last);
+        *first = ::nano::iter_move(last);
         ++first;
 
         // Now move all the other elements from the buffer back into the sequence
-        nano::move(buf, first);
+        ::nano::move(buf, first);
         return {::std::move(first), ::std::move(last)};
     }
 
@@ -13444,35 +13444,35 @@ struct stable_partition_fn
         if (dist == 2)
         {
             // We know first is false and last is true, so swap them
-            nano::iter_swap(first, last);
-            return {nano::next(first), nano::next(last)};
+            ::nano::iter_swap(first, last);
+            return {::nano::next(first), ::nano::next(last)};
         }
 
         if (dist == 3)
         {
             // We know first is false and last is true, so look at middle
-            I middle = nano::next(first);
+            I middle = ::nano::next(first);
 
-            if (nano::invoke(pred, nano::invoke(proj, *middle)))
+            if (::nano::invoke(pred, ::nano::invoke(proj, *middle)))
             {
-                nano::iter_swap(first, middle);
-                nano::iter_swap(middle, last);
-                return {nano::next(first, 2), nano::next(last)};
+                ::nano::iter_swap(first, middle);
+                ::nano::iter_swap(middle, last);
+                return {::nano::next(first, 2), ::nano::next(last)};
             }
 
             // middle is false
-            nano::iter_swap(middle, last);
-            nano::iter_swap(first, middle);
+            ::nano::iter_swap(middle, last);
+            ::nano::iter_swap(first, middle);
             return {::std::move(middle), ::std::next(last)};
         }
 
         const dist_t half = dist / 2;
-        const I middle = nano::next(first, half);
+        const I middle = ::nano::next(first, half);
 
-        I m1 = nano::prev(middle);
+        I m1 = ::nano::prev(middle);
         dist_t len_half = half;
 
-        while (m1 != first && !nano::invoke(pred, nano::invoke(proj, *m1)))
+        while (m1 != first && !::nano::invoke(pred, ::nano::invoke(proj, *m1)))
         {
             --len_half;
             --m1;
@@ -13483,19 +13483,19 @@ struct stable_partition_fn
         m1 = middle;
         len_half = dist - half;
 
-        while (nano::invoke(pred, nano::invoke(proj, *m1)))
+        while (::nano::invoke(pred, ::nano::invoke(proj, *m1)))
         {
             if (++m1 == last)
             {
-                auto rot = nano::rotate(first_false, middle, ++last);
-                return {::std::move(rot.begin()), nano::next(last)};
+                auto rot = ::nano::rotate(first_false, middle, ++last);
+                return {::std::move(rot.begin()), ::nano::next(last)};
             }
         }
 
         const I last_false = impl_unbuffered(m1, last, len_half, pred, proj).begin();
 
-        auto rot = nano::rotate(first_false, middle, last_false);
-        return {rot.begin(), nano::next(last)};
+        auto rot = ::nano::rotate(first_false, middle, last_false);
+        return {rot.begin(), ::nano::next(last)};
     }
 
     template <typename I, typename Pred, typename Proj>
@@ -13503,14 +13503,14 @@ struct stable_partition_fn
     impl(I first, I last, Pred& pred, Proj& proj)
     {
         // Find the first non-true value
-        first = nano::find_if_not(::std::move(first), last, ::std::ref(pred), ::std::ref(proj));
+        first = ::nano::find_if_not(::std::move(first), last, ::std::ref(pred), ::std::ref(proj));
         if (first == last)
         {
             return {::std::move(first), ::std::move(last)};
         }
 
         // Find the last true value
-        I it = nano::find_if(nano::make_reverse_iterator(last), nano::make_reverse_iterator(first), ::std::ref(pred),
+        I it = ::nano::find_if(::nano::make_reverse_iterator(last), ::nano::make_reverse_iterator(first), ::std::ref(pred),
                              ::std::ref(proj))
                    .base();
         if (it == first)
@@ -13518,7 +13518,7 @@ struct stable_partition_fn
             return {::std::move(first), ::std::move(it)};
         }
 
-        const auto dist = nano::distance(first, it);
+        const auto dist = ::nano::distance(first, it);
 
         auto buf = detail::temporary_vector<iter_value_t<I>>(dist);
         if (buf.capacity() < static_cast<::std::size_t>(dist))
@@ -13532,7 +13532,7 @@ struct stable_partition_fn
     static ::std::enable_if_t<!same_as<I, S>, subrange<I>>
     impl(I first, S last, Pred& pred, Proj& proj)
     {
-        return impl(first, nano::next(first, last), pred, proj);
+        return impl(first, ::nano::next(first, last), pred, proj);
     }
 
   public:
@@ -13551,7 +13551,7 @@ struct stable_partition_fn
                        borrowed_subrange_t<Rng>>
     operator()(Rng&& rng, Pred pred, Proj proj = Proj{}) const
     {
-        return stable_partition_fn::impl(nano::begin(rng), nano::end(rng), pred, proj);
+        return stable_partition_fn::impl(::nano::begin(rng), ::nano::end(rng), pred, proj);
     }
 };
 
@@ -13659,7 +13659,7 @@ struct stable_sort_fn
             return;
         }
         assert(buf.empty());
-        merge_sort_loop(first, last, nano::back_inserter(buf), step_size, comp, proj);
+        merge_sort_loop(first, last, ::nano::back_inserter(buf), step_size, comp, proj);
         step_size *= 2;
         while (true)
         {
@@ -13696,15 +13696,15 @@ struct stable_sort_fn
         while (last - first >= two_step)
         {
             result =
-                nano::merge(nano::make_move_iterator(first), nano::make_move_iterator(first + step_size),
-                            nano::make_move_iterator(first + step_size), nano::make_move_iterator(first + two_step),
+                ::nano::merge(::nano::make_move_iterator(first), ::nano::make_move_iterator(first + step_size),
+                            ::nano::make_move_iterator(first + step_size), ::nano::make_move_iterator(first + two_step),
                             result, ::std::ref(comp), ::std::ref(proj), ::std::ref(proj))
                     .out;
             first += two_step;
         }
-        step_size = nano::min(iter_difference_t<I>(last - first), step_size);
-        nano::merge(nano::make_move_iterator(first), nano::make_move_iterator(first + step_size),
-                    nano::make_move_iterator(first + step_size), nano::make_move_iterator(last), result,
+        step_size = ::nano::min(iter_difference_t<I>(last - first), step_size);
+        ::nano::merge(::nano::make_move_iterator(first), ::nano::make_move_iterator(first + step_size),
+                    ::nano::make_move_iterator(first + step_size), ::nano::make_move_iterator(last), result,
                     ::std::ref(comp), ::std::ref(proj), ::std::ref(proj));
     }
 
@@ -13735,7 +13735,7 @@ struct stable_sort_fn
     ::std::enable_if_t<random_access_iterator<I> && sentinel_for<S, I> && sortable<I, Comp, Proj>, I>
     operator()(I first, S last, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        const auto ilast = nano::next(first, last);
+        const auto ilast = ::nano::next(first, last);
         impl(::std::move(first), ilast, comp, proj);
         return ilast;
     }
@@ -13744,8 +13744,8 @@ struct stable_sort_fn
     ::std::enable_if_t<random_access_range<Rng> && sortable<iterator_t<Rng>, Comp, Proj>, borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, Comp comp = Comp{}, Proj proj = Proj{}) const
     {
-        auto first = nano::begin(rng);
-        const auto last = nano::next(first, nano::end(rng));
+        auto first = ::nano::begin(rng);
+        const auto last = ::nano::next(first, ::nano::end(rng));
         impl(::std::move(first), last, comp, proj);
         return last;
     }
@@ -13788,7 +13788,7 @@ struct transform_fn
     {
         while (first != last)
         {
-            *result = nano::invoke(op, nano::invoke(proj, *first));
+            *result = ::nano::invoke(op, ::nano::invoke(proj, *first));
             ++first;
             ++result;
         }
@@ -13802,7 +13802,7 @@ struct transform_fn
     {
         while (first1 != last1)
         {
-            *result = nano::invoke(op, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2));
+            *result = ::nano::invoke(op, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2));
             ++first1;
             ++first2;
             ++result;
@@ -13818,7 +13818,7 @@ struct transform_fn
     {
         while (first1 != last1 && first2 != last2)
         {
-            *result = nano::invoke(op, nano::invoke(proj1, *first1), nano::invoke(proj2, *first2));
+            *result = ::nano::invoke(op, ::nano::invoke(proj1, *first1), ::nano::invoke(proj2, *first2));
             ++first1;
             ++first2;
             ++result;
@@ -13845,7 +13845,7 @@ struct transform_fn
                                  unary_transform_result<borrowed_iterator_t<Rng>, O>>
     operator()(Rng&& rng, O result, F op, Proj proj = Proj{}) const
     {
-        return transform_fn::unary_impl(nano::begin(rng), nano::end(rng), ::std::move(result), op, proj);
+        return transform_fn::unary_impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), op, proj);
     }
 
     // Binary op, four-legged
@@ -13871,7 +13871,7 @@ struct transform_fn
         binary_transform_result<borrowed_iterator_t<Rng1>, borrowed_iterator_t<Rng2>, O>>
     operator()(Rng1&& rng1, Rng2&& rng2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return transform_fn::binary_impl4(nano::begin(rng1), nano::end(rng1), nano::begin(rng2), nano::end(rng2),
+        return transform_fn::binary_impl4(::nano::begin(rng1), ::nano::end(rng1), ::nano::begin(rng2), ::nano::end(rng2),
                                           ::std::move(result), op, proj1, proj2);
     }
 
@@ -13899,7 +13899,7 @@ struct transform_fn
         binary_transform_result<borrowed_iterator_t<Rng1>, ::std::decay_t<I2>, O>>
     operator()(Rng1&& rng1, I2&& first2, O result, F op, Proj1 proj1 = Proj1{}, Proj2 proj2 = Proj2{}) const
     {
-        return transform_fn::binary_impl3(nano::begin(rng1), nano::end(rng1), ::std::forward<I2>(first2),
+        return transform_fn::binary_impl3(::nano::begin(rng1), ::nano::end(rng1), ::std::forward<I2>(first2),
                                           ::std::move(result), op, proj1, proj2);
     }
 };
@@ -13940,16 +13940,16 @@ struct unique_fn
             return {it, ::std::move(it)};
         }
 
-        I n = nano::next(it, 2, last);
+        I n = ::nano::next(it, 2, last);
         for (; n != last; ++n)
         {
-            if (!nano::invoke(comp, nano::invoke(proj, *it), nano::invoke(proj, *n)))
+            if (!::nano::invoke(comp, ::nano::invoke(proj, *it), ::nano::invoke(proj, *n)))
             {
                 *++it = iter_move(n);
             }
         }
 
-        return {nano::next(it), ::std::move(n)};
+        return {::nano::next(it), ::std::move(n)};
     }
 
   public:
@@ -13968,7 +13968,7 @@ struct unique_fn
                                  borrowed_subrange_t<Rng>>
     operator()(Rng&& rng, R comp = {}, Proj proj = Proj{}) const
     {
-        return unique_fn::impl(nano::begin(rng), nano::end(rng), comp, proj);
+        return unique_fn::impl(::nano::begin(rng), ::nano::end(rng), comp, proj);
     }
 };
 
@@ -14013,7 +14013,7 @@ struct unique_copy_fn
             while (++first != last)
             {
                 auto&& v = *first;
-                if (!nano::invoke(comp, nano::invoke(proj, v), nano::invoke(proj, saved)))
+                if (!::nano::invoke(comp, ::nano::invoke(proj, v), ::nano::invoke(proj, saved)))
                 {
                     saved = ::std::forward<decltype(v)>(v);
                     *result = saved;
@@ -14056,7 +14056,7 @@ struct unique_copy_fn
                                       constraint_helper<iterator_t<Rng>, O>(priority_tag<2>{}))::value,
                               unique_copy_result<borrowed_iterator_t<Rng>, O>>
     {
-        return unique_copy_fn::impl(nano::begin(rng), nano::end(rng), ::std::move(result), comp, proj);
+        return unique_copy_fn::impl(::nano::begin(rng), ::nano::end(rng), ::std::move(result), comp, proj);
     }
 };
 
@@ -14685,7 +14685,7 @@ struct uninitialized_copy_fn
         }
         catch (...)
         {
-            nano::destroy(ofirst, ++oit);
+            ::nano::destroy(ofirst, ++oit);
             throw;
         }
     }
@@ -14706,7 +14706,7 @@ struct uninitialized_copy_fn
         }
         catch (...)
         {
-            nano::destroy(ofirst, ++oit);
+            ::nano::destroy(ofirst, ++oit);
             throw;
         }
     }
@@ -14730,7 +14730,7 @@ struct uninitialized_copy_fn
                        uninitialized_copy_result<borrowed_iterator_t<IRng>, borrowed_iterator_t<ORng>>>
     operator()(IRng&& irng, ORng&& orng) const
     {
-        return uninitialized_copy_fn::impl4(nano::begin(irng), nano::end(irng), nano::begin(orng), nano::end(orng));
+        return uninitialized_copy_fn::impl4(::nano::begin(irng), ::nano::end(irng), ::nano::begin(orng), ::nano::end(orng));
     }
 
     // Three-legged
@@ -14751,7 +14751,7 @@ struct uninitialized_copy_fn
         uninitialized_copy_result<borrowed_iterator_t<IRng>, ::std::decay_t<O>>>
     operator()(IRng&& irng, O&& ofirst) const
     {
-        return uninitialized_copy_fn::impl3(nano::begin(irng), nano::end(irng), ::std::forward<O>(ofirst));
+        return uninitialized_copy_fn::impl3(::nano::begin(irng), ::nano::end(irng), ::std::forward<O>(ofirst));
     }
 };
 
@@ -14830,7 +14830,7 @@ struct uninitialized_default_construct_fn
         }
         catch (...)
         {
-            nano::destroy(first, ++it);
+            ::nano::destroy(first, ++it);
             throw;
         }
     }
@@ -14849,7 +14849,7 @@ struct uninitialized_default_construct_fn
                        borrowed_iterator_t<Rng>>
     operator()(Rng&& rng) const
     {
-        return uninitialized_default_construct_fn::impl(nano::begin(rng), nano::end(rng));
+        return uninitialized_default_construct_fn::impl(::nano::begin(rng), ::nano::end(rng));
     }
 };
 
@@ -14866,7 +14866,7 @@ struct uninitialized_default_construct_n_fn
     ::std::enable_if_t<no_throw_forward_iterator<I> && default_initializable<iter_value_t<I>>, I>
     operator()(I first, iter_difference_t<I> n) const
     {
-        return nano::uninitialized_default_construct(make_counted_iterator(::std::move(first), n), default_sentinel)
+        return ::nano::uninitialized_default_construct(make_counted_iterator(::std::move(first), n), default_sentinel)
             .base();
     }
 };
@@ -14913,7 +14913,7 @@ struct uninitialized_fill_fn
         }
         catch (...)
         {
-            nano::destroy(first, ++it);
+            ::nano::destroy(first, ++it);
             throw;
         }
     }
@@ -14932,7 +14932,7 @@ struct uninitialized_fill_fn
                        borrowed_iterator_t<Rng>>
     operator()(Rng&& rng, const T& x) const
     {
-        return uninitialized_fill_fn::impl(nano::begin(rng), nano::end(rng), x);
+        return uninitialized_fill_fn::impl(::nano::begin(rng), ::nano::end(rng), x);
     }
 };
 
@@ -14992,13 +14992,13 @@ struct uninitialized_move_fn
         {
             for (; ifirst != ilast && oit != olast; ++ifirst, (void)++oit)
             {
-                ::new (detail::voidify(*oit))::std::remove_reference_t<iter_reference_t<O>>(nano::iter_move(ifirst));
+                ::new (detail::voidify(*oit))::std::remove_reference_t<iter_reference_t<O>>(::nano::iter_move(ifirst));
             }
             return {::std::move(ifirst), ::std::move(oit)};
         }
         catch (...)
         {
-            nano::destroy(ofirst, ++oit);
+            ::nano::destroy(ofirst, ++oit);
             throw;
         }
     }
@@ -15012,13 +15012,13 @@ struct uninitialized_move_fn
         {
             for (; ifirst != ilast; ++ifirst, (void)++oit)
             {
-                ::new (detail::voidify(*oit))::std::remove_reference_t<iter_reference_t<O>>(nano::iter_move(ifirst));
+                ::new (detail::voidify(*oit))::std::remove_reference_t<iter_reference_t<O>>(::nano::iter_move(ifirst));
             }
             return {::std::move(ifirst), ::std::move(oit)};
         }
         catch (...)
         {
-            nano::destroy(ofirst, ++oit);
+            ::nano::destroy(ofirst, ++oit);
             throw;
         }
     }
@@ -15043,7 +15043,7 @@ struct uninitialized_move_fn
         uninitialized_move_result<borrowed_iterator_t<IRng>, borrowed_iterator_t<ORng>>>
     operator()(IRng&& irng, ORng&& orng) const
     {
-        return uninitialized_move_fn::impl4(nano::begin(irng), nano::end(irng), nano::begin(orng), nano::end(orng));
+        return uninitialized_move_fn::impl4(::nano::begin(irng), ::nano::end(irng), ::nano::begin(orng), ::nano::end(orng));
     }
 
     // Three-legged
@@ -15064,7 +15064,7 @@ struct uninitialized_move_fn
         uninitialized_move_result<borrowed_iterator_t<IRng>, ::std::decay_t<O>>>
     operator()(IRng&& irng, O&& ofirst) const
     {
-        return uninitialized_move_fn::impl3(nano::begin(irng), nano::end(irng), ::std::forward<O>(ofirst));
+        return uninitialized_move_fn::impl3(::nano::begin(irng), ::nano::end(irng), ::std::forward<O>(ofirst));
     }
 };
 
@@ -15143,7 +15143,7 @@ struct uninitialized_value_construct_fn
         }
         catch (...)
         {
-            nano::destroy(first, ++it);
+            ::nano::destroy(first, ++it);
             throw;
         }
     }
@@ -15162,7 +15162,7 @@ struct uninitialized_value_construct_fn
                        borrowed_iterator_t<Rng>>
     operator()(Rng&& rng) const
     {
-        return uninitialized_value_construct_fn::impl(nano::begin(rng), nano::end(rng));
+        return uninitialized_value_construct_fn::impl(::nano::begin(rng), ::nano::end(rng));
     }
 };
 
@@ -15179,7 +15179,7 @@ struct uninitialized_value_construct_n_fn
     ::std::enable_if_t<no_throw_forward_iterator<I> && default_initializable<iter_value_t<I>>, I>
     operator()(I first, iter_difference_t<I> n) const
     {
-        return nano::uninitialized_value_construct(make_counted_iterator(::std::move(first), n), default_sentinel)
+        return ::nano::uninitialized_value_construct(make_counted_iterator(::std::move(first), n), default_sentinel)
             .base();
     }
 };
@@ -15424,10 +15424,10 @@ struct all_view_fn
 
     template <typename T>
     static constexpr auto
-    impl(T&& t, priority_tag<0>) noexcept(noexcept(nano::subrange{::std::forward<T>(t)}))
-        -> decltype(nano::subrange{::std::forward<T>(t)})
+    impl(T&& t, priority_tag<0>) noexcept(noexcept(::nano::subrange{::std::forward<T>(t)}))
+        -> decltype(::nano::subrange{::std::forward<T>(t)})
     {
-        return nano::subrange{::std::forward<T>(t)};
+        return ::nano::subrange{::std::forward<T>(t)};
     }
 
   public:
@@ -15448,7 +15448,7 @@ inline constexpr bool is_raco<all_view_fn> = true;
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::all_view_fn, all)
+NANO_INLINE_VAR(::nano::detail::all_view_fn, all)
 }
 
 template <typename R>
@@ -15577,7 +15577,7 @@ struct common_view_fn
   private:
     template <typename T>
     static constexpr auto
-    impl(T&& t, nano::detail::priority_tag<1>) noexcept(noexcept(views::all(::std::forward<T>(t))))
+    impl(T&& t, ::nano::detail::priority_tag<1>) noexcept(noexcept(views::all(::std::forward<T>(t))))
         -> ::std::enable_if_t<common_range<T>, decltype(views::all(::std::forward<T>(t)))>
     {
         return views::all(::std::forward<T>(t));
@@ -15585,7 +15585,7 @@ struct common_view_fn
 
     template <typename T>
     static constexpr auto
-    impl(T&& t, nano::detail::priority_tag<0>) -> common_view<all_view<T>>
+    impl(T&& t, ::nano::detail::priority_tag<0>) -> common_view<all_view<T>>
     {
         return common_view<all_view<T>>{::std::forward<T>(t)};
     }
@@ -15595,9 +15595,9 @@ struct common_view_fn
     constexpr auto
     operator()(T&& t) const
         -> ::std::enable_if_t<viewable_range<T>,
-                              decltype(common_view_fn::impl(::std::forward<T>(t), nano::detail::priority_tag<1>{}))>
+                              decltype(common_view_fn::impl(::std::forward<T>(t), ::nano::detail::priority_tag<1>{}))>
     {
-        return common_view_fn::impl(::std::forward<T>(t), nano::detail::priority_tag<1>{});
+        return common_view_fn::impl(::std::forward<T>(t), ::nano::detail::priority_tag<1>{});
     }
 };
 
@@ -15639,19 +15639,19 @@ struct counted_fn
   private:
     template <typename I>
     static constexpr auto
-    impl(I i, iter_difference_t<I> n, nano::detail::priority_tag<1>) noexcept(noexcept(nano::subrange{i, i + n}))
-        -> ::std::enable_if_t<random_access_iterator<I>, decltype(nano::subrange{i, i + n})>
+    impl(I i, iter_difference_t<I> n, ::nano::detail::priority_tag<1>) noexcept(noexcept(::nano::subrange{i, i + n}))
+        -> ::std::enable_if_t<random_access_iterator<I>, decltype(::nano::subrange{i, i + n})>
     {
-        return nano::subrange{i, i + n};
+        return ::nano::subrange{i, i + n};
     }
 
     template <typename I>
     static constexpr auto
-    impl(I i, iter_difference_t<I> n, nano::detail::priority_tag<0>) noexcept(noexcept(nano::subrange{
-        nano::make_counted_iterator(::std::move(i), n), default_sentinel}))
-        -> decltype(nano::subrange{nano::make_counted_iterator(::std::move(i), n), default_sentinel})
+    impl(I i, iter_difference_t<I> n, ::nano::detail::priority_tag<0>) noexcept(noexcept(::nano::subrange{
+        ::nano::make_counted_iterator(::std::move(i), n), default_sentinel}))
+        -> decltype(::nano::subrange{::nano::make_counted_iterator(::std::move(i), n), default_sentinel})
     {
-        return nano::subrange{nano::make_counted_iterator(::std::move(i), n), default_sentinel};
+        return ::nano::subrange{::nano::make_counted_iterator(::std::move(i), n), default_sentinel};
     }
 
   public:
@@ -15659,14 +15659,14 @@ struct counted_fn
     constexpr auto
     operator()(E&& e, F&& f) const
         noexcept(noexcept(impl(::std::forward<E>(e), static_cast<iter_difference_t<T>>(::std::forward<F>(f)),
-                               nano::detail::priority_tag<1>{})))
+                               ::nano::detail::priority_tag<1>{})))
             -> ::std::enable_if_t<input_or_output_iterator<T> && convertible_to<F, iter_difference_t<T>>,
                                   decltype(impl(::std::forward<E>(e),
                                                 static_cast<iter_difference_t<T>>(::std::forward<F>(f)),
-                                                nano::detail::priority_tag<1>{}))>
+                                                ::nano::detail::priority_tag<1>{}))>
     {
         return impl(::std::forward<E>(e), static_cast<iter_difference_t<T>>(::std::forward<F>(f)),
-                    nano::detail::priority_tag<1>{});
+                    ::nano::detail::priority_tag<1>{});
     }
 };
 
@@ -15829,7 +15829,7 @@ struct drop_view_fn
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::drop_view_fn, drop)
+NANO_INLINE_VAR(::nano::detail::drop_view_fn, drop)
 }
 
 NANO_END_NAMESPACE
@@ -15989,7 +15989,7 @@ struct drop_while_view : view_interface<drop_while_view<R, Pred>>
         if (!cached_.has_value())
         {
             cached_ = ranges::find_if(
-                base_, [& p = pred()](auto&& arg) { return !nano::invoke(p, ::std::forward<decltype(arg)>(arg)); });
+                base_, [& p = pred()](auto&& arg) { return !::nano::invoke(p, ::std::forward<decltype(arg)>(arg)); });
         }
 
         return *cached_;
@@ -16042,7 +16042,7 @@ struct drop_while_view_fn
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::drop_while_view_fn, drop_while)
+NANO_INLINE_VAR(::nano::detail::drop_while_view_fn, drop_while)
 }
 
 NANO_END_NAMESPACE
@@ -16387,11 +16387,11 @@ inline namespace function_objects
 {
 
 template <::std::size_t N>
-inline constexpr nano::detail::elements_view_fn<N> elements{};
+inline constexpr ::nano::detail::elements_view_fn<N> elements{};
 
-inline constexpr nano::detail::elements_view_fn<0> keys{};
+inline constexpr ::nano::detail::elements_view_fn<0> keys{};
 
-inline constexpr nano::detail::elements_view_fn<1> values{};
+inline constexpr ::nano::detail::elements_view_fn<1> values{};
 
 } // namespace function_objects
 
@@ -16506,7 +16506,7 @@ filter_view_iter_cat_helper()
 }
 
 constexpr inline auto as_ref = [](auto& pred) {
-    return [&p = pred](auto&& arg) { return nano::invoke(p, ::std::forward<decltype(arg)>(arg)); };
+    return [&p = pred](auto&& arg) { return ::nano::invoke(p, ::std::forward<decltype(arg)>(arg)); };
 };
 
 } // namespace detail
@@ -16593,7 +16593,7 @@ struct filter_view : view_interface<filter_view<V, Pred>>
             do
             {
                 --current_;
-            } while (!nano::invoke(*parent_->pred_, *current_));
+            } while (!::nano::invoke(*parent_->pred_, *current_));
             return *this;
         }
 
@@ -16718,7 +16718,7 @@ struct filter_view : view_interface<filter_view<V, Pred>>
         }
 
         assert(pred_.has_value());
-        begin_cache_ = ::std::optional<iterator>{iterator{*this, nano::find_if(base_, detail::as_ref(*pred_))}};
+        begin_cache_ = ::std::optional<iterator>{iterator{*this, ::nano::find_if(base_, detail::as_ref(*pred_))}};
         return *begin_cache_;
     }
 
@@ -16775,7 +16775,7 @@ struct filter_view_fn
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::filter_view_fn, filter)
+NANO_INLINE_VAR(::nano::detail::filter_view_fn, filter)
 }
 
 NANO_END_NAMESPACE
@@ -17476,7 +17476,7 @@ struct join_view : view_interface<join_view<V>>
         using iterator_category = decltype(detail::join_view_iter_cat_helper<Base>());
         using value_type = range_value_t<range_reference_t<Base>>;
         using difference_type =
-            nano::common_type_t<range_difference_t<Base>, range_difference_t<range_reference_t<Base>>>;
+            ::nano::common_type_t<range_difference_t<Base>, range_difference_t<range_reference_t<Base>>>;
         // Extension: legacy typedefs
         using pointer = iterator_t<Base>;
         using reference = range_reference_t<range_reference_t<Base>>;
@@ -17740,7 +17740,7 @@ inline constexpr bool is_raco<join_view_fn> = true;
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::join_view_fn, join)
+NANO_INLINE_VAR(::nano::detail::join_view_fn, join)
 }
 
 NANO_END_NAMESPACE
@@ -17810,7 +17810,7 @@ struct reverse_view : view_interface<reverse_view<V>>,
     {
         if constexpr (common_range<V>)
         {
-            return nano::make_reverse_iterator(ranges::end(base_));
+            return ::nano::make_reverse_iterator(ranges::end(base_));
         }
         else
         {
@@ -17819,7 +17819,7 @@ struct reverse_view : view_interface<reverse_view<V>>,
             {
                 c = ranges::next(ranges::begin(base_), ranges::end(base_));
             }
-            return nano::make_reverse_iterator(*c);
+            return ::nano::make_reverse_iterator(*c);
         }
     }
 
@@ -17827,20 +17827,20 @@ struct reverse_view : view_interface<reverse_view<V>>,
     constexpr auto
     begin() const -> ::std::enable_if_t<common_range<const VV>, reverse_iterator<iterator_t<const VV>>>
     {
-        return nano::make_reverse_iterator(ranges::end(base_));
+        return ::nano::make_reverse_iterator(ranges::end(base_));
     }
 
     constexpr reverse_iterator<iterator_t<V>>
     end()
     {
-        return nano::make_reverse_iterator(ranges::begin(base_));
+        return ::nano::make_reverse_iterator(ranges::begin(base_));
     }
 
     template <typename VV = V>
     constexpr auto
     end() const -> ::std::enable_if_t<common_range<const VV>, reverse_iterator<iterator_t<const VV>>>
     {
-        return nano::make_reverse_iterator(ranges::begin(base_));
+        return ::nano::make_reverse_iterator(ranges::begin(base_));
     }
 
     template <typename VV = V, ::std::enable_if_t<sized_range<VV>, int> = 0>
@@ -17915,7 +17915,7 @@ inline constexpr bool is_raco<reverse_view_fn> = true;
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::reverse_view_fn, reverse)
+NANO_INLINE_VAR(::nano::detail::reverse_view_fn, reverse)
 
 } // namespace views
 
@@ -18519,7 +18519,7 @@ struct split_view_fn
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::split_view_fn, split)
+NANO_INLINE_VAR(::nano::detail::split_view_fn, split)
 }
 
 NANO_END_NAMESPACE
@@ -18763,7 +18763,7 @@ struct take_view_fn
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::take_view_fn, take)
+NANO_INLINE_VAR(::nano::detail::take_view_fn, take)
 }
 
 NANO_END_NAMESPACE
@@ -18825,7 +18825,7 @@ struct take_while_view : view_interface<take_while_view<R, Pred>>
         friend constexpr bool
         operator==(const iterator_t<base_t>& x, const sentinel& y)
         {
-            return y.end_ == x || !nano::invoke(*y.pred_, *x);
+            return y.end_ == x || !::nano::invoke(*y.pred_, *x);
         }
 
 #        if (defined(_MSC_VER) && _MSC_VER < 1922)
@@ -18940,7 +18940,7 @@ struct take_while_view_fn
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::take_while_view_fn, take_while)
+NANO_INLINE_VAR(::nano::detail::take_while_view_fn, take_while)
 }
 
 NANO_END_NAMESPACE
@@ -18991,7 +18991,7 @@ struct transform_view : view_interface<transform_view<V, F>>
         iterator_t<Base> current_ = iterator_t<Base>();
         Parent* parent_ = nullptr;
 
-        static constexpr bool iter_move_noexcept_helper = noexcept(nano::invoke(*parent_->fun_, *current_));
+        static constexpr bool iter_move_noexcept_helper = noexcept(::nano::invoke(*parent_->fun_, *current_));
 
       public:
         using iterator_category =
@@ -19023,7 +19023,7 @@ struct transform_view : view_interface<transform_view<V, F>>
             return current_;
         }
 
-        constexpr decltype(auto) operator*() const { return nano::invoke(*parent_->fun_, *current_); }
+        constexpr decltype(auto) operator*() const { return ::nano::invoke(*parent_->fun_, *current_); }
 
         constexpr iterator&
         operator++()
@@ -19083,7 +19083,7 @@ struct transform_view : view_interface<transform_view<V, F>>
         template <typename B = Base, typename = ::std::enable_if_t<random_access_range<B>>>
         constexpr decltype(auto) operator[](difference_type n) const
         {
-            return nano::invoke(*parent_->fun_, current_[n]);
+            return ::nano::invoke(*parent_->fun_, current_[n]);
         }
 
         template <typename B = Base>
@@ -19364,7 +19364,7 @@ struct transform_view_fn
 namespace views
 {
 
-NANO_INLINE_VAR(nano::detail::transform_view_fn, transform)
+NANO_INLINE_VAR(::nano::detail::transform_view_fn, transform)
 }
 
 NANO_END_NAMESPACE
