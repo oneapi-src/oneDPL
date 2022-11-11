@@ -521,7 +521,7 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::atomic_f
     _AtomicT __atomic_peer_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
-        : __sgroup(__self_item.get_sub_group()),  __sg_size(__sgroup.get_local_linear_range()),
+        : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_linear_range()),
           __self_lidx(__self_item.get_local_linear_id()), __item_sg_mask(~(~0u << (__self_lidx))),
           __atomic_peer_mask(__lacc[0])
     {
@@ -597,8 +597,8 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::scan_the
             __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
             sycl::group_barrier(__sgroup);
             // The last scanned value may not contain number of all copies, thus adding __is_current_bucket
-            ::std::uint32_t __sg_total_offset = __dpl_sycl::__group_broadcast(
-                __sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
+            ::std::uint32_t __sg_total_offset =
+                __dpl_sycl::__group_broadcast(__sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
 
             // Lowest ranked work-item with this bucket should update shared array of offsets
             if (__is_current_bucket && __sg_item_offset == 0)
@@ -624,7 +624,7 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::subgroup
     const ::std::uint32_t __item_sg_mask;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __sgroup(__self_item.get_sub_group()),  __sg_size(__sgroup.get_local_linear_range()),
+        : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_linear_range()),
           __self_lidx(__self_item.get_local_linear_id()), __item_sg_mask(~(~0u << (__self_lidx)))
     {
     }
@@ -720,7 +720,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
         typename _PeerHelper::_TempStorageT __peer_temp(1, __hdl);
 
-        auto __offset_arr = sycl::accessor<_OffsetT, 1, access_mode::read_write, __dpl_sycl::__target::local>(__radix_states, __hdl);
+        auto __offset_arr =
+            sycl::accessor<_OffsetT, 1, access_mode::read_write, __dpl_sycl::__target::local>(__radix_states, __hdl);
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -741,12 +742,12 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 // 1. cooperatively fill a shared array for offsets with sum of
                 //      total offset and offset for compute unit for a certain radix state
                 const ::std::uint32_t __global_offset_start_idx = (__segments + 1) * __radix_states;
-                for (::std::uint32_t __radix_state = __self_lidx; __radix_state < __radix_states; __radix_state += __sg_size)
+                for (::std::uint32_t __radix_state = __self_lidx; __radix_state < __radix_states;
+                     __radix_state += __sg_size)
                 {
                     const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state;
                     const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state;
-                    __offset_arr[__radix_state] =
-                        __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
+                    __offset_arr[__radix_state] = __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
                 }
 
                 sycl::group_barrier(__sgroup);
