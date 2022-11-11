@@ -221,13 +221,7 @@ using __buffer_allocator =
 
 template <typename _AtomicType, sycl::access::address_space _Space>
 #if _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
-struct __atomic_ref : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>
-{
-    explicit __atomic_ref(_AtomicType& ref)
-        : sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>(ref)
-    {
-    }
-};
+using __atomic_ref = sycl::atomic_ref<_AtomicType, sycl::memory_order::relaxed, sycl::memory_scope::work_group, _Space>;
 #else
 struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 {
