@@ -21,6 +21,8 @@
 
 #include "sycl_defs.h"
 
+#include <type_traits>
+
 namespace oneapi
 {
 namespace dpl
