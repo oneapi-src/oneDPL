@@ -12,7 +12,7 @@ main()
             [](sycl::handler & cgh) [[sycl::device_has(sycl::aspect::fp64)]]
             {
                 cgh.single_task<class Test1>(
-                    []()
+                    []() [[sycl::device_has(sycl::aspect::fp64)]]
                     {
                         double d = 1;
                         d = d + 1;
