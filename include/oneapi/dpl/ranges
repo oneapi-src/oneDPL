@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_RANGES
 #define _ONEDPL_RANGES
 
-#include "oneapi/dpl/internal/cpp_version.h"
+#include "oneapi/dpl/internal/common_config.h"
 
 // TODO: Figure out the order of headers and add standard header version/ciso646 for library version macros.
 #if defined(_GLIBCXX_RELEASE)

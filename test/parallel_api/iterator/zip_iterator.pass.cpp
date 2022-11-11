@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "support/test_config.h"
-#include "oneapi/dpl/internal/cpp_version.h"
+#include "oneapi/dpl/internal/common_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)

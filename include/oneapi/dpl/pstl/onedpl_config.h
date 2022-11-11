@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
-#include "oneapi/dpl/internal/cpp_version.h"
+#include "oneapi/dpl/internal/common_config.h"
 
 #ifndef _PSTL_VERSION
 #    define _PSTL_VERSION 11000

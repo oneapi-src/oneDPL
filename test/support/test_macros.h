@@ -16,7 +16,7 @@
 #ifndef SUPPORT_TEST_MACROS_HPP
 #define SUPPORT_TEST_MACROS_HPP
 
-#include "oneapi/dpl/internal/cpp_version.h"
+#include "oneapi/dpl/internal/common_config.h"
 
 // Attempt to get STL specific macros like _LIBCPP_VERSION using the most
 // minimal header possible. If we're testing libc++, we should use `<__config>`.

@@ -16,7 +16,7 @@
 #ifndef _TEST_config_H
 #define _TEST_config_H
 
-#include "oneapi/dpl/internal/cpp_version.h"
+#include "oneapi/dpl/internal/common_config.h"
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X

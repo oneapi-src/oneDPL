@@ -17,7 +17,7 @@
 #ifndef _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 #define _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 
-#include "cpp_version.h"
+#include "common_config.h"
 
 #if (_ONEDPL_CPLUSPLUS >= 201703L)
 #    include <algorithm>
