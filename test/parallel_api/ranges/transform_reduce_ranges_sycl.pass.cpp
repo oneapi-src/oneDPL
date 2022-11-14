@@ -54,7 +54,7 @@ main()
     auto expected1 = ::std::inner_product(data, data + max_n, data, 0);
     auto expected2 = ::std::inner_product(data, data + max_n, data, 0, ::std::plus<int>(), ::std::multiplies<int>());
 
-    auto data_view = nano::views::all(data) | oneapi::dpl::experimental::ranges::views::transform(lambda1);
+    auto data_view = ::nano::views::all(data) | oneapi::dpl::experimental::ranges::views::transform(lambda1);
     auto expected3 = ::std::accumulate(data_view.begin(), data_view.end(), 0);
 
     EXPECT_TRUE(res1 == expected1, "wrong effect from transform_reduce1 with sycl ranges");

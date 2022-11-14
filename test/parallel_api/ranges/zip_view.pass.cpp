@@ -35,8 +35,8 @@ main()
 
     using namespace oneapi::dpl::experimental::ranges;
 
-    auto view = nano::views::all(data);
-    auto z = zip_view(nano::views::all(data), nano::views::all(key));
+    auto view = ::nano::views::all(data);
+    auto z = zip_view(::nano::views::all(data), ::nano::views::all(key));
 
     //check access
     EXPECT_TRUE(::std::get<0>(z[2]) == 'g', "wrong effect with zip_view");

@@ -36,8 +36,8 @@ main()
 
     using namespace oneapi::dpl::experimental::ranges;
 
-    auto view1 = nano::ranges::views::all(data) | views::rotate(rotate_val);
-    auto view2 = views::rotate(nano::ranges::views::all(data), rotate_val);
+    auto view1 = ::nano::ranges::views::all(data) | views::rotate(rotate_val);
+    auto view2 = views::rotate(::nano::ranges::views::all(data), rotate_val);
 
     //check result
     ::std::rotate_copy(data, data + rotate_val, data + max_n, expected);
