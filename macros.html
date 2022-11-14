@@ -4,9 +4,9 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Macros &#8212; oneDPL Documentation 2021.7 documentation</title>
+    <title>Macros &#8212; oneDPL Documentation 2021.7.1 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -30,34 +30,16 @@
     <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
   
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="shortcut icon" href="_static/favicons.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Notices and Disclaimers" href="notices_disclaimers.html" />
     <link rel="prev" title="Utility Function Object Classes" href="api_for_sycl_kernels/utility_function_object_classes.html" />
-
-    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
-    <script type="text/javascript">
-        // Configure TMS settings
-        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
-        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
-        // Load TMS
-        if(document.location.href.includes("oneapi-src.github.io")){
-        (function () {
-        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
-        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-        })();
-        }
-    </script>
-    <link href="_static/style.css" rel="stylesheet" type="text/css">
-
-
 
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -96,7 +78,7 @@
       <img src="_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.7 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.7.1 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
@@ -104,12 +86,29 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item active">
-        <ul class="current nav bd-sidenav">
+        <p>
+ <span class="caption-text">
+  Get Started
+ </span>
+</p>
+<ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="onedpl_gsg.html">
+  <a class="reference internal" href="introduction/release_notes.html">
+   Release Notes
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="introduction/onedpl_gsg.html">
    Get Started with the oneAPI DPC++ Library
   </a>
  </li>
+</ul>
+<p>
+ <span class="caption-text">
+  Library Guide
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
  <li class="toctree-l1">
   <a class="reference internal" href="overview.html">
    oneAPI DPC++ Library Overview
@@ -189,6 +188,13 @@
    Macros
   </a>
  </li>
+</ul>
+<p>
+ <span class="caption-text">
+  Notices and Disclaimers
+ </span>
+</p>
+<ul class="nav bd-sidenav">
  <li class="toctree-l1">
   <a class="reference internal" href="notices_disclaimers.html">
    Notices and Disclaimers
@@ -426,10 +432,6 @@ title="Print to PDF"
 <h2>Version Macros<a class="headerlink" href="#version-macros" title="Permalink to this headline">¶</a></h2>
 <p>Use these macros to get the current version of oneAPI DPC++ Library (oneDPL).</p>
 <table class="table">
-<colgroup>
-<col style="width: 36%" />
-<col style="width: 64%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Macro</p></th>
 <th class="head"><p>Description</p></th>
@@ -469,10 +471,6 @@ minor version number and <code class="docutils literal notranslate"><span class=
 <p>Use these macros to control aspects of oneDPL usage. You can set them in your program code
 before including oneDPL headers.</p>
 <table class="table">
-<colgroup>
-<col style="width: 26%" />
-<col style="width: 74%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Macro</p></th>
 <th class="head"><p>Description</p></th>
@@ -560,7 +558,7 @@ algorithms for FPGA emulation device. (Disabled by default.)</p>
 <p>Define <code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_DEVICE</span></code> and <code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_EMULATOR</span></code> macros in the same
 application to run on a FPGA emulation device.
 Define only the <code class="docutils literal notranslate"><span class="pre">ONEDPL_FPGA_DEVICE</span></code> macro to run on a FPGA hardware device.</p>
-</div>
+</aside>
 </td>
 </tr>
 </tbody>
@@ -601,7 +599,7 @@ Define only the <code class="docutils literal notranslate"><span class="pre">ONE
   
       &copy; Copyright Intel Corporation.<br/>
     <div class="extra_footer">
-      <p align="right"><a data-cookie-notice="true" href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
+      <p align="right"><a href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
     </div>
 </p>
         </footer>
