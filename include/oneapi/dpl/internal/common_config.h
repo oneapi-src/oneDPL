@@ -27,7 +27,7 @@
 #endif
 
 // Disable use of TBB in Parallel STL from libstdc++ when:
-#if _ONEDPL_cplusplus >= 201703L
+#if __cplusplus >= 201703L
 // - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
 #    if __has_include(<tbb/version.h>)
 #        ifndef PSTL_USE_PARALLEL_POLICIES
@@ -41,6 +41,6 @@
 #    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
 #        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
 #    endif
-#endif // _ONEDPL_cplusplus >= 201703L
+#endif // __cplusplus >= 201703L
 
 #endif
