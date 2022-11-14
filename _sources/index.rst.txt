@@ -1,4 +1,4 @@
-|onedpl_long| Guide
+|onedpl_long|
 =================================
 
 |onedpl_long| (|onedpl_short|) works with the |dpcpp_cpp| to
@@ -7,13 +7,22 @@ efforts across devices for high performance parallel applications.
 
 .. toctree::
    :maxdepth: 2
-   :titlesonly:
-   :glob:
-   :hidden:
+   :caption: Get Started
 
-   onedpl_gsg
+   introduction/release_notes.rst
+   introduction/onedpl_gsg.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Library Guide
+
    overview
    parallel_api_main
    api_for_sycl_kernels_main
    macros
-   notices_disclaimers
+
+.. toctree::
+   :hidden:
+   :caption: Notices and Disclaimers
+
+   notices_disclaimers.rst
