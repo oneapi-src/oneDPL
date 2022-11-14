@@ -17,17 +17,17 @@
 #define _ONEDPL_COMMON_CONFIG_H
 
 #ifndef _MSVC_LANG
-#    define _ONEDPL_CPLUSPLUS __cplusplus
+#    define _ONEDPL_cplusplus __cplusplus
 #else
-#    define _ONEDPL_CPLUSPLUS _MSVC_LANG
+#    define _ONEDPL_cplusplus _MSVC_LANG
 #endif
 
-#if _ONEDPL_CPLUSPLUS < 201703L
+#if _ONEDPL_cplusplus < 201703L
 #    error "oneDPL requires the C++ language version not less than C++17"
 #endif
 
 // Disable use of TBB in Parallel STL from libstdc++ when:
-#if _ONEDPL_CPLUSPLUS >= 201703L
+#if _ONEDPL_cplusplus >= 201703L
 // - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
 #    if __has_include(<tbb/version.h>)
 #        ifndef PSTL_USE_PARALLEL_POLICIES
@@ -41,6 +41,6 @@
 #    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
 #        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
 #    endif
-#endif // _ONEDPL_CPLUSPLUS >= 201703L
+#endif // _ONEDPL_cplusplus >= 201703L
 
 #endif

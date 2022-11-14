@@ -18,11 +18,11 @@
 
 #include "oneapi/dpl/internal/common_config.h"
 // ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
-#if _ONEDPL_CPLUSPLUS >= 201703L
+#if _ONEDPL_cplusplus >= 201703L
 #    if __has_include(<execution>)
 #        include <execution>
 #    endif // __has_include(<execution>)
-#endif     // _ONEDPL_CPLUSPLUS >= 201703L
+#endif     // _ONEDPL_cplusplus >= 201703L
 
 #include "oneapi/dpl/pstl/onedpl_config.h"
 #include "oneapi/dpl/pstl/execution_defs.h"

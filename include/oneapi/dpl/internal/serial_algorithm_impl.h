@@ -19,7 +19,7 @@
 
 #include "common_config.h"
 
-#if (_ONEDPL_CPLUSPLUS >= 201703L)
+#if (_ONEDPL_cplusplus >= 201703L)
 #    include <algorithm>
 #    include <iterator>
 namespace oneapi
@@ -44,5 +44,5 @@ using ::std::for_each_n;
 #    endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_CPLUSPLUS >= 201703L
+#endif // _ONEDPL_cplusplus >= 201703L
 #endif // _ONEDPL_SERIAL_ALGORITHM_IMPL_H

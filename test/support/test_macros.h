@@ -96,15 +96,15 @@
 
 /* Make a nice name for the standard version */
 #ifndef TEST_STD_VER
-#if  _ONEDPL_CPLUSPLUS <= 199711L
+#if  _ONEDPL_cplusplus <= 199711L
 # define TEST_STD_VER 3
-#elif _ONEDPL_CPLUSPLUS <= 201103L
+#elif _ONEDPL_cplusplus <= 201103L
 # define TEST_STD_VER 11
-#elif _ONEDPL_CPLUSPLUS <= 201402L
+#elif _ONEDPL_cplusplus <= 201402L
 # define TEST_STD_VER 14
-#elif _ONEDPL_CPLUSPLUS <= 201703L
+#elif _ONEDPL_cplusplus <= 201703L
 # define TEST_STD_VER 17
-#elif _ONEDPL_CPLUSPLUS <= 202002L
+#elif _ONEDPL_cplusplus <= 202002L
 # define TEST_STD_VER 20
 #else
 # define TEST_STD_VER 99    // greater than current standard
