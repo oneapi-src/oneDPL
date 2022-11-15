@@ -32,6 +32,8 @@ namespace experimental
 namespace ranges
 {
 
+using namespace __nanorange;
+
 //custom views
 using oneapi::dpl::__ranges::all_view;
 using oneapi::dpl::__ranges::guard_view;

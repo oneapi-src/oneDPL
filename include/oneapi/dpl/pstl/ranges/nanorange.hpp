@@ -172,6 +172,9 @@
 
 #                                        include <type_traits>
 
+namespace __nanorange
+{
+
 NANO_BEGIN_NAMESPACE
 
 template <typename T>
@@ -19372,5 +19375,7 @@ NANO_END_NAMESPACE
 #    endif
 
 #endif
+
+} //namespace __nanorange
 
 #endif // NANORANGE_HPP_INCLUDED

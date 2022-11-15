@@ -16,6 +16,9 @@
 #ifndef _ONEDPL_NANO_RANGES_EXT_H
 #define _ONEDPL_NANO_RANGES_EXT_H
 
+namespace __nanorange
+{
+
 NANO_BEGIN_NAMESPACE
 
 template <typename I>
@@ -270,5 +273,7 @@ NANO_INLINE_VAR(nano::detail::fill_view_fn, fill)
 } // namespace views
 
 NANO_END_NAMESPACE
+
+} //namespace __nanorange
 
 #endif //_ONEDPL_NANO_RANGES_EXT_H
