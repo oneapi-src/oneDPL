@@ -88,10 +88,7 @@ main(int, char**)
     using O = optional<int>;
     auto ret = assign_empty(O{42});
     ret &= assign_value(O{42});
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
