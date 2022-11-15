@@ -115,10 +115,7 @@ main(int, char**)
     ret &= test_iterators<C>();
     ret &= kernel_test<int*>();
     ret &= kernel_test<float>();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

@@ -89,7 +89,7 @@ main(int, char**)
     test<bidirectional_iterator<char*>>();
     test<random_access_iterator<char*>>();
     test<char*>();
-    std::cout << "Pass" << std::endl;
+    TestUtils::exitOnError(true);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

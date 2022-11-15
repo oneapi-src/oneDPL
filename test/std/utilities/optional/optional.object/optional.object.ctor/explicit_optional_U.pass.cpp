@@ -92,10 +92,7 @@ main(int, char**)
         optional<int> rhs(3);
         ret &= test<KernelTest2, X>(s::move(rhs));
     }
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

@@ -144,10 +144,7 @@ main(int, char**)
     auto ret = assign_empty(O{42});
     ret &= assign_value(O{42});
     ret &= kernel_test();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

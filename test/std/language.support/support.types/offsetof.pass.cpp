@@ -38,7 +38,7 @@ main(int, char**)
             cgh.single_task<class KernelTest1>([=]() { static_assert(noexcept(offsetof(A, x)), ""); });
         });
     }
-    std::cout << "Pass" << std::endl;
+    TestUtils::exitOnError(true);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

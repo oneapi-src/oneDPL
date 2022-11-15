@@ -105,7 +105,7 @@ int
 main(int, char**)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    std::cout << "Pass" << std::endl;
+    TestUtils::exitOnError(true);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
