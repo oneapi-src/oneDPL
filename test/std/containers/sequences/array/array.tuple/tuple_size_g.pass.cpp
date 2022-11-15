@@ -59,14 +59,7 @@ main()
         });
     }
 
-    if (ret)
-    {
-        std::cout << "pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "fail" << std::endl;
-    }
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

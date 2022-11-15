@@ -86,10 +86,8 @@ main(int, char**)
     ret &= test<-0x7FFFFFFFFFFFFFFFLL, 127, -72624976668147841LL, 1, T18>();
     ret &= test<0x7FFFFFFFFFFFFFFFLL, -127, -72624976668147841LL, 1, T19>();
     ret &= test<-0x7FFFFFFFFFFFFFFFLL, -127, 72624976668147841LL, 1, T20>();
-    if (ret)
-        std::cout << "pass" << std::endl;
-    else
-        std::cout << "fail" << std::endl;
+
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

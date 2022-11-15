@@ -74,14 +74,7 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test1();
-    if (ret)
-    {
-        std::cout << "pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "fail" << std::endl;
-    }
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

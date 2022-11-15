@@ -186,14 +186,7 @@ kernel_test1(cl::sycl::queue& deviceQueue)
     });
 
     auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    TestUtils::exitOnError(ret_access_host[0]);
 }
 
 void
@@ -238,14 +231,7 @@ kernel_test2(cl::sycl::queue& deviceQueue)
     });
 
     auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    TestUtils::exitOnError(ret_access_host[0]);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

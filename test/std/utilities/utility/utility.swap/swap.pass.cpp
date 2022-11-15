@@ -157,14 +157,7 @@ kernel_test()
         });
     }
 
-    if (ret && acc[0] == 2 && acc[1] == 1)
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    TestUtils::exitOnError(ret && acc[0] == 2 && acc[1] == 1);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

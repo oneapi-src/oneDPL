@@ -101,10 +101,7 @@ main(int, char**)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = test();
-    if (ret)
-        std::cout << "pass" << std::endl;
-    else
-        std::cout << "fail" << std::endl;
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

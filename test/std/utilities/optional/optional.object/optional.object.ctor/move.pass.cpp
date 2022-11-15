@@ -102,10 +102,7 @@ main(int, char**)
     auto ret = kernel_test1<KernelTest1, int>();
     ret &= kernel_test1<KernelTest2, int>(3);
     ret &= kernel_test2();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

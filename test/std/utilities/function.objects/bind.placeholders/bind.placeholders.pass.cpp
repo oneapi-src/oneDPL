@@ -49,10 +49,7 @@ kernel_test()
             });
         });
     }
-    if (result == 39)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    TestUtils::exitOnError(result == 39);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
