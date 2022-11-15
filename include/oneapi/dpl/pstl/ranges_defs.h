@@ -38,11 +38,11 @@ using oneapi::dpl::__ranges::guard_view;
 using oneapi::dpl::__ranges::zip_view;
 
 //views
-using nano::ranges::drop_view;
-using nano::ranges::iota_view;
-using nano::ranges::reverse_view;
-using nano::ranges::take_view;
-using nano::ranges::transform_view;
+using __nanorange::nano::ranges::drop_view;
+using __nanorange::nano::ranges::iota_view;
+using __nanorange::nano::ranges::reverse_view;
+using __nanorange::nano::ranges::take_view;
+using __nanorange::nano::ranges::transform_view;
 
 //adaptors
 namespace views
@@ -53,16 +53,16 @@ using oneapi::dpl::__ranges::views::all_write;
 
 using oneapi::dpl::__ranges::views::host_all;
 
-using nano::views::drop;
-using nano::views::fill;
-using nano::views::generate;
-using nano::views::iota;
-using nano::views::reverse;
-using nano::views::rotate;
-using nano::views::take;
-using nano::views::transform;
+using __nanorange::nano::views::drop;
+using __nanorange::nano::views::fill;
+using __nanorange::nano::views::generate;
+using __nanorange::nano::views::iota;
+using __nanorange::nano::views::reverse;
+using __nanorange::nano::views::rotate;
+using __nanorange::nano::views::take;
+using __nanorange::nano::views::transform;
 
-using nano::subrange;
+using __nanorange::nano::subrange;
 } // namespace views
 
 } // namespace ranges
