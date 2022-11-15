@@ -19,6 +19,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 bool
 kernel_test()
 {
@@ -78,10 +79,12 @@ kernel_test()
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
     if (ret)
     {
@@ -91,5 +94,7 @@ main(int, char**)
     {
         std::cout << "fail" << std::endl;
     }
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

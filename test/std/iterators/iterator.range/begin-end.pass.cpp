@@ -49,6 +49,7 @@ namespace s = std;
 // Disable the missing braces warning for this reason.
 #include "disable_missing_braces_warning.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
 constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
 
@@ -194,10 +195,12 @@ kernel_test()
         });
     });
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     std::array<int, 1> a;
     a[0] = 3;
 
@@ -207,5 +210,7 @@ main(int, char**)
 
     kernel_test();
     std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

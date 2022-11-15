@@ -11,12 +11,16 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue;
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -40,4 +44,7 @@ main()
     {
         std::cout << "fail" << std::endl;
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

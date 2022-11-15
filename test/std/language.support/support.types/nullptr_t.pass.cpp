@@ -20,6 +20,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
     A(std::nullptr_t) {}
@@ -86,9 +87,12 @@ test_nullptr_conversions(cl_int& i)
 #    pragma clang diagnostic pop
 #endif
 
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     const s::size_t N = 1;
     bool ret = true;
 
@@ -127,5 +131,7 @@ main(int, char**)
 
     else
         std::cout << "Fail" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

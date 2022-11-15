@@ -18,6 +18,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class T, std::size_t N>
 void
 test()
@@ -39,10 +40,12 @@ test()
         static_assert((s::tuple_size<C>::value == N), "");
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = false;
     {
         cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{1});
@@ -64,5 +67,7 @@ main(int, char**)
     }
     else
         std::cout << "Fail" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

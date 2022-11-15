@@ -15,6 +15,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
 constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
 
@@ -103,10 +104,12 @@ kernel_test()
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = true;
     typedef s::array<float, 10> C;
     ret &= test_iterators<C>();
@@ -116,5 +119,7 @@ main(int, char**)
         std::cout << "Pass" << std::endl;
     else
         std::cout << "Fail" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

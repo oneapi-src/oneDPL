@@ -21,6 +21,7 @@ namespace s = std;
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
     {
         cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{1});
@@ -68,5 +69,7 @@ main(int, char**)
         std::cout << "Pass" << std::endl;
     else
         std::cout << "Fail" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

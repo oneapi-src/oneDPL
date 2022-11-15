@@ -24,6 +24,7 @@ namespace s = std;
 // Disable the missing braces warning for this reason.
 #include "disable_missing_braces_warning.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 class Test1;
 
 struct NoDefault
@@ -31,10 +32,12 @@ struct NoDefault
     NoDefault() {}
     NoDefault(int) {}
 };
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
 
     {
@@ -73,5 +76,7 @@ main(int, char**)
         std::cout << "Pass" << std::endl;
     else
         std::cout << "Fail" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
