@@ -8,6 +8,21 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.0.0
+===============
+
+New Features
+------------
+- Improved performance of `sort` and `stable_sort`  algorithms on GPU devices when using Radix sort [#fnote1]_.
+
+Fixed Issues
+------------
+- Fixed error in ``oneapi::dpl::experimental::ranges::guard_view`` and ``oneapi::dpl::experimental::ranges::zip_view`` when using  ``operator[]`` with a very large index.
+
+Changes affecting backward compatibility
+----------------------------------------
+- Removed support of C++11 and C++14. Please refer to 
+
 New in 2021.7.1
 ===============
 
