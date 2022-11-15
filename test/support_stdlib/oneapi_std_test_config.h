@@ -17,6 +17,7 @@
 #define _ONEAPI_STD_TEST_config_H
 
 #include "../support/test_config.h"
+#include "../support/utils.h"
 
 #define _ONEAPI_STD_TEST_STRING(X) _ONEAPI_STD_TEST_STRING_AUX(oneapi/dpl/X)
 #define _ONEAPI_STD_TEST_STRING_AUX(X) #X
