@@ -238,6 +238,8 @@
 
 #if !defined(__cpp_impl_three_way_comparison) \
     && (!defined(_MSC_VER) || defined(__clang__) || _MSC_VER < 1920 || _MSVC_LANG <= 201703L)
+#define TEST_HAS_NO_SPACESHIP_OPERATOR
+#endif
 
 #if defined(_LIBCPP_SAFE_STATIC)
 #define TEST_SAFE_STATIC _LIBCPP_SAFE_STATIC
