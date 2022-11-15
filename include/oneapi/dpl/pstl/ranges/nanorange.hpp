@@ -103,6 +103,8 @@
 #                                define NANO_CONCEPT inline constexpr bool
 
 #                                define NANO_BEGIN_NAMESPACE                                                           \
+                                    namespace __nanorange                                                              \
+                                    {                                                                                  \
                                                                                                                        \
                                     namespace nano                                                                     \
                                     {                                                                                  \
@@ -111,6 +113,7 @@
                                     {
 
 #                                define NANO_END_NAMESPACE                                                             \
+                                    }                                                                                  \
                                     }                                                                                  \
                                     }
 
@@ -5692,13 +5695,13 @@ namespace std
 {
 
 template <typename I, typename S>
-struct iterator_traits<::nano::common_iterator<I, S>>
+struct iterator_traits<__nanorange::nano::common_iterator<I, S>>
 {
-    using difference_type = ::nano::iter_difference_t<::nano::common_iterator<I, S>>;
-    using value_type = ::nano::iter_value_t<::nano::common_iterator<I, S>>;
-    using pointer = ::std::add_pointer_t<::nano::iter_reference_t<::nano::common_iterator<I, S>>>;
-    using reference = ::nano::iter_reference_t<::nano::common_iterator<I, S>>;
-    using iterator_category = ::nano::detail::conditional_t<::nano::forward_iterator<I>, ::std::forward_iterator_tag,
+    using difference_type = __nanorange::nano::iter_difference_t<__nanorange::nano::common_iterator<I, S>>;
+    using value_type = __nanorange::nano::iter_value_t<__nanorange::nano::common_iterator<I, S>>;
+    using pointer = ::std::add_pointer_t<__nanorange::nano::iter_reference_t<__nanorange::nano::common_iterator<I, S>>>;
+    using reference = __nanorange::nano::iter_reference_t<__nanorange::nano::common_iterator<I, S>>;
+    using iterator_category = __nanorange::nano::detail::conditional_t<__nanorange::nano::forward_iterator<I>, ::std::forward_iterator_tag,
                                                             ::std::input_iterator_tag>;
 };
 
@@ -6197,26 +6200,26 @@ NANO_END_NAMESPACE
 namespace std
 {
 
-template <typename I, typename S, ::nano::subrange_kind K>
-class tuple_size<::nano::subrange<I, S, K>> : public integral_constant<size_t, 2>
+template <typename I, typename S, __nanorange::nano::subrange_kind K>
+class tuple_size<__nanorange::nano::subrange<I, S, K>> : public integral_constant<size_t, 2>
 {
 };
 
-template <typename I, typename S, ::nano::subrange_kind K>
-class tuple_element<0, ::nano::subrange<I, S, K>>
+template <typename I, typename S, __nanorange::nano::subrange_kind K>
+class tuple_element<0, __nanorange::nano::subrange<I, S, K>>
 {
   public:
     using type = I;
 };
 
-template <typename I, typename S, ::nano::subrange_kind K>
-class tuple_element<1, ::nano::subrange<I, S, K>>
+template <typename I, typename S, __nanorange::nano::subrange_kind K>
+class tuple_element<1, __nanorange::nano::subrange<I, S, K>>
 {
   public:
     using type = S;
 };
 
-using ::nano::ranges::get;
+using __nanorange::nano::ranges::get;
 
 } // namespace std
 
@@ -8330,7 +8333,7 @@ namespace std
 {
 
 template <typename Cont>
-struct iterator_traits<::nano::back_insert_iterator<Cont>>
+struct iterator_traits<__nanorange::nano::back_insert_iterator<Cont>>
 {
     using value_type = void;
     using difference_type = ptrdiff_t;
@@ -8659,13 +8662,13 @@ namespace std
 {
 
 template <typename I>
-struct iterator_traits<::nano::move_iterator_::move_iterator<I>>
+struct iterator_traits<__nanorange::nano::move_iterator_::move_iterator<I>>
 {
-    using value_type = typename ::nano::move_iterator_::move_iterator<I>::value_type;
-    using reference = typename ::nano::move_iterator_::move_iterator<I>::reference;
+    using value_type = typename __nanorange::nano::move_iterator_::move_iterator<I>::value_type;
+    using reference = typename __nanorange::nano::move_iterator_::move_iterator<I>::reference;
     using pointer = value_type*;
-    using difference_type = typename ::nano::move_iterator_::move_iterator<I>::difference_type;
-    using iterator_category = typename ::nano::move_iterator_::move_iterator<I>::iterator_category;
+    using difference_type = typename __nanorange::nano::move_iterator_::move_iterator<I>::difference_type;
+    using iterator_category = typename __nanorange::nano::move_iterator_::move_iterator<I>::iterator_category;
 };
 
 } // namespace std
@@ -14145,7 +14148,7 @@ namespace std
 {
 
 template <typename Cont>
-struct iterator_traits<::nano::front_insert_iterator<Cont>>
+struct iterator_traits<__nanorange::nano::front_insert_iterator<Cont>>
 {
     using value_type = void;
     using difference_type = ptrdiff_t;
@@ -14227,7 +14230,7 @@ namespace std
 {
 
 template <typename Container>
-struct iterator_traits<::nano::insert_iterator<Container>>
+struct iterator_traits<__nanorange::nano::insert_iterator<Container>>
 {
     using value_type = void;
     using difference_type = ptrdiff_t;
@@ -14544,7 +14547,7 @@ namespace std
 {
 
 template <typename T, typename C, typename Tr>
-struct iterator_traits<::nano::ranges::ostream_iterator<T, C, Tr>>
+struct iterator_traits<__nanorange::nano::ranges::ostream_iterator<T, C, Tr>>
 {
     using value_type = void;
     using difference_type = ptrdiff_t;
@@ -14625,7 +14628,7 @@ namespace std
 {
 
 template <typename C, typename T>
-struct iterator_traits<::nano::ranges::ostreambuf_iterator<C, T>>
+struct iterator_traits<__nanorange::nano::ranges::ostreambuf_iterator<C, T>>
 {
     using value_type = void;
     using difference_type = ptrdiff_t;
@@ -15609,7 +15612,7 @@ inline constexpr bool is_raco<common_view_fn> = true;
 namespace views
 {
 
-NANO_INLINE_VAR(::nano::detail::common_view_fn, common)
+NANO_INLINE_VAR(nano::detail::common_view_fn, common)
 
 } // namespace views
 
@@ -19372,5 +19375,6 @@ NANO_END_NAMESPACE
 #    endif
 
 #endif
+
 
 #endif // NANORANGE_HPP_INCLUDED
