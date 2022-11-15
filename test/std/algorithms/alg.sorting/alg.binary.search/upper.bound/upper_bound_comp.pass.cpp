@@ -2,7 +2,7 @@
 #include "test_iterators.h"
 #include "checkData.h"
 #include "test_macros.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 
 #ifdef USE_ONEAPI_STD

@@ -5,7 +5,7 @@
 // bool max_size() const noexcept;
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 
 #ifdef USE_ONEAPI_STD

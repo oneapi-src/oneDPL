@@ -6,7 +6,7 @@
 // const_reference back();  // constexpr in C++14
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 
 #ifdef USE_ONEAPI_STD

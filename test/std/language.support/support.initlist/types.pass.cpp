@@ -16,7 +16,7 @@
 
 #include "oneapi_std_test_config.h"
 #include "test_macros.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 #include <initializer_list>
 #ifdef USE_ONEAPI_STD

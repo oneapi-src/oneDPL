@@ -11,7 +11,7 @@
 // struct random_access_iterator_tag : public bidirectional_iterator_tag {};
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include "test_macros.h"
 #include <iostream>
 

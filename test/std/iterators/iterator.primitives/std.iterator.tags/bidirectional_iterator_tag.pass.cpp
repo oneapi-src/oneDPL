@@ -11,7 +11,7 @@
 // struct bidirectional_iterator_tag : public forward_iterator_tag {};
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 #include "test_macros.h"
 
