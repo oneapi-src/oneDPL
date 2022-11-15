@@ -523,7 +523,7 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::atomic_f
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
         : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_linear_range()),
           __self_lidx(__self_item.get_local_linear_id()), __item_sg_mask(~(~0u << (__self_lidx))),
-          __atomic_peer_mask(__lacc.get_pointer())
+          __atomic_peer_mask(*__lacc.get_pointer())
     {
     }
 
