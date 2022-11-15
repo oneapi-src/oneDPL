@@ -213,10 +213,7 @@ main(int, char**)
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = test_ambigious_assign();
     ret &= kernel_test();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    TestUtils::exitOnError(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
