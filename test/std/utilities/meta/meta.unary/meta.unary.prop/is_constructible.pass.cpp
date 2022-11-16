@@ -22,6 +22,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
 constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
 
@@ -240,9 +241,12 @@ kernel_test2(cl::sycl::queue& deviceQueue)
         });
     });
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     cl::sycl::queue deviceQueue;
     kernel_test1(deviceQueue);
     if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
@@ -250,5 +254,7 @@ main(int, char**)
         kernel_test2(deviceQueue);
     }
     std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

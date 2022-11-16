@@ -20,6 +20,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 #define TEST_NOT_COPY_ASSIGNABLE(T) static_assert(!s::is_copy_assignable<T>::value, "")
 
 struct NoDefault
@@ -27,10 +28,12 @@ struct NoDefault
     NoDefault() {}
     NoDefault(int) {}
 };
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     {
         cl::sycl::queue q;
         q.submit([&](cl::sycl::handler& cgh) {
@@ -93,5 +96,7 @@ main(int, char**)
         });
         std::cout << "Pass" << std::endl;
     }
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

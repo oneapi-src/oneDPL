@@ -12,6 +12,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
 constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
 
@@ -30,10 +31,12 @@ test_default_constructible()
     static_assert(!s::is_default_constructible<P>::value, "");
     return true;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     cl::sycl::queue deviceQueue;
     cl::sycl::cl_bool ret = false;
     cl::sycl::range<1> numOfItems{1};
@@ -53,5 +56,7 @@ main()
     {
         std::cout << "fail" << std::endl;
     }
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

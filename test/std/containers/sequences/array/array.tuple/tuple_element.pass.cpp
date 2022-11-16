@@ -20,6 +20,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 class KernelTest1;
 
 template <class T>
@@ -55,10 +56,12 @@ test()
         static_assert((s::is_same<typename s::tuple_element<2, C>::type, Exp>::value), "");
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = false;
     {
         cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{1});
@@ -79,5 +82,7 @@ main(int, char**)
     }
     else
         std::cout << "Fail" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

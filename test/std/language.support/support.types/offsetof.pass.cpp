@@ -21,14 +21,17 @@ namespace s = std;
 #    error offsetof not defined
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
     int x;
 };
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     {
         cl::sycl::queue q;
         q.submit([&](cl::sycl::handler& cgh) {
@@ -36,5 +39,7 @@ main(int, char**)
         });
     }
     std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
