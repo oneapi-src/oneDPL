@@ -28,6 +28,8 @@ namespace s = std;
 
 using s::optional;
 
+#if TEST_DPCPP_BACKEND_PRESENT
+
 struct X
 {
     int i_;
@@ -105,10 +107,15 @@ kernel_test()
     });
 }
 
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
     std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

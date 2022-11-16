@@ -19,6 +19,7 @@ namespace s = std;
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     {
         auto ret = true;
         {
@@ -52,5 +53,7 @@ main(int, char**)
             std::cout << "Fail" << std::endl;
         }
     }
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
