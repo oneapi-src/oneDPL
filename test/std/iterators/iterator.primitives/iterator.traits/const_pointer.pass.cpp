@@ -34,6 +34,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
 };
@@ -53,11 +54,15 @@ kernelTest()
         });
     });
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernelTest();
     std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

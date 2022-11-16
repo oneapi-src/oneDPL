@@ -26,6 +26,7 @@ namespace s = std;
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     const s::size_t N = 1;
     bool ret = true;
 
@@ -48,6 +49,7 @@ main(int, char**)
         std::cout << "Pass" << std::endl;
     else
         std::cout << "Fail" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

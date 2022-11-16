@@ -29,6 +29,7 @@ namespace s = oneapi_cpp_ns;
 namespace s = std;
 #endif
 
+#if TEST_DPCPP_BACKEND_PRESENT
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
 constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
 using s::optional;
@@ -77,9 +78,12 @@ class KernelTest2;
 class KernelTest3;
 class KernelTest4;
 
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
 main(int, char**)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
     {
         optional<short> rhs;
@@ -101,6 +105,7 @@ main(int, char**)
         std::cout << "Pass" << std::endl;
     else
         std::cout << "Fail" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
