@@ -1,3 +1,4 @@
+#include "oneapi_std_test_config.h"
 
 #include <functional>
 #include <type_traits>
