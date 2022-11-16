@@ -71,8 +71,6 @@ main(int, char**)
             return -1;
         }
     }
-
-    TestUtils::exitOnError(true);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

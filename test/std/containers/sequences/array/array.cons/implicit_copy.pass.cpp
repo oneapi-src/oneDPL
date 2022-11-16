@@ -94,7 +94,6 @@ main(int, char**)
                 }
             });
         });
-        TestUtils::exitOnError(true);
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
