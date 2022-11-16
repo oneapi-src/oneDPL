@@ -191,7 +191,6 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    TestUtils::exitOnError(true);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

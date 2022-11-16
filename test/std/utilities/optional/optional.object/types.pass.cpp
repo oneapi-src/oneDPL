@@ -64,7 +64,6 @@ main(int, char**)
     test<KernelTest2, optional<const int>, const int>();
     test<KernelTest3, optional<double>, double>();
     test<KernelTest4, optional<const double>, const double>();
-    TestUtils::exitOnError(true);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
