@@ -159,7 +159,7 @@ kernel_test()
 
     TestUtils::exitOnError(ret && acc[0] == 2 && acc[1] == 1);
 }
-#endif /// TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()

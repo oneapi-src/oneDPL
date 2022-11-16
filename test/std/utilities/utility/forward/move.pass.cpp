@@ -140,12 +140,12 @@ kernel_test()
 }
 
 class KernelTest;
-#endif /// TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#endif /// TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
     cl::sycl::queue deviceQueue;
     cl::sycl::cl_bool ret = false;
     cl::sycl::range<1> numOfItems{1};
@@ -158,7 +158,7 @@ main()
     }
 
     TestUtils::exitOnError(ret);
-#endif /// TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
