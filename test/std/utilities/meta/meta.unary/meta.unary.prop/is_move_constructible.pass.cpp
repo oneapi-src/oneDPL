@@ -105,6 +105,7 @@ int
 main(int, char**)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    kernel_test();
     TestUtils::exitOnError(true);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
