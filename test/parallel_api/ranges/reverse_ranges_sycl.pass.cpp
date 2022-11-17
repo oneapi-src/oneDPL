@@ -37,7 +37,8 @@ main()
     sycl::buffer<int> A(max_n);
 
     auto iota = views::iota(0, max_n);
-    ::nano::ranges::copy(iota, views::host_all(A).begin());
+    //the name nano::ranges::copy is not injected into oneapi::dpl::experimental::ranges namespace
+    __nanorange::nano::ranges::copy(iota, views::host_all(A).begin());
     reverse(TestUtils::default_dpcpp_policy, A);
 
     for(auto v: views::host_all(A))

@@ -46,8 +46,9 @@ main()
     sycl::buffer<int> B(n);
 
     //init buffers
-    ::nano::ranges::copy(::nano::views::all(data), views::host_all(A).begin()); 
-    ::nano::ranges::copy(::nano::views::all(data), views::host_all(B).begin()); 
+    //the names nano::ranges::copy and nano::ranges::views::all are not injected into oneapi::dpl::experimental::ranges
+    __nanorange::nano::ranges::copy(__nanorange::nano::views::all(data), views::host_all(A).begin()); 
+    __nanorange::nano::ranges::copy(__nanorange::nano::views::all(data), views::host_all(B).begin()); 
     
     auto res1 = unique(exec1, views::all(A));
     auto res2 = unique(exec2, B, is_equal);
