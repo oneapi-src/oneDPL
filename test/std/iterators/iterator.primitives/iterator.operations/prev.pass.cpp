@@ -12,7 +12,7 @@
 //   Iter prev(Iter x, Iter::difference_type n = 1);
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include "test_iterators.h"
 #include "test_macros.h"
 

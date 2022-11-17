@@ -20,7 +20,7 @@
 //   constexpr void advance(Iter& i, Iter::difference_type n);
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include "test_iterators.h"
 #include "test_macros.h"
 #include <iostream>

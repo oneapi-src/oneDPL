@@ -16,6 +16,8 @@
 #ifndef _ONEAPI_STD_TEST_config_H
 #define _ONEAPI_STD_TEST_config_H
 
+#include "../support/test_config.h"
+
 #define _ONEAPI_STD_TEST_STRING(X) _ONEAPI_STD_TEST_STRING_AUX(oneapi/dpl/X)
 #define _ONEAPI_STD_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <iterator>, <numeric>, <array> 

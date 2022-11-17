@@ -19,7 +19,6 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
 
 struct plusOne
 {

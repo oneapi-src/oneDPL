@@ -12,7 +12,7 @@
 // namespace std { void swap(array<T, N> &x, array<T, N> &y);
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 
 #ifdef USE_ONEAPI_STD

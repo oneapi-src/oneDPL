@@ -17,7 +17,7 @@
 // constexpr in C++17
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 #include "test_macros.h"
 #include "test_iterators.h"

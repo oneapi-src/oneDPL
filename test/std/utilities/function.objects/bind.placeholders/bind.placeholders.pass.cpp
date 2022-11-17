@@ -1,5 +1,5 @@
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 #ifdef USE_ONEAPI_STD
 #    include _ONEAPI_STD_TEST_HEADER(functional)
