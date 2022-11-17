@@ -15,6 +15,7 @@
 //   Callable<T, ArgTypes&&...>::result_type
 //   operator()(ArgTypes&&... args) const;
 
+#include "oneapi_std_test_config.h"
 
 #include <functional>
 
