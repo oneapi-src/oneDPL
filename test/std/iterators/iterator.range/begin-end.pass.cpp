@@ -32,7 +32,7 @@
 //  All of these are constexpr in C++17
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include "test_macros.h"
 #include <iostream>
 #include <initializer_list>

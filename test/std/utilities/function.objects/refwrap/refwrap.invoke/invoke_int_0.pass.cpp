@@ -15,7 +15,7 @@
 //   Callable<T, ArgTypes&&...>::result_type
 //   operator()(ArgTypes&&... args) const;
 
-#include <CL/sycl.hpp>
+
 #include <functional>
 
 constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
