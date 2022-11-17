@@ -20,7 +20,7 @@
 //    http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2360
 
 #include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 #include "test_macros.h"
 

@@ -3,7 +3,7 @@
 #include "test_macros.h"
 #include "test_iterators.h"
 #include "checkData.h"
-#include <CL/sycl.hpp>
+
 #include <iostream>
 
 #ifdef USE_ONEAPI_STD
