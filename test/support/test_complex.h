@@ -129,20 +129,28 @@ namespace TestUtils
             sycl::queue deviceQueue{TestUtils::default_selector};
 
             const auto device = deviceQueue.get_device();
-            const bool double_supported = has_type_support<double>(device);
 
-            deviceQueue.submit(
-                [&](sycl::handler& cgh)
-                {
-                    cgh.single_task<TestUtils::new_kernel_name<class TestType, 0>>(
-                        [=]()
-                        { 
-                            if (double_supported)
-                                fncDoubleHasSupportInRuntime();
-                            else
-                                fncDoubleHasntSupportInRuntime();
-                        });
-                });
+            // We should run fncDoubleHasSupportInRuntime and fncDoubleHasntSupportInRuntime
+            // in two separate Kernels to have ability compile these Kernels separatelly
+            // by using dpcpp compiler option -fsycl-device-code-split=per_kernel
+            // which described at
+            // https://www.intel.com/content/www/us/en/develop/documentation/oneapi-gpu-optimization-guide/top/compilation/jitting.html
+            if (has_type_support<double>(device))
+            {
+                deviceQueue.submit(
+                    [&](sycl::handler& cgh) {
+                        cgh.single_task<TestUtils::new_kernel_name<class TestType, 0>>(
+                            [fncDoubleHasSupportInRuntime]() { fncDoubleHasSupportInRuntime(); });
+                    });
+            }
+            else
+            {
+                deviceQueue.submit(
+                    [&](sycl::handler& cgh) {
+                        cgh.single_task<TestUtils::new_kernel_name<class TestType, 1>>(
+                            [fncDoubleHasntSupportInRuntime]() { fncDoubleHasntSupportInRuntime(); });
+                    });
+            }
         }
         catch (const std::exception& exc)
         {
