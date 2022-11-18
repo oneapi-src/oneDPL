@@ -41,8 +41,10 @@ macro(onedpl_add_test test_source_file split_kernels)
     endif()
 
     # oneDPL tests of std::complex required generates code to do JIT compilation of a kernel only when it is called
-    if (${split_kernels})
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsycl-device-code-split=per_kernel ")
+    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang|IntelLLVM" )
+        if (${split_kernels})
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsycl-device-code-split=per_kernel ")
+        endif()
     endif()
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
