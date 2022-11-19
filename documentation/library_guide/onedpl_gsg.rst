@@ -17,8 +17,16 @@ For general information about |onedpl_short|, visit the `oneDPL GitHub* reposito
 or visit the `Intel® oneAPI DPC++ Library Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
 and the `Intel® oneAPI DPC++ Library main page <https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html>`_.
 
+Installation
+============
+
+Install link needs to go here. 
+
+Quick Start
+===========
+
 Before You Begin
-================
+----------------
 
 Visit the |onedpl_short| `Release Notes
 <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
@@ -43,13 +51,13 @@ and use the ``std`` namespace.
 
 
 pkg-config Support
-==================
+------------------
 
 The pkg-config program is used to retrieve information about your installed libraries, and
 to compile and link against one or more libraries.
 
 Use pkg-config with |onedpl_short|
-----------------------------------
+**********************************
 
 Use pkg-config with the ``--cflags`` flag to get the include path to the oneDPL directory:
 
@@ -69,14 +77,14 @@ This flag converts your compiling and linking flags to the appropriate form:
 
 
 Usage Examples
-==============
+--------------
 
 |onedpl_short| sample code is available from the
 `oneAPI GitHub samples repository <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_.
 Each sample includes a readme with build instructions.
 
 \<oneapi/dpl/random\> Header Usage Example
-------------------------------------------
+******************************************
 
 This example illustrates |onedpl_short| random number generator usage.
 The sample below shows you how to create an random number generator engine object (the source of pseudo-randomness),
@@ -107,7 +115,7 @@ This example performs its computations on your default SYCL device. You can set 
     }
 
 Pi Benchmark Usage Example
---------------------------
+**************************
 
 This example uses a Monte Carlo method to estimate the value of π.
 The basic idea is to generate random points within a square, and to check what

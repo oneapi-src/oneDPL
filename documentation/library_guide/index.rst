@@ -1,9 +1,12 @@
-|onedpl_long|
-=================================
+|onedpl_long| Developer Guide and Reference
+===========================================
 
 |onedpl_long| (|onedpl_short|) works with the |dpcpp_cpp| to
 provide high-productivity APIs to developers, which can minimize SYCL* programming
 efforts across devices for high performance parallel applications.
+
+For general information, refer to the `oneDPL GitHub* repository
+<https://github.com/oneapi-src/oneDPL>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -16,7 +19,7 @@ efforts across devices for high performance parallel applications.
    :maxdepth: 2
    :caption: Library Guide
 
-   overview
+   introduction
    parallel_api_main
    api_for_sycl_kernels_main
    macros
