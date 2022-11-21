@@ -22,6 +22,8 @@
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
 
+#define PROFILING_ON 0
+
 namespace oneapi
 {
 namespace dpl
@@ -369,6 +371,15 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
             });
     });
 
+#if PROFILING_ON
+    auto kernel_ns = (__count_levent.template get_profiling_info<
+                          sycl::info::event_profiling::command_end>() -
+                      __count_levent.template get_profiling_info<
+                          sycl::info::event_profiling::command_start>());
+    std::cout << "Count Kernel Execution Time: total = " << kernel_ns * 1e-6
+            << " msec" << std::endl;
+#endif
+
     return __count_levent;
 }
 
@@ -465,7 +476,17 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
                 });
         });
 
+#if PROFILING_ON
+    auto kernel_ns = (__scan_event.template get_profiling_info<
+                          sycl::info::event_profiling::command_end>() -
+                      __scan_event.template get_profiling_info<
+                          sycl::info::event_profiling::command_start>());
+    std::cout << "Local scan (offsets) Kernel Execution Time: total = " << kernel_ns * 1e-6
+            << " msec" << std::endl;
+#endif
+
         // 2. Global scan: produces global offsets using local offsets
+#if 0
         __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
             __hdl.depends_on(__scan_event);
             oneapi::dpl::__ranges::__require_access(__hdl, __count_rng);
@@ -473,7 +494,16 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
                 sycl::nd_range<1>(__radix_states, __radix_states),
                 __radix_global_scan_caller<_CountT, __count_rng_type>(__count_rng, __global_scan_begin, __scan_size));
         });
+#endif
 
+#if PROFILING_ON
+    kernel_ns = (__scan_event.template get_profiling_info<
+                          sycl::info::event_profiling::command_end>() -
+                      __scan_event.template get_profiling_info<
+                          sycl::info::event_profiling::command_start>());
+    std::cout << "Scan bins Kernel Execution Time: total = " << kernel_ns * 1e-6
+            << " msec" << std::endl;
+#endif
         return __scan_event;
     }
 };
@@ -604,6 +634,19 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 };
 #endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
 
+
+template <class Index1, class Index2, class Src, class Dst, class T>
+void
+exclusive_scan_serial(Index1 start_idx, Index2 n, Src& data, Dst& dst, T init)
+{
+    for (Index1 i = 0; i < n; ++i)
+    {
+        auto res = init;
+        init += data[start_idx + i];
+        data[i] = res;
+    }
+}
+
 //-----------------------------------------------------------------------
 // radix sort: a function for reorder phase of one iteration
 //-----------------------------------------------------------------------
@@ -651,6 +694,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
         // access with values to reorder and reordered values
         oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
 
+        //auto __bins_lacc = sycl::accessor<_OffsetT, 1, access_mode::read_write, __dpl_sycl::__target::local>(__radix_states, __hdl);
+
         typename _PeerHelper::_TempStorageT __peer_temp(1, __hdl);
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -668,16 +713,51 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
                 _PeerHelper __peer_prefix_hlp(__self_item, __peer_temp);
 
+                /*_OffsetT __bins_lacc[__radix_states];
+                //if(__self_lidx == 0)
+                {
+                    const ::std::size_t __scan_size = __segments + 1;
+                    _OffsetT scanned_bin = 0;
+                    __bins_lacc[0] = scanned_bin;
+                    for(auto i = 0; i < __radix_states; ++i)
+                    {
+                        ::std::size_t __last_segment_bucket_idx = (i + 1) * __scan_size - 1;
+
+                        scanned_bin += __offset_rng[__last_segment_bucket_idx];
+                        __bins_lacc[i] = scanned_bin;
+                    }
+                }*/
+
                 // 1. create a private array for storing offset values
                 //    and add total offset and offset for compute unit for a certain radix state
                 _OffsetT __offset_arr[__radix_states];
+                //_OffsetT __scanned_bins[__radix_states];
+                _OffsetT scanned_bin = 0;
                 const ::std::uint32_t __global_offset_start_idx = (__segments + 1) * __radix_states;
                 for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
                 {
                     const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state_idx;
                     const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
+
+                    //scan bins (serial)
+                    const ::std::size_t __scan_size = __segments + 1;
+                    /*_OffsetT scanned_bin = 0;
+                    for (::std::uint32_t i = 0; i < __radix_state_idx; ++i)
+                    {
+                        ::std::size_t __last_segment_bucket_idx = (i + 1) * __scan_size - 1;
+                        scanned_bin += __offset_rng[__last_segment_bucket_idx];
+                    }*/
+                    if(__radix_state_idx > 0)
+                    {
+                        ::std::size_t __last_segment_bucket_idx = (__radix_state_idx + 1 - 1) * __scan_size - 1;
+                        scanned_bin += __offset_rng[__last_segment_bucket_idx];
+                        //__scanned_bins[__radix_state_idx]  = __scanned_bins[__radix_state_idx - 1] + __offset_rng[__last_segment_bucket_idx];
+                    }
+
                     __offset_arr[__radix_state_idx] =
-                        __offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
+                        //__offset_rng[__global_offset_idx] + __offset_rng[__local_offset_idx];
+                        scanned_bin + __offset_rng[__local_offset_idx];
+                        //__scanned_bins[__radix_state_idx] + __offset_rng[__local_offset_idx];
                 }
 
                 // find offsets for the same values within a segment and fill the resulting buffer
@@ -710,6 +790,14 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
             });
     });
 
+#if PROFILING_ON
+    auto kernel_ns = (__reorder_event.template get_profiling_info<
+                          sycl::info::event_profiling::command_end>() -
+                      __reorder_event.template get_profiling_info<
+                          sycl::info::event_profiling::command_start>());
+    std::cout << "Reorder Kernel Execution Time: total = " << kernel_ns * 1e-6
+            << " msec" << std::endl;
+#endif
     return __reorder_event;
 }
 
@@ -766,6 +854,7 @@ struct __parallel_radix_sort_iteration
 #endif
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
+#if 0
         // correct __block_size according to local memory limit in count phase
         const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size(
             __exec, sizeof(typename __decay_t<_TmpBuf>::value_type), __block_size * __radix_states);
@@ -776,6 +865,7 @@ struct __parallel_radix_sort_iteration
         __block_size = __get_rounded_down_power2(__block_size);
         if (__block_size < __radix_states)
             __block_size = __radix_states;
+#endif
 
         // 1. Count Phase
         sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_comp_asc>(
