@@ -585,7 +585,8 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::scan_the
     ::std::uint32_t __sg_size;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __self_item(std::move(__self_item)), __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_range()[0])
+        : __self_item(std::move(__self_item)), __sgroup(__self_item.get_sub_group()),
+          __sg_size(__sgroup.get_local_range()[0])
     {
     }
 
