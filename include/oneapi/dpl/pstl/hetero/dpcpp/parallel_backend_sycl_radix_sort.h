@@ -580,11 +580,12 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::scan_the
     using _ItemType = sycl::nd_item<1>;
     using _SubGroupType = decltype(std::declval<_ItemType>().get_sub_group());
 
+    sycl::nd_item<1> __self_item;
     _SubGroupType __sgroup;
     ::std::uint32_t __sg_size;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_range()[0])
+        : __self_item(std::move(__self_item)), __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_range()[0])
     {
     }
 
@@ -598,7 +599,9 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::scan_the
             ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
                 __sgroup, __is_current_bucket, __dpl_sycl::__plus<::std::uint32_t>());
             __new_offset_idx |= __is_current_bucket * (__offset_arr[__radix_state_idx] + __sg_item_offset);
-            sycl::group_barrier(__sgroup);
+
+            __dpl_sycl::__group_barrier(__self_item);
+
             // The last scanned value may not contain number of all copies, thus adding __is_current_bucket
             ::std::uint32_t __sg_total_offset =
                 __dpl_sycl::__group_broadcast(__sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
@@ -609,7 +612,7 @@ struct __peer_prefix_helper<_OffsetT, __radix_bits, __peer_prefix_algo::scan_the
                 __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
             }
 
-            sycl::group_barrier(__sgroup);
+            __dpl_sycl::__group_barrier(__self_item);
         }
         return __new_offset_idx;
     }
