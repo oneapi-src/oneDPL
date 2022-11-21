@@ -27,14 +27,14 @@
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
-#    define __LIBSYCL_VERSION                                                                                          \
+#    define _ONEDPL_LIBSYCL_VERSION                                                                                    \
         (__LIBSYCL_MAJOR_VERSION * 10000 + __LIBSYCL_MINOR_VERSION * 100 + __LIBSYCL_PATCH_VERSION)
 #else
-#    define __LIBSYCL_VERSION 0
+#    define _ONEDPL_LIBSYCL_VERSION 0
 #endif
 
 #if _ONEDPL_FPGA_DEVICE
-#    if __LIBSYCL_VERSION >= 50400
+#    if _ONEDPL_LIBSYCL_VERSION >= 50400
 #        include <sycl/ext/intel/fpga_extensions.hpp>
 #    else
 #        include <CL/sycl/INTEL/fpga_extensions.hpp>
@@ -42,13 +42,13 @@
 #endif
 
 // Macros to check the new SYCL features
-#define _ONEDPL_NO_INIT_PRESENT (__LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_KERNEL_BUNDLE_PRESENT (__LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (__LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (__LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (__LIBSYCL_VERSION >= 50300)
-#define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (__LIBSYCL_VERSION >= 50500)
-#define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK == 1) && (__LIBSYCL_VERSION >= 50700)
+#define _ONEDPL_NO_INIT_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_KERNEL_BUNDLE_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2020_COLLECTIVES_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
+#define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
+#define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK == 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
 
 namespace __dpl_sycl
 {
@@ -67,7 +67,7 @@ using __known_identity = sycl::known_identity<_BinaryOp, _T>;
 template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::has_known_identity<_BinaryOp, _T>;
 
-#elif __LIBSYCL_VERSION == 50200
+#elif _ONEDPL_LIBSYCL_VERSION == 50200
 template <typename _BinaryOp, typename _T>
 using __known_identity = sycl::ONEAPI::known_identity<_BinaryOp, _T>;
 
@@ -100,7 +100,7 @@ template <typename _Buffer>
 constexpr auto
 __get_buffer_size(const _Buffer& __buffer)
 {
-#if __LIBSYCL_VERSION >= 50300
+#if _ONEDPL_LIBSYCL_VERSION >= 50300
     return __buffer.size();
 #else
     return __buffer.get_count();
@@ -111,7 +111,7 @@ template <typename _Accessor>
 constexpr auto
 __get_accessor_size(const _Accessor& __accessor)
 {
-#if __LIBSYCL_VERSION >= 50300
+#if _ONEDPL_LIBSYCL_VERSION >= 50300
     return __accessor.size();
 #else
     return __accessor.get_count();
@@ -122,7 +122,7 @@ template <typename _Item>
 constexpr void
 __group_barrier(_Item __item)
 {
-#if 0 //__LIBSYCL_VERSION >= 50300
+#if 0 //_ONEDPL_LIBSYCL_VERSION >= 50300
     //TODO: usage of sycl::group_barrier: probably, we have to revise SYCL parallel patterns which use a group_barrier.
     // 1) sycl::group_barrier() implementation is not ready
     // 2) sycl::group_barrier and sycl::item::group_barrier are not quite equivalent
@@ -188,7 +188,7 @@ __joint_exclusive_scan(_Args... __args)
 }
 
 #if _ONEDPL_FPGA_DEVICE
-#    if __LIBSYCL_VERSION >= 50300
+#    if _ONEDPL_LIBSYCL_VERSION >= 50300
 using __fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;
 using __fpga_selector = sycl::ext::intel::fpga_selector;
 #    else
@@ -198,14 +198,14 @@ using __fpga_selector = sycl::INTEL::fpga_selector;
 #endif // _ONEDPL_FPGA_DEVICE
 
 using __target =
-#if __LIBSYCL_VERSION >= 50400
+#if _ONEDPL_LIBSYCL_VERSION >= 50400
     sycl::target;
 #else
     sycl::access::target;
 #endif
 
 constexpr __target __target_device =
-#if __LIBSYCL_VERSION >= 50400
+#if _ONEDPL_LIBSYCL_VERSION >= 50400
     __target::device;
 #else
     __target::global_buffer;
@@ -213,7 +213,7 @@ constexpr __target __target_device =
 
 template <typename _DataT>
 using __buffer_allocator =
-#if __LIBSYCL_VERSION >= 50707
+#if _ONEDPL_LIBSYCL_VERSION >= 50707
     sycl::buffer_allocator<_DataT>;
 #else
     sycl::buffer_allocator;

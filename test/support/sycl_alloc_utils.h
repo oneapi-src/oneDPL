@@ -192,7 +192,7 @@ private:
 
     void copy_data_impl(_ValueType* __src, _ValueType* __ptr, __difference_type __count)
     {
-#if __LIBSYCL_VERSION >= 50300
+#if _ONEDPL_LIBSYCL_VERSION >= 50300
         __queue.copy(__src, __ptr, __count);
 #else
         auto __p = __ptr;
@@ -203,7 +203,7 @@ private:
                 *(__p + __id) = *(__src + __id);
                 });
             });
-#endif // __LIBSYCL_VERSION >= 50300
+#endif // _ONEDPL_LIBSYCL_VERSION >= 50300
         __queue.wait();
     }
 
