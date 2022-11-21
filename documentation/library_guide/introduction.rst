@@ -1,4 +1,4 @@
-|onedpl_long| Overview
+|onedpl_long| Introduction
 #######################################
 
 Parallel API can be used with the `C++ Standard Execution
@@ -22,7 +22,9 @@ page for:
 * Overview
 * New Features
 * Fixed Issues
+* Deprecation Notice
 * Known Issues and Limitations
+* Previous Release Notes 
 
 Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://software.intel.com/en-us/oneapi/base-kit>`_
 to use |onedpl_short|.

@@ -17,16 +17,11 @@ For general information about |onedpl_short|, visit the `oneDPL GitHub* reposito
 or visit the `Intel® oneAPI DPC++ Library Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
 and the `Intel® oneAPI DPC++ Library main page <https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html>`_.
 
-Installation
-============
-
-Install link needs to go here. 
-
 Quick Start
 ===========
 
-Before You Begin
-----------------
+Installation
+------------
 
 Visit the |onedpl_short| `Release Notes
 <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
