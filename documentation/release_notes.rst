@@ -13,7 +13,8 @@ New in 2022.0.0
 
 New Features
 ------------
-- Improved performance of `sort` and `stable_sort`  algorithms on GPU devices when using Radix sort [#fnote1]_.
+- Added ``std::complex`` namespace into ``oneapi::dpl`` namespace.
+- Improved performance of ``sort`` and ``stable_sort``  algorithms on GPU devices when using Radix sort [#fnote1]_.
 
 Fixed Issues
 ------------
@@ -21,7 +22,7 @@ Fixed Issues
 
 Changes affecting backward compatibility
 ----------------------------------------
-- Removed support of C++11 and C++14. Please refer to 
+- Removed support of C++11 and C++14. Please refer to `2022.0 Changes`_.
 
 New in 2021.7.1
 ===============
@@ -382,3 +383,4 @@ Known Issues and Limitations
 .. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
+.. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/
