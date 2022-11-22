@@ -46,15 +46,17 @@ exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
     return result;
 }
 
-template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename T, typename BinaryOperation>
+template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename T, typename BinaryOperation,
+          typename BinaryPred>
 void
-exclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, T init, BinaryOperation binary_op)
+exclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, T init, BinaryOperation binary_op,
+                                 BinaryPred binary_pred)
 {
     T current = init;
     res[0] = current;
     for (Size i = 1; i < n; ++i)
     {
-        if (keys[i] != keys[i - 1])
+        if (!binary_pred(keys[i], keys[i - 1]))
             current = init;
 
         res[i] = current;
@@ -99,12 +101,14 @@ inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
     return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
 }
 
-template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryOperation>
+template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryOperation,
+          typename BinaryPred>
 void
-inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryOperation binary_op)
+inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryOperation binary_op,
+                                 BinaryPred binary_pred)
 {
     for (Size i = 0; i < n; ++i)
-        if (i == 0 || keys[i] != keys[i - 1])
+        if (i == 0 || !binary_pred(keys[i], keys[i - 1]))
             res[i] = vals[i];
         else
             res[i] = binary_op(res[i - 1], vals[i]);

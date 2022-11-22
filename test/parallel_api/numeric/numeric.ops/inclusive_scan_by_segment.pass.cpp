@@ -74,9 +74,10 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
 #endif // DUMP_CHECK_RESULTS
 
     template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size,
-              typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
+              typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus,
+              typename BinaryPredCheck = oneapi::dpl::__internal::__pstl_equal>
     void check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n,
-                      BinaryOperationCheck op = BinaryOperationCheck())
+                      BinaryOperationCheck op = BinaryOperationCheck(), BinaryPredCheck pred = BinaryPredCheck())
     {
         // https://docs.oneapi.io/versions/latest/onedpl/extension_api.html
         // keys:   [ 0, 0, 0, 1, 1, 1 ]
@@ -96,7 +97,7 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
         using ValT = typename ::std::decay<decltype(val_res[0])>::type;
 
         std::vector<ValT> expected_val_res(n);
-        inclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, op);
+        inclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, op, pred);
 
 #ifdef DUMP_CHECK_RESULTS
         display_param("expected result: ", expected_val_res.data(), n);
