@@ -75,9 +75,10 @@ DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
 #endif // DUMP_CHECK_RESULTS
 
     template <typename Accessor1, typename Accessor2, typename Accessor3, typename T, typename Size,
-              typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
+              typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus,
+              typename BinaryPredCheck = oneapi::dpl::__internal::__pstl_equal>
     void check_values(Accessor1 host_keys, Accessor2 host_vals, Accessor3 val_res, T init, Size n,
-                      BinaryOperationCheck op = BinaryOperationCheck())
+                      BinaryOperationCheck op = BinaryOperationCheck(), BinaryPredCheck pred = BinaryPredCheck())
     {
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
@@ -98,7 +99,7 @@ DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
         using value_type = typename ::std::decay_t<decltype(val_res[0])>;
 
         std::vector<value_type> expected_val_res(n);
-        exclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, init, op);
+        exclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, init, op, pred);
 #ifdef DUMP_CHECK_RESULTS
         display_param("expected result: ", expected_val_res.data(), n);
 #endif // DUMP_CHECK_RESULTS
