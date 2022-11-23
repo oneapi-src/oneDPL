@@ -259,7 +259,7 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
         test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
 #else
-        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
+        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
     }
     {
@@ -276,7 +276,7 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
         test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryOperation>>();
 #else
-        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
+        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
     }
 
