@@ -13,7 +13,7 @@ New in 2022.0.0
 
 New Features
 ------------
-- Added ``std::complex`` namespace into ``oneapi::dpl`` namespace.
+- Added ``<complex>`` header functionality as `Tested Standard C++ API`_.
 - Improved performance of ``sort`` and ``stable_sort``  algorithms on GPU devices when using Radix sort [#fnote1]_.
 
 Fixed Issues
@@ -381,6 +381,6 @@ Known Issues and Limitations
 .. _`oneDPL Guide`: https://oneapi-src.github.io/oneDPL/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
 .. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
-.. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
+.. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
 .. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/
