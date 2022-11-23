@@ -98,6 +98,32 @@ DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
 
         using value_type = typename ::std::decay_t<decltype(val_res[0])>;
 
+        typedef typename ::std::iterator_traits<Accessor1>::value_type KeyT;
+        typedef typename ::std::iterator_traits<Accessor2>::value_type ValT;
+
+        ::std::string failure_msg = "wrong effect from exclusive_scan_by_segment, types:[";
+        failure_msg += typeid(KeyT).name();
+        failure_msg += ";";
+        failure_msg += typeid(ValT).name();
+        failure_msg += "] ";
+        failure_msg += "n=" + std::to_string(n) + " ";
+        if (::std::is_same<BinaryPredCheck, oneapi::dpl::__internal::__pstl_equal>::value)
+        {
+            failure_msg += "Default Pred ";
+        }
+        else
+        {
+            failure_msg += "Custom Pred ";
+        }
+        if (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
+        {
+            failure_msg += "Default Op ";
+        }
+        else
+        {
+            failure_msg += "Custom Op";
+        }
+
         std::vector<value_type> expected_val_res(n);
         exclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, init, op, pred);
 #ifdef DUMP_CHECK_RESULTS
@@ -107,7 +133,7 @@ DEFINE_TEST_1(test_exclusive_scan_by_segment, BinaryOperation)
         {
             if (val_res[i] != expected_val_res[i])
                 std::cout << val_res[i] << " " << expected_val_res[i] << " " << i << std::endl;
-            EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from exclusive_scan_by_segment");
+            EXPECT_TRUE(val_res[i] == expected_val_res[i], failure_msg.c_str());
         }
     }
 
