@@ -28,6 +28,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "support/sycl_alloc_utils.h"
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename Size, typename T,
           typename BinaryPredCheck = oneapi::dpl::__internal::__pstl_equal,
@@ -68,6 +69,8 @@ check_values(size_t num_segments_returned, Iterator1 host_keys, Iterator2 host_v
     }
     EXPECT_EQ(num_segments, num_segments_returned, "incorrect return value from reduce_by_segment");
 }
+
+#if TEST_DPCPP_BACKEND_PRESENT
 
 template <typename KernelName, typename T>
 void
