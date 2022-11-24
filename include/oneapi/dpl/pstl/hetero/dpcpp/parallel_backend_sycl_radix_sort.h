@@ -633,20 +633,16 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 // 1. create a private array for storing offset values
                 //    and add total offset and offset for compute unit for a certain radix state
                 _OffsetT __offset_arr[__radix_states];
-                _OffsetT __scanned_bin = 0;
                 const ::std::size_t __scan_size = __segments + 1;
-                const ::std::uint32_t __global_offset_start_idx = (__segments + 1) * __radix_states;
-                for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                _OffsetT __scanned_bin = 0;
+                __offset_arr[0] = __offset_rng[__wgroup_idx];
+                for (::std::uint32_t __radix_state_idx = 1; __radix_state_idx < __radix_states; ++__radix_state_idx)
                 {
-                    const ::std::uint32_t __global_offset_idx = __global_offset_start_idx + __radix_state_idx;
                     const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
 
                     //scan bins (serial)
-                    if (__radix_state_idx > 0)
-                    {
-                        ::std::size_t __last_segment_bucket_idx = __radix_state_idx * __scan_size - 1;
-                        __scanned_bin += __offset_rng[__last_segment_bucket_idx];
-                    }
+                    ::std::size_t __last_segment_bucket_idx = __radix_state_idx * __scan_size - 1;
+                    __scanned_bin += __offset_rng[__last_segment_bucket_idx];
 
                     __offset_arr[__radix_state_idx] = __scanned_bin + __offset_rng[__local_offset_idx];
                 }
