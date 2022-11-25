@@ -3,7 +3,8 @@ oneDPL 2022 Breaking Changes
 
 This page list the incompatible changes that occurred between the 2021.7.1 and 2022.0 releases.
 
-.. Note:: You may need to modify and/or rebuild your code when switching to oneDPL 2022.
+.. note::
+   You may need to modify and/or rebuild your code when switching to oneDPL 2022.
 
 Support for C++11 and C++14 has been discontinued. To use any functionality of oneDPL 2022,
 a compiler that supports C++17 or newer version of the C++ language standard is required.
