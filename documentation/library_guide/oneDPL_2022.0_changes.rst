@@ -1,46 +1,36 @@
-oneDPL 2022.0 Changes
-#####################
+oneDPL 2022 Breaking Changes
+############################
 
-This page list the breaking changes that occurred between the 2021.7.1 and 2022.0 releases.
+This page list the incompatible changes that occurred between the 2021.7.1 and 2022.0 releases.
 
-Support for C++11 and C++14 has been discontinued. 
+.. Note:: You may need to modify and/or rebuild your code when switching to oneDPL 2022.
 
-The internal parameter n of discard_block_engine was changed
-from a int to a std::size_t type to align its implementation with
-the С++ std proposal found at https://cplusplus.github.io/LWG/issue3561.
-This change lets you utilize the full range of values for the P and R
-template parameters of discard_block_engine.
- 
- .. Note::
+Support for C++11 and C++14 has been discontinued. To use any functionality of oneDPL 2022,
+a compiler that supports C++17 or newer version of the C++ language standard is required.
 
- Note: You may need to rebuild your code.
+The following APIs are not supported in C++17 and have been removed from ``namespace oneapi::dpl``:
 
+* In the ``<oneapi/dpl/functional>`` header
 
-* The following algorithms have been removed from dpl namespace include/oneapi/dpl/functional:
+  * ``binary_function``
+  * ``unary_function``
 
-  * using ::std::binary_function;
- 
-  * using ::std::unary_function.
+The following APIs are deprecated in C++17 and not supported in C++20:
 
-* The following algorithms are deprecated in C++17 and removed C++20:
+* In the ``<oneapi/dpl/functional>`` header
+  
+  * ``binary_negate``
+  * ``not1``
+  * ``not2``
+  * ``unary_negate``
+  
+* In the ``<oneapi/dpl/type_traits>`` header
 
-  * include/oneapi/dpl/functional:
+  * ``is_literal_type``
+  * ``is_literal_type_v``
+  * ``result_of``
+  * ``result_of_t``
 
-    * using ::std::binary_negate; 
-   
-    * using ::std::not1;          
-   
-    * using ::std::not2;          
-   
-    * using ::std::unary_negate;  
-   
-  * include/oneapi/dpl/type_traits:
-
-    * using ::std::is_literal_type; 
-    
-    * using ::std::is_literal_type_v; 
-    
-    * using ::std::result_of;        
-    
-    * using ::std::result_of_t;       
-
+The size and the layout of the ``discard_block_engine`` class template were changed to align its 
+implementation with the С++ standard proposal found at https://cplusplus.github.io/LWG/issue3561.
+This change lets you utilize the full range of values for the template parameters of the engine.
