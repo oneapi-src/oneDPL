@@ -22,7 +22,7 @@
 #include <iterator>
 #include "oneapi/dpl/pstl/hetero/dpcpp/sycl_defs.h"
 #if _ONEDPL_FPGA_DEVICE
-#    if __LIBSYCL_VERSION >= 50400
+#    if _ONEDPL_LIBSYCL_VERSION >= 50400
 #        include <sycl/ext/intel/fpga_extensions.hpp>
 #    else
 #        include <CL/sycl/INTEL/fpga_extensions.hpp>

@@ -44,19 +44,19 @@ using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity =
-#    if __LIBSYCL_VERSION >= 50200
+#    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>, __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
         ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
                            ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
                            ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
                            ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>>>;
-#    else  //__LIBSYCL_VERSION >= 50200
+#    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
                            ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>>>;
-#    endif //__LIBSYCL_VERSION >= 50200
+#    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
 #else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 
@@ -74,11 +74,11 @@ struct __known_identity_for_plus
 
 template <typename _BinaryOp, typename _Tp>
 inline constexpr _Tp __known_identity =
-#if __LIBSYCL_VERSION >= 50200
+#if _ONEDPL_LIBSYCL_VERSION >= 50200
     __dpl_sycl::__known_identity<_BinaryOp, _Tp>::value;
-#else  //__LIBSYCL_VERSION >= 50200
+#else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     __known_identity_for_plus<_BinaryOp, _Tp>::value; //for plus only
-#endif //__LIBSYCL_VERSION >= 50200
+#endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
 // a way to get value_type from both accessors and USM that is needed for transform_init
 template <typename _Unknown>

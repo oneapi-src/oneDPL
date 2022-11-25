@@ -356,7 +356,7 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 //-----------------------------------------------------------------------------
 
 // 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
-#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (__LIBSYCL_VERSION >= 50700)
+#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (_ONEDPL_LIBSYCL_VERSION >= 50700)
 
 template <typename _ExecutionPolicy>
 ::std::size_t
