@@ -13,7 +13,7 @@ New in 2022.0.0
 
 New Features
 ------------
-- Added ``<complex>`` header functionality as `Tested Standard C++ API`_.
+- Added the functionality from ``<complex>`` and more APIs from ``<cmath>`` and ``<limits>`` standard headers to `Tested Standard C++ API`_.
 - Improved performance of ``sort`` and ``stable_sort``  algorithms on GPU devices when using Radix sort [#fnote1]_.
 
 Fixed Issues
