@@ -373,12 +373,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 // radix sort: scan kernel (per iteration)
 //-----------------------------------------------------------------------
 
-// Please see the comment for __parallel_for_submitter for optional kernel name explanation
 template <typename _RadixLocalScanName, ::std::uint32_t __radix_bits>
-struct __radix_sort_scan_submitter;
-
-template <typename _RadixLocalScanName, ::std::uint32_t __radix_bits>
-struct __radix_sort_scan_submitter<_RadixLocalScanName, __radix_bits>
+struct __radix_sort_scan_submitter
 {
     template <typename _ExecutionPolicy, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
