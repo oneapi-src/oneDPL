@@ -38,9 +38,6 @@ class __radix_sort_count_kernel;
 template <::std::uint32_t, typename... _Name>
 class __radix_sort_scan_kernel_1;
 
-template <typename... _Name>
-class __radix_sort_scan_kernel_2;
-
 template <::std::uint32_t, bool, bool, typename... _Name>
 class __radix_sort_reorder_peer_kernel;
 
@@ -377,12 +374,11 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 //-----------------------------------------------------------------------
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _RadixLocalScanName, typename _RadixGlobalScanName, ::std::uint32_t __radix_bits>
+template <typename _RadixLocalScanName, ::std::uint32_t __radix_bits>
 struct __radix_sort_scan_submitter;
 
-template <typename _RadixLocalScanName, typename... _RadixGlobalScanName, ::std::uint32_t __radix_bits>
-struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_kernel_name<_RadixGlobalScanName...>,
-                                   __radix_bits>
+template <typename _RadixLocalScanName, ::std::uint32_t __radix_bits>
+struct __radix_sort_scan_submitter<_RadixLocalScanName, __radix_bits>
 {
     template <typename _ExecutionPolicy, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
@@ -706,7 +702,6 @@ struct __parallel_radix_sort_iteration
             __count_phase, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
         using _RadixLocalScanKernel = __internal::__kernel_name_generator<
             __local_scan_phase, _CustomName, __decay_t<_TmpBuf>>;
-        using _RadixGlobalScanKernel = __internal::__kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
         using _RadixReorderPeerKernel = __internal::__kernel_name_generator<
             __reorder_peer_phase, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
         using _RadixReorderKernel = __internal::__kernel_name_generator<
@@ -749,20 +744,17 @@ struct __parallel_radix_sort_iteration
             __exec, __segments, __block_size, __radix_iter, ::std::forward<_InRange>(__in_rng), __tmp_buf,
             __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-            ,
-            __count_kernel
+            , __count_kernel
 #endif
         );
 
         // 2. Scan Phase
-        sycl::event __scan_event =
-            __radix_sort_scan_submitter<_RadixLocalScanKernel, _RadixGlobalScanKernel, __radix_bits>()(
-                __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
+        sycl::event __scan_event = __radix_sort_scan_submitter<_RadixLocalScanKernel, __radix_bits>()(
+            __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
 #if _ONEDPL_COMPILE_KERNEL
-                ,
-                __local_scan_kernel
+            , __local_scan_kernel
 #endif
-            );
+        );
 
         // 3. Reorder Phase
         sycl::event __reorder_event{};
