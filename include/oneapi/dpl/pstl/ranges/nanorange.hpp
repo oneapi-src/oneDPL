@@ -119,7 +119,7 @@
                                     {                                                                                  \
                                     inline constexpr type name{};                                                      \
                                     }
-
+#                                define NANORANGE_NO_STD_FORWARD_DECLARATIONS
 #                                if defined(_LIBCPP_VERSION)
 #                                    define NANO_BEGIN_NAMESPACE_STD _LIBCPP_BEGIN_NAMESPACE_STD
 #                                    define NANO_END_NAMESPACE_STD _LIBCPP_END_NAMESPACE_STD
