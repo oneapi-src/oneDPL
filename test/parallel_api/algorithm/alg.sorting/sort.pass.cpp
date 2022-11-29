@@ -397,11 +397,16 @@ main()
 
 #if !ONEDPL_FPGA_DEVICE
         test_sort<TestUtils::float32_t>([](TestUtils::float32_t x, TestUtils::float32_t y) { return x < y; },
-                                        [](size_t, size_t val) { return TestUtils::float32_t(val); });
+                                        [](size_t k, size_t val) { return TestUtils::float32_t(val) * (k % 2 ? 1 : -1); });
+
+        test_sort<unsigned char>(
+            [](unsigned char x, unsigned char y) { return x > y; }, // Reversed so accidental use of < will be detected.
+            [](size_t k, size_t val) { return (unsigned char)val; });
+
 #endif // !ONEDPL_FPGA_DEVICE
         test_sort<std::int32_t>(
             [](std::int32_t x, std::int32_t y) { return x > y; }, // Reversed so accidental use of < will be detected.
-            [](size_t, size_t val) { return std::int32_t(val); });
+            [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); });
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
