@@ -27,9 +27,6 @@ ifeq ($(os_name), linux)
     ifeq ($(use_unnamed_lambda), 1)
         CPLUS_FLAGS += -fsycl-unnamed-lambda
     endif
-    ifeq ($(split_per_kernel), 1)
-        CPLUS_FLAGS += -fsycl-fsycl-device-code-split=per_kernel
-    endif
     ifneq ($(stdver),)
         CPLUS_FLAGS += $(KEY)std=$(stdver)
     endif
