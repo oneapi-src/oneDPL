@@ -228,7 +228,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
         oneapi::dpl::__ranges::__require_access(__cgh, __keys, __out_keys, __out_values, __values);
 
         auto __partials_acc = __partials.template get_access<sycl::access_mode::read_write>(__cgh);
-        auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::write>(__cgh);
+        auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
         auto __loc_acc = sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
             2 * __wgroup_size, __cgh};
 
