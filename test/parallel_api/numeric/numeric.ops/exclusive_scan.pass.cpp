@@ -26,19 +26,25 @@
 
 #include "support/scan_serial_impl.h"
 
+// This macro may be used to analyze source data and test results in exclusive_scan.pass
+// WARNING: in the case of using this macro debug output is very large.
+//#define DUMP_CHECK_RESULTS
 
+#ifdef DUMP_CHECK_RESULTS
 template <typename Iterator, typename Size>
-void display_param(const char* msg, Iterator it, Size n)
+void
+display_param(const char* msg, Iterator it, Size n)
 {
     std::cout << msg;
     for (Size i = 0; i < n; ++i)
     {
         if (i > 0)
             std::cout << ", ";
-        std::cout << it[i].value;
+        std::cout << it[i];
     }
     std::cout << std::endl;
 }
+#endif //DUMP_CHECK_RESULTS
 
 template <typename _Policy, typename T, typename _BinaryOp = oneapi::dpl::__internal::__pstl_plus>
 void
@@ -48,7 +54,7 @@ test_with_vector(_Policy policy, const ::std::size_t count, T init, _BinaryOp bi
     std::vector<T> h_idx(count);
     std::vector<T> h_val(count);
     for (int i = 0; i < count; i++)
-        h_idx[i] = i + 1;
+        h_idx[i] = 1;
 
     oneapi::dpl::exclusive_scan(std::forward<_Policy>(policy), h_idx.begin(), h_idx.end(), h_val.begin(), init,
                                 binary_op);
@@ -57,8 +63,10 @@ test_with_vector(_Policy policy, const ::std::size_t count, T init, _BinaryOp bi
     std::vector<T> h_sval_expected(count);
     exclusive_scan_serial(h_idx.begin(), h_idx.end(), h_sval_expected.begin(), init, binary_op);
 
+#ifdef DUMP_CHECK_RESULTS
     display_param("expected: ", h_sval_expected.begin(), count);
     display_param("actual  : ", h_val.begin(), count);
+#endif //DUMP_CHECK_RESULTS
 
     EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
 }
@@ -68,7 +76,7 @@ void
 test_with_vector(_BinaryOp binary_op = _BinaryOp())
 {
     T init{2};
-    for (::std::size_t n = 0; n <= 40/*TestUtils::max_n*/; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (::std::size_t n = 0; n <= 40 /*TestUtils::max_n*/; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 
         test_with_vector(oneapi::dpl::execution::seq, n, init, binary_op);
@@ -89,7 +97,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count, _BinaryOp binary_op = _
     // Prepare source data
     std::vector<int> h_idx(count);
     for (int i = 0; i < count; i++)
-        h_idx[i] = i + 1;
+        h_idx[i] = 1;
 
     // Copy source data to USM shared/device memory
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
@@ -126,7 +134,6 @@ test_with_usm(sycl::queue& q, _BinaryOp binary_op = _BinaryOp())
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-
 template <typename _Tp>
 struct UserBinaryOperation
 {
@@ -134,10 +141,9 @@ struct UserBinaryOperation
     _Tp
     operator()(const _Tp& __x, const _Tp& __y) const
     {
-	return __x * __y;
+        return __x * __y;
     }
 };
-
 
 template <typename T>
 class MyType
@@ -160,17 +166,21 @@ class MyType
         return *this;
     }
 
-    MyType<T>
-    operator*(const MyType<T>& a) const
-    {
-        return MyType<T>{value * a.value};
-    }
+    MyType<T> operator*(const MyType<T>& a) const { return MyType<T>{value * a.value}; }
 };
+
+template <typename T>
+::std::ostream&
+operator<<(::std::ostream& os, const MyType<T>& val)
+{
+    return (os << val.value);
+}
 
 int
 main()
 {
- 	
+
+    using BinaryOp = UserBinaryOperation<int>;
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue q = TestUtils::get_test_queue();
 #if _ONEDPL_DEBUG_SYCL
@@ -181,10 +191,13 @@ main()
     test_with_usm<sycl::usm::alloc::shared, class KernelName1>(q);
     // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device, class KernelName2>(q);
-    using BinaryOp = UserBinaryOperation<int>;
     test_with_usm<sycl::usm::alloc::device, class KernelName3, BinaryOp>(q);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+    //test with custom operation and integer type
+    test_with_vector<int, BinaryOp>();
+
+    //test with custom operation and custom (integer wrapper) type
     using ValType = MyType<int>;
     using BinaryOpCustType = UserBinaryOperation<ValType>;
     test_with_vector<ValType, BinaryOpCustType>();
