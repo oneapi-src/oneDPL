@@ -190,17 +190,11 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
     return ::std::make_pair(__result, __init);
 }
 
-// type is arithmetic and binary operation is a user defined operation.
-template <typename _Tp, typename _BinaryOperation>
-using is_arithmetic_udop =
-    ::std::integral_constant<bool, ::std::is_arithmetic<_Tp>::value &&
-                                       !::std::is_same<_BinaryOperation, ::std::plus<_Tp>>::value>;
-
 // [restriction] - T shall be DefaultConstructible.
 // [violation] - default ctor of T shall set the identity value for binary_op.
 template <class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
           class _Inclusive>
-typename ::std::enable_if<!is_arithmetic_udop<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+typename ::std::enable_if<is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
 __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                        /*is_vector=*/::std::true_type) noexcept
@@ -217,7 +211,7 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
 
 template <class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
           class _Inclusive>
-typename ::std::enable_if<is_arithmetic_udop<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+typename ::std::enable_if<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
 __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                        /*is_vector=*/::std::true_type) noexcept
