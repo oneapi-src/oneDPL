@@ -370,7 +370,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 bool __ag_exists = false;
                 if (__local_id == 0 && __wg_agg_idx >= 0)
                 {
-                    if (__start < __n && __binary_pred(__keys[__start], __keys[__start - 1]))
+                    if (__start < __n && __binary_pred(__keys[__start - 1], __keys[__start]))
                     {
                         __ag_exists = true;
                         for (int64_t __i = __wg_agg_idx; __i >= 0; --__i)
