@@ -24,7 +24,7 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-macro(onedpl_add_test test_source_file)
+macro(onedpl_add_test test_source_file split_kernels)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
@@ -38,6 +38,14 @@ macro(onedpl_add_test test_source_file)
     # that may break code when using Intel(R) C++ Compiler Classic with -O3 flag on Linux
     if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL Intel)
         target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
+    endif()
+
+    # oneDPL tests of std::complex required generates code to do JIT compilation of a kernel only when it is called
+    check_cxx_compiler_flag("-fsycl-device-code-split=per_kernel" _fsycl_split_kernel_option)
+    if (_fsycl_split_kernel_option AND ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
+        if (${split_kernels})
+            target_compile_options(${_test_name} PRIVATE -fsycl-device-code-split=per_kernel)
+        endif()
     endif()
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
@@ -108,5 +116,12 @@ foreach (_file IN LISTS UNIT_TESTS)
         continue()
     endif()
 
-        onedpl_add_test(${_file})
+    set(_is_complex_test_regexp "(xpu_api/numerics/complex.number)")
+    if (_file MATCHES "${_is_complex_test_regexp}")
+        # compile oneDPL tests with separate Kernel compilation
+        onedpl_add_test(${_file} true)
+    else()
+        # compile oneDPL tests without separate Kernel compilation
+        onedpl_add_test(${_file} false)
+    endif()
 endforeach()
