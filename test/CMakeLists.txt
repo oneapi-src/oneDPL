@@ -40,10 +40,11 @@ macro(onedpl_add_test test_source_file split_kernels)
         target_compile_options(${_test_name} PRIVATE $<$<CONFIG:Release>:-fno-strict-aliasing>)
     endif()
 
-    # oneDPL tests of std::complex required generates code to do JIT compilation of a kernel only when it is called
-    check_cxx_compiler_flag("-fsycl-device-code-split=per_kernel" _fsycl_split_kernel_option)
-    if (_fsycl_split_kernel_option AND ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-        if (${split_kernels})
+    # Avoid speculative compilation of kernels which may not be supported by a device
+    # This options must be used with DPCPP backend, which requires -fsycl option
+    if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
+        check_cxx_compiler_flag("-fsycl-device-code-split=per_kernel" _fsycl_split_kernel_option)
+        if (_fsycl_split_kernel_option AND ${split_kernels})
             target_compile_options(${_test_name} PRIVATE -fsycl-device-code-split=per_kernel)
         endif()
     endif()
