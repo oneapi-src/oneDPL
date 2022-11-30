@@ -30,6 +30,10 @@
 #    include "support/sycl_alloc_utils.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+// This macro may be used to analyze source data and test results in test_inclusive_scan_by_segment
+// WARNING: in the case of using this macro debug output is very large.
+//#define DUMP_CHECK_RESULTS
+
 template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename Size, typename T,
           typename BinaryPredCheck = oneapi::dpl::__internal::__pstl_equal,
           typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
@@ -54,18 +58,22 @@ check_values(size_t num_segments_returned, Iterator1 host_keys, Iterator2 host_v
     ::std::size_t num_segments =
         reduce_by_segment_serial(host_keys, host_vals, expected_key_res, expected_val_res, n, init, pred, op);
 
-    //    std::cout << "NumSegments: " << num_segments << "n: " << n << std::endl;
+#ifdef DUMP_CHECK_RESULTS
+    std::cout << "NumSegments: " << num_segments << "n: " << n << std::endl;
+#endif //DUMP_CHECK_RESULTS
 
     for (Size i = 0; i < num_segments; ++i)
     {
-        // if (val_res[i] != expected_val_res[i])
-        //     std::cout << "Failed: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") != expected("
-        //               << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
-        // else
-        //     std::cout << "Success: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") == expected("
-        //               << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
+#ifdef DUMP_CHECK_RESULTS
+        if (val_res[i] != expected_val_res[i])
+            std::cout << "Failed: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") != expected("
+                      << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
+        else
+            std::cout << "Success: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") == expected("
+                      << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
+#endif //DUMP_CHECK_RESULTS
 
-        EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from exclusive_scan_by_segment");
+        EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from reduce_by_segment");
     }
     EXPECT_EQ(num_segments, num_segments_returned, "incorrect return value from reduce_by_segment");
 }
@@ -166,14 +174,15 @@ struct PrepRandomData
 
         while (i < n)
         {
-            seg_length = std::rand() % 10000; // reasonable length segment
-            segment = std::rand();            //random label
+            // reasonable length segment
+            seg_length = std::rand() % 10000;
+            //random label
+            segment = std::rand();
             for (size_t j = 0; i < n && j < seg_length; j++, i++)
             {
                 key_head[i] = KeyT(segment);
                 //small random number to prevent overflow
                 val_head[i] = ValT(std::rand() % 500);
-                //std::cout << i << ": " << key_head[i] << ", " << val_head[i] << std::endl;
             }
         }
     }
@@ -195,7 +204,6 @@ struct PrepData
             {
                 key_head[i] = KeyT(segment);
                 val_head[i] = ValT(1);
-                //                std::cout << i << ": " << key_head[i] << ", " << val_head[i] << std::endl;
             }
             segment = (segment % 4) + 1;
             if (segment == 1)
@@ -226,7 +234,6 @@ struct PrepDataFlagPred
             {
                 key_head[i] = KeyT(0);
                 val_head[i] = ValT(1);
-                //std::cout << i << ": " << key_head[i] << ", " << val_head[i] << std::endl;
             }
             seg_length++;
         }

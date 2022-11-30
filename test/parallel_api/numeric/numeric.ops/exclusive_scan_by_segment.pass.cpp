@@ -28,7 +28,7 @@ using namespace oneapi::dpl::execution;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
 
-// This macro may be used to analyze source data and test results in test_inclusive_scan_by_segment
+// This macro may be used to analyze source data and test results in test_exclusive_scan_by_segment
 // WARNING: in the case of using this macro debug output is very large.
 //#define DUMP_CHECK_RESULTS
 
