@@ -28,11 +28,11 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
-#include "support/sycl_alloc_utils.h"
+#    include "support/sycl_alloc_utils.h"
 
-template <sycl::usm::alloc alloc_type>
+template <sycl::usm::alloc alloc_type, typename KernelName, typename _BinaryOp = oneapi::dpl::__internal::__pstl_plus>
 void
-test_with_usm(sycl::queue& q, const ::std::size_t count)
+test_with_usm(sycl::queue& q, const ::std::size_t count, _BinaryOp binary_op = _BinaryOp())
 {
     // Prepare source data
     std::vector<int> h_idx(count);
@@ -48,8 +48,8 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
 
     // Run dpl::exclusive_scan algorithm on USM shared-device memory
     auto myPolicy = oneapi::dpl::execution::make_device_policy<
-        TestUtils::unique_kernel_name<class copy, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
-    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
+        TestUtils::unique_kernel_name<KernelName, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
+    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0, binary_op);
 
     // Copy results from USM shared/device memory to host
     std::vector<int> h_val(count);
@@ -57,22 +57,32 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
 
     // Check results
     std::vector<int> h_sval_expected(count);
-    exclusive_scan_serial(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0);
+    exclusive_scan_serial(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0, binary_op);
 
     EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
 }
 
-template <sycl::usm::alloc alloc_type>
+template <sycl::usm::alloc alloc_type, typename KernelName, typename _BinaryOp = oneapi::dpl::__internal::__pstl_plus>
 void
-test_with_usm(sycl::queue& q)
+test_with_usm(sycl::queue& q, _BinaryOp binary_op = _BinaryOp())
 {
     for (::std::size_t n = 0; n <= TestUtils::max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        test_with_usm<alloc_type>(q, n);
+        test_with_usm<alloc_type, KernelName, _BinaryOp>(q, n);
     }
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+template <typename _Tp>
+struct UserBinaryOperation
+{
+    _Tp
+    operator()(const _Tp& __x, const _Tp& __y) const
+    {
+        return __x * __y;
+    }
+};
 
 int
 main()
@@ -81,12 +91,14 @@ main()
     sycl::queue q = TestUtils::get_test_queue();
 #if _ONEDPL_DEBUG_SYCL
     std::cout << "    Device Name = " << q.get_device().get_info<sycl::info::device::name>().c_str() << "\n";
-#endif // _ONEDPL_DEBUG_SYCL
+#    endif // _ONEDPL_DEBUG_SYCL
 
     // Run tests for USM shared memory
-    test_with_usm<sycl::usm::alloc::shared>(q);
+    test_with_usm<sycl::usm::alloc::shared, class KernelName1>(q);
     // Run tests for USM device memory
-    test_with_usm<sycl::usm::alloc::device>(q);
+    test_with_usm<sycl::usm::alloc::device, class KernelName2>(q);
+    using BinaryOp = UserBinaryOperation<int>;
+    test_with_usm<sycl::usm::alloc::device, class KernelName3, BinaryOp>(q);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
