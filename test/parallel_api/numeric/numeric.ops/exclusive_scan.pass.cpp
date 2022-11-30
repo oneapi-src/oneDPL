@@ -30,61 +30,73 @@
 // WARNING: in the case of using this macro debug output is very large.
 //#define DUMP_CHECK_RESULTS
 
-#ifdef DUMP_CHECK_RESULTS
-template <typename Iterator, typename Size>
-void
-display_param(const char* msg, Iterator it, Size n)
+using namespace TestUtils;
+
+DEFINE_TEST_1(test_with_vector, BinaryOperation)
 {
-    std::cout << msg;
-    for (Size i = 0; i < n; ++i)
+    DEFINE_TEST_CONSTRUCTOR(test_with_vector)
+
+    template <typename Iterator1, typename Size>
+    void initialize_data(Iterator1 host_keys, Size n)
     {
-        if (i > 0)
-            std::cout << ", ";
-        std::cout << it[i];
+        for (Size i = 0; i < n; i++)
+        {
+            host_keys[i] = 1;
+        }
     }
-    std::cout << std::endl;
-}
-#endif //DUMP_CHECK_RESULTS
-
-template <typename _Policy, typename T, typename _BinaryOp = oneapi::dpl::__internal::__pstl_plus>
-void
-test_with_vector(_Policy policy, const ::std::size_t count, T init, _BinaryOp binary_op = _BinaryOp())
-{
-    // Prepare source data
-    std::vector<T> h_idx(count);
-    std::vector<T> h_val(count);
-    for (int i = 0; i < count; i++)
-        h_idx[i] = 1;
-
-    oneapi::dpl::exclusive_scan(std::forward<_Policy>(policy), h_idx.begin(), h_idx.end(), h_val.begin(), init,
-                                binary_op);
-
-    // Check results
-    std::vector<T> h_sval_expected(count);
-    exclusive_scan_serial(h_idx.begin(), h_idx.end(), h_sval_expected.begin(), init, binary_op);
 
 #ifdef DUMP_CHECK_RESULTS
-    display_param("expected: ", h_sval_expected.begin(), count);
-    display_param("actual  : ", h_val.begin(), count);
+    template <typename Iterator, typename Size>
+    void display_param(const char* msg, Iterator it, Size n)
+    {
+        std::cout << msg;
+        for (Size i = 0; i < n; ++i)
+        {
+            if (i > 0)
+                std::cout << ", ";
+            std::cout << it[i];
+        }
+        std::cout << std::endl;
+    }
+#endif // DUMP_CHECK_RESULTS
+
+    // specialization for host execution policies
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<
+#if TEST_DPCPP_BACKEND_PRESENT
+        !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+#endif
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 res_first, Iterator2 res_last,
+               Iterator3 exp_first, Iterator3 exp_last, Size n)
+    {
+        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+
+        KeyT init{2};
+
+        initialize_data(keys_first, n);
+        oneapi::dpl::exclusive_scan(std::forward<Policy>(exec), keys_first, keys_last, res_first, init,
+                                    BinaryOperation());
+        exclusive_scan_serial(keys_first, keys_last, exp_first, init, BinaryOperation());
+
+#ifdef DUMP_CHECK_RESULTS
+        display_param("expected: ", exp_first, n);
+        display_param("actual  : ", res_first, n);
 #endif //DUMP_CHECK_RESULTS
 
-    EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
-}
-
-template <typename T, typename _BinaryOp = oneapi::dpl::__internal::__pstl_plus>
-void
-test_with_vector(_BinaryOp binary_op = _BinaryOp())
-{
-    T init{2};
-    for (::std::size_t n = 0; n <= 40 /*TestUtils::max_n*/; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-    {
-
-        test_with_vector(oneapi::dpl::execution::seq, n, init, binary_op);
-        test_with_vector(oneapi::dpl::execution::unseq, n, init, binary_op);
-        test_with_vector(oneapi::dpl::execution::par, n, init, binary_op);
-        test_with_vector(oneapi::dpl::execution::par_unseq, n, init, binary_op);
+        EXPECT_EQ_N(exp_first, res_first, n, "wrong effect from exclusive_scan");
     }
-}
+
+    // specialization for non-random_access iterators
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value,
+                              void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
+    {
+    }
+};
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
@@ -195,12 +207,13 @@ main()
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     //test with custom operation and integer type
-    test_with_vector<int, BinaryOp>();
+    test_algo_three_sequences<int, test_with_vector<int, BinaryOp>>();
 
     //test with custom operation and custom (integer wrapper) type
     using ValType = MyType<int>;
     using BinaryOpCustType = UserBinaryOperation<ValType>;
-    test_with_vector<ValType, BinaryOpCustType>();
+
+    test_algo_three_sequences<ValType, test_with_vector<ValType, BinaryOpCustType>>();
 
     return TestUtils::done();
 }
