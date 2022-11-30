@@ -105,7 +105,7 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
 
         for (Size i = 0; i < n; ++i)
         {
-            EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from exclusive_scan_by_segment");
+            EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from inclusive_scan_by_segment");
         }
     }
 
