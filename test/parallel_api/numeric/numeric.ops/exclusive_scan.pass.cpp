@@ -207,13 +207,20 @@ main()
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     //test with custom operation and integer type
+#if TEST_DPCPP_BACKEND_PRESENT
     test_algo_three_sequences<int, test_with_vector<int, BinaryOp>>();
+#else
+    test_algo_three_sequences<int, test_with_vector<BinaryOp>>();
+#endif    
 
     //test with custom operation and custom (integer wrapper) type
     using ValType = MyType<int>;
     using BinaryOpCustType = UserBinaryOperation<ValType>;
-
+#if TEST_DPCPP_BACKEND_PRESENT
     test_algo_three_sequences<ValType, test_with_vector<ValType, BinaryOpCustType>>();
+#else
+    test_algo_three_sequences<ValType, test_with_vector<BinaryOpCustType>>();
+#endif
 
     return TestUtils::done();
 }
