@@ -26,6 +26,20 @@
 
 #include "support/scan_serial_impl.h"
 
+
+template <typename Iterator, typename Size>
+void display_param(const char* msg, Iterator it, Size n)
+{
+    std::cout << msg;
+    for (Size i = 0; i < n; ++i)
+    {
+        if (i > 0)
+            std::cout << ", ";
+        std::cout << it[i].value;
+    }
+    std::cout << std::endl;
+}
+
 template <typename _Policy, typename T, typename _BinaryOp = oneapi::dpl::__internal::__pstl_plus>
 void
 test_with_vector(_Policy policy, const ::std::size_t count, T init, _BinaryOp binary_op = _BinaryOp())
@@ -43,6 +57,9 @@ test_with_vector(_Policy policy, const ::std::size_t count, T init, _BinaryOp bi
     std::vector<T> h_sval_expected(count);
     exclusive_scan_serial(h_idx.begin(), h_idx.end(), h_sval_expected.begin(), init, binary_op);
 
+    display_param("expected: ", h_sval_expected.begin(), count);
+    display_param("actual  : ", h_val.begin(), count);
+
     EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
 }
 
@@ -50,9 +67,10 @@ template <typename T, typename _BinaryOp = oneapi::dpl::__internal::__pstl_plus>
 void
 test_with_vector(_BinaryOp binary_op = _BinaryOp())
 {
-    T init{0};
-    for (::std::size_t n = 0; n <= TestUtils::max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    T init{2};
+    for (::std::size_t n = 0; n <= 40/*TestUtils::max_n*/; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
+
         test_with_vector(oneapi::dpl::execution::seq, n, init, binary_op);
         test_with_vector(oneapi::dpl::execution::unseq, n, init, binary_op);
         test_with_vector(oneapi::dpl::execution::par, n, init, binary_op);
@@ -108,15 +126,18 @@ test_with_usm(sycl::queue& q, _BinaryOp binary_op = _BinaryOp())
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+
 template <typename _Tp>
 struct UserBinaryOperation
 {
+
     _Tp
     operator()(const _Tp& __x, const _Tp& __y) const
     {
-        return _Tp(__x.value * __y.value);
+	return __x * __y;
     }
 };
+
 
 template <typename T>
 class MyType
@@ -138,13 +159,18 @@ class MyType
         value = a;
         return *this;
     }
+
+    MyType<T>
+    operator*(const MyType<T>& a) const
+    {
+        return MyType<T>{value * a.value};
+    }
 };
 
 int
 main()
 {
-    using ValType = MyType<int>;
-    using BinaryOp = UserBinaryOperation<ValType>;
+ 	
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue q = TestUtils::get_test_queue();
 #if _ONEDPL_DEBUG_SYCL
@@ -155,11 +181,13 @@ main()
     test_with_usm<sycl::usm::alloc::shared, class KernelName1>(q);
     // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device, class KernelName2>(q);
-
-    //test_with_usm<sycl::usm::alloc::device, class KernelName3, BinaryOp>(q);
+    using BinaryOp = UserBinaryOperation<int>;
+    test_with_usm<sycl::usm::alloc::device, class KernelName3, BinaryOp>(q);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    test_with_vector<ValType, BinaryOp>();
+    using ValType = MyType<int>;
+    using BinaryOpCustType = UserBinaryOperation<ValType>;
+    test_with_vector<ValType, BinaryOpCustType>();
 
     return TestUtils::done();
 }
