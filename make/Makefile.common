@@ -51,7 +51,6 @@ cfg ?= release
 
 device_type ?= GPU
 use_unnamed_lambda ?= 0
-split_per_kernel ?= 0
 ranges_api ?= 0
 
 ifeq ($(backend), sycl)

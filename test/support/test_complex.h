@@ -132,7 +132,7 @@ namespace TestUtils
 
             // We should run fncDoubleHasSupportInRuntime and fncDoubleHasntSupportInRuntime
             // in two separate Kernels to have ability compile these Kernels separatelly
-            // by using dpcpp compiler option -fsycl-device-code-split=per_kernel
+            // by using Intel(R) oneAPI DPC++/C++ Compiler option -fsycl-device-code-split=per_kernel
             // which described at
             // https://www.intel.com/content/www/us/en/develop/documentation/oneapi-gpu-optimization-guide/top/compilation/jitting.html
             if (has_type_support<double>(device))
