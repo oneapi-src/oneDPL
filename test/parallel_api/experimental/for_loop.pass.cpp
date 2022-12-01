@@ -136,7 +136,8 @@ test_body_for_loop_strided_n(Policy&& exec, Iterator first, Iterator /* last */,
 
     auto num_iters = n / loop_stride + !!(n % loop_stride);
 
-    ::std::experimental::for_loop_n_strided(exec, first, num_iters, loop_stride, [&flip](Iterator iter) { flip(*iter); });
+    ::std::experimental::for_loop_n_strided(exec, first, num_iters, loop_stride,
+                                            [&flip](Iterator iter) { flip(*iter); });
 
     size_t idx = 0;
     for (auto iter = expected_first; iter != expected_last; ++iter, ++idx)
@@ -259,8 +260,9 @@ template <typename Policy, typename Iterator, typename Size, typename S>
 typename ::std::enable_if<
     ::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value,
     void>::type
-test_body_for_loop_strided_neg(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /* expected_first */,
-                               Iterator /* expected_last */, Size /* n */, S /* loop_stride */)
+test_body_for_loop_strided_neg(Policy&& /* exec */, Iterator /* first */, Iterator /* last */,
+                               Iterator /* expected_first */, Iterator /* expected_last */, Size /* n */,
+                               S /* loop_stride */)
 {
     // no-op for forward iterators. As it's not possible to iterate backwards.
 }
@@ -273,17 +275,18 @@ struct test_for_loop_strided_impl
                size_t stride)
     {
         test_body_for_loop_strided(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n, stride);
-        test_body_for_loop_strided_n(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n, stride);
+        test_body_for_loop_strided_n(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n,
+                                     stride);
 
         test_body_for_loop_strided_integral(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n,
                                             stride);
 
-        test_body_for_loop_strided_n_integral(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n,
-                                              (long)stride);
+        test_body_for_loop_strided_n_integral(::std::forward<Policy>(exec), first, last, expected_first, expected_last,
+                                              n, (long)stride);
 
         // Additionally check negative stride with integral and iterator sequence.
-        test_body_for_loop_strided_n_integral(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n,
-                                              -(long)stride);
+        test_body_for_loop_strided_n_integral(::std::forward<Policy>(exec), first, last, expected_first, expected_last,
+                                              n, -(long)stride);
         test_body_for_loop_strided_neg(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n,
                                        -(long)stride);
     }
@@ -295,11 +298,11 @@ test_for_loop()
 {
     for (size_t n = 0; n <= 10000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, Gen<T>());
-        Sequence<T> expected = inout;
+        Sequence<T> in_out(n, Gen<T>());
+        Sequence<T> expected = in_out;
 
-        invoke_on_all_policies<>()(test_for_loop_impl(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                               inout.size());
+        invoke_on_all_policies<>()(test_for_loop_impl(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
     }
 }
 
@@ -309,14 +312,14 @@ test_for_loop_strided()
 {
     for (size_t n = 0; n <= 10000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, Gen<T>());
-        Sequence<T> expected = inout;
+        Sequence<T> in_out(n, Gen<T>());
+        Sequence<T> expected = in_out;
 
         ::std::vector<size_t> strides = {1, 2, 10, n > 1 ? n - 1 : 1, n > 0 ? n : 1, n + 1};
         for (size_t stride : strides)
         {
-            invoke_on_all_policies<>()(test_for_loop_strided_impl(), inout.begin(), inout.end(), expected.begin(),
-                                   expected.end(), inout.size(), stride);
+            invoke_on_all_policies<>()(test_for_loop_strided_impl(), in_out.begin(), in_out.end(), expected.begin(),
+                                       expected.end(), in_out.size(), stride);
         }
     }
 }

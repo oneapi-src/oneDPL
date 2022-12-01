@@ -38,13 +38,13 @@ test_body_reduction(Policy&& exec, Iterator first, Iterator last, Iterator /* ex
     T var1 = var1_init;
     T var2 = var2_init;
 
-    ::std::experimental::for_loop(::std::forward<Policy>(exec), first, last,
-                                ::std::experimental::reduction(var1, T(0), ::std::plus<T>{}),
-                                ::std::experimental::reduction(var2, T(var2_init), oneapi::dpl::__internal::__pstl_min{}),
-                                [](Iterator iter, T& acc1, T& acc2) {
-                                    acc1 += *iter;
-                                    acc2 = ::std::min(acc2, *iter);
-                                });
+    ::std::experimental::for_loop(
+        ::std::forward<Policy>(exec), first, last, ::std::experimental::reduction(var1, T(0), ::std::plus<T>{}),
+        ::std::experimental::reduction(var2, T(var2_init), oneapi::dpl::__internal::__pstl_min{}),
+        [](Iterator iter, T& acc1, T& acc2) {
+            acc1 += *iter;
+            acc2 = ::std::min(acc2, *iter);
+        });
 
     T var1_exp = var1_init;
     T var2_exp = var2_init;
@@ -75,9 +75,10 @@ test()
 {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, [](long int k) { return T(k % 5 != 1 ? 3 * k - 7 : 0); });
-        Sequence<T> expected = inout;
-        invoke_on_all_policies<>()(test_body(), inout.begin(), inout.end(), expected.begin(), expected.end(), inout.size());
+        Sequence<T> in_out(n, [](long int k) { return T(k % 5 != 1 ? 3 * k - 7 : 0); });
+        Sequence<T> expected = in_out;
+        invoke_on_all_policies<>()(test_body(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
     }
 }
 
@@ -127,7 +128,7 @@ struct test_body_predefined_bits
 {
     template <typename Policy, typename Iterator, typename Size>
     typename ::std::enable_if<!::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value,
-                            void>::type
+                              void>::type
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
                Size /* n */)
     {
@@ -162,9 +163,9 @@ struct test_body_predefined_bits
 
     template <typename Policy, typename Iterator, typename Size>
     typename ::std::enable_if<::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value,
-                            void>::type
-    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /*expected_first*/, Iterator /*expected_last*/,
-               Size /* n */)
+                              void>::type
+    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /*expected_first*/,
+               Iterator /*expected_last*/, Size /* n */)
     {
         // no-op for floats
     }
@@ -175,12 +176,12 @@ void
 test_predefined(::std::initializer_list<T> init_list)
 {
     // Just arbitrary numbers
-    Sequence<T> inout = init_list;
-    Sequence<T> expected = inout;
-    invoke_on_all_policies<>()(test_body_predefined(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                           inout.size());
-    invoke_on_all_policies<>()(test_body_predefined_bits(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                           inout.size());
+    Sequence<T> in_out = init_list;
+    Sequence<T> expected = in_out;
+    invoke_on_all_policies<>()(test_body_predefined(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                               in_out.size());
+    invoke_on_all_policies<>()(test_body_predefined_bits(), in_out.begin(), in_out.end(), expected.begin(),
+                               expected.end(), in_out.size());
 }
 
 void

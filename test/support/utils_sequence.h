@@ -24,7 +24,7 @@
 
 #include "iterator_utils.h"
 
-// Please uncomment this define if required to print full contect of sequence.
+// Please uncomment this define if required to print full context of sequence.
 // Otherwise only first 100 sequence items will be printed.
 //#define PRINT_FULL_SEQUENCE_CONTEXT 1
 
@@ -40,17 +40,16 @@ class Sequence
 {
     ::std::vector<T> m_storage;
 
-public:
-
+  public:
     using value_type = T;
 
-    using iterator       = typename ::std::vector<T>::iterator;
+    using iterator = typename ::std::vector<T>::iterator;
     using const_iterator = typename ::std::vector<T>::const_iterator;
 
-    using forward_iterator       = ForwardIterator<iterator, ::std::forward_iterator_tag>;
+    using forward_iterator = ForwardIterator<iterator, ::std::forward_iterator_tag>;
     using const_forward_iterator = ForwardIterator<const_iterator, ::std::forward_iterator_tag>;
 
-    using bidirectional_iterator       = BidirectionalIterator<iterator, ::std::bidirectional_iterator_tag>;
+    using bidirectional_iterator = BidirectionalIterator<iterator, ::std::bidirectional_iterator_tag>;
     using const_bidirectional_iterator = BidirectionalIterator<const_iterator, ::std::bidirectional_iterator_tag>;
 
     explicit Sequence(size_t size);
@@ -61,37 +60,107 @@ public:
     Sequence(size_t size, Func f);
     Sequence(const ::std::initializer_list<T>& data);
 
-    const_iterator               begin   () const { return m_storage.begin();                                };
-    const_iterator               end     () const { return m_storage.end();                                  };
-    iterator                     begin   ()       { return m_storage.begin();                                };
-    iterator                     end     ()       { return m_storage.end();                                  };
-    const_iterator               cbegin  () const { return m_storage.cbegin();                               };
-    const_iterator               cend    () const { return m_storage.cend();                                 };
-    forward_iterator             fbegin  ()       { return forward_iterator(m_storage.begin());              };
-    forward_iterator             fend    ()       { return forward_iterator(m_storage.end());                };
-    const_forward_iterator       cfbegin () const { return const_forward_iterator(m_storage.cbegin());       };
-    const_forward_iterator       cfend   () const { return const_forward_iterator(m_storage.cend());         };
-    const_forward_iterator       fbegin  () const { return const_forward_iterator(m_storage.cbegin());       };
-    const_forward_iterator       fend    () const { return const_forward_iterator(m_storage.cend());         };
-    const_bidirectional_iterator cbibegin() const { return const_bidirectional_iterator(m_storage.cbegin()); };
-    const_bidirectional_iterator cbiend  () const { return const_bidirectional_iterator(m_storage.cend());   };
-    bidirectional_iterator       bibegin ()       { return bidirectional_iterator(m_storage.begin());        };
-    bidirectional_iterator       biend   ()       { return bidirectional_iterator(m_storage.end());          };
+    const_iterator
+    begin() const
+    {
+        return m_storage.begin();
+    };
+    const_iterator
+    end() const
+    {
+        return m_storage.end();
+    };
+    iterator
+    begin()
+    {
+        return m_storage.begin();
+    };
+    iterator
+    end()
+    {
+        return m_storage.end();
+    };
+    const_iterator
+    cbegin() const
+    {
+        return m_storage.cbegin();
+    };
+    const_iterator
+    cend() const
+    {
+        return m_storage.cend();
+    };
+    forward_iterator
+    fbegin()
+    {
+        return forward_iterator(m_storage.begin());
+    };
+    forward_iterator
+    fend()
+    {
+        return forward_iterator(m_storage.end());
+    };
+    const_forward_iterator
+    cfbegin() const
+    {
+        return const_forward_iterator(m_storage.cbegin());
+    };
+    const_forward_iterator
+    cfend() const
+    {
+        return const_forward_iterator(m_storage.cend());
+    };
+    const_forward_iterator
+    fbegin() const
+    {
+        return const_forward_iterator(m_storage.cbegin());
+    };
+    const_forward_iterator
+    fend() const
+    {
+        return const_forward_iterator(m_storage.cend());
+    };
+    const_bidirectional_iterator
+    cbibegin() const
+    {
+        return const_bidirectional_iterator(m_storage.cbegin());
+    };
+    const_bidirectional_iterator
+    cbiend() const
+    {
+        return const_bidirectional_iterator(m_storage.cend());
+    };
+    bidirectional_iterator
+    bibegin()
+    {
+        return bidirectional_iterator(m_storage.begin());
+    };
+    bidirectional_iterator
+    biend()
+    {
+        return bidirectional_iterator(m_storage.end());
+    };
 
-    ::std::size_t size() const;
-    T* data();
-    const T* data() const;
+    ::std::size_t
+    size() const;
+    T*
+    data();
+    const T*
+    data() const;
 
     typename ::std::vector<T>::reference operator[](size_t j);
     typename ::std::vector<T>::const_reference operator[](size_t j) const;
 
     // Fill with given value
-    void fill(const T& value);
+    void
+    fill(const T& value);
 
     template <typename Func>
-    void fill(Func f);
+    void
+    fill(Func f);
 
-    void print() const;
+    void
+    print() const;
 };
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -108,8 +177,7 @@ fill_data(Iterator first, Iterator last, F f)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-Sequence<T>::Sequence(size_t size)
-    : m_storage(size)
+Sequence<T>::Sequence(size_t size) : m_storage(size)
 {
 }
 
@@ -126,8 +194,7 @@ Sequence<T>::Sequence(size_t size, Func f)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-Sequence<T>::Sequence(const ::std::initializer_list<T>& data)
-    : m_storage(data)
+Sequence<T>::Sequence(const ::std::initializer_list<T>& data) : m_storage(data)
 {
 }
 
@@ -157,16 +224,14 @@ Sequence<T>::data() const
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-typename ::std::vector<T>::reference
-Sequence<T>::operator[](size_t j)
+typename ::std::vector<T>::reference Sequence<T>::operator[](size_t j)
 {
     return m_storage[j];
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-typename ::std::vector<T>::const_reference
-Sequence<T>::operator[](size_t j) const
+typename ::std::vector<T>::const_reference Sequence<T>::operator[](size_t j) const
 {
     return m_storage[j];
 }

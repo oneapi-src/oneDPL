@@ -20,9 +20,9 @@
 
 #include "support/utils.h"
 
-#if  !defined(FOR_EACH) && !defined(FOR_EACH_N)
-#define FOR_EACH
-#define FOR_EACH_N
+#if !defined(FOR_EACH) && !defined(FOR_EACH_N)
+#    define FOR_EACH
+#    define FOR_EACH_N
 #endif
 
 using namespace TestUtils;
@@ -87,15 +87,15 @@ test()
 {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, Gen<T>());
+        Sequence<T> in_out(n, Gen<T>());
         Sequence<T> expected(n, Gen<T>());
 #ifdef FOR_EACH
-        invoke_on_all_policies<>()(test_for_each<T>(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                                   inout.size());
+        invoke_on_all_policies<>()(test_for_each<T>(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
 #endif
 #ifdef FOR_EACH_N
-        invoke_on_all_policies<>()(test_for_each_n<T>(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                                   inout.size());
+        invoke_on_all_policies<>()(test_for_each_n<T>(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
 #endif
     }
 }
@@ -134,7 +134,6 @@ main()
     test<std::int32_t>();
     test<std::uint16_t>();
     test<float64_t>();
-
 
 #ifdef FOR_EACH
     test_algo_basic_single<std::int64_t>(run_for_rnd_fw<test_non_const_for_each>());
