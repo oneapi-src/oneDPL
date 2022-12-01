@@ -131,6 +131,8 @@ using ::std::find;
 using ::std::find_if;
 using ::std::find_if_not;
 using ::std::for_each;
+using ::std::generate;
+using ::std::generate_n;
 using ::std::is_heap;
 using ::std::is_heap_until;
 using ::std::is_permutation;
@@ -147,6 +149,7 @@ using ::std::partial_sort;
 using ::std::partial_sort_copy;
 using ::std::pop_heap;
 using ::std::push_heap;
+using ::std::transform;
 using ::std::upper_bound;
 } // namespace dpl
 
