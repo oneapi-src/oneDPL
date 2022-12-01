@@ -111,6 +111,8 @@ test_with_usm(sycl::queue& q, const ::std::size_t count, _BinaryOp binary_op = _
     for (int i = 0; i < count; i++)
         h_idx[i] = 1;
 
+    int init = 2;
+    
     // Copy source data to USM shared/device memory
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
     auto d_idx = dt_helper_h_idx.get_data();
@@ -121,7 +123,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count, _BinaryOp binary_op = _
     // Run dpl::exclusive_scan algorithm on USM shared-device memory
     auto myPolicy = oneapi::dpl::execution::make_device_policy<
         TestUtils::unique_kernel_name<KernelName, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
-    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0, binary_op);
+    oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, init, binary_op);
 
     // Copy results from USM shared/device memory to host
     std::vector<int> h_val(count);
@@ -129,7 +131,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count, _BinaryOp binary_op = _
 
     // Check results
     std::vector<int> h_sval_expected(count);
-    exclusive_scan_serial(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), 0, binary_op);
+    exclusive_scan_serial(h_idx.begin(), h_idx.begin() + count, h_sval_expected.begin(), init, binary_op);
 
     EXPECT_EQ_N(h_sval_expected.begin(), h_val.begin(), count, "wrong effect from exclusive_scan");
 }
