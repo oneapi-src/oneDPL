@@ -742,7 +742,7 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
         __radix_sort_count_kernel, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
     using _RadixLocalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_scan_kernel_1, _CustomName,
-                                                                               __decay_t<_TmpBuf>>;
+                                                                               _RadixBitsType, __decay_t<_TmpBuf>>;
     using _RadixGlobalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
     using _RadixReorderPeerKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
