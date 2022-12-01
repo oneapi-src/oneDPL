@@ -16,8 +16,6 @@
 #include <oneapi/dpl/numeric>
 #include <oneapi/dpl/type_traits>
 
-#include "support/utils.h"
-
 #include <cassert>
 #include <iostream>
 #include <CL/sycl.hpp>
@@ -114,11 +112,6 @@ int
 main()
 {
     sycl::queue deviceQueue;
-
-// TODO: remove the macro guard once L0 backend fixes the issue
-#if defined(_WIN32)
-    std::cout << TestUtils::done(0) << ::std::endl;
-#else
     do_test<signed char>(deviceQueue);
     do_test<short>(deviceQueue);
     do_test<int>(deviceQueue);
@@ -138,7 +131,6 @@ main()
     do_test<long long, int>(deviceQueue);
 
     std::cout << "done" << std::endl;
-#endif
 
     return 0;
 }
