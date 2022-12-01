@@ -213,7 +213,7 @@ constexpr __target __target_device =
 
 template <typename _DataT>
 using __buffer_allocator =
-#if _ONEDPL_LIBSYCL_VERSION >= 50707
+#if _ONEDPL_LIBSYCL_VERSION >= 60000
     sycl::buffer_allocator<_DataT>;
 #else
     sycl::buffer_allocator;
