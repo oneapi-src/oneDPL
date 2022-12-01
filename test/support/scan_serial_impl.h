@@ -39,7 +39,7 @@ exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
 {
     for (; first != last; ++first, ++result)
     {
-        auto res = init;
+	auto res = init;
         init = binary_op(init, *first);
         *result = res;
     }
@@ -83,9 +83,8 @@ inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
     return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
 }
 
-template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryOperation>
-void
-inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryOperation binary_op)
+template<typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryOperation>
+void inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryOperation binary_op)
 {
     for (Size i = 0; i < n; ++i)
         if (i == 0 || keys[i] != keys[i - 1])
