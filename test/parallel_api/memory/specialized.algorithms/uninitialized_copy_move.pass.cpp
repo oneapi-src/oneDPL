@@ -22,12 +22,12 @@
 
 #include "support/utils.h"
 
-#if  !defined(UNITIALIZED_COPY) && !defined(UNITIALIZED_COPY_N) &&\
-     !defined(UNITIALIZED_MOVE) && !defined(UNITIALIZED_MOVE_N)
-#define UNITIALIZED_COPY
-#define UNITIALIZED_COPY_N
-#define UNITIALIZED_MOVE
-#define UNITIALIZED_MOVE_N
+#if !defined(UNITIALIZED_COPY) && !defined(UNITIALIZED_COPY_N) && !defined(UNITIALIZED_MOVE) &&                        \
+    !defined(UNITIALIZED_MOVE_N)
+#    define UNITIALIZED_COPY
+#    define UNITIALIZED_COPY_N
+#    define UNITIALIZED_MOVE
+#    define UNITIALIZED_MOVE_N
 #endif
 
 using namespace TestUtils;
@@ -176,7 +176,7 @@ test_uninitialized_copy_move_by_type()
         auto out_begin = p.get();
 #else
         // common pointers are not supported for hetero backend
-        // sycl::buffer<T,1> buf(n); // async nature of buffer requires sycn before EXPECT_ macro
+        // sycl::buffer<T,1> buf(n); // async nature of buffer requires sync before EXPECT_ macro
         // auto out_begin = oneapi::dpl::begin(buf);
         Sequence<T> out(n, [=](size_t) -> T { return T{}; });
         auto out_begin = out.begin();
