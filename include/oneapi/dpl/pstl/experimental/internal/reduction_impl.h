@@ -36,7 +36,7 @@ class __reduction_object
     // when finalize method is called and accumulated value stored in acc is written
     // to value.
     // TODO: we probably don't need to keep this reference for each object, as we need it
-    // only at the end of execution. Need to check whether it can be impelemented efficiently.
+    // only at the end of execution. Need to check whether it can be implemented efficiently.
     // I.e. by intoducing an internal reduction object on which the operation are applied.
     _Tp& __value_;
     // Current accumulated value.

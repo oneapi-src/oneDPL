@@ -24,7 +24,7 @@
 
 #include "iterator_utils.h"
 
-// Please uncomment this define if required to print full contect of sequence.
+// Please uncomment this define if required to print full context of sequence.
 // Otherwise only first 100 sequence items will be printed.
 //#define PRINT_FULL_SEQUENCE_CONTEXT 1
 

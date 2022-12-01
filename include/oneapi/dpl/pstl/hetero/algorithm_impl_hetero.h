@@ -1272,7 +1272,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _UnaryPredicate __pred,
                     /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type)
 {
-    //TODO: consider nonstable aproaches
+    //TODO: consider nonstable approaches
     return __pattern_stable_partition(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
                                       ::std::true_type(), ::std::true_type());
 }
