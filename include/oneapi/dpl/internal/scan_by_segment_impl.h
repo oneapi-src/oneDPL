@@ -93,7 +93,7 @@ struct sycl_scan_by_segment_impl
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                              2 * sizeof(__val_type), __wgroup_size);
 
-        ::std::size_t __n_groups = 1 + std::ceil(__n / (__wgroup_size * __vals_per_item));
+        ::std::size_t __n_groups = 1 + ((__n - 1) / (__wgroup_size * __vals_per_item));
 
         auto __partials =
             oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
