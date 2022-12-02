@@ -522,6 +522,202 @@ public:
     }
 };
 
+//------------------------------------------------------------------------
+// radix sort: ordered traits for a given size and integral/float flag
+//------------------------------------------------------------------------
+
+template <::std::size_t __type_size, bool __is_integral_type>
+struct __get_ordered
+{
+};
+
+template <>
+struct __get_ordered<1, true>
+{
+    using _type = ::std::uint8_t;
+    constexpr static ::std::int8_t __mask = 0x80;
+};
+
+template <>
+struct __get_ordered<2, true>
+{
+    using _type = ::std::uint16_t;
+    constexpr static ::std::int16_t __mask = 0x8000;
+};
+
+template <>
+struct __get_ordered<4, true>
+{
+    using _type = ::std::uint32_t;
+    constexpr static ::std::int32_t __mask = 0x80000000;
+};
+
+template <>
+struct __get_ordered<8, true>
+{
+    using _type = ::std::uint64_t;
+    constexpr static ::std::int64_t __mask = 0x8000000000000000;
+};
+
+template <>
+struct __get_ordered<4, false>
+{
+    using _type = ::std::uint32_t;
+    constexpr static ::std::uint32_t __nmask = 0xFFFFFFFF; // for negative numbers
+    constexpr static ::std::uint32_t __pmask = 0x80000000; // for positive numbers
+};
+
+template <>
+struct __get_ordered<8, false>
+{
+    using _type = ::std::uint64_t;
+    constexpr static ::std::uint64_t __nmask = 0xFFFFFFFFFFFFFFFF; // for negative numbers
+    constexpr static ::std::uint64_t __pmask = 0x8000000000000000; // for positive numbers
+};
+
+//------------------------------------------------------------------------
+// radix sort: ordered type for a given type
+//------------------------------------------------------------------------
+
+// for unknown/unsupported type we do not have any trait
+template <typename _T, typename _Dummy = void>
+struct __ordered
+{
+};
+
+// for unsigned integrals we use the same type
+template <typename _T>
+struct __ordered<_T, __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value>>
+{
+    using _type = _T;
+};
+
+// for signed integrals or floatings we map: size -> corresponding unsigned integral
+template <typename _T>
+struct __ordered<_T, __enable_if_t<(::std::is_integral<_T>::value && ::std::is_signed<_T>::value) ||
+                                   ::std::is_floating_point<_T>::value>>
+{
+    using _type = typename __get_ordered<sizeof(_T), ::std::is_integral<_T>::value>::_type;
+};
+
+// shorthands
+template <typename _T>
+using __ordered_t = typename __ordered<_T>::_type;
+
+//------------------------------------------------------------------------
+// radix sort: functions for conversion to ordered type
+//------------------------------------------------------------------------
+
+// for already ordered types (any uints) we use the same type
+template <typename _T>
+inline __enable_if_t<::std::is_same<_T, __ordered_t<_T>>::value, __ordered_t<_T>>
+__convert_to_ordered(_T __value)
+{
+    return __value;
+}
+
+// converts integral type to ordered (in terms of bitness) type
+template <typename _T>
+inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && !::std::is_floating_point<_T>::value,
+                     __ordered_t<_T>>
+__convert_to_ordered(_T __value)
+{
+    _T __result = __value ^ __get_ordered<sizeof(_T), true>::__mask;
+    return *reinterpret_cast<__ordered_t<_T>*>(&__result);
+}
+
+// converts floating type to ordered (in terms of bitness) type
+template <typename _T>
+inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && ::std::is_floating_point<_T>::value,
+                     __ordered_t<_T>>
+__convert_to_ordered(_T __value)
+{
+    __ordered_t<_T> __uvalue = *reinterpret_cast<__ordered_t<_T>*>(&__value);
+    // check if value negative
+    __ordered_t<_T> __is_negative = __uvalue >> (sizeof(_T) * std::numeric_limits<unsigned char>::digits - 1);
+    // for positive: 00..00 -> 00..00 -> 10..00
+    // for negative: 00..01 -> 11..11 -> 11..11
+    __ordered_t<_T> __ordered_mask =
+        (__is_negative * __get_ordered<sizeof(_T), false>::__nmask) | __get_ordered<sizeof(_T), false>::__pmask;
+    return __uvalue ^ __ordered_mask;
+}
+
+//------------------------------------------------------------------------
+// radix sort: bit pattern functions
+//------------------------------------------------------------------------
+
+// get number of buckets (size of radix bits) in T
+template <typename _T>
+constexpr ::std::uint32_t
+__get_buckets_in_type(::std::uint32_t __radix_bits)
+{
+    return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
+}
+
+// required for descending comparator support
+template <bool __flag>
+struct __invert_if
+{
+    template <typename _T>
+    _T
+    operator()(_T __value)
+    {
+        return __value;
+    }
+};
+
+// invert value if descending comparator is passed
+template <>
+struct __invert_if<true>
+{
+    template <typename _T>
+    _T
+    operator()(_T __value)
+    {
+        return ~__value;
+    }
+
+    // invertation for bool type have to be logical, rather than bit
+    bool
+    operator()(bool __value)
+    {
+        return !__value;
+    }
+};
+
+// get bit values in a certain bucket of a value
+template <::std::uint32_t __radix_bits, bool __is_comp_asc, typename _T>
+::std::uint32_t
+__get_bucket_value(_T __value, ::std::uint32_t __radix_iter)
+{
+    // invert value if we need to sort in descending order
+    __value = __invert_if<!__is_comp_asc>{}(__value);
+
+    // get bucket offset idx from the end of bit type (least significant bits)
+    ::std::uint32_t __bucket_offset = __radix_iter * __radix_bits;
+
+    // get offset mask for one bucket, e.g.
+    // radix_bits=2: 0000 0001 -> 0000 0100 -> 0000 0011
+    __ordered_t<_T> __bucket_mask = (1u << __radix_bits) - 1u;
+
+    // get bits under bucket mask
+    return (__value >> __bucket_offset) & __bucket_mask;
+}
+
+template <typename _T, bool __is_comp_asc>
+inline __enable_if_t<__is_comp_asc, _T>
+__get_last_value()
+{
+    return ::std::numeric_limits<_T>::max();
+};
+
+template <typename _T, bool __is_comp_asc>
+inline __enable_if_t<!__is_comp_asc, _T>
+__get_last_value()
+{
+    return ::std::numeric_limits<_T>::min();
+};
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
