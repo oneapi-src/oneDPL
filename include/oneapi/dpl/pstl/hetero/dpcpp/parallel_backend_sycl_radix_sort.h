@@ -732,17 +732,14 @@ struct __parallel_radix_sort_iteration {
 
     template <typename... _Name>
     using __count_phase = __radix_sort_count_kernel<__radix_bits, __is_comp_asc, _Name...>;
-
     template <typename... _Name>
-    using __local_scan_phase = __radix_sort_scan_kernel_1<__radix_bits, __is_comp_asc, _Name...>;
-
+    using __local_scan_phase = __radix_sort_scan_kernel_1<__radix_bits, _Name...>;
     template <typename... _Name>
     using __reorder_peer_phase =  __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, _Name...>;
-
     template <typename... _Name>
     using __reorder_phase =  __radix_sort_reorder_kernel<__radix_bits, __is_comp_asc, _Name...>;
-
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf>
+
     static sycl::event
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter,
                                     _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf,
