@@ -55,6 +55,9 @@ struct __radix_sort_reorder_kernel {
     template <typename... _Name> class __N;
 };
 
+template <typename... _Ts>
+using __name_gen = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<_Ts...>;
+
 template <typename _Name>
 class __odd_iteration;
 
@@ -744,17 +747,15 @@ __parallel_radix_sort_iteration(_ExecutionPolicy&& __exec, ::std::size_t __segme
 {
     // Injecting ascending / descending status into custom name to prevent clashing kernel names
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-    template <typename... _Ts>
-    using _NameGen = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<_Ts...>;
-    using _RadixCountKernel = _NameGen<__radix_sort_count_kernel<__radix_bits,__is_comp_asc>::__N,
+    using _RadixCountKernel = __name_gen<__radix_sort_count_kernel<__radix_bits,__is_comp_asc>::__N,
                                        _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
-    using _RadixLocalScanKernel = _NameGen<__radix_sort_scan_kernel_1<__radix_bits>::__N,
+    using _RadixLocalScanKernel = __name_gen<__radix_sort_scan_kernel_1<__radix_bits>::__N,
                                            _CustomName, __decay_t<_TmpBuf>>;
     using _RadixGlobalScanKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
-    using _RadixReorderPeerKernel = _NameGen<__radix_sort_reorder_peer_kernel<__radix_bits,__is_comp_asc>::__N,
+    using _RadixReorderPeerKernel = __name_gen<__radix_sort_reorder_peer_kernel<__radix_bits,__is_comp_asc>::__N,
                                              _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
-    using _RadixReorderKernel = _NameGen<__radix_sort_reorder_kernel<__radix_bits,__is_comp_asc>::__N,
+    using _RadixReorderKernel = __name_gen<__radix_sort_reorder_kernel<__radix_bits,__is_comp_asc>::__N,
                                          _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
 
     ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
