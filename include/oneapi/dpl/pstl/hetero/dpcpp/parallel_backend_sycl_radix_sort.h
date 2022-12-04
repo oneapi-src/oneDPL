@@ -62,35 +62,35 @@ struct __get_ordered
 template <>
 struct __get_ordered<1, true>
 {
-    using _type = uint8_t;
+    using _type = ::std::uint8_t;
     constexpr static ::std::int8_t __mask = 0x80;
 };
 
 template <>
 struct __get_ordered<2, true>
 {
-    using _type = uint16_t;
+    using _type = ::std::uint16_t;
     constexpr static ::std::int16_t __mask = 0x8000;
 };
 
 template <>
 struct __get_ordered<4, true>
 {
-    using _type = uint32_t;
+    using _type = ::std::uint32_t;
     constexpr static ::std::int32_t __mask = 0x80000000;
 };
 
 template <>
 struct __get_ordered<8, true>
 {
-    using _type = uint64_t;
+    using _type = ::std::uint64_t;
     constexpr static ::std::int64_t __mask = 0x8000000000000000;
 };
 
 template <>
 struct __get_ordered<4, false>
 {
-    using _type = uint32_t;
+    using _type = ::std::uint32_t;
     constexpr static ::std::uint32_t __nmask = 0xFFFFFFFF; // for negative numbers
     constexpr static ::std::uint32_t __pmask = 0x80000000; // for positive numbers
 };
@@ -98,7 +98,7 @@ struct __get_ordered<4, false>
 template <>
 struct __get_ordered<8, false>
 {
-    using _type = uint64_t;
+    using _type = ::std::uint64_t;
     constexpr static ::std::uint64_t __nmask = 0xFFFFFFFFFFFFFFFF; // for negative numbers
     constexpr static ::std::uint64_t __pmask = 0x8000000000000000; // for positive numbers
 };
@@ -115,7 +115,7 @@ struct __ordered
 
 // for unsigned integrals we use the same type
 template <typename _T>
-struct __ordered<_T, __enable_if_t<::std::is_integral<_T>::value&& ::std::is_unsigned<_T>::value>>
+struct __ordered<_T, __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value>>
 {
     using _type = _T;
 };
@@ -195,13 +195,6 @@ __get_rounded_down_power2(_T __x)
 //------------------------------------------------------------------------
 // radix sort: bit pattern functions
 //------------------------------------------------------------------------
-
-// get number of states radix bits can represent
-constexpr ::std::uint32_t
-__get_states_in_bits(::std::uint32_t __radix_bits)
-{
-    return (1 << __radix_bits);
-}
 
 // get number of buckets (size of radix bits) in T
 template <typename _T>
@@ -301,7 +294,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
     using _CountT = typename _CountBuf::value_type;
 
     // radix states used for an array storing bucket state counters
-    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+    const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
     const auto __val_buf_size = __val_rng.size();
     // iteration space info
@@ -449,7 +442,7 @@ struct __radix_sort_scan_submitter<_RadixLocalScanName, __internal::__optional_k
 
         __scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
 
-        const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+        const ::std::uint32_t __radix_states = 1 << __radix_bits;
         const ::std::size_t __global_scan_begin = __dpl_sycl::__get_buffer_size(__count_buf) - __radix_states;
 
         // 1. Local scan: produces local offsets using count values
@@ -644,7 +637,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
     const auto __inout_buf_size = __output_rng.size();
 
     // iteration space info
-    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+    const ::std::uint32_t __radix_states = 1 << __radix_bits;
     const ::std::size_t __blocks_total = __get_roundedup_div(__inout_buf_size, __block_size);
     const ::std::size_t __blocks_per_segment = __get_roundedup_div(__blocks_total, __segments);
 
@@ -738,12 +731,11 @@ struct __parallel_radix_sort_iteration {
     using __reorder_peer_phase =  __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, _Name...>;
     template <typename... _Name>
     using __reorder_phase =  __radix_sort_reorder_kernel<__radix_bits, __is_comp_asc, _Name...>;
-    template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf>
 
+    template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf>
     static sycl::event
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter,
-                                    _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf,
-                                    sycl::event __dependency_event)
+           _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event)
     {
         using namespace oneapi::dpl::__par_backend_hetero::__internal;
         using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
@@ -775,7 +767,7 @@ struct __parallel_radix_sort_iteration {
             sycl::min(__scan_wg_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __local_scan_kernel));
         __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
 #endif
-        const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+        const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
         // correct __block_size according to local memory limit in count phase
         const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size(
@@ -868,7 +860,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     // radix bits represent number of processed bits in each value during one iteration
     const ::std::uint32_t __radix_bits = 4;
     const ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
-    const ::std::uint32_t __radix_states = __get_states_in_bits(__radix_bits);
+    const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
     // additional 2 * __radix_states elements are used for getting local and global offsets from count values
     const ::std::size_t __tmp_buf_size = __segments * __radix_states + 2 * __radix_states;
