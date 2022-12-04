@@ -32,7 +32,7 @@ namespace __par_backend_hetero
 // radix sort: kernel names
 //------------------------------------------------------------------------
 
-template <::std::uint32_t, bool, typename... _Name>
+template <::std::uint32_t, bool, bool, typename... _Name>
 class __radix_sort_count_kernel;
 
 template <::std::uint32_t, typename... _Name>
@@ -41,14 +41,11 @@ class __radix_sort_scan_kernel_1;
 template <typename... _Name>
 class __radix_sort_scan_kernel_2;
 
-template <::std::uint32_t, bool, typename... _Name>
+template <::std::uint32_t, bool, bool, typename... _Name>
 class __radix_sort_reorder_peer_kernel;
 
-template <::std::uint32_t, bool, typename... _Name>
+template <::std::uint32_t, bool, bool, typename... _Name>
 class __radix_sort_reorder_kernel;
-
-template <typename _Name>
-class __odd_iteration;
 
 //------------------------------------------------------------------------
 // radix sort: ordered traits for a given size and integral/float flag
@@ -720,17 +717,17 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 // radix sort: one iteration
 //-----------------------------------------------------------------------
 
-template <::std::uint32_t __radix_bits, bool __is_comp_asc>
+template <::std::uint32_t __radix_bits, bool __is_comp_asc, bool __even>
 struct __parallel_radix_sort_iteration {
 
     template <typename... _Name>
-    using __count_phase = __radix_sort_count_kernel<__radix_bits, __is_comp_asc, _Name...>;
+    using __count_phase = __radix_sort_count_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
     template <typename... _Name>
     using __local_scan_phase = __radix_sort_scan_kernel_1<__radix_bits, _Name...>;
     template <typename... _Name>
-    using __reorder_peer_phase =  __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, _Name...>;
+    using __reorder_peer_phase =  __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
     template <typename... _Name>
-    using __reorder_phase =  __radix_sort_reorder_kernel<__radix_bits, __is_comp_asc, _Name...>;
+    using __reorder_phase =  __radix_sort_reorder_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
 
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf>
     static sycl::event
@@ -858,7 +855,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     const ::std::size_t __segments = __get_roundedup_div(__n, __wg_size);
 
     // radix bits represent number of processed bits in each value during one iteration
-    const ::std::uint32_t __radix_bits = 4;
+    constexpr ::std::uint32_t __radix_bits = 4;
     const ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
     const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
@@ -880,13 +877,13 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     {
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
-            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>::submit(
-                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, ::std::forward<_Range>(__in_rng),
-                __out_rng, __tmp_buf, __iteration_event);
+            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc, /*even=*/true>::submit(
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
+                ::std::forward<_Range>(__in_rng), __out_rng, __tmp_buf, __iteration_event);
         else //swap __in_rng and __out_rng
-            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc>::submit(
-                make_wrapped_policy<__odd_iteration>(::std::forward<_ExecutionPolicy>(__exec)), __segments,
-                __radix_iter, __out_rng, ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
+            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc, /*even=*/false>::submit(
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
+                __out_rng, ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
 
         // TODO: since reassign to __iteration_event does not work, we have to make explicit wait on the event
         explicit_wait_if<::std::is_pointer<decltype(__in_rng.begin())>::value>{}(__iteration_event);
