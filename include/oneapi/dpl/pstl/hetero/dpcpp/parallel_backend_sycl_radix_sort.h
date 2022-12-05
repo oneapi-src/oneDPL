@@ -718,16 +718,16 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 //-----------------------------------------------------------------------
 
 template <::std::uint32_t __radix_bits, bool __is_comp_asc, bool __even>
-struct __parallel_radix_sort_iteration {
-
+struct __parallel_radix_sort_iteration
+{
     template <typename... _Name>
     using __count_phase = __radix_sort_count_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
     template <typename... _Name>
     using __local_scan_phase = __radix_sort_scan_kernel_1<__radix_bits, _Name...>;
     template <typename... _Name>
-    using __reorder_peer_phase =  __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
+    using __reorder_peer_phase = __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
     template <typename... _Name>
-    using __reorder_phase =  __radix_sort_reorder_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
+    using __reorder_phase = __radix_sort_reorder_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
 
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf>
     static sycl::event
@@ -752,8 +752,8 @@ struct __parallel_radix_sort_iteration {
 
         // correct __block_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernels = __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderPeerKernel,
-                                           _RadixReorderKernel>::__compile(__exec);
+        auto __kernels = __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel,
+                                                       _RadixReorderPeerKernel, _RadixReorderKernel>::__compile(__exec);
         auto __count_kernel = __kernels[0];
         auto __local_scan_kernel = __kernels[1];
         auto __reorder_peer_kernel = __kernels[2];
@@ -814,8 +814,7 @@ struct __parallel_radix_sort_iteration {
                 __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
                 ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
-                ,
-                __reorder_peer_kernel
+                , __reorder_peer_kernel
 #endif
             );
         }
@@ -825,10 +824,9 @@ struct __parallel_radix_sort_iteration {
                                                           __peer_prefix_algo::scan_then_broadcast>(
                 __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
                 ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
-    #if _ONEDPL_COMPILE_KERNEL
-                ,
-                __reorder_kernel
-    #endif
+#if _ONEDPL_COMPILE_KERNEL
+                , __reorder_kernel
+#endif
             );
         }
 
