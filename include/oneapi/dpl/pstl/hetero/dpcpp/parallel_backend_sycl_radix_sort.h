@@ -734,16 +734,17 @@ struct __parallel_radix_sort_iteration {
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter,
            _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event)
     {
-        using namespace oneapi::dpl::__par_backend_hetero::__internal;
+        namespace util = oneapi::dpl::__par_backend_hetero::__internal;
         using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
         using _RadixCountKernel =
-            __kernel_name_generator<__count_phase, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
-        using _RadixLocalScanKernel = __kernel_name_generator<__local_scan_phase, _CustomName, __decay_t<_TmpBuf>>;
-        using _RadixGlobalScanKernel = __kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
+            util::__kernel_name_generator<__count_phase, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
+        using _RadixLocalScanKernel =
+            util::__kernel_name_generator<__local_scan_phase, _CustomName, __decay_t<_TmpBuf>>;
+        using _RadixGlobalScanKernel = util::__kernel_name_provider<__radix_sort_scan_kernel_2<_CustomName>>;
         using _RadixReorderPeerKernel =
-            __kernel_name_generator<__reorder_peer_phase, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
+            util::__kernel_name_generator<__reorder_peer_phase, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
         using _RadixReorderKernel =
-            __kernel_name_generator<__reorder_phase, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
+            util::__kernel_name_generator<__reorder_phase, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
         ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -752,7 +753,7 @@ struct __parallel_radix_sort_iteration {
 
         // correct __block_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernels = __kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderPeerKernel,
+        auto __kernels = util::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel, _RadixReorderPeerKernel,
                                            _RadixReorderKernel>::__compile(__exec);
         auto __count_kernel = __kernels[0];
         auto __local_scan_kernel = __kernels[1];
