@@ -20,6 +20,7 @@ efforts across devices for high performance parallel applications.
    parallel_api_main
    api_for_sycl_kernels_main
    macros
+   oneDPL_2022.0_changes
 
 .. toctree::
    :hidden:
