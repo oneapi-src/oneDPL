@@ -36,14 +36,6 @@ DEFINE_TEST_1(test_with_vector, BinaryOperation)
 {
     DEFINE_TEST_CONSTRUCTOR(test_with_vector)
 
-    template <typename Iterator1, typename Size>
-    void initialize_data(Iterator1 host_keys, Size n)
-    {
-        for (Size i = 0; i < n; i++)
-        {
-            host_keys[i] = 1;
-        }
-    }
 
 #ifdef DUMP_CHECK_RESULTS
     template <typename Iterator, typename Size>
@@ -74,8 +66,7 @@ DEFINE_TEST_1(test_with_vector, BinaryOperation)
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
 
         KeyT init{2};
-
-        initialize_data(keys_first, n);
+        ::std::fill_n(keys_first, n, 1);
         oneapi::dpl::exclusive_scan(std::forward<Policy>(exec), keys_first, keys_last, res_first, init,
                                     BinaryOperation());
         exclusive_scan_serial(keys_first, keys_last, exp_first, init, BinaryOperation());
@@ -107,9 +98,7 @@ void
 test_with_usm(sycl::queue& q, const ::std::size_t count, _BinaryOp binary_op = _BinaryOp())
 {
     // Prepare source data
-    std::vector<int> h_idx(count);
-    for (int i = 0; i < count; i++)
-        h_idx[i] = 1;
+    std::vector<int> h_idx(count, 1);
 
     int init = 2;
     
