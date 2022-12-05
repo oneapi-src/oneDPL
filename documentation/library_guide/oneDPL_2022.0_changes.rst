@@ -1,7 +1,7 @@
 oneDPL 2022 Breaking Changes
 ############################
 
-This page list the incompatible changes that occurred between the 2021.7.1 and 2022.0 releases.
+This page lists the incompatible changes that occurred between the 2021.7.1 and 2022.0 releases.
 
 .. note::
    You may need to modify and/or rebuild your code when switching to oneDPL 2022.
@@ -11,21 +11,21 @@ a compiler that supports C++17 or newer version of the C++ language standard is 
 
 The following APIs are not supported in C++17 and have been removed from ``namespace oneapi::dpl``:
 
-* In the ``<oneapi/dpl/functional>`` header
+* In the ``<oneapi/dpl/functional>`` header:
 
   * ``binary_function``
   * ``unary_function``
 
 The following APIs are deprecated in C++17 and not supported in C++20:
 
-* In the ``<oneapi/dpl/functional>`` header
+* In the ``<oneapi/dpl/functional>`` header:
   
   * ``binary_negate``
   * ``not1``
   * ``not2``
   * ``unary_negate``
   
-* In the ``<oneapi/dpl/type_traits>`` header
+* In the ``<oneapi/dpl/type_traits>`` header:
 
   * ``is_literal_type``
   * ``is_literal_type_v``
