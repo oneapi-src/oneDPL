@@ -1605,6 +1605,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
                       _BidirectionalIterator __last, _ForwardIterator __result, /*vector=*/::std::true_type,
                       /*parallel=*/::std::true_type)
 {
+    //adding a comment to an section of code far from formatting mistake
     auto __n = __last - __first;
     if (__n <= 0)
         return __result;
