@@ -174,20 +174,6 @@ __get_bucket(_T __value, ::std::uint32_t __radix_offset)
     return (__value >> __radix_offset) & _T(__radix_mask);
 }
 
-template <typename _T, bool __is_comp_asc>
-inline __enable_if_t<__is_comp_asc, _T>
-__get_last_value()
-{
-    return ::std::numeric_limits<_T>::max();
-};
-
-template <typename _T, bool __is_comp_asc>
-inline __enable_if_t<!__is_comp_asc, _T>
-__get_last_value()
-{
-    return ~::std::numeric_limits<_T>::min();
-};
-
 //-----------------------------------------------------------------------
 // radix sort: count kernel (per iteration)
 //-----------------------------------------------------------------------
@@ -247,18 +233,15 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 // 1.1. count per witem: create a private array for storing count values
                 _CountT __count_arr[__radix_states] = {0};
                 // 1.2. count per witem: count values and write result to private count array
-                for (::std::size_t __block_idx = 0; __block_idx < __blocks_per_segment; ++__block_idx)
+                const ::std::size_t __outside_of_segment =
+                    sycl::min(__start_idx + __block_size * __blocks_per_segment, __val_buf_size);
+                for (::std::size_t __val_idx = __start_idx; __val_idx < __outside_of_segment; __val_idx += __block_size)
                 {
-                    const ::std::size_t __val_idx = __start_idx + __block_size * __block_idx;
-                    // TODO: profile how it affects performance
-                    if (__val_idx < __val_buf_size)
-                    {
-                        // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
-                        auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
-                        ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__val, __radix_offset);
-                        // increment counter for this bit bucket
-                        ++__count_arr[__bucket];
-                    }
+                    // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
+                    auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
+                    ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__val, __radix_offset);
+                    // increment counter for this bit bucket
+                    ++__count_arr[__bucket];
                 }
                 // 1.3. count per witem: write private count array to local count array
                 const ::std::uint32_t __count_start_idx = __radix_states * __self_lidx;
@@ -495,11 +478,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
     using _OffsetT = typename _OffsetBuf::value_type;
     using _PeerHelper = __peer_prefix_helper<_OffsetT, _PeerAlgo>;
 
-    // item info
-    const ::std::size_t __it_size = __block_size / __sg_size;
-    const ::std::size_t __inout_buf_size = __output_rng.size();
-
     // iteration space info
+    const ::std::size_t __inout_buf_size = __output_rng.size();
     constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
     const ::std::size_t __blocks_total = __ceiling_div(__inout_buf_size, __block_size);
     const ::std::size_t __blocks_per_segment = __ceiling_div(__blocks_total, __segments);
@@ -551,20 +531,16 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     __offset_arr[__radix_state_idx] = __scanned_bin + __offset_rng[__local_offset_idx];
                 }
 
+                const ::std::size_t __outside_of_segment =
+                    sycl::min(__start_idx + __block_size * __blocks_per_segment, __inout_buf_size);
                 // find offsets for the same values within a segment and fill the resulting buffer
-                for (::std::size_t __block_idx = 0; __block_idx < __blocks_per_segment * __it_size; ++__block_idx)
+                for (::std::size_t __val_idx = __start_idx; __val_idx < __outside_of_segment; __val_idx += __sg_size)
                 {
-                    const ::std::size_t __val_idx = __start_idx + __sg_size * __block_idx;
-
-                    // get value, convert it to ordered (in terms of bitness)
-                    using _CastInputT = decltype(__order_preserving_cast<__is_ascending>(_InputT{}));
-                    // if the index is outside of the range, use fake value which will not affect other values
-                    _CastInputT __batch_val = __val_idx < __inout_buf_size
-                                                    ? __order_preserving_cast<__is_ascending>(__input_rng[__val_idx])
-                                                    : __get_last_value<_CastInputT, __is_ascending>();
-
+                    _InputT __in_val = __input_rng[__val_idx];
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
-                    ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__batch_val, __radix_offset);
+                    ::std::uint32_t __bucket =
+                        __get_bucket<(1 << __radix_bits) - 1>(__order_preserving_cast<__is_ascending>(__in_val),
+                                                              __radix_offset);
 
                     _OffsetT __new_offset_idx = 0;
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
@@ -574,9 +550,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
                         __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
                     }
-
-                    if (__val_idx < __inout_buf_size)
-                        __output_rng[__new_offset_idx] = __input_rng[__val_idx];
+                    __output_rng[__new_offset_idx] = __in_val;
                 }
             });
     });
