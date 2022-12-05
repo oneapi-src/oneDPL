@@ -151,7 +151,6 @@ test_with_usm(sycl::queue& q, _BinaryOp binary_op = _BinaryOp())
 template <typename _Tp>
 struct UserBinaryOperation
 {
-
     _Tp
     operator()(const _Tp& __x, const _Tp& __y) const
     {
