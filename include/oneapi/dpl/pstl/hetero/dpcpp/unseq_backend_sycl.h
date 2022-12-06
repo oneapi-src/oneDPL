@@ -930,13 +930,13 @@ struct __brick_shift_left
 
 struct __brick_assign_key_position
 {
-    // __a is a tuple {i, i-th+1 key, i-th key}
+    // __a is a tuple {i, i-th key, i+1-th key}
     // __b is a tuple {key, index} that stores the key and index where a new segment begins
     template <typename _T1, typename _T2>
     void
     operator()(const _T1& __a, _T2&& __b) const
     {
-        ::std::get<0>(::std::forward<_T2>(__b)) = ::std::get<2>(__a);     // store new key value
+        ::std::get<0>(::std::forward<_T2>(__b)) = ::std::get<1>(__a);     // store new key value
         ::std::get<1>(::std::forward<_T2>(__b)) = ::std::get<0>(__a) + 1; // store index of new key
     }
 };

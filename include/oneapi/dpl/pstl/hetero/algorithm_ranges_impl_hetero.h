@@ -708,7 +708,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // view1 elements are a tuple of the element index and pairs of adjacent keys
     // view2 elements are a tuple of the elements where key-index pairs will be written by copy_if
-    auto __view1 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __n), __k1, __keys);
+    auto __view1 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __n), __keys, __k1);
     auto __view2 = experimental::ranges::zip_view(experimental::ranges::views::all_write(__tmp_out_keys),
                                                   experimental::ranges::views::all_write(__idx));
 
@@ -758,7 +758,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // view3 elements are a tuple of the element index and pairs of adjacent keys
     // view4 elements are a tuple of the elements where key-index pairs will be written by copy_if
-    auto __view3 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __result_end), __k3, __new_keys);
+    auto __view3 = experimental::ranges::zip_view(experimental::ranges::views::iota(0, __result_end), __new_keys, __k3);
     auto __view4 = experimental::ranges::zip_view(experimental::ranges::views::all_write(__out_keys),
                                                   experimental::ranges::views::all_write(__idx));
 
