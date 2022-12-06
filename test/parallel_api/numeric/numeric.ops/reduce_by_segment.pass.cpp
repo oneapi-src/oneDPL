@@ -71,7 +71,7 @@ check_values(size_t num_segments_returned, Iterator1 host_keys, Iterator2 host_v
 #ifdef DUMP_CHECK_RESULTS
         if (i < num_segments_returned && i < num_segments)
         {
-        if (val_res[i] != expected_val_res[i])
+        if (val_res[i] != expected_val_res[i] || key_res[i] != expected_key_res[i])
             std::cout << "Failed: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") != expected("
                       << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
         else
@@ -87,7 +87,7 @@ check_values(size_t num_segments_returned, Iterator1 host_keys, Iterator2 host_v
             std::cout << "Failed: " << i << ": actual(None) != expected("<< expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
         }
 #endif //DUMP_CHECK_RESULTS
-
+        EXPECT_TRUE(key_res[i] == expected_key_res[i], "wrong effect from reduce_by_segment");
         EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from reduce_by_segment");
     }
 }
