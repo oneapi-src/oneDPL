@@ -1,5 +1,5 @@
-|onedpl_long| Developer Guide and Reference
-===========================================
+|onedpl_long| Developer Guide
+=============================
 
 |onedpl_long| (|onedpl_short|) works with the |dpcpp_cpp| to
 provide high-productivity APIs to developers, which can minimize SYCL* programming
