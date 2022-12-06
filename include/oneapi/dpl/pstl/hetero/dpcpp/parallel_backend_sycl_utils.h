@@ -142,7 +142,7 @@ using __kernel_name_provider =
     __optional_kernel_name<_CustomName>;
 #endif
 
-template <typename _KernelName, int...>
+template <typename _KernelName, char...>
 struct __composite
 {
 };
@@ -165,8 +165,6 @@ class __kernel_name_composer
     using type = decltype(__compose_kernel_name(::std::make_index_sequence<__name_size>{}));
 };
 
-template <typename _KernelName, typename _Tp>
-using __kernel_name_composer_t = typename __kernel_name_composer<_KernelName, _Tp>::type;
 #endif // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
 
 template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
@@ -174,7 +172,7 @@ using __kernel_name_generator =
 #if __SYCL_UNNAMED_LAMBDA__
     ::std::conditional_t<_HasDefaultName<_CustomName>::value,
 #    if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
-                         __kernel_name_composer_t<_BaseName<>, _BaseName<_CustomName, _Args...>>,
+                         typename __kernel_name_composer<_BaseName<>, _BaseName<_CustomName, _Args...>>::type,
 #    else // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
                          _BaseName<_CustomName, _Args...>,
 #    endif
