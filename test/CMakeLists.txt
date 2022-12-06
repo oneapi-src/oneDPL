@@ -24,7 +24,7 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-macro(onedpl_add_test test_source_file split_kernels)
+macro(onedpl_add_test test_source_file)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
@@ -41,11 +41,21 @@ macro(onedpl_add_test test_source_file split_kernels)
     endif()
 
     # Avoid speculative compilation of kernels which may not be supported by a device
-    # This options must be used with DPCPP backend, which requires -fsycl option
+    # This workaround is relevant until the following feature is implemented:
+    # https://github.com/intel/llvm/blob/sycl/sycl/doc/design/OptionalDeviceFeatures.md
     if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-        check_cxx_compiler_flag("-fsycl-device-code-split=per_kernel" _fsycl_split_kernel_option)
-        if (_fsycl_split_kernel_option AND ${split_kernels})
-            target_compile_options(${_test_name} PRIVATE -fsycl-device-code-split=per_kernel)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL IntelLLVM)
+            # Do not use the workaround unintentionally with newer versions if the feature is implmented
+            if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 2023.0 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 2023.0)
+                # The workaround is required for specific devices only, e.g. not supporting FP16 or FP64 types
+                if (ONEDPL_DEVICE_TYPE MATCHES "^(GPU|gpu)")
+                    check_cxx_compiler_flag("-fsycl-device-code-split=per_kernel" _fsycl_split_kernel_option)
+                    if (_fsycl_split_kernel_option)
+                        target_compile_options(${_test_name} PRIVATE -fsycl-device-code-split=per_kernel)
+                        target_link_libraries(${_test_name} PRIVATE -fsycl-device-code-split=per_kernel)
+                    endif()
+                endif()
+            endif()
         endif()
     endif()
 
@@ -117,12 +127,5 @@ foreach (_file IN LISTS UNIT_TESTS)
         continue()
     endif()
 
-    set(_is_complex_test_regexp "(xpu_api/numerics/complex.number)")
-    if (_file MATCHES "${_is_complex_test_regexp}")
-        # compile oneDPL tests with separate Kernel compilation
-        onedpl_add_test(${_file} true)
-    else()
-        # compile oneDPL tests without separate Kernel compilation
-        onedpl_add_test(${_file} false)
-    endif()
+    onedpl_add_test(${_file})
 endforeach()
