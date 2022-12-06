@@ -59,23 +59,37 @@ check_values(size_t num_segments_returned, Iterator1 host_keys, Iterator2 host_v
         reduce_by_segment_serial(host_keys, host_vals, expected_key_res, expected_val_res, n, init, pred, op);
 
 #ifdef DUMP_CHECK_RESULTS
-    std::cout << "NumSegments: " << num_segments << "n: " << n << std::endl;
+    std::cout << "NumSegmentsExpected: " << num_segments << " n: " << n << std::endl;
+    std::cout << "NumSegmentsReturned: " << num_segments_returned << std::endl;
 #endif //DUMP_CHECK_RESULTS
 
-    for (Size i = 0; i < num_segments; ++i)
+    EXPECT_EQ(num_segments, num_segments_returned, "incorrect return value from reduce_by_segment");
+
+    Size i;
+    for ( i = 0; i < std::max(num_segments, num_segments_returned); ++i)
     {
 #ifdef DUMP_CHECK_RESULTS
+        if (i < num_segments_returned && i < num_segments)
+        {
         if (val_res[i] != expected_val_res[i])
             std::cout << "Failed: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") != expected("
                       << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
         else
             std::cout << "Success: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") == expected("
                       << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
+        }
+        else if (i < num_segments_returned)
+        {
+            std::cout << "Failed: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") != expected(None)" << std::endl;
+        }
+        else if (i < num_segments)
+        {
+            std::cout << "Failed: " << i << ": actual(None) != expected("<< expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
+        }
 #endif //DUMP_CHECK_RESULTS
 
         EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from reduce_by_segment");
     }
-    EXPECT_EQ(num_segments, num_segments_returned, "incorrect return value from reduce_by_segment");
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
