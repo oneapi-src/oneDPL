@@ -18,11 +18,15 @@ New Features
 
 Fixed Issues
 ------------
-- Fixed error in ``oneapi::dpl::experimental::ranges::guard_view`` and ``oneapi::dpl::experimental::ranges::zip_view`` when using  ``operator[]`` with a very large index.
+- Fixed an error in ``oneapi::dpl::experimental::ranges::guard_view`` and ``oneapi::dpl::experimental::ranges::zip_view`` when using ``operator[]`` with an index exceeding the limits of a 32 bit integer type.
+- Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
 
 Changes affecting backward compatibility
 ----------------------------------------
-- Removed support of C++11 and C++14. Please refer to `2022.0 Changes`_.
+- Removed support of C++11 and C++14.
+- Changed the size and the layout of the ``discard_block_engine`` class template.
+  
+  For further details, please refer to `2022.0 Changes`_.
 
 New in 2021.7.1
 ===============
@@ -36,7 +40,6 @@ Fixed Issues
 ------------
 - Added namespace alias ``dpl = oneapi::dpl`` into all public headers.
 - Fixed error in ``reduce_by_segment`` algorithm.
-- Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
 - Fixed wrong results error in algorithms call with permutation iterator.
   
 Known Issues and Limitations
@@ -383,4 +386,5 @@ Known Issues and Limitations
 .. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
-.. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/
+.. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.rst
+
