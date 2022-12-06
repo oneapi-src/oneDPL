@@ -87,15 +87,15 @@ test()
 {
     for (size_t n = 0; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, Gen<T>());
+        Sequence<T> in_out(n, Gen<T>());
         Sequence<T> expected(n, Gen<T>());
 #ifdef FOR_EACH
-        invoke_on_all_policies<>()(test_for_each<T>(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                                   inout.size());
+        invoke_on_all_policies<>()(test_for_each<T>(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
 #endif
 #ifdef FOR_EACH_N
-        invoke_on_all_policies<>()(test_for_each_n<T>(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                                   inout.size());
+        invoke_on_all_policies<>()(test_for_each_n<T>(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
 #endif
     }
 }

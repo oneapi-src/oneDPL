@@ -295,11 +295,11 @@ test_for_loop()
 {
     for (size_t n = 0; n <= 10000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, Gen<T>());
-        Sequence<T> expected = inout;
+        Sequence<T> in_out(n, Gen<T>());
+        Sequence<T> expected = in_out;
 
-        invoke_on_all_policies<>()(test_for_loop_impl(), inout.begin(), inout.end(), expected.begin(), expected.end(),
-                               inout.size());
+        invoke_on_all_policies<>()(test_for_loop_impl(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
     }
 }
 
@@ -309,14 +309,14 @@ test_for_loop_strided()
 {
     for (size_t n = 0; n <= 10000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, Gen<T>());
-        Sequence<T> expected = inout;
+        Sequence<T> in_out(n, Gen<T>());
+        Sequence<T> expected = in_out;
 
         ::std::vector<size_t> strides = {1, 2, 10, n > 1 ? n - 1 : 1, n > 0 ? n : 1, n + 1};
         for (size_t stride : strides)
         {
-            invoke_on_all_policies<>()(test_for_loop_strided_impl(), inout.begin(), inout.end(), expected.begin(),
-                                   expected.end(), inout.size(), stride);
+            invoke_on_all_policies<>()(test_for_loop_strided_impl(), in_out.begin(), in_out.end(), expected.begin(),
+                                       expected.end(), in_out.size(), stride);
         }
     }
 }

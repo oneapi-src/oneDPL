@@ -153,9 +153,10 @@ test()
 {
     for (size_t n = 0; n <= 10000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        Sequence<T> inout(n, [](long int k) { return T(k % 5 != 1 ? 3 * k - 7 : 0); });
-        Sequence<T> expected = inout;
-        invoke_on_all_policies<>()(test_body(), inout.begin(), inout.end(), expected.begin(), expected.end(), inout.size());
+        Sequence<T> in_out(n, [](long int k) { return T(k % 5 != 1 ? 3 * k - 7 : 0); });
+        Sequence<T> expected = in_out;
+        invoke_on_all_policies<>()(test_body(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
     }
 }
 
