@@ -22,12 +22,16 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '2.7' 
       - name: Get clang-format
         run: sudo apt-get install -yqq clang-format-6.0
       - name: Applying clang-format for changed files
         run: |
           FILES=$(git diff --diff-filter=d --name-only ${{ github.event.pull_request.base.sha }} | grep ^include | grep -v nanorange\.hpp\$ || true)
-          echo $FILES | xargs -n1 -t -r clang-format-6.0 --style=file -i
+          CLANG_FORMAT_DIFF_PATH=$(which clang-format-diff-6.0)
+          echo $FILES | xargs -n1 -t -r git diff -U0 --no-color --relative ${{ github.event.pull_request.base.sha }} | python2 $CLANG_FORMAT_DIFF_PATH -i -p1 -style file
       - name: Creating diff
         run: git diff > clang-format.diff
       - name: Checking if diff is empty
