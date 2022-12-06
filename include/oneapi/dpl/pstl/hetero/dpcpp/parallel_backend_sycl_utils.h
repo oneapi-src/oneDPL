@@ -164,7 +164,6 @@ class __kernel_name_composer
   public:
     using type = decltype(__compose_kernel_name(::std::make_index_sequence<__name_size>{}));
 };
-
 #endif // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
 
 template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
