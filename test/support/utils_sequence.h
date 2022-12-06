@@ -24,9 +24,9 @@
 
 #include "iterator_utils.h"
 
-// Please uncomment this define if required to print full context of sequence.
+// Please uncomment this define if required to print full content of sequence.
 // Otherwise only first 100 sequence items will be printed.
-//#define PRINT_FULL_SEQUENCE_CONTEXT 1
+//#define PRINT_FULL_SEQUENCE_CONTENT 1
 
 namespace TestUtils
 {
@@ -197,12 +197,12 @@ Sequence<T>::print() const
     constexpr ::std::size_t max_print_count = 100;
 
     ::std::cout << "size = " << size() << ": { ";
-#if PRINT_FULL_SEQUENCE_CONTEXT
+#if PRINT_FULL_SEQUENCE_CONTENT
     ::std::copy(begin(), end(), ::std::ostream_iterator<T>(::std::cout, " "));
 #else
     const auto printable_size = ::std::min(max_print_count, size());
     ::std::copy(begin(), begin() + printable_size, ::std::ostream_iterator<T>(::std::cout, " "));
-#endif // PRINT_FULL_SEQUENCE_CONTEXT
+#endif // PRINT_FULL_SEQUENCE_CONTENT
     ::std::cout << " } " << ::std::endl;
 }
 
