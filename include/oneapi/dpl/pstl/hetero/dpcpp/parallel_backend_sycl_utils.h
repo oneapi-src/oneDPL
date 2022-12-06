@@ -142,8 +142,8 @@ using __kernel_name_provider =
     __optional_kernel_name<_CustomName>;
 #endif
 
-template <char...>
-struct __composite_kernel_name
+template <typename _KernelName, char...>
+struct __composite
 {
 };
 
@@ -151,14 +151,14 @@ struct __composite_kernel_name
 // and instantiate template with variadic non-type template parameters.
 // This approach is required to get reliable work group size when kernel is unnamed
 #if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
-template <typename _Tp>
+template <typename _KernelName, typename _Tp>
 class __kernel_name_composer
 {
     static constexpr auto __name = __builtin_sycl_unique_stable_name(_Tp);
     static constexpr ::std::size_t __name_size = __builtin_strlen(__name);
 
     template <::std::size_t... _Is>
-    static __composite_kernel_name<__name[_Is]...>
+    static __composite<_KernelName, __name[_Is]...>
     __compose_kernel_name(::std::index_sequence<_Is...>);
 
   public:
@@ -169,13 +169,13 @@ class __kernel_name_composer
 template <template <typename...> class _BaseName, typename _CustomName, typename... _Args>
 using __kernel_name_generator =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename ::std::conditional<_HasDefaultName<_CustomName>::value,
+    ::std::conditional_t<_HasDefaultName<_CustomName>::value,
 #    if _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
-                                typename __kernel_name_composer<_BaseName<_CustomName, _Args...>>::type,
+                         typename __kernel_name_composer<_BaseName<>, _BaseName<_CustomName, _Args...>>::type,
 #    else // _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT
-                                _BaseName<_CustomName, _Args...>,
+                         _BaseName<_CustomName, _Args...>,
 #    endif
-                                _BaseName<_CustomName>>::type;
+                         _BaseName<_CustomName>>;
 #else // __SYCL_UNNAMED_LAMBDA__
     _BaseName<_CustomName>;
 #endif
@@ -185,6 +185,8 @@ class __kernel_compiler
 {
     static constexpr ::std::size_t __kernel_count = sizeof...(_KernelNames);
     using __kernel_array_type = ::std::array<sycl::kernel, __kernel_count>;
+
+    static_assert(__kernel_count > 0, "At least one kernel name should be provided");
 
   public:
 #if _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -197,7 +199,7 @@ class __kernel_compiler
         auto __kernel_bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(
             __exec.queue().get_context(), {__exec.queue().get_device()}, __kernel_ids);
 
-        if constexpr (sizeof...(_KernelNames) > 1)
+        if constexpr (__kernel_count > 1)
             return __make_kernels_array(__kernel_bundle, __kernel_ids, ::std::make_index_sequence<__kernel_count>());
         else
             return __kernel_bundle.template get_kernel(__kernel_ids[0]);
@@ -217,8 +219,7 @@ class __kernel_compiler
     {
         sycl::program __program(__exec.queue().get_context());
 
-        using __return_type =
-            typename std::conditional<(sizeof...(_KernelNames) > 1), __kernel_array_type, sycl::kernel>::type;
+        using __return_type = std::conditional_t<(__kernel_count > 1), __kernel_array_type, sycl::kernel>;
         return __return_type{
             (__program.build_with_kernel_type<_KernelNames>(), __program.get_kernel<_KernelNames>())...};
     }

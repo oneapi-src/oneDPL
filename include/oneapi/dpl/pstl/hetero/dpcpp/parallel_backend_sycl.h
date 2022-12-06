@@ -178,45 +178,29 @@ make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
 
 // set of class templates to name kernels
 
-// The group of shortened names used in kernel generator to get smaller
-// mangled name and thus, improve compilation time.
-// Instead of those classes please use the corresponding aliases
 template <typename... _Name>
-class __prk;
+class __reduce_kernel;
 
 template <typename... _Name>
-class __pslk;
+class __scan_local_kernel;
 
 template <typename... _Name>
-class __psgrk;
+class __scan_group_kernel;
 
 template <typename... _Name>
-class __pfok;
-
-// Aliases for shortened kernel names added for readability.
-template <typename... _Name>
-using __parallel_reduce_kernel = __prk<_Name...>;
+class __find_or_kernel;
 
 template <typename... _Name>
-using __parallel_scan_local_kernel = __pslk<_Name...>;
+class __scan_propagate_kernel;
 
 template <typename... _Name>
-using __parallel_scan_group_kernel = __psgrk<_Name...>;
+class __sort_leaf_kernel;
 
 template <typename... _Name>
-using __parallel_find_or_kernel = __pfok<_Name...>;
+class __sort_global_kernel;
 
 template <typename... _Name>
-class __parallel_scan_propagate_kernel;
-
-template <typename... _Name>
-class __parallel_sort_leaf_kernel;
-
-template <typename... _Name>
-class __parallel_sort_global_kernel;
-
-template <typename... _Name>
-class __parallel_sort_copy_back_kernel;
+class __sort_copy_back_kernel;
 
 //------------------------------------------------------------------------
 // parallel_for - async pattern
@@ -282,8 +266,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_lea
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ReduceKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__parallel_reduce_kernel, _CustomName,
-                                                                               _Up, _LRp, _Rp, _Ranges...>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__reduce_kernel, _CustomName, _Up, _LRp,
+                                                                               _Rp, _Ranges...>;
 
     auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
     // TODO: find a way to generalize getting of reliable work-group size
@@ -425,10 +409,9 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
     {
         using _Type = typename _InitType::__value_type;
         using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-            __parallel_scan_local_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
+            __scan_local_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
         using _GroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-            __parallel_scan_group_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
-
+            __scan_group_kernel, _CustomName, _Range1, _Range2, _Type, _LocalScan, _GroupScan, _GlobalScan>;
         auto __n = __rng1.size();
         assert(__n > 0);
 
@@ -530,8 +513,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
 
-    using _PropagateKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __parallel_scan_propagate_kernel<_CustomName>>;
+    using _PropagateKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
 
     return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
@@ -685,8 +668,8 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     using _CustomName = typename _Policy::kernel_name;
     using _AtomicType = typename _BrickTag::_AtomicType;
     using _FindOrKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__parallel_find_or_kernel, _CustomName,
-                                                                               _Brick, _Ranges...>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
+                                                                               _Ranges...>;
 
     auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -1283,11 +1266,11 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _LeafSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_sort_leaf_kernel<_CustomName>>;
-    using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __parallel_sort_global_kernel<_CustomName>>;
-    using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __parallel_sort_copy_back_kernel<_CustomName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
+    using _GlobalSortKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;
+    using _CopyBackKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
     return __parallel_sort_submitter<_LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
@@ -1374,10 +1357,10 @@ __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge _
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _GlobalSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __parallel_sort_global_kernel<_CustomName>>;
-    using _CopyBackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __parallel_sort_copy_back_kernel<_CustomName>>;
+    using _GlobalSortKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;
+    using _CopyBackKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
     return __parallel_partial_sort_submitter<_GlobalSortKernel, _CopyBackKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
