@@ -383,7 +383,7 @@ main()
                                                                                     sycl::plus<>(), PrepData());
 
     //Mark each segment start with a 1
-    auto flag_pred = [](auto a, auto b) {
+    auto flag_pred = [](const auto& a, const auto& b) {
         using KeyT = ::std::decay_t<decltype(b)>;
         return b != KeyT(1);
     };
