@@ -37,7 +37,7 @@ enum class UDTKind
     eKeys = 0,  // ID for the first input data
     eVals,      // ID for the second input data (if applicable)
     eRes,       // ID for the output data (result)
-    eResKeys    // ID for the output key data (result keys)
+    eRes2       // ID for the second output data (if applicable)
 };
 
 template <typename TEnum>
@@ -476,8 +476,8 @@ test_algo_four_sequences()
         // create iterators
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
         auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
-        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eResKeys);
-        auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes);
+        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
+        auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes2);
 
         invoke_on_all_host_policies()(create_test_obj<T, TestName>(test_base_data),
                                       inout1_offset_first, inout1_offset_first + n,
