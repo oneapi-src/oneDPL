@@ -101,7 +101,7 @@ struct sycl_scan_by_segment_impl
 
         // the number of segment ends found in each work group
         auto __seg_ends =
-            oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, bool>(__exec, __n_groups)
+            oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __flag_type>(__exec, __n_groups)
                 .get_buffer();
 
         // 1. Work group reduction

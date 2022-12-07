@@ -162,7 +162,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                        _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
                        ::std::true_type /* has_known_identity */)
 {
-    using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
+    using __diff_type = oneapi::dpl::__internal::__difference_t<_Range3>;
     using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
     using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
@@ -184,12 +184,12 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                           ::std::forward<_ExecutionPolicy>(__exec), __n_groups)
             .get_buffer();
 
-    auto __end_idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int>(
+    auto __end_idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(
                          ::std::forward<_ExecutionPolicy>(__exec), 1)
                          .get_buffer();
 
     // the number of segment ends found in each work group
-    auto __seg_ends = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int>(
+    auto __seg_ends = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(
                           ::std::forward<_ExecutionPolicy>(__exec), __n_groups)
                           .get_buffer();
 
@@ -237,6 +237,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             ::std::array<__val_type, __vals_per_item> __loc_partials;
 
             auto __group = __item.get_group();
+            auto __sub_group = __item.get_sub_group();
             ::std::size_t __group_id = __group.get_group_id();
             ::std::size_t __local_id = __group.get_local_id();
             ::std::size_t __global_id = __item.get_global_id();
@@ -246,7 +247,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             auto __end_ptr = __start_ptr + __group_id;
 
             auto __wg_num_prior_segs =
-                __dpl_sycl::__joint_reduce(__group, __start_ptr, __end_ptr, __dpl_sycl::__plus<int>());
+                __dpl_sycl::__joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, __dpl_sycl::__plus<__diff_type>());
 
             // 2b. Perform a serial scan within the work item over assigned elements. Store partial
             // reductions in work group local memory.
@@ -354,6 +355,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             __cgh.parallel_for(sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1>
                                                                                                      __item) {
                 auto __group = __item.get_group();
+                auto __sub_group = __item.get_sub_group();
                 int64_t __group_id = __group.get_group_id(0);
                 ::std::size_t __global_id = __item.get_global_id();
                 ::std::size_t __local_id = __item.get_local_id();
@@ -406,7 +408,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 auto __end_ptr = __start_ptr + __group_id;
 
                 ::std::size_t __wg_num_prior_segs =
-                    __dpl_sycl::__joint_reduce(__group, __start_ptr, __end_ptr, __dpl_sycl::__plus<int>());
+                    __dpl_sycl::__joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, __dpl_sycl::__plus<__diff_type>());
 
                 // 3d. Second pass over the keys, reidentifying end segments and applying work group
                 // aggregates if appropriate. Both the key and reduction value are written to the final output at the
@@ -432,7 +434,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
         })
         .wait();
 
-    return 1 + __end_idx.template get_access<sycl::access_mode::read>()[0];
+    return __end_idx.template get_access<sycl::access_mode::read>()[0] + 1;
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
