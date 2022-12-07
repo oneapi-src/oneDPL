@@ -378,48 +378,48 @@ template <typename _KernelName, ::std::uint32_t __radix_bits, typename _Executio
           >
 sycl::event
 __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size, ::std::size_t __segments,
-               _CountBuf& __count_buf, sycl::event __dependency_event
+                         _CountBuf& __count_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-               , _Kernel& __kernel
+                        , _Kernel& __kernel
 #endif
 )
 {
-	using _CountT = typename _CountBuf::value_type;
+    using _CountT = typename _CountBuf::value_type;
 
-	auto __count_rng =
-		oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
-	using __count_rng_type = decltype(__count_rng);
+    auto __count_rng =
+        oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
+    using __count_rng_type = decltype(__count_rng);
 
-	// Scan produces local offsets using count values.
-	// There are no local offsets for the first segment, but the rest segments should be scanned
-	// with respect to the count value in the first segment what requires n + 1 positions
-	const ::std::size_t __scan_size = __segments + 1;
-	__scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
+    // Scan produces local offsets using count values.
+    // There are no local offsets for the first segment, but the rest segments should be scanned
+    // with respect to the count value in the first segment what requires n + 1 positions
+    const ::std::size_t __scan_size = __segments + 1;
+    __scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
 
-	const ::std::uint32_t __radix_states = 1 << __radix_bits;
+    const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
-	// compilation of the kernel prevents out of resources issue, which may occur due to usage of
-	// collective algorithms such as joint_exclusive_scan even if local memory is not explicitly requested
-	sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
-		__hdl.depends_on(__dependency_event);
-		// an accessor with value counter from each work_group
-		oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
+    // compilation of the kernel prevents out of resources issue, which may occur due to usage of
+    // collective algorithms such as joint_exclusive_scan even if local memory is not explicitly requested
+    sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
+        __hdl.depends_on(__dependency_event);
+        // an accessor with value counter from each work_group
+        oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-		__hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-		__hdl.parallel_for<_KernelName>(
+        __hdl.parallel_for<_KernelName>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-			__kernel,
+            __kernel,
 #endif
-			sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
-				// find borders of a region with a specific bucket id
-				sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
-				// TODO: consider another approach with use of local memory
-				__dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
-												   _CountT(0), __dpl_sycl::__plus<_CountT>{});
-			});
-	});
-	return __scan_event;
+            sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
+                // find borders of a region with a specific bucket id
+                sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
+                // TODO: consider another approach with use of local memory
+                __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
+                                                   _CountT(0), __dpl_sycl::__plus<_CountT>{});
+            });
+    });
+    return __scan_event;
 }
 
 struct __empty_peer_temp_storage
