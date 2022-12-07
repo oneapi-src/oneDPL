@@ -13,13 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <complex>
-
-#include "oneapi/dpl/execution"
-#include "oneapi/dpl/algorithm"
-#include "oneapi/dpl/iterator"
-
 #include "support/test_config.h"
+
+#include _PSTL_TEST_HEADER(algorithm)
+#include _PSTL_TEST_HEADER(complex)
+#include _PSTL_TEST_HEADER(execution)
+#include _PSTL_TEST_HEADER(iterator)
+#include _PSTL_TEST_HEADER(numeric)
+
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
 
