@@ -36,7 +36,7 @@ template <::std::uint32_t, bool, bool, typename... _Name>
 class __radix_sort_count_kernel;
 
 template <::std::uint32_t, typename... _Name>
-class __radix_sort_scan_kernel_1;
+class __radix_sort_scan_kernel;
 
 template <::std::uint32_t, bool, bool, typename... _Name>
 class __radix_sort_reorder_peer_kernel;
@@ -269,8 +269,7 @@ __get_last_value()
 template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, typename _ExecutionPolicy,
           typename _ValRange, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
-          ,
-          typename _Kernel
+          , typename _Kernel
 #endif
           >
 sycl::event
@@ -278,8 +277,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                           ::std::uint32_t __radix_iter, _ValRange&& __val_rng, _CountBuf& __count_buf,
                           sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                          ,
-                          _Kernel& __kernel
+                          , _Kernel& __kernel
 #endif
 )
 {
@@ -373,64 +371,56 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 // radix sort: scan kernel (per iteration)
 //-----------------------------------------------------------------------
 
-template <typename _RadixLocalScanName, ::std::uint32_t __radix_bits>
-struct __radix_sort_scan_submitter
-{
-    template <typename _ExecutionPolicy, typename _CountBuf
+template <typename _KernelName, ::std::uint32_t __radix_bits, typename _ExecutionPolicy, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
-              ,
-              typename _LocalScanKernel
+          , typename _Kernel
 #endif
-              >
-    sycl::event
-    operator()(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size, ::std::size_t __segments,
+          >
+sycl::event
+__radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size, ::std::size_t __segments,
                _CountBuf& __count_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-               ,
-               _LocalScanKernel& __local_scan_kernel
+               , _Kernel& __kernel
 #endif
-               ) const
-    {
-        using _CountT = typename _CountBuf::value_type;
+)
+{
+	using _CountT = typename _CountBuf::value_type;
 
-        auto __count_rng =
-            oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
+	auto __count_rng =
+		oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
+	using __count_rng_type = decltype(__count_rng);
 
-        using __count_rng_type = decltype(__count_rng);
+	// Scan produces local offsets using count values.
+	// There are no local offsets for the first segment, but the rest segments should be scanned
+	// with respect to the count value in the first segment what requires n + 1 positions
+	const ::std::size_t __scan_size = __segments + 1;
+	__scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
 
-        // there are no local offsets for the first segment, but the rest segments should be scanned
-        // with respect to the count value in the first segment what requires n + 1 positions
-        const ::std::size_t __scan_size = __segments + 1;
+	const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
-        __scan_wg_size = ::std::min(__scan_size, __scan_wg_size);
-
-        const ::std::uint32_t __radix_states = 1 << __radix_bits;
-
-        // 1. Local scan: produces local offsets using count values
-        // compilation of the kernel prevents out of resources issue, which may occur due to usage of
-        // collective algorithms such as joint_exclusive_scan even if local memory is not explicitly requested
-        sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
-            __hdl.depends_on(__dependency_event);
-            // an accessor with value counter from each work_group
-            oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
+	// compilation of the kernel prevents out of resources issue, which may occur due to usage of
+	// collective algorithms such as joint_exclusive_scan even if local memory is not explicitly requested
+	sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
+		__hdl.depends_on(__dependency_event);
+		// an accessor with value counter from each work_group
+		oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __hdl.use_kernel_bundle(__local_scan_kernel.get_kernel_bundle());
+		__hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-            __hdl.parallel_for<_RadixLocalScanName>(
+		__hdl.parallel_for<_KernelName>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __local_scan_kernel,
+			__kernel,
 #endif
-                sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
-                    // find borders of a region with a specific bucket id
-                    sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
-                    // TODO: consider another approach with use of local memory
-                    __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
-                                                       _CountT(0), __dpl_sycl::__plus<_CountT>{});
-                });
-        });
-        return __scan_event;
-    }
-};
+			sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
+				// find borders of a region with a specific bucket id
+				sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
+				// TODO: consider another approach with use of local memory
+				__dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
+												   _CountT(0), __dpl_sycl::__plus<_CountT>{});
+			});
+	});
+	return __scan_event;
+}
 
 struct __empty_peer_temp_storage
 {
@@ -564,8 +554,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, __peer_prefix_algo _PeerAlgo,
           typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf
 #if _ONEDPL_COMPILE_KERNEL
-          ,
-          typename _Kernel
+          , typename _Kernel
 #endif
           >
 sycl::event
@@ -573,8 +562,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             ::std::size_t __sg_size, ::std::uint32_t __radix_iter, _InRange&& __input_rng,
                             _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                            ,
-                            _Kernel& __kernel
+                            , _Kernel& __kernel
 #endif
 )
 {
@@ -682,7 +670,7 @@ struct __parallel_radix_sort_iteration
     template <typename... _Name>
     using __count_phase = __radix_sort_count_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
     template <typename... _Name>
-    using __local_scan_phase = __radix_sort_scan_kernel_1<__radix_bits, _Name...>;
+    using __local_scan_phase = __radix_sort_scan_kernel<__radix_bits, _Name...>;
     template <typename... _Name>
     using __reorder_peer_phase = __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
     template <typename... _Name>
@@ -745,7 +733,7 @@ struct __parallel_radix_sort_iteration
         );
 
         // 2. Scan Phase
-        sycl::event __scan_event = __radix_sort_scan_submitter<_RadixLocalScanKernel, __radix_bits>()(
+        sycl::event __scan_event = __radix_sort_scan_submit<_RadixLocalScanKernel, __radix_bits>(
             __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
 #if _ONEDPL_COMPILE_KERNEL
             , __local_scan_kernel
