@@ -164,8 +164,8 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
-        TestDataTransfer<UDTKind::eResKeys, Size> host_res_keys(*this, n);
-        TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
+        TestDataTransfer<UDTKind::eRes, Size> host_res_keys(*this, n);
+        TestDataTransfer<UDTKind::eRes2, Size> host_res(*this, n);
 
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
 
