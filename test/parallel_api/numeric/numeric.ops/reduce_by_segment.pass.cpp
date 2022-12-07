@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- reduce_by_segment.pass.cpp --------------------------------------------===//
+//===-- reduce_by_segment.pass.cpp ----------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,7 +15,6 @@
 
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
-#include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
 #include "oneapi/dpl/complex"
 
@@ -27,318 +26,245 @@
 #include <iomanip>
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include "support/sycl_alloc_utils.h"
+#    include "support/utils_sycl.h"
+
+using namespace oneapi::dpl::execution;
 #endif // TEST_DPCPP_BACKEND_PRESENT
+using namespace TestUtils;
 
-// This macro may be used to analyze source data and test results in test_inclusive_scan_by_segment
+// This macro may be used to analyze source data and test results in test_reduce_by_segment
 // WARNING: in the case of using this macro debug output is very large.
-//#define DUMP_CHECK_RESULTS
+// #define DUMP_CHECK_RESULTS
 
-template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename Size, typename T,
-          typename BinaryPredCheck = oneapi::dpl::__internal::__pstl_equal,
-          typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
-void
-check_values(size_t num_segments_returned, Iterator1 host_keys, Iterator2 host_vals, Iterator3 key_res,
-             Iterator4 val_res, Size n, T init, BinaryPredCheck pred = BinaryPredCheck(),
-             BinaryOperationCheck op = BinaryOperationCheck())
+DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
 {
-    // https://docs.oneapi.io/versions/latest/onedpl/extension_api.html
-    // keys:   [ 0, 0, 0, 1, 1, 1 ]
-    // values: [ 1, 2, 3, 4, 5, 6 ]
-    // result: [ 1 + 2 + 3 = 6, 4 + 5 + 6 = 15]
+    DEFINE_TEST_CONSTRUCTOR(test_reduce_by_segment)
 
-    if (n < 1)
-        return;
-
-    using ValT = typename ::std::decay<decltype(val_res[0])>::type;
-    using KeyT = typename ::std::decay<decltype(key_res[0])>::type;
-
-    std::vector<KeyT> expected_key_res(n);
-    std::vector<ValT> expected_val_res(n);
-    ::std::size_t num_segments =
-        reduce_by_segment_serial(host_keys, host_vals, expected_key_res, expected_val_res, n, init, pred, op);
-
-#ifdef DUMP_CHECK_RESULTS
-    std::cout << "NumSegmentsExpected: " << num_segments << " n: " << n << std::endl;
-    std::cout << "NumSegmentsReturned: " << num_segments_returned << std::endl;
-#endif //DUMP_CHECK_RESULTS
-
-    EXPECT_EQ(num_segments, num_segments_returned, "incorrect return value from reduce_by_segment");
-
-    Size i;
-    for ( i = 0; i < std::max(num_segments, num_segments_returned); ++i)
+    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename Size>
+    void initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_key_res, Iterator4 host_val_res,
+                         Size n)
     {
-#ifdef DUMP_CHECK_RESULTS
-        if (i < num_segments_returned && i < num_segments)
+        // T keys[n] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
+        // T vals[n] = { n random numbers between 0 and 4 };
+
+        ::std::srand(42);
+        Size segment_length = 1;
+        for (Size i = 0; i != n;)
         {
-        if (val_res[i] != expected_val_res[i] || key_res[i] != expected_key_res[i])
-            std::cout << "Failed: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") != expected("
-                      << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
-        else
-            std::cout << "Success: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") == expected("
-                      << expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
+            for (Size j = 0; j != 4 * segment_length && i != n; ++j)
+            {
+                host_keys[i] = j / segment_length + 1;
+                host_vals[i] = rand() % 5;
+                host_key_res[i] = 0;
+                host_val_res[i] = 0;
+                ++i;
+            }
+            ++segment_length;
         }
-        else if (i < num_segments_returned)
-        {
-            std::cout << "Failed: " << i << ": actual(" << key_res[i] << ", " << val_res[i] << ") != expected(None)" << std::endl;
-        }
-        else if (i < num_segments)
-        {
-            std::cout << "Failed: " << i << ": actual(None) != expected("<< expected_key_res[i] << ", " << expected_val_res[i] << ")" << std::endl;
-        }
-#endif //DUMP_CHECK_RESULTS
-        EXPECT_TRUE(key_res[i] == expected_key_res[i], "wrong effect from reduce_by_segment");
-        EXPECT_TRUE(val_res[i] == expected_val_res[i], "wrong effect from reduce_by_segment");
     }
-}
+
+#ifdef DUMP_CHECK_RESULTS
+    template <typename Iterator, typename Size>
+    void display_param(const char* msg, Iterator it, Size n)
+    {
+        ::std::cout << msg;
+        for (Size i = 0; i < n; ++i)
+        {
+            if (i > 0)
+                ::std::cout << ", ";
+            ::std::cout << it[i];
+        }
+        ::std::cout << ::std::endl;
+    }
+#endif // DUMP_CHECK_RESULTS
+
+    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4, typename InputSize,
+              typename OutputKeySize, typename OutputValSize,
+              typename BinaryPredicateCheck = oneapi::dpl::__internal::__pstl_equal,
+              typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
+    void check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 key_res, Iterator4 val_res, InputSize n,
+                      OutputKeySize num_keys, OutputValSize num_vals,
+                      BinaryPredicateCheck pred = BinaryPredicateCheck(),
+                      BinaryOperationCheck op = BinaryOperationCheck())
+    {
+        // https://docs.oneapi.io/versions/latest/onedpl/extension_api.html
+        // keys:   [ 0, 0, 0, 1, 1, 1 ]
+        // values: [ 1, 2, 3, 4, 5, 6 ]
+        // result keys: [ 0, 1 ]
+        // result values: [ 1 + 2 + 3 = 6, 4 + 5 + 6 = 15 ]
+
+        if (n < 1)
+            return;
+
+        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
+
+        ::std::string failure_msg = "from reduce_by_segment with types [";
+        failure_msg += typeid(KeyT).name();
+        failure_msg += ";";
+        failure_msg += typeid(ValT).name();
+        failure_msg += "], ";
+        failure_msg += "n=" + ::std::to_string(n) + ", ";
+        if (::std::is_same<BinaryPredicateCheck, oneapi::dpl::__internal::__pstl_equal>::value)
+        {
+            failure_msg += "Default Pred, ";
+        }
+        else
+        {
+            failure_msg += "Custom Pred, ";
+        }
+        if (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
+        {
+            failure_msg += "Default Op";
+        }
+        else
+        {
+            failure_msg += "Custom Op";
+        }
+        ::std::string num_keys_failure_msg = "wrong key size " + failure_msg;
+        ::std::string num_vals_failure_msg = "wrong values size " + failure_msg;
+        ::std::string key_failure_msg = "wrong keys " + failure_msg;
+        ::std::string val_failure_msg = "wrong values " + failure_msg;
+
+        ::std::vector<KeyT> expected_key_res(n);
+        ::std::vector<ValT> expected_val_res(n);
+
+        ::std::size_t num_segments =
+            reduce_by_segment_serial(host_keys, host_vals, expected_key_res, expected_val_res, n, pred, op);
+
+#ifdef DUMP_CHECK_RESULTS
+        ::std::cout << "check_values(n = " << n << ", segments = " << num_keys << ") : " << ::std::endl;
+        display_param("           keys: ", host_keys, n);
+        display_param("         values: ", host_vals, n);
+        display_param("    result keys: ", key_res, num_keys);
+        display_param("  result values: ", val_res, num_vals);
+        display_param("  expected keys: ", expected_key_res.data(), num_segments);
+        display_param("expected values: ", expected_val_res.data(), num_segments);
+#endif // DUMP_CHECK_RESULTS
+
+        EXPECT_EQ(num_segments, num_keys, num_keys_failure_msg.c_str());
+        EXPECT_EQ(num_segments, num_vals, num_vals_failure_msg.c_str());
+        EXPECT_EQ_N(expected_key_res.data(), key_res, num_keys, key_failure_msg.c_str());
+        EXPECT_EQ_N(expected_val_res.data(), val_res, num_vals, val_failure_msg.c_str());
+    }
 
 #if TEST_DPCPP_BACKEND_PRESENT
-
-template <typename KernelName, typename T>
-void
-test_with_buffers()
-{
-    constexpr size_t n = 13;
-    // create buffers
-    sycl::buffer<T, 1> key_buf{sycl::range<1>(n)};
-    sycl::buffer<T, 1> val_buf{sycl::range<1>(n)};
-    sycl::buffer<T, 1> key_res_buf{sycl::range<1>(n)};
-    sycl::buffer<T, 1> val_res_buf{sycl::range<1>(n)};
-
+    // specialization for hetero policy
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
+              typename Size>
+    typename ::std::enable_if<
+        oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value &&
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
-        auto keys = key_buf.get_host_access(sycl::read_write);
-        auto vals = val_buf.get_host_access(sycl::read_write);
-        auto keys_res = key_res_buf.get_host_access(sycl::read_write);
-        auto vals_res = val_res_buf.get_host_access(sycl::read_write);
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        TestDataTransfer<UDTKind::eResKeys, Size> host_res_keys(*this, n);
+        TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
 
-        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
-        //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
+        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
 
-        // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, 0};
-        // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, 0};
+        // call algorithm with no optional arguments
+        initialize_data(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n);
+        update_data(host_keys, host_vals, host_res_keys, host_res);
 
-        // Initialize data
-        for (int i = 0; i < n - 1; ++i)
-        {
-            keys[i] = i % 4 + 1;
-            vals[i] = i % 4 + 1;
-            keys_res[i] = 9;
-            vals_res[i] = 1;
-            if (i > 3)
-            {
-                ++i;
-                keys[i] = keys[i - 1];
-                vals[i] = vals[i - 1];
-                keys_res[i] = 9;
-                vals_res[i] = 1;
-            }
-        }
-        keys[n - 1] = 0;
-        vals[n - 1] = 0;
+        auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
+        auto res1 =
+            oneapi::dpl::reduce_by_segment(new_policy, keys_first, keys_last, vals_first, key_res_first, val_res_first);
+        exec.queue().wait_and_throw();
+
+        retrieve_data(host_keys, host_vals, host_res_keys, host_res);
+        size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
+        size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
+        check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret1,
+                     segments_val_ret1);
+
+        // call algorithm with predicate
+        initialize_data(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n);
+        update_data(host_keys, host_vals, host_res_keys, host_res);
+
+        auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
+        auto res2 = oneapi::dpl::reduce_by_segment(new_policy2, keys_first, keys_last, vals_first, key_res_first,
+                                                   val_res_first, BinaryPredicate());
+        exec.queue().wait_and_throw();
+
+        retrieve_data(host_keys, host_vals, host_res_keys, host_res);
+        size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
+        size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
+        check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret2,
+                     segments_val_ret2, BinaryPredicate());
+
+        // call algorithm with predicate and operator
+        initialize_data(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n);
+        update_data(host_keys, host_vals, host_res_keys, host_res);
+
+        auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
+        auto res3 = oneapi::dpl::reduce_by_segment(new_policy3, keys_first, keys_last, vals_first, key_res_first,
+                                                   val_res_first, BinaryPredicate(), BinaryOperation());
+        exec.queue().wait_and_throw();
+
+        retrieve_data(host_keys, host_vals, host_res_keys, host_res);
+        size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
+        size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
+        check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret3,
+                     segments_val_ret3, BinaryPredicate(), BinaryOperation());
+    }
+#endif
+
+    // specialization for host execution policies
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
+              typename Size>
+    typename ::std::enable_if<
+#if TEST_DPCPP_BACKEND_PRESENT
+        !oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+#endif
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value &&
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
+    {
+        // call algorithm with no optional arguments
+        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+        auto res1 =
+            oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
+        size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
+        size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
+        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret1, segments_val_ret1);
+
+        // call algorithm with predicate
+        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+        auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
+                                                   val_res_first, BinaryPredicate());
+        size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
+        size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
+        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret2, segments_val_ret2,
+                     BinaryPredicate());
+
+        // call algorithm with predicate and operator
+        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+        auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
+                                                   val_res_first, BinaryPredicate(), BinaryOperation());
+        size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
+        size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
+        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret3, segments_val_ret3,
+                     BinaryPredicate(), BinaryOperation());
     }
 
-    // create sycl iterators
-    auto key_beg = oneapi::dpl::begin(key_buf);
-    auto key_end = oneapi::dpl::end(key_buf);
-    auto val_beg = oneapi::dpl::begin(val_buf);
-    auto key_res_beg = oneapi::dpl::begin(key_res_buf);
-    auto val_res_beg = oneapi::dpl::begin(val_res_buf);
-
-    // create named policy from existing one
-    auto new_policy = TestUtils::make_device_policy<KernelName>(oneapi::dpl::execution::dpcpp_default);
-
-    // call algorithm
-    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_beg, key_end, val_beg, key_res_beg, val_res_beg);
-
-    size_t segments_key_ret = std::distance(key_beg, res1.first);
-    size_t segments_val_ret = std::distance(val_beg, res1.second);
-    EXPECT_EQ(segments_key_ret, segments_val_ret, "inconsistent return value from reduce_by_segment");
-
-    auto keys_acc = key_buf.template get_access<sycl::access::mode::read>();
-    auto vals_acc = val_buf.template get_access<sycl::access::mode::read>();
-    auto keys_res_acc = key_res_buf.template get_access<sycl::access::mode::read>();
-    auto vals_res_acc = val_res_buf.template get_access<sycl::access::mode::read>();
-
-    check_values(segments_key_ret, keys_acc, vals_acc, keys_res_acc, vals_res_acc, n, T(0));
-}
-
-struct PrepTrivialData
-{
-    template <typename KeyT, typename ValT>
-    void
-    operator()(size_t n, KeyT* key_head, ValT* val_head, KeyT* key_res_head, ValT* val_res_head)
+    // specialization for non-random_access iterators
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
+              typename Size>
+    typename ::std::enable_if<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value ||
+                                  !is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value,
+                              void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
-        for (size_t i = 0; i < n; i++)
-        {
-            key_head[i] = KeyT(i);
-            val_head[i] = ValT(i);
-        }
-    }
-};
-
-struct PrepRandomData
-{
-    template <typename KeyT, typename ValT>
-    void
-    operator()(size_t n, KeyT* key_head, ValT* val_head, KeyT* key_res_head, ValT* val_res_head)
-    {
-        size_t i = 0;
-        size_t segment = 1;
-        size_t seg_length = 1;
-
-        while (i < n)
-        {
-            // reasonable length segment
-            seg_length = std::rand() % 10000;
-            //random label
-            segment = std::rand();
-            for (size_t j = 0; i < n && j < seg_length; j++, i++)
-            {
-                key_head[i] = KeyT(segment);
-                //small random number to prevent overflow
-                val_head[i] = ValT(std::rand() % 500);
-            }
-        }
-    }
-};
-
-struct PrepData
-{
-    template <typename KeyT, typename ValT>
-    void
-    operator()(size_t n, KeyT* key_head, ValT* val_head, KeyT* key_res_head, ValT* val_res_head)
-    {
-        size_t i = 0;
-        size_t segment = 1;
-        size_t seg_length = 1;
-
-        while (i < n)
-        {
-            for (size_t j = 0; i < n && j < seg_length; j++, i++)
-            {
-                key_head[i] = KeyT(segment);
-                val_head[i] = ValT(1);
-            }
-            segment = (segment % 4) + 1;
-            if (segment == 1)
-            {
-                seg_length++;
-            }
-        }
     }
 };
-
-struct PrepDataFlagPred
-{
-    template <typename KeyT, typename ValT>
-    void
-    operator()(size_t n, KeyT* key_head, ValT* val_head, KeyT* key_res_head, ValT* val_res_head)
-    {
-        size_t i = 0;
-        size_t segment = 1;
-        size_t seg_length = 1;
-
-        while (i < n)
-        {
-            //mark the beginning of each segment with a "1"
-            key_head[i] = KeyT(1);
-            val_head[i] = ValT(1);
-            i++;
-            for (size_t j = 1; i < n && j < seg_length; j++, i++)
-            {
-                key_head[i] = KeyT(0);
-                val_head[i] = ValT(1);
-            }
-            seg_length++;
-        }
-    }
-};
-
-template <sycl::usm::alloc alloc_type, typename KernelName, typename T, typename BinaryPred, typename BinaryOp,
-          typename PrepareData>
-void
-test_with_usm(size_t n, BinaryPred pred, BinaryOp op, PrepareData prepare_data)
-{
-    sycl::queue q = TestUtils::get_test_queue();
-
-    // Initialize data
-    T* key_head_on_host = (T*)std::malloc(n * sizeof(T));
-    T* val_head_on_host = (T*)std::malloc(n * sizeof(T));
-    T* key_res_head_on_host = (T*)std::malloc(n * sizeof(T));
-    T* val_res_head_on_host = (T*)std::malloc(n * sizeof(T));
-    T* expected_res_head_on_host = (T*)std::malloc(n * sizeof(T));
-
-    prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
-
-    //allocate USM memory and copying data to USM shared / device memory
-    TestUtils::usm_data_transfer<alloc_type, T> dt_helper1(q, key_head_on_host, n);
-    TestUtils::usm_data_transfer<alloc_type, T> dt_helper2(q, val_head_on_host, n);
-    TestUtils::usm_data_transfer<alloc_type, T> dt_helper3(q, key_res_head_on_host, n);
-    TestUtils::usm_data_transfer<alloc_type, T> dt_helper4(q, val_res_head_on_host, n);
-    auto key_head = dt_helper1.get_data();
-    auto val_head = dt_helper2.get_data();
-    auto key_res_head = dt_helper3.get_data();
-    auto val_res_head = dt_helper4.get_data();
-
-    //call algorithm
-    auto new_policy = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
-        TestUtils::unique_kernel_name<KernelName, 1>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
-    auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head,
-                                               pred, op);
-
-    //retrieve result on the host and check the result
-    dt_helper3.retrieve_data(key_res_head_on_host);
-    dt_helper4.retrieve_data(val_res_head_on_host);
-
-    //check values
-
-    size_t segments_key_ret = std::distance(key_res_head, res1.first);
-    size_t segments_val_ret = std::distance(val_res_head, res1.second);
-    EXPECT_EQ(segments_key_ret, segments_val_ret, "inconsistent return value from reduce_by_segment");
-
-    check_values(segments_key_ret, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host, n,
-                 T(0), pred, op);
-
-    std::free(key_head_on_host);
-    std::free(val_head_on_host);
-    std::free(key_res_head_on_host);
-    std::free(val_res_head_on_host);
-    std::free(expected_res_head_on_host);
-}
-
-void
-test_with_vector()
-{
-    auto policy = oneapi::dpl::execution::dpcpp_default;
-
-    sycl::usm_allocator<int, sycl::usm::alloc::shared> alloc(policy.queue());
-
-    for (int key_val = -1; key_val < 2; ++key_val)
-    {
-        // Check on interval from 0 till 4096 * 3.5 (+1024)
-        for (int destLength = 0; destLength <= 14336; destLength += 100)
-        {
-            std::vector<int, decltype(alloc)> keys(destLength, key_val, alloc);
-            std::vector<int, decltype(alloc)> values(destLength, 1, alloc);
-            std::vector<int, decltype(alloc)> output_keys(destLength, alloc);
-            std::vector<int, decltype(alloc)> output_values(destLength, alloc);
-
-            auto new_end =
-                oneapi::dpl::reduce_by_segment(policy, keys.begin(), keys.end(), values.begin(), output_keys.begin(),
-                                               output_values.begin(), std::equal_to<int>(), std::plus<int>());
-
-            const size_t size = new_end.first - output_keys.begin();
-            EXPECT_TRUE((destLength == 0 && size == 0) || size == 1, "reduce_by_segment: wrong result");
-
-            for (size_t i = 0; i < size; i++)
-            {
-                EXPECT_EQ(key_val, output_keys[i], "reduce_by_segment: wrong key");
-                EXPECT_EQ(destLength, output_values[i], "reduce_by_segment: wrong value");
-            }
-        }
-    }
-}
-
 
 template <sycl::usm::alloc alloc_type, typename KernelName, typename T>
 void
@@ -409,87 +335,74 @@ test_flag_pred()
     EXPECT_EQ(val_res_head_on_host[2], expected_value, "reduce_by_segment: wrong value");
 }
 
-
-
-
-#endif
-
-template <typename T>
-void
-test_on_host()
+template <typename _Tp>
+struct UserBinaryPredicate
 {
-    const int N = 7;
-    T A[N] = {1, 3, 3, 3, 2, 2, 1}; // input keys
-    T B[N] = {9, 8, 7, 6, 5, 4, 3}; // input values
-    T C[N];                         // output keys
-    T D[N];                         // output values
+    bool
+    operator()(const _Tp& __x, const _Tp& __y) const
+    {
+        using KeyT = ::std::decay_t<decltype(__y)>;
+        return __y != KeyT(1);
+    }
+};
 
-    std::pair<T*, T*> new_end;
-    new_end = oneapi::dpl::reduce_by_segment(oneapi::dpl::execution::par, A, A + N, B, C, D, std::equal_to<T>(),
-                                             std::plus<T>());
-
-    size_t segments_key_ret = std::distance(C, new_end.first);
-    size_t segments_val_ret = std::distance(D, new_end.second);
-    EXPECT_EQ(segments_key_ret, segments_val_ret, "inconsistent return value from reduce_by_segment run on host");
-
-    check_values(segments_key_ret, A, B, C, D, N, T(0));
-}
+template <typename _Tp>
+struct UserBinaryOperation
+{
+    _Tp
+    operator()(const _Tp& __x, const _Tp& __y) const
+    {
+        return __x * __y;
+    }
+};
 
 int
 main()
 {
+    {
+        using ValueType = ::std::uint64_t;
+        using BinaryPredicate = UserBinaryPredicate<ValueType>;
+        using BinaryOperation = UserBinaryOperation<ValueType>;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_with_buffers<class KernelName1, std::uint64_t>();
-    test_with_buffers<class KernelName2, std::complex<float>>();
-    size_t n = 10000;
+        // Run tests for USM shared memory
+        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+        // Run tests for USM device memory
+        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    // Run tests for USM shared memory
-    test_with_usm<sycl::usm::alloc::shared, class KernelName3, std::uint64_t>(n, std::equal_to<>(), sycl::plus<>(),
-                                                                              PrepData());
-    // No known identity (legacy range algorithm)
-    test_with_usm<sycl::usm::alloc::shared, class KernelName4, std::complex<float>>(n, std::equal_to<>(),
-                                                                                    sycl::plus<>(), PrepData());
-    // Run tests for USM device memory
-    test_with_usm<sycl::usm::alloc::device, class KernelName5, std::uint64_t>(n, std::equal_to<>(), sycl::plus<>(),
-                                                                              PrepData());
-    // No known identity (legacy range algorithm)
-    test_with_usm<sycl::usm::alloc::device, class KernelName6, std::complex<float>>(n, std::equal_to<>(),
-                                                                                    sycl::plus<>(), PrepData());
+#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#    if TEST_DPCPP_BACKEND_PRESENT
+        test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+#else
+        test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
+#    endif // TEST_DPCPP_BACKEND_PRESENT
+#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+    }
 
-    //Mark each segment start with a 1
-    auto flag_pred = [](const auto& a, const auto& b) {
-        using KeyT = ::std::decay_t<decltype(b)>;
-        return b != KeyT(1);
-    };
-    test_with_usm<sycl::usm::alloc::device, class KernelName10, std::int32_t>(n, flag_pred, sycl::plus<>(),
-                                                                              PrepDataFlagPred());
+    {
+        using ValueType = ::std::complex<float>;
+        using BinaryPredicate = UserBinaryPredicate<ValueType>;
+        using BinaryOperation = UserBinaryOperation<ValueType>;
 
-    // Use maximum as binary op
-    test_with_usm<sycl::usm::alloc::device, class KernelName11, std::int32_t>(n, std::equal_to<>(), sycl::maximum<>(),
-                                                                              PrepRandomData());
+#if TEST_DPCPP_BACKEND_PRESENT
+        // Run tests for USM shared memory
+        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+        // Run tests for USM device memory
+        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+        // test with flag pred
+        test_flag_pred<sycl::usm::alloc::device, class KernelName7, std::uint64_t>();
+        test_flag_pred<sycl::usm::alloc::device, class KernelName8, dpl::complex<float>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    n = 100000;
-    // Random Data
-    test_with_usm<sycl::usm::alloc::device, class KernelName7, std::int32_t>(n, std::equal_to<>(), sycl::plus<>(),
-                                                                             PrepRandomData());
-
-    n = 1000;
-    //Trivial Data (1000 segments of length 1)
-    test_with_usm<sycl::usm::alloc::device, class KernelName8, std::int32_t>(n, std::equal_to<>(), sycl::plus<>(),
-                                                                             PrepTrivialData());
-    n = 1;
-    //Trivial Data (1 segment of length 1)
-    test_with_usm<sycl::usm::alloc::device, class KernelName9, std::int32_t>(n, std::equal_to<>(), sycl::plus<>(),
-                                                                             PrepTrivialData());
-
-    // test with flag pred
-    test_flag_pred<sycl::usm::alloc::device, class KernelName7, std::uint64_t>();
-    test_flag_pred<sycl::usm::alloc::device, class KernelName8, dpl::complex<float>>();
-
-    test_with_vector();
-#endif
-    test_on_host<int>();
-    test_on_host<dpl::complex<float>>();
+#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#    if TEST_DPCPP_BACKEND_PRESENT
+        test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+#else
+        test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
+#    endif // TEST_DPCPP_BACKEND_PRESENT
+#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+    }
 
     return TestUtils::done();
 }
