@@ -40,6 +40,9 @@
 #    include "oneapi/dpl/internal/reduce_by_segment_impl.h"
 #endif // _ONEDPL_EXECUTION_POLICIES_DEFINED
 
+// Due to mutial names injection (from oneapi::dpl:: to std:: and vice versa)
+// compiler (clang < 13.0) bug about "conflicting declarations" might occur.
+// Please see glue_algorithm_defs.h (e.g. is_heap) for workaround.
 namespace std
 {
 using oneapi::dpl::adjacent_find;
