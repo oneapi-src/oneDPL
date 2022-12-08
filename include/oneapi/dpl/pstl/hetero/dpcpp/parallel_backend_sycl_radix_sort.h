@@ -192,36 +192,20 @@ __get_buckets_in_type(::std::uint32_t __radix_bits)
     return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
 }
 
-// required for descending comparator support
-template <bool __flag>
-struct __invert_if
+template <typename _T>
+_T
+__invert(_T __value)
 {
-    template <typename _T>
-    _T
-    operator()(_T __value)
-    {
-        return __value;
-    }
-};
+    return ~__value;
+}
 
-// invert value if descending comparator is passed
-template <>
-struct __invert_if<true>
+// invertation for bool type have to be logical, rather than bit
+bool
+__invert(bool __value)
 {
-    template <typename _T>
-    _T
-    operator()(_T __value)
-    {
-        return ~__value;
-    }
+    return !__value;
+}
 
-    // invertation for bool type have to be logical, rather than bit
-    bool
-    operator()(bool __value)
-    {
-        return !__value;
-    }
-};
 
 // get bits value (bucket) in a certain radix position
 template <::std::uint32_t __radix_mask, bool __is_ascending, typename _T>
@@ -229,7 +213,8 @@ template <::std::uint32_t __radix_mask, bool __is_ascending, typename _T>
 __get_bucket(_T __value, ::std::uint32_t __radix_offset)
 {
     // invert value if we need to sort in descending order
-    __value = __invert_if<!__is_ascending>{}(__value);
+    if constexpr (!__is_ascending)
+        __invert(__value);
 
     // get bits under bucket mask
     return (__value >> __radix_offset) & _T(__radix_mask);
