@@ -176,7 +176,7 @@ __ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __diviso
     return (__number - 1) / __divisor + 1;
 }
 
-// Use sycl::clz to implement the analogue of C++20 std::bit_floor
+// Use sycl::clz to implement the analogue of C++20 std::bit_floor (the max power of 2 not exceeding the value)
 template <typename _T>
 inline __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
 __bit_floor(_T __x)
