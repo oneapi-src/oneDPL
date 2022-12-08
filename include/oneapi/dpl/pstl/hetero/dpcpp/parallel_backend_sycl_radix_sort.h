@@ -593,6 +593,9 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
         // access with values to reorder and reordered values
         oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
 
+        auto __offset_lacc =
+            sycl::accessor<_OffsetT, 1, access_mode::read_write, __dpl_sycl::__target::local>(__radix_states, __hdl);
+
         typename _PeerHelper::_TempStorageT __peer_temp(1, __hdl);
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -610,21 +613,25 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
                 _PeerHelper __peer_prefix_hlp(__self_item, __peer_temp);
 
+                const ::std::size_t __scan_size = __segments + 1;
+                for (::std::uint32_t __radix_state = __self_lidx; __radix_state < __radix_states; __radix_state += __sg_size)
+                {
+                    ::std::size_t __last_segment_bucket_idx = (__radix_state+1) * __scan_size - 1;
+                    __offset_lacc[__radix_state] = __offset_rng[__last_segment_bucket_idx];
+                }
+
+                auto __scan_begin = __offset_lacc.get_pointer();
+                __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __scan_begin, __scan_begin + __radix_states, __scan_begin,
+                                                   _OffsetT(0), __dpl_sycl::__plus<_OffsetT>{});
+
                 // 1. create a private array for storing offset values
                 //    and add total offset and offset for compute unit for a certain radix state
                 _OffsetT __offset_arr[__radix_states];
-                const ::std::size_t __scan_size = __segments + 1;
-                _OffsetT __scanned_bin = 0;
-                __offset_arr[0] = __offset_rng[__wgroup_idx];
-                for (::std::uint32_t __radix_state_idx = 1; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
                 {
                     const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
+                    __offset_arr[__radix_state_idx] = __offset_lacc[__radix_state_idx] + __offset_rng[__local_offset_idx];
 
-                    //scan bins (serial)
-                    ::std::size_t __last_segment_bucket_idx = __radix_state_idx * __scan_size - 1;
-                    __scanned_bin += __offset_rng[__last_segment_bucket_idx];
-
-                    __offset_arr[__radix_state_idx] = __scanned_bin + __offset_rng[__local_offset_idx];
                 }
 
                 // find offsets for the same values within a segment and fill the resulting buffer
