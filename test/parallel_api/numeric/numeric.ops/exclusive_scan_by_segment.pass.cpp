@@ -88,7 +88,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         if (n < 1)
             return;
 
-        assert(init == 0 || init == 1);
         int segment_length = 1;
         auto expected_segment_sum = init;
         using key_type = typename ::std::decay_t<decltype(host_keys[0])>;
@@ -272,7 +271,7 @@ struct UserBinaryPredicate
 };
 
 template <typename _Tp>
-struct UserBinaryMaxOperation
+struct UserBinaryOperation
 {
     _Tp
     operator()(const _Tp& __x, const _Tp& __y) const
@@ -282,10 +281,10 @@ struct UserBinaryMaxOperation
 };
 
 template <typename _Tp>
-struct UserBinaryComplexMaxOperation
+struct UserBinaryOperation<::std::complex<_Tp>>
 {
-    _Tp
-    operator()(const _Tp& __x, const _Tp& __y) const
+    ::std::complex<_Tp>
+    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
     {
         return (::std::abs(__x) < ::std::abs(__y)) ? ::std::abs(__y) : std::abs(__x);
     }
@@ -297,7 +296,7 @@ main()
     {
         using ValueType = ::std::uint64_t;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryMaxOperation<ValueType>;
+        using BinaryOperation = UserBinaryOperation<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory
@@ -320,7 +319,8 @@ main()
     {
         using ValueType = ::std::complex<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryComplexMaxOperation<ValueType>;
+        using BinaryOperation = UserBinaryOperation<ValueType>;
+
 #if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory
         test3buffers<sycl::usm::alloc::shared,
