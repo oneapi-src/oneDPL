@@ -244,6 +244,8 @@ struct reverse_view_simple
 
     _R __r;
 
+    reverse_view_simple(_R __rng) : __r(__rng){}
+
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])

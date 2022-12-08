@@ -957,22 +957,23 @@ struct __brick_shift_left
 
 struct __brick_assign_key_position
 {
-    // __a is a tuple {i, i-th+1 key, i-th key}
+    // __a is a tuple {i, (i-1)-th key, i-th key}
     // __b is a tuple {key, index} that stores the key and index where a new segment begins
     template <typename _T1, typename _T2>
     void
     operator()(const _T1& __a, _T2&& __b) const
     {
         ::std::get<0>(::std::forward<_T2>(__b)) = ::std::get<2>(__a);     // store new key value
-        ::std::get<1>(::std::forward<_T2>(__b)) = ::std::get<0>(__a) + 1; // store index of new key
+        ::std::get<1>(::std::forward<_T2>(__b)) = ::std::get<0>(__a); // store index of new key
     }
 };
 
+
 // reduce the values in a segment associated with a key
-template <typename _BinaryOperator>
+template <typename _BinaryOperator, typename _Size>
 struct __brick_reduce_idx
 {
-    __brick_reduce_idx(const _BinaryOperator& __b) : __binary_op(__b) {}
+    __brick_reduce_idx(const _BinaryOperator& __b, const _Size __n_) : __binary_op(__b), __n(__n_) {}
 
     template <typename _Idx, typename _Values>
     auto
@@ -981,22 +982,24 @@ struct __brick_reduce_idx
         auto __res = __values[__segment_begin];
         for (++__segment_begin; __segment_begin < __segment_end; ++__segment_begin)
             __res = __binary_op(__res, __values[__segment_begin]);
-
         return __res;
     }
 
-    template <typename _ItemId, typename _ReduceIdx, typename _Values, typename _OutValues>
+    template <typename _ItemId, typename _ReduceIdx, typename _KeysIn, typename _KeysOut, typename _Values, typename _OutValues>
     void
-    operator()(const _ItemId __idx, const _ReduceIdx& __segment_ends, const _Values& __values,
+    operator()(const _ItemId __idx, const _ReduceIdx& __segment_starts, const _KeysIn& __keys_in, const _KeysOut& __keys_out, const _Values& __values,
                _OutValues& __out_values) const
     {
-        using __value_type = decltype(__segment_ends[__idx]);
-        __value_type __segment_begin = (__idx == 0) ? __value_type(0) : __segment_ends[__idx - 1];
-        __out_values[__idx] = reduce(__segment_begin, __segment_ends[__idx], __values);
+        using __value_type = decltype(__segment_starts[__idx]);
+        __value_type __segment_end = (__idx == __segment_starts.size() - 1) ? __n : __segment_starts[__idx + 1];
+        __out_values[__idx] = reduce(__segment_starts[__idx], __segment_end, __values);
+        __keys_out[__idx] = __keys_in[__idx];
+        
     }
 
   private:
     _BinaryOperator __binary_op;
+    _Size __n;
 };
 
 } // namespace unseq_backend
