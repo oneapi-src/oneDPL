@@ -192,6 +192,7 @@ __get_buckets_in_type(::std::uint32_t __radix_bits)
     return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
 }
 
+// bitwise inversion for descending sorting
 template <typename _T>
 _T
 __invert(_T __value)
@@ -199,7 +200,7 @@ __invert(_T __value)
     return ~__value;
 }
 
-// invertation for bool type have to be logical, rather than bit
+// inversion of bool type has to be logical, not bitwise
 bool
 __invert(bool __value)
 {
@@ -214,7 +215,7 @@ __get_bucket(_T __value, ::std::uint32_t __radix_offset)
 {
     // invert value if we need to sort in descending order
     if constexpr (!__is_ascending)
-        __invert(__value);
+        __value = __invert(__value);
 
     // get bits under bucket mask
     return (__value >> __radix_offset) & _T(__radix_mask);
@@ -302,7 +303,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                         // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                         __ordered_t<_ValueT> __val = __to_ordered(__val_rng[__val_idx]);
                         ::std::uint32_t __bucket =
-                            __get_bucket<__radix_states - 1, __is_ascending>(__val, __radix_offset);
+                            __get_bucket<(1 << __radix_bits) - 1, __is_ascending>(__val, __radix_offset);
                         // increment counter for this bit bucket
                         ++__count_arr[__bucket];
                     }
@@ -611,7 +612,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                     ::std::uint32_t __bucket =
-                        __get_bucket<__radix_states - 1, __is_ascending>(__batch_val, __radix_offset);
+                        __get_bucket<(1 << __radix_bits) - 1, __is_ascending>(__batch_val, __radix_offset);
 
                     _OffsetT __new_offset_idx = 0;
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
