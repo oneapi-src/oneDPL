@@ -963,11 +963,10 @@ struct __brick_assign_key_position
     void
     operator()(const _T1& __a, _T2&& __b) const
     {
-        ::std::get<0>(::std::forward<_T2>(__b)) = ::std::get<2>(__a);     // store new key value
+        ::std::get<0>(::std::forward<_T2>(__b)) = ::std::get<2>(__a); // store new key value
         ::std::get<1>(::std::forward<_T2>(__b)) = ::std::get<0>(__a); // store index of new key
     }
 };
-
 
 // reduce the values in a segment associated with a key
 template <typename _BinaryOperator, typename _Size>
@@ -985,16 +984,16 @@ struct __brick_reduce_idx
         return __res;
     }
 
-    template <typename _ItemId, typename _ReduceIdx, typename _KeysIn, typename _KeysOut, typename _Values, typename _OutValues>
+    template <typename _ItemId, typename _ReduceIdx, typename _KeysIn, typename _KeysOut, typename _Values,
+              typename _OutValues>
     void
-    operator()(const _ItemId __idx, const _ReduceIdx& __segment_starts, const _KeysIn& __keys_in, const _KeysOut& __keys_out, const _Values& __values,
-               _OutValues& __out_values) const
+    operator()(const _ItemId __idx, const _ReduceIdx& __segment_starts, const _KeysIn& __keys_in,
+               const _KeysOut& __keys_out, const _Values& __values, _OutValues& __out_values) const
     {
         using __value_type = decltype(__segment_starts[__idx]);
         __value_type __segment_end = (__idx == __segment_starts.size() - 1) ? __n : __segment_starts[__idx + 1];
         __out_values[__idx] = reduce(__segment_starts[__idx], __segment_end, __values);
         __keys_out[__idx] = __keys_in[__idx];
-        
     }
 
   private:

@@ -726,14 +726,14 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
                           },
                           unseq_backend::__brick_assign_key_position{});
 
-
     //reduce by segment and copy keys
     // Views for __idx and __tmp_out_keys adjust for the offset from the previous reversed operation
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
-        oneapi::dpl::__ranges::drop_view_simple(experimental::ranges::views::all_read(__idx), __n - __intermediate_result_end),
+        oneapi::dpl::__ranges::drop_view_simple(experimental::ranges::views::all_read(__idx),
+                                                __n - __intermediate_result_end),
         oneapi::dpl::__ranges::drop_view_simple(experimental::ranges::views::all_read(__tmp_out_keys),
                                                 __n - __intermediate_result_end),
         experimental::ranges::views::all_write(__tmp_out_keys2), ::std::forward<_Range2>(__values),
@@ -748,8 +748,8 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // Reversing keys views to be able to compare (i-1)-th and (i)-th key using drop_view with aligned sequences,
     //  dropping the last key for the i-1 sequence.  Only taking the appropriate number of keys to start with here.
-    auto __r_new_keys =
-        oneapi::dpl::__ranges::reverse_view_simple(oneapi::dpl::__ranges::take_view_simple(__new_keys, __intermediate_result_end));
+    auto __r_new_keys = oneapi::dpl::__ranges::reverse_view_simple(
+        oneapi::dpl::__ranges::take_view_simple(__new_keys, __intermediate_result_end));
 
     auto __r_k3 = oneapi::dpl::__ranges::drop_view_simple(__r_new_keys, 1);
 
@@ -786,7 +786,8 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
-        unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(__binary_op, __intermediate_result_end),
+        unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
+            __binary_op, __intermediate_result_end),
         __result_end,
         oneapi::dpl::__ranges::drop_view_simple(experimental::ranges::views::all_read(__idx), __n - __result_end),
         oneapi::dpl::__ranges::drop_view_simple(experimental::ranges::views::all_read(__tmp_out_keys),
