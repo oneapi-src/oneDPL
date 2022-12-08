@@ -251,6 +251,75 @@ test_with_vector()
         }
     }
 }
+
+
+template <sycl::usm::alloc alloc_type, typename KernelName, typename T>
+void
+test_flag_pred()
+{
+    sycl::queue q;
+
+    // Initialize data
+    //T keys[n1] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 };
+    //T vals[n1] = { 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1 };
+
+    // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, 0};
+    // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, 0};
+
+    auto prepare_data = [](int n, T* key_head, T* val_head, T* key_res_head, T* val_res_head)
+        {
+            for (int i = 0; i < n; ++i)
+            {
+                key_head[i] = i % 5 == 0 ? 1 : 0;
+                val_head[i] = i % 4 + 1;
+            }
+        };
+
+    constexpr int n = 13;
+    T key_head_on_host[n] = {};
+    T val_head_on_host[n] = {};
+    T key_res_head_on_host[n] = {};
+    T val_res_head_on_host[n] = {};
+
+    prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
+    auto flag_pred = [](const auto& a, const auto& b) {
+        using KeyT = ::std::decay_t<decltype(b)>;
+        return b != KeyT(1);
+    };
+    // allocate USM memory and copying data to USM shared/device memory
+    TestUtils::usm_data_transfer<alloc_type, T> dt_helper1(q, std::begin(key_head_on_host),     std::end(key_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, T> dt_helper2(q, std::begin(val_head_on_host),     std::end(val_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, T> dt_helper3(q, std::begin(key_res_head_on_host), std::end(key_res_head_on_host));
+    TestUtils::usm_data_transfer<alloc_type, T> dt_helper4(q, std::begin(val_res_head_on_host), std::end(val_res_head_on_host));
+    auto key_head     = dt_helper1.get_data();
+    auto val_head     = dt_helper2.get_data();
+    auto key_res_head = dt_helper3.get_data();
+    auto val_res_head = dt_helper4.get_data();
+
+    // call algorithm
+    auto new_policy = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
+        TestUtils::unique_kernel_name<KernelName, 1>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
+    auto res1 =
+        oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head, flag_pred, std::plus<T>());
+
+    //retrieve result on the host and check the result
+    dt_helper3.retrieve_data(key_res_head_on_host);
+    dt_helper4.retrieve_data(val_res_head_on_host);
+
+    // check values
+    auto count = std::distance(key_res_head, res1.first);
+    ASSERT_EQUAL(count, 3);
+    ASSERT_EQUAL(key_res_head_on_host[0], T(1));
+    ASSERT_EQUAL(val_res_head_on_host[0], T(11));
+    ASSERT_EQUAL(key_res_head_on_host[1], T(1));
+    ASSERT_EQUAL(val_res_head_on_host[1], T(12));
+    ASSERT_EQUAL(key_res_head_on_host[2], T(1));
+    ASSERT_EQUAL(val_res_head_on_host[2], T(8));
+}
+
+
+
+
 #endif
 
 template <typename T>
@@ -288,6 +357,10 @@ int main() {
     // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device, class KernelName5, std::uint64_t>();
     test_with_usm<sycl::usm::alloc::device, class KernelName6, dpl::complex<float>>();
+
+    // test with flag pred
+    test_flag_pred<sycl::usm::alloc::device, class KernelName7, std::uint64_t>();
+    test_flag_pred<sycl::usm::alloc::device, class KernelName8, dpl::complex<float>>();
 
     test_with_vector();
 #endif
