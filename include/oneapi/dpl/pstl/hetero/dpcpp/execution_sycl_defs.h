@@ -388,10 +388,16 @@ __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kerne
     const ::std::uint32_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
+            __device
+#    if _ONEDPL_LIBSYCL_VERSION < 60000
+            ,
+            sycl::range<3> { __wg_size, 1, 1 }
+#    endif
+        );
 #else
         __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
-#endif
             __device, sycl::range<3>{__wg_size, 1, 1});
+#endif
     return __sg_size;
 }
 
