@@ -725,8 +725,9 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
-        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __intermediate_result_end), ::std::forward<_Range2>(__values),
-        experimental::ranges::views::all_write(__tmp_out_values))
+        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
+                                                __intermediate_result_end),
+        ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
         .wait();
 
     // Round 2: final reduction to get result for each segment of equal adjacent keys
@@ -736,7 +737,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // Replicating first element of key views to be able to compare (i-1)-th and (i)-th key,
     //  dropping the last key for the i-1 sequence.  Only taking the appropriate number of keys to start with here.
-     auto __clipped_new_keys = oneapi::dpl::__ranges::take_view_simple(__new_keys, __intermediate_result_end);
+    auto __clipped_new_keys = oneapi::dpl::__ranges::take_view_simple(__new_keys, __intermediate_result_end);
 
     auto __k3 = oneapi::dpl::__ranges::replicate_start_view_simple(
         oneapi::dpl::__ranges::take_view_simple(__clipped_new_keys, __intermediate_result_end - 1), 1);
@@ -771,9 +772,10 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
-            __binary_op, __intermediate_result_end), __result_end,
-        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __result_end), experimental::ranges::views::all_read(__tmp_out_values),
-        ::std::forward<_Range4>(__out_values))
+            __binary_op, __intermediate_result_end),
+        __result_end,
+        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __result_end),
+        experimental::ranges::views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
         .wait();
 
     return __result_end;

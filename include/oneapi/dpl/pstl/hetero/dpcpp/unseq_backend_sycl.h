@@ -990,7 +990,8 @@ struct __brick_reduce_idx
                _OutValues& __out_values) const
     {
         using __value_type = decltype(__segment_starts[__idx]);
-        __value_type __segment_end = (__idx == __segment_starts.size() - 1) ? __value_type(__n) : __segment_starts[__idx + 1];
+        __value_type __segment_end =
+            (__idx == __segment_starts.size() - 1) ? __value_type(__n) : __segment_starts[__idx + 1];
         __out_values[__idx] = reduce(__segment_starts[__idx], __segment_end, __values);
     }
 
