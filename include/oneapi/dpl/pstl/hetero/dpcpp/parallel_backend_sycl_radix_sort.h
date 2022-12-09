@@ -675,10 +675,8 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     using _AscendingType = ::std::bool_constant<__is_ascending>;
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
 
-    using _RadixSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_one_kernel, _CustomName,
-                                                                               _RadixBitsType, _AscendingType,
-                                                                               __decay_t<_Range>>;
+    using _RadixSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        __radix_sort_one_kernel, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_Range>>;
 
     // additional __radix_states elements are used for getting local offsets from count values
     const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states;
@@ -691,19 +689,21 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         __out_buffer_holder.get_buffer());
 
     sycl::event __event{};
-    if(__n < 512)                                                       // v--- block size
+#if 0
+    if (__n < 512)                                                      // v--- block size
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, 1, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
-    else if(__n == 512)
+    else if (__n == 512)
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 1>, 2, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
-    else if(__n < 4096)
+    else if (__n < 4096)
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 2>, 8, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
-    else if(__n < 64536)
+    else if (__n < 64536)
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 3>, 32, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
     else
+#endif
     {
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
