@@ -24,7 +24,6 @@
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
-#include "parallel_backend_sycl_radix_sort_one_wg.h"
 
 namespace oneapi
 {
@@ -642,6 +641,9 @@ struct __parallel_radix_sort_iteration
     }
 }; // struct __parallel_radix_sort_iteration
 
+// sorting by just one work group
+#include "parallel_backend_sycl_radix_sort_one_wg.h"
+
 //-----------------------------------------------------------------------
 // radix sort: main function
 //-----------------------------------------------------------------------
@@ -656,9 +658,17 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     const ::std::size_t __n = __in_rng.size();
     assert(__n > 1);
 
-    const ::std::size_t __wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    // types
+    using _DecExecutionPolicy = __decay_t<_ExecutionPolicy>;
+    using _T = oneapi::dpl::__internal::__value_t<_Range>;
 
+    const ::std::size_t __wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    const ::std::size_t __segments = __ceiling_div(__n, __wg_size);
+
+    // radix bits represent number of processed bits in each value during one iteration
     constexpr ::std::uint32_t __radix_bits = 4;
+    constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
+    const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
     // Injecting ascending / descending status into custom name to prevent clashing kernel names
     using _RadixBitsType = ::std::integral_constant<::std::uint32_t, __radix_bits>;
@@ -669,35 +679,30 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__radix_sort_one_kernel, _CustomName,
                                                                                _RadixBitsType, _AscendingType,
                                                                                __decay_t<_Range>>;
-    // types
-    using _DecExecutionPolicy = __decay_t<_ExecutionPolicy>;
-    using _T = oneapi::dpl::__internal::__value_t<_Range>;
-
-    // memory for storing values sorted for an iteration
-    __internal::__buffer<_DecExecutionPolicy, _T> __out_buffer_holder{__exec, __n};
-    auto __out_rng = oneapi::dpl::__ranges::all_view<_T, __par_backend_hetero::access_mode::read_write>(
-        __out_buffer_holder.get_buffer());
-
-    const ::std::size_t __segments = __get_roundedup_div(__n, __wg_size);
-
-    // radix bits represent number of processed bits in each value during one iteration
-    constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
-    const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
     // additional __radix_states elements are used for getting local offsets from count values
     const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states;
     // memory for storing count and offset values
     auto __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
 
-    sycl::event __iteration_event{};
-    if(__n < 512)
-        __iteration_event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, 1/*block size*/, __is_comp_asc, __radix_bits>(__exec.queue(), __in_rng, __out_rng, __wg_size);
+    // memory for storing values sorted for an iteration
+    __internal::__buffer<_DecExecutionPolicy, _T> __out_buffer_holder{__exec, __n};
+    auto __out_rng = oneapi::dpl::__ranges::all_view<_T, __par_backend_hetero::access_mode::read_write>(
+        __out_buffer_holder.get_buffer());
+
+    sycl::event __event{};
+    if(__n < 512)                                                       // v--- block size
+        __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, 1, __radix_bits, __is_ascending>(
+            __exec.queue(), __in_rng, __out_rng, __wg_size);
     else if(__n == 512)
-        __iteration_event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 1>, 2/*block size*/, __is_comp_asc, __radix_bits>(__exec.queue(), __in_rng, __out_rng, __wg_size);
+        __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 1>, 2, __radix_bits, __is_ascending>(
+            __exec.queue(), __in_rng, __out_rng, __wg_size);
     else if(__n < 4096)
-        __iteration_event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 2>, 8/*block size*/, __is_comp_asc, __radix_bits>(__exec.queue(), __in_rng, __out_rng, __wg_size);
+        __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 2>, 8, __radix_bits, __is_ascending>(
+            __exec.queue(), __in_rng, __out_rng, __wg_size);
     else if(__n < 64536)
-        __iteration_event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 3>, 32/*block size*/, __is_comp_asc, __radix_bits>(__exec.queue(), __in_rng, __out_rng, __wg_size);
+        __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 3>, 32, __radix_bits, __is_ascending>(
+            __exec.queue(), __in_rng, __out_rng, __wg_size);
     else
     {
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
@@ -711,7 +716,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
                 ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
     }
 
-    return __future(__iteration_event, __tmp_buf, __out_buffer_holder.get_buffer());
+    return __future(__event, __tmp_buf, __out_buffer_holder.get_buffer());
 }
 
 } // namespace __par_backend_hetero
