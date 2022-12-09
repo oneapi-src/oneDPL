@@ -133,7 +133,7 @@ using __ordered_t = typename __ordered<_T>::_type;
 // for already ordered types (any uints) we use the same type
 template <typename _T>
 inline __enable_if_t<::std::is_same<_T, __ordered_t<_T>>::value, __ordered_t<_T>>
-__convert_to_ordered(_T __value)
+__to_ordered(_T __value)
 {
     return __value;
 }
@@ -142,7 +142,7 @@ __convert_to_ordered(_T __value)
 template <typename _T>
 inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && !::std::is_floating_point<_T>::value,
                      __ordered_t<_T>>
-__convert_to_ordered(_T __value)
+__to_ordered(_T __value)
 {
     _T __result = __value ^ __get_ordered<sizeof(_T), true>::__mask;
     return *reinterpret_cast<__ordered_t<_T>*>(&__result);
@@ -152,7 +152,7 @@ __convert_to_ordered(_T __value)
 template <typename _T>
 inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && ::std::is_floating_point<_T>::value,
                      __ordered_t<_T>>
-__convert_to_ordered(_T __value)
+__to_ordered(_T __value)
 {
     __ordered_t<_T> __uvalue = *reinterpret_cast<__ordered_t<_T>*>(&__value);
     // check if value negative
@@ -165,30 +165,24 @@ __convert_to_ordered(_T __value)
 }
 
 //------------------------------------------------------------------------
-// radix sort: run-time device info functions
+// radix sort: bit pattern functions
 //------------------------------------------------------------------------
 
 // get rounded up result of (__number / __divisor)
 template <typename _T1, typename _T2>
 inline auto
-__get_roundedup_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
+__ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
 {
     return (__number - 1) / __divisor + 1;
 }
 
+// Use sycl::clz to implement the analogue of C++20 std::bit_floor (the max power of 2 not exceeding the value)
 template <typename _T>
-inline _T
-__get_rounded_down_power2(_T __x)
+inline __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
+__bit_floor(_T __x)
 {
-    _T __val = 1;
-    while (__x >= 2 * __val)
-        __val <<= 1;
-    return __val;
+    return 1 << (sycl::clz(_T(0)) - sycl::clz(__x) - 1);
 }
-
-//------------------------------------------------------------------------
-// radix sort: bit pattern functions
-//------------------------------------------------------------------------
 
 // get number of buckets (size of radix bits) in T
 template <typename _T>
@@ -198,54 +192,33 @@ __get_buckets_in_type(::std::uint32_t __radix_bits)
     return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
 }
 
-// required for descending comparator support
-template <bool __flag>
-struct __invert_if
+// bitwise inversion for descending sorting
+template <typename _T>
+_T
+__invert(_T __value)
 {
-    template <typename _T>
-    _T
-    operator()(_T __value)
-    {
-        return __value;
-    }
-};
+    return ~__value;
+}
 
-// invert value if descending comparator is passed
-template <>
-struct __invert_if<true>
+// inversion of bool type has to be logical, not bitwise
+bool
+__invert(bool __value)
 {
-    template <typename _T>
-    _T
-    operator()(_T __value)
-    {
-        return ~__value;
-    }
+    return !__value;
+}
 
-    // invertation for bool type have to be logical, rather than bit
-    bool
-    operator()(bool __value)
-    {
-        return !__value;
-    }
-};
 
-// get bit values in a certain bucket of a value
-template <::std::uint32_t __radix_bits, bool __is_comp_asc, typename _T>
+// get bits value (bucket) in a certain radix position
+template <::std::uint32_t __radix_mask, bool __is_ascending, typename _T>
 ::std::uint32_t
-__get_bucket_value(_T __value, ::std::uint32_t __radix_iter)
+__get_bucket(_T __value, ::std::uint32_t __radix_offset)
 {
     // invert value if we need to sort in descending order
-    __value = __invert_if<!__is_comp_asc>{}(__value);
-
-    // get bucket offset idx from the end of bit type (least significant bits)
-    ::std::uint32_t __bucket_offset = __radix_iter * __radix_bits;
-
-    // get offset mask for one bucket, e.g.
-    // radix_bits=2: 0000 0001 -> 0000 0100 -> 0000 0011
-    __ordered_t<_T> __bucket_mask = (1u << __radix_bits) - 1u;
+    if constexpr (!__is_ascending)
+        __value = __invert(__value);
 
     // get bits under bucket mask
-    return (__value >> __bucket_offset) & __bucket_mask;
+    return (__value >> __radix_offset) & _T(__radix_mask);
 }
 
 template <typename _T, bool __is_comp_asc>
@@ -266,7 +239,7 @@ __get_last_value()
 // radix sort: count kernel (per iteration)
 //-----------------------------------------------------------------------
 
-template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, typename _ExecutionPolicy,
+template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascending, typename _ExecutionPolicy,
           typename _ValRange, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
           , typename _Kernel
@@ -274,7 +247,7 @@ template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc
           >
 sycl::event
 __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
-                          ::std::uint32_t __radix_iter, _ValRange&& __val_rng, _CountBuf& __count_buf,
+                          ::std::uint32_t __radix_offset, _ValRange&& __val_rng, _CountBuf& __count_buf,
                           sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
                           , _Kernel& __kernel
@@ -286,12 +259,12 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
     using _CountT = typename _CountBuf::value_type;
 
     // radix states used for an array storing bucket state counters
-    const ::std::uint32_t __radix_states = 1 << __radix_bits;
+    constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
 
-    const auto __val_buf_size = __val_rng.size();
+    const ::std::size_t __val_buf_size = __val_rng.size();
     // iteration space info
-    const ::std::size_t __blocks_total = __get_roundedup_div(__val_buf_size, __block_size);
-    const ::std::size_t __blocks_per_segment = __get_roundedup_div(__blocks_total, __segments);
+    const ::std::size_t __blocks_total = __ceiling_div(__val_buf_size, __block_size);
+    const ::std::size_t __blocks_per_segment = __ceiling_div(__blocks_total, __segments);
 
     auto __count_rng =
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
@@ -327,13 +300,12 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                     // TODO: profile how it affects performance
                     if (__val_idx < __val_buf_size)
                     {
-                        // get value, convert it to ordered (in terms of bitness)
-                        __ordered_t<_ValueT> __val = __convert_to_ordered(__val_rng[__val_idx]);
-                        // get bit values in a certain bucket of a value
-                        ::std::uint32_t __bucket_val =
-                            __get_bucket_value<__radix_bits, __is_comp_asc>(__val, __radix_iter);
+                        // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
+                        __ordered_t<_ValueT> __val = __to_ordered(__val_rng[__val_idx]);
+                        ::std::uint32_t __bucket =
+                            __get_bucket<(1 << __radix_bits) - 1, __is_ascending>(__val, __radix_offset);
                         // increment counter for this bit bucket
-                        ++__count_arr[__bucket_val];
+                        ++__count_arr[__bucket];
                     }
                 }
                 // 1.3. count per witem: write private count array to local count array
@@ -551,7 +523,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 //-----------------------------------------------------------------------
 // radix sort: a function for reorder phase of one iteration
 //-----------------------------------------------------------------------
-template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc, __peer_prefix_algo _PeerAlgo,
+template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascending, __peer_prefix_algo _PeerAlgo,
           typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf
 #if _ONEDPL_COMPILE_KERNEL
           , typename _Kernel
@@ -559,7 +531,7 @@ template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_comp_asc
           >
 sycl::event
 __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
-                            ::std::size_t __sg_size, ::std::uint32_t __radix_iter, _InRange&& __input_rng,
+                            ::std::size_t __sg_size, ::std::uint32_t __radix_offset, _InRange&& __input_rng,
                             _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
                             , _Kernel& __kernel
@@ -573,12 +545,12 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
     // item info
     const ::std::size_t __it_size = __block_size / __sg_size;
-    const auto __inout_buf_size = __output_rng.size();
+    const ::std::size_t __inout_buf_size = __output_rng.size();
 
     // iteration space info
-    const ::std::uint32_t __radix_states = 1 << __radix_bits;
-    const ::std::size_t __blocks_total = __get_roundedup_div(__inout_buf_size, __block_size);
-    const ::std::size_t __blocks_per_segment = __get_roundedup_div(__blocks_total, __segments);
+    constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
+    const ::std::size_t __blocks_total = __ceiling_div(__inout_buf_size, __block_size);
+    const ::std::size_t __blocks_per_segment = __ceiling_div(__blocks_total, __segments);
 
     auto __offset_rng =
         oneapi::dpl::__ranges::all_view<::std::uint32_t, __par_backend_hetero::access_mode::read>(__offset_buf);
@@ -635,17 +607,17 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     // get value, convert it to ordered (in terms of bitness)
                     // if the index is outside of the range, use fake value which will not affect other values
                     __ordered_t<_InputT> __batch_val = __val_idx < __inout_buf_size
-                                                           ? __convert_to_ordered(__input_rng[__val_idx])
-                                                           : __get_last_value<__ordered_t<_InputT>, __is_comp_asc>();
+                                                           ? __to_ordered(__input_rng[__val_idx])
+                                                           : __get_last_value<__ordered_t<_InputT>, __is_ascending>();
 
-                    // get bit values in a certain bucket of a value
-                    ::std::uint32_t __bucket_val =
-                        __get_bucket_value<__radix_bits, __is_comp_asc>(__batch_val, __radix_iter);
+                    // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
+                    ::std::uint32_t __bucket =
+                        __get_bucket<(1 << __radix_bits) - 1, __is_ascending>(__batch_val, __radix_offset);
 
                     _OffsetT __new_offset_idx = 0;
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
                     {
-                        ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+                        ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
                         ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
                             __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
                         __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
@@ -664,17 +636,17 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 // radix sort: one iteration
 //-----------------------------------------------------------------------
 
-template <::std::uint32_t __radix_bits, bool __is_comp_asc, bool __even>
+template <::std::uint32_t __radix_bits, bool __is_ascending, bool __even>
 struct __parallel_radix_sort_iteration
 {
     template <typename... _Name>
-    using __count_phase = __radix_sort_count_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
+    using __count_phase = __radix_sort_count_kernel<__radix_bits, __is_ascending, __even, _Name...>;
     template <typename... _Name>
     using __local_scan_phase = __radix_sort_scan_kernel<__radix_bits, _Name...>;
     template <typename... _Name>
-    using __reorder_peer_phase = __radix_sort_reorder_peer_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
+    using __reorder_peer_phase = __radix_sort_reorder_peer_kernel<__radix_bits, __is_ascending, __even, _Name...>;
     template <typename... _Name>
-    using __reorder_phase = __radix_sort_reorder_kernel<__radix_bits, __is_comp_asc, __even, _Name...>;
+    using __reorder_phase = __radix_sort_reorder_kernel<__radix_bits, __is_ascending, __even, _Name...>;
 
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf>
     static sycl::event
@@ -715,17 +687,18 @@ struct __parallel_radix_sort_iteration
         // correct __block_size according to local memory limit in count phase
         const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size(
             __exec, sizeof(typename __decay_t<_TmpBuf>::value_type), __block_size * __radix_states);
-        __block_size = __get_roundedup_div(__max_allocation_size, __radix_states);
+        __block_size = __ceiling_div(__max_allocation_size, __radix_states);
 
         // block size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
-        __block_size = __get_rounded_down_power2(__block_size);
-        if (__block_size < __radix_states)
-            __block_size = __radix_states;
+        __block_size = sycl::max(__bit_floor(__block_size), ::std::size_t(__radix_states));
+
+        // Compute the radix position for the given iteration
+        ::std::uint32_t __radix_offset = __radix_iter * __radix_bits;
 
         // 1. Count Phase
-        sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_comp_asc>(
-            __exec, __segments, __block_size, __radix_iter, ::std::forward<_InRange>(__in_rng), __tmp_buf,
+        sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_ascending>(
+            __exec, __segments, __block_size, __radix_offset, ::std::forward<_InRange>(__in_rng), __tmp_buf,
             __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
             , __count_kernel
@@ -752,9 +725,9 @@ struct __parallel_radix_sort_iteration
             constexpr auto __peer_algorithm = __peer_prefix_algo::scan_then_broadcast;
 #endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
 
-            __reorder_event = __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_comp_asc,
+            __reorder_event = __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_ascending,
                                                           __peer_algorithm>(
-                __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
+                __exec, __segments, __block_size, __reorder_sg_size, __radix_offset, ::std::forward<_InRange>(__in_rng),
                 ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
                 , __reorder_peer_kernel
@@ -763,9 +736,9 @@ struct __parallel_radix_sort_iteration
         }
         else
         {
-            __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_comp_asc,
+            __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_ascending,
                                                           __peer_prefix_algo::scan_then_broadcast>(
-                __exec, __segments, __block_size, __reorder_sg_size, __radix_iter, ::std::forward<_InRange>(__in_rng),
+                __exec, __segments, __block_size, __reorder_sg_size, __radix_offset, ::std::forward<_InRange>(__in_rng),
                 ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
                 , __reorder_kernel
@@ -781,7 +754,7 @@ struct __parallel_radix_sort_iteration
 // radix sort: main function
 //-----------------------------------------------------------------------
 
-template <bool __is_comp_asc, typename _Range, typename _ExecutionPolicy>
+template <bool __is_ascending, typename _Range, typename _ExecutionPolicy>
 auto
 __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
 {
@@ -793,7 +766,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     using _T = oneapi::dpl::__internal::__value_t<_Range>;
 
     const ::std::size_t __wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    const ::std::size_t __segments = __get_roundedup_div(__n, __wg_size);
+    const ::std::size_t __segments = __ceiling_div(__n, __wg_size);
 
     // radix bits represent number of processed bits in each value during one iteration
     constexpr ::std::uint32_t __radix_bits = 4;
@@ -818,11 +791,11 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     {
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
-            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc, /*even=*/true>::submit(
+            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/true>::submit(
                 ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
                 ::std::forward<_Range>(__in_rng), __out_rng, __tmp_buf, __iteration_event);
         else //swap __in_rng and __out_rng
-            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_comp_asc, /*even=*/false>::submit(
+            __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
                 ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
                 __out_rng, ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
 
