@@ -260,11 +260,11 @@ test_flag_pred()
     sycl::queue q;
 
     // Initialize data
-    //T keys[n1] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 };
-    //T vals[n1] = { 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1 };
+    //T keys[n1] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 };
+    //T vals[n1] = { 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2 };
 
-    // keys_result = {1, 2, 3, 4, 1, 3, 1, 3, 0};
-    // vals_result = {1, 2, 3, 4, 2, 6, 2, 6, 0};
+    // keys_result = {1, 1, 1};
+    // vals_result = {11, 12, 10};
 
     auto prepare_data = [](int n, T* key_head, T* val_head, T* key_res_head, T* val_res_head)
         {
@@ -275,7 +275,7 @@ test_flag_pred()
             }
         };
 
-    constexpr int n = 13;
+    constexpr int n = 14;
     T key_head_on_host[n] = {};
     T val_head_on_host[n] = {};
     T key_res_head_on_host[n] = {};
@@ -314,7 +314,7 @@ test_flag_pred()
     ASSERT_EQUAL(key_res_head_on_host[1], T(1));
     ASSERT_EQUAL(val_res_head_on_host[1], T(12));
     ASSERT_EQUAL(key_res_head_on_host[2], T(1));
-    ASSERT_EQUAL(val_res_head_on_host[2], T(8));
+    ASSERT_EQUAL(val_res_head_on_host[2], T(10));
 }
 
 

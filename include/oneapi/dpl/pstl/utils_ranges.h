@@ -346,6 +346,43 @@ struct drop_view_simple
     }
 };
 
+template <typename _R, typename _Size>
+struct replicate_start_view_simple
+{
+    _R __r;
+    _Size __n;
+
+    replicate_start_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size)
+    {
+        assert(__n >= 0 && __n < __r.size());
+    }
+
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
+    template <typename Idx>
+    auto operator[](Idx __i) const -> decltype(__r[__i])
+    {
+        return (__i < __n) ? __r[0] : __r[__i - __n];
+    }
+
+    _Size
+    size() const
+    {
+        return __r.size() + __n;
+    }
+
+    bool
+    empty() const
+    {
+        return __r.size() == 0;
+    }
+
+    auto
+    base() const -> decltype(__r)
+    {
+        return __r;
+    }
+};
+
 //It is kind of pseudo-view for transfom_iterator support.
 template <typename _R, typename _F>
 struct transform_view_simple
