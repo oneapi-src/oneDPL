@@ -672,7 +672,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
 
     // Injecting ascending / descending status into custom name to prevent clashing kernel names
     using _RadixBitsType = ::std::integral_constant<::std::uint32_t, __radix_bits>;
-    using _AscendingType = ::std::bool_constant<__is_comp_asc>;
+    using _AscendingType = ::std::bool_constant<__is_ascending>;
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
 
     using _RadixSortKernel =
