@@ -689,21 +689,20 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         __out_buffer_holder.get_buffer());
 
     sycl::event __event{};
-#if 0
+
     if (__n < 512)                                                      // v--- block size
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, 1, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
     else if (__n == 512)
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 1>, 2, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
-    else if (__n < 4096)
+    else if (__n <= __wg_size*8)
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 2>, 8, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
-    else if (__n < 64536)
+    else if (__n <= __wg_size*32)
         __event = __group_radix_sort<__i_kernel_name<_RadixSortKernel, 3>, 32, __radix_bits, __is_ascending>(
             __exec.queue(), __in_rng, __out_rng, __wg_size);
     else
-#endif
     {
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
