@@ -29,24 +29,25 @@
 //namespace __par_backend_hetero
 //{
 
-template <int __radix, bool __is_asc, typename Bins, typename ScanSum, typename Src, typename Dst,
+template <int __block_size, int __radix, bool __is_asc, typename ScanSum, typename Src, typename Dst,
           typename IdxDst, typename ScanBins>
-void sort_iter(Bins bins, ScanSum scan_sum, sycl::nd_item<1> it, Src& src, Dst& res,
-               IdxDst& res_idx, ScanBins& scan_bins_lacc, int bin_count, int block_size, int wgSize, int N, int iter)
+void
+sort_iter(sycl::nd_item<1> it, Src& src, Dst& res, ::std::size_t N, ScanSum& scan_sum,
+          IdxDst& res_idx, ScanBins& scan_bins_lacc, int iter)
 {
-    auto wi = it.get_global_linear_id();
-    auto wg_i = it.get_local_linear_id();
-      
     auto wg = it.get_group();
-    auto wg_id = wg.get_group_linear_id();
+    auto wi = wg.get_local_linear_id();
+    assert( wi == it.get_global_linear_id() );
 
-    for(auto i = 0; i < block_size; ++i)
+    constexpr int bin_count = 1 << __radix;
+    int bins[bin_count] = {0};
+    for (auto i = 0; i < __block_size; ++i)
     {
-        const auto idx = wi*block_size + i;
-        if(idx < N)
+        const auto idx = wi * __block_size + i;
+        if (idx < N)
         {
             // (src[idx] & mask) >> mask_shift;
-            const int bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(src[idx]), iter*__radix);
+            const int bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(src[idx]), iter * __radix);
 
             //trivial exclusive scan within the WI block: for each element store the previous bin counter
             res_idx[i] = bins[bin];
@@ -56,34 +57,30 @@ void sort_iter(Bins bins, ScanSum scan_sum, sycl::nd_item<1> it, Src& src, Dst& 
         }
     }
 
-    for(auto i = 0; i < bin_count; ++i)
+    int init = 0;
+    for (auto i = 0; i < bin_count; ++i)
     {
         const int a = bins[i];
-        scan_sum[i] = sycl::inclusive_scan_over_group(wg, a, sycl::plus<>());
-    }
-    if(wg_i == wgSize - 1)
-    {
-        //exclusive scan for bins
-        int init = 0;
-        for(auto i = 0; i < bin_count; ++i)
+        scan_sum[i] = sycl::exclusive_scan_over_group(wg, a, sycl::plus<>());
+        if (wi == wg.get_local_linear_range() - 1)
         {
-            auto tmp = init;
-            init += scan_sum[i];
-            scan_bins_lacc[i] = tmp;
+            // the last WI can iteratively do exclusive scan for bins
+            scan_bins_lacc[i] = init;
+            init += scan_sum[i] + bins[i];
         }
     }
     it.barrier(sycl::access::fence_space::local_space);
 
-    for(auto i = 0; i < block_size; ++i)
+    for (auto i = 0; i < __block_size; ++i)
     {
-        const auto idx = wi*block_size + i;
-        if(idx < N)
+        const auto idx = wi * __block_size + i;
+        if (idx < N)
         {
             const auto val = src[idx];
             //(val & mask) >> mask_shift;
-            const int bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(val), iter*__radix);
+            const int bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(val), iter * __radix);
 
-            auto idx_d = res_idx[i] + scan_bins_lacc[bin] + scan_sum[bin] - bins[bin];
+            auto idx_d = scan_bins_lacc[bin] + scan_sum[bin] + res_idx[i];
 
             res[idx_d] = val;
         }
@@ -93,16 +90,18 @@ void sort_iter(Bins bins, ScanSum scan_sum, sycl::nd_item<1> it, Src& src, Dst& 
 
 template<typename _KernelName, int __block_size = 16/*from 8 to 64*/, ::std::uint32_t __radix = 4, bool __is_asc = true,
          typename _RangeIn, typename _RangeOut>
-auto __group_radix_sort(sycl::queue q, _RangeIn&& src, _RangeOut&& res, int max_wg_size)
+auto
+__group_radix_sort(sycl::queue q, _RangeIn&& src, _RangeOut&& res, int max_wg_size)
 {
-    const int N = src.size();
-    const auto wgSize = (N - 1) / __block_size + 1;
+    const ::std::size_t __data_size = src.size();
+    const auto wgSize = (__data_size - 1) / __block_size + 1;
     assert(wgSize <= max_wg_size);
 
     using _T = oneapi::dpl::__internal::__value_t<_RangeIn>;
 
     constexpr int bin_count = 1 << __radix;
     constexpr int iter_count = (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix;
+    assert("Number of iterations must be even" && iter_count % 2 == 0);
 
     auto context = q.get_context();
     sycl::kernel_id kernelId1 = sycl::get_kernel_id<_KernelName>();
@@ -115,27 +114,21 @@ auto __group_radix_sort(sycl::queue q, _RangeIn&& src, _RangeOut&& res, int max_
 
         cgh.use_kernel_bundle(bundle);
         cgh.parallel_for<_KernelName>(sycl::nd_range{sycl::range{wgSize}, sycl::range{wgSize}},
-        ([=](sycl::nd_item<1> it) {
-            assert( it.get_local_range(0)==wgSize );
-            // kernel code
-            int res_idx[__block_size];
-            for(auto iter = 0; iter < iter_count; ++iter)
-            {
-                int bins[bin_count] = {0};
-                int scan_sum[bin_count] = {0};
-
-                if(iter % 2 == 0)
-                    sort_iter<__radix, __is_asc>(bins, scan_sum, it, src, res, res_idx, scan_bins_lacc, bin_count,
-                                                 __block_size, wgSize, N, iter);
-                else
-                    sort_iter<__radix, __is_asc>(bins, scan_sum, it, res, src, res_idx, scan_bins_lacc, bin_count,
-                                                 __block_size, wgSize, N, iter);
-            }//for
-        }
-      ));
+            [=](sycl::nd_item<1> it) { // kernel code
+                assert( it.get_local_range(0)==wgSize );
+                int res_idx[__block_size];
+                int scan_sum[bin_count];
+                for (auto iter = 0; iter < iter_count; iter += 2)
+                {
+                    sort_iter<__block_size, __radix, __is_asc>(it, src, res, __data_size, scan_sum, res_idx,
+                                                               scan_bins_lacc, iter);
+                    sort_iter<__block_size, __radix, __is_asc>(it, res, src, __data_size, scan_sum, res_idx,
+                                                               scan_bins_lacc, iter + 1);
+                }
+            });
     });
 
-  return e;
+    return e;
 }
 
 
