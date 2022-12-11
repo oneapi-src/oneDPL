@@ -291,22 +291,6 @@ __get_buckets_in_type(::std::uint32_t __radix_bits)
     return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
 }
 
-// bitwise inversion for descending sorting
-template <typename _T>
-_T
-__invert(_T __value)
-{
-    return ~__value;
-}
-
-// inversion of bool type has to be logical, not bitwise
-bool
-__invert(bool __value)
-{
-    return !__value;
-}
-
-
 // get bits value (bucket) in a certain radix position
 template <::std::uint32_t __radix_mask, typename _T>
 ::std::uint32_t
