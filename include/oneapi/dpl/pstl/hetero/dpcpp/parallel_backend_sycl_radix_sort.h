@@ -20,12 +20,12 @@
 #include <type_traits>
 
 #if __cpluslplus >= 202002L && __has_include(<bit>)
-#include <bit>
+#  include <bit>
 #else
-#ifndef __has_builtin
-#define __has_builtin(x) (0)
-#endif
-#include <cstdlib>
+#  ifndef __has_builtin
+#    define __has_builtin(x) (0)
+#  endif
+#  include <cstdlib>
 #endif
 
 #include "sycl_defs.h"
@@ -58,27 +58,29 @@ class __radix_sort_reorder_kernel;
 // radix sort: bitwise order-preserving conversions to unsigned integrals
 //------------------------------------------------------------------------
 
-#if __cpluslplus >= 202002L  && __has_include(<bit>)
+#if __cpluslplus >= 202002L && __has_include(<bit>)
 template <typename _Dst, typename _Src>
-using __dpl_bit_cast = std::bit_cast<_Dst,_Src>;
+using __dpl_bit_cast = std::bit_cast<_Dst, _Src>;
 
 #elif __has_builtin(__builtin_bit_cast)
 template <typename _Dst, typename _Src>
-_Dst __dpl_bit_cast(const _Src& __src)
+_Dst
+__dpl_bit_cast(const _Src& __src)
 {
-    static_assert( sizeof(_Dst) == sizeof(_Src), "Bit conversion for types of different size" );
+    static_assert(sizeof(_Dst) == sizeof(_Src), "Bit conversion for types of different size");
     return __builtin_bit_cast(_Dst, __src);
 }
 
 #else
 template <typename _Dst, typename _Src>
-_Dst __dpl_bit_cast(const _Src& __src)
+_Dst
+__dpl_bit_cast(const _Src& __src)
 {
-    static_assert( sizeof(_Dst) == sizeof(_Src), "Bit conversion for types of different size" );
+    static_assert(sizeof(_Dst) == sizeof(_Src), "Bit conversion for types of different size");
     _Dst __result;
     std::memcpy(&__result, &__src, sizeof(_Dst));
     return __result;
-}    
+}
 #endif
 
 template <bool __is_ascending>
@@ -86,9 +88,9 @@ bool
 __order_preserving_cast(bool __val)
 {
     if constexpr (__is_ascending)
-        return val;
+        return __val;
     else
-        return !val;
+        return !__val;
 }
 
 template <bool __is_ascending, typename _UInt, typename = __enable_if_t<::std::is_unsigned_v<_UInt>>>
@@ -108,12 +110,12 @@ __order_preserving_cast(_Int __val)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
     // mask: 100..0 for ascending, 011..1 for descending
-    constexpr _UInt __mask = (__is_ascending)? 1 << std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
+    constexpr _UInt __mask = (__is_ascending) ? 1 << std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
     return __val ^ __mask;
 }
 
 template <bool __is_ascending, typename _Float,
-          typename = __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float)==sizeof(::std::uint32_t)>>
+          typename = __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t)>>
 ::std::uint32_t
 __order_preserving_cast(_Float __val)
 {
@@ -121,14 +123,14 @@ __order_preserving_cast(_Float __val)
     ::std::uint32_t __mask;
     // __uint32_val >> 31 takes the sign bit of the original value
     if constexpr (__is_ascending)
-        __mask = (__uint32_val >> 31 == 0)? 0x80000000u : 0xFFFFFFFFu;
+        __mask = (__uint32_val >> 31 == 0) ? 0x80000000u : 0xFFFFFFFFu;
     else
-        __mask = (__uint32_val >> 31 == 0)? 0x7FFFFFFFu : ::std::uint32_t(0);
+        __mask = (__uint32_val >> 31 == 0) ? 0x7FFFFFFFu : ::std::uint32_t(0);
     return __uint32_val ^ __mask;
 }
 
 template <bool __is_ascending, typename _Float,
-          typename = __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float)==sizeof(::std::uint64_t)>>
+          typename = __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t)>>
 ::std::uint64_t
 __order_preserving_cast(_Float __val)
 {
@@ -136,9 +138,9 @@ __order_preserving_cast(_Float __val)
     ::std::uint64_t __mask;
     // __uint64_val >> 63 takes the sign bit of the original value
     if constexpr (__is_ascending)
-        __mask = (__uint64_val >> 63 == 0)? 0x8000000000000000u : 0xFFFFFFFFFFFFFFFFu;
+        __mask = (__uint64_val >> 63 == 0) ? 0x8000000000000000u : 0xFFFFFFFFFFFFFFFFu;
     else
-        __mask = (__uint64_val >> 63 == 0)? 0x7FFFFFFFFFFFFFFFu : ::std::uint64_t(0);
+        __mask = (__uint64_val >> 63 == 0) ? 0x7FFFFFFFFFFFFFFFu : ::std::uint64_t(0);
     return __uint64_val ^ __mask;
 }
 
@@ -380,8 +382,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                     {
                         // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                         auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
-                        ::std::uint32_t __bucket =
-                            __get_bucket<(1 << __radix_bits) - 1>(__val, __radix_offset);
+                        ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__val, __radix_offset);
                         // increment counter for this bit bucket
                         ++__count_arr[__bucket];
                     }
@@ -686,12 +687,11 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     using _CastedInputT = decltype(__order_preserving_cast<__is_ascending>(_InputT{}));
                     // if the index is outside of the range, use fake value which will not affect other values
                     _CastedInputT __batch_val = __val_idx < __inout_buf_size
-                                                ? __order_preserving_cast<__is_ascending>(__input_rng[__val_idx])
-                                                : __get_last_value<_CastedInputT, __is_ascending>();
+                                                    ? __order_preserving_cast<__is_ascending>(__input_rng[__val_idx])
+                                                    : __get_last_value<_CastedInputT, __is_ascending>();
 
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
-                    ::std::uint32_t __bucket =
-                        __get_bucket<(1 << __radix_bits) - 1>(__batch_val, __radix_offset);
+                    ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__batch_val, __radix_offset);
 
                     _OffsetT __new_offset_idx = 0;
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
