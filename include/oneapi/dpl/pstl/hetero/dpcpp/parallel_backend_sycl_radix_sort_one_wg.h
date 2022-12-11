@@ -29,106 +29,99 @@
 //namespace __par_backend_hetero
 //{
 
-template <int __block_size, int __radix, bool __is_asc, typename ScanSum, typename Src, typename Dst,
-          typename IdxDst, typename ScanBins>
+template <int __block_size, int __radix, bool __is_asc, typename _Group, typename _Src, typename _Dst, typename _BinPos>
 void
-sort_iter(sycl::nd_item<1> it, Src& src, Dst& res, ::std::size_t N, ScanSum& scan_sum,
-          IdxDst& res_idx, ScanBins& scan_bins_lacc, int iter)
+__sort_iter(_Group __wg, _Src& __src, _Dst& __dst, ::std::size_t __data_size, _BinPos& __bin_position,
+            int __radix_offset)
 {
-    auto wg = it.get_group();
-    auto wi = wg.get_local_linear_id();
-    assert( wi == it.get_global_linear_id() );
+    constexpr int __bin_count = 1 << __radix;
+    int __histogram[__bin_count] = {0};
+    int __wi_block_pos[__bin_count];
+    int __element_pos[__block_size];
 
-    constexpr int bin_count = 1 << __radix;
-    int bins[bin_count] = {0};
-    for (auto i = 0; i < __block_size; ++i)
+    auto __wi = __wg.get_local_linear_id();
+
+    for (auto __i = 0; __i < __block_size; ++__i)
     {
-        const auto idx = wi * __block_size + i;
-        if (idx < N)
+        const auto __idx = __wi * __block_size + __i;
+        if (__idx < __data_size)
         {
-            // (src[idx] & mask) >> mask_shift;
-            const int bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(src[idx]), iter * __radix);
-
-            //trivial exclusive scan within the WI block: for each element store the previous bin counter
-            res_idx[i] = bins[bin];
-
-            //and then increment the counter
-            ++bins[bin];
+            const int __bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(__src[__idx]), __radix_offset);
+            // trivial exclusive scan within the WI block: for each element store the previous counter value
+            __element_pos[__i] = __histogram[__bin];
+            // and then increment the counter
+            ++__histogram[__bin];
         }
     }
 
-    int init = 0;
-    for (auto i = 0; i < bin_count; ++i)
+    int __bin_pos = 0; // only matters for the last WI in the group
+    for (auto __i = 0; __i < __bin_count; ++__i)
     {
-        const int a = bins[i];
-        scan_sum[i] = sycl::exclusive_scan_over_group(wg, a, sycl::plus<>());
-        if (wi == wg.get_local_linear_range() - 1)
+        __wi_block_pos[__i] = sycl::exclusive_scan_over_group(__wg, __histogram[__i], sycl::plus<>());
+        if (__wi == __wg.get_local_linear_range() - 1)
         {
             // the last WI can iteratively do exclusive scan for bins
-            scan_bins_lacc[i] = init;
-            init += scan_sum[i] + bins[i];
+            __bin_position[__i] = __bin_pos;
+            __bin_pos += __wi_block_pos[__i] + __histogram[__i]; // the reduction over all private histograms
         }
     }
-    it.barrier(sycl::access::fence_space::local_space);
+    sycl::group_barrier(__wg);
 
-    for (auto i = 0; i < __block_size; ++i)
+    for (auto __i = 0; __i < __block_size; ++__i)
     {
-        const auto idx = wi * __block_size + i;
-        if (idx < N)
+        const auto __idx = __wi * __block_size + __i;
+        if (__idx < __data_size)
         {
-            const auto val = src[idx];
-            //(val & mask) >> mask_shift;
-            const int bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(val), iter * __radix);
-
-            auto idx_d = scan_bins_lacc[bin] + scan_sum[bin] + res_idx[i];
-
-            res[idx_d] = val;
+            const auto __val = __src[__idx];
+            const int __bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(__val), __radix_offset);
+            const int __new_idx = __bin_position[__bin] + __wi_block_pos[__bin] + __element_pos[__i];
+            __dst[__new_idx] = __val;
         }
-   }
-   it.barrier(sycl::access::fence_space::local_space);
+    }
+    sycl::group_barrier(__wg);
 }
 
 template<typename _KernelName, int __block_size = 16/*from 8 to 64*/, ::std::uint32_t __radix = 4, bool __is_asc = true,
          typename _RangeIn, typename _RangeOut>
 auto
-__group_radix_sort(sycl::queue q, _RangeIn&& src, _RangeOut&& res, int max_wg_size)
+__group_radix_sort(sycl::queue __q, _RangeIn&& __src, _RangeOut&& __res, int __max_wg_size)
 {
-    const ::std::size_t __data_size = src.size();
-    const auto wgSize = (__data_size - 1) / __block_size + 1;
-    assert(wgSize <= max_wg_size);
-
     using _T = oneapi::dpl::__internal::__value_t<_RangeIn>;
+    constexpr int __bin_count = 1 << __radix;
+    constexpr int __iter_count = (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix;
+    static_assert(__iter_count % 2 == 0, "Number of radix iterations must be even");
 
-    constexpr int bin_count = 1 << __radix;
-    constexpr int iter_count = (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix;
-    assert("Number of iterations must be even" && iter_count % 2 == 0);
+    const ::std::size_t __data_size = __src.size();
+    const ::std::size_t __wg_size = (__data_size - 1) / __block_size + 1;
+    assert(__wg_size <= __max_wg_size);
 
-    auto context = q.get_context();
-    sycl::kernel_id kernelId1 = sycl::get_kernel_id<_KernelName>();
-    auto bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(context, {kernelId1});
+    auto __bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__q.get_context(),
+                                                                            {sycl::get_kernel_id<_KernelName>()});
 
-    auto e = q.submit([&](sycl::handler& cgh) {
-        oneapi::dpl::__ranges::__require_access(cgh, src, res);
-        auto scan_bins_lacc = sycl::accessor<int, 1, access_mode::read_write, sycl::target::local>(bin_count, cgh);
-        //auto res = sycl::accessor<int, 1, access_mode::read_write, sycl::target::local>(N, cgh);
+    auto __event = __q.submit([&](sycl::handler& __cgh){
+        oneapi::dpl::__ranges::__require_access(__cgh, __src, __res);
+        auto __bin_position = 
+            sycl::accessor<int, 1, sycl::access_mode::read_write, sycl::target::local>(__bin_count, __cgh);
 
-        cgh.use_kernel_bundle(bundle);
-        cgh.parallel_for<_KernelName>(sycl::nd_range{sycl::range{wgSize}, sycl::range{wgSize}},
-            [=](sycl::nd_item<1> it) { // kernel code
-                assert( it.get_local_range(0)==wgSize );
-                int res_idx[__block_size];
-                int scan_sum[bin_count];
-                for (auto iter = 0; iter < iter_count; iter += 2)
+        __cgh.use_kernel_bundle(__bundle);
+        __cgh.parallel_for<_KernelName>(sycl::nd_range{sycl::range{__wg_size}, sycl::range{__wg_size}},
+            [=](sycl::nd_item<1> __it)
+            { // kernel code
+                auto __wg = __it.get_group();
+                assert( __it.get_local_range(0) == __wg_size );
+                assert( __wg.get_local_linear_id() == __it.get_global_linear_id() );
+
+                for (auto __i = 0; __i < __iter_count; __i += 2)
                 {
-                    sort_iter<__block_size, __radix, __is_asc>(it, src, res, __data_size, scan_sum, res_idx,
-                                                               scan_bins_lacc, iter);
-                    sort_iter<__block_size, __radix, __is_asc>(it, res, src, __data_size, scan_sum, res_idx,
-                                                               scan_bins_lacc, iter + 1);
+                    __sort_iter<__block_size, __radix, __is_asc>(__wg, __src, __res, __data_size,
+                                                                 __bin_position, __i * __radix);
+                    __sort_iter<__block_size, __radix, __is_asc>(__wg, __res, __src, __data_size,
+                                                                 __bin_position, (__i + 1) * __radix);
                 }
             });
     });
 
-    return e;
+    return __event;
 }
 
 
