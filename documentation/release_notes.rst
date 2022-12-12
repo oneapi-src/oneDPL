@@ -18,7 +18,9 @@ New Features
 
 Fixed Issues
 ------------
-- Fixed an error in ``oneapi::dpl::experimental::ranges::guard_view`` and ``oneapi::dpl::experimental::ranges::zip_view`` when using ``operator[]`` with an index exceeding the limits of a 32 bit integer type.
+- Fixed permutation_iterator to work with C++ lambda functions for index permutation
+- Fixed an error in ``oneapi::dpl::experimental::ranges::guard_view`` and ``oneapi::dpl::experimental::ranges::zip_view``
+  when using ``operator[]`` with an index exceeding the limits of a 32 bit integer type.
 - Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
 
 Changes affecting backward compatibility
@@ -34,7 +36,9 @@ New in 2021.7.1
 New Features
 ------------
 - Added possibility to construct a zip_iterator out of a std::tuple of iterators.
-- Added 9 more serial-based versions of algorithms: ``is_heap``, ``is_heap_until``, ``make_heap``, ``push_heap``, ``pop_heap``, ``is_sorted``, ``is_sorted_until``, ``partial_sort``, ``partial_sort_copy``. Please refer to `Tested Standard C++ API Reference https://github.com/oneapi-src/oneDPL/blob/main/documentation/library_guide/tested_standard_cpp_api.rst#tested-standard-c-api-reference`.
+- Added 9 more serial-based versions of algorithms: ``is_heap``, ``is_heap_until``, ``make_heap``, ``push_heap``,
+  ``pop_heap``, ``is_sorted``, ``is_sorted_until``, ``partial_sort``, ``partial_sort_copy``.
+  Please refer to `Tested Standard C++ API Reference https://github.com/oneapi-src/oneDPL/blob/main/documentation/library_guide/tested_standard_cpp_api.rst#tested-standard-c-api-reference`.
   
 Fixed Issues
 ------------
