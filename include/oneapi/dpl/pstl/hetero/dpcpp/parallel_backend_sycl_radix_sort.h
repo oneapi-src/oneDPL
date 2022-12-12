@@ -437,12 +437,12 @@ enum class __peer_prefix_algo
     scan_then_broadcast
 };
 
-template <typename _OffsetT, __peer_prefix_algo _Algo>
+template <typename _OffsetT, ::std::uint32_t _RadixStates, __peer_prefix_algo _Algo>
 struct __peer_prefix_helper;
 
 #if (_ONEDPL_LIBSYCL_VERSION >= 50700)
-template <typename _OffsetT>
-struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
+template <typename _OffsetT, ::std::uint32_t _RadixStates>
+struct __peer_prefix_helper<_OffsetT, _RadixStates, __peer_prefix_algo::atomic_fetch_or>
 {
     using _AtomicT = __dpl_sycl::__atomic_ref<::std::uint32_t, sycl::access::address_space::local_space>;
     using _TempStorageT =
@@ -460,60 +460,79 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
     }
 
     ::std::uint32_t
-    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    __peer_contribution(::std::uint32_t __bucket_val, _OffsetT* __offset_lacc)
     {
-        // reset mask for each radix state
-        if (__self_lidx == 0)
-            __atomic_peer_mask.store(0U);
-        sycl::group_barrier(__sgroup);
-        // set local id's bit to 1 if the bucket value matches the radix state
-        __atomic_peer_mask.fetch_or(__is_current_bucket << __self_lidx);
-        sycl::group_barrier(__sgroup);
-        ::std::uint32_t __peer_mask_bits = __atomic_peer_mask.load();
-        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
+        _OffsetT __new_offset_idx = 0;
+        for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < _RadixStates; ++__radix_state_idx)
+        {
+            if (__self_lidx == 0)
+                __atomic_peer_mask.store(0U);
+            _OffsetT __offset_prefix = __offset_lacc[__radix_state_idx];
+            sycl::group_barrier(__sgroup);
 
-        // get the local offset index from the bits set in the peer mask with index less than the work
-        // items's ID
-        __peer_mask_bits &= __item_mask;
-        __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
-        return __sg_total_offset;
+            // set local id's bit to 1 if the bucket value matches the radix state
+            ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+            __atomic_peer_mask.fetch_or(__is_current_bucket << __self_lidx);
+            sycl::group_barrier(__sgroup);
+            ::std::uint32_t __peer_mask_bits = __atomic_peer_mask.load();
+            ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
+
+            // get the local offset index from the bits set in the peer mask with index less than the work
+            // items's ID
+            __peer_mask_bits &= __item_mask;
+            __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
+
+            if (__is_current_bucket && __peer_mask_bits == 0)
+                __offset_lacc[__radix_state_idx] = __offset_prefix + __sg_total_offset;
+
+        }
+        return __new_offset_idx;
     }
 };
 #endif // (_ONEDPL_LIBSYCL_VERSION >= 50700)
 
-template <typename _OffsetT>
-struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
+template <typename _OffsetT, ::std::uint32_t _RadixStates>
+struct __peer_prefix_helper<_OffsetT, _RadixStates, __peer_prefix_algo::scan_then_broadcast>
 {
     using _TempStorageT = __empty_peer_temp_storage;
     using _ItemType = sycl::nd_item<1>;
     using _SubGroupType = decltype(std::declval<_ItemType>().get_sub_group());
 
     _SubGroupType __sgroup;
-    ::std::uint32_t __sg_size;
+    const bool __is_last_item_in_sg;
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT)
-        : __sgroup(__self_item.get_sub_group()), __sg_size(__sgroup.get_local_range()[0])
+        : __sgroup(__self_item.get_sub_group()), __is_last_item_in_sg(__sgroup.get_local_id() == (__sgroup.get_local_range()[0]-1))
     {
     }
 
     ::std::uint32_t
-    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    __peer_contribution(::std::uint32_t __bucket_val, _OffsetT* __offset_lacc)
     {
-        ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
-            __sgroup, static_cast<::std::uint32_t>(__is_current_bucket), __dpl_sycl::__plus<::std::uint32_t>());
 
-        __new_offset_idx |= __is_current_bucket * (__offset_prefix + __sg_item_offset);
-        // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
-        ::std::uint32_t __sg_total_offset =
-            __dpl_sycl::__group_broadcast(__sgroup, __sg_item_offset + __is_current_bucket, __sg_size - 1);
+        _OffsetT __new_offset_idx = 0;
+        for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < _RadixStates; ++__radix_state_idx)
+        {
+            _OffsetT __offset_prefix = __offset_lacc[__radix_state_idx];
+            sycl::group_barrier(__sgroup);
 
-        return __sg_total_offset;
+            ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+            ::std::uint32_t __sg_item_offset = __dpl_sycl::__exclusive_scan_over_group(
+                __sgroup, static_cast<::std::uint32_t>(__is_current_bucket), __dpl_sycl::__plus<::std::uint32_t>());
+
+            __new_offset_idx |= __is_current_bucket * (__offset_prefix + __sg_item_offset);
+
+            // the last scanned value may not contain number of all copies, thus adding __is_current_bucket
+            if (__is_last_item_in_sg)
+                __offset_lacc[__radix_state_idx] = __sg_item_offset + __offset_prefix + __is_current_bucket;
+        }
+        return __new_offset_idx;
     }
 };
 
 #if _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
-template <typename _OffsetT>
-struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
+template <typename _OffsetT, ::std::uint32_t _RadixStates>
+struct __peer_prefix_helper<_OffsetT, _RadixStates, __peer_prefix_algo::subgroup_ballot>
 {
     using _TempStorageT = __empty_peer_temp_storage;
 
@@ -529,21 +548,33 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
     }
 
     ::std::uint32_t
-    __peer_contribution(_OffsetT& __new_offset_idx, _OffsetT __offset_prefix, bool __is_current_bucket)
+    __peer_contribution(::std::uint32_t __bucket_val, _OffsetT* __offset_lacc)
     {
-        // set local id's bit to 1 if the bucket value matches the radix state
-        auto __peer_mask = sycl::ext::oneapi::group_ballot(__sgroup, __is_current_bucket);
-        ::std::uint32_t __peer_mask_bits{};
-        __peer_mask.extract_bits(__peer_mask_bits);
-        ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
+        _OffsetT __new_offset_idx = 0;
+        for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < _RadixStates; ++__radix_state_idx)
+        {
+            ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
+            _OffsetT __offset_prefix = __offset_lacc[__radix_state_idx];
+            sycl::group_barrier(__sgroup);
 
-        // get the local offset index from the bits set in the peer mask with index less than the work
-        // items's ID
-        __peer_mask &= __item_sg_mask;
-        __peer_mask.extract_bits(__peer_mask_bits);
-        __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
+            // set local id's bit to 1 if the bucket value matches the radix state
+            auto __peer_mask = sycl::ext::oneapi::group_ballot(__sgroup, __is_current_bucket);
+            ::std::uint32_t __peer_mask_bits{};
+            __peer_mask.extract_bits(__peer_mask_bits);
+            ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
 
-        return __sg_total_offset;
+            // get the local offset index from the bits set in the peer mask with index less than the work
+            // items's ID
+            __peer_mask &= __item_sg_mask;
+            __peer_mask.extract_bits(__peer_mask_bits);
+            __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
+
+            if (__is_current_bucket && __peer_mask_bits == 0)
+                __offset_lacc[__radix_state_idx] = __offset_prefix + __sg_total_offset;
+
+        }
+
+        return __new_offset_idx;
     }
 };
 #endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
@@ -566,17 +597,18 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 #endif
 )
 {
+    constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
+
     // typedefs
     using _InputT = oneapi::dpl::__internal::__value_t<_InRange>;
     using _OffsetT = typename _OffsetBuf::value_type;
-    using _PeerHelper = __peer_prefix_helper<_OffsetT, _PeerAlgo>;
+    using _PeerHelper = __peer_prefix_helper<_OffsetT, __radix_states, _PeerAlgo>;
 
     // item info
     const ::std::size_t __it_size = __block_size / __sg_size;
     const auto __inout_buf_size = __output_rng.size();
 
     // iteration space info
-    const ::std::uint32_t __radix_states = 1 << __radix_bits;
     const ::std::size_t __blocks_total = __get_roundedup_div(__inout_buf_size, __block_size);
     const ::std::size_t __blocks_per_segment = __get_roundedup_div(__blocks_total, __segments);
 
@@ -624,13 +656,10 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __scan_begin, __scan_begin + __radix_states, __scan_begin,
                                                    _OffsetT(0), __dpl_sycl::__plus<_OffsetT>{});
 
-                // 1. create a private array for storing offset values
-                //    and add total offset and offset for compute unit for a certain radix state
-                _OffsetT __offset_arr[__radix_states];
-                for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                for (::std::uint32_t __radix_state = __self_lidx; __radix_state < __radix_states; __radix_state += __sg_size)
                 {
-                    const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state_idx;
-                    __offset_arr[__radix_state_idx] = __offset_lacc[__radix_state_idx] + __offset_rng[__local_offset_idx];
+                    const ::std::uint32_t __local_offset_idx = __wgroup_idx + (__segments + 1) * __radix_state;
+                    __offset_lacc[__radix_state] += __offset_rng[__local_offset_idx];
 
                 }
 
@@ -649,14 +678,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     ::std::uint32_t __bucket_val =
                         __get_bucket_value<__radix_bits, __is_comp_asc>(__batch_val, __radix_iter);
 
-                    _OffsetT __new_offset_idx = 0;
-                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
-                    {
-                        ::std::uint32_t __is_current_bucket = __bucket_val == __radix_state_idx;
-                        ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
-                            __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
-                        __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
-                    }
+                    auto __new_offset_idx = __peer_prefix_hlp.__peer_contribution(__bucket_val,
+                            __offset_lacc.get_pointer());
 
                     if (__val_idx < __inout_buf_size)
                         __output_rng[__new_offset_idx] = __input_rng[__val_idx];
