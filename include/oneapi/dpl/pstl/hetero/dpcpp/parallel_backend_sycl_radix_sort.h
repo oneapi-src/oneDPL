@@ -25,7 +25,7 @@
 #  ifndef __has_builtin
 #    define __has_builtin(x) (0)
 #  endif
-#  include <cstdlib>
+#  include <cstring>
 #endif
 
 #include "sycl_defs.h"
@@ -62,26 +62,22 @@ class __radix_sort_reorder_kernel;
 template <typename _Dst, typename _Src>
 using __dpl_bit_cast = std::bit_cast<_Dst, _Src>;
 
-#elif __has_builtin(__builtin_bit_cast)
-template <typename _Dst, typename _Src>
-_Dst
-__dpl_bit_cast(const _Src& __src)
-{
-    static_assert(sizeof(_Dst) == sizeof(_Src), "Bit conversion for types of different size");
-    return __builtin_bit_cast(_Dst, __src);
-}
-
 #else
 template <typename _Dst, typename _Src>
-_Dst
+__enable_if_t<sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst>
+              && ::std::is_trivially_copyable_v<_Src>,
+              _Dst>
 __dpl_bit_cast(const _Src& __src)
 {
-    static_assert(sizeof(_Dst) == sizeof(_Src), "Bit conversion for types of different size");
+#if __has_builtin(__builtin_bit_cast)
+    return __builtin_bit_cast(_Dst, __src);
+#else
     _Dst __result;
     std::memcpy(&__result, &__src, sizeof(_Dst));
     return __result;
-}
 #endif
+}
+#endif // __cpluslplus >= 202002L && __has_include(<bit>)
 
 template <bool __is_ascending>
 bool
@@ -93,7 +89,7 @@ __order_preserving_cast(bool __val)
         return !__val;
 }
 
-template <bool __is_ascending, typename _UInt, typename = __enable_if_t<::std::is_unsigned_v<_UInt>>>
+template <bool __is_ascending, typename _UInt, __enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
 _UInt
 __order_preserving_cast(_UInt __val)
 {
@@ -104,7 +100,7 @@ __order_preserving_cast(_UInt __val)
 }
 
 template <bool __is_ascending, typename _Int,
-          typename = __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>>>
+          __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
 ::std::make_unsigned_t<_Int>
 __order_preserving_cast(_Int __val)
 {
@@ -115,7 +111,7 @@ __order_preserving_cast(_Int __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          typename = __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t)>>
+          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
 ::std::uint32_t
 __order_preserving_cast(_Float __val)
 {
@@ -130,7 +126,7 @@ __order_preserving_cast(_Float __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          typename = __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t)>>
+          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
 ::std::uint64_t
 __order_preserving_cast(_Float __val)
 {
@@ -144,127 +140,6 @@ __order_preserving_cast(_Float __val)
     return __uint64_val ^ __mask;
 }
 
-#if 0
-//------------------------------------------------------------------------
-// radix sort: ordered traits for a given size and integral/float flag
-//------------------------------------------------------------------------
-
-template <::std::size_t __type_size, bool __is_integral_type>
-struct __get_ordered
-{
-};
-
-template <>
-struct __get_ordered<1, true>
-{
-    using _type = ::std::uint8_t;
-    constexpr static ::std::int8_t __mask = 0x80;
-};
-
-template <>
-struct __get_ordered<2, true>
-{
-    using _type = ::std::uint16_t;
-    constexpr static ::std::int16_t __mask = 0x8000;
-};
-
-template <>
-struct __get_ordered<4, true>
-{
-    using _type = ::std::uint32_t;
-    constexpr static ::std::int32_t __mask = 0x80000000;
-};
-
-template <>
-struct __get_ordered<8, true>
-{
-    using _type = ::std::uint64_t;
-    constexpr static ::std::int64_t __mask = 0x8000000000000000;
-};
-
-template <>
-struct __get_ordered<4, false>
-{
-    using _type = ::std::uint32_t;
-    constexpr static ::std::uint32_t __nmask = 0xFFFFFFFF; // for negative numbers
-    constexpr static ::std::uint32_t __pmask = 0x80000000; // for positive numbers
-};
-
-template <>
-struct __get_ordered<8, false>
-{
-    using _type = ::std::uint64_t;
-    constexpr static ::std::uint64_t __nmask = 0xFFFFFFFFFFFFFFFF; // for negative numbers
-    constexpr static ::std::uint64_t __pmask = 0x8000000000000000; // for positive numbers
-};
-
-//------------------------------------------------------------------------
-// radix sort: ordered type for a given type
-//------------------------------------------------------------------------
-
-// for unknown/unsupported type we do not have any trait
-template <typename _T, typename _Dummy = void>
-struct __ordered
-{
-};
-
-// for unsigned integrals we use the same type
-template <typename _T>
-struct __ordered<_T, __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value>>
-{
-    using _type = _T;
-};
-
-// for signed integrals or floatings we map: size -> corresponding unsigned integral
-template <typename _T>
-struct __ordered<_T, __enable_if_t<(::std::is_integral<_T>::value && ::std::is_signed<_T>::value) ||
-                                   ::std::is_floating_point<_T>::value>>
-{
-    using _type = typename __get_ordered<sizeof(_T), ::std::is_integral<_T>::value>::_type;
-};
-
-// shorthands
-template <typename _T>
-using __ordered_t = typename __ordered<_T>::_type;
-
-//------------------------------------------------------------------------
-// radix sort: functions for conversion to ordered type
-//------------------------------------------------------------------------
-
-// for already ordered types (any uints) we use the same type
-template <typename _T>
-inline __enable_if_t<::std::is_same<_T, __ordered_t<_T>>::value, __ordered_t<_T>>
-__to_ordered(_T __value)
-{
-    return __value;
-}
-
-// converts integral type to ordered (in terms of bitness) type
-template <typename _T>
-inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && !::std::is_floating_point<_T>::value,
-                     __ordered_t<_T>>
-__to_ordered(_T __value)
-{
-    _T __result = __value ^ __get_ordered<sizeof(_T), true>::__mask;
-    return *reinterpret_cast<__ordered_t<_T>*>(&__result);
-}
-
-// converts floating type to ordered (in terms of bitness) type
-template <typename _T>
-inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && ::std::is_floating_point<_T>::value,
-                     __ordered_t<_T>>
-__to_ordered(_T __value)
-{
-    __ordered_t<_T> __uvalue = *reinterpret_cast<__ordered_t<_T>*>(&__value);
-    // check if value negative
-    __ordered_t<_T> __is_negative = __uvalue >> (sizeof(_T) * std::numeric_limits<unsigned char>::digits - 1);
-    // for positive: 00..00 -> 00..00 -> 10..00
-    // for negative: 00..01 -> 11..11 -> 11..11
-    __ordered_t<_T> __ordered_mask =
-        (__is_negative * __get_ordered<sizeof(_T), false>::__nmask) | __get_ordered<sizeof(_T), false>::__pmask;
-    return __uvalue ^ __ordered_mask;
-}
-#endif
 //------------------------------------------------------------------------
 // radix sort: bit pattern functions
 //------------------------------------------------------------------------
