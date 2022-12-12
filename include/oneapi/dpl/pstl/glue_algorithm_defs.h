@@ -159,8 +159,8 @@ swap_ranges(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardItera
             _ForwardIterator2 __first2);
 
 // [alg.transform]
-// To workaround the compiler (clang < 13.0) bug the order of these overload declarations
-// should be in reversed the order comparing with glue_alogirithm_impl.h corresponding
+// To workaround the Clang compiler (< 13.0) bug the order of these overload declarations
+// should be in the reversed order comparing with glue_algorithm_impl.h corresponding
 // definitions
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
           class _BinaryOperation>
