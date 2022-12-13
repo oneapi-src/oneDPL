@@ -17,6 +17,14 @@
 #define _ONEDPL_parallel_backend_sycl_radix_sort_H
 
 #include <limits>
+#include <type_traits>
+#include <cstdint>
+
+#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L)  && __has_include(<bit>)
+#    include <bit>
+#else
+#    include <cstring> // memcpy
+#endif
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
@@ -45,123 +53,89 @@ template <::std::uint32_t, bool, bool, typename... _Name>
 class __radix_sort_reorder_kernel;
 
 //------------------------------------------------------------------------
-// radix sort: ordered traits for a given size and integral/float flag
+// radix sort: bitwise order-preserving conversions to unsigned integrals
 //------------------------------------------------------------------------
 
-template <::std::size_t __type_size, bool __is_integral_type>
-struct __get_ordered
+#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+template <typename _Dst, typename _Src>
+using __dpl_bit_cast = std::bit_cast<_Dst, _Src>;
+
+#else
+template <typename _Dst, typename _Src>
+__enable_if_t<sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst>
+              && ::std::is_trivially_copyable_v<_Src>,
+              _Dst>
+__dpl_bit_cast(const _Src& __src)
 {
-};
+#if defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
+    return __builtin_bit_cast(_Dst, __src);
+#else
+    _Dst __result;
+    std::memcpy(&__result, &__src, sizeof(_Dst));
+    return __result;
+#endif
+}
+#endif // C++20 && __has_include(<bit>)
 
-template <>
-struct __get_ordered<1, true>
+template <bool __is_ascending>
+bool
+__order_preserving_cast(bool __val)
 {
-    using _type = ::std::uint8_t;
-    constexpr static ::std::int8_t __mask = 0x80;
-};
-
-template <>
-struct __get_ordered<2, true>
-{
-    using _type = ::std::uint16_t;
-    constexpr static ::std::int16_t __mask = 0x8000;
-};
-
-template <>
-struct __get_ordered<4, true>
-{
-    using _type = ::std::uint32_t;
-    constexpr static ::std::int32_t __mask = 0x80000000;
-};
-
-template <>
-struct __get_ordered<8, true>
-{
-    using _type = ::std::uint64_t;
-    constexpr static ::std::int64_t __mask = 0x8000000000000000;
-};
-
-template <>
-struct __get_ordered<4, false>
-{
-    using _type = ::std::uint32_t;
-    constexpr static ::std::uint32_t __nmask = 0xFFFFFFFF; // for negative numbers
-    constexpr static ::std::uint32_t __pmask = 0x80000000; // for positive numbers
-};
-
-template <>
-struct __get_ordered<8, false>
-{
-    using _type = ::std::uint64_t;
-    constexpr static ::std::uint64_t __nmask = 0xFFFFFFFFFFFFFFFF; // for negative numbers
-    constexpr static ::std::uint64_t __pmask = 0x8000000000000000; // for positive numbers
-};
-
-//------------------------------------------------------------------------
-// radix sort: ordered type for a given type
-//------------------------------------------------------------------------
-
-// for unknown/unsupported type we do not have any trait
-template <typename _T, typename _Dummy = void>
-struct __ordered
-{
-};
-
-// for unsigned integrals we use the same type
-template <typename _T>
-struct __ordered<_T, __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value>>
-{
-    using _type = _T;
-};
-
-// for signed integrals or floatings we map: size -> corresponding unsigned integral
-template <typename _T>
-struct __ordered<_T, __enable_if_t<(::std::is_integral<_T>::value && ::std::is_signed<_T>::value) ||
-                                   ::std::is_floating_point<_T>::value>>
-{
-    using _type = typename __get_ordered<sizeof(_T), ::std::is_integral<_T>::value>::_type;
-};
-
-// shorthands
-template <typename _T>
-using __ordered_t = typename __ordered<_T>::_type;
-
-//------------------------------------------------------------------------
-// radix sort: functions for conversion to ordered type
-//------------------------------------------------------------------------
-
-// for already ordered types (any uints) we use the same type
-template <typename _T>
-inline __enable_if_t<::std::is_same<_T, __ordered_t<_T>>::value, __ordered_t<_T>>
-__to_ordered(_T __value)
-{
-    return __value;
+    if constexpr (__is_ascending)
+        return __val;
+    else
+        return !__val;
 }
 
-// converts integral type to ordered (in terms of bitness) type
-template <typename _T>
-inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && !::std::is_floating_point<_T>::value,
-                     __ordered_t<_T>>
-__to_ordered(_T __value)
+template <bool __is_ascending, typename _UInt, __enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
+_UInt
+__order_preserving_cast(_UInt __val)
 {
-    _T __result = __value ^ __get_ordered<sizeof(_T), true>::__mask;
-    return *reinterpret_cast<__ordered_t<_T>*>(&__result);
+    if constexpr (__is_ascending)
+        return __val;
+    else
+        return ~__val; //bitwise inversion
 }
 
-// converts floating type to ordered (in terms of bitness) type
-template <typename _T>
-inline __enable_if_t<!::std::is_same<_T, __ordered_t<_T>>::value && ::std::is_floating_point<_T>::value,
-                     __ordered_t<_T>>
-__to_ordered(_T __value)
+template <bool __is_ascending, typename _Int,
+          __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
+::std::make_unsigned_t<_Int>
+__order_preserving_cast(_Int __val)
 {
-    __ordered_t<_T> __uvalue = *reinterpret_cast<__ordered_t<_T>*>(&__value);
-    // check if value negative
-    __ordered_t<_T> __is_negative = __uvalue >> (sizeof(_T) * std::numeric_limits<unsigned char>::digits - 1);
-    // for positive: 00..00 -> 00..00 -> 10..00
-    // for negative: 00..01 -> 11..11 -> 11..11
-    __ordered_t<_T> __ordered_mask =
-        (__is_negative * __get_ordered<sizeof(_T), false>::__nmask) | __get_ordered<sizeof(_T), false>::__pmask;
-    return __uvalue ^ __ordered_mask;
+    using _UInt = ::std::make_unsigned_t<_Int>;
+    // mask: 100..0 for ascending, 011..1 for descending
+    constexpr _UInt __mask = (__is_ascending) ? 1 << std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
+    return __val ^ __mask;
+}
+
+template <bool __is_ascending, typename _Float,
+          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
+::std::uint32_t
+__order_preserving_cast(_Float __val)
+{
+    ::std::uint32_t __uint32_val = __dpl_bit_cast<::std::uint32_t>(__val);
+    ::std::uint32_t __mask;
+    // __uint32_val >> 31 takes the sign bit of the original value
+    if constexpr (__is_ascending)
+        __mask = (__uint32_val >> 31 == 0) ? 0x80000000u : 0xFFFFFFFFu;
+    else
+        __mask = (__uint32_val >> 31 == 0) ? 0x7FFFFFFFu : ::std::uint32_t(0);
+    return __uint32_val ^ __mask;
+}
+
+template <bool __is_ascending, typename _Float,
+          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
+::std::uint64_t
+__order_preserving_cast(_Float __val)
+{
+    ::std::uint64_t __uint64_val = __dpl_bit_cast<::std::uint64_t>(__val);
+    ::std::uint64_t __mask;
+    // __uint64_val >> 63 takes the sign bit of the original value
+    if constexpr (__is_ascending)
+        __mask = (__uint64_val >> 63 == 0) ? 0x8000000000000000u : 0xFFFFFFFFFFFFFFFFu;
+    else
+        __mask = (__uint64_val >> 63 == 0) ? 0x7FFFFFFFFFFFFFFFu : ::std::uint64_t(0);
+    return __uint64_val ^ __mask;
 }
 
 //------------------------------------------------------------------------
@@ -179,7 +153,7 @@ __ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __diviso
 // Use sycl::clz to implement the analogue of C++20 std::bit_floor (the max power of 2 not exceeding the value)
 template <typename _T>
 inline __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
-__bit_floor(_T __x)
+__dpl_bit_floor(_T __x)
 {
     return 1 << (sycl::clz(_T(0)) - sycl::clz(__x) - 1);
 }
@@ -192,32 +166,11 @@ __get_buckets_in_type(::std::uint32_t __radix_bits)
     return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
 }
 
-// bitwise inversion for descending sorting
-template <typename _T>
-_T
-__invert(_T __value)
-{
-    return ~__value;
-}
-
-// inversion of bool type has to be logical, not bitwise
-bool
-__invert(bool __value)
-{
-    return !__value;
-}
-
-
 // get bits value (bucket) in a certain radix position
-template <::std::uint32_t __radix_mask, bool __is_ascending, typename _T>
+template <::std::uint32_t __radix_mask, typename _T>
 ::std::uint32_t
 __get_bucket(_T __value, ::std::uint32_t __radix_offset)
 {
-    // invert value if we need to sort in descending order
-    if constexpr (!__is_ascending)
-        __value = __invert(__value);
-
-    // get bits under bucket mask
     return (__value >> __radix_offset) & _T(__radix_mask);
 }
 
@@ -232,7 +185,7 @@ template <typename _T, bool __is_comp_asc>
 inline __enable_if_t<!__is_comp_asc, _T>
 __get_last_value()
 {
-    return ::std::numeric_limits<_T>::min();
+    return ~::std::numeric_limits<_T>::min();
 };
 
 //-----------------------------------------------------------------------
@@ -301,9 +254,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                     if (__val_idx < __val_buf_size)
                     {
                         // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
-                        __ordered_t<_ValueT> __val = __to_ordered(__val_rng[__val_idx]);
-                        ::std::uint32_t __bucket =
-                            __get_bucket<(1 << __radix_bits) - 1, __is_ascending>(__val, __radix_offset);
+                        auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
+                        ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__val, __radix_offset);
                         // increment counter for this bit bucket
                         ++__count_arr[__bucket];
                     }
@@ -605,14 +557,14 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     const ::std::size_t __val_idx = __start_idx + __sg_size * __block_idx;
 
                     // get value, convert it to ordered (in terms of bitness)
+                    using _CastInputT = decltype(__order_preserving_cast<__is_ascending>(_InputT{}));
                     // if the index is outside of the range, use fake value which will not affect other values
-                    __ordered_t<_InputT> __batch_val = __val_idx < __inout_buf_size
-                                                           ? __to_ordered(__input_rng[__val_idx])
-                                                           : __get_last_value<__ordered_t<_InputT>, __is_ascending>();
+                    _CastInputT __batch_val = __val_idx < __inout_buf_size
+                                                    ? __order_preserving_cast<__is_ascending>(__input_rng[__val_idx])
+                                                    : __get_last_value<_CastInputT, __is_ascending>();
 
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
-                    ::std::uint32_t __bucket =
-                        __get_bucket<(1 << __radix_bits) - 1, __is_ascending>(__batch_val, __radix_offset);
+                    ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__batch_val, __radix_offset);
 
                     _OffsetT __new_offset_idx = 0;
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
@@ -691,7 +643,7 @@ struct __parallel_radix_sort_iteration
 
         // block size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
-        __block_size = sycl::max(__bit_floor(__block_size), ::std::size_t(__radix_states));
+        __block_size = sycl::max(__dpl_bit_floor(__block_size), ::std::size_t(__radix_states));
 
         // Compute the radix position for the given iteration
         ::std::uint32_t __radix_offset = __radix_iter * __radix_bits;
