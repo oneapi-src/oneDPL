@@ -46,7 +46,8 @@ __sort_iter(_Group __wg, _Src& __src, _Dst& __dst, ::std::size_t __data_size, _B
         const auto __idx = __wi * __block_size + __i;
         if (__idx < __data_size)
         {
-            const int __bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(__src[__idx]), __radix_offset);
+            const int __bin =
+                __get_bucket<(1 << __radix) - 1>(__order_preserving_cast<__is_asc>(__src[__idx]), __radix_offset);
             // trivial exclusive scan within the WI block: for each element store the previous counter value
             __element_pos[__i] = __histogram[__bin];
             // and then increment the counter
@@ -73,7 +74,8 @@ __sort_iter(_Group __wg, _Src& __src, _Dst& __dst, ::std::size_t __data_size, _B
         if (__idx < __data_size)
         {
             const auto __val = __src[__idx];
-            const int __bin = __get_bucket<(1 << __radix) - 1, __is_asc>(__to_ordered(__val), __radix_offset);
+            const int __bin =
+                __get_bucket<(1 << __radix) - 1>(__order_preserving_cast<__is_asc>(__val), __radix_offset);
             const int __new_idx = __bin_position[__bin] + __wi_block_pos[__bin] + __element_pos[__i];
             __dst[__new_idx] = __val;
         }
