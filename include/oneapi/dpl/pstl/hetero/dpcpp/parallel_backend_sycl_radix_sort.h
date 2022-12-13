@@ -18,14 +18,12 @@
 
 #include <limits>
 #include <type_traits>
+#include <cstdint>
 
-#if __cpluslplus >= 202002L && __has_include(<bit>)
-#  include <bit>
+#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L)  && __has_include(<bit>)
+#    include <bit>
 #else
-#  ifndef __has_builtin
-#    define __has_builtin(x) (0)
-#  endif
-#  include <cstring>
+#    include <cstring> // memcpy
 #endif
 
 #include "sycl_defs.h"
@@ -58,7 +56,7 @@ class __radix_sort_reorder_kernel;
 // radix sort: bitwise order-preserving conversions to unsigned integrals
 //------------------------------------------------------------------------
 
-#if __cpluslplus >= 202002L && __has_include(<bit>)
+#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
 template <typename _Dst, typename _Src>
 using __dpl_bit_cast = std::bit_cast<_Dst, _Src>;
 
@@ -69,7 +67,7 @@ __enable_if_t<sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Ds
               _Dst>
 __dpl_bit_cast(const _Src& __src)
 {
-#if __has_builtin(__builtin_bit_cast)
+#if defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
     return __builtin_bit_cast(_Dst, __src);
 #else
     _Dst __result;
@@ -77,7 +75,7 @@ __dpl_bit_cast(const _Src& __src)
     return __result;
 #endif
 }
-#endif // __cpluslplus >= 202002L && __has_include(<bit>)
+#endif // C++20 && __has_include(<bit>)
 
 template <bool __is_ascending>
 bool
@@ -559,11 +557,11 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     const ::std::size_t __val_idx = __start_idx + __sg_size * __block_idx;
 
                     // get value, convert it to ordered (in terms of bitness)
-                    using _CastedInputT = decltype(__order_preserving_cast<__is_ascending>(_InputT{}));
+                    using _CastInputT = decltype(__order_preserving_cast<__is_ascending>(_InputT{}));
                     // if the index is outside of the range, use fake value which will not affect other values
-                    _CastedInputT __batch_val = __val_idx < __inout_buf_size
+                    _CastInputT __batch_val = __val_idx < __inout_buf_size
                                                     ? __order_preserving_cast<__is_ascending>(__input_rng[__val_idx])
-                                                    : __get_last_value<_CastedInputT, __is_ascending>();
+                                                    : __get_last_value<_CastInputT, __is_ascending>();
 
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                     ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__batch_val, __radix_offset);
