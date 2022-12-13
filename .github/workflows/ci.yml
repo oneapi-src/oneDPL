@@ -216,6 +216,7 @@ jobs:
         run: |
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel dpcpp_win-64
+          set CL_CONFIG_TBB_DLL_PATH=%CONDA_PREFIX%\Library\bin
       - name: Run testing
         shell: cmd
         run: |
