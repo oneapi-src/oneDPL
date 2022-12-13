@@ -14,10 +14,11 @@
 
 #include <oneapi/dpl/algorithm>
 
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
+#include THE_SYCL_HPP
 
 template <class Iter1, class Iter2>
 class KernelTest;

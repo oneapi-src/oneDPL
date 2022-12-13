@@ -21,10 +21,12 @@
 
 #include <oneapi/dpl/functional>
 
+#include "support/utils.h"
+
 #include <iostream>
 
 #ifndef ONEDPL_STANDARD_POLICIES_ONLY
-#include <CL/sycl.hpp>
+#include THE_SYCL_HPP
 #else
 #include <vector>
 #endif

@@ -23,7 +23,7 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include <CL/sycl.hpp>
+#    include THE_SYCL_HPP
 #endif
 
 using namespace TestUtils;

@@ -14,10 +14,11 @@
 
 #include <oneapi/dpl/algorithm>
 
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
+#include THE_SYCL_HPP
 
 void
 kernel_test(sycl::queue& deviceQueue)

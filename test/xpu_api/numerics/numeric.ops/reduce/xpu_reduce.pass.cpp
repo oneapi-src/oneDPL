@@ -16,9 +16,11 @@
 
 #include <oneapi/dpl/numeric>
 #include <cassert>
-#include <CL/sycl.hpp>
 
+#include "support/utils.h"
 #include "support/test_iterators.h"
+
+#include THE_SYCL_HPP
 
 template <class T>
 class KernelTest;

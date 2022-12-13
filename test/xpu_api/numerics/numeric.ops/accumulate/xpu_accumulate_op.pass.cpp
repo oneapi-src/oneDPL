@@ -15,11 +15,13 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/numeric>
 
+#include "support/utils.h"
 #include "support/test_iterators.h"
+
+#include THE_SYCL_HPP
 
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;

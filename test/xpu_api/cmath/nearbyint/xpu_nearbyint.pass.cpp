@@ -23,7 +23,7 @@
 #include <vector>
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include THE_SYCL_HPP
 
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;

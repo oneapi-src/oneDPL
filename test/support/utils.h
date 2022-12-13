@@ -42,6 +42,12 @@
 #    include "utils_sycl.h"
 #endif
 
+#if __has_include(<sycl/sycl.hpp>)
+#    define THE_SYCL_HPP <sycl/sycl.hpp>
+#else
+#    define THE_SYCL_HPP <CL/sycl.hpp>
+#endif
+
 namespace TestUtils
 {
 

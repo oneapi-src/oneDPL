@@ -21,8 +21,11 @@
 #define DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON
 
 #include <vector>
-#include <CL/sycl.hpp>
 #include <random>
+
+#include "support/utils.h"
+
+#include THE_SYCL_HPP
 
 constexpr auto REF_SAMPLE_ID = 9999;
 

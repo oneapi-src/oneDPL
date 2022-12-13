@@ -15,10 +15,11 @@
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/functional>
 
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
+#include THE_SYCL_HPP
 
 template <class Iter>
 void

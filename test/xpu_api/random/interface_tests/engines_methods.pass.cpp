@@ -22,8 +22,11 @@
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #    include <iostream>
 #    include <vector>
-#    include <CL/sycl.hpp>
 #    include <oneapi/dpl/random>
+
+#    include "support/utils.h"
+
+#    include THE_SYCL_HPP
 
 constexpr auto SEED = 777;
 constexpr auto N_GEN = 960;

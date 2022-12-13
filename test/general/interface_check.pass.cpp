@@ -27,7 +27,7 @@
 #include "support/test_config.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
+#include THE_SYCL_HPP
 #endif
 
 template <typename Policy, typename NewName>
