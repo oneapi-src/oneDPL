@@ -57,15 +57,23 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-macro(onedpl_add_test test_source_file switch_off_checked_iterators)
+macro(onedpl_add_test test_source_file switch_off_checked_iterators is_std_test)
 
     set(_build_type_in_lower "unknown")
     if (CMAKE_BUILD_TYPE)
         string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
     endif()
 
-    get_filename_component(_test_name ${test_source_file} NAME)
-    string(REPLACE "\.cpp" "" _test_name ${_test_name})
+    if (${is_std_test})
+        #process std tests
+        file(RELATIVE_PATH _test_name "${CMAKE_CURRENT_SOURCE_DIR}" "${test_source_file}")
+        string(REPLACE "\.cpp" "" _test_name ${_test_name})
+        string(REPLACE "/" "-" _test_name ${_test_name})
+    else()
+        #process oneDPL tests
+        get_filename_component(_test_name ${test_source_file} NAME)
+        string(REPLACE "\.cpp" "" _test_name ${_test_name})
+    endif()
 
     add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
@@ -90,6 +98,12 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     endif()
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
+    if (${is_std_test})
+        target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/support_stdlib")
+    else()
+        target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/support")
+    endif()
+
     target_link_libraries(${_test_name} PRIVATE oneDPL)
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
@@ -148,6 +162,7 @@ endmacro()
 
 set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics|parallel_api/dynamic_selection/sycl)")
 set(_regexp_switch_off_checked_it  "(test/general/header_order_ranges|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/parallel_api/dynamic_selection|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests|test/parallel_api/numeric/numeric.ops/transform_scan)")
+set(_skip_regex_for_not_std "(std/)")
 
 set(_regexp_pstl_offload_only "(test/pstl_offload)")
 set(_regexp_pstl_offload_parallel_api "(test/xpu_api|test/parallel_api/algorithm|test/parallel_api/memory|test/parallel_api/numeric)")
@@ -166,36 +181,49 @@ foreach (_file IN LISTS UNIT_TESTS)
                 get_filename_component(_filename "${_file}" NAME_WE)
                 CHECK_INCLUDE_FILE_CXX(${_filename} _has_header_file)
                 if (_has_header_file)
-                    onedpl_add_test(${_file} true)
+                    onedpl_add_test(${_file} true false)
                 endif()
                 unset(_has_header_file CACHE)
             else()
-                onedpl_add_test(${_file} true)
+                onedpl_add_test(${_file} true false)
             endif()
         else()
             continue()
         endif()
     elseif (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         if (_file MATCHES "${_regexp_pstl_offload_parallel_api}" AND NOT _file MATCHES "${_regexp_pstl_offload_exclude}")
-            onedpl_add_test(${_file} true)
+            onedpl_add_test(${_file} true false)
         endif()
     else()
+
+        if (_file MATCHES "${_skip_regex_for_not_std}")
+            continue()
+        endif()
+    
         if (_file MATCHES "${_regexp_dpcpp_backend_required}")
             if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
                 # Switch off checked iterators
-                onedpl_add_test(${_file} true)
+                onedpl_add_test(${_file} true false)
             else()
                 message(STATUS "Skip test ${_file} as it requires DPC++ backend")
             endif()
         else()
             if (_file MATCHES "${_regexp_switch_off_checked_it}")
                 # Switch off checked iterators
-                onedpl_add_test(${_file} true)
+                onedpl_add_test(${_file} true false)
             else()
                 # Do not switch off checked iterators
-                onedpl_add_test(${_file} false)
+                onedpl_add_test(${_file} false false)
             endif()
         endif()
     endif()
+
+endforeach()
+
+file(GLOB_RECURSE UNIT_TESTS "std/*.pass.cpp")
+foreach (_file IN LISTS UNIT_TESTS)
+
+        # Do not switch off checked iterators
+        onedpl_add_test(${_file} false true)
 
 endforeach()
