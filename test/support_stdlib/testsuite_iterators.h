@@ -150,57 +150,6 @@ struct forward_iterator_wrapper : public input_iterator_wrapper<T> {
 };
 
 /**
- * @brief bidirectional_iterator wrapper for pointer
- *
- * This class takes a pointer and wraps it to provide exactly
- * the requirements of a forward_iterator. It should not be
- * instantiated directly, but generated from a test_container
- */
-template <class T>
-struct bidirectional_iterator_wrapper : public forward_iterator_wrapper<T> {
-  typedef BoundsContainer<T> ContainerType;
-  typedef std::bidirectional_iterator_tag iterator_category;
-  bidirectional_iterator_wrapper(T *_ptr, ContainerType *SharedInfo_in)
-      : forward_iterator_wrapper<T>(_ptr, SharedInfo_in) {}
-
-  bidirectional_iterator_wrapper(const bidirectional_iterator_wrapper &in)
-      : forward_iterator_wrapper<T>(in) {}
-
-  bidirectional_iterator_wrapper() : forward_iterator_wrapper<T>() {}
-
-  bidirectional_iterator_wrapper &
-  operator=(const bidirectional_iterator_wrapper &in) {
-    this->ptr = in.ptr;
-    this->SharedInfo = in.SharedInfo;
-    return *this;
-  }
-
-  bidirectional_iterator_wrapper &operator++() {
-    // ITERATOR_VERIFY(this->SharedInfo && this->ptr < this->SharedInfo->last);
-    this->ptr++;
-    return *this;
-  }
-
-  bidirectional_iterator_wrapper operator++(int) {
-    bidirectional_iterator_wrapper<T> tmp = *this;
-    ++*this;
-    return tmp;
-  }
-
-  bidirectional_iterator_wrapper &operator--() {
-    // ITERATOR_VERIFY(this->SharedInfo && this->ptr > this->SharedInfo->first);
-    this->ptr--;
-    return *this;
-  }
-
-  bidirectional_iterator_wrapper operator--(int) {
-    bidirectional_iterator_wrapper<T> tmp = *this;
-    --*this;
-    return tmp;
-  }
-};
-
-/**
  * @brief random_access_iterator wrapper for pointer
  *
  * This class takes a pointer and wraps it to provide exactly
