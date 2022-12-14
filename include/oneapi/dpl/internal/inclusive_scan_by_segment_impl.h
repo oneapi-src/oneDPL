@@ -96,7 +96,7 @@ inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     auto keep_value_outputs = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator>();
     auto value_output_buf = keep_value_outputs(result, result + n);
     auto buf_view = key_buf.all_view();
-    using iter_value_t = typename ::std::iterator_traits<InputIterator1>::value_type;
+    using iter_value_t = typename ::std::iterator_traits<InputIterator2>::value_type;
 
     iter_value_t identity = __dpl_sycl::__known_identity<BinaryOperator, iter_value_t>::value;
 
@@ -156,7 +156,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     return internal::inclusive_scan_by_segment_impl_helper(
         ::std::forward<Policy>(policy), first1, last1, first2, result, binary_pred, binary_op,
         typename __dpl_sycl::__has_known_identity<BinaryOperator,
-                                                  typename ::std::iterator_traits<InputIterator1>::value_type>::type{});
+                                                  typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
 }
 
 #endif
