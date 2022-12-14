@@ -28,43 +28,6 @@ template <typename T> struct BoundsContainer {
   BoundsContainer(T *_first, T *_last) : first(_first), last(_last) {}
 };
 
-// Simple container for holding state of a set of output iterators.
-template <typename T> struct OutputContainer : public BoundsContainer<T> {
-  T *incrementedto;
-  bool *writtento;
-  OutputContainer(T *_first, T *_last)
-      : BoundsContainer<T>(_first, _last), incrementedto(_first) {
-    writtento = new bool[this->last - this->first];
-    for (int i = 0; i < this->last - this->first; i++)
-      writtento[i] = false;
-  }
-
-  ~OutputContainer() { delete[] writtento; }
-};
-
-// Produced by output_iterator to allow limited writing to pointer
-template <class T> class WritableObject {
-  T *ptr;
-
-public:
-  OutputContainer<T> *SharedInfo;
-  WritableObject(T *ptr_in, OutputContainer<T> *SharedInfo_in)
-      : ptr(ptr_in), SharedInfo(SharedInfo_in) {}
-
-#if __cplusplus >= 201103L
-  template <class U> void operator=(U &&new_val) {
-    // ITERATOR_VERIFY(SharedInfo->writtento[ptr - SharedInfo->first] == 0);
-    SharedInfo->writtento[ptr - SharedInfo->first] = 1;
-    *ptr = std::forward<U>(new_val);
-  }
-#else
-  template <class U> void operator=(const U &new_val) {
-    // ITERATOR_VERIFY(SharedInfo->writtento[ptr - SharedInfo->first] == 0);
-    SharedInfo->writtento[ptr - SharedInfo->first] = 1;
-    *ptr = new_val;
-  }
-#endif
-};
 
 /**
  * @brief output_iterator wrapper for pointer
