@@ -215,7 +215,7 @@ jobs:
         shell: cmd
         run: |
           call %CONDA%/condabin/conda.bat activate base
-          conda install -c intel dpcpp_win-64
+          conda install -c "intel/label/validation" dpcpp_win-64
       - name: Run testing
         shell: cmd
         run: |
