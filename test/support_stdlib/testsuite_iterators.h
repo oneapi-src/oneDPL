@@ -28,69 +28,6 @@ template <typename T> struct BoundsContainer {
   BoundsContainer(T *_first, T *_last) : first(_first), last(_last) {}
 };
 
-
-/**
- * @brief output_iterator wrapper for pointer
- *
- * This class takes a pointer and wraps it to provide exactly
- * the requirements of a output_iterator. It should not be
- * instantiated directly, but generated from a test_container
- */
-template <class T>
-struct output_iterator_wrapper
-    : public std::iterator<std::output_iterator_tag, T, std::ptrdiff_t, T *,
-                           T &> {
-  typedef OutputContainer<T> ContainerType;
-  T *ptr;
-  ContainerType *SharedInfo;
-
-  output_iterator_wrapper(T *_ptr, ContainerType *SharedInfo_in)
-      : ptr(_ptr), SharedInfo(SharedInfo_in) {
-    // ITERATOR_VERIFY(ptr >= SharedInfo->first && ptr <= SharedInfo->last);
-  }
-
-  output_iterator_wrapper(const output_iterator_wrapper &in)
-      : ptr(in.ptr), SharedInfo(in.SharedInfo) {}
-
-  WritableObject<T> operator*() const {
-    // ITERATOR_VERIFY(ptr < SharedInfo->last);
-    // ITERATOR_VERIFY(SharedInfo->writtento[ptr - SharedInfo->first] == false);
-    return WritableObject<T>(ptr, SharedInfo);
-  }
-
-  output_iterator_wrapper &operator=(const output_iterator_wrapper &in) {
-    ptr = in.ptr;
-    SharedInfo = in.SharedInfo;
-    return *this;
-  }
-
-  output_iterator_wrapper &operator++() {
-    // ITERATOR_VERIFY(SharedInfo && ptr < SharedInfo->last);
-    // ITERATOR_VERIFY(ptr>=SharedInfo->incrementedto);
-    ptr++;
-    SharedInfo->incrementedto = ptr;
-    return *this;
-  }
-
-  output_iterator_wrapper operator++(int) {
-    output_iterator_wrapper<T> tmp = *this;
-    ++*this;
-    return tmp;
-  }
-
-#if __cplusplus >= 201103L
-  template <typename U> void operator,(const U &) const = delete;
-#else
-private:
-  template <typename U> void operator,(const U &) const;
-#endif
-};
-
-#if __cplusplus >= 201103L
-template <typename T, typename U>
-void operator,(const T &, const output_iterator_wrapper<U> &) = delete;
-#endif
-
 template <typename T> struct remove_cv { typedef T type; };
 template <typename T> struct remove_cv<const T> { typedef T type; };
 template <typename T> struct remove_cv<volatile T> { typedef T type; };
