@@ -475,7 +475,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     using has_known_identity =
         typename __dpl_sycl::__has_known_identity<BinaryOperator,
-                                                  typename ::std::iterator_traits<InputIterator1>::value_type>::type;
+                                                  typename ::std::iterator_traits<InputIterator2>::value_type>::type;
 
     // number of unique keys
     CountType N = sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
