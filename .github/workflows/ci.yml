@@ -218,6 +218,9 @@ jobs:
         run: |
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel dpcpp_win-64
+      - name: check the files
+        shell: cmd
+        run: |
           cd dpcpp_win-64
           dir
       - name: Run testing
