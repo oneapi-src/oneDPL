@@ -25,8 +25,6 @@
 #include <vector>
 #include <oneapi/dpl/random>
 
-#include "support/utils.h"
-
 constexpr auto SEED = 777;
 constexpr auto N_GEN = 960;
 
