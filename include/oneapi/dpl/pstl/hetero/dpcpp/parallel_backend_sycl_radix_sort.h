@@ -18,6 +18,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <utility>
 #include <cstdint>
 
 #if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L)  && __has_include(<bit>)
@@ -58,7 +59,7 @@ class __radix_sort_reorder_kernel;
 
 #if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
 template <typename _Dst, typename _Src>
-using __dpl_bit_cast = std::bit_cast<_Dst, _Src>;
+using __dpl_bit_cast = ::std::bit_cast<_Dst, _Src>;
 
 #else
 template <typename _Dst, typename _Src>
@@ -71,7 +72,7 @@ __dpl_bit_cast(const _Src& __src)
     return __builtin_bit_cast(_Dst, __src);
 #else
     _Dst __result;
-    std::memcpy(&__result, &__src, sizeof(_Dst));
+    ::std::memcpy(&__result, &__src, sizeof(_Dst));
     return __result;
 #endif
 }
@@ -104,7 +105,7 @@ __order_preserving_cast(_Int __val)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
     // mask: 100..0 for ascending, 011..1 for descending
-    constexpr _UInt __mask = (__is_ascending) ? 1 << std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
+    constexpr _UInt __mask = (__is_ascending) ? 1 << ::std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
     return __val ^ __mask;
 }
 
@@ -163,7 +164,7 @@ template <typename _T>
 constexpr ::std::uint32_t
 __get_buckets_in_type(::std::uint32_t __radix_bits)
 {
-    return (sizeof(_T) * std::numeric_limits<unsigned char>::digits) / __radix_bits;
+    return (sizeof(_T) * ::std::numeric_limits<unsigned char>::digits) / __radix_bits;
 }
 
 // get bits value (bucket) in a certain radix position
@@ -393,7 +394,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::scan_then_broadcast>
 {
     using _TempStorageT = __empty_peer_temp_storage;
     using _ItemType = sycl::nd_item<1>;
-    using _SubGroupType = decltype(std::declval<_ItemType>().get_sub_group());
+    using _SubGroupType = decltype(::std::declval<_ItemType>().get_sub_group());
 
     _SubGroupType __sgroup;
     ::std::uint32_t __sg_size;
