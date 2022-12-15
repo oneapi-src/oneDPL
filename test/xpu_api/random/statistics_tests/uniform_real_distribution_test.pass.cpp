@@ -22,7 +22,6 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #include <vector>
-#include THE_SYCL_HPP
 #include <random>
 #include <oneapi/dpl/random>
 #include "statistics_common.h"

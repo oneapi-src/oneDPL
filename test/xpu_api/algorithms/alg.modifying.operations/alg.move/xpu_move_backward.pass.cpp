@@ -18,7 +18,6 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include THE_SYCL_HPP
 
 template <typename _T1, typename _T2>
 void

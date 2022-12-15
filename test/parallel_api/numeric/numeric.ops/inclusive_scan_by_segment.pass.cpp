@@ -23,7 +23,6 @@
 
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#include THE_SYCL_HPP
 
 using namespace oneapi::dpl::execution;
 #endif

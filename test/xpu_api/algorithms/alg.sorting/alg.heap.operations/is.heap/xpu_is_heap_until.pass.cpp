@@ -18,7 +18,6 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include THE_SYCL_HPP
 
 template <class Iter1>
 void

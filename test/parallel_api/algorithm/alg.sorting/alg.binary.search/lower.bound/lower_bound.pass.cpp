@@ -21,10 +21,6 @@
 #include "support/utils.h"
 #include "support/binary_search_utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#    include THE_SYCL_HPP
-#endif
-
 #include <cmath>
 
 #if TEST_DPCPP_BACKEND_PRESENT

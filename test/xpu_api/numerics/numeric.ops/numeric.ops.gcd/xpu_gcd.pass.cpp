@@ -21,8 +21,6 @@
 #include <cassert>
 #include <iostream>
 
-#include THE_SYCL_HPP
-
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 

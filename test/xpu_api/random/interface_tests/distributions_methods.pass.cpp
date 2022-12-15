@@ -27,8 +27,6 @@
 
 #include "support/utils.h"
 
-#include THE_SYCL_HPP
-
 constexpr auto SEED = 777;
 constexpr auto N_GEN = 960;
 

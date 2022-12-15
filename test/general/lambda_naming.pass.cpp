@@ -22,10 +22,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#    include THE_SYCL_HPP
-#endif
-
 using namespace TestUtils;
 
 // This is the simple test for compilation only, to check if lambda naming works correctly

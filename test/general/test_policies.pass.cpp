@@ -25,8 +25,6 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
-#include THE_SYCL_HPP
-
 template<typename Policy>
 void test_policy_instance(const Policy& policy)
 {

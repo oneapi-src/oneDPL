@@ -27,8 +27,6 @@
 
 #include "support/utils.h"
 
-#include THE_SYCL_HPP
-
 constexpr auto seed = 777;
 constexpr int N = 96;
 

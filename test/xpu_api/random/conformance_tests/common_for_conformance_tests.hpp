@@ -25,8 +25,6 @@
 
 #include "support/utils.h"
 
-#include THE_SYCL_HPP
-
 constexpr auto REF_SAMPLE_ID = 9999;
 
 template<class Engine, int NGenSamples, int NElemsInResultType>
