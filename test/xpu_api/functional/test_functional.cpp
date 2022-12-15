@@ -26,9 +26,13 @@
 #include <iostream>
 
 #ifndef ONEDPL_STANDARD_POLICIES_ONLY
-#include THE_SYCL_HPP
+#    if __has_include(<sycl/sycl.hpp>)
+#        include <sycl/sycl.hpp>
+#    else
+#        include <CL/sycl.hpp>
+#    endif
 #else
-#include <vector>
+#    include <vector>
 #endif
 
 template<typename Iterator, typename T>
