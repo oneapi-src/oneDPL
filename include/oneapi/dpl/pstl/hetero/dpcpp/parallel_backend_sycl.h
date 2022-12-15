@@ -644,11 +644,13 @@ struct __early_exit_find_or
                 if constexpr (_OrTagType::value)
                     __found_local.store(1);
                 else
+                {
                     for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
                          __old = __found_local.load())
                     {
                         __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
+                }
             }
         }
     }
@@ -744,11 +746,13 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                         if constexpr (__or_tag_check)
                             __found.store(1);
                         else
+                        {
                             for (auto __old = __found.load(); __comp(__found_local.load(), __old);
                                  __old = __found.load())
                             {
                                 __found.compare_exchange_strong(__old, __found_local.load());
                             }
+                        }
                     }
                 });
         });
