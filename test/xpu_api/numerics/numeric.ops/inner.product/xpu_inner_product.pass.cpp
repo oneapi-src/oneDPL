@@ -17,6 +17,8 @@
 #include <oneapi/dpl/numeric>
 
 #include <iostream>
+
+#include "support/utils_sycl.h"
 #include "support/test_iterators.h"
 
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
