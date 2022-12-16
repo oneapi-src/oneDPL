@@ -14,10 +14,10 @@
 
 #include <oneapi/dpl/algorithm>
 
+#include "support/utils_sycl.h"
 #include "support/test_iterators.h"
 
 #include <cassert>
-#include <CL/sycl.hpp>
 
 template <class Iter>
 void

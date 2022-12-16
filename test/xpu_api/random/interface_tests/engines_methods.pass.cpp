@@ -22,7 +22,6 @@
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 #    include <iostream>
 #    include <vector>
-#    include <CL/sycl.hpp>
 #    include <oneapi/dpl/random>
 
 constexpr auto SEED = 777;
