@@ -21,8 +21,6 @@
 
 #include <oneapi/dpl/functional>
 
-#include "support/utils.h"
-
 #include <iostream>
 
 #ifndef ONEDPL_STANDARD_POLICIES_ONLY
