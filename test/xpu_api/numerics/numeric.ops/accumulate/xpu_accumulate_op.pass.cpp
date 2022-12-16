@@ -13,10 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
-
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/numeric>
+
+#include <iostream>
 
 #include "support/utils_sycl.h"
 #include "support/test_iterators.h"
