@@ -63,9 +63,8 @@ using __dpl_bit_cast = ::std::bit_cast<_Dst, _Src>;
 
 #else
 template <typename _Dst, typename _Src>
-__enable_if_t<sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst>
-              && ::std::is_trivially_copyable_v<_Src>,
-              _Dst>
+__enable_if_t<
+    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src)
 {
 #if defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
