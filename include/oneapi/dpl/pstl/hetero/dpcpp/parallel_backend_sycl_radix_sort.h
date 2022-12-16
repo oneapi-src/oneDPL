@@ -145,7 +145,7 @@ __order_preserving_cast(_Float __val)
 
 // get rounded up result of (__number / __divisor)
 template <typename _T1, typename _T2>
-inline auto
+constexpr auto
 __ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
 {
     return (__number - 1) / __divisor + 1;
@@ -164,7 +164,7 @@ template <typename _T>
 constexpr ::std::uint32_t
 __get_buckets_in_type(::std::uint32_t __radix_bits)
 {
-    return (sizeof(_T) * ::std::numeric_limits<unsigned char>::digits) / __radix_bits;
+    return __ceiling_div( sizeof(_T) * ::std::numeric_limits<unsigned char>::digits, __radix_bits);
 }
 
 // get bits value (bucket) in a certain radix position
@@ -697,7 +697,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
 
     // radix bits represent number of processed bits in each value during one iteration
     constexpr ::std::uint32_t __radix_bits = 4;
-    const ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
+    constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
     const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
     // additional __radix_states elements are used for getting local offsets from count values
