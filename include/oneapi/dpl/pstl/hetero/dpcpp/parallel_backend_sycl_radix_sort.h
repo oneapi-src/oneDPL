@@ -21,7 +21,7 @@
 #include <utility>
 #include <cstdint>
 
-#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L)  && __has_include(<bit>)
+#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
 #    include <bit>
 #else
 #    include <cstring> // memcpy
@@ -164,7 +164,7 @@ template <typename _T>
 constexpr ::std::uint32_t
 __get_buckets_in_type(::std::uint32_t __radix_bits)
 {
-    return __ceiling_div( sizeof(_T) * ::std::numeric_limits<unsigned char>::digits, __radix_bits);
+    return __ceiling_div(sizeof(_T) * ::std::numeric_limits<unsigned char>::digits, __radix_bits);
 }
 
 // get bits value (bucket) in a certain radix position
@@ -539,9 +539,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 {
                     _InputT __in_val = __input_rng[__val_idx];
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
-                    ::std::uint32_t __bucket =
-                        __get_bucket<(1 << __radix_bits) - 1>(__order_preserving_cast<__is_ascending>(__in_val),
-                                                              __radix_offset);
+                    ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(
+                        __order_preserving_cast<__is_ascending>(__in_val), __radix_offset);
 
                     _OffsetT __new_offset_idx = 0;
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
