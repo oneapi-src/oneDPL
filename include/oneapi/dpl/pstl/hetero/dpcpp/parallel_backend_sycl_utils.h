@@ -114,34 +114,6 @@ zip(T... args)
     return oneapi::dpl::zip_iterator<T...>(args...);
 }
 
-// function to explicitly wait for an event in case a compile-time condition is met
-template <bool flag>
-struct explicit_wait_if
-{
-    template <typename _ExecutionPolicy>
-    void
-    operator()(_ExecutionPolicy&&){};
-
-    void operator()(sycl::event){};
-};
-
-template <>
-struct explicit_wait_if<true>
-{
-    template <typename _ExecutionPolicy>
-    void
-    operator()(_ExecutionPolicy&& __exec)
-    {
-        __exec.queue().wait_and_throw();
-    };
-
-    void
-    operator()(sycl::event __event)
-    {
-        __event.wait_and_throw();
-    }
-};
-
 // function is needed to wrap kernel name into another policy class
 template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>

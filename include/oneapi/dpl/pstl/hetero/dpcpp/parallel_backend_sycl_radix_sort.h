@@ -681,9 +681,6 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
                 ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
                 __out_rng, ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
-
-        // TODO: since reassign to __iteration_event does not work, we have to make explicit wait on the event
-        explicit_wait_if<::std::is_pointer<decltype(__in_rng.begin())>::value>{}(__iteration_event);
     }
 
     return __future(__iteration_event, __tmp_buf, __out_buffer_holder.get_buffer());
