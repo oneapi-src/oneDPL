@@ -21,12 +21,6 @@
 #include <utility>
 #include <cstdint>
 
-#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
-#    include <bit>
-#else
-#    include <cstring> // memcpy
-#endif
-
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
@@ -38,44 +32,8 @@ namespace dpl
 namespace __par_backend_hetero
 {
 //------------------------------------------------------------------------
-// radix sort: kernel names
-//------------------------------------------------------------------------
-
-template <::std::uint32_t, bool, bool, typename... _Name>
-class __radix_sort_count_kernel;
-
-template <::std::uint32_t, typename... _Name>
-class __radix_sort_scan_kernel;
-
-template <::std::uint32_t, bool, bool, typename... _Name>
-class __radix_sort_reorder_peer_kernel;
-
-template <::std::uint32_t, bool, bool, typename... _Name>
-class __radix_sort_reorder_kernel;
-
-//------------------------------------------------------------------------
 // radix sort: bitwise order-preserving conversions to unsigned integrals
 //------------------------------------------------------------------------
-
-#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
-template <typename _Dst, typename _Src>
-using __dpl_bit_cast = ::std::bit_cast<_Dst, _Src>;
-
-#else
-template <typename _Dst, typename _Src>
-__enable_if_t<
-    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
-__dpl_bit_cast(const _Src& __src)
-{
-#if defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
-    return __builtin_bit_cast(_Dst, __src);
-#else
-    _Dst __result;
-    ::std::memcpy(&__result, &__src, sizeof(_Dst));
-    return __result;
-#endif
-}
-#endif // C++20 && __has_include(<bit>)
 
 template <bool __is_ascending>
 bool
@@ -139,24 +97,8 @@ __order_preserving_cast(_Float __val)
 }
 
 //------------------------------------------------------------------------
-// radix sort: bit pattern functions
+// radix sort: bucket functions
 //------------------------------------------------------------------------
-
-// get rounded up result of (__number / __divisor)
-template <typename _T1, typename _T2>
-constexpr auto
-__ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
-{
-    return (__number - 1) / __divisor + 1;
-}
-
-// Use sycl::clz to implement the analogue of C++20 std::bit_floor (the max power of 2 not exceeding the value)
-template <typename _T>
-inline __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
-__dpl_bit_floor(_T __x)
-{
-    return 1 << (sycl::clz(_T(0)) - sycl::clz(__x) - 1);
-}
 
 // get number of buckets (size of radix bits) in T
 template <typename _T>
@@ -173,6 +115,22 @@ __get_bucket(_T __value, ::std::uint32_t __radix_offset)
 {
     return (__value >> __radix_offset) & _T(__radix_mask);
 }
+
+//------------------------------------------------------------------------
+// radix sort: kernel names
+//------------------------------------------------------------------------
+
+template <::std::uint32_t, bool, bool, typename... _Name>
+class __radix_sort_count_kernel;
+
+template <::std::uint32_t, typename... _Name>
+class __radix_sort_scan_kernel;
+
+template <::std::uint32_t, bool, bool, typename... _Name>
+class __radix_sort_reorder_peer_kernel;
+
+template <::std::uint32_t, bool, bool, typename... _Name>
+class __radix_sort_reorder_kernel;
 
 //-----------------------------------------------------------------------
 // radix sort: count kernel (per iteration)

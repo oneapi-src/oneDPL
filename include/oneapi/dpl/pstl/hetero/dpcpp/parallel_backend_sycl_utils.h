@@ -20,6 +20,12 @@
 #include <type_traits>
 #include <tuple>
 
+#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+#    include <bit>
+#else
+#    include <cstring> // memcpy
+#endif
+
 #include "../../iterator_impl.h"
 
 #include "sycl_defs.h"
@@ -43,10 +49,62 @@ namespace __par_backend_hetero
 // aliases for faster access to modes
 using access_mode = sycl::access_mode;
 
+// substitution for C++17 convenience types
 template <typename _T>
 using __decay_t = typename ::std::decay<_T>::type;
 template <bool __flag, typename _T = void>
 using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
+
+// Bitwise type casting, same as C++20 std::bit_cast
+template <typename _Dst, typename _Src>
+__enable_if_t<
+    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
+__dpl_bit_cast(const _Src& __src)
+{
+#if SYCL_LANGUAGE_VERSION >= 2020
+    return sycl::bit_cast<_Dst>(__src);
+#elif (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+    return ::std::bit_cast<_Dst>(__src);
+#elif defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
+    return __builtin_bit_cast(_Dst, __src);
+#else
+    _Dst __result;
+    ::std::memcpy(&__result, &__src, sizeof(_Dst));
+    return __result;
+#endif
+}
+
+// The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
+template <typename _T>
+__enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
+__dpl_bit_floor(_T __x)
+{
+    if (__x == 0) return 0;
+#if SYCL_LANGUAGE_VERSION >= 2020
+    // Use the count-leading-zeros function
+    return 1 << (sycl::clz(_T{0}) - sycl::clz(__x) - 1);
+#elif (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+    return ::std::bit_floor(__x);
+#else
+    // Fill all the lower bits with 1s
+    __x |= (__x >> 1);
+    __x |= (__x >> 2);
+    __x |= (__x >> 4);
+    if constexpr (sizeof(_T) > 1) __x |= (__x >> 8);
+    if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
+    if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
+    __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
+    return (__x == 0) ? 1 << (sizeof(_T) * 8 - 1) : __x >> 1;
+#endif
+}
+
+// rounded up result of (__number / __divisor)
+template <typename _T1, typename _T2>
+constexpr auto
+__ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
+{
+    return (__number - 1) / __divisor + 1;
+}
 
 // function to hide zip_iterator creation
 template <typename... T>
@@ -56,6 +114,7 @@ zip(T... args)
     return oneapi::dpl::zip_iterator<T...>(args...);
 }
 
+// function to explicitly wait for an event in case a compile-time condition is met
 template <bool flag>
 struct explicit_wait_if
 {
@@ -83,7 +142,7 @@ struct explicit_wait_if<true>
     }
 };
 
-// function is needed to wrap kernel name into another class
+// function is needed to wrap kernel name into another policy class
 template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
@@ -426,37 +485,6 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-inline void
-__wait_event(sycl::event __e)
-{
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-    __e.wait_and_throw();
-#endif
-}
-
-template <typename _T>
-constexpr auto
-__get_value(sycl::buffer<_T>& __buf)
-{
-    //according to a contract, returned value is one-element sycl::buffer
-    return __buf.template get_access<access_mode::read>()[0];
-}
-
-template <typename _T>
-constexpr auto
-__get_value(_T& __val)
-{
-    return __val;
-}
-
-template <typename _T>
-std::false_type
-__do_wait(sycl::buffer<_T>&);
-
-template <typename _T>
-std::true_type
-__do_wait(_T&);
-
 //A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
 //Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
@@ -464,7 +492,23 @@ class __future : private std::tuple<_Args...>
 {
     _Event __my_event;
 
-  public:
+    template <typename _T>
+    constexpr auto
+    __possibly_wait_and_get_value(sycl::buffer<_T>& __buf)
+    {
+        //according to a contract, returned value is one-element sycl::buffer
+        return __buf.template get_access<access_mode::read>()[0];
+    }
+
+    template <typename _T>
+    constexpr auto
+    __possibly_wait_and_get_value(_T& __val)
+    {
+        wait();
+        return __val;
+    }
+
+public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
 
@@ -477,7 +521,9 @@ class __future : private std::tuple<_Args...>
     void
     wait()
     {
-        __wait_event(event());
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __my_event.wait_and_throw();
+#endif
     }
 
     auto
@@ -486,9 +532,7 @@ class __future : private std::tuple<_Args...>
         if constexpr (sizeof...(_Args) > 0)
         {
             auto& __val = std::get<0>(*this);
-            if constexpr (decltype(__do_wait(__val))::value)
-                wait();
-            return __get_value(__val);
+            return __possibly_wait_and_get_value(__val);
         }
         else
             wait();
