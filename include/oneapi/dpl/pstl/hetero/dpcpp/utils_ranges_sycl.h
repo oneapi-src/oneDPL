@@ -334,10 +334,10 @@ struct __get_sycl_range
 
     template <typename _Iter, typename _CopyDirectTag>
     buf_type<val_t<_Iter>>
-    copy_direct(_Iter __first, _Iter __last, _CopyDirectTag __copy_direct_tag)
+    copy_direct(_Iter __first, _Iter __last, _CopyDirectTag)
     {
         //create a SYCL buffer and copy data [first, last) or create a empty SYCL buffer with size = (last - first)
-        if constexpr (__copy_direct_tag::value)
+        if constexpr (_CopyDirectTag::value)
             return sycl::buffer<val_t<_Iter>, 1>(__first, __last);
         else
             return sycl::buffer<val_t<_Iter>, 1>(__last - __first);

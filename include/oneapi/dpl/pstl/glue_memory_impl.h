@@ -249,7 +249,7 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     const auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
 
-    if constexpr (::std::is_trivially_destructible_v<_ValueType>())
+    if constexpr (::std::is_trivially_destructible_v<_ValueType>)
     {
         return oneapi::dpl::__internal::__pstl_next(__first, __n);
     }

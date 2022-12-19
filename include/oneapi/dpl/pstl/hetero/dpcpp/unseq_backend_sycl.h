@@ -902,7 +902,7 @@ class __brick_set_op
                                      __internal::__pstl_left_bound(__b, _Size2(0), _Size2(__res), __val_b, __comp);
 
             if constexpr (_IsOpDifference::value)
-                bres = _count_a_left > __count_b;   /*difference*/
+                bres = __count_a_left > __count_b;   /*difference*/
             else
                 bres = __count_a_left <= __count_b; /*intersection*/
         }
