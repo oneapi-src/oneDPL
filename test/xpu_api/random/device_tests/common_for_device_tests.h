@@ -20,11 +20,12 @@
 #ifndef _ONEDPL_RANDOM_DEVICE_TESTS_COMMON
 #define _ONEDPL_RANDOM_DEVICE_TESTS_COMMON
 
-#include <CL/sycl.hpp>
 #include <oneapi/dpl/random>
 #include <limits>
 #include <iostream>
 #include <iomanip>
+
+#include "support/utils.h"
 
 constexpr auto seed = 777;
 constexpr int N = 96;

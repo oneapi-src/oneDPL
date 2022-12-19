@@ -26,10 +26,6 @@
 #include <vector>
 #include "support/test_config.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#include <CL/sycl.hpp>
-#endif
-
 template <typename Policy, typename NewName>
 struct rebind_policy { using type = Policy; };
 
