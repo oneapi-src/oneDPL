@@ -33,10 +33,6 @@ test()
 
 void test_edges()
 {
-// Suppress clang warning: comparison with NaN always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
-
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
     {
@@ -59,8 +55,6 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(std::signbit(dpl::imag(r)) == std::signbit(dpl::imag(z)));
         }
     }
-
-CLANG_DIAGNOSTIC_POP
 }
 
 ONEDPL_TEST_NUM_MAIN

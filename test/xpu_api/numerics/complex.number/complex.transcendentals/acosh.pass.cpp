@@ -34,10 +34,6 @@ test()
 
 void test_edges()
 {
-// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
-
     const double pi = std::atan2(+0., -0.);
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
@@ -143,8 +139,6 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
         }
     }
-
-CLANG_DIAGNOSTIC_POP
 }
 
 ONEDPL_TEST_NUM_MAIN

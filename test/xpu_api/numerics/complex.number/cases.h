@@ -195,10 +195,6 @@ template <class T>
 int
 classify(const dpl::complex<T>& x)
 {
-// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
-
     if (x == dpl::complex<T>())
         return zero;
     if (std::isinf(x.real()) || std::isinf(x.imag()))
@@ -218,18 +214,12 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
         return non_zero_nan;
     }
     return non_zero;
-
-CLANG_DIAGNOSTIC_POP
 }
 
 inline
 int
 classify(double x)
 {
-// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
-
     if (x == 0)
         return zero;
     if (std::isinf(x))
@@ -237,8 +227,6 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
     if (std::isnan(x))
         return NaN;
     return non_zero;
-
-CLANG_DIAGNOSTIC_POP
 }
 
 void is_about(float x, float y)
