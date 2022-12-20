@@ -250,4 +250,12 @@ void is_about(long double x, long double y)
     assert(std::abs((x-y)/(x+y)) < 1.e-14);
 }
 
+template <typename T1, typename T2>
+void
+is_about(const dpl::complex<T1>& x, const dpl::complex<T2>& y)
+{
+    is_about(x.real(), y.real());
+    is_about(x.imag(), y.imag());
+}
+
 #endif // CASES_H
