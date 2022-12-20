@@ -235,19 +235,22 @@ void is_about(float x, float y)
 CLANG_DIAGNOSTIC_PUSH
 CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
 
-    assert(std::abs((x-y)/(x+y)) < 1.e-6);
+    if (x != y)
+        assert(std::abs((x-y)/(x+y)) < 1.e-6);
 
 CLANG_DIAGNOSTIC_POP
 }
 
 void is_about(double x, double y)
 {
-    assert(std::abs((x-y)/(x+y)) < 1.e-14);
+    if (x != y)
+        assert(std::abs((x-y)/(x+y)) < 1.e-14);
 }
 
 void is_about(long double x, long double y)
 {
-    assert(std::abs((x-y)/(x+y)) < 1.e-14);
+    if (x != y)
+        assert(std::abs((x-y)/(x+y)) < 1.e-14);
 }
 
 template <typename T1, typename T2>
