@@ -32,6 +32,15 @@
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) assert(arg)
 #endif // !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
 
+inline void
+skip_test_if_fast_math()
+{
+#ifdef __FAST_MATH__
+    ::std::cout << "Unable to run test with fast math switched on." << std::endl;
+    ::std::exit(TestUtils::done(0));
+#endif // __FAST_MATH__
+}
+
 #define ONEDPL_TEST_NUM_MAIN                                                                          \
 template <typename HasDoubleSupportInRuntime, typename HasLongDoubleSupportInCompiletime>             \
 int                                                                                                   \
@@ -39,6 +48,9 @@ run_test();                                                                     
                                                                                                       \
 int main(int, char**)                                                                                 \
 {                                                                                                     \
+    /* Skip test if fast math switched on */                                                          \
+    skip_test_if_fast_math();                                                                         \
+                                                                                                      \
     run_test<::std::true_type, ::std::true_type>();                                                   \
                                                                                                       \
     /* Sometimes we may start test on device, which don't support type double. */                     \
