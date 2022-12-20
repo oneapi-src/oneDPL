@@ -213,7 +213,7 @@ jobs:
       - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icx'
         shell: cmd
-        run: |
+        run: | 
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel dpcpp_win-64
       - name: Run testing
@@ -230,6 +230,7 @@ jobs:
           if "${{ matrix.cxx_compiler }}" == "dpcpp" (
             powershell $output = dpcpp --version; Write-Host ::warning::Compiler: $output
             set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
+            powershell -command "(Get-Content %CONDA_PREFIX%\Library\lib\cl.cfg) -replace 'CL_CONFIG_TBB_DLL_PATH =', 'CL_CONFIG_TBB_DLL_PATH = %CONDA_PREFIX%\Library\bin' | Out-File -encoding ASCII %CONDA_PREFIX%\Library\lib\cl.cfg"
           )
           mkdir build && cd build
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
