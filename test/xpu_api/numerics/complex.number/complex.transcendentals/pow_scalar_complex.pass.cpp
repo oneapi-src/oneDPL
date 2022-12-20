@@ -59,7 +59,7 @@ void test_edges()
                 assert(std::isnan(dpl::imag(z)));
             else
             {
-                assert(dpl::imag(r) == dpl::imag(z));
+                is_about(dpl::imag(r), dpl::imag(z));
             }
         }
     }
