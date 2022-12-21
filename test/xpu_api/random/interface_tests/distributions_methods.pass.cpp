@@ -23,7 +23,6 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <CL/sycl.hpp>
 #include <oneapi/dpl/random>
 
 constexpr auto SEED = 777;

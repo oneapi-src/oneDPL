@@ -23,10 +23,6 @@
 #include <iostream>
 #include <tuple>
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#   include <CL/sycl.hpp>
-#endif
-
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT

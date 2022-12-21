@@ -17,13 +17,13 @@
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
+#include "oneapi/dpl/complex"
 
 #include "support/test_config.h"
 #include "support/utils.h"
 
 #include <iostream>
 #include <iomanip>
-#include <oneapi/dpl/complex>
 
 template<typename _T1, typename _T2>
 void ASSERT_EQUAL(_T1&& X, _T2&& Y) {
