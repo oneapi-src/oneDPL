@@ -49,11 +49,27 @@
 #    define _ONEDPL_PREDEFINED_POLICIES 1
 #endif
 
-#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND)
+// Check availability of parallel backends
+#if __has_include(<tbb/tbb.h>)
+#   define _ONEDPL_TBB_AVAILABLE 1
+#endif
+#if ONEDPL_USE_TBB_BACKEND && !_ONEDPL_TBB_AVAILABLE
+#   error "TBB backend is selected, but TBB is not found"
+#endif
+
+#if defined(_OPENMP)
+#   define _ONEDPL_OPENMP_AVAILABLE 1
+#endif
+#if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE
+#   error "OpenMP backend is selected, but OpenMP is not found"
+#endif
+
+// Select a parallel backend
+#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
 #    define _ONEDPL_PAR_BACKEND_TBB 1
 #endif
 
-#if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && defined(_OPENMP))
+#if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
 #    define _ONEDPL_PAR_BACKEND_OPENMP 1
 #endif
 
