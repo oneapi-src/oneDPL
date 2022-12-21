@@ -90,16 +90,6 @@
 #endif
 #endif //!defined(_ENABLE_RANGES_TESTING)
 
-// to prevent the compilation warning in clang
-#ifdef __clang__
-#define STR(X) #X
-#define CLANG_DIAGNOSTIC_PUSH                                 _Pragma(STR(clang diagnostic push))
-#define CLANG_DIAGNOSTIC_POP                                  _Pragma(STR(clang diagnostic pop))
-#else
-#define CLANG_DIAGNOSTIC_PUSH
-#define CLANG_DIAGNOSTIC_POP
-#endif
-
 #define TEST_HAS_NO_INT128
 
 #define _PSTL_GLIBCXX_TEST_COMPLEX_BROKEN (__GLIBCXX__ >= 7)
