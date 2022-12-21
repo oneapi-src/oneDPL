@@ -22,15 +22,9 @@ template <class T>
 void
 test(const T& a, const dpl::complex<T>& b, dpl::complex<T> x)
 {
-// Suppress clang warning: floating-point comparison is always true; constant cannot be represented exactly in type 'float' [-Wliteral-range]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
-
     dpl::complex<T> c = dpl::pow(a, b);
     is_about(dpl::real(c), dpl::real(x));
     assert(std::abs(dpl::imag(c)) < 1.e-6);
-
-CLANG_DIAGNOSTIC_POP
 }
 
 template <class T>

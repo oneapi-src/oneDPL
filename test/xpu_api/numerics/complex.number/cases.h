@@ -231,14 +231,8 @@ classify(double x)
 
 void is_about(float x, float y)
 {
-// Suppress clang warning: floating-point comparison is always true; constant cannot be represented exactly in type 'float' [-Wliteral-range]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
-
     if (x != y)
         assert(std::abs((x-y)/(x+y)) < 1.e-6);
-
-CLANG_DIAGNOSTIC_POP
 }
 
 void is_about(double x, double y)
