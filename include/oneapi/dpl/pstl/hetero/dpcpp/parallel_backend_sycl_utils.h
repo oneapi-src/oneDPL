@@ -466,7 +466,7 @@ class __future : private std::tuple<_Args...>
 
     template <typename _T>
     constexpr auto
-    __possibly_wait_and_get_value(sycl::buffer<_T>& __buf)
+    __wait_and_get_value(sycl::buffer<_T>& __buf)
     {
         //according to a contract, returned value is one-element sycl::buffer
         return __buf.template get_access<access_mode::read>()[0];
@@ -474,7 +474,7 @@ class __future : private std::tuple<_Args...>
 
     template <typename _T>
     constexpr auto
-    __possibly_wait_and_get_value(_T& __val)
+    __wait_and_get_value(_T& __val)
     {
         wait();
         return __val;
@@ -504,7 +504,7 @@ public:
         if constexpr (sizeof...(_Args) > 0)
         {
             auto& __val = std::get<0>(*this);
-            return __possibly_wait_and_get_value(__val);
+            return __wait_and_get_value(__val);
         }
         else
             wait();
