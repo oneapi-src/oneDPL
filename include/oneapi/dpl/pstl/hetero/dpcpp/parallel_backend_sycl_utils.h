@@ -59,7 +59,7 @@ using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
 template <typename _Dst, typename _Src>
 __enable_if_t<
     sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
-__dpl_bit_cast(const _Src& __src)
+__dpl_bit_cast(const _Src& __src) noexcept
 {
 #if SYCL_LANGUAGE_VERSION >= 2020
     return sycl::bit_cast<_Dst>(__src);
@@ -77,7 +77,7 @@ __dpl_bit_cast(const _Src& __src)
 // The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
 template <typename _T>
 __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
-__dpl_bit_floor(_T __x)
+__dpl_bit_floor(_T __x) noexcept
 {
     if (__x == 0) return 0;
 #if SYCL_LANGUAGE_VERSION >= 2020
