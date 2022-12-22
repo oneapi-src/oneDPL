@@ -20,8 +20,9 @@
 #    error "oneDPL requires the C++ language version not less than C++17"
 #endif
 
-// Workarounds for libstdc++9, libstdc++10 when new TBB version is found in the environment
+// Disable use of TBB in Parallel STL from libstdc++ when:
 #if __cplusplus >= 201703L
+// - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
 #    if __has_include(<tbb/version.h>)
 #        ifndef PSTL_USE_PARALLEL_POLICIES
 #            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
@@ -30,6 +31,10 @@
 #            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
 #        endif
 #    endif // __has_include(<tbb/version.h>)
-#endif     // __cplusplus >= 201703L
+// - TBB is not found (libstdc++ v9)
+#    if !__has_include(<tbb/tbb.h>) && !defined(PSTL_USE_PARALLEL_POLICIES)
+#        define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#    endif
+#endif // __cplusplus >= 201703L
 
 #endif
