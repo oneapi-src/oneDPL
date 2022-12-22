@@ -1460,7 +1460,7 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
                     __first + __i, __first + __i + __len, __result + __initial, __mask + __i,
                     [](_ForwardIterator __x, _Tp* __z) {
                         if constexpr (::std::is_trivial_v<_Tp>)
-                            __z = ::std::move(*__x);
+                            *__z = ::std::move(*__x);
                         else
                             ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
                     },
