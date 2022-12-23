@@ -15,6 +15,7 @@
 
 #include <oneapi/dpl/complex>
 #include <cassert>
+#include <type_traits>
 
 const dpl::complex<double> testcases[] =
 {
@@ -229,27 +230,33 @@ classify(double x)
     return non_zero;
 }
 
-void is_about(float x, float y)
+auto
+get_eps(float)
 {
-    if (x != y)
-        assert(std::abs((x-y)/(x+y)) < 1.e-6);
-}
+    constexpr float eps = 1.e-6;
+    return eps;
+};
 
-void is_about(double x, double y)
+template <typename T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, T>::type
+get_eps(T)
 {
-    if (x != y)
-        assert(std::abs((x-y)/(x+y)) < 1.e-14);
-}
+    static_assert(::std::is_same_v<T, double> || ::std::is_same_v<T, long double>);
+    constexpr T eps = 1.e-11;
+    return eps;
+};
 
-void is_about(long double x, long double y)
+template <typename T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
+is_about(T x, T y)
 {
-    if (x != y)
-        assert(std::abs((x-y)/(x+y)) < 1.e-14);
+    const auto exp = get_eps(T{});
+    assert(std::abs(x - y) < exp);
 }
 
 template <typename T1, typename T2>
 void
-is_about(const dpl::complex<T1>& x, const dpl::complex<T2>& y)
+is_about_complex(const dpl::complex<T1>& x, const dpl::complex<T2>& y)
 {
     is_about(x.real(), y.real());
     is_about(x.imag(), y.imag());
