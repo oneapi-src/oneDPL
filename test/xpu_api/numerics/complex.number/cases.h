@@ -242,7 +242,7 @@ typename std::enable_if<!std::numeric_limits<T>::is_integer, T>::type
 get_eps(T)
 {
     static_assert(::std::is_same_v<T, double> || ::std::is_same_v<T, long double>);
-    constexpr T eps = 1.e-11;
+    constexpr T eps = 1.e-14;
     return eps;
 };
 
