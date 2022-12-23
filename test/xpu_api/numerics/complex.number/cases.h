@@ -230,27 +230,33 @@ classify(double x)
     return non_zero;
 }
 
-auto
-get_eps(float)
+template <typename>
+struct get_eps;
+
+template <>
+struct get_eps<float>
 {
-    constexpr float eps = 1.e-6;
-    return eps;
+    static constexpr float val = 1e-6;
 };
 
-template <typename T>
-typename std::enable_if<!std::numeric_limits<T>::is_integer, T>::type
-get_eps(T)
+template <>
+struct get_eps<double>
 {
-    static_assert(::std::is_same_v<T, double> || ::std::is_same_v<T, long double>);
-    constexpr T eps = 1.e-14;
-    return eps;
+    static constexpr double val = 1e-11;
+};
+
+template <>
+struct get_eps<long double>
+{
+    static constexpr long double val = 1e-11;
 };
 
 template <typename T>
 typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
 is_about(T x, T y)
 {
-    const auto exp = get_eps(T{});
+    const auto exp = get_eps<T>::val;
+    assert(std::fabs((x - y) / (x + y)) < exp);
     assert(std::fabs(x - y) < exp);
 }
 
