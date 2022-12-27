@@ -259,12 +259,11 @@ is_about(T x, T y)
     assert(std::fabs(x - y) < eps);
 }
 
-template <typename T1, typename T2>
+template <typename T>
 void
-is_about_complex(const dpl::complex<T1>& x, const dpl::complex<T2>& y)
+is_about_complex(const dpl::complex<T>& x, const dpl::complex<T>& y)
 {
-    is_about(x.real(), y.real());
-    is_about(x.imag(), y.imag());
+    return is_about(::std::abs(y - x), T(0.));
 }
 
 #endif // CASES_H
