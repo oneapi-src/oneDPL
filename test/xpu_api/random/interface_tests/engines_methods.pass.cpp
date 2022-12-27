@@ -403,7 +403,7 @@ main()
         }
     };
 
-    sycl::queue queue(sycl::default_selector{}, exception_handler);
+    sycl::queue queue(sycl::default_selector_v, exception_handler);
     
     std::int32_t err = 0;
 

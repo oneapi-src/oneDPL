@@ -133,7 +133,7 @@ main()
         }
     };
 
-    sycl::queue queue(sycl::default_selector{}, async_handler);
+    sycl::queue queue(sycl::default_selector_v, async_handler);
 
     constexpr std::int64_t nsamples = 100;
     constexpr int vec_size = 4;
