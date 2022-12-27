@@ -93,6 +93,14 @@ struct __accessor_traits_impl<sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Pl
     using value_type = typename sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>::value_type;
 };
 
+#if _ONEDPL_LIBSYCL_VERSION >= 60000
+template <typename _T, int _Dim>
+struct __accessor_traits_impl<sycl::local_accessor<_T, _Dim>>
+{
+    using value_type = typename sycl::local_accessor<_T, _Dim>::value_type;
+};
+#endif // _ONEDPL_LIBSYCL_VERSION >= 60000
+
 template <typename _RawArrayValueType>
 struct __accessor_traits_impl<_RawArrayValueType*>
 {
