@@ -230,40 +230,21 @@ classify(double x)
     return non_zero;
 }
 
-template <typename>
-struct get_eps;
-
-template <>
-struct get_eps<float>
-{
-    static constexpr float val = 1e-6;
-};
-
-template <>
-struct get_eps<double>
-{
-    static constexpr double val = 1e-11;
-};
-
-template <>
-struct get_eps<long double>
-{
-    static constexpr long double val = 1e-11;
-};
+template <typename T>
+constexpr auto __tol = std::numeric_limits<T>::epsilon() * 1e5;
 
 template <typename T>
 typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
-is_about(T x, T y)
+is_about(T x, T y, const T eps = __tol<T>)
 {
-    const auto eps = get_eps<T>::val;
-    assert(std::fabs(x - y) < eps);
+    assert(std::fabs(x - y) <= eps);
 }
 
 template <typename T>
-void
-is_about_complex(const dpl::complex<T>& x, const dpl::complex<T>& y)
+typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
+is_about(const dpl::complex<T>& x, const dpl::complex<T>& y, const T eps = __tol<T>)
 {
-    return is_about(::std::abs(y - x), T(0.));
+    return is_about(::std::abs(y - x), T(0.), eps);
 }
 
 #endif // CASES_H
