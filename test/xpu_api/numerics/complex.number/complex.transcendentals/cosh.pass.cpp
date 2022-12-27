@@ -32,10 +32,6 @@ test()
 
 void test_edges()
 {
-// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
-
     const unsigned N = sizeof(testcases) / sizeof(testcases[0]);
     for (unsigned i = 0; i < N; ++i)
     {
@@ -44,7 +40,9 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
         {
             assert(r.real() == 1);
             assert(r.imag() == 0);
+#ifndef _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
+#endif // _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT
         }
         else if (testcases[i].real() == 0 && std::isinf(testcases[i].imag()))
         {
@@ -71,7 +69,9 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(std::isinf(r.real()));
             assert(!std::signbit(r.real()));
             assert(r.imag() == 0);
+#ifndef _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
+#endif // _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT
         }
         else if (std::isinf(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
@@ -107,8 +107,6 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
             assert(std::isnan(r.imag()));
         }
     }
-
-CLANG_DIAGNOSTIC_POP
 }
 
 ONEDPL_TEST_NUM_MAIN

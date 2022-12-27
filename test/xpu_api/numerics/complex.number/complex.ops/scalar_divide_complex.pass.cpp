@@ -13,12 +13,13 @@
 //   operator/(const T& lhs, const complex<T>& rhs);
 
 #include "support/test_complex.h"
+#include "./../cases.h"
 
 template <class T>
 void
 test(const T& lhs, const dpl::complex<T>& rhs, dpl::complex<T> x)
 {
-    assert(lhs / rhs == x);
+    is_about(lhs / rhs, x);
 }
 
 template <class T>

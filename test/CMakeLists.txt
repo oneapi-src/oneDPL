@@ -15,6 +15,14 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
+# disable fast math for ALL TESTS
+check_cxx_compiler_flag("-fno-fast-math" _fno_fast_math_option)
+if (_fno_fast_math_option)
+    add_compile_options("-fno-fast-math")
+else()
+    message(STATUS "oneDPL: -fno-fast-math is not supported by current compiler")
+endif()
+
 add_custom_target(build-onedpl-tests
     COMMENT "Build all oneDPL tests")
 

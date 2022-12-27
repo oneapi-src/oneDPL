@@ -15,6 +15,7 @@
 
 #include <oneapi/dpl/complex>
 #include <cassert>
+#include <type_traits>
 
 const dpl::complex<double> testcases[] =
 {
@@ -195,10 +196,6 @@ template <class T>
 int
 classify(const dpl::complex<T>& x)
 {
-// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
-
     if (x == dpl::complex<T>())
         return zero;
     if (std::isinf(x.real()) || std::isinf(x.imag()))
@@ -218,18 +215,12 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
         return non_zero_nan;
     }
     return non_zero;
-
-CLANG_DIAGNOSTIC_POP
 }
 
 inline
 int
 classify(double x)
 {
-// Suppress clang warning: comparison with infinity always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
-
     if (x == 0)
         return zero;
     if (std::isinf(x))
@@ -237,29 +228,23 @@ CLANG_DIAGNOSTIC_IGNORED_AUTOLOGICAL_CONSTANT_COMPARE
     if (std::isnan(x))
         return NaN;
     return non_zero;
-
-CLANG_DIAGNOSTIC_POP
 }
 
-void is_about(float x, float y)
+template <typename T>
+constexpr auto __tol = std::numeric_limits<T>::epsilon() * 1e5;
+
+template <typename T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
+is_about(T x, T y, const T eps = __tol<T>)
 {
-// Suppress clang warning: floating-point comparison is always true; constant cannot be represented exactly in type 'float' [-Wliteral-range]
-CLANG_DIAGNOSTIC_PUSH
-CLANG_DIAGNOSTIC_IGNORED_LITERAL_RANGE
-
-    assert(std::abs((x-y)/(x+y)) < 1.e-6);
-
-CLANG_DIAGNOSTIC_POP
+    assert(std::fabs(x - y) <= eps);
 }
 
-void is_about(double x, double y)
+template <typename T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
+is_about(const dpl::complex<T>& x, const dpl::complex<T>& y, const T eps = __tol<T>)
 {
-    assert(std::abs((x-y)/(x+y)) < 1.e-14);
-}
-
-void is_about(long double x, long double y)
-{
-    assert(std::abs((x-y)/(x+y)) < 1.e-14);
+    return is_about(::std::abs(y - x), T(0.), eps);
 }
 
 #endif // CASES_H
