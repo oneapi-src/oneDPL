@@ -255,9 +255,8 @@ template <typename T>
 typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
 is_about(T x, T y)
 {
-    const auto exp = get_eps<T>::val;
-    assert(std::fabs((x - y) / (x + y)) < exp);
-    assert(std::fabs(x - y) < exp);
+    const auto eps = get_eps<T>::val;
+    assert(std::fabs(x - y) < eps);
 }
 
 template <typename T1, typename T2>
