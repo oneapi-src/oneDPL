@@ -40,9 +40,9 @@ void test_edges()
             assert(std::isfinite(r) && r > 0);
             break;
         case inf:
-#ifndef _PSTL_ICC_TEST_COMPLEX_NORM_MINUS_INF_NAN_BROKEN_TEST_EDGES
+#ifndef _PSTL_ICC_TEST_COMPLEX_BROKEN_TEST_EDGES
             assert(std::isinf(r) && r > 0);
-#endif // _PSTL_ICC_TEST_COMPLEX_NORM_MINUS_INF_NAN_BROKEN_TEST_EDGES
+#endif // _PSTL_ICC_TEST_COMPLEX_BROKEN_TEST_EDGES
             break;
         case NaN:
             assert(std::isnan(r));
