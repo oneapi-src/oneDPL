@@ -40,9 +40,9 @@ void test_edges()
         {
             assert(r.real() == 1);
             assert(r.imag() == 0);
-#ifndef _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT
+#ifndef _PSTL_ICC_TEST_COMPLEX_BROKEN_SIGNBIT
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
-#endif // _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_ZERO_MINUS_ZERO_BROKEN_SIGNBIT
+#endif // _PSTL_ICC_TEST_COMPLEX_BROKEN_SIGNBIT
         }
         else if (testcases[i].real() == 0 && std::isinf(testcases[i].imag()))
         {
@@ -69,9 +69,9 @@ void test_edges()
             assert(std::isinf(r.real()));
             assert(!std::signbit(r.real()));
             assert(r.imag() == 0);
-#ifndef _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT
+#ifndef _PSTL_ICC_TEST_COMPLEX_BROKEN_SIGNBIT
             assert(std::signbit(r.imag()) == std::signbit(testcases[i].imag()));
-#endif // _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT
+#endif // _PSTL_ICC_TEST_COMPLEX_BROKEN_SIGNBIT
         }
         else if (std::isinf(testcases[i].real()) && std::isfinite(testcases[i].imag()))
         {
