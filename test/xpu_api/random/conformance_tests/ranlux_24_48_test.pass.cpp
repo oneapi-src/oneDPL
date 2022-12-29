@@ -50,7 +50,7 @@ int main() {
         }
     };
 
-    sycl::queue queue(sycl::default_selector_v, exception_handler);
+    sycl::queue queue(exception_handler);
 
     // Reference values
     uint_fast32_t ranlux24_ref_sample = 9901578;
