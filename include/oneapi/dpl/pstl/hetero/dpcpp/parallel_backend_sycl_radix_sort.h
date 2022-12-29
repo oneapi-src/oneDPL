@@ -245,14 +245,16 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 
 template <typename _KernelName, ::std::uint32_t __radix_bits, typename _ExecutionPolicy, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
-          , typename _Kernel
+          ,
+          typename _Kernel
 #endif
           >
 sycl::event
 __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size, ::std::size_t __segments,
                          _CountBuf& __count_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                        , _Kernel& __kernel
+                         ,
+                         _Kernel& __kernel
 #endif
 )
 {
@@ -272,25 +274,29 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
 
     // compilation of the kernel prevents out of resources issue, which may occur due to usage of
     // collective algorithms such as joint_exclusive_scan even if local memory is not explicitly requested
-    sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
-        __hdl.depends_on(__dependency_event);
-        // an accessor with value counter from each work_group
-        oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
+    sycl::event __scan_event = __exec.queue().submit(
+        [&](sycl::handler& __hdl)
+        {
+            __hdl.depends_on(__dependency_event);
+            // an accessor with value counter from each work_group
+            oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+            __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-        __hdl.parallel_for<_KernelName>(
+            __hdl.parallel_for<_KernelName>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel,
+                __kernel,
 #endif
-            sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size), [=](sycl::nd_item<1> __self_item) {
-                // find borders of a region with a specific bucket id
-                sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
-                // TODO: consider another approach with use of local memory
-                __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
-                                                   _CountT(0), __dpl_sycl::__plus<_CountT>{});
-            });
-    });
+                sycl::nd_range<1>(__radix_states * __scan_wg_size, __scan_wg_size),
+                [=](sycl::nd_item<1> __self_item)
+                {
+                    // find borders of a region with a specific bucket id
+                    sycl::global_ptr<_CountT> __begin = __count_rng.begin() + __scan_size * __self_item.get_group(0);
+                    // TODO: consider another approach with use of local memory
+                    __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
+                                                       _CountT(0), __dpl_sycl::__plus<_CountT>{});
+                });
+        });
     return __scan_event;
 }
 
