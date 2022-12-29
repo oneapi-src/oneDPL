@@ -57,7 +57,7 @@
 #   error "TBB backend is selected, but TBB is not found"
 #endif
 
-#if defined(_OPENMP)
+#if defined(_OPENMP) && !defined(__SYCL_DEVICE_ONLY__)
 #   define _ONEDPL_OPENMP_AVAILABLE 1
 #endif
 #if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE
