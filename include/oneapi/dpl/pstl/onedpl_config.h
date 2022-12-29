@@ -57,12 +57,14 @@
 #    error "TBB backend is selected, but TBB is not found"
 #endif
 // Check OpenMP availability only during host code compilation
-#if defined(_OPENMP) && !defined(__SYCL_DEVICE_ONLY__)
-#    define _ONEDPL_OPENMP_AVAILABLE 1
-#endif
-#if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE
-#    error "OpenMP backend is selected, but OpenMP is not found"
-#endif
+#if !defined(__SYCL_DEVICE_ONLY__)
+#    if defined(_OPENMP)
+#        define _ONEDPL_OPENMP_AVAILABLE 1
+#    endif
+#    if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE
+#        error "OpenMP backend is selected, but OpenMP is not found"
+#    endif
+#endif //no __SYCL_DEVICE_ONLY__
 
 // Select a parallel backend
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
