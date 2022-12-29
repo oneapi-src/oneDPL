@@ -139,7 +139,8 @@ class __radix_sort_reorder_kernel;
 template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascending, typename _ExecutionPolicy,
           typename _ValRange, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
-          , typename _Kernel
+          ,
+          typename _Kernel
 #endif
           >
 sycl::event
@@ -147,7 +148,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                           ::std::uint32_t __radix_offset, _ValRange&& __val_rng, _CountBuf& __count_buf,
                           sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                          , _Kernel& __kernel
+                          ,
+                          _Kernel& __kernel
 #endif
 )
 {
@@ -167,67 +169,72 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
 
     // submit to compute arrays with local count values
-    sycl::event __count_levent = __exec.queue().submit([&](sycl::handler& __hdl) {
-        __hdl.depends_on(__dependency_event);
+    sycl::event __count_levent = __exec.queue().submit(
+        [&](sycl::handler& __hdl)
+        {
+            __hdl.depends_on(__dependency_event);
 
-        oneapi::dpl::__ranges::__require_access(__hdl, __val_rng,
-                                                __count_rng); //get an access to data under SYCL buffer
-        // an accessor per work-group with value counters from each work-item
-        auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, __dpl_sycl::__target::local>(
-            __block_size * __radix_states, __hdl);
+            oneapi::dpl::__ranges::__require_access(__hdl, __val_rng,
+                                                    __count_rng); //get an access to data under SYCL buffer
+            // an accessor per work-group with value counters from each work-item
+            auto __count_lacc = sycl::accessor<_CountT, 1, access_mode::read_write, __dpl_sycl::__target::local>(
+                __block_size * __radix_states, __hdl);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+            __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-        __hdl.parallel_for<_KernelName>(
+            __hdl.parallel_for<_KernelName>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel,
+                __kernel,
 #endif
-            sycl::nd_range<1>(__segments * __block_size, __block_size), [=](sycl::nd_item<1> __self_item) {
-                // item info
-                const ::std::size_t __self_lidx = __self_item.get_local_id(0);
-                const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
-
-                // 1.1. count per witem: create a private array for storing count values
-                _CountT __count_arr[__radix_states] = {0};
-                // 1.2. count per witem: count values and write result to private count array
-                const ::std::size_t __outside_of_segment =
-                    sycl::min(__start_idx + __block_size * __blocks_per_segment, __val_buf_size);
-                for (::std::size_t __val_idx = __start_idx; __val_idx < __outside_of_segment; __val_idx += __block_size)
+                sycl::nd_range<1>(__segments * __block_size, __block_size),
+                [=](sycl::nd_item<1> __self_item)
                 {
-                    // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
-                    auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
-                    ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__val, __radix_offset);
-                    // increment counter for this bit bucket
-                    ++__count_arr[__bucket];
-                }
-                // 1.3. count per witem: write private count array to local count array
-                const ::std::uint32_t __count_start_idx = __radix_states * __self_lidx;
-                for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
-                    __count_lacc[__count_start_idx + __radix_state_idx] = __count_arr[__radix_state_idx];
-                __dpl_sycl::__group_barrier(__self_item);
+                    // item info
+                    const ::std::size_t __self_lidx = __self_item.get_local_id(0);
+                    const ::std::size_t __wgroup_idx = __self_item.get_group(0);
+                    const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
 
-                // 2.1. count per wgroup: reduce till __count_lacc[] size > __block_size (all threads work)
-                for (::std::uint32_t __i = 1; __i < __radix_states; ++__i)
-                    __count_lacc[__self_lidx] += __count_lacc[__block_size * __i + __self_lidx];
-                __dpl_sycl::__group_barrier(__self_item);
-                // 2.2. count per wgroup: reduce until __count_lacc[] size > __radix_states (threads /= 2 per iteration)
-                for (::std::uint32_t __active_ths = __block_size >> 1; __active_ths >= __radix_states;
-                     __active_ths >>= 1)
-                {
-                    if (__self_lidx < __active_ths)
-                        __count_lacc[__self_lidx] += __count_lacc[__active_ths + __self_lidx];
+                    // 1.1. count per witem: create a private array for storing count values
+                    _CountT __count_arr[__radix_states] = {0};
+                    // 1.2. count per witem: count values and write result to private count array
+                    const ::std::size_t __outside_of_segment =
+                        sycl::min(__start_idx + __block_size * __blocks_per_segment, __val_buf_size);
+                    for (::std::size_t __val_idx = __start_idx; __val_idx < __outside_of_segment;
+                         __val_idx += __block_size)
+                    {
+                        // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
+                        auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
+                        ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(__val, __radix_offset);
+                        // increment counter for this bit bucket
+                        ++__count_arr[__bucket];
+                    }
+                    // 1.3. count per witem: write private count array to local count array
+                    const ::std::uint32_t __count_start_idx = __radix_states * __self_lidx;
+                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                        __count_lacc[__count_start_idx + __radix_state_idx] = __count_arr[__radix_state_idx];
                     __dpl_sycl::__group_barrier(__self_item);
-                }
-                // 2.3. count per wgroup: write local count array to global count array
-                if (__self_lidx < __radix_states)
-                {
-                    // move buckets with the same id to adjacent positions,
-                    // thus splitting __count_rng into __radix_states regions
-                    __count_rng[(__segments + 1) * __self_lidx + __wgroup_idx] = __count_lacc[__self_lidx];
-                }
-            });
-    });
+
+                    // 2.1. count per wgroup: reduce till __count_lacc[] size > __block_size (all threads work)
+                    for (::std::uint32_t __i = 1; __i < __radix_states; ++__i)
+                        __count_lacc[__self_lidx] += __count_lacc[__block_size * __i + __self_lidx];
+                    __dpl_sycl::__group_barrier(__self_item);
+                    // 2.2. count per wgroup: reduce until __count_lacc[] size > __radix_states (threads /= 2 per iteration)
+                    for (::std::uint32_t __active_ths = __block_size >> 1; __active_ths >= __radix_states;
+                         __active_ths >>= 1)
+                    {
+                        if (__self_lidx < __active_ths)
+                            __count_lacc[__self_lidx] += __count_lacc[__active_ths + __self_lidx];
+                        __dpl_sycl::__group_barrier(__self_item);
+                    }
+                    // 2.3. count per wgroup: write local count array to global count array
+                    if (__self_lidx < __radix_states)
+                    {
+                        // move buckets with the same id to adjacent positions,
+                        // thus splitting __count_rng into __radix_states regions
+                        __count_rng[(__segments + 1) * __self_lidx + __wgroup_idx] = __count_lacc[__self_lidx];
+                    }
+                });
+        });
 
     return __count_levent;
 }
