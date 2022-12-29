@@ -233,12 +233,12 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 };
 #endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
-template <typename DataT, sycl::access::mode AccessMode, int Dimensions = 1>
+template <typename DataT, int Dimensions = 1>
 using __local_accessor =
 #if _ONEDPL_LIBSYCL_VERSION >= 60000
     sycl::local_accessor<DataT, Dimensions>;
 #else
-    sycl::accessor<DataT, Dimensions, AccessMode, __dpl_sycl::__target::local>;
+    sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
 
 } // namespace __dpl_sycl

@@ -175,7 +175,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         oneapi::dpl::__ranges::__require_access(__hdl, __val_rng,
                                                 __count_rng); //get an access to data under SYCL buffer
         // an accessor per work-group with value counters from each work-item
-        auto __count_lacc = __dpl_sycl::__local_accessor<_CountT, access_mode::read_write>(__block_size * __radix_states, __hdl);
+        auto __count_lacc = __dpl_sycl::__local_accessor<_CountT>(__block_size * __radix_states, __hdl);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
@@ -313,7 +313,7 @@ template <typename _OffsetT>
 struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 {
     using _AtomicT = __dpl_sycl::__atomic_ref<::std::uint32_t, sycl::access::address_space::local_space>;
-    using _TempStorageT = __dpl_sycl::__local_accessor<::std::uint32_t, sycl::access::mode::read_write>;
+    using _TempStorageT = __dpl_sycl::__local_accessor<::std::uint32_t>;
 
     sycl::sub_group __sgroup;
     ::std::uint32_t __self_lidx;
