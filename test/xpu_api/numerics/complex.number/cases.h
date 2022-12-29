@@ -230,6 +230,7 @@ classify(double x)
     return non_zero;
 }
 
+// We use this constant 1e5 to restore the comparison precision used in the original tests
 template <typename T>
 constexpr auto __tol = std::numeric_limits<T>::epsilon() * 1e5;
 
