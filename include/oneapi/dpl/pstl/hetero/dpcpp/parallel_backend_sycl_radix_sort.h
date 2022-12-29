@@ -56,7 +56,7 @@ __order_preserving_cast(_UInt __val)
 }
 
 template <bool __is_ascending, typename _Int,
-          __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
+          __enable_if_t<::std::is_integral_v<_Int>&& ::std::is_signed_v<_Int>, int> = 0>
 ::std::make_unsigned_t<_Int>
 __order_preserving_cast(_Int __val)
 {
@@ -139,7 +139,8 @@ class __radix_sort_reorder_kernel;
 template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascending, typename _ExecutionPolicy,
           typename _ValRange, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
-          , typename _Kernel
+          ,
+          typename _Kernel
 #endif
           >
 sycl::event
@@ -147,7 +148,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                           ::std::uint32_t __radix_offset, _ValRange&& __val_rng, _CountBuf& __count_buf,
                           sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                          , _Kernel& __kernel
+                          ,
+                          _Kernel& __kernel
 #endif
 )
 {
@@ -238,14 +240,16 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 
 template <typename _KernelName, ::std::uint32_t __radix_bits, typename _ExecutionPolicy, typename _CountBuf
 #if _ONEDPL_COMPILE_KERNEL
-          , typename _Kernel
+          ,
+          typename _Kernel
 #endif
           >
 sycl::event
 __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size, ::std::size_t __segments,
                          _CountBuf& __count_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                        , _Kernel& __kernel
+                         ,
+                         _Kernel& __kernel
 #endif
 )
 {
@@ -419,7 +423,8 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascending, __peer_prefix_algo _PeerAlgo,
           typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf
 #if _ONEDPL_COMPILE_KERNEL
-          , typename _Kernel
+          ,
+          typename _Kernel
 #endif
           >
 sycl::event
@@ -427,7 +432,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             ::std::size_t __sg_size, ::std::uint32_t __radix_offset, _InRange&& __input_rng,
                             _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-                            , _Kernel& __kernel
+                            ,
+                            _Kernel& __kernel
 #endif
 )
 {
@@ -533,18 +539,18 @@ struct __parallel_radix_sort_iteration
 
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf>
     static sycl::event
-    submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter,
-           _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event)
+    submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
+           _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event)
     {
         using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-        using _RadixCountKernel = __internal::__kernel_name_generator<
-            __count_phase, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
-        using _RadixLocalScanKernel = __internal::__kernel_name_generator<
-            __local_scan_phase, _CustomName, __decay_t<_TmpBuf>>;
-        using _RadixReorderPeerKernel = __internal::__kernel_name_generator<
-            __reorder_peer_phase, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
-        using _RadixReorderKernel = __internal::__kernel_name_generator<
-            __reorder_phase, _CustomName, __decay_t<_InRange>, __decay_t<_OutRange>>;
+        using _RadixCountKernel =
+            __internal::__kernel_name_generator<__count_phase, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
+        using _RadixLocalScanKernel =
+            __internal::__kernel_name_generator<__local_scan_phase, _CustomName, __decay_t<_TmpBuf>>;
+        using _RadixReorderPeerKernel = __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName,
+                                                                            __decay_t<_InRange>, __decay_t<_OutRange>>;
+        using _RadixReorderKernel = __internal::__kernel_name_generator<__reorder_phase, _CustomName,
+                                                                        __decay_t<_InRange>, __decay_t<_OutRange>>;
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
         ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -584,7 +590,8 @@ struct __parallel_radix_sort_iteration
             __exec, __segments, __block_size, __radix_offset, ::std::forward<_InRange>(__in_rng), __tmp_buf,
             __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
-            , __count_kernel
+            ,
+            __count_kernel
 #endif
         );
 
@@ -592,7 +599,8 @@ struct __parallel_radix_sort_iteration
         sycl::event __scan_event = __radix_sort_scan_submit<_RadixLocalScanKernel, __radix_bits>(
             __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
 #if _ONEDPL_COMPILE_KERNEL
-            , __local_scan_kernel
+            ,
+            __local_scan_kernel
 #endif
         );
 
@@ -608,14 +616,15 @@ struct __parallel_radix_sort_iteration
             constexpr auto __peer_algorithm = __peer_prefix_algo::scan_then_broadcast;
 #endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
 
-            __reorder_event = __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_ascending,
-                                                          __peer_algorithm>(
-                __exec, __segments, __block_size, __reorder_sg_size, __radix_offset, ::std::forward<_InRange>(__in_rng),
-                ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
+            __reorder_event =
+                __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_ascending, __peer_algorithm>(
+                    __exec, __segments, __block_size, __reorder_sg_size, __radix_offset,
+                    ::std::forward<_InRange>(__in_rng), ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
-                , __reorder_peer_kernel
+                    ,
+                    __reorder_peer_kernel
 #endif
-            );
+                );
         }
         else
         {
@@ -624,7 +633,8 @@ struct __parallel_radix_sort_iteration
                 __exec, __segments, __block_size, __reorder_sg_size, __radix_offset, ::std::forward<_InRange>(__in_rng),
                 ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event
 #if _ONEDPL_COMPILE_KERNEL
-                , __reorder_kernel
+                ,
+                __reorder_kernel
 #endif
             );
         }
@@ -675,12 +685,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         // TODO: convert to ordered type once at the first iteration and convert back at the last one
         if (__radix_iter % 2 == 0)
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/true>::submit(
-                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
-                ::std::forward<_Range>(__in_rng), __out_rng, __tmp_buf, __iteration_event);
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, ::std::forward<_Range>(__in_rng),
+                __out_rng, __tmp_buf, __iteration_event);
         else //swap __in_rng and __out_rng
             __iteration_event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
-                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
-                __out_rng, ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
+                ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, __out_rng,
+                ::std::forward<_Range>(__in_rng), __tmp_buf, __iteration_event);
     }
 
     return __future(__iteration_event, __tmp_buf, __out_buffer_holder.get_buffer());
