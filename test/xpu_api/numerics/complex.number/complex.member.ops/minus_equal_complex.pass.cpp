@@ -38,7 +38,7 @@ test()
 #endif // !_PSTL_GLIBCXX_TEST_COMPLEX_MINUS_EQ_BROKEN
 
     c3 = c;
-    dpl::complex<float> fc (1.f, 1.f);
+    dpl::complex<float> fc (1,1);
     c3 -= fc;
     assert(c3.real() == -4.f);
     assert(c3.imag() == -6.f);
