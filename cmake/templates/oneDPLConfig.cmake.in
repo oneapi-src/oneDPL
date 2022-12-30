@@ -22,6 +22,7 @@ if (EXISTS "${_onedpl_headers}")
 
         add_library(oneDPL INTERFACE IMPORTED)
         set_target_properties(oneDPL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${_onedpl_headers}")
+        target_compile_features(oneDPL interface cxx_std_17)
 
         if (ONEDPL_PAR_BACKEND AND NOT ONEDPL_PAR_BACKEND MATCHES "^(tbb|openmp|serial)$")
             message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND} is requested, but not supported, available backends: tbb, openmp, serial")
