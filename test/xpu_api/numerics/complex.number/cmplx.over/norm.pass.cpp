@@ -46,9 +46,9 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-    test<int>();
-    test<unsigned>();
-    test<long long>();
+    IF_DOUBLE_SUPPORT(test<int>();
+                      test<unsigned>();
+                      test<long long>());
 
   return 0;
 }
