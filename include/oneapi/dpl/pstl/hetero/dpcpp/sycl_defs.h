@@ -27,6 +27,7 @@
 #    include <CL/sycl.hpp>
 #endif
 #include <memory>
+#include <type_traits>
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
@@ -232,6 +233,14 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
         : sycl::atomic<_AtomicType, _Space>(sycl::multi_ptr<_AtomicType, _Space>(&ref)){};
 };
 #endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
+
+template <typename DataT, int Dimensions = 1>
+using __local_accessor =
+#if _ONEDPL_LIBSYCL_VERSION >= 60000
+    sycl::local_accessor<DataT, Dimensions>;
+#else
+    sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
+#endif
 
 } // namespace __dpl_sycl
 
