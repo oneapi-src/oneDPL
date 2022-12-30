@@ -20,17 +20,17 @@ test()
     assert(c.real() == 1);
     assert(c.imag() == 0);
     c *= 1.5;
-    assert(c.real() == 1.5);
+    assert(c.real() == 1.5f);
     assert(c.imag() == 0);
-    c *= 1.5;
-    assert(c.real() == 2.25);
+    c *= 1.5f;
+    assert(c.real() == 2.25f);
     assert(c.imag() == 0);
-    c *= -1.5;
-    assert(c.real() == -3.375);
+    c *= -1.5f;
+    assert(c.real() == -3.375f);
     assert(c.imag() == 0);
     c.imag(2);
-    c *= 1.5;
-    assert(c.real() == -5.0625);
+    c *= 1.5f;
+    assert(c.real() == -5.0625f);
     assert(c.imag() == 3);
 }
 
