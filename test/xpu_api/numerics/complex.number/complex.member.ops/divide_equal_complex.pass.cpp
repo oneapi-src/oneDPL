@@ -19,13 +19,13 @@ test()
 {
     dpl::complex<T> c(-4, 7.5f);
     const dpl::complex<T> c2(1.5f, 2.5f);
-    assert(c.real() == -4.f);
+    assert(c.real() == -4);
     assert(c.imag() == 7.5f);
     c /= c2;
     is_about(c.real(), 1.5f);
     is_about(c.imag(), 2.5f);
     c /= c2;
-    is_about(c.real(), 1.f);
+    is_about(c.real(), 1);
     is_about(c.imag(), 0);
 
     dpl::complex<T> c3;
@@ -39,7 +39,7 @@ test()
 #endif // !_PSTL_GLIBCXX_TEST_COMPLEX_DIV_EQ_BROKEN
 
     c3 = c;
-    dpl::complex<float> fc (1.f, 1.f);
+    dpl::complex<float> fc (1,1);
     c3 /= fc;
     is_about(c3.real(),  0.5f);
     is_about(c3.imag(), -0.5f);
