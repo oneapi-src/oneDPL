@@ -27,7 +27,6 @@
 #    include <CL/sycl.hpp>
 #endif
 #include <memory>
-#include <type_traits>
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
