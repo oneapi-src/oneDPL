@@ -24,7 +24,7 @@ test(const T& a, const dpl::complex<T>& b, dpl::complex<T> x)
 {
     dpl::complex<T> c = dpl::pow(a, b);
     is_about(dpl::real(c), dpl::real(x));
-    assert(std::abs(dpl::imag(c)) < 1.e-6f);
+    assert(std::abs(dpl::imag(c)) < T(1.e-6));
 }
 
 template <class T>
