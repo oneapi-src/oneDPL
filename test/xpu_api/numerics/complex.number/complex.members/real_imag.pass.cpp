@@ -35,18 +35,18 @@ test()
     dpl::complex<T> c;
     assert(c.real() == 0);
     assert(c.imag() == 0);
-    c.real(3.5);
-    assert(c.real() == 3.5);
+    c.real(3.5f);
+    assert(c.real() == 3.5f);
     assert(c.imag() == 0);
-    c.imag(4.5);
-    assert(c.real() == 3.5);
-    assert(c.imag() == 4.5);
-    c.real(-4.5);
-    assert(c.real() == -4.5);
-    assert(c.imag() == 4.5);
-    c.imag(-5.5);
-    assert(c.real() == -4.5);
-    assert(c.imag() == -5.5);
+    c.imag(4.5f);
+    assert(c.real() == 3.5f);
+    assert(c.imag() == 4.5f);
+    c.real(-4.5f);
+    assert(c.real() == -4.5f);
+    assert(c.imag() == 4.5f);
+    c.imag(-5.5f);
+    assert(c.real() == -4.5f);
+    assert(c.imag() == -5.5f);
 
     test_constexpr<T> ();
 }
