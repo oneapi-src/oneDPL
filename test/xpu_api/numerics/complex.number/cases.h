@@ -233,9 +233,9 @@ classify(double x)
 template <typename T>
 constexpr auto __tol = std::numeric_limits<T>::epsilon() * 1e5;
 
-template <typename T>
+template <typename T, typename Y>
 typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
-is_about(T x, T y, const T eps = __tol<T>)
+is_about(T x, Y y, const T eps = __tol<T>)
 {
     assert(std::fabs(x - y) <= eps);
 }
