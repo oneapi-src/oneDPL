@@ -27,6 +27,7 @@
 #    include <CL/sycl.hpp>
 #endif
 #include <memory>
+#include <type_traits>
 
 // Combine SYCL runtime library version
 #if defined(__LIBSYCL_MAJOR_VERSION) && defined(__LIBSYCL_MINOR_VERSION) && defined(__LIBSYCL_PATCH_VERSION)
@@ -238,7 +239,9 @@ using __local_accessor =
 #if _ONEDPL_LIBSYCL_VERSION >= 60000
     sycl::local_accessor<DataT, Dimensions>;
 #else
-    sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
+    sycl::accessor<DataT, Dimensions,
+                   ::std::is_const_v<DataT> ? sycl::access::mode::read : sycl::access::mode::read_write,
+                   __dpl_sycl::__target::local>;
 #endif
 
 } // namespace __dpl_sycl
