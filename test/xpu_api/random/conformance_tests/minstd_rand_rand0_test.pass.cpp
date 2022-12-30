@@ -50,7 +50,7 @@ int main() {
         }
     };
 
-    sycl::queue queue(exception_handler);
+    sycl::queue queue(TestUtils::default_selector, exception_handler);
 
     // Reference values
     uint_fast32_t minstd_rand0_ref_sample = 1043618065;
