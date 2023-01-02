@@ -26,79 +26,90 @@
 
 #include "../cases.h"
 
-template <class T>
-double
-promote(T, typename std::enable_if<std::is_integral<T>::value>::type* = 0);
+struct PromoteFloat
+{
+    static float promote(float);
+};
 
-float promote(float);
-double promote(double);
-long double promote(long double);
+struct PromoteDouble : PromoteFloat
+{
+    template <class T>
+    static double
+    promote(T, typename std::enable_if<std::is_integral<T>::value>::type* = 0);
 
-template <class T, class U>
+    static double
+    promote(double);
+};
+
+struct PromoteLongDouble : PromoteDouble
+{
+    static long double promote(long double);
+};
+
+template <class TPromote, class T, class U>
 void
 test(T x, const dpl::complex<U>& y)
 {
-    typedef decltype(promote(x) + promote(dpl::real(y))) V;
+    typedef decltype(TPromote::promote(x) + TPromote::promote(dpl::real(y))) V;
     static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
     is_about(dpl::pow(x, y), dpl::pow(dpl::complex<V>(x, 0), dpl::complex<V>(y)));
 }
 
-template <class T, class U>
+template <class TPromote, class T, class U>
 void
 test(const dpl::complex<T>& x, U y)
 {
-    typedef decltype(promote(dpl::real(x)) + promote(y)) V;
+    typedef decltype(TPromote::promote(dpl::real(x)) + TPromote::promote(y)) V;
     static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
     is_about(dpl::pow(x, y), dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y, 0)));
 }
 
-template <class T, class U>
+template <class TPromote, class T, class U>
 void
 test(const dpl::complex<T>& x, const dpl::complex<U>& y)
 {
-    typedef decltype(promote(dpl::real(x)) + promote(dpl::real(y))) V;
+    typedef decltype(TPromote::promote(dpl::real(x)) + TPromote::promote(dpl::real(y))) V;
     static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
     assert(dpl::pow(x, y) == dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y)));
 }
 
-template <class T, class U>
+template <class TPromote, class T, class U>
 void
 test(typename std::enable_if<std::is_integral<T>::value>::type* = 0, typename std::enable_if<!std::is_integral<U>::value>::type* = 0)
 {
-    test(T(3), dpl::complex<U>(4, 5));
-    test(dpl::complex<U>(3, 4), T(5));
+    test<TPromote>(T(3), dpl::complex<U>(4, 5));
+    test<TPromote>(dpl::complex<U>(3, 4), T(5));
 }
 
-template <class T, class U>
+template <class TPromote, class T, class U>
 void
 test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename std::enable_if<!std::is_integral<U>::value>::type* = 0)
 {
-    test(T(3), dpl::complex<U>(4, 5));
-    test(dpl::complex<T>(3, 4), U(5));
-    test(dpl::complex<T>(3, 4), dpl::complex<U>(5, 6));
+    test<TPromote>(T(3), dpl::complex<U>(4, 5));
+    test<TPromote>(dpl::complex<T>(3, 4), U(5));
+    test<TPromote>(dpl::complex<T>(3, 4), dpl::complex<U>(5, 6));
 }
 
 ONEDPL_TEST_NUM_MAIN
 {
 #if !_PSTL_GLIBCXX_TEST_COMPLEX_POW_BROKEN
-    test<int, float>();
+    test<int, float, PromoteFloat>();
 #endif // !_PSTL_GLIBCXX_TEST_COMPLEX_POW_BROKEN
+    test<PromoteFloat, unsigned, float>();
+    test<PromoteFloat, long long, float>();
 
-    test<unsigned, float>();
-    test<long long, float>();
+    IF_DOUBLE_SUPPORT(test<PromoteDouble, int, double>();
+                      test<PromoteDouble, unsigned, double>();
+                      test<PromoteDouble, long long, double>();
+                      test<PromoteDouble, float, double>();
+                      test<PromoteDouble, double, float>())
 
-    IF_DOUBLE_SUPPORT(test<int, double>();
-                      test<unsigned, double>();
-                      test<long long, double>();
-                      test<float, double>();
-                      test<double, float>())
-
-    IF_LONG_DOUBLE_SUPPORT(test<unsigned, long double>();
-                           test<long long, long double>();
-                           test<float, long double>();
-                           test<double, long double>();
-                           test<long double, float>();
-                           test<long double, double>())
+    IF_LONG_DOUBLE_SUPPORT(test<PromoteLongDouble, unsigned, long double>();
+                           test<PromoteLongDouble, long long, long double>();
+                           test<PromoteLongDouble, float, long double>();
+                           test<PromoteLongDouble, double, long double>();
+                           test<PromoteLongDouble, long double, float>();
+                           test<PromoteLongDouble, long double, double>())
 
   return 0;
 }
