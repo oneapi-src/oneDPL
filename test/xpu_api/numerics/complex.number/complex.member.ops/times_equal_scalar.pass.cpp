@@ -19,7 +19,7 @@ test()
     dpl::complex<T> c(1);
     assert(c.real() == 1);
     assert(c.imag() == 0);
-    c *= 1.5;
+    c *= 1.5f;
     assert(c.real() == 1.5f);
     assert(c.imag() == 0);
     c *= 1.5f;
