@@ -34,7 +34,7 @@ main()
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    sycl::queue queue(exception_handler);
+    sycl::queue queue = TestUtils::get_test_queue();
     // Skip tests if DP is not supported
     if (TestUtils::has_type_support<double>(queue.get_device())) {
         int err = 0;
