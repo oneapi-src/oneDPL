@@ -105,7 +105,7 @@ do_test(sycl::queue& deviceQueue)
 int
 main()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
 
 // TODO: remove the macro guard once L0 backend fixes the issue
 #if defined(_WIN32)
