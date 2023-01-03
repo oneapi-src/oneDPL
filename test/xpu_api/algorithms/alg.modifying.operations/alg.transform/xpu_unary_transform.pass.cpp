@@ -15,6 +15,7 @@
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/functional>
 
+#include "support/utils_sycl.h"
 #include "support/test_iterators.h"
 
 #include <cassert>
@@ -67,7 +68,7 @@ test(sycl::queue& deviceQueue)
 int
 main()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test<input_iterator<const int*>, output_iterator<int*>>(deviceQueue);
     test<input_iterator<const int*>, input_iterator<int*>>(deviceQueue);
     test<input_iterator<const int*>, forward_iterator<int*>>(deviceQueue);
