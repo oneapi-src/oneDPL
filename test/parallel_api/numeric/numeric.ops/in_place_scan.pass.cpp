@@ -39,7 +39,7 @@ int main()
   std::vector<int> excl_input_host = v;  
   
   // Setup device inputs
-  sycl::queue syclQue;
+  sycl::queue syclQue = TestUtils::get_test_queue();
   int* incl_input_dev = sycl::malloc_device<int>(10, syclQue);
   int* excl_input_dev = sycl::malloc_device<int>(10, syclQue);  
 

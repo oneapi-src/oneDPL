@@ -121,7 +121,7 @@ template <sycl::usm::alloc alloc_type, typename KernelName, typename T>
 void
 test_with_usm()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
 
     // Initialize data
     //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
