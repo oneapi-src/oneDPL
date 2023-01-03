@@ -174,7 +174,7 @@ int main() {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    sycl::queue queue;
+    sycl::queue queue = TestUtils::get_test_queue();
     constexpr int nsamples = 100;
     int err = 0;
 
