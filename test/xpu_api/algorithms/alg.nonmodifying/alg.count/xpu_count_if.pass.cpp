@@ -57,7 +57,7 @@ kernel_test(sycl::queue& deviceQueue)
 int
 main()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test(deviceQueue);
     return 0;
 }

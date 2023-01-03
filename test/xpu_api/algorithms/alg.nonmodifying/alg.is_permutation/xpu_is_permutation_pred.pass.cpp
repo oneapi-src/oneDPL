@@ -86,7 +86,7 @@ kernel_test1(sycl::queue& deviceQueue)
 int
 main()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1<forward_iterator<const int*>>(deviceQueue);
     kernel_test1<bidirectional_iterator<const int*>>(deviceQueue);
     kernel_test1<random_access_iterator<const int*>>(deviceQueue);
