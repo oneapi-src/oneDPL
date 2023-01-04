@@ -80,6 +80,36 @@ inline constexpr _Tp __known_identity =
     __known_identity_for_plus<_BinaryOp, _Tp>::value; //for plus only
 #endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
+// a way to get value_type from both accessors and USM that is needed for transform_init
+template <typename _Unknown>
+struct __accessor_traits_impl
+{
+};
+
+template <typename _T, int _Dim, sycl::access::mode _AccMode, __dpl_sycl::__target _AccTarget,
+          sycl::access::placeholder _Placeholder>
+struct __accessor_traits_impl<sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>>
+{
+    using value_type = typename sycl::accessor<_T, _Dim, _AccMode, _AccTarget, _Placeholder>::value_type;
+};
+
+#if _ONEDPL_LIBSYCL_VERSION >= 60000
+template <typename DataT, int Dimensions>
+struct __accessor_traits_impl<sycl::local_accessor<DataT, Dimensions>>
+{
+    using value_type = typename sycl::local_accessor<DataT, Dimensions>::value_type;
+};
+#endif // _ONEDPL_LIBSYCL_VERSION >= 60000
+
+template <typename _RawArrayValueType>
+struct __accessor_traits_impl<_RawArrayValueType*>
+{
+    using value_type = _RawArrayValueType;
+};
+
+template <typename _Unknown>
+using __accessor_traits = __accessor_traits_impl<typename ::std::decay<_Unknown>::type>;
+
 template <typename _ExecutionPolicy, typename _F>
 struct walk_n
 {
@@ -195,11 +225,12 @@ struct transform_init
     operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id,
                ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
+        using _Tp = typename __accessor_traits<_AccLocal>::value_type;
         ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
         _Size __adjusted_n = __global_offset + __n;
         if (__adjusted_global_id < __adjusted_n)
         {
-            auto __res = __unary_op(__adjusted_global_id, __acc...);
+            _Tp __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
             for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
             {
