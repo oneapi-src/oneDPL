@@ -65,7 +65,9 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf1.all_view(), __buf2.all_view());
-    oneapi::dpl::__internal::__invoke_if(_IsSync(), [&__future]() { __future.wait(); });
+
+    if constexpr (_IsSync::value)
+        __future.wait();
 
     return __future.__make_future(__first2 + __n);
 }

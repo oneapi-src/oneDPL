@@ -550,7 +550,7 @@ struct __global_scan_functor
             __out_acc[__item_idx] =
                 static_cast<typename __internal::__get_tuple_type<__in_type, __out_type>::__type>(__bin_op_result);
         }
-        __internal::__invoke_if_not(_Inclusive{}, [&]() {
+        if constexpr (!_Inclusive::value)
             //store an initial value to the output first position should be done as postprocess (for in-place scanning)
             if (__item_idx == 0)
             {
@@ -558,7 +558,6 @@ struct __global_scan_functor
                 __init_processing<_Tp> __use_init{};
                 __use_init(__init, __out_acc[__item_idx]);
             }
-        });
     }
 };
 
@@ -586,7 +585,8 @@ struct __scan
         __init_processing<_Tp> __use_init{};
 
         ::std::size_t __shift = 0;
-        __internal::__invoke_if_not(_Inclusive{}, [&]() { __shift = 1; });
+        if (!_Inclusive::value)
+            __shift = 1;
 
         ::std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
@@ -668,7 +668,8 @@ struct __scan
         auto __use_init = __init_processing<_Tp>{};
 
         auto __shift = 0;
-        __internal::__invoke_if_not(_Inclusive{}, [&]() { __shift = 1; });
+        if constexpr (!_Inclusive::value)
+            __shift = 1;
 
         auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
@@ -877,9 +878,10 @@ class __brick_set_op
                                      __res -
                                      __internal::__pstl_left_bound(__b, _Size2(0), _Size2(__res), __val_b, __comp);
 
-            bres = __internal::__invoke_if_else(_IsOpDifference(),
-                                                [&]() { return __count_a_left > __count_b; }, /*difference*/
-                                                [&]() { return __count_a_left <= __count_b; } /*intersection*/);
+            if constexpr (_IsOpDifference::value)
+                bres = __count_a_left > __count_b;   /*difference*/
+            else
+                bres = __count_a_left <= __count_b; /*intersection*/
         }
         __c[__idx_c] = bres; //store a mask
         return bres;

@@ -625,24 +625,29 @@ struct __early_exit_find_or
             using _ShiftedIdxType =
                 typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
                                             decltype(__found_local.load())>::type;
-            _IterSize __current_iter = oneapi::dpl::__internal::__invoke_if_else(
-                _BackwardTagType{}, [__n_iter, __i]() { return __n_iter - 1 - __i; }, [__i]() { return __i; });
+
+            _IterSize __current_iter =  [__n_iter, __i](){
+                if constexpr (_BackwardTagType::value)
+                    return __n_iter - 1 - __i;
+                else
+                    return __i;
+            }();
 
             _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
             // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)
             // should be investigated later, with other HW
             if (__shifted_idx < __n && __pred(__shifted_idx, __rngs...))
             {
-                oneapi::dpl::__internal::__invoke_if_else(
-                    _OrTagType{}, [&__found_local]() { __found_local.store(1); },
-                    [&__found_local, &__comp, &__shifted_idx]() {
-                        for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
-                             __old = __found_local.load())
-                        {
-                            __found_local.compare_exchange_strong(__old, __shifted_idx);
-                        }
-                    });
-                return;
+                if constexpr (_OrTagType::value)
+                    __found_local.store(1);
+                else
+                {
+                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
+                         __old = __found_local.load())
+                    {
+                        __found_local.compare_exchange_strong(__old, __shifted_idx);
+                    }
+                }
             }
         }
     }
@@ -668,7 +673,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
                                                                                _Ranges...>;
 
-    auto __or_tag_check = ::std::is_same<_BrickTag, __parallel_or_tag>{};
+    constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__rng_n > 0);
 
@@ -735,24 +740,26 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                     // Set local atomic value to global atomic
                     if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
                     {
-                        oneapi::dpl::__internal::__invoke_if_else(
-                            __or_tag_check, [&__found]() { __found.store(1); },
-                            [&__found_local, &__found, &__comp]() {
-                                for (auto __old = __found.load(); __comp(__found_local.load(), __old);
-                                     __old = __found.load())
-                                {
-                                    __found.compare_exchange_strong(__old, __found_local.load());
-                                }
-                            });
+                        if constexpr (__or_tag_check)
+                            __found.store(1);
+                        else
+                        {
+                            for (auto __old = __found.load(); __comp(__found_local.load(), __old);
+                                 __old = __found.load())
+                            {
+                                __found.compare_exchange_strong(__old, __found_local.load());
+                            }
+                        }
                     }
                 });
         });
         //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
     }
 
-    return oneapi::dpl::__internal::__invoke_if_else(
-        __or_tag_check, [&__result]() { return __result; },
-        [&__result, &__rng_n, &__init_value]() { return __result != __init_value ? __result : __rng_n; });
+    if constexpr (__or_tag_check)
+        return __result;
+    else
+        return __result != __init_value ? __result : __rng_n;
 }
 
 //------------------------------------------------------------------------
