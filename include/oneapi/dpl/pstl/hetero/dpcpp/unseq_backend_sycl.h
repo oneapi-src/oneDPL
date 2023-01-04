@@ -199,7 +199,7 @@ struct transform_init
         _Size __adjusted_n = __global_offset + __n;
         if (__adjusted_global_id < __adjusted_n)
         {
-            auto __res = __unary_op(__adjusted_global_id, __acc...);
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
             for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
             {
