@@ -33,7 +33,7 @@ template <typename _T1, typename _T2> void ASSERT_EQUAL(_T1 &&X, _T2 &&Y) {
 }
 
 template <class Iter> void test() {
-  sycl::queue deviceQueue;
+  sycl::queue deviceQueue = TestUtils::get_test_queue();
   int input[6] = {1, 2, 3, 4, 5, 6};
   int output[8] = {};
   sycl::range<1> numOfItems1{6};

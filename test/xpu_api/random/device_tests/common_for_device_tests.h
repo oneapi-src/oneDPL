@@ -30,17 +30,6 @@
 constexpr auto seed = 777;
 constexpr int N = 96;
 
-auto exception_handler = [] (sycl::exception_list exceptions) {
-    for (std::exception_ptr const& e : exceptions) {
-        try {
-            std::rethrow_exception(e);
-        } catch(sycl::exception const& e) {
-            std::cout << "Caught asynchronous SYCL exception during calculation:\n"
-            << e.what() << std::endl;
-        }
-    }
-};
-
 template <typename Fp>
 int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
     Fp coeff;

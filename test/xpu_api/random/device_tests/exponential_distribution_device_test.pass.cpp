@@ -34,7 +34,7 @@ main()
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    sycl::queue queue(exception_handler);
+    sycl::queue queue = TestUtils::get_test_queue();
     int err = 0;
 
     // testing oneapi::dpl::exponential_distribution<sycl::vec<float, 1>> oneapi::dpl::linear_congruential_engine

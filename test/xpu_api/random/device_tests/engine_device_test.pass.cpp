@@ -30,7 +30,7 @@ main()
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    sycl::queue queue(exception_handler);
+    sycl::queue queue = TestUtils::get_test_queue();
     int err = 0;
 
     std::cout << "---------------------------------------------------" << std::endl;

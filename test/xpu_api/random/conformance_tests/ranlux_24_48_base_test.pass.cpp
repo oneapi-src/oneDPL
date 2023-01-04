@@ -38,19 +38,7 @@ int main() {
 
 #if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
-    // Catch asynchronous exceptions
-    auto exception_handler = [] (sycl::exception_list exceptions) {
-        for (std::exception_ptr const& e : exceptions) {
-            try {
-                std::rethrow_exception(e);
-            } catch(sycl::exception const& e) {
-                std::cout << "Caught asynchronous SYCL exception during generation:\n"
-                << e.what() << std::endl;
-            }
-        }
-    };
-
-    sycl::queue queue(sycl::default_selector{}, exception_handler);
+    sycl::queue queue = TestUtils::get_test_queue();
 
     // Reference values
     uint_fast32_t ranlux24_base_ref_sample = 7937952;

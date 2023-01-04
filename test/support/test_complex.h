@@ -126,7 +126,7 @@ namespace TestUtils
 #if TEST_DPCPP_BACKEND_PRESENT
         try
         {
-            sycl::queue deviceQueue{TestUtils::default_selector};
+            sycl::queue deviceQueue = TestUtils::get_test_queue();
 
             const auto device = deviceQueue.get_device();
 

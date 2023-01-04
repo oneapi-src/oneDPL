@@ -94,7 +94,7 @@ Random number generation is available for SYCL* device-side and host-side code. 
     #include <oneapi/dpl/random>
 
     int main() {
-        sycl::queue queue(sycl::default_selector{});
+        sycl::queue queue(sycl::default_selector_v);
 
         std::int64_t nsamples = 100;
         std::uint32_t seed = 777;

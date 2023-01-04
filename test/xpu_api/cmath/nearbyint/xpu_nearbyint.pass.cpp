@@ -40,7 +40,7 @@ test(Function fnc, const std::vector<ValueType>& args, const char* message)
 
     // Evaluate results in Kernel
     {
-        sycl::queue deviceQueue(TestUtils::async_handler);
+        sycl::queue deviceQueue = TestUtils::get_test_queue();
 
         if (!TestUtils::has_type_support<ValueType>(deviceQueue.get_device()))
         {

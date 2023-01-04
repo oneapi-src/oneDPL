@@ -33,7 +33,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
 
     constexpr int n = 9;
 

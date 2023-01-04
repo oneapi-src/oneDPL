@@ -44,7 +44,7 @@ test(sycl::queue& deviceQueue)
 int
 main()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test<forward_iterator<int*>>(deviceQueue);
     test<bidirectional_iterator<int*>>(deviceQueue);
     test<random_access_iterator<int*>>(deviceQueue);

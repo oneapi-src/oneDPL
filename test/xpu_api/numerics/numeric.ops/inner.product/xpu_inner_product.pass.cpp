@@ -39,7 +39,7 @@ template <class Iter1, class Iter2>
 void
 test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     int input1[6] = {1, 2, 3, 4, 5, 6};
     int input2[6] = {6, 5, 4, 3, 2, 1};
     int output[8] = {};
