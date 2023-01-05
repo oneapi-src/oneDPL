@@ -626,12 +626,9 @@ struct __early_exit_find_or
                 typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
                                             decltype(__found_local.load())>::type;
 
-            _IterSize __current_iter =  [__n_iter, __i](){
-                if constexpr (_BackwardTagType::value)
-                    return __n_iter - 1 - __i;
-                else
-                    return __i;
-            }();
+            _IterSize __current_iter = __i;
+            if constexpr (_BackwardTagType::value)
+                __current_iter = __n_iter - 1 - __i;
 
             _ShiftedIdxType __shifted_idx = __init_index + __current_iter * __shift;
             // TODO:[Performance] the issue with atomic load (in comparison with __shifted_idx for early exit)

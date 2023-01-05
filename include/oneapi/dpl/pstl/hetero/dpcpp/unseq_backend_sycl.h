@@ -584,9 +584,7 @@ struct __scan
         ::std::size_t __local_id = __item.get_local_id(0);
         __init_processing<_Tp> __use_init{};
 
-        ::std::size_t __shift = 0;
-        if (!_Inclusive::value)
-            __shift = 1;
+        constexpr ::std::size_t __shift = _Inclusive{} ? 0 : 1;
 
         ::std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
@@ -667,9 +665,7 @@ struct __scan
         auto __local_id = __item.get_local_id(0);
         auto __use_init = __init_processing<_Tp>{};
 
-        auto __shift = 0;
-        if constexpr (!_Inclusive::value)
-            __shift = 1;
+        constexpr auto __shift = _Inclusive{} ? 0 : 1;
 
         auto __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
