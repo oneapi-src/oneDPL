@@ -234,7 +234,7 @@ template <typename T>
 constexpr auto __tol = std::numeric_limits<T>::epsilon() * 1e5;
 
 template <typename X, typename Y>
-typename std::enable_if<!std::numeric_limits<X>::is_integer, void>::type
+typename std::enable_if<!std::numeric_limits<X>::is_integer || !std::numeric_limits<Y>::is_integer, void>::type
 is_about(X x, Y y, const X eps = __tol<X>)
 {
     assert(std::fabs(x - y) <= eps);
