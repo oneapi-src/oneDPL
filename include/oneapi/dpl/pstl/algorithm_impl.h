@@ -1459,8 +1459,10 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
                 __internal::__brick_copy_by_mask(
                     __first + __i, __first + __i + __len, __result + __initial, __mask + __i,
                     [](_ForwardIterator __x, _Tp* __z) {
-                        __internal::__invoke_if_else(::std::is_trivial<_Tp>(), [&]() { *__z = ::std::move(*__x); },
-                                                     [&]() { ::new (::std::addressof(*__z)) _Tp(::std::move(*__x)); });
+                        if constexpr (::std::is_trivial_v<_Tp>)
+                            *__z = ::std::move(*__x);
+                        else
+                            ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
                     },
                     __is_vector);
             },
@@ -2477,11 +2479,10 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
                                                   __i, __j, __d_first + (__i - __r), __is_vector);
                                           });
 
-            __internal::__invoke_if_not(::std::is_trivially_destructible<_T1>(), [&]() {
+            if constexpr (!::std::is_trivially_destructible_v<_T1>)
                 __par_backend::__parallel_for(
                     ::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
                     [__is_vector](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, __is_vector); });
-            });
 
             return __d_first + __n2;
         }
@@ -2931,8 +2932,10 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
     _Tp* __r = __buf.get();
     __internal::__except_handler([&]() {
         auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
-            __internal::__invoke_if_else(::std::is_trivial<_Tp>(), [&]() { *__z = ::std::move(*__x); },
-                                         [&]() { ::new (::std::addressof(*__z)) _Tp(::std::move(*__x)); });
+            if constexpr (::std::is_trivial_v<_Tp>)
+                *__z = ::std::move(*__x);
+            else
+                ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
         };
 
         auto __move_sequences = [](_RandomAccessIterator __first1, _RandomAccessIterator __last1, _Tp* __first2) {

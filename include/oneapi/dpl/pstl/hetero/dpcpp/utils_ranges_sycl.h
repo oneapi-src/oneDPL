@@ -332,14 +332,15 @@ struct __get_sycl_range
         return buf;
     }
 
-    template <typename _Iter, typename _copy_direct_tag>
+    template <typename _Iter, typename _CopyDirectTag>
     buf_type<val_t<_Iter>>
-    copy_direct(_Iter __first, _Iter __last, _copy_direct_tag)
+    copy_direct(_Iter __first, _Iter __last, _CopyDirectTag)
     {
         //create a SYCL buffer and copy data [first, last) or create a empty SYCL buffer with size = (last - first)
-        return oneapi::dpl::__internal::__invoke_if_else(
-            _copy_direct_tag{}, [&]() { return sycl::buffer<val_t<_Iter>, 1>(__first, __last); },
-            [&]() { return sycl::buffer<val_t<_Iter>, 1>(__last - __first); });
+        if constexpr (_CopyDirectTag::value)
+            return sycl::buffer<val_t<_Iter>, 1>(__first, __last);
+        else
+            return sycl::buffer<val_t<_Iter>, 1>(__last - __first);
     }
 
     template <typename _F, typename _It, typename _DiffType>
