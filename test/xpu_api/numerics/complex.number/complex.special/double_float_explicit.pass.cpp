@@ -18,19 +18,15 @@
 
 ONEDPL_TEST_NUM_MAIN
 {
-    {
-    const dpl::complex<float> cd(2.5, 3.5);
-    dpl::complex<double> cf(cd);
-    assert(cf.real() == cd.real());
-    assert(cf.imag() == cd.imag());
-    }
+    IF_DOUBLE_SUPPORT(const dpl::complex<float> cd(2.5f, 3.5f);
+                      dpl::complex<double> cf(cd);
+                      assert(cf.real() == cd.real());
+                      assert(cf.imag() == cd.imag()))
 
-    {
-    constexpr dpl::complex<float> cd(2.5, 3.5);
-    constexpr dpl::complex<double> cf(cd);
-    STD_COMPLEX_TESTS_STATIC_ASSERT(cf.real() == cd.real(), "");
-    STD_COMPLEX_TESTS_STATIC_ASSERT(cf.imag() == cd.imag(), "");
-    }
+    IF_DOUBLE_SUPPORT(constexpr dpl::complex<float> cd(2.5f, 3.5f);
+                      constexpr dpl::complex<double> cf(cd);
+                      STD_COMPLEX_TESTS_STATIC_ASSERT(cf.real() == cd.real(), "");
+                      STD_COMPLEX_TESTS_STATIC_ASSERT(cf.imag() == cd.imag(), ""))
 
   return 0;
 }

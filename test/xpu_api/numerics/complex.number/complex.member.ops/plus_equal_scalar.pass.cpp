@@ -20,13 +20,13 @@ test()
     assert(c.real() == 0);
     assert(c.imag() == 0);
     c += 1.5;
-    assert(c.real() == 1.5);
+    assert(c.real() == 1.5f);
     assert(c.imag() == 0);
     c += 1.5;
     assert(c.real() == 3);
     assert(c.imag() == 0);
     c += -1.5;
-    assert(c.real() == 1.5);
+    assert(c.real() == 1.5f);
     assert(c.imag() == 0);
 }
 

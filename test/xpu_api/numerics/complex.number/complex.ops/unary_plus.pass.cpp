@@ -18,12 +18,12 @@ template <class T>
 void
 test()
 {
-    dpl::complex<T> z(1.5, 2.5);
-    assert(z.real() == 1.5);
-    assert(z.imag() == 2.5);
+    dpl::complex<T> z(1.5f, 2.5f);
+    assert(z.real() == 1.5f);
+    assert(z.imag() == 2.5f);
     dpl::complex<T> c = +z;
-    assert(c.real() == 1.5);
-    assert(c.imag() == 2.5);
+    assert(c.real() == 1.5f);
+    assert(c.imag() == 2.5f);
 }
 
 ONEDPL_TEST_NUM_MAIN

@@ -17,16 +17,16 @@ template <class T>
 void
 test()
 {
-    dpl::complex<T> c(-4, 7.5);
-    const dpl::complex<T> c2(1.5, 2.5);
+    dpl::complex<T> c(-4, 7.5f);
+    const dpl::complex<T> c2(1.5f, 2.5f);
     assert(c.real() == -4);
-    assert(c.imag() == 7.5);
+    assert(c.imag() == 7.5f);
     c /= c2;
-    is_about(c.real(), T(1.5));
-    is_about(c.imag(), T(2.5));
+    is_about(c.real(), 1.5f);
+    is_about(c.imag(), 2.5f);
     c /= c2;
-    is_about(c.real(), T(1.0));
-    is_about(c.imag(), T(0.0));
+    is_about(c.real(), 1);
+    is_about(c.imag(), 0);
 
     dpl::complex<T> c3;
 
@@ -34,15 +34,15 @@ test()
     c3 = c;
     dpl::complex<int> ic (1,1);
     c3 /= ic;
-    is_about(c3.real(), T( 0.5));
-    is_about(c3.imag(), T(-0.5));
+    is_about(c3.real(),  0.5f);
+    is_about(c3.imag(), -0.5f);
 #endif // !_PSTL_GLIBCXX_TEST_COMPLEX_DIV_EQ_BROKEN
 
     c3 = c;
     dpl::complex<float> fc (1,1);
     c3 /= fc;
-    is_about(c3.real(), T( 0.5));
-    is_about(c3.imag(), T(-0.5));
+    is_about(c3.real(),  0.5f);
+    is_about(c3.imag(), -0.5f);
 }
 
 ONEDPL_TEST_NUM_MAIN

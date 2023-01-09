@@ -27,9 +27,9 @@ template <class T>
 void
 test()
 {
-    dpl::complex<T> lhs(-4.0, 7.5);
-    dpl::complex<T> rhs(1.5, 2.5);
-    dpl::complex<T>   x(1.5, 2.5);
+    dpl::complex<T> lhs(-4.0f, 7.5f);
+    dpl::complex<T> rhs(1.5f, 2.5f);
+    dpl::complex<T>   x(1.5f, 2.5f);
     test(lhs, rhs, x);
 }
 

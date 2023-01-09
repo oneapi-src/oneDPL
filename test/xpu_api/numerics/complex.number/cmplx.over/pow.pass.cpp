@@ -80,14 +80,15 @@ test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename s
 
 ONEDPL_TEST_NUM_MAIN
 {
+    IF_DOUBLE_SUPPORT(
 #if !_PSTL_GLIBCXX_TEST_COMPLEX_POW_BROKEN
-    test<int, float>();
+                      test<int, float>();
 #endif // !_PSTL_GLIBCXX_TEST_COMPLEX_POW_BROKEN
 
-    test<unsigned, float>();
-    test<long long, float>();
+                      test<unsigned, float>();
+                      test<long long, float>();
 
-    IF_DOUBLE_SUPPORT(test<int, double>();
+                      test<int, double>();
                       test<unsigned, double>();
                       test<long long, double>();
                       test<float, double>();

@@ -20,14 +20,14 @@ test()
     dpl::complex<T> c;
     assert(c.real() == 0);
     assert(c.imag() == 0);
-    dpl::complex<T> c2(1.5, 2.5);
+    dpl::complex<T> c2(1.5f, 2.5f);
     c = c2;
-    assert(c.real() == 1.5);
-    assert(c.imag() == 2.5);
-    dpl::complex<X> c3(3.5, -4.5);
+    assert(c.real() == 1.5f);
+    assert(c.imag() == 2.5f);
+    dpl::complex<X> c3(3.5f, -4.5f);
     c = c3;
-    assert(c.real() == 3.5);
-    assert(c.imag() == -4.5);
+    assert(c.real() == 3.5f);
+    assert(c.imag() == -4.5f);
 }
 
 ONEDPL_TEST_NUM_MAIN
