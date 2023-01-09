@@ -20,6 +20,7 @@
 //   max(const T& a, const T& b);
 
 #include "support/test_complex.h"
+#include "support/test_macros.h"
 
 #include <oneapi/dpl/algorithm>
 #include <cassert>

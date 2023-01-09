@@ -22,6 +22,7 @@
 //   min(initializer_list<T> t);
 
 #include "support/test_complex.h"
+#include "support/test_macros.h"
 
 #include <oneapi/dpl/algorithm>
 #include <cassert>
