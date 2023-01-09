@@ -49,7 +49,7 @@ check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 firs
         Out actual = *out_first;
         if (::std::is_floating_point<Out>::value)
         {
-            EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < 1e-7,
+            EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < Out(1e-7),
                         "wrong value in output sequence");
         }
         else
