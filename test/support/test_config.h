@@ -28,8 +28,6 @@
 #        define TEST_STD_VER 11
 #    elif __cplusplus >= 199711L || _MSVC_LANG >= 199711L
 #        define TEST_STD_VER 3
-#    else
-#        define TEST_STD_VER 99 // greater than current standard
 #    endif
 #endif
 
