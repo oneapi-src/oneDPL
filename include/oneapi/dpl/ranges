@@ -27,8 +27,8 @@
 #    define _ONEDPL_CXX_STANDARD_LIBRARY_CHECK 1
 #endif
 
-static_assert(_ONEDPL_cplusplus >= 201703L && _ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
-              "The use of the range-based API requires C++17 and the C++ standard libraries coming "
+static_assert(_ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
+              "The use of the range-based API requires the C++ standard libraries coming "
               "with GCC 8.1 (or higher) or Clang 7 (or higher)");
 
 #include "oneapi/dpl/internal/common_config.h"
