@@ -26,9 +26,10 @@
 #        define TEST_STD_VER 14
 #    elif __cplusplus >= 201103L || _MSVC_LANG >= 201103L
 #        define TEST_STD_VER 11
-#    elif __cplusplus >= 199711L || _MSVC_LANG >= 199711L
+#    else // assume C++03
 #        define TEST_STD_VER 3
 #    endif
+
 #endif
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
