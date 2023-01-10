@@ -274,7 +274,7 @@
 //'present' macros
 // shift_left, shift_right; GCC 10; VS 2019 16.1
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
-    ((__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && ((_GLIBCXX_RELEASE >= 10) || (_MSC_VER >= 1921)))
+    ((__cplusplus >= 202002L || _MSVC_LANG >= 202002L) && (_GLIBCXX_RELEASE >= 10 || _MSC_VER >= 1921))
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
