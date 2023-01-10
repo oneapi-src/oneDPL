@@ -16,22 +16,6 @@
 #ifndef _TEST_config_H
 #define _TEST_config_H
 
-/* Make a nice name for the standard version */
-#ifndef TEST_STD_VER
-#    if __cplusplus >= 202002L || _MSVC_LANG >= 202002L
-#        define TEST_STD_VER 20
-#    elif __cplusplus >= 201703L || _MSVC_LANG >= 201703L
-#        define TEST_STD_VER 17
-#    elif __cplusplus >= 201402L || _MSVC_LANG >= 201402L
-#        define TEST_STD_VER 14
-#    elif __cplusplus >= 201103L || _MSVC_LANG >= 201103L
-#        define TEST_STD_VER 11
-#    else // assume C++03
-#        define TEST_STD_VER 3
-#    endif
-
-#endif
-
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>
@@ -96,7 +80,8 @@
 
 // Check for C++ standard and standard library for the use of ranges API
 #if !defined(_ENABLE_RANGES_TESTING)
-#define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (TEST_STD_VER >= 17 && TEST_DPCPP_BACKEND_PRESENT)
+#    define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY                                                                      \
+        ((__cplusplus >= 201703L || _MSVC_LANG >= 201703L) && TEST_DPCPP_BACKEND_PRESENT)
 #if defined(_GLIBCXX_RELEASE)
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
 #elif defined(_LIBCPP_VERSION)
@@ -116,7 +101,8 @@
 #define _PSTL_GLIBCXX_TEST_COMPLEX_PLUS_EQ_BROKEN _PSTL_GLIBCXX_TEST_COMPLEX_BROKEN
 #define _PSTL_GLIBCXX_TEST_COMPLEX_TIMES_EQ_BROKEN _PSTL_GLIBCXX_TEST_COMPLEX_BROKEN
 
-#define _PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN (_MSC_VER && TEST_STD_VER <= 17)
+#define _PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN                                                            \
+    (_MSC_VER && (__cplusplus <= 201703L || _MSVC_LANG <= 201703L))
 
 #define _PSTL_ICC_TEST_COMPLEX_ASIN_MINUS_INF_NAN_BROKEN_SIGNBIT __INTEL_LLVM_COMPILER
 #define _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT __INTEL_LLVM_COMPILER
