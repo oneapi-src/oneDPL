@@ -17,7 +17,7 @@
 #ifndef _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 #define _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 
-#if (_ONEDPL_cplusplus >= 201703L)
+#if (_ONEDPL___cplusplus >= 201703L)
 #    include <algorithm>
 #    include <iterator>
 namespace oneapi
@@ -42,5 +42,5 @@ using ::std::for_each_n;
 #    endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_cplusplus >= 201703L
+#endif // _ONEDPL___cplusplus >= 201703L
 #endif // _ONEDPL_SERIAL_ALGORITHM_IMPL_H

@@ -17,7 +17,7 @@
 #ifndef _ONEDPL_SERIAL_NUMERIC_IMPL_H
 #define _ONEDPL_SERIAL_NUMERIC_IMPL_H
 
-#if (_ONEDPL_cplusplus >= 201703L)
+#if (_ONEDPL___cplusplus >= 201703L)
 #    include <functional>
 #    include <iterator>
 #    include <numeric>
@@ -53,5 +53,5 @@ using ::std::reduce;
 #    endif
 } // namespace dpl
 } // namespace oneapi
-#endif // _ONEDPL_cplusplus >= 201703L
+#endif // _ONEDPL___cplusplus >= 201703L
 #endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
