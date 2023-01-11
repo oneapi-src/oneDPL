@@ -27,6 +27,7 @@
 #endif
 
 // Disable use of TBB in Parallel STL from libstdc++ when:
+//  - this workaround is for GCC only, so we are able to use __cplusplus in this place
 #if __cplusplus >= 201703L
 // - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
 #    if __has_include(<tbb/version.h>)
