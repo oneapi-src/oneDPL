@@ -85,7 +85,7 @@ struct sycl_scan_by_segment_impl
         const ::std::size_t __n = __keys.size();
 
         constexpr ::std::size_t __vals_per_item =
-            2; // Assigning 2 elements per work item resulted in best performance on gpu.
+            4; // Assigning 4 elements per work item resulted in best performance on gpu.
 
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
@@ -206,8 +206,14 @@ struct sycl_scan_by_segment_impl
 
                 auto __partials_acc = __partials.template get_access<sycl::access_mode::read>(__cgh);
                 auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
-
+                
                 __cgh.depends_on(__wg_scan);
+
+                auto __loc_partials_acc = sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
+                     __wgroup_size, __cgh};
+                
+                auto __loc_seg_ends_acc = sycl::accessor<__flag_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
+                     __wgroup_size, __cgh};
 
                 __cgh.parallel_for(
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
@@ -226,28 +232,54 @@ struct sycl_scan_by_segment_impl
                         {
                             // 2a. Calculate the work group's carry-in value.
                             bool __ag_exists = false;
-                            if (__local_id == 0 && __wg_agg_idx >= 0)
+                            if (__start < __n)
                             {
-                                if (__start < __n)
+                                __ag_exists = true;
+                            }
+                            // local reductions followed by a downsweep
+                            // TODO: Generalize this value
+                            constexpr int64_t __vals_to_explore = 16;
+                            __flag_type  __last_it = false;
+                            __loc_seg_ends_acc[__local_id] = false;
+                            __loc_partials_acc[__local_id] = __identity; 
+
+                            for (int64_t __i = __wg_agg_idx - __vals_to_explore * __local_id; ; __i -= __wgroup_size * __vals_to_explore)
+                            {
+                                __val_type __local_collector = __identity; 
+                                // exploration phase 
+                                for (int64_t __j = __i; __j > __dpl_sycl::__maximum<int64_t>{}(-1L, __i - __vals_to_explore); --__j)
                                 {
-                                    __ag_exists = true;
-
-                                    for (int64_t __i = __wg_agg_idx; __i >= 0; --__i)
+                                    __local_collector = __binary_op(__partials_acc[__j], __local_collector);
+                                    if (__seg_ends_acc[__j] || __j == 0)
                                     {
-                                        __agg_collector = __binary_op(__partials_acc[__i], __agg_collector);
-
-                                        // current aggregate is the last aggregate
-                                        if (__seg_ends_acc[__i])
-                                            break;
+                                        __loc_seg_ends_acc[__local_id] = true;
+                                        break;
                                     }
                                 }
+                                __loc_partials_acc[__local_id] = __local_collector;
+                                __dpl_sycl::__group_barrier(__item);
+                                // serial aggregate collection and synchronization
+                                if (__local_id == 0)
+                                {
+                                    for (int64_t __j = 0; __j < __wgroup_size; ++__j)
+                                    {
+                                        __agg_collector = __binary_op(__loc_partials_acc[__j], __agg_collector);
+                                        if (__loc_seg_ends_acc[__j])
+                                        {
+                                            __last_it = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                __agg_collector = __dpl_sycl::__group_broadcast(__item.get_group(), __agg_collector);
+                                __last_it = __dpl_sycl::__group_broadcast(__item.get_group(), __last_it);
+                                if (__last_it)
+                                    break;
                             }
-                            __ag_exists = __dpl_sycl::__group_broadcast(__group, __ag_exists);
+                            __ag_exists = __dpl_sycl::__any_of_group(__group, __ag_exists);
 
                             if (!__ag_exists)
                                 return;
-
-                            __agg_collector = __dpl_sycl::__group_broadcast(__group, __agg_collector);
 
                             // 2c. Second pass over the keys, reidentifying end segments and applying work group
                             // aggregates if appropriate.
