@@ -16,11 +16,19 @@
 #ifndef _ONEDPL_COMMON_CONFIG_H
 #define _ONEDPL_COMMON_CONFIG_H
 
-#if __cplusplus < 201703L
+#ifndef _MSVC_LANG
+#    define _ONEDPL___cplusplus __cplusplus
+#else
+#    define _ONEDPL___cplusplus _MSVC_LANG
+#endif
+
+#if _ONEDPL___cplusplus < 201703L
 #    error "oneDPL requires the C++ language version not less than C++17"
 #endif
 
-// Disable use of TBB in Parallel STL from libstdc++ when:
+// Disable use of TBB in Parallel STL from libstdc++.
+// This workaround is for GCC only, so we should use __cplusplus macro
+// instead of _ONEDPL___cplusplus one.
 #if __cplusplus >= 201703L
 // - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
 #    if __has_include(<tbb/version.h>)

@@ -139,8 +139,7 @@
 
 // Should be defined to 1 for environments with a vendor implementation of C++17 execution policies
 #define _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT                                                                       \
-    (_MSC_VER >= 1912 && _MSVC_LANG >= 201703L) ||                                                                     \
-        (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503 && __cplusplus >= 201703L)
+    (_ONEDPL___cplusplus >= 201703L && (_MSC_VER >= 1912 || (_GLIBCXX_RELEASE >= 9 && __GLIBCXX__ >= 20190503)))
 
 #define _ONEDPL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #if (defined(_PSTL_PRAGMA_SIMD_EARLYEXIT) && _PSTL_EARLYEXIT_PRESENT)
@@ -227,7 +226,7 @@
 // Some  C++ standard libraries contain 'exclusive_scan' declaration (version with binary_op)
 // w/o "enable_if". So, a call 'exclusive_scan' may be ambiguous in case of a custom policy using.
 #define _ONEDPL_EXCLUSIVE_SCAN_WITH_BINARY_OP_AMBIGUITY                                                                \
-    (__GLIBCXX__ && __GLIBCXX__ > 20190503 && __cplusplus >= 201703L)
+    (_ONEDPL___cplusplus >= 201703L && __GLIBCXX__ && __GLIBCXX__ > 20190503)
 
 // some algorithms in <numeric> such as 'reduce' were added since libstdc++-9.3, we
 // have to provide our own implementation if legacy libstdc++ is in use.
@@ -274,7 +273,7 @@
 //'present' macros
 // shift_left, shift_right; GCC 10; VS 2019 16.1
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
-    (__cplusplus >= 202002L && ((_GLIBCXX_RELEASE >= 10) || (_MSC_VER >= 1921)))
+    (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 

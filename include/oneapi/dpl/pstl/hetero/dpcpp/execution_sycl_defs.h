@@ -116,14 +116,14 @@ class fpga_policy : public device_policy<KernelName>
 // In order to be useful oneapi::dpl::execution::dpcpp_default.queue() from one translation unit should be equal to
 // oneapi::dpl::execution::dpcpp_default.queue() from another TU.
 // Starting with c++17 we can simply define sycl as inline variable.
-#    if __cplusplus >= 201703L
+#    if _ONEDPL___cplusplus >= 201703L
 
 inline device_policy<> dpcpp_default{};
 #        if _ONEDPL_FPGA_DEVICE
 inline fpga_policy<> dpcpp_fpga{};
 #        endif // _ONEDPL_FPGA_DEVICE
 
-#    endif // __cplusplus >= 201703L
+#    endif // _ONEDPL___cplusplus >= 201703L
 
 #endif // _ONEDPL_PREDEFINED_POLICIES
 

@@ -20,7 +20,7 @@
 #include <type_traits>
 #include <tuple>
 
-#if (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+#if _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
 #    include <bit>
 #else
 #    include <cstring> // memcpy
@@ -63,7 +63,7 @@ __dpl_bit_cast(const _Src& __src) noexcept
 {
 #if SYCL_LANGUAGE_VERSION >= 2020
     return sycl::bit_cast<_Dst>(__src);
-#elif (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+#elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
     return ::std::bit_cast<_Dst>(__src);
 #elif defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
     return __builtin_bit_cast(_Dst, __src);
@@ -83,7 +83,7 @@ __dpl_bit_floor(_T __x) noexcept
 #if SYCL_LANGUAGE_VERSION >= 2020
     // Use the count-leading-zeros function
     return 1 << (sycl::clz(_T{0}) - sycl::clz(__x) - 1);
-#elif (__cpluslplus >= 202002L || _MSVC_LANG >= 202002L) && __has_include(<bit>)
+#elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
     return ::std::bit_floor(__x);
 #else
     // Fill all the lower bits with 1s
