@@ -17,8 +17,6 @@
 #ifndef _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 #define _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 
-#include "common_config.h"
-
 #if (_ONEDPL_cplusplus >= 201703L)
 #    include <algorithm>
 #    include <iterator>
