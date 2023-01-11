@@ -17,7 +17,7 @@
 #ifndef _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 #define _ONEDPL_SERIAL_ALGORITHM_IMPL_H
 
-#if (_ONEDPL___cplusplus >= 201703L)
+#if _ONEDPL___cplusplus >= 201703L
 #    include <algorithm>
 #    include <iterator>
 namespace oneapi
