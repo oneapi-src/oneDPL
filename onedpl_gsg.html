@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Get Started with the oneAPI DPC++ Library &#8212; oneDPL Documentation 2021.7.1 documentation</title>
+    <title>Get Started with the oneAPI DPC++ Library &#8212; oneDPL Documentation 2022.0.0 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -38,6 +38,24 @@
     <link rel="shortcut icon" href="_static/favicons.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+
+    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
+    <script type="text/javascript">
+        // Configure TMS settings
+        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
+        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
+        // Load TMS
+        if(document.location.href.includes("oneapi-src.github.io")){
+        (function () {
+        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+        }
+    </script>
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+
 
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -76,7 +94,7 @@
       <img src="_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.7.1 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.0.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
@@ -108,8 +126,8 @@
 </p>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="overview.html">
-   oneAPI DPC++ Library Overview
+  <a class="reference internal" href="introduction.html">
+   oneAPI DPC++ Library Introduction
   </a>
  </li>
  <li class="toctree-l1 has-children">
@@ -184,6 +202,11 @@
  <li class="toctree-l1">
   <a class="reference internal" href="macros.html">
    Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="oneDPL_2022.0_changes.html">
+   oneDPL 2022 Breaking Changes
   </a>
  </li>
 </ul>
@@ -376,36 +399,43 @@ title="Print to PDF"
     <nav id="bd-toc-nav" aria-label="Page">
         <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#before-you-begin">
-   Before You Begin
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#pkg-config-support">
-   pkg-config Support
+  <a class="reference internal nav-link" href="#quick-start">
+   Quick Start
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
-     Use pkg-config with oneDPL
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#usage-examples">
-   Usage Examples
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
-     &lt;oneapi/dpl/random&gt; Header Usage Example
+    <a class="reference internal nav-link" href="#installation">
+     Installation
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
-     Pi Benchmark Usage Example
+    <a class="reference internal nav-link" href="#pkg-config-support">
+     pkg-config Support
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
+       Use pkg-config with oneDPL
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#usage-examples">
+     Usage Examples
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
+       &lt;oneapi/dpl/random&gt; Header Usage Example
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
+       Pi Benchmark Usage Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -434,36 +464,43 @@ title="Print to PDF"
                         <nav aria-label="Page">
                             <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#before-you-begin">
-   Before You Begin
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#pkg-config-support">
-   pkg-config Support
+  <a class="reference internal nav-link" href="#quick-start">
+   Quick Start
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
-     Use pkg-config with oneDPL
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#usage-examples">
-   Usage Examples
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
-     &lt;oneapi/dpl/random&gt; Header Usage Example
+    <a class="reference internal nav-link" href="#installation">
+     Installation
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
-     Pi Benchmark Usage Example
+    <a class="reference internal nav-link" href="#pkg-config-support">
+     pkg-config Support
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
+       Use pkg-config with oneDPL
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#usage-examples">
+     Usage Examples
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
+       &lt;oneapi/dpl/random&gt; Header Usage Example
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
+       Pi Benchmark Usage Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -486,8 +523,8 @@ title="Print to PDF"
 <h1>Get Started with the oneAPI DPC++ Library<a class="headerlink" href="#get-started-with-the-onedpl-long" title="Permalink to this headline">¶</a></h1>
 <p>oneAPI DPC++ Library (oneDPL) works with the
 <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html">Intel® oneAPI DPC++/C++ Compiler</a>
-to provide high-productivity APIs to developers, which can minimize SYCL*</p>
-<p>programming efforts across devices for high performance parallel applications.</p>
+to provide high-productivity APIs to developers, which can minimize SYCL*
+programming efforts across devices for high performance parallel applications.</p>
 <p>oneDPL consists of the following components:</p>
 <ul class="simple">
 <li><p>Parallel API</p></li>
@@ -497,8 +534,10 @@ to provide high-productivity APIs to developers, which can minimize SYCL*</p>
 <p>For general information about oneDPL, visit the <a class="reference external" href="https://github.com/oneapi-src/oneDPL">oneDPL GitHub* repository</a>,
 or visit the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html">Intel® oneAPI DPC++ Library Guide</a>
 and the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html">Intel® oneAPI DPC++ Library main page</a>.</p>
-<section id="before-you-begin">
-<h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">¶</a></h2>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
 <p>Visit the oneDPL <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
 page for:</p>
 <ul class="simple">
@@ -517,18 +556,18 @@ oneDPL uses the namespace <code class="docutils literal notranslate"><span class
 and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
 </section>
 <section id="pkg-config-support">
-<h2>pkg-config Support<a class="headerlink" href="#pkg-config-support" title="Permalink to this headline">¶</a></h2>
+<h3>pkg-config Support<a class="headerlink" href="#pkg-config-support" title="Permalink to this headline">¶</a></h3>
 <p>The pkg-config program is used to retrieve information about your installed libraries, and
 to compile and link against one or more libraries.</p>
 <section id="use-pkg-config-with-onedpl-short">
-<h3>Use pkg-config with oneDPL<a class="headerlink" href="#use-pkg-config-with-onedpl-short" title="Permalink to this headline">¶</a></h3>
+<h4>Use pkg-config with oneDPL<a class="headerlink" href="#use-pkg-config-with-onedpl-short" title="Permalink to this headline">¶</a></h4>
 <p>Use pkg-config with the <code class="docutils literal notranslate"><span class="pre">--cflags</span></code> flag to get the include path to the oneDPL directory:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">--msvc-syntax</span></code> flag is required when you use a Microsoft Visual C++* compiler.
 This flag converts your compiling and linking flags to the appropriate form:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">msvc</span><span class="o">-</span><span class="n">syntax</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">msvc</span><span class="o">-</span><span class="n">syntax</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -538,12 +577,12 @@ This flag converts your compiling and linking flags to the appropriate form:</p>
 </section>
 </section>
 <section id="usage-examples">
-<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
+<h3>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h3>
 <p>oneDPL sample code is available from the
 <a class="reference external" href="https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL">oneAPI GitHub samples repository</a>.
 Each sample includes a readme with build instructions.</p>
 <section id="oneapi-dpl-random-header-usage-example">
-<h3>&lt;oneapi/dpl/random&gt; Header Usage Example<a class="headerlink" href="#oneapi-dpl-random-header-usage-example" title="Permalink to this headline">¶</a></h3>
+<h4>&lt;oneapi/dpl/random&gt; Header Usage Example<a class="headerlink" href="#oneapi-dpl-random-header-usage-example" title="Permalink to this headline">¶</a></h4>
 <p>This example illustrates oneDPL random number generator usage.
 The sample below shows you how to create an random number generator engine object (the source of pseudo-randomness),
 a distribution object (specifying the desired probability distribution), and how to generate
@@ -551,27 +590,27 @@ the random numbers themselves. Random number generation is performed in a vector
 to improve the speed of your computations.</p>
 <p>This example performs its computations on your default SYCL device. You can set the
 <code class="docutils literal notranslate"><span class="pre">SYCL_DEVICE_TYPE</span></code> environment variable to CPU or GPU.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">VecSize</span><span class="o">&gt;</span><span class="w"></span>
-<span class="kt">void</span><span class="w"> </span><span class="n">random_fill</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">usmptr</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">VecSize</span><span class="o">&gt;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">random_fill</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">usmptr</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
 
-<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">zero</span><span class="p">,</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="n">VecSize</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="p">[</span><span class="n">usmptr</span><span class="p">](</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">VecSize</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">dpcpp_default</span><span class="p">,</span>
+<span class="w">        </span><span class="n">zero</span><span class="p">,</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="n">VecSize</span><span class="p">,</span>
+<span class="w">        </span><span class="p">[</span><span class="n">usmptr</span><span class="p">](</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">VecSize</span><span class="p">;</span>
 
-<span class="w">            </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">minstd_rand_vec</span><span class="o">&lt;</span><span class="n">VecSize</span><span class="o">&gt;</span><span class="w"> </span><span class="n">engine</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">uniform_real_distribution</span><span class="o">&lt;</span><span class="n">sycl</span><span class="o">::</span><span class="n">vec</span><span class="o">&lt;</span><span class="kt">float</span><span class="p">,</span><span class="w"> </span><span class="n">VecSize</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">distr</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">minstd_rand_vec</span><span class="o">&lt;</span><span class="n">VecSize</span><span class="o">&gt;</span><span class="w"> </span><span class="n">engine</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">);</span>
+<span class="w">            </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">uniform_real_distribution</span><span class="o">&lt;</span><span class="n">sycl</span><span class="o">::</span><span class="n">vec</span><span class="o">&lt;</span><span class="kt">float</span><span class="p">,</span><span class="w"> </span><span class="n">VecSize</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">distr</span><span class="p">;</span>
 
-<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">res</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">global_ptr</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">usmptr</span><span class="p">));</span><span class="w"></span>
-<span class="w">        </span><span class="p">});</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span>
+<span class="w">            </span><span class="n">res</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">global_ptr</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">usmptr</span><span class="p">));</span>
+<span class="w">        </span><span class="p">});</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
 <section id="pi-benchmark-usage-example">
-<h3>Pi Benchmark Usage Example<a class="headerlink" href="#pi-benchmark-usage-example" title="Permalink to this headline">¶</a></h3>
+<h4>Pi Benchmark Usage Example<a class="headerlink" href="#pi-benchmark-usage-example" title="Permalink to this headline">¶</a></h4>
 <p>This example uses a Monte Carlo method to estimate the value of π.
 The basic idea is to generate random points within a square, and to check what
 fraction of these random points lie in a quarter-circle inscribed within that square.
@@ -584,33 +623,34 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
 <figure class="align-default">
 <img alt="An image of pi chart." src="_images/pi_benchmark1.png" />
 </figure>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">float</span><span class="w"> </span><span class="n">estimated_pi</span><span class="p">;</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="nf">q</span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">gpu_selector</span><span class="p">{});</span><span class="w"></span>
-<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">policy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">make_device_policy</span><span class="p">(</span><span class="n">q</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">float</span><span class="w"> </span><span class="n">estimated_pi</span><span class="p">;</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="nf">q</span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">gpu_selector</span><span class="p">{});</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">policy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">make_device_policy</span><span class="p">(</span><span class="n">q</span><span class="p">);</span>
 
-<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">transform_reduce</span><span class="p">(</span><span class="w"> </span><span class="n">policy</span><span class="p">,</span><span class="w"></span>
-<span class="w">                                      </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"></span>
-<span class="w">                                      </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">N</span><span class="p">),</span><span class="w"></span>
-<span class="w">                                      </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"></span>
-<span class="w">                                      </span><span class="n">std</span><span class="o">::</span><span class="n">plus</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">{},</span><span class="w"></span>
-<span class="w">                                      </span><span class="p">[</span><span class="o">=</span><span class="p">](</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">){</span><span class="w"></span>
-<span class="w">                                          </span><span class="kt">float</span><span class="w"> </span><span class="n">local_sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span><span class="w"></span>
-<span class="w">                                          </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">minstd_rand</span><span class="w"> </span><span class="nf">engine</span><span class="p">(</span><span class="n">SEED</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ITER</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span><span class="w"></span>
-<span class="w">                                          </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">uniform_real_distribution</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="n">distr</span><span class="p">;</span><span class="w"></span>
-<span class="w">                                          </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ITER</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                                              </span><span class="kt">float</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span><span class="w"></span>
-<span class="w">                                              </span><span class="kt">float</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span><span class="w"></span>
-<span class="w">                                              </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">)</span><span class="w"></span>
-<span class="w">                                                  </span><span class="n">local_sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span><span class="w"></span>
-<span class="w">                                          </span><span class="p">}</span><span class="w"></span>
-<span class="w">                                          </span><span class="k">return</span><span class="w"> </span><span class="n">local_sum</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">ITER</span><span class="p">;</span><span class="w"></span>
-<span class="w">                                      </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">estimated_pi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">4.0f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">sum</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">transform_reduce</span><span class="p">(</span><span class="w"> </span><span class="n">policy</span><span class="p">,</span>
+<span class="w">                                      </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+<span class="w">                                      </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">counting_iterator</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">N</span><span class="p">),</span>
+<span class="w">                                      </span><span class="mf">0.0f</span><span class="p">,</span>
+<span class="w">                                      </span><span class="n">std</span><span class="o">::</span><span class="n">plus</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">{},</span>
+<span class="w">                                      </span><span class="p">[</span><span class="o">=</span><span class="p">](</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">){</span>
+<span class="w">                                          </span><span class="kt">float</span><span class="w"> </span><span class="n">local_sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+<span class="w">                                          </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">minstd_rand</span><span class="w"> </span><span class="nf">engine</span><span class="p">(</span><span class="n">SEED</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ITER</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="w">                                          </span><span class="n">oneapi</span><span class="o">::</span><span class="n">dpl</span><span class="o">::</span><span class="n">uniform_real_distribution</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="n">distr</span><span class="p">;</span>
+<span class="w">                                          </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ITER</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                              </span><span class="kt">float</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span>
+<span class="w">                                              </span><span class="kt">float</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distr</span><span class="p">(</span><span class="n">engine</span><span class="p">);</span>
+<span class="w">                                              </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">)</span>
+<span class="w">                                                  </span><span class="n">local_sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span>
+<span class="w">                                          </span><span class="p">}</span>
+<span class="w">                                          </span><span class="k">return</span><span class="w"> </span><span class="n">local_sum</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">ITER</span><span class="p">;</span>
+<span class="w">                                      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="w">    </span><span class="n">estimated_pi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">4.0f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">sum</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">N</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
+</section>
 </section>
 </section>
 <section id="find-more">
@@ -665,7 +705,7 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
   
       &copy; Copyright Intel Corporation.<br/>
     <div class="extra_footer">
-      <p align="right"><a href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
+      <p align="right"><a data-cookie-notice="true" href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
     </div>
 </p>
         </footer>

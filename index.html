@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>oneAPI DPC++ Library &#8212; oneDPL Documentation 2021.7.1 documentation</title>
+    <title>oneAPI DPC++ Library Developer Guide &#8212; oneDPL Documentation 2022.0.0 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -39,6 +39,24 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Release Notes" href="introduction/release_notes.html" />
+
+    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
+    <script type="text/javascript">
+        // Configure TMS settings
+        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
+        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
+        // Load TMS
+        if(document.location.href.includes("oneapi-src.github.io")){
+        (function () {
+        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+        }
+    </script>
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+
 
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -77,7 +95,7 @@
       <img src="_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.7.1 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.0.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
@@ -109,8 +127,8 @@
 </p>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="overview.html">
-   oneAPI DPC++ Library Overview
+  <a class="reference internal" href="introduction.html">
+   oneAPI DPC++ Library Introduction
   </a>
  </li>
  <li class="toctree-l1 has-children">
@@ -185,6 +203,11 @@
  <li class="toctree-l1">
   <a class="reference internal" href="macros.html">
    Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="oneDPL_2022.0_changes.html">
+   oneDPL 2022 Breaking Changes
   </a>
  </li>
 </ul>
@@ -366,7 +389,7 @@ title="Print to PDF"
         <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>oneAPI DPC++ Library</h1>
+                <h1>oneAPI DPC++ Library Developer Guide</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -378,11 +401,12 @@ title="Print to PDF"
                 
               <div>
                 
-  <section id="onedpl-long">
-<h1>oneAPI DPC++ Library<a class="headerlink" href="#onedpl-long" title="Permalink to this headline">¶</a></h1>
+  <section id="onedpl-long-developer-guide">
+<h1>oneAPI DPC++ Library Developer Guide<a class="headerlink" href="#onedpl-long-developer-guide" title="Permalink to this headline">¶</a></h1>
 <p>oneAPI DPC++ Library (oneDPL) works with the Intel® oneAPI DPC++/C++ Compiler to
 provide high-productivity APIs to developers, which can minimize SYCL* programming
 efforts across devices for high performance parallel applications.</p>
+<p>For general information, refer to the <a class="reference external" href="https://github.com/oneapi-src/oneDPL">oneDPL GitHub* repository</a>.</p>
 <div class="toctree-wrapper compound">
 <p><span class="caption-text">Get Started</span></p>
 <ul>
@@ -399,12 +423,10 @@ efforts across devices for high performance parallel applications.</p>
 <div class="toctree-wrapper compound">
 <p><span class="caption-text">Library Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">oneAPI DPC++ Library Overview</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#before-you-begin">Before You Begin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#restrictions">Restrictions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#known-limitations">Known Limitations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#build-your-code-with-onedpl-short">Build Your Code with oneDPL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">oneAPI DPC++ Library Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#before-you-begin">Before You Begin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#build-your-code-with-onedpl-short">Build Your Code with oneDPL</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="parallel_api_main.html">Parallel API</a></li>
@@ -414,6 +436,7 @@ efforts across devices for high performance parallel applications.</p>
 <li class="toctree-l2"><a class="reference internal" href="macros.html#additional-macros">Additional Macros</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="oneDPL_2022.0_changes.html">oneDPL 2022 Breaking Changes</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -446,7 +469,7 @@ efforts across devices for high performance parallel applications.</p>
   
       &copy; Copyright Intel Corporation.<br/>
     <div class="extra_footer">
-      <p align="right"><a href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
+      <p align="right"><a data-cookie-notice="true" href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
     </div>
 </p>
         </footer>
