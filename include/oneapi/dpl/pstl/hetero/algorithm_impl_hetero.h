@@ -75,6 +75,25 @@ __pattern_walk1_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n
 // walk2
 //------------------------------------------------------------------------
 
+struct get_buffer_size
+{
+    template <typename _ForwardIterator, typename _Size>
+    typename ::std::enable_if<is_hetero_iterator<_ForwardIterator>::value, _Size>::type
+    operator()(_ForwardIterator _it, _Size _n)
+    {
+        decltype(_n) size = __dpl_sycl::__get_buffer_size(_it.get_buffer());
+        size = ::std::min(size, _n);
+        return size;
+    }
+
+    template <typename _ForwardIterator, typename _Size>
+    typename ::std::enable_if<!is_hetero_iterator<_ForwardIterator>::value, _Size>::type
+    operator()(_ForwardIterator /*_it*/, _Size _n)
+    {
+        return _n;
+    }
+};
+
 // TODO: A tag _IsSync is used for provide a patterns call pipeline, where the last one should be synchronous
 // Probably it should be re-designed by a pipeline approach, when a pattern returns some sync obejects
 // and ones are combined into a "pipeline" (probably like Range pipeline)
@@ -94,7 +113,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     auto __buf1 = __keep1(__first1, __last1);
 
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + __n);
+    auto __buf2 = __keep2(__first2, __first2 + get_buffer_size()(__first2, __n));
 
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
@@ -103,7 +122,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     if constexpr (_IsSync())
         __future_obj.wait();
 
-    return __first2 + __n;
+    return __first2 + get_buffer_size()(__first2, __n);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Size, typename _ForwardIterator2,
@@ -152,17 +171,17 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     auto __buf1 = __keep1(__first1, __last1);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + __n);
+    auto __buf2 = __keep2(__first2, __first2 + get_buffer_size()(__first2, __n));
     auto __keep3 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
-    auto __buf3 = __keep3(__first3, __first3 + __n);
+    auto __buf3 = __keep3(__first3, __first3 + get_buffer_size()(__first3, __n));
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
                                                       unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
                                                       __buf1.all_view(), __buf2.all_view(), __buf3.all_view())
         .wait();
 
-    return __first3 + __n;
+    return __first3 + get_buffer_size()(__first3, __n);
 }
 
 //------------------------------------------------------------------------
@@ -850,7 +869,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _IteratorOrTuple>();
-    auto __buf2 = __keep2(__output_first, __output_first + __n);
+    auto __buf2 = __keep2(__output_first, __output_first + get_buffer_size()(__output_first, __n));
 
     auto __res = __par_backend_hetero::__parallel_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec),
@@ -869,7 +888,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
         // global scan
         __copy_by_mask_op);
 
-    return ::std::make_pair(__output_first + __n, __res.get());
+    return ::std::make_pair(__output_first + get_buffer_size()(__output_first, __n), __res.get());
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Predicate>
@@ -1152,13 +1171,13 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
         auto __buf2 = __keep2(__first2, __last2);
 
         auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator3>();
-        auto __buf3 = __keep3(__d_first, __d_first + __n);
+        auto __buf3 = __keep3(__d_first, __d_first + get_buffer_size()(__d_first, __n));
 
         __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                __buf2.all_view(), __buf3.all_view(), __comp)
             .wait();
     }
-    return __d_first + __n;
+    return __d_first + get_buffer_size()(__d_first, __n);
 }
 //------------------------------------------------------------------------
 // inplace_merge
@@ -1514,7 +1533,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_reverse(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, /*vector=*/::std::true_type,
                   /*parallel=*/::std::true_type)
 {
-    auto __n = __last - __first;
+    const auto __n = __last - __first;
     if (__n <= 0)
         return;
 
@@ -1544,14 +1563,15 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator>();
-    auto __buf2 = __keep2(__result, __result + __n);
+    auto __buf2 = __keep2(__result, __result + get_buffer_size()(__result, __n));
+
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::__reverse_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{__n},
         __n, __buf1.all_view(), __buf2.all_view())
         .wait();
 
-    return __result + __n;
+    return __result + get_buffer_size()(__result, __n);
 }
 
 //------------------------------------------------------------------------
@@ -1619,7 +1639,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator>();
-    auto __buf2 = __keep2(__result, __result + __n);
+    auto __buf2 = __keep2(__result, __result + get_buffer_size()(__result, __n));
 
     const auto __shift = __new_first - __first;
 
@@ -1630,7 +1650,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
         __n, __buf1.all_view(), __buf2.all_view())
         .wait();
 
-    return __result + __n;
+    return __result + get_buffer_size()(__result, __n);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator,
