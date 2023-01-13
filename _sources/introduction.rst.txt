@@ -1,4 +1,4 @@
-|onedpl_long| Overview
+|onedpl_long| Introduction
 #######################################
 
 Parallel API can be used with the `C++ Standard Execution
@@ -22,7 +22,9 @@ page for:
 * Overview
 * New Features
 * Fixed Issues
+* Deprecation Notice
 * Known Issues and Limitations
+* Previous Release Notes 
 
 Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://software.intel.com/en-us/oneapi/base-kit>`_
 to use |onedpl_short|.
@@ -34,8 +36,11 @@ include the corresponding header in your source code with the ``#include <oneapi
 To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the ``std`` namespace.
 
+System Requirements
+===================
+
 Prerequisites
-=============
+*************
 
 C++17 is the minimal supported version of the C++ standard.
 That means, any use of |onedpl_short| may require a C++17 compiler.
@@ -56,7 +61,7 @@ To use Parallel API with the device execution policies, you need to install the 
 * A C++ compiler with support for SYCL 2020
 
 Restrictions
-============
+************
 
 When called with |dpcpp_short| execution policies, |onedpl_short| algorithms apply the same restrictions as
 |dpcpp_short| does (see the |dpcpp_short| specification and the SYCL specification for details), such as:
@@ -71,7 +76,7 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 * Calling the API that throws exception is not allowed within callable objects passed to an algorithm.
 
 Known Limitations
-=================
+*****************
 
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms, the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values

@@ -1,5 +1,5 @@
 Notices and Disclaimers
-=======================
+#######################
 
 Intel technologies may require enabled hardware, software or service activation.
 
@@ -14,4 +14,13 @@ No license (express or implied, by estoppel or otherwise) to any intellectual pr
 The products described may contain design defects or errors known as errata which may cause the product to deviate from published specifications. Current characterized errata are available on request.
 
 Intel disclaims all express and implied warranties, including without limitation, the implied warranties of merchantability, fitness for a particular purpose, and non-infringement, as well as any warranty arising from course of performance, course of dealing, or usage in trade.
+
+License
+=======
+
+oneDPL is licensed under Apache License Version 2.0 with LLVM exceptions. 
+
+Refer to the `LICENSE <https://github.com/oneapi-src/oneDPL/blob/release_oneDPL/licensing/LICENSE.txt>`_ file for the full license text and copyright notice.
+
+
 

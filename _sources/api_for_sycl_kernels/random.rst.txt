@@ -90,7 +90,7 @@ Random number generation is available for SYCL* device-side and host-side code. 
 
     #include <iostream>
     #include <vector>
-    #include <CL/sycl.hpp>
+    #include <sycl/sycl.hpp>
     #include <oneapi/dpl/random>
 
     int main() {

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>oneAPI DPC++ Library Overview &#8212; oneDPL Documentation 2021.7.1 documentation</title>
+    <title>oneAPI DPC++ Library Introduction &#8212; oneDPL Documentation 2022.0.0 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -40,6 +40,24 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Parallel API" href="parallel_api_main.html" />
     <link rel="prev" title="Get Started with the oneAPI DPC++ Library" href="introduction/onedpl_gsg.html" />
+
+    <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
+    <script type="text/javascript">
+        // Configure TMS settings
+        var wapLocalCode = 'us-en'; // Dynamically set per localized site, see mapping table for values
+        var wapSection = "oneapi-dpl"; // WAP team will give you a unique section for your site
+        // Load TMS
+        if(document.location.href.includes("oneapi-src.github.io")){
+        (function () {
+        var url = 'https://www.intel.com/content/dam/www/global/wap/tms-loader.js'; // WAP file URL
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true; po.src = url;
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+        }
+    </script>
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+
 
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -78,7 +96,7 @@
       <img src="_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2021.7.1 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.0.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
@@ -111,7 +129,7 @@
 <ul class="current nav bd-sidenav">
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
-   oneAPI DPC++ Library Overview
+   oneAPI DPC++ Library Introduction
   </a>
  </li>
  <li class="toctree-l1 has-children">
@@ -186,6 +204,11 @@
  <li class="toctree-l1">
   <a class="reference internal" href="macros.html">
    Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="oneDPL_2022.0_changes.html">
+   oneDPL 2022 Breaking Changes
   </a>
  </li>
 </ul>
@@ -273,7 +296,7 @@ title="Fullscreen mode"
   <div class="menu-dropdown__content">
     <ul>
       <li>
-        <a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Foverview.html&body=Your%20issue%20content%20here."
+        <a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fintroduction.html&body=Your%20issue%20content%20here."
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -290,7 +313,7 @@ title="Open an issue"
       </li>
       
       <li>
-        <a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/overview.rst"
+        <a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/introduction.rst"
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -318,7 +341,7 @@ title="Edit this page"
   <div class="menu-dropdown__content">
     <ul>
       <li>
-        <a href="_sources/overview.rst.txt"
+        <a href="_sources/introduction.rst.txt"
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -383,19 +406,26 @@ title="Print to PDF"
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#prerequisites">
-   Prerequisites
+  <a class="reference internal nav-link" href="#system-requirements">
+   System Requirements
   </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#restrictions">
-   Restrictions
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#known-limitations">
-   Known Limitations
-  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#prerequisites">
+     Prerequisites
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#restrictions">
+     Restrictions
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#known-limitations">
+     Known Limitations
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#build-your-code-with-onedpl-short">
@@ -411,7 +441,7 @@ title="Print to PDF"
         <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>oneAPI DPC++ Library Overview</h1>
+                <h1>oneAPI DPC++ Library Introduction</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -427,19 +457,26 @@ title="Print to PDF"
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#prerequisites">
-   Prerequisites
+  <a class="reference internal nav-link" href="#system-requirements">
+   System Requirements
   </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#restrictions">
-   Restrictions
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#known-limitations">
-   Known Limitations
-  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#prerequisites">
+     Prerequisites
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#restrictions">
+     Restrictions
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#known-limitations">
+     Known Limitations
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#build-your-code-with-onedpl-short">
@@ -456,8 +493,8 @@ title="Print to PDF"
                 
               <div>
                 
-  <section id="onedpl-long-overview">
-<h1>oneAPI DPC++ Library Overview<a class="headerlink" href="#onedpl-long-overview" title="Permalink to this headline">¶</a></h1>
+  <section id="onedpl-long-introduction">
+<h1>oneAPI DPC++ Library Introduction<a class="headerlink" href="#onedpl-long-introduction" title="Permalink to this headline">¶</a></h1>
 <p>Parallel API can be used with the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
 Policies</a>
 to enable parallelism on the host.</p>
@@ -474,7 +511,9 @@ page for:</p>
 <li><p>Overview</p></li>
 <li><p>New Features</p></li>
 <li><p>Fixed Issues</p></li>
+<li><p>Deprecation Notice</p></li>
 <li><p>Known Issues and Limitations</p></li>
+<li><p>Previous Release Notes</p></li>
 </ul>
 <p>Install the <a class="reference external" href="https://software.intel.com/en-us/oneapi/base-kit">Intel® oneAPI Base Toolkit (Base Kit)</a>
 to use oneDPL.</p>
@@ -484,8 +523,10 @@ oneDPL introduces the namespace <code class="docutils literal notranslate"><span
 <p>To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
 </section>
+<section id="system-requirements">
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this headline">¶</a></h2>
 <section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
 <p>C++17 is the minimal supported version of the C++ standard.
 That means, any use of oneDPL may require a C++17 compiler.
 While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.</p>
@@ -506,7 +547,7 @@ While some APIs of the library may accidentally work with earlier versions of th
 </ul>
 </section>
 <section id="restrictions">
-<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<h3>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h3>
 <p>When called with DPC++ execution policies, oneDPL algorithms apply the same restrictions as
 DPC++ does (see the DPC++ specification and the SYCL specification for details), such as:</p>
 <ul class="simple">
@@ -521,7 +562,7 @@ whose type meets SYCL requirements for use in kernels and for data transfer, res
 </ul>
 </section>
 <section id="known-limitations">
-<h2>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">¶</a></h2>
+<h3>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>For <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">transform_inclusive_scan</span></code> algorithms, the result of the unary operation should be
 convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
@@ -545,6 +586,7 @@ use <code class="docutils literal notranslate"><span class="pre">std::array::ope
 for double precision.</p></li>
 </ul>
 </section>
+</section>
 <section id="build-your-code-with-onedpl-short">
 <h2>Build Your Code with oneDPL<a class="headerlink" href="#build-your-code-with-onedpl-short" title="Permalink to this headline">¶</a></h2>
 <p>Follow the steps below to build your code with oneDPL:</p>
@@ -556,7 +598,7 @@ for details.</p></li>
 </ol>
 <p>Below is an example of a command line used to compile code that contains
 oneDPL parallel algorithms on Linux* (depending on the code, parameters within [] could be unnecessary):</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">fsycl</span><span class="o">-</span><span class="n">unnamed</span><span class="o">-</span><span class="n">lambda</span><span class="p">]</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">ltbb</span><span class="o">|-</span><span class="n">fopenmp</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">test</span><span class="w"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">fsycl</span><span class="o">-</span><span class="n">unnamed</span><span class="o">-</span><span class="n">lambda</span><span class="p">]</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">ltbb</span><span class="o">|-</span><span class="n">fopenmp</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">test</span>
 </pre></div>
 </div>
 </section>
@@ -595,7 +637,7 @@ oneDPL parallel algorithms on Linux* (depending on the code, parameters within [
   
       &copy; Copyright Intel Corporation.<br/>
     <div class="extra_footer">
-      <p align="right"><a href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
+      <p align="right"><a data-cookie-notice="true" href="https://www.intel.com/content/www/us/en/privacy/intel-cookie-notice.html">Cookies</a></p>
     </div>
 </p>
         </footer>

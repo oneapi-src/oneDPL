@@ -157,7 +157,7 @@ with the following steps:
    following constructor arguments:
 
    #. A SYCL queue constructed for the
-      `FPGA Selector <https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/supported/sycl_ext_intel_fpga_device_selector.md>`_
+      `FPGA Selector <https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/supported/sycl_ext_intel_fpga_device_selector.asciidoc>`_
       (the behavior is undefined with any other queue).
    #. An existing FPGA policy object with a different kernel name and/or unroll factor.
 

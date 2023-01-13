@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Parallel API &#8212; oneDPL Documentation 2022.0.0 documentation</title>
+    <title>oneDPL 2022 Breaking Changes &#8212; oneDPL Documentation 2022.0.0 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -38,8 +38,8 @@
     <link rel="shortcut icon" href="_static/favicons.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Execution Policies" href="parallel_api/execution_policies.html" />
-    <link rel="prev" title="oneAPI DPC++ Library Introduction" href="introduction.html" />
+    <link rel="next" title="Notices and Disclaimers" href="notices_disclaimers.html" />
+    <link rel="prev" title="Macros" href="macros.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
     <script type="text/javascript">
@@ -132,11 +132,11 @@
    oneAPI DPC++ Library Introduction
   </a>
  </li>
- <li class="toctree-l1 current active has-children">
-  <a class="current reference internal" href="#">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="parallel_api_main.html">
    Parallel API
   </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
    <i class="fas fa-chevron-down">
    </i>
@@ -206,8 +206,8 @@
    Macros
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="oneDPL_2022.0_changes.html">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
    oneDPL 2022 Breaking Changes
   </a>
  </li>
@@ -296,7 +296,7 @@ title="Fullscreen mode"
   <div class="menu-dropdown__content">
     <ul>
       <li>
-        <a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api_main.html&body=Your%20issue%20content%20here."
+        <a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2FoneDPL_2022.0_changes.html&body=Your%20issue%20content%20here."
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -313,7 +313,7 @@ title="Open an issue"
       </li>
       
       <li>
-        <a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api_main.rst"
+        <a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/oneDPL_2022.0_changes.rst"
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -341,7 +341,7 @@ title="Edit this page"
   <div class="menu-dropdown__content">
     <ul>
       <li>
-        <a href="_sources/parallel_api_main.rst.txt"
+        <a href="_sources/oneDPL_2022.0_changes.rst.txt"
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -390,7 +390,7 @@ title="Print to PDF"
         <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>Parallel API</h1>
+                <h1>oneDPL 2022 Breaking Changes</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -402,30 +402,46 @@ title="Print to PDF"
                 
               <div>
                 
-  <section id="parallel-api">
-<h1>Parallel API<a class="headerlink" href="#parallel-api" title="Permalink to this headline">¶</a></h1>
-<p>Parallel API is an implementation of the C++ standard libraries algorithms and execution
-policies, as specified in the ISO/IEC 14882:2017 standard (commonly called C++17). The implementation
-supports the unsequenced execution policy and the <code class="docutils literal notranslate"><span class="pre">shift_left</span></code>/<code class="docutils literal notranslate"><span class="pre">shift_right</span></code> algorithms, which are specified
-in the final draft of the C++ 20 standard (N4860). For more details see the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
-Policies</a>. oneAPI DPC++ Library (oneDPL)
-provides specific versions of the algorithms, including:</p>
+  <section id="onedpl-2022-breaking-changes">
+<h1>oneDPL 2022 Breaking Changes<a class="headerlink" href="#onedpl-2022-breaking-changes" title="Permalink to this headline">¶</a></h1>
+<p>This page lists the incompatible changes that occurred between the 2021.7.1 and 2022.0 releases.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You may need to modify and/or rebuild your code when switching to oneDPL 2022.</p>
+</aside>
+<p>Support for C++11 and C++14 has been discontinued. To use any functionality of oneDPL 2022,
+a compiler that supports C++17 or newer version of the C++ language standard is required.</p>
+<p>The following APIs are not supported in C++17 and have been removed from <code class="docutils literal notranslate"><span class="pre">namespace</span> <span class="pre">oneapi::dpl</span></code>:</p>
 <ul class="simple">
-<li><p>Segmented reduce</p></li>
-<li><p>Segmented scan</p></li>
-<li><p>Vectorized search algorithms</p></li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/functional&gt;</span></code> header:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">binary_function</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unary_function</span></code></p></li>
 </ul>
-<p>Parallel API offers support for the parallel and vectorized execution of algorithms on Intel®
-processors and heterogeneity support with a DPC++ based implementation for device execution policies.
-For sequential execution, oneDPL relies on an available implementation of the C++ standard library.</p>
-<p>The utility API includes iterators and function object classes. The iterators implement
-zip, transform, complete permutation operations on other iterators, and include a counting and discard iterator.
-The function object classes provide minimum, maximum, and identity operations
-that may be passed to algorithms such as reduce or transform.</p>
-<p>oneDPL also includes an experimental implementation of range-based algorithms with their
-required ranges and Async API.</p>
-<div class="toctree-wrapper compound">
-</div>
+</li>
+</ul>
+<p>The following APIs are deprecated in C++17 and not supported in C++20:</p>
+<ul class="simple">
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/functional&gt;</span></code> header:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">binary_negate</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">not1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">not2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unary_negate</span></code></p></li>
+</ul>
+</li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">&lt;oneapi/dpl/type_traits&gt;</span></code> header:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_literal_type</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_literal_type_v</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result_of</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result_of_t</span></code></p></li>
+</ul>
+</li>
+</ul>
+<p>The size and the layout of the <code class="docutils literal notranslate"><span class="pre">discard_block_engine</span></code> class template were changed to align its
+implementation with the С++ standard proposal found at <a class="reference external" href="https://cplusplus.github.io/LWG/issue3561">https://cplusplus.github.io/LWG/issue3561</a>.
+This change lets you utilize the full range of values for the template parameters of the engine.</p>
 </section>
 
 
@@ -436,17 +452,17 @@ required ranges and Async API.</p>
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="introduction.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="macros.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">oneAPI DPC++ Library Introduction</p>
+            <p class="prev-next-title">Macros</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="parallel_api/execution_policies.html" title="next page">
+    <a class='right-next' id="next-link" href="notices_disclaimers.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Execution Policies</p>
+        <p class="prev-next-title">Notices and Disclaimers</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
