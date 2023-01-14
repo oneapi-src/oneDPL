@@ -23,11 +23,12 @@
 //namespace __par_backend_hetero
 //{
 
+
 template <int ITEMS_PER_THREAD, typename KeyT, typename _Wi, typename _Src, typename _Keys>
 void
 __block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n)
 {
-    constexpr KeyT __default_key = (KeyT)0xffffffff;
+    constexpr KeyT __default_key = 0xffffffff;
 
     #pragma unroll
     for (auto i = 0; i < ITEMS_PER_THREAD; i++)
@@ -63,7 +64,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
    constexpr unsigned int BIN_COUNT = 1 << RADIX_BITS;
    constexpr unsigned int mask = BIN_COUNT - 1;
 
-   constexpr uint16_t ITEMS_PER_THREAD = __block_size;
+   constexpr int ITEMS_PER_THREAD = __block_size;
 
    size_t N = __src.size();
    assert(N <= __block_size*BLOCK_THREADS);
@@ -83,7 +84,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
        cgh.use_kernel_bundle(__bundle);
        cgh.parallel_for<_KernelName>(myRange, ([=](sycl::nd_item<1> it) [[intel::reqd_sub_group_size(req_sub_group_size)]] {
 
-           using KeyT = uint16_t;
+           using KeyT = uint32_t;
            KeyT keys[ITEMS_PER_THREAD];
            auto wi_x = it.get_local_linear_id();
            uint32_t begin_bit = 0;
@@ -94,9 +95,9 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
            __dpl_sycl::__group_barrier(it);
            while (true)
            {
-               uint16_t ranks[ITEMS_PER_THREAD];
+               int ranks[ITEMS_PER_THREAD];
                {
-                   uint16_t thread_prefixes[ITEMS_PER_THREAD];
+                   uint32_t thread_prefixes[ITEMS_PER_THREAD];
                    uint32_t* digit_counters[ITEMS_PER_THREAD];
                    //ResetCounters();
                    auto pcounter = counter_lacc.get_pointer()+wi_x;
@@ -114,20 +115,19 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                        *digit_counters[ITEM] = thread_prefixes[ITEM] + 1;
                    }
                    __dpl_sycl::__group_barrier(it);
-
                    // Scan shared memory counters
                    {
                        //access pattern might be further optimized
 
                        //scan contiguous numbers
-                       uint16_t bin_sum[BIN_COUNT];
+                       uint32_t bin_sum[BIN_COUNT];
                        bin_sum[0] = counter_lacc[wi_x * BIN_COUNT];
                        for (int i = 1; i < BIN_COUNT; i++)
                            bin_sum[i] = bin_sum[i-1] + counter_lacc[wi_x * BIN_COUNT + i];
 
                        __dpl_sycl::__group_barrier(it);
                        //exclusive scan local sum
-                       uint16_t sum_scan = __dpl_sycl::__exclusive_scan_over_group(it.get_group(), bin_sum[BIN_COUNT-1], sycl::plus<uint16_t>());
+                       uint32_t sum_scan = __dpl_sycl::__exclusive_scan_over_group(it.get_group(), bin_sum[BIN_COUNT-1], sycl::plus<>());
                        //add to local sum, generate exclusive scan result
                        for (int i = 0; i < BIN_COUNT; i++)
                            counter_lacc[wi_x * BIN_COUNT + i + 1] = sum_scan + bin_sum[i];
