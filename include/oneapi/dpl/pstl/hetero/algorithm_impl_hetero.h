@@ -75,25 +75,6 @@ __pattern_walk1_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n
 // walk2
 //------------------------------------------------------------------------
 
-struct get_buffer_size
-{
-    template <typename _ForwardIterator, typename _Size>
-    typename ::std::enable_if<is_hetero_iterator<_ForwardIterator>::value, _Size>::type
-    operator()(_ForwardIterator _it, _Size _n)
-    {
-        decltype(_n) size = __dpl_sycl::__get_buffer_size(_it.get_buffer());
-        size = ::std::min(size, _n);
-        return size;
-    }
-
-    template <typename _ForwardIterator, typename _Size>
-    typename ::std::enable_if<!is_hetero_iterator<_ForwardIterator>::value, _Size>::type
-    operator()(_ForwardIterator /*_it*/, _Size _n)
-    {
-        return _n;
-    }
-};
-
 // TODO: A tag _IsSync is used for provide a patterns call pipeline, where the last one should be synchronous
 // Probably it should be re-designed by a pipeline approach, when a pattern returns some sync obejects
 // and ones are combined into a "pipeline" (probably like Range pipeline)
