@@ -1551,7 +1551,6 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator>();
     auto __buf2 = __keep2(__result, __n);
-
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::__reverse_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{__n},
