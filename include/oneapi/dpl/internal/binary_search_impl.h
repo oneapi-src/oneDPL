@@ -126,7 +126,7 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto value_buf = keep_values(value_start, value_end);
 
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
-    auto result_buf = keep_result(result, result + value_size);
+    auto result_buf = keep_result.keep_with_size(result, value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
@@ -156,7 +156,7 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto value_buf = keep_values(value_start, value_end);
 
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
-    auto result_buf = keep_result(result, result + value_size);
+    auto result_buf = keep_result.keep_with_size(result, value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
@@ -186,7 +186,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     auto value_buf = keep_values(value_start, value_end);
 
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
-    auto result_buf = keep_result(result, result + value_size);
+    auto result_buf = keep_result.keep_with_size(result, value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
     __bknd::__parallel_for(::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,

@@ -94,7 +94,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     auto __buf1 = __keep1(__first1, __last1);
 
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + get_buffer_size()(__first2, __n));
+    auto __buf2 = __keep2.keep_with_size(__first2, __n);
 
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
@@ -152,10 +152,10 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     auto __buf1 = __keep1(__first1, __last1);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + get_buffer_size()(__first2, __n));
+    auto __buf2 = __keep2.keep_with_size(__first2, __n);
     auto __keep3 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
-    auto __buf3 = __keep3(__first3, __first3 + get_buffer_size()(__first3, __n));
+    auto __buf3 = __keep3.keep_with_size(__first3, __n);
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
                                                       unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
@@ -850,7 +850,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _IteratorOrTuple>();
-    auto __buf2 = __keep2(__output_first, __output_first + get_buffer_size()(__output_first, __n));
+    auto __buf2 = __keep2.keep_with_size(__output_first, __n);
 
     auto __res = __par_backend_hetero::__parallel_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec),
@@ -1152,7 +1152,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
         auto __buf2 = __keep2(__first2, __last2);
 
         auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator3>();
-        auto __buf3 = __keep3(__d_first, __d_first + get_buffer_size()(__d_first, __n));
+        auto __buf3 = __keep3.keep_with_size(__d_first, __n);
 
         __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                __buf2.all_view(), __buf3.all_view(), __comp)
@@ -1330,10 +1330,10 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
     const auto __shared_size = ::std::min(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
-    auto __buf1 = __keep1(__first1, __first1 + __shared_size);
+    auto __buf1 = __keep1.keep_with_size(__first1, __shared_size);
 
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + __shared_size);
+    auto __buf2 = __keep2.keep_with_size(__first2, __shared_size);
 
     auto __ret_idx =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
@@ -1544,7 +1544,7 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator>();
-    auto __buf2 = __keep2(__result, __result + get_buffer_size()(__result, __n));
+    auto __buf2 = __keep2.keep_with_size(__result, __n);
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec),
@@ -1620,7 +1620,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator>();
-    auto __buf2 = __keep2(__result, __result + get_buffer_size()(__result, __n));
+    auto __buf2 = __keep2.keep_with_size(__result, __n);
 
     const auto __shift = __new_first - __first;
 
@@ -1674,7 +1674,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     auto __buf2 = __keep2(__first2, __last2);
 
     auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutputIterator>();
-    auto __buf3 = __keep3(__result, __result + __n1);
+    auto __buf3 = __keep3.keep_with_size(__result, __n1);
 
     auto __result_size =
         __par_backend_hetero::__parallel_transform_scan(

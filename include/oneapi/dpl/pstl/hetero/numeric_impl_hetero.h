@@ -57,7 +57,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
     auto __buf1 = __keep1(__first1, __last1);
     auto __keep2 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
-    auto __buf2 = __keep2(__first2, __first2 + __n);
+    auto __buf2 = __keep2.keep_with_buf_size(__first2, __n);
 
     auto __res =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp>(
@@ -135,7 +135,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
-    auto __buf2 = __keep2(__result, __result + __n);
+    auto __buf2 = __keep2.keep_with_size(__result, __n);
 
     oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __binary_op, __init,
