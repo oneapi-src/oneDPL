@@ -54,29 +54,16 @@
 #    define _ONEDPL_TBB_AVAILABLE 1
 #endif
 #if ONEDPL_USE_TBB_BACKEND && !_ONEDPL_TBB_AVAILABLE
-#    error "TBB backend is selected, but TBB is not found"
-#endif
-// Check OpenMP availability only during host code compilation
-#if !defined(__SYCL_DEVICE_ONLY__)
-#    if defined(_OPENMP)
-#        define _ONEDPL_OPENMP_AVAILABLE 1
-#    endif
-#    if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE
-#        error "OpenMP backend is selected, but OpenMP is not found"
-#    endif
-#endif //no __SYCL_DEVICE_ONLY__
-
-// Select a parallel backend
-#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
-#    define _ONEDPL_PAR_BACKEND_TBB 1
+#    error "Parallel execution policies with oneTBB or Intel(R) TBB support are enabled, but the library is not found"
 #endif
 
-#if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
-#    define _ONEDPL_PAR_BACKEND_OPENMP 1
+#if defined(_OPENMP) && __has_include(<omp.h>)
+#    define _ONEDPL_OPENMP_AVAILABLE 1
 #endif
-
-#if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
-#    define _ONEDPL_PAR_BACKEND_SERIAL 1
+// Avoid throwing an error during compilation for a device
+#if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE && !defined(__SYCL_DEVICE_ONLY__)
+#    error "Parallel execution policies with OpenMP* support are enabled, \
+        but OpenMP* headers are not found or the compiler does not support OpenMP*"
 #endif
 
 // Check the user-defined macro for warnings

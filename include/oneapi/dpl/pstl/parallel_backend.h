@@ -15,6 +15,20 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_H
 #define _ONEDPL_PARALLEL_BACKEND_H
 #include "onedpl_config.h"
+
+// Select a parallel backend
+#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
+#    define _ONEDPL_PAR_BACKEND_TBB 1
+#endif
+
+#if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
+#    define _ONEDPL_PAR_BACKEND_OPENMP 1
+#endif
+
+#if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
+#    define _ONEDPL_PAR_BACKEND_SERIAL 1
+#endif
+
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/parallel_backend_sycl.h"
 #    if _ONEDPL_FPGA_DEVICE
