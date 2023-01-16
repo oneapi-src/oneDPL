@@ -389,6 +389,7 @@ struct __get_sycl_range
         return oneapi::dpl::__ranges::make_zip_view(::std::get<_Ip>(tmp).all_view()...);
     }
 
+  private:
     struct holder_size_evaluator
     {
         //specialization for zip iterators
