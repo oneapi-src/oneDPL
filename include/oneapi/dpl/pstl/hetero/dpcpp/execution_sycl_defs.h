@@ -343,9 +343,8 @@ __max_sub_group_size(_ExecutionPolicy&& __policy)
 #endif
 
 template <typename _ExecutionPolicy>
-auto
+::std::uint32_t
 __max_compute_units(_ExecutionPolicy&& __policy)
-    -> decltype(__policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>())
 {
     return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
 }

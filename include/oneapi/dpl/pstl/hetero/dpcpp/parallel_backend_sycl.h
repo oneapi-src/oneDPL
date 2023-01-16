@@ -304,7 +304,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __n = __rng1.size();
         assert(__n > 0);
 
-        auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
         // TODO: find a way to generalize getting of reliable work-group sizes
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
         // change __wgroup_size according to local memory limit
@@ -331,7 +331,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // Storage for the results of scan for each workgroup
         sycl::buffer<_Type> __wg_sums(__n_groups);
 
-        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
         // 1. Local scan on each workgroup
         auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -846,15 +846,15 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-    auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
     // TODO: try to change __n_groups with another formula for more perfect load balancing
-    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__mcu));
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
     auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;
