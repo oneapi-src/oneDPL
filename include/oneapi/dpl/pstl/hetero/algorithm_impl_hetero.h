@@ -43,7 +43,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                 /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    const auto __n = __last - __first;
+    auto __n = __last - __first;
     if (__n <= 0)
         return;
 
@@ -86,7 +86,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                 _ForwardIterator2 __first2, _Function __f, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    const auto __n = __last1 - __first1;
+    auto __n = __last1 - __first1;
     if (__n <= 0)
         return __first2;
 
@@ -143,7 +143,7 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
                 _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f, /*vector=*/::std::true_type,
                 /*parallel=*/::std::true_type)
 {
-    const auto __n = __last1 - __first1;
+    auto __n = __last1 - __first1;
     if (__n <= 0)
         return __first3;
 
@@ -833,9 +833,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
     using _InitType = unseq_backend::__no_init_value<_It1DifferenceType>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
-    const auto __n = __last - __first;
-
-    if (__n == 0)
+    if (__first == __last)
         return ::std::make_pair(__output_first, _It1DifferenceType{0});
 
     _Assigner __assign_op;
@@ -844,6 +842,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
     _MaskAssigner __add_mask_op;
 
     // temporary buffer to store boolean mask
+    auto __n = __last - __first;
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -1125,9 +1124,9 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
                 _Iterator2 __last2, _Iterator3 __d_first, _Compare __comp, /*vector=*/::std::true_type,
                 /*parallel=*/::std::true_type)
 {
-    const auto __n1 = __last1 - __first1;
-    const auto __n2 = __last2 - __first2;
-    const auto __n = __n1 + __n2;
+    auto __n1 = __last1 - __first1;
+    auto __n2 = __last2 - __first2;
+    auto __n = __n1 + __n2;
     if (__n == 0)
         return __d_first;
 
@@ -1181,7 +1180,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 
     assert(__first < __middle && __middle < __last);
 
-    const auto __n = __last - __first;
+    auto __n = __last - __first;
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
     auto __copy_first = __buf.get();
     auto __copy_last = __copy_first + __n;
@@ -1241,18 +1240,17 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _UnaryPredicate __pred,
                            /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type)
 {
-    const auto __n = __last - __first;
-
-    if (__n == 0)
+    if (__last == __first)
         return __last;
-
-    if (__n < 2)
+    else if (__last - __first < 2)
         return __pattern_any_of(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred, ::std::true_type(),
                                 ::std::true_type())
                    ? __last
                    : __first;
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
+
+    auto __n = __last - __first;
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __true_buf(__exec, __n);
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __false_buf(__exec, __n);
@@ -1333,7 +1331,7 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
         return __a * __is_mismatched + __b * !__is_mismatched;
     };
 
-    const auto __shared_size = ::std::min(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
+    auto __shared_size = ::std::min(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first1, __shared_size);
@@ -1441,8 +1439,8 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
 {
     using _ValueType = typename ::std::iterator_traits<_InIterator>::value_type;
 
-    const auto __in_size = __last - __first;
-    const auto __out_size = __out_last - __out_first;
+    auto __in_size = __last - __first;
+    auto __out_size = __out_last - __out_first;
 
     if (__in_size == 0 || __out_size == 0)
         return __out_first;
@@ -1541,7 +1539,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
                        _ForwardIterator __result, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    const auto __n = __last - __first;
+    auto __n = __last - __first;
     if (__n <= 0)
         return __result;
 
@@ -1578,7 +1576,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_rotate(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_first, _Iterator __last,
                  /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    const auto __n = __last - __first;
+    auto __n = __last - __first;
     if (__n <= 0)
         return __first;
 
@@ -1616,7 +1614,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
                       _BidirectionalIterator __last, _ForwardIterator __result, /*vector=*/::std::true_type,
                       /*parallel=*/::std::true_type)
 {
-    const auto __n = __last - __first;
+    auto __n = __last - __first;
     if (__n <= 0)
         return __result;
 
@@ -1951,7 +1949,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __l
                      /*is_parallel=*/::std::true_type)
 {
     //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
-    const auto __size = __last - __first;
+    auto __size = __last - __first;
     if (__n <= 0)
         return __last;
     if (__n >= __size)
@@ -1972,7 +1970,7 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
                       /*is_parallel=*/::std::true_type)
 {
     //If (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last. Otherwise, returns first.
-    const auto __size = __last - __first;
+    auto __size = __last - __first;
     if (__n <= 0)
         return __first;
     if (__n >= __size)
