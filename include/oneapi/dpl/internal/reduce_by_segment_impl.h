@@ -175,7 +175,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     auto value_output_buf = keep_value_outputs(result2, result2 + n);
 
     // number of unique keys
-    CountType N = oneapi::dpl::experimental::ranges::reduce_by_segment(
+    const CountType N = oneapi::dpl::experimental::ranges::reduce_by_segment(
         ::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
         value_output_buf.all_view(), binary_pred, binary_op);
     return ::std::make_pair(result1 + N, result2 + N);
