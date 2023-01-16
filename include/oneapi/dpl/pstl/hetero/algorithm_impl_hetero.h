@@ -1701,7 +1701,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
             __copy_by_mask_op)
             .get();
 
-    return __result + __buf3.size();
+    return __result + __result_size;
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator,
