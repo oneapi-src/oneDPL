@@ -267,7 +267,7 @@ struct __holder_base
     }
 
     size_type
-    get_size() const
+    size() const
     {
         return __src_size;
     }
