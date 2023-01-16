@@ -23,12 +23,11 @@
 //namespace __par_backend_hetero
 //{
 
-
 template <int ITEMS_PER_THREAD, typename KeyT, typename _Wi, typename _Src, typename _Keys>
 void
 __block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n)
 {
-    constexpr KeyT __default_key = 0xffffffff;
+    constexpr KeyT __default_key = KeyT{};
 
     #pragma unroll
     for (auto i = 0; i < ITEMS_PER_THREAD; i++)
@@ -64,27 +63,25 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
    constexpr unsigned int BIN_COUNT = 1 << RADIX_BITS;
    constexpr unsigned int mask = BIN_COUNT - 1;
 
-   constexpr int ITEMS_PER_THREAD = __block_size;
+   constexpr uint16_t ITEMS_PER_THREAD = __block_size;
 
    size_t N = __src.size();
    assert(N <= __block_size*BLOCK_THREADS);
 
-    auto __bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__q.get_context(),
+   auto __bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__q.get_context(),
                                                                             {sycl::get_kernel_id<_KernelName>()});
 
+   using KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
    sycl::nd_range myRange {sycl::range{BLOCK_THREADS}, sycl::range{BLOCK_THREADS}};
-
    auto __event = __q.submit([&](sycl::handler& cgh) {
        oneapi::dpl::__ranges::__require_access(cgh, __src);
-       uint32_t slm_size = std::max<uint32_t>(ITEMS_PER_THREAD*BLOCK_THREADS, BIN_COUNT * BLOCK_THREADS+16);
-       auto lacc = sycl::local_accessor<uint32_t, 1>(slm_size, cgh);
-       auto exchange_lacc = lacc; //exchange key, size is ITEMS_PER_THREAD*BLOCK_THREADS KeyT
-       auto counter_lacc = lacc; //counter, could be private but use slm here, size is BLOCK_THREADS * BIN_COUNT
+
+       auto exchange_lacc = sycl::local_accessor<KeyT, 1>(ITEMS_PER_THREAD*BLOCK_THREADS, cgh);; //exchange key, size is ITEMS_PER_THREAD*BLOCK_THREADS KeyT
+       auto counter_lacc = sycl::local_accessor<uint32_t, 1>(BLOCK_THREADS * BIN_COUNT, cgh);//counter, could be private but use slm here
 
        cgh.use_kernel_bundle(__bundle);
        cgh.parallel_for<_KernelName>(myRange, ([=](sycl::nd_item<1> it) [[intel::reqd_sub_group_size(req_sub_group_size)]] {
 
-           using KeyT = uint32_t;
            KeyT keys[ITEMS_PER_THREAD];
            auto wi_x = it.get_local_linear_id();
            uint32_t begin_bit = 0;
@@ -95,9 +92,9 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
            __dpl_sycl::__group_barrier(it);
            while (true)
            {
-               int ranks[ITEMS_PER_THREAD];
+               uint16_t ranks[ITEMS_PER_THREAD];
                {
-                   uint32_t thread_prefixes[ITEMS_PER_THREAD];
+                   uint16_t thread_prefixes[ITEMS_PER_THREAD];
                    uint32_t* digit_counters[ITEMS_PER_THREAD];
                    //ResetCounters();
                    auto pcounter = counter_lacc.get_pointer()+wi_x;
@@ -106,7 +103,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                        pcounter[LANE*BLOCK_THREADS] = 0;
 
                    #pragma unroll
-                   for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
+                   for (uint16_t ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
                    {
                        const int digit =  __get_bucket<mask>(__order_preserving_cast<__is_asc>(keys[ITEM]), begin_bit);
 
@@ -115,21 +112,22 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                        *digit_counters[ITEM] = thread_prefixes[ITEM] + 1;
                    }
                    __dpl_sycl::__group_barrier(it);
+
                    // Scan shared memory counters
                    {
                        //access pattern might be further optimized
 
                        //scan contiguous numbers
-                       uint32_t bin_sum[BIN_COUNT];
+                       uint16_t bin_sum[BIN_COUNT];
                        bin_sum[0] = counter_lacc[wi_x * BIN_COUNT];
-                       for (int i = 1; i < BIN_COUNT; i++)
+                       for (uint16_t i = 1; i < BIN_COUNT; i++)
                            bin_sum[i] = bin_sum[i-1] + counter_lacc[wi_x * BIN_COUNT + i];
 
                        __dpl_sycl::__group_barrier(it);
                        //exclusive scan local sum
-                       uint32_t sum_scan = __dpl_sycl::__exclusive_scan_over_group(it.get_group(), bin_sum[BIN_COUNT-1], sycl::plus<>());
+                       uint16_t sum_scan = __dpl_sycl::__exclusive_scan_over_group(it.get_group(), bin_sum[BIN_COUNT-1], sycl::plus<uint16_t>());
                        //add to local sum, generate exclusive scan result
-                       for (int i = 0; i < BIN_COUNT; i++)
+                       for (uint16_t i = 0; i < BIN_COUNT; i++)
                            counter_lacc[wi_x * BIN_COUNT + i + 1] = sum_scan + bin_sum[i];
 
                        if (wi_x == 0)
@@ -139,7 +137,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
 
                    // Extract the local ranks of each key
                    #pragma unroll
-                   for (int ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
+                   for (uint16_t ITEM = 0; ITEM < ITEMS_PER_THREAD; ++ITEM)
                    {
                        // Add in thread block exclusive prefix
                        ranks[ITEM] = thread_prefixes[ITEM] + *digit_counters[ITEM];
@@ -152,7 +150,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                if (begin_bit >= end_bit)
                {
                    // end of iteration, write out result
-                   for (int i = 0; i<ITEMS_PER_THREAD; i++)
+                   for (uint16_t i = 0; i<ITEMS_PER_THREAD; i++)
                    {
                        //boundary check is slow but nessecary
                        if (ranks[i] < N)
