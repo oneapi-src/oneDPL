@@ -69,7 +69,7 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     if constexpr (_IsSync::value)
         __future.wait();
 
-    return __future.__make_future(__first2 + __n);
+    return __future.__make_future(__first2 + __buf2.get_size());
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
@@ -95,7 +95,7 @@ __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
 
-    return __future.__make_future(__first3 + __n);
+    return __future.__make_future(__first3 + __buf3.get_size());
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Brick,
@@ -233,7 +233,7 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
             __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
         // global scan
         unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
-    return __res.__make_future(__result + __n);
+    return __res.__make_future(__result + __buf2.get_size());
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation, typename _Type,

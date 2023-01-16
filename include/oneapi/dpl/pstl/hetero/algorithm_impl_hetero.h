@@ -103,7 +103,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     if constexpr (_IsSync())
         __future_obj.wait();
 
-    return __first2 + get_buffer_size()(__first2, __n);
+    return __first2 + __buf2.get_size();
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Size, typename _ForwardIterator2,
@@ -162,7 +162,7 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
                                                       __buf1.all_view(), __buf2.all_view(), __buf3.all_view())
         .wait();
 
-    return __first3 + get_buffer_size()(__first3, __n);
+    return __first3 + __buf3.get_size();
 }
 
 //------------------------------------------------------------------------
@@ -869,7 +869,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
         // global scan
         __copy_by_mask_op);
 
-    return ::std::make_pair(__output_first + get_buffer_size()(__output_first, __n), __res.get());
+    return ::std::make_pair(__output_first + __buf2.get_size(), __res.get());
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Predicate>
@@ -1133,17 +1133,23 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
 
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
+    {
         oneapi::dpl::__internal::__pattern_walk2_brick(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __first2, __last2, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
             ::std::true_type());
+        return __d_first + __n;
+    }
     else if (__n2 == 0)
+    {
         oneapi::dpl::__internal::__pattern_walk2_brick(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __first1, __last1, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
             ::std::true_type());
+        return __d_first + __n;
+    }
     else
     {
         auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -1157,8 +1163,8 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
         __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                __buf2.all_view(), __buf3.all_view(), __comp)
             .wait();
+        return __d_first + __buf3.get_size();
     }
-    return __d_first + get_buffer_size()(__d_first, __n);
 }
 //------------------------------------------------------------------------
 // inplace_merge
@@ -1552,7 +1558,7 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first
         __n, __buf1.all_view(), __buf2.all_view())
         .wait();
 
-    return __result + get_buffer_size()(__result, __n);
+    return __result + __buf2.get_size();
 }
 
 //------------------------------------------------------------------------
@@ -1631,7 +1637,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
         __n, __buf1.all_view(), __buf2.all_view())
         .wait();
 
-    return __result + get_buffer_size()(__result, __n);
+    return __result + __buf2.get_size();
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator,
@@ -1696,7 +1702,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
             __copy_by_mask_op)
             .get();
 
-    return __result + __result_size;
+    return __result + __buf3.get_size();
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator,

@@ -132,7 +132,7 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                            custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
-    return result + value_size;
+    return result + result_buf.get_size();
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -162,7 +162,7 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                            custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
-    return result + value_size;
+    return result + result_buf.get_size();
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -192,7 +192,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
                            custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
                            zip_vw)
         .wait();
-    return result + value_size;
+    return result + result_buf.get_size();
 }
 
 #endif
