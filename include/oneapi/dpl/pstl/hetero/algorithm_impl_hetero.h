@@ -1520,7 +1520,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_reverse(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, /*vector=*/::std::true_type,
                   /*parallel=*/::std::true_type)
 {
-    const auto __n = __last - __first;
+    auto __n = __last - __first;
     if (__n <= 0)
         return;
 
