@@ -634,7 +634,7 @@ struct __get_sycl_range
     //common specialization for call with (<Iterator, Size>)
     template <typename _Iter, typename _Size>
     auto
-    keep_with_size(_Iter __first, _Size __n)
+    create_holder(_Iter __first, _Size __n)
     {
         return this->operator()(__first, __first + holder_size_evaluator()(__first, __n));
     }
