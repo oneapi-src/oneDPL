@@ -256,10 +256,34 @@ __require_access(sycl::handler& __cgh, _Range&& __rng, _Ranges&&... __rest)
     __require_access(__cgh, ::std::forward<_Ranges>(__rest)...);
 }
 
+struct __holder_base
+{
+    using size_type = ::std::size_t;
+
+    size_type __src_size;
+
+    __holder_base(size_type _size) : __src_size(_size)
+    {
+    }
+
+    size_type
+    get_size() const
+    {
+        return __src_size;
+    }
+};
+
 template <typename _R>
-struct __range_holder
+struct __range_holder : __holder_base
 {
     _R __r;
+
+    __range_holder(_R _r, __holder_base::size_type _size)
+        : __holder_base(_size),
+        __r(_r)
+    {
+    }
+
     constexpr _R
     all_view() const
     {
@@ -293,9 +317,15 @@ template <typename _T>
 using buf_type = sycl::buffer<_T, 1>;
 
 template <typename _T, sycl::access::mode AccMode>
-struct __buffer_holder
+struct __buffer_holder : __holder_base
 {
     buf_type<_T> __buf;
+
+    __buffer_holder(buf_type<_T> buf, __holder_base::size_type _size)
+        : __holder_base(_size),
+        __buf(buf)
+    {
+    }
 
     constexpr oneapi::dpl::__ranges::all_view<_T, AccMode>
     all_view() const
@@ -366,14 +396,15 @@ struct __get_sycl_range
     auto
     operator()(oneapi::dpl::zip_iterator<Iters...> __first, oneapi::dpl::zip_iterator<Iters...> __last)
         -> decltype(__range_holder<decltype(gen_zip_view(__first.base(), __last - __first,
-                                                         ::std::make_index_sequence<sizeof...(Iters)>()))>{
-            gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<sizeof...(Iters)>())})
+                                                         ::std::make_index_sequence<sizeof...(Iters)>()))>(
+            gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<sizeof...(Iters)>()),
+            __last - __first))
     {
         assert(__first < __last);
 
         const ::std::size_t __num_it = sizeof...(Iters);
         auto rng = gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<__num_it>());
-        return __range_holder<decltype(rng)>{rng};
+        return __range_holder<decltype(rng)>(rng, __last - __first);
     }
 
     //specialization for transform_iterator
@@ -391,7 +422,7 @@ struct __get_sycl_range
         auto rng = oneapi::dpl::__ranges::transform_view_simple<decltype(res.all_view()), decltype(__first.functor())>{
             res.all_view(), __first.functor()};
 
-        return __range_holder<decltype(rng)>{rng};
+        return __range_holder<decltype(rng)>(rng, __last - __first);
     }
 
   private:
@@ -428,7 +459,7 @@ struct __get_sycl_range
 
         auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
 
-        return __range_holder<decltype(rng)>{rng};
+        return __range_holder<decltype(rng)>(rng, __n);
     }
 
     // TODO Add specialization for general case, e.g., permutation_iterator using host
@@ -448,7 +479,7 @@ struct __get_sycl_range
 
         auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
 
-        return __range_holder<decltype(rng)>{rng};
+        return __range_holder<decltype(rng)>(rng, __n);
     }
 
     //specialization for permutation discard iterator
@@ -463,7 +494,7 @@ struct __get_sycl_range
 
         auto rng = oneapi::dpl::__ranges::permutation_discard_view(__n);
 
-        return __range_holder<decltype(rng)>{rng};
+        return __range_holder<decltype(rng)>(rng, __n);
     }
 
     // for raw pointers and direct pass objects (for example, counting_iterator, iterator of USM-containers)
@@ -473,8 +504,9 @@ struct __get_sycl_range
     operator()(_Iter __first, _Iter __last)
     {
         assert(__first < __last);
-        return __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>{
-            oneapi::dpl::__ranges::guard_view<_Iter>{__first, __last - __first}};
+        return __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>(
+            oneapi::dpl::__ranges::guard_view<_Iter>{__first, __last - __first},
+            __last - __first);
     }
 
     //specialization for hetero iterator
@@ -492,9 +524,10 @@ struct __get_sycl_range
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
         assert(__offset + __n <= __size);
 
-        return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>{
+        return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>(
             oneapi::dpl::__ranges::all_view<value_type, AccMode>(__first.get_buffer() /* buffer */,
-                                                                 __offset /* offset*/, __n /* size*/)};
+                                                                 __offset /* offset*/, __n /* size*/),
+            __n);
     }
 
     //specialization for a host iterator
@@ -521,7 +554,7 @@ struct __get_sycl_range
             new oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>(buf));
         m_buffers.push_back(__p_buf);
 
-        return __buffer_holder<val_t<_Iter>, AccMode>{buf};
+        return __buffer_holder<val_t<_Iter>, AccMode>(buf, __last - __first);
     }
 };
 
