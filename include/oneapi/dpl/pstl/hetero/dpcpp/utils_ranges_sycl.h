@@ -389,7 +389,7 @@ struct __get_sycl_range
         return oneapi::dpl::__ranges::make_zip_view(::std::get<_Ip>(tmp).all_view()...);
     }
 
-    struct buffer_size_extractor
+    struct holder_size_evaluator
     {
         //specialization for zip iterators
         template <typename _Size, typename... Iters>
@@ -636,7 +636,7 @@ struct __get_sycl_range
     auto
     keep_with_size(_Iter __first, _Size __n)
     {
-        return this->operator()(__first, __first + buffer_size_extractor()(__first, __n));
+        return this->operator()(__first, __first + holder_size_evaluator()(__first, __n));
     }
 };
 
