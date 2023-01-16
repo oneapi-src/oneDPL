@@ -262,9 +262,7 @@ struct __holder_base
 
     size_type __src_size;
 
-    __holder_base(size_type _size) : __src_size(_size)
-    {
-    }
+    __holder_base(size_type _size) : __src_size(_size) {}
 
     size_type
     size() const
@@ -278,11 +276,7 @@ struct __range_holder : __holder_base
 {
     _R __r;
 
-    __range_holder(_R _r, __holder_base::size_type _size)
-        : __holder_base(_size),
-        __r(_r)
-    {
-    }
+    __range_holder(_R _r, __holder_base::size_type _size) : __holder_base(_size), __r(_r) {}
 
     constexpr _R
     all_view() const
@@ -321,11 +315,7 @@ struct __buffer_holder : __holder_base
 {
     buf_type<_T> __buf;
 
-    __buffer_holder(buf_type<_T> buf, __holder_base::size_type _size)
-        : __holder_base(_size),
-        __buf(buf)
-    {
-    }
+    __buffer_holder(buf_type<_T> buf, __holder_base::size_type _size) : __holder_base(_size), __buf(buf) {}
 
     constexpr oneapi::dpl::__ranges::all_view<_T, AccMode>
     all_view() const
@@ -409,7 +399,8 @@ struct __get_sycl_range
         }
 
         //specialization for permutation_iterator using sycl_iterator as source
-        template <typename _Size, typename _It, typename _Map, typename ::std::enable_if<is_hetero_it<_It>::value, int>::type = 0>
+        template <typename _Size, typename _It, typename _Map,
+                  typename ::std::enable_if<is_hetero_it<_It>::value, int>::type = 0>
         _Size
         operator()(oneapi::dpl::permutation_iterator<_It, _Map> _it, _Size _n)
         {
@@ -419,7 +410,8 @@ struct __get_sycl_range
         // TODO Add specialization for general case, e.g., permutation_iterator using host
         // or another fancy iterator.
         //specialization for permutation_iterator using USM pointer as source
-        template <typename _Size, typename _It, typename _Map, typename ::std::enable_if<!is_hetero_it<_It>::value, int>::type = 0>
+        template <typename _Size, typename _It, typename _Map,
+                  typename ::std::enable_if<!is_hetero_it<_It>::value, int>::type = 0>
         _Size
         operator()(oneapi::dpl::permutation_iterator<_It, _Map> _it, _Size _n)
         {
@@ -580,8 +572,7 @@ struct __get_sycl_range
     {
         assert(__first < __last);
         return __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>(
-            oneapi::dpl::__ranges::guard_view<_Iter>{__first, __last - __first},
-            __last - __first);
+            oneapi::dpl::__ranges::guard_view<_Iter>{__first, __last - __first}, __last - __first);
     }
 
     //specialization for hetero iterator
