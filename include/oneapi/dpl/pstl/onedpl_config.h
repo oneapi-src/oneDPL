@@ -27,11 +27,6 @@
 #define ONEDPL_VERSION_MINOR 3
 #define ONEDPL_VERSION_PATCH 0
 
-#if defined(ONEDPL_USE_DPCPP_BACKEND)
-#    undef _ONEDPL_BACKEND_SYCL
-#    define _ONEDPL_BACKEND_SYCL ONEDPL_USE_DPCPP_BACKEND
-#endif
-
 #if defined(ONEDPL_FPGA_DEVICE)
 #    undef _ONEDPL_FPGA_DEVICE
 #    define _ONEDPL_FPGA_DEVICE ONEDPL_FPGA_DEVICE
@@ -64,6 +59,15 @@
 #if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE && !defined(__SYCL_DEVICE_ONLY__)
 #    error "Parallel execution policies with OpenMP* support are enabled, \
         but OpenMP* headers are not found or the compiler does not support OpenMP*"
+#endif
+
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                           \
+    (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
+#   define _ONEDPL_SYCL_AVAILABLE 1
+#endif
+#if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
+#    error "Device execution policies are enabled, \
+        but SYCL* headers are not found or the compiler does not support SYCL*"
 #endif
 
 // Check the user-defined macro for warnings
@@ -245,15 +249,8 @@
 #define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL                                                                                \
     (__GLIBCXX__ && (_GLIBCXX_RELEASE < 9 || (_GLIBCXX_RELEASE == 9 && __GLIBCXX__ < 20200312)))
 
-// Check the user-defined macro for parallel policies
-// define _ONEDPL_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
-#if !defined(_ONEDPL_BACKEND_SYCL)
-#    if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                      \
-         (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>)))
-#        define _ONEDPL_BACKEND_SYCL 1
-#    else
-#        define _ONEDPL_BACKEND_SYCL 0
-#    endif // CL_SYCL_LANGUAGE_VERSION
+#if ONEDPL_USE_DPCPP_BACKEND || (!defined(ONEDPL_USE_DPCPP_BACKEND) && _ONEDPL_SYCL_AVAILABLE)
+#    define _ONEDPL_BACKEND_SYCL 1
 #endif
 
 // if SYCL policy switch on then let's switch hetero policy macro on
