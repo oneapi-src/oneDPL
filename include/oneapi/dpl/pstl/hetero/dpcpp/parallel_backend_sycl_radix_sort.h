@@ -599,9 +599,9 @@ struct __parallel_radix_sort_iteration
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
         // correct __block_size according to local memory limit in count phase
-        const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size(
-            __exec, sizeof(typename __decay_t<_TmpBuf>::value_type), __block_size * __radix_states);
-        __block_size = __ceiling_div(__max_allocation_size, __radix_states);
+        const auto __max_count_wg_size = oneapi::dpl::__internal::__adjust_to_local_mem_size(
+            __exec, sizeof(typename __decay_t<_TmpBuf>::value_type) * __radix_states, __block_size);
+        __block_size = __ceiling_div(__max_count_wg_size, __radix_states);
 
         // block size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
