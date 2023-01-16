@@ -635,7 +635,8 @@ struct __get_sycl_range
     //common specialization for call with (<Iterator, Size>)
     template <typename _Iter, typename _Size>
     auto
-    operator()(_Iter __first, _Size __n)
+    operator()(_Iter __first, _Size __n, typename ::std::enable_if<::std::is_integral_v<_Size>, void>::type* = nullptr)
+        -> decltype(this->operator()(__first, __first + holder_size_evaluator()(__first, __n)))
     {
         return this->operator()(__first, __first + holder_size_evaluator()(__first, __n));
     }
