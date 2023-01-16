@@ -389,6 +389,80 @@ struct __get_sycl_range
         return oneapi::dpl::__ranges::make_zip_view(::std::get<_Ip>(tmp).all_view()...);
     }
 
+    struct buffer_size_extractor
+    {
+        //specialization for zip iterators
+        template <typename _Size, typename... Iters>
+        typename ::std::enable_if<is_zip<_Iterator>::value, _Size>::type
+        operator()(oneapi::dpl::zip_iterator<Iters...> _it, _Size _n)
+        {
+            return this->operator()(_it.base(), _n);
+        }
+
+        //specialization for transform_iterator
+        template <typename _Size, typename _Iter, typename _UnaryFunction>
+        _Size
+        operator()(oneapi::dpl::transform_iterator<_Iter, _UnaryFunction> _it, _Size _n)
+        {
+            return this->operator()(_it.base(), _n);
+        }
+
+        //specialization for permutation_iterator using sycl_iterator as source
+        template <typename _Size, typename _It, typename _Map, typename ::std::enable_if<is_hetero_it<_It>::value, int>::type = 0>
+        _Size
+        operator()(oneapi::dpl::permutation_iterator<_It, _Map> _it, _Size _n)
+        {
+            return this->operator()(_it.base(), _n);
+        }
+
+        // TODO Add specialization for general case, e.g., permutation_iterator using host
+        // or another fancy iterator.
+        //specialization for permutation_iterator using USM pointer as source
+        template <typename _Size, typename _It, typename _Map, typename ::std::enable_if<!is_hetero_it<_It>::value, int>::type = 0>
+        _Size
+        operator()(oneapi::dpl::permutation_iterator<_It, _Map> _it, _Size _n)
+        {
+            return this->operator()(_it.base(), _n);
+        }
+
+        //specialization for permutation discard iterator
+        template <typename _Size, typename _Map>
+        _Size
+        operator()(oneapi::dpl::permutation_iterator<oneapi::dpl::discard_iterator, _Map> _it, _Size _n)
+        {
+            return this->operator()(_it.base(), _n);
+        }
+
+        // for raw pointers and direct pass objects (for example, counting_iterator, iterator of USM-containers)
+        template <typename _Size, typename _Iter>
+        typename ::std::enable_if<is_passed_directly_it<_Iter>::value, _Size>::type
+        operator()(_Iter /*_it*/, _Size _n)
+        {
+            // TODO how to implement this?
+            return _n;
+        }
+
+        //specialization for hetero iterator
+        template <typename _Size, typename _Iter>
+        typename ::std::enable_if<is_hetero_it<_Iter>::value, _Size>::type
+        operator()(_Iter _it, _Size _n)
+        {
+            decltype(_n) size = __dpl_sycl::__get_buffer_size(_it.get_buffer());
+            size = ::std::min(size, _n);
+            return size;
+        }
+
+        //specialization for a host iterator
+        template <typename _Size, typename _Iter>
+        typename ::std::enable_if<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
+                                  _Size>::type
+        operator()(_Iter /*_it*/, _Size _n)
+        {
+            // TODO how to implement this?
+            return _n;
+        }
+    };
+
   public:
     //zip iterators
 
@@ -555,6 +629,14 @@ struct __get_sycl_range
         m_buffers.push_back(__p_buf);
 
         return __buffer_holder<val_t<_Iter>, AccMode>(buf, __last - __first);
+    }
+
+    //common specialization for call with (<Iterator, Size>)
+    template <typename _Iter, typename _Size>
+    auto
+    keep_with_size(_Iter __first, _Size __n)
+    {
+        return this->operator()(__first, __first + buffer_size_extractor()(__first, __n));
     }
 };
 
