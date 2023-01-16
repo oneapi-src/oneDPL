@@ -709,6 +709,9 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     else if (__n <= 8192)
         __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 5>, 256, 32, __radix_bits,
                                         __is_ascending>(__exec.queue(), __in_rng);
+    else if (__n <= 16384)
+        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 6>, 256, 64, __radix_bits,
+                                        __is_ascending>(__exec.queue(), __in_rng);
     else
     {
         // iterations per each bucket

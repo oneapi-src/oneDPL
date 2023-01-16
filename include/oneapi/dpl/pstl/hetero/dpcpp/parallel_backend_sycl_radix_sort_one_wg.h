@@ -78,7 +78,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
     auto __event = __q.submit([&](sycl::handler& cgh) {
         oneapi::dpl::__ranges::__require_access(cgh, __src);
   
-        auto exchange_lacc = sycl::local_accessor<KeyT, 1>(ITEMS_PER_THREAD*BLOCK_THREADS, cgh);; //exchange key, size is ITEMS_PER_THREAD*BLOCK_THREADS KeyT
+        auto exchange_lacc = sycl::local_accessor<KeyT, 1>(ITEMS_PER_THREAD*BLOCK_THREADS, cgh);//exchange key, size is ITEMS_PER_THREAD*BLOCK_THREADS KeyT
         auto counter_lacc = sycl::local_accessor<uint32_t, 1>(BLOCK_THREADS * BIN_COUNT, cgh);//counter, could be private but use slm here
   
 # if _ONEDPL_KERNEL_BUNDLE_PRESENT
