@@ -271,36 +271,25 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 };
 
 // Extension: check if parameter pack is convertible to events
-template <bool...>
-struct __is_true_helper
-{
-};
-
-template <bool... _Ts>
-using __is_all_true = ::std::is_same<__is_true_helper<_Ts..., true>, __is_true_helper<true, _Ts...>>;
-
 template <class... _Ts>
-using __is_convertible_to_event =
-    __is_all_true<::std::is_convertible<typename ::std::decay<_Ts>::type, sycl::event>::value...>;
+inline constexpr bool __is_convertible_to_event = (::std::is_convertible_v<::std::decay_t<_Ts>, sycl::event> && ...);
 
-template <typename _T, typename... _Events>
-using __enable_if_convertible_to_events =
-    typename ::std::enable_if<oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value, _T>::type;
+template <typename _T, typename... _Ts>
+using __enable_if_convertible_to_events = ::std::enable_if_t<__is_convertible_to_event<_Ts...>, _T>;
 
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T, typename... _Events>
-using __enable_if_device_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
-        oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value,
-    _T>::type;
+using __enable_if_device_execution_policy = ::std::enable_if_t<
+    oneapi::dpl::__internal::__is_device_execution_policy<::std::decay_t<_ExecPolicy>>::value &&
+        oneapi::dpl::__internal::__is_convertible_to_event<_Events...>, _T>;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_hetero_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
+using __enable_if_hetero_execution_policy = typename ::std::enable_if_t<
+    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_fpga_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_fpga_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
+using __enable_if_fpga_execution_policy = typename ::std::enable_if_t<
+    oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 } // namespace __internal
 
