@@ -488,8 +488,8 @@ struct __get_sycl_range
         using value_type = val_t<_Iter>;
 
         const auto __offset = __first - oneapi::dpl::begin(__first.get_buffer());
-        const auto __n = __last - __first;
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
+        const auto __n = ::std::min(decltype(__size)(__last - __first), __size);
         assert(__offset + __n <= __size);
 
         return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>{
