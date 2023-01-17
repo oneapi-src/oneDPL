@@ -93,7 +93,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
 
-    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>(__n);
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
@@ -103,7 +103,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     if constexpr (_IsSync())
         __future_obj.wait();
 
-    return __first2 + __n;
+    return __first2 + __keep2.size();
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Size, typename _ForwardIterator2,
