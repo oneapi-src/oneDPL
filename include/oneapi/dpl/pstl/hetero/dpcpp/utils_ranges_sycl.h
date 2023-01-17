@@ -307,9 +307,28 @@ struct __buffer_holder
 template <sycl::access::mode AccMode, typename _Iterator>
 struct __get_sycl_range
 {
+    using size_type = ::std::size_t;
+
+    size_type __required_size = 0;
+    size_type __rest_buffer_size = 0; // Real rest buffer size for hetero iterators
+
     __get_sycl_range()
     {
         m_buffers.reserve(4); //4 - due to a number of arguments(host iterators) cannot be too big.
+    }
+
+    __get_sycl_range(size_type __n) : __get_sycl_range()
+    {
+        __required_size = __n;
+        __rest_buffer_size = __n;
+    }
+
+    // Get rest buffer size
+    size_type
+    size() const
+    {
+        assert(__required_size > 0 == __rest_buffer_size > 0);
+        return __required_size > 0 ? ::std::min(__required_size, __rest_buffer_size) : __required_size;
     }
 
   private:
@@ -488,8 +507,17 @@ struct __get_sycl_range
         using value_type = val_t<_Iter>;
 
         const auto __offset = __first - oneapi::dpl::begin(__first.get_buffer());
-        const auto __n = __last - __first;
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
+
+        auto __n = __last - __first;
+
+        if (__required_size > 0)
+        {
+            if (__n > (__size - __offset))
+                __n = __size - __offset;
+            __rest_buffer_size = __size;
+        }
+
         assert(__offset + __n <= __size);
 
         return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>{
