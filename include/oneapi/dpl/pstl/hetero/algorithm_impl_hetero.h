@@ -1132,17 +1132,23 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
 
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
+    {
         oneapi::dpl::__internal::__pattern_walk2_brick(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __first2, __last2, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
             ::std::true_type());
+        return __d_first + __n;
+    }
     else if (__n2 == 0)
+    {
         oneapi::dpl::__internal::__pattern_walk2_brick(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __first1, __last1, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
             ::std::true_type());
+        return __d_first + __n;
+    }
     else
     {
         auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -1150,14 +1156,15 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
         auto __buf2 = __keep2(__first2, __last2);
 
-        auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator3>();
+        auto __keep3 =
+            oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator3>(__n);
         auto __buf3 = __keep3(__d_first, __d_first + __n);
 
         __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                __buf2.all_view(), __buf3.all_view(), __comp)
             .wait();
+        return __d_first + __keep3.size();
     }
-    return __d_first + __n;
 }
 //------------------------------------------------------------------------
 // inplace_merge
