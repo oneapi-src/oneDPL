@@ -28,8 +28,6 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "support/utils_sycl.h"
-
-#if TEST_DPCPP_BACKEND_PRESENT
 #    include "support/sycl_alloc_utils.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
