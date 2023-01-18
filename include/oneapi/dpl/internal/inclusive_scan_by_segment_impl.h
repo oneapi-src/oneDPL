@@ -19,10 +19,10 @@
 #ifndef _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
 #define _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H
 
-#include "by_segment_extension_defs.h"
 #include "../pstl/glue_numeric_impl.h"
 #include "../pstl/parallel_backend.h"
 #include "function.h"
+#include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
 
 namespace oneapi
@@ -76,49 +76,9 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
-inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, InputIterator1 last1,
-                                      InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
-                                      BinaryOperator binary_op, ::std::true_type /* has_known_identity */)
+inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+                               OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
-
-    const auto n = ::std::distance(first1, last1);
-
-    // Check for empty element ranges
-    if (n <= 0)
-        return result;
-
-    internal::__buffer<policy_type, FlagType> _mask(policy, n);
-    {
-        auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.get_host_access(sycl::read_write);
-
-    auto keep_keys = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
-    auto key_buf = keep_keys(first1, last1);
-    auto keep_values = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
-    auto value_buf = keep_values(first2, first2 + n);
-    auto keep_value_outputs = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator>();
-    auto value_output_buf = keep_value_outputs(result, result + n);
-    auto buf_view = key_buf.all_view();
-    using iter_value_t = typename ::std::iterator_traits<InputIterator2>::value_type;
-
-    iter_value_t identity = __dpl_sycl::__known_identity<BinaryOperator, iter_value_t>::value;
-
-    sycl_scan_by_segment_impl<scan_type::inclusive> scan;
-
-    scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), value_output_buf.all_view(),
-         binary_pred, binary_op, identity, identity);
-
-    return result + n;
-}
-
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
-inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, InputIterator1 last1,
-                                      InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
-                                      BinaryOperator binary_op, ::std::false_type /* has_known_identity */)
-{
-
     typedef unsigned int FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef typename ::std::decay<Policy>::type policy_type;
@@ -147,21 +107,9 @@ inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
                              make_zip_iterator(first2, _mask.get()) + n, make_zip_iterator(result, _mask.get()),
                              internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
                              oneapi::dpl::__internal::__no_op());
+
     return result + n;
 }
-
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
-inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
-{
-    return internal::inclusive_scan_by_segment_impl_helper(
-        ::std::forward<Policy>(policy), first1, last1, first2, result, binary_pred, binary_op,
-        typename __dpl_sycl::__has_known_identity<BinaryOperator,
-                                                  typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
-}
-
 #endif
 } // namespace internal
 

@@ -16,41 +16,38 @@
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/iterator"
-#include "oneapi/dpl/complex"
 
 #include "support/test_config.h"
 #include "support/utils.h"
-#include "support/scan_serial_impl.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include "support/utils_sycl.h"
+#include "support/utils_sycl.h"
 
 using namespace oneapi::dpl::execution;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
 
-// This macro may be used to analyze source data and test results in test_exclusive_scan_by_segment
-// WARNING: in the case of using this macro debug output is very large.
-// #define DUMP_CHECK_RESULTS
-
-DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
+DEFINE_TEST(test_exclusive_scan_by_segment)
 {
     DEFINE_TEST_CONSTRUCTOR(test_exclusive_scan_by_segment)
 
-    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    void initialize_data(Iterator1 host_keys, Iterator2 host_vals, Iterator3 host_val_res, Size n)
+    // TODO: replace data generation with random data and update check to compare result to
+    // the result of a serial implementation of the algorithm
+    template <typename Accessor1, typename Accessor2, typename Accessor3, typename Size>
+    void
+    initialize_data(Accessor1 host_keys, Accessor2 host_vals, Accessor3 host_val_res, Size n)
     {
-        //T keys[n] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
-        //T vals[n] = { n random numbers between 0 and 4 };
+        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
+        //T vals[n1] = { 1, 1, 1, ... };
 
-        ::std::srand(42);
-        Size segment_length = 1;
-        for (Size i = 0; i != n;)
+        int segment_length = 1;
+        int i = 0;
+        while (i != n)
         {
-            for (Size j = 0; j != 4 * segment_length && i != n; ++j)
+            for (int j = 0; j != 4*segment_length && i != n; ++j)
             {
-                host_keys[i] = j / segment_length + 1;
-                host_vals[i] = rand() % 5;
+                host_keys[i] = j/segment_length + 1;
+                host_vals[i] = 1;
                 host_val_res[i] = 0;
                 ++i;
             }
@@ -58,81 +55,33 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         }
     }
 
-#ifdef DUMP_CHECK_RESULTS
-    template <typename Iterator, typename Size>
-    void display_param(const char* msg, Iterator it, Size n)
+    template <typename Accessor1, typename Accessor2, typename T, typename Size>
+    void
+    check_values(Accessor1 host_keys, Accessor2 val_res, T init, Size n)
     {
-        ::std::cout << msg;
-        for (Size i = 0; i < n; ++i)
-        {
-            if (i > 0)
-                ::std::cout << ", ";
-            ::std::cout << it[i];
-        }
-        ::std::cout << ::std::endl;
-    }
-#endif // DUMP_CHECK_RESULTS
+        //T keys[n1] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
+        //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
 
-    template <typename Iterator1, typename Iterator2, typename Iterator3, typename Size, typename T,
-              typename BinaryPredicateCheck = oneapi::dpl::__internal::__pstl_equal,
-              typename BinaryOperationCheck = oneapi::dpl::__internal::__pstl_plus>
-    void check_values(Iterator1 host_keys, Iterator2 host_vals, Iterator3 val_res, Size n, T init,
-                      BinaryPredicateCheck pred = BinaryPredicateCheck(),
-                      BinaryOperationCheck op = BinaryOperationCheck())
-    {
-        // https://docs.oneapi.io/versions/latest/onedpl/extension_api.html
-        // keys:   [ 0, 0, 0, 1, 1, 1 ]
-        // values: [ 1, 2, 3, 4, 5, 6 ]
-        // result: [ 0, 0 + 1 = 1, 0 + 1 + 2 = 3, 0, 0 + 4 = 4, 0 + 4 + 5 = 9 ]
-
-        if (n < 1)
-            return;
-
+        assert(init == 0 || init == 1);
         int segment_length = 1;
         auto expected_segment_sum = init;
-        using key_type = typename ::std::decay_t<decltype(host_keys[0])>;
-        key_type current_key = key_type(999); //not one of the input keys
-
-        using value_type = typename ::std::decay_t<decltype(val_res[0])>;
-
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
-
-        ::std::string failure_msg = "wrong effect from exclusive_scan_by_segment with types [";
-        failure_msg += typeid(KeyT).name();
-        failure_msg += ";";
-        failure_msg += typeid(ValT).name();
-        failure_msg += "], ";
-        failure_msg += "n=" + ::std::to_string(n) + ", ";
-        if (::std::is_same<BinaryPredicateCheck, oneapi::dpl::__internal::__pstl_equal>::value)
+        auto current_key = host_keys[0];
+        typename std::decay<decltype(val_res[0])>::type current_sum = 0;
+        for (int i = 0; i != n; ++i)
         {
-            failure_msg += "Default Pred, ";
+            if (current_key == host_keys[i])
+            {
+                current_sum += val_res[i];
+            } else {
+                EXPECT_TRUE(current_sum == expected_segment_sum, "wrong effect from exclusive_scan_by_segment");
+                current_sum = val_res[i];
+                current_key = host_keys[i];
+                if (current_key == 1) {
+                    ++segment_length;
+                    expected_segment_sum = init == 1 ? segment_length * (segment_length + 1) / 2 : segment_length * (segment_length - 1) / 2;
+                }
+            }
         }
-        else
-        {
-            failure_msg += "Custom Pred, ";
-        }
-        if (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
-        {
-            failure_msg += "Default Op";
-        }
-        else
-        {
-            failure_msg += "Custom Op";
-        }
-
-        ::std::vector<value_type> expected_val_res(n);
-        exclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, init, pred, op);
-
-#ifdef DUMP_CHECK_RESULTS
-        ::std::cout << "check_values(n = " << n << "), init = " << init << ":" << ::std::endl;
-        display_param("         keys:   ", host_keys, n);
-        display_param("         values: ", host_vals, n);
-        display_param("         result: ", val_res, n);
-        display_param("expected result: ", expected_val_res.data(), n);
-#endif // DUMP_CHECK_RESULTS
-
-        EXPECT_EQ_N(expected_val_res.data(), val_res, n, failure_msg.c_str());
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -145,14 +94,13 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
-        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
-        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
-        TestDataTransfer<UDTKind::eRes, Size> host_val_res(*this, n);
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys   (*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals   (*this, n);
+        TestDataTransfer<UDTKind::eRes,  Size> host_val_res(*this, n);
 
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-        const ValT zero = 0;
         const ValT init = 1;
 
         // call algorithm with no optional arguments
@@ -160,50 +108,43 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        auto res1 =
-            oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
+        auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
-        check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, zero);
+        check_values(host_keys.get(), host_val_res.get(), init, n);
 
-        // call algorithm with init
+        // call algorithm with equality comparator
         initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        auto res2 =
-            oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first, init);
+        auto res2 = oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
+                                                           init, [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
-        check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, init);
+        check_values(host_keys.get(), host_val_res.get(), init, n);
 
-        // call algorithm with init and predicate
+        // call algorithm with addition operator
         initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
         update_data(host_keys, host_vals, host_val_res);
 
-        auto binary_op = [](ValT first, ValT second) { return first + second; };
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
-        auto res3 = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first,
-                                                           val_res_first, init, BinaryPredicate());
+        auto res3 = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
+                                                           init, [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
         exec.queue().wait_and_throw();
 
-        retrieve_data(host_vals, host_val_res);
-        check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, init, BinaryPredicate());
-
-        // call algorithm with init, predicate, and operator
-        initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
-        update_data(host_keys, host_vals, host_val_res);
+        retrieve_data(host_keys, host_val_res);
+        check_values(host_keys.get(), host_val_res.get(), init, n);
 
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
-        auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first,
-                                                           val_res_first, init, BinaryPredicate(), BinaryOperation());
+        auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
 
-        retrieve_data(host_vals, host_val_res);
-        check_values(host_keys.get(), host_vals.get(), host_val_res.get(), n, init, BinaryPredicate(),
-                     BinaryOperation());
+        retrieve_data(host_keys, host_val_res);
+        check_values(host_keys.get(), host_val_res.get(), 0, n);
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -218,35 +159,34 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
-
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-        const ValT zero = 0;
         const ValT init = 1;
+        const ValT zero = 0;
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
         auto res1 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
-        check_values(keys_first, vals_first, val_res_first, n, zero);
+        check_values(keys_first, val_res_first, zero, n);
 
-        // call algorithm with init
+        // call algorithm with initial value
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res2 =
-            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
-        check_values(keys_first, vals_first, val_res_first, n, init);
+        auto res2 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
+        check_values(keys_first, val_res_first, init, n);
 
-        // call algorithm with init and predicate
+        // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res3 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
-                                                           BinaryPredicate());
-        check_values(keys_first, vals_first, val_res_first, n, init, BinaryPredicate());
+        auto res3 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, zero,
+                                                           [](KeyT first, KeyT second) { return first == second; });
+        check_values(keys_first, val_res_first, zero, n);
 
-        // call algorithm with init, predicate, and operator
+        // call algorithm with addition operator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res4 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
-                                                           BinaryPredicate(), BinaryOperation());
-        check_values(keys_first, vals_first, val_res_first, n, init, BinaryPredicate(), BinaryOperation());
+        auto res4 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
+                                                           init, [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
+        check_values(keys_first, val_res_first, init, n);
     }
 
     // specialization for non-random_access iterators
@@ -259,85 +199,22 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     }
 };
 
-template <typename _Tp>
-struct UserBinaryPredicate
+int main()
 {
-    bool
-    operator()(const _Tp& __x, const _Tp& __y) const
-    {
-        using KeyT = ::std::decay_t<decltype(__y)>;
-        return __y != KeyT(1);
-    }
-};
-
-template <typename _Tp>
-struct UserBinaryOperation
-{
-    _Tp
-    operator()(const _Tp& __x, const _Tp& __y) const
-    {
-        return (__x < __y) ? __y : __x;
-    }
-};
-
-template <typename _Tp>
-struct UserBinaryOperation<::std::complex<_Tp>>
-{
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
-    {
-        return (::std::abs(__x) < ::std::abs(__y)) ? ::std::abs(__y) : std::abs(__x);
-    }
-};
-
-int
-main()
-{
-    {
-        using ValueType = ::std::uint64_t;
-        using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryOperation<ValueType>;
+    using ValueType = std::uint64_t;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-        // Run tests for USM shared memory
-        test3buffers<sycl::usm::alloc::shared,
-                     test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // Run tests for USM device memory
-        test3buffers<sycl::usm::alloc::device,
-                     test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+    // Run tests for USM shared memory
+    test3buffers<sycl::usm::alloc::shared, test_exclusive_scan_by_segment<ValueType>>();
+    // Run tests for USM device memory
+    test3buffers<sycl::usm::alloc::device, test_exclusive_scan_by_segment<ValueType>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
-
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-#    if TEST_DPCPP_BACKEND_PRESENT
-        test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
-        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-    }
-
-    {
-        using ValueType = ::std::complex<float>;
-        using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryOperation<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-        // Run tests for USM shared memory
-        test3buffers<sycl::usm::alloc::shared,
-                     test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // Run tests for USM device memory
-        test3buffers<sycl::usm::alloc::device,
-                     test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+    test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType>>();
+#else
+    test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
-
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-#    if TEST_DPCPP_BACKEND_PRESENT
-        test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
-        test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-    }
 
     return TestUtils::done();
 }

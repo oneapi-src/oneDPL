@@ -39,28 +39,11 @@ exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
 {
     for (; first != last; ++first, ++result)
     {
-        auto res = init;
+	auto res = init;
         init = binary_op(init, *first);
         *result = res;
     }
     return result;
-}
-
-template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename T, typename BinaryPredicate,
-          typename BinaryOperation>
-void
-exclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, T init, BinaryPredicate binary_pred,
-                                 BinaryOperation binary_op)
-{
-    T current = init;
-    res[0] = current;
-    for (Size i = 1; i < n; ++i)
-    {
-        current = binary_op(vals[i - 1], current);
-        if (!binary_pred(keys[i - 1], keys[i]))
-            current = init;
-        res[i] = current;
-    }
 }
 
 // Note: N4582 is missing the ", class T".  Issue was reported 2016-Apr-11 to cxxeditor@gmail.com
@@ -100,14 +83,11 @@ inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
     return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
 }
 
-template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryPredicate,
-          typename BinaryOperation>
-void
-inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryPredicate binary_pred,
-                                 BinaryOperation binary_op)
+template<typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryOperation>
+void inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryOperation binary_op)
 {
     for (Size i = 0; i < n; ++i)
-        if (i == 0 || !binary_pred(keys[i - 1], keys[i]))
+        if (i == 0 || keys[i] != keys[i - 1])
             res[i] = vals[i];
         else
             res[i] = binary_op(res[i - 1], vals[i]);
