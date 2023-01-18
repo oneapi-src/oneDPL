@@ -171,7 +171,8 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     constexpr ::std::size_t __vals_per_item =
         2; // Each work item serially processes 2 items. Best observed performance on gpu
 
-    ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
+    ::std::size_t __wgroup_size =
+        oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
 
     // adjust __wgroup_size according to local memory limit
     __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(
@@ -180,9 +181,9 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     ::std::size_t __n_groups = 1 + ((__n - 1) / (__wgroup_size * __vals_per_item));
 
     // intermediate reductions within a workgroup
-    auto __partials = oneapi::dpl::__par_backend_hetero:: __internal::__buffer<_ExecutionPolicy, __val_type>(
+    auto __partials = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(
                           ::std::forward<_ExecutionPolicy>(__exec), __n_groups)
-            .get_buffer();
+                          .get_buffer();
 
     auto __end_idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(
                          ::std::forward<_ExecutionPolicy>(__exec), 1)
@@ -246,8 +247,8 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             auto __start_ptr = __seg_ends_acc.get_pointer();
             auto __end_ptr = __start_ptr + __group_id;
 
-            auto __wg_num_prior_segs =
-                __dpl_sycl::__joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, __dpl_sycl::__plus<__diff_type>());
+            auto __wg_num_prior_segs = __dpl_sycl::__joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr,
+                                                                  __dpl_sycl::__plus<__diff_type>());
 
             // 2b. Perform a serial scan within the work item over assigned elements. Store partial
             // reductions in work group local memory.
@@ -407,8 +408,8 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 auto __start_ptr = __seg_ends_acc.get_pointer();
                 auto __end_ptr = __start_ptr + __group_id;
 
-                ::std::size_t __wg_num_prior_segs =
-                    __dpl_sycl::__joint_reduce(__item.get_sub_group(), __start_ptr, __end_ptr, __dpl_sycl::__plus<__diff_type>());
+                ::std::size_t __wg_num_prior_segs = __dpl_sycl::__joint_reduce(
+                    __item.get_sub_group(), __start_ptr, __end_ptr, __dpl_sycl::__plus<__diff_type>());
 
                 // 3d. Second pass over the keys, reidentifying end segments and applying work group
                 // aggregates if appropriate. Both the key and reduction value are written to the final output at the

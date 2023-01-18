@@ -206,14 +206,16 @@ struct sycl_scan_by_segment_impl
 
                 auto __partials_acc = __partials.template get_access<sycl::access_mode::read>(__cgh);
                 auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
-                
+
                 __cgh.depends_on(__wg_scan);
 
-                auto __loc_partials_acc = sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
-                     __wgroup_size, __cgh};
-                
-                auto __loc_seg_ends_acc = sycl::accessor<__flag_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
-                     __wgroup_size, __cgh};
+                auto __loc_partials_acc =
+                    sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
+                        __wgroup_size, __cgh};
+
+                auto __loc_seg_ends_acc =
+                    sycl::accessor<__flag_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
+                        __wgroup_size, __cgh};
 
                 __cgh.parallel_for(
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
@@ -239,15 +241,17 @@ struct sycl_scan_by_segment_impl
                             // local reductions followed by a downsweep
                             // TODO: Generalize this value
                             constexpr int64_t __vals_to_explore = 16;
-                            __flag_type  __last_it = false;
+                            __flag_type __last_it = false;
                             __loc_seg_ends_acc[__local_id] = false;
-                            __loc_partials_acc[__local_id] = __identity; 
+                            __loc_partials_acc[__local_id] = __identity;
 
-                            for (int64_t __i = __wg_agg_idx - __vals_to_explore * __local_id; ; __i -= __wgroup_size * __vals_to_explore)
+                            for (int64_t __i = __wg_agg_idx - __vals_to_explore * __local_id;;
+                                 __i -= __wgroup_size * __vals_to_explore)
                             {
-                                __val_type __local_collector = __identity; 
-                                // exploration phase 
-                                for (int64_t __j = __i; __j > __dpl_sycl::__maximum<int64_t>{}(-1L, __i - __vals_to_explore); --__j)
+                                __val_type __local_collector = __identity;
+                                // exploration phase
+                                for (int64_t __j = __i;
+                                     __j > __dpl_sycl::__maximum<int64_t>{}(-1L, __i - __vals_to_explore); --__j)
                                 {
                                     __local_collector = __binary_op(__partials_acc[__j], __local_collector);
                                     if (__seg_ends_acc[__j] || __j == 0)
