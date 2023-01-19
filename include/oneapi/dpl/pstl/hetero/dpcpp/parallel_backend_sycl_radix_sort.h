@@ -159,8 +159,6 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 #endif
 )
 {
-    //adding comment for test away from formatting issues.
-
     // typedefs
     using _CountT = typename _CountBuf::value_type;
 
