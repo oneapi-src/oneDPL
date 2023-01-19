@@ -283,10 +283,15 @@ struct UserBinaryOperation
 template <typename _Tp>
 struct UserBinaryOperation<::std::complex<_Tp>>
 {
+    auto
+    complex_abs(const ::std::complex<_Tp>& __x) const
+    {
+        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+    }
     ::std::complex<_Tp>
     operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
     {
-        return (::std::abs(__x) < ::std::abs(__y)) ? ::std::abs(__y) : std::abs(__x);
+        return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
     }
 };
 
