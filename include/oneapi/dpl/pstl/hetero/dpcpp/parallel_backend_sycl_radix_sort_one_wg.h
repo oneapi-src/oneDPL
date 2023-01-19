@@ -23,6 +23,34 @@
 //namespace __par_backend_hetero
 //{
 
+template<typename KeyT, typename>
+class _TempBuf;
+
+template<typename KeyT>
+class _TempBuf<KeyT, std::true_type /*shared local memory buffer*/>
+{
+    int __buf_size;
+public:
+    _TempBuf(int __n): __buf_size(__n) {}
+    auto get_acc(sycl::handler& __cgh)
+    {
+        return sycl::local_accessor<KeyT, 1>(__buf_size, __cgh);
+    }
+};
+
+template<typename KeyT>
+class _TempBuf<KeyT, std::false_type /*global memory buffer*/>
+{
+    sycl::buffer<KeyT> __buf;
+
+public:
+    _TempBuf(int __n): __buf(__n) {}
+    auto get_acc(sycl::handler& __cgh)
+    {
+        return sycl::accessor(__buf, __cgh, sycl::read_write, sycl::no_init);
+    }
+};
+
 template <int __block_size, typename KeyT, typename _Wi, typename _Src, typename _Keys>
 void
 __block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n)
@@ -55,8 +83,8 @@ __to_blocked(_Item __it, const _Wi __wi, _Lacc& __exchange_lacc, _Keys& __keys, 
 }
 
 template<typename _KernelName, int __wg_size = 256/*work group size*/, int __block_size = 16,
-         ::std::uint32_t __radix = 4, bool __is_asc = true, typename _RangeIn,
-         int req_sub_group_size = (__block_size < 4 ? 32 : 16)>
+         ::std::uint32_t __radix = 4, bool __is_asc = true, typename _SLM_tag = std::true_type,
+         typename _RangeIn, int req_sub_group_size = (__block_size < 4 ? 32 : 16)>
 auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
 {
     constexpr unsigned int __bin_count = 1 << __radix;
@@ -70,11 +98,16 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
 # endif
   
     using KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
+
+    _TempBuf<KeyT, _SLM_tag> __buf(__block_size*__wg_size);
+
     sycl::nd_range myRange {sycl::range{__wg_size}, sycl::range{__wg_size}};
     auto __event = __q.submit([&](sycl::handler& cgh) {
         oneapi::dpl::__ranges::__require_access(cgh, __src);
-  
-        auto exchange_lacc = sycl::local_accessor<KeyT, 1>(__block_size*__wg_size, cgh);//exchange key, size is __block_size*__wg_size KeyT
+        //auto exchange_lacc = sycl::local_accessor<KeyT, 1>(__block_size*__wg_size, cgh);//exchange key, size is __block_size*__wg_size KeyT
+        //auto exchange_lacc = sycl::accessor(__buf, cgh, sycl::read_write, sycl::no_init);
+
+        auto exchange_lacc = __buf.get_acc(cgh); //exchange key, size is __block_size*__wg_size
         auto counter_lacc = sycl::local_accessor<uint32_t, 1>(__wg_size * __bin_count, cgh);//counter, could be private but use slm here
   
 # if _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -156,7 +189,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                     for (uint16_t i = 0; i<__block_size; i++)
                     {
                         //boundary check is slow but nessecary
-                        if (ranks[i] < N)
+                        if (ranks[i] < __n)
                             __src[ranks[i]] = keys[i];
                     }
                     return;
