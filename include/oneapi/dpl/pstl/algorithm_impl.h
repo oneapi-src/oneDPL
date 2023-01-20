@@ -3033,7 +3033,7 @@ __pattern_includes(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
     });
 }
 
-constexpr auto __set_algo_cut_off = 1000;
+inline constexpr auto __set_algo_cut_off = 1000;
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator,
           class _Compare, class _IsVector, class _SizeFunction, class _SetOP>
