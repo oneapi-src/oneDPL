@@ -764,7 +764,7 @@ struct ignore_copyable
     }
 };
 
-constexpr ignore_copyable ignore{};
+inline constexpr ignore_copyable ignore{};
 } // namespace internal
 
 class discard_iterator

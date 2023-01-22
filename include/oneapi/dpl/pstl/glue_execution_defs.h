@@ -27,7 +27,7 @@ namespace std
 using oneapi::dpl::execution::is_execution_policy;
 #    if __INTEL_COMPILER
 template <class T>
-constexpr bool is_execution_policy_v = is_execution_policy<T>::value;
+inline constexpr bool is_execution_policy_v = is_execution_policy<T>::value;
 #    else
 using oneapi::dpl::execution::is_execution_policy_v;
 #    endif
