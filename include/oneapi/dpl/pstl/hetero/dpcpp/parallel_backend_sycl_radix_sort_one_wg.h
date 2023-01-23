@@ -61,7 +61,7 @@ __block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __
     for (uint16_t i = 0; i < __block_size; i++)
     {
         const uint16_t __offset = __wi*__block_size + i;
-        //boundary check is slow but nessecary
+        //boundary check is slow but necessary
         if (__offset < __n)
             __keys[i] = __src[__offset];
         else
@@ -73,11 +73,13 @@ template <uint16_t __block_size, typename _Item, typename _Wi, typename _Lacc, t
 void
 __to_blocked(_Item __it, const _Wi __wi, _Lacc& __exchange_lacc, _Keys& __keys, const _Ranks& __ranks)
 {
+    #pragma unroll
     for (uint16_t i = 0; i < __block_size; i++)
         __exchange_lacc[__ranks[i]] = __keys[i];
 
     __dpl_sycl::__group_barrier(__it);
 
+    #pragma unroll
     for (uint16_t i = 0; i<__block_size; i++)
         __keys[i] = __exchange_lacc[__wi*__block_size + i];
 }
@@ -185,7 +187,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                     // end of iteration, write out result
                     for (uint16_t i = 0; i<__block_size; i++)
                     {
-                        //boundary check is slow but nessecary
+                        //boundary check is slow but necessary
                         const uint16_t __r = thread_prefixes[i];
                         if (__r < __n)
                             __src[__r] = keys[i];
