@@ -62,7 +62,7 @@ int main()
   sycl::free(incl_input_dev, syclQue);
 
   // Exclusive scan (in-place, incorrect results)
-  exclusive_scan_serial( excl_input_host.begin(),
+  ::std::exclusive_scan(excl_input_host.begin(),
                        excl_input_host.end(),
                        excl_input_host.begin(),
                        0 );

@@ -61,7 +61,7 @@ struct test_exclusive_scan_with_plus
     {
         using namespace std;
 
-        exclusive_scan_serial(in_first, in_last, expected_first, init);
+        ::std::exclusive_scan(in_first, in_last, expected_first, init);
         auto orr = exclusive_scan(exec, in_first, in_last, out_first, init);
         EXPECT_TRUE(out_last == orr, "exclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from exclusive_scan");
@@ -182,7 +182,7 @@ struct test_exclusive_scan_with_binary_op
     {
         using namespace std;
 
-        exclusive_scan_serial(in_first, in_last, expected_first, init, binary_op);
+        ::std::exclusive_scan(in_first, in_last, expected_first, init, binary_op);
 
         auto orr = exclusive_scan(exec, in_first, in_last, out_first, init, binary_op);
 
