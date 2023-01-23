@@ -47,7 +47,7 @@ int main()
   syclQue.memcpy(excl_input_dev, v.data(), v.size()*sizeof(int)).wait();  
 
   // Inclusive scan (in-place works)
-  inclusive_scan_serial(incl_input_host.begin(),
+  ::std::inclusive_scan(incl_input_host.begin(),
                       incl_input_host.end(),
                       incl_input_host.begin());
   oneapi::dpl::inclusive_scan(oneapi::dpl::execution::make_device_policy<class TempKernelName1>(syclQue),

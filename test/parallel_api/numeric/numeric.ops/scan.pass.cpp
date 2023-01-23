@@ -43,7 +43,7 @@ struct test_inclusive_scan_with_plus
     {
         using namespace std;
 
-        inclusive_scan_serial(in_first, in_last, expected_first);
+        ::std::inclusive_scan(in_first, in_last, expected_first);
         auto orr = inclusive_scan(exec, in_first, in_last, out_first);
         EXPECT_TRUE(out_last == orr, "inclusive_scan returned wrong iterator");
         EXPECT_EQ_N(expected_first, out_first, n, "wrong result from inclusive_scan");
@@ -130,7 +130,7 @@ struct test_inclusive_scan_with_binary_op
     {
         using namespace std;
 
-        inclusive_scan_serial(in_first, in_last, expected_first, binary_op, init);
+        ::std::inclusive_scan(in_first, in_last, expected_first, binary_op, init);
         auto orr = inclusive_scan(exec, in_first, in_last, out_first, binary_op, init);
 
         EXPECT_TRUE(out_last == orr, "inclusive_scan with binary operator returned wrong iterator");
@@ -146,7 +146,7 @@ struct test_inclusive_scan_with_binary_op
     {
         using namespace std;
 
-        inclusive_scan_serial(in_first, in_last, expected_first, binary_op);
+        ::std::inclusive_scan(in_first, in_last, expected_first, binary_op);
         auto orr = inclusive_scan(exec, in_first, in_last, out_first, binary_op);
 
         EXPECT_TRUE(out_last == orr, "inclusive_scan with binary operator without init returned wrong iterator");
