@@ -23,9 +23,9 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "support/utils_sycl.h"
 #    include "support/sycl_alloc_utils.h"
-#    include "support/scan_serial_impl.h"
 
 #include <vector>
+#include <algorithm>
 #endif
 
 int main()

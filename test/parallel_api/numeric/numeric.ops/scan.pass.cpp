@@ -19,7 +19,8 @@
 #include _PSTL_TEST_HEADER(numeric)
 
 #include "support/utils.h"
-#include "support/scan_serial_impl.h"
+
+#include <algorithm>
 
 #if  !defined(_PSTL_TEST_INCLUSIVE_SCAN) && !defined(_PSTL_TEST_EXCLUSIVE_SCAN)
 #define _PSTL_TEST_INCLUSIVE_SCAN

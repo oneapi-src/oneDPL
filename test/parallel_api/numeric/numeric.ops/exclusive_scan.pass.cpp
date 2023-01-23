@@ -23,8 +23,7 @@
 
 #include <iostream>
 #include <vector>
-
-#include "support/scan_serial_impl.h"
+#include <algorithm>
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
