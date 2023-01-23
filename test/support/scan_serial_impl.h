@@ -20,32 +20,6 @@
 
 // We provide the no execution policy versions of the exclusive_scan and inclusive_scan due checking correctness result of the versions with execution policies.
 //TODO: to add a macro for availability of ver implementations
-template <class InputIterator, class OutputIterator, class T>
-OutputIterator
-exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, T init)
-{
-    for (; first != last; ++first, ++result)
-    {
-        auto res = init;
-        init = init + *first;
-        *result = res;
-    }
-    return result;
-}
-
-template <class InputIterator, class OutputIterator, class T, class BinaryOperation>
-OutputIterator
-exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, T init, BinaryOperation binary_op)
-{
-    for (; first != last; ++first, ++result)
-    {
-	auto res = init;
-        init = binary_op(init, *first);
-        *result = res;
-    }
-    return result;
-}
-
 // Note: N4582 is missing the ", class T".  Issue was reported 2016-Apr-11 to cxxeditor@gmail.com
 template <class InputIterator, class OutputIterator, class BinaryOperation, class T>
 OutputIterator
