@@ -126,10 +126,12 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
             __dpl_sycl::__group_barrier(__it);
             while (true)
             {
-                uint16_t __indices[__block_size];
+                uint16_t __indices[__block_size]; //indices for inderect access in the "re-order" phase
                 {
-                    uint32_t* __counters[__block_size];
-                    //ResetCounters();
+                    uint32_t* __counters[__block_size]; //pointers(by perfomance reasons) to bucket's counters
+
+                    //1. "counting" phase
+                    //counter initialization
                     auto __pcounter = __counter_lacc.get_pointer()+__wi;
                     #pragma unroll
                     for (uint16_t __i = 0; __i < __bin_count; ++__i)
@@ -140,16 +142,17 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                     {
                         const int __bin =
                             __get_bucket</*mask*/__bin_count - 1>(__order_preserving_cast<__is_asc>(__keys[__i]), __begin_bit);
-  
+
+                        //"counting" and local offset calculation
                         __counters[__i] = &__pcounter[__bin*__wg_size];
                         __indices[__i] = *__counters[__i];
                         *__counters[__i] = __indices[__i] + 1;
                     }
                     __dpl_sycl::__group_barrier(__it);
   
-                    // Scan shared memory counters
+                    //2. scan phase
                     {
-                        //access pattern might be further optimized
+                        //TODO: probably can be futher optimized
   
                         //scan contiguous numbers
                         uint16_t __bin_sum[__bin_count];
@@ -169,21 +172,21 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                         __dpl_sycl::__group_barrier(__it);
                     }
   
-                    // Extract the local offsets of each key
                     #pragma unroll
                     for (uint16_t __i = 0; __i < __block_size; ++__i)
                     {
-                        // Add in thread block exclusive prefix
+                        // a global index is a local offset plus a global base index
                         __indices[__i] += *__counters[__i];
                     }
                 }
   
                 __begin_bit += __radix;
-  
+
+                //3. "re-order" phase
                 __dpl_sycl::__group_barrier(__it);
                 if (__begin_bit >= __end_bit)
                 {
-                    // end of iteration, write out result
+                    // the last iteration - writing out the result
                     for (uint16_t __i = 0; __i < __block_size; ++__i)
                     {
                         const uint16_t __r = __indices[__i];
