@@ -61,7 +61,7 @@ __enable_if_t<
     sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
-#if SYCL_LANGUAGE_VERSION >= 2020
+#if _ONEDPL_LIBSYCL_VERSION >= 50300
     return sycl::bit_cast<_Dst>(__src);
 #elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
     return ::std::bit_cast<_Dst>(__src);
