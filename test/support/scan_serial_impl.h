@@ -19,44 +19,6 @@
 #include <iterator>
 
 // We provide the no execution policy versions of the exclusive_scan and inclusive_scan due checking correctness result of the versions with execution policies.
-//TODO: to add a macro for availability of ver implementations
-// Note: N4582 is missing the ", class T".  Issue was reported 2016-Apr-11 to cxxeditor@gmail.com
-template <class InputIterator, class OutputIterator, class BinaryOperation, class T>
-OutputIterator
-inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op, T init)
-{
-    for (; first != last; ++first, ++result)
-    {
-        init = binary_op(init, *first);
-        *result = init;
-    }
-    return result;
-}
-
-template <class InputIterator, class OutputIterator, class BinaryOperation>
-OutputIterator
-inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result, BinaryOperation binary_op)
-{
-    if (first != last)
-    {
-        auto tmp = *first;
-        *result = tmp;
-        return inclusive_scan_serial(++first, last, ++result, binary_op, tmp);
-    }
-    else
-    {
-        return result;
-    }
-}
-
-template <class InputIterator, class OutputIterator>
-OutputIterator
-inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result)
-{
-    typedef typename ::std::iterator_traits<InputIterator>::value_type input_type;
-    return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
-}
-
 template<typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryOperation>
 void inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryOperation binary_op)
 {
