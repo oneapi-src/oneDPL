@@ -157,6 +157,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                         //scan contiguous numbers
                         uint16_t __bin_sum[__bin_count];
                         __bin_sum[0] = __counter_lacc[__wi * __bin_count];
+                        #pragma unroll
                         for (uint16_t __i = 1; __i < __bin_count; ++__i)
                             __bin_sum[__i] = __bin_sum[__i-1] + __counter_lacc[__wi * __bin_count + __i];
   
@@ -164,6 +165,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                         //exclusive scan local sum
                         uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(__it.get_group(), __bin_sum[__bin_count-1], sycl::plus<uint16_t>());
                         //add to local sum, generate exclusive scan result
+                        #pragma unroll
                         for (uint16_t __i = 0; __i < __bin_count; ++__i)
                             __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
   
@@ -187,6 +189,7 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                 if (__begin_bit >= __end_bit)
                 {
                     // the last iteration - writing out the result
+                    #pragma unroll
                     for (uint16_t __i = 0; __i < __block_size; ++__i)
                     {
                         const uint16_t __r = __indices[__i];
