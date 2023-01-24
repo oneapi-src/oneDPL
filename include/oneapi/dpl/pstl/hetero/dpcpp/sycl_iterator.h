@@ -52,7 +52,9 @@ struct sycl_iterator
     // required for make_sycl_iterator
     //TODO: sycl::buffer doesn't have a default constructor (SYCL API issue), so we have to create a trivial size buffer
     sycl_iterator(sycl::buffer<T, dim, Allocator> vec = sycl::buffer<T, dim, Allocator>(0), Size index = 0)
-        : buffer(vec), idx(index) {}
+        : buffer(vec), idx(index)
+    {
+    }
     // required for iter_mode
     template <access_mode inMode>
     sycl_iterator(const sycl_iterator<inMode, T, Allocator>& in) : buffer(in.get_buffer())
