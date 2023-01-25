@@ -42,6 +42,7 @@ class ForwardIterator
     ForwardIterator() = default;
     explicit ForwardIterator(Iterator i) : my_iterator(i) {}
     reference operator*() const { return *my_iterator; }
+    pointer operator->() const { return my_iterator.operator->(); }
     ForwardIterator&
     operator++()
     {
