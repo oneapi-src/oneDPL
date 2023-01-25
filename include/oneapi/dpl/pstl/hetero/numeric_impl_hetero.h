@@ -108,7 +108,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
     return __res;
 }
 
-template<::uint32_t ElemsPerItem, ::uint32_t WGSize, bool _Inclusive>
+template<::uint32_t ElemsPerItem, ::uint32_t WGSize, bool _Inclusive, bool _IsFullGroup>
 struct __single_group_scan
 {
     template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation>
@@ -131,22 +131,50 @@ struct __single_group_scan
                 int id_in_subgroup = subgroup.get_local_id();
                 int subgroup_size = subgroup.get_local_linear_range();
 
-                #pragma unroll
-                for (uint16_t i = 0; i < elems_per_item; ++i)
+                if constexpr (_IsFullGroup)
                 {
-                   auto idx = i*wgsize + subgroup_idx*subgroup_size;
-                   auto x = subgroup.load(in.begin() + idx);
-                   lacc[idx + id_in_subgroup] = x;
+                    #pragma unroll
+                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    {
+                       auto idx = i*wgsize + subgroup_idx*subgroup_size;
+                       auto x = subgroup.load(in.begin() + idx);
+                       lacc[idx + id_in_subgroup] = x;
+                    }
+                }
+                else
+                {
+                    #pragma unroll
+                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    {
+                       auto idx = i*wgsize + id;
+                       auto x = idx < N ? in[idx] : _ValueType{};
+                       lacc[idx] = x;
+                    }
+
                 }
 
                 __group_scan<_ValueType>(group, lacc.get_pointer(), lacc.get_pointer()+N, __bin_op, __init);
 
-                #pragma unroll
-                for (uint16_t i = 0; i < elems_per_item; ++i)
+                if constexpr (_IsFullGroup)
                 {
-                   auto idx = i*wgsize + subgroup_idx*subgroup_size;
-                   auto x = lacc[idx+id_in_subgroup];
-                   subgroup.store(out.begin() + idx, x);
+                    #pragma unroll
+                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    {
+                       auto idx = i*wgsize + subgroup_idx*subgroup_size;
+                       auto x = lacc[idx+id_in_subgroup];
+                       subgroup.store(out.begin() + idx, x);
+                    }
+                }
+                else
+                {
+                    #pragma unroll
+                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    {
+                       auto idx = i*wgsize + id;
+                       if (idx < N)
+                           out[idx] = lacc[idx];
+                    }
+
                 }
             });
         });
@@ -207,30 +235,42 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     if (__can_use_group_scan && __n <= 32768)
     {
         // Max work-group size for PVC is 1024 -- change this to be more general
+        constexpr int __max_wg_size = 1024;
+        auto __single_group_scan_f = [&](auto __size_constant) {
+            constexpr int __size = decltype(__size_constant)::value;
+            constexpr int __wg_size = std::min(__size, __max_wg_size);
+            constexpr int __num_elems_per_item = (__size + __max_wg_size - 1)/__max_wg_size;
+            const bool __is_full_group = __n == __wg_size;
+
+            if (__is_full_group)
+                __single_group_scan<__num_elems_per_item, __wg_size, _Inclusive::value, true>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            else
+                __single_group_scan<__num_elems_per_item, __wg_size, _Inclusive::value, false>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        };
         if (__n <= 16)
-            __single_group_scan<1, 16, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 16>{});
         else if (__n <= 32)
-            __single_group_scan<1, 32, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 32>{});
         else if (__n <= 64)
-            __single_group_scan<1, 64, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 64>{});
         else if (__n <= 128)
-            __single_group_scan<1, 128, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 128>{});
         else if (__n <= 256)
-            __single_group_scan<1, 256, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 256>{});
         else if (__n <= 512)
-            __single_group_scan<1, 512, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 512>{});
         else if (__n <= 1024)
-            __single_group_scan<1, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 1024>{});
         else if (__n <= 2048)
-            __single_group_scan<2, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 2048>{});
         else if (__n <= 4096)
-            __single_group_scan<4, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 4096>{});
         else if (__n <= 8192)
-            __single_group_scan<8, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 8192>{});
         else if (__n <= 16384)
-            __single_group_scan<16, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 16384>{});
         else
-            __single_group_scan<32, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+            __single_group_scan_f(std::integral_constant<int, 32768>{});
     }
     else
     {
