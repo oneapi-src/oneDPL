@@ -232,7 +232,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
 
     constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
 
-    if (__can_use_group_scan && __n <= 32768)
+    if (__can_use_group_scan && __n <= 16384)
     {
         // Max work-group size for PVC is 1024 -- change this to be more general
         constexpr int __max_wg_size = 1024;
@@ -267,10 +267,8 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
             __single_group_scan_f(std::integral_constant<int, 4096>{});
         else if (__n <= 8192)
             __single_group_scan_f(std::integral_constant<int, 8192>{});
-        else if (__n <= 16384)
-            __single_group_scan_f(std::integral_constant<int, 16384>{});
         else
-            __single_group_scan_f(std::integral_constant<int, 32768>{});
+            __single_group_scan_f(std::integral_constant<int, 16384>{});
     }
     else
     {
