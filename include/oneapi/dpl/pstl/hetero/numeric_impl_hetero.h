@@ -108,6 +108,61 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
     return __res;
 }
 
+template<::uint32_t ElemsPerItem, ::uint32_t WGSize, bool _Inclusive>
+struct __single_group_scan
+{
+    template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation>
+    static void apply(_Policy const & policy, _InRng in, _OutRng out, std::size_t N, _InitType __init, _BinaryOperation __bin_op)
+    {
+        printf("hello\n");
+        constexpr ::uint32_t elems_per_item = ElemsPerItem;
+        constexpr ::uint32_t wgsize = WGSize;
+        constexpr ::uint32_t elems_per_wg = elems_per_item*wgsize;
+        using _RangeValueType = decltype(*in.begin());
+        using _ValueType = decltype(__bin_op(std::declval<_RangeValueType>(), std::declval<_RangeValueType>()));
+        auto event = policy.queue().submit([&](sycl::handler& hdl) {
+            auto lacc = sycl::accessor<_ValueType, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{elems_per_wg}, hdl);
+            hdl.parallel_for(sycl::nd_range<1>(N, wgsize), [=](sycl::nd_item<1> __self_item) {
+                const auto& group = __self_item.get_group();
+                const auto& subgroup = __self_item.get_sub_group();
+                const auto id = __self_item.get_local_linear_id();
+                int subgroup_idx = subgroup.get_group_id();
+                int id_in_subgroup = subgroup.get_local_id();
+                int subgroup_size = subgroup.get_local_linear_range();
+
+                #pragma unroll
+                for (uint16_t i = 0; i < elems_per_item; ++i)
+                {
+                   auto idx = i*wgsize + subgroup_idx*subgroup_size;
+                   auto x = subgroup.load(in.begin() + idx);
+                   lacc[idx + id_in_subgroup] = x;
+                }
+
+                __group_scan<_ValueType>(group, lacc.get_pointer(), lacc.get_pointer()+N, __bin_op, __init);
+
+                #pragma unroll
+                for (uint16_t i = 0; i < elems_per_item; ++i)
+                {
+                   auto idx = i*wgsize + subgroup_idx*subgroup_size;
+                   auto x = lacc[idx+id_in_subgroup];
+                   subgroup.store(out.begin() + idx, x);
+                }
+            });
+        });
+        event.wait();
+    }
+
+    template<typename _ValueType, typename _Group, typename _Begin, typename _End, typename _BinaryOperation>
+    static void __group_scan(const _Group& __group, _Begin __begin, _End __end, const _BinaryOperation& __bin_op, unseq_backend::__no_init_value<_ValueType>)
+    {
+        if constexpr (_Inclusive)
+            sycl::joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op);
+        else
+            sycl::joint_exclusive_scan(__group, __begin, __end, __begin, __bin_op);
+    }
+};
+
+
 //------------------------------------------------------------------------
 // transform_scan
 //------------------------------------------------------------------------
@@ -137,19 +192,52 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result, __result + __n);
 
-    oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __binary_op, __init,
-        // local scan
-        unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
-                              _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
-                                                       __get_data_op},
-        // scan between groups
-        unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
-                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
-            __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
-        // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
-        .wait();
+    constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
+
+    if (__can_use_group_scan && __n <= 32768)
+    {
+        // Max work-group size for PVC is 1024 -- change this to be more general
+        if (__n <= 16)
+            __single_group_scan<1, 16, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 32)
+            __single_group_scan<1, 32, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 64)
+            __single_group_scan<1, 64, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 128)
+            __single_group_scan<1, 128, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 256)
+            __single_group_scan<1, 256, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 512)
+            __single_group_scan<1, 512, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 1024)
+            __single_group_scan<1, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 2048)
+            __single_group_scan<2, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 4096)
+            __single_group_scan<4, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 8192)
+            __single_group_scan<8, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else if (__n <= 16384)
+            __single_group_scan<16, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+        else
+            __single_group_scan<32, 1024, _Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+    }
+    else
+    {
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+            ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __binary_op, __init,
+            // local scan
+            unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
+                                  _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
+                                                           __get_data_op},
+            // scan between groups
+            unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                                  _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+                __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+            // global scan
+            unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
+            .wait();
+    }
 
     return __result + __n;
 }
