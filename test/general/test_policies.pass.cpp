@@ -69,12 +69,10 @@ main()
     // make_device_policy
     test_policy_instance(make_device_policy<class Kernel_11>(q));
 #if _ONEDPL_LIBSYCL_VERSION < 60000
-    // The next call is incompatible with SYCL 2020 library version because the constructor of sycl::queue now is explicit:
-    //      template <typename DeviceSelector, typename = detail::EnableIfSYCL2020DeviceSelectorInvocable<DeviceSelector>>
-    //      explicit queue(const DeviceSelector& deviceSelector, const property_list& PropList = {});
-    // With previous version we call in this line make_device_policy(sycl::queue q)
-    // because we had ability to create sylc::queue implici
-    // We have the same test in line 80 with explicit instantiation of sycl::queue
+    // make_device_policy requires a sycl::queue as argument.
+    // Currently, there is no implicit conversion (implicit syc::queue constructor by a device selector)
+    // from a device selector to a queue.
+    // The same test call with explicit queue creation we have below in line 78.
     test_policy_instance(make_device_policy<class Kernel_12>(TestUtils::default_selector));
 #endif
     test_policy_instance(make_device_policy<class Kernel_13>(sycl::device{TestUtils::default_selector}));
