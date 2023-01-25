@@ -68,6 +68,8 @@ main()
 
     // make_device_policy
     test_policy_instance(make_device_policy<class Kernel_11>(q));
+    // The next call is incompatible with SYCL 2020 library version because the constructor of sycl::queue now is explicit.
+    // We have the same test in line 77 with explicit instantiation of sycl::queue
 #if _ONEDPL_LIBSYCL_VERSION < 60000
     test_policy_instance(make_device_policy<class Kernel_12>(TestUtils::default_selector));
 #endif
