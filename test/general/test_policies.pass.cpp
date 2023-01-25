@@ -68,7 +68,24 @@ main()
 
     // make_device_policy
     test_policy_instance(make_device_policy<class Kernel_11>(q));
+#if _ONEDPL_LIBSYCL_VERSION >= 60000
+    // In new versions of SYCL library this constructor of sycl::queue is explicit:
+    //      template <typename DeviceSelector,
+    //                typename =
+    //                    detail::EnableIfSYCL2020DeviceSelectorInvocable<DeviceSelector>>
+    //      explicit queue(const DeviceSelector &deviceSelector,
+    //                     const async_handler &AsyncHandler,
+    //                     const property_list &PropList = {})
+    //          : queue(detail::select_device(deviceSelector), AsyncHandler, PropList) {}
+    // Please see details in https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:interface.queue.class
+    test_policy_instance(make_device_policy<class Kernel_12>(sycl::queue{TestUtils::default_selector}));
+#else
+    // In previous versions this constructor was not explicit:
+    //      queue(const device_selector &DeviceSelector,
+    //            const property_list &PropList = {})
+    //          : queue(DeviceSelector.select_device(), async_handler{}, PropList) {}
     test_policy_instance(make_device_policy<class Kernel_12>(TestUtils::default_selector));
+#endif
     test_policy_instance(make_device_policy<class Kernel_13>(sycl::device{TestUtils::default_selector}));
     test_policy_instance(make_device_policy<class Kernel_14>(sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
     test_policy_instance(make_device_policy<class Kernel_15>(dpcpp_default));
