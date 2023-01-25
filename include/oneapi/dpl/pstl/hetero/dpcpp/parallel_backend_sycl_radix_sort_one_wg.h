@@ -53,10 +53,8 @@ public:
 
 template <uint16_t __block_size, typename _KeyT, typename _Wi, typename _Src, typename _Keys>
 void
-__block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n)
+__block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n, const _KeyT& __default_key)
 {
-    constexpr _KeyT __default_key = _KeyT{};
-
     #pragma unroll
     for (uint16_t __i = 0; __i < __block_size; ++__i)
     {
@@ -115,13 +113,13 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
         __cgh.parallel_for<_KernelName>(
             __range, ([=](sycl::nd_item<1> __it) [[sycl::reqd_sub_group_size(__req_sub_group_size)]]
         {
-  
             _KeyT __keys[__block_size];
             uint16_t __wi = __it.get_local_linear_id();
             uint16_t __begin_bit = 0;
             constexpr uint16_t __end_bit = sizeof(_KeyT) * 8; 
-  
-            __block_load<__block_size, _KeyT>(__wi, __src, __keys, __n);
+
+            const _KeyT __default_key = __order_preserving_cast<__is_asc>(std::numeric_limits<_KeyT>::max());
+            __block_load<__block_size, _KeyT>(__wi, __src, __keys, __n, __default_key);
   
             __dpl_sycl::__group_barrier(__it);
             while (true)
