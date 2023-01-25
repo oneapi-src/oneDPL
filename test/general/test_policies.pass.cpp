@@ -68,7 +68,13 @@ main()
 
     // make_device_policy
     test_policy_instance(make_device_policy<class Kernel_11>(q));
+#if _ONEDPL_LIBSYCL_VERSION < 60000
+    // make_device_policy requires a sycl::queue as an argument.
+    // Currently, there is no implicit conversion (implicit syc::queue constructor by a device selector)
+    // from a device selector to a queue.
+    // The same test call with explicit queue creation we have below in line 78.
     test_policy_instance(make_device_policy<class Kernel_12>(TestUtils::default_selector));
+#endif
     test_policy_instance(make_device_policy<class Kernel_13>(sycl::device{TestUtils::default_selector}));
     test_policy_instance(make_device_policy<class Kernel_14>(sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
     test_policy_instance(make_device_policy<class Kernel_15>(dpcpp_default));
