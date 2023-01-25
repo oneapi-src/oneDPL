@@ -114,15 +114,16 @@ struct __single_group_scan
     template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation>
     static void apply(_Policy const & policy, _InRng in, _OutRng out, std::size_t N, _InitType __init, _BinaryOperation __bin_op)
     {
-        printf("hello\n");
+        using _RangeValueType = decltype(*in.begin());
+        using _ValueType = decltype(__bin_op(std::declval<_RangeValueType>(), std::declval<_RangeValueType>()));
+
         constexpr ::uint32_t elems_per_item = ElemsPerItem;
         constexpr ::uint32_t wgsize = WGSize;
         constexpr ::uint32_t elems_per_wg = elems_per_item*wgsize;
-        using _RangeValueType = decltype(*in.begin());
-        using _ValueType = decltype(__bin_op(std::declval<_RangeValueType>(), std::declval<_RangeValueType>()));
+
         auto event = policy.queue().submit([&](sycl::handler& hdl) {
             auto lacc = sycl::accessor<_ValueType, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{elems_per_wg}, hdl);
-            hdl.parallel_for(sycl::nd_range<1>(N, wgsize), [=](sycl::nd_item<1> __self_item) {
+            hdl.parallel_for(sycl::nd_range<1>(wgsize, wgsize), [=](sycl::nd_item<1> __self_item) {
                 const auto& group = __self_item.get_group();
                 const auto& subgroup = __self_item.get_sub_group();
                 const auto id = __self_item.get_local_linear_id();
@@ -159,6 +160,15 @@ struct __single_group_scan
             sycl::joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op);
         else
             sycl::joint_exclusive_scan(__group, __begin, __end, __begin, __bin_op);
+    }
+
+    template<typename _ValueType, typename _Group, typename _Begin, typename _End, typename _BinaryOperation>
+    static void __group_scan(const _Group& __group, _Begin __begin, _End __end, const _BinaryOperation& __bin_op, unseq_backend::__init_value<_ValueType> __init)
+    {
+        if constexpr (_Inclusive)
+            sycl::joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op, __init.__value);
+        else
+            sycl::joint_exclusive_scan(__group, __begin, __end, __begin, __init.__value, __bin_op);
     }
 };
 
