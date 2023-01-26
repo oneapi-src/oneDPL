@@ -19,7 +19,11 @@
 #ifndef _MSVC_LANG
 #    define _ONEDPL_TEST___cplusplus __cplusplus
 #else
-#    define _ONEDPL_TEST___cplusplus _MSVC_LANG
+#    if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
+#        define _ONEDPL_TEST___cplusplus _MSVC_LANG
+#    else
+#        define _ONEDPL_TEST___cplusplus __cplusplus
+#    endif
 #endif
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
