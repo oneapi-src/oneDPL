@@ -319,9 +319,6 @@ struct test_base
 
 namespace
 {
-void update_data()
-{
-}
 };
 
 /// Copy data from source test data storage into local buffers
