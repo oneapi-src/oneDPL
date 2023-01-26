@@ -317,10 +317,6 @@ struct test_base
     };
 };
 
-namespace
-{
-};
-
 /// Copy data from source test data storage into local buffers
 template <typename TTestDataTransfer, typename... Args>
 void retrieve_data(TTestDataTransfer& helper, Args&& ...args)
