@@ -19,7 +19,7 @@
 #ifndef _MSVC_LANG
 #    define _ONEDPL___cplusplus __cplusplus
 #else
-#    if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
+#    if _MSVC_LANG > __cplusplus
 #        define _ONEDPL___cplusplus _MSVC_LANG
 #    else
 #        define _ONEDPL___cplusplus __cplusplus
