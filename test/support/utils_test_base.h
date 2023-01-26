@@ -319,10 +319,6 @@ struct test_base
 
 namespace
 {
-void retrieve_data()
-{
-}
-
 void update_data()
 {
 }
