@@ -12,6 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+// In Windows, as a temporary workaround, we disable vector algorithms for calls inside sycl kernels
+#if defined(_MSC_VER)
+#    define _USE_STD_VECTOR_ALGORITHMS 0
+#endif
+
 #include <oneapi/dpl/algorithm>
 
 #include "support/utils_sycl.h"
