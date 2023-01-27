@@ -20,6 +20,12 @@
 
 #pragma once
 
+namespace oneapi
+{
+namespace dpl
+{
+namespace experimental
+{
 namespace ds {
   namespace property {
     struct universe_t {
@@ -84,5 +90,8 @@ namespace ds {
       return std::forward<Handle>(h).report(prop, v);
     }
   }
-}
+}  //namespace ds
+}  //namespace experimental
+}  //namespace dpl
+}  //namespace oneapi
 
