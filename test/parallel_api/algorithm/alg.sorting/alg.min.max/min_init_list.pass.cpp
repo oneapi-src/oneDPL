@@ -21,7 +21,7 @@
 //   T
 //   min(initializer_list<T> t);
 
-// In Windows, as a temporary workaround, we disable vector algorithms for calls inside sycl kernels
+// In Windows, as a temporary workaround, disable vector algorithm calls to avoid calls within sycl kernels
 #if defined(_MSC_VER)
 #    define _USE_STD_VECTOR_ALGORITHMS 0
 #endif
