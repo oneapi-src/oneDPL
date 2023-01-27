@@ -39,8 +39,14 @@
 #include "ds_properties.h"
 #include "ds_algorithms.h"
 
-namespace ds {
-	
+namespace oneapi
+{
+namespace dpl
+{
+namespace experimental
+{
+namespace ds 
+{
 #if _DS_BACKEND_SYCL
   using static_policy = policy<static_policy_impl<default_scheduler_t>>;
   using round_robin_policy = policy<round_robin_policy_impl<default_scheduler_t>>;
@@ -59,5 +65,7 @@ namespace ds {
 #if 0
   template<typename S> using static_per_task_policy_t = policy<static_per_task<S>>;
 #endif
-}
-
+}  //namespace ds
+}  //namespace experimental
+}  //namespace dpl
+}  //namespace oneapi
