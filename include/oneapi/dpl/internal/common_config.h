@@ -16,13 +16,11 @@
 #ifndef _ONEDPL_COMMON_CONFIG_H
 #define _ONEDPL_COMMON_CONFIG_H
 
-#ifndef _MSVC_LANG
+#if __cplusplus >= 201703L
 #    define _ONEDPL___cplusplus __cplusplus
-#else
+#elif defined(_MSVC_LANG) && _MSVC_LANG >= 201703L
 #    define _ONEDPL___cplusplus _MSVC_LANG
-#endif
-
-#if _ONEDPL___cplusplus < 201703L
+#else
 #    error "oneDPL requires the C++ language version not less than C++17"
 #endif
 
