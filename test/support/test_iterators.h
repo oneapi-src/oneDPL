@@ -99,7 +99,7 @@ class input_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return it_; }
+    pointer operator->() const { return ::std::addressof(this->operator*()); }
 
     input_iterator&
     operator++()
@@ -173,7 +173,8 @@ class forward_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return it_; }
+    pointer operator->() const { return ::std::addressof(this->operator*()); }
+
 
     forward_iterator&
     operator++()
@@ -247,7 +248,8 @@ class bidirectional_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return it_; }
+    pointer operator->() const { return ::std::addressof(this->operator*()); }
+
 
     bidirectional_iterator&
     operator++()
@@ -324,7 +326,8 @@ class random_access_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return it_; }
+    pointer operator->() const { return ::std::addressof(this->operator*()); }
+
 
     random_access_iterator&
     operator++()
