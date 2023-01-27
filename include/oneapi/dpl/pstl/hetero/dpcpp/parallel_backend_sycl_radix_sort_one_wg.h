@@ -147,7 +147,10 @@ private:
             uint16_t __begin_bit = 0;
             constexpr uint16_t __end_bit = sizeof(_KeyT) * 8; 
 
-            const _KeyT __default_key = __order_preserving_cast<__is_asc>(std::numeric_limits<_KeyT>::max());
+            //we use numeric_limits::lowest for floating-point types with denormalization,
+            //due to numeric_limits::min gets the minimum positive normalized value
+            const _KeyT __default_key = 
+                __is_asc ? std::numeric_limits<_KeyT>::max() : std::numeric_limits<_KeyT>::lowest();
             __block_load<__block_size, _KeyT>(__wi, __src, __keys, __n, __default_key);
   
             __dpl_sycl::__group_barrier(__it);
