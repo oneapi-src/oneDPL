@@ -16,14 +16,12 @@
 #ifndef _TEST_config_H
 #define _TEST_config_H
 
-#ifndef _MSVC_LANG
+#if __cplusplus >= 201703L
 #    define _ONEDPL_TEST___cplusplus __cplusplus
+#elif defined(_MSVC_LANG) && _MSVC_LANG >= 201703L
+#    define _ONEDPL_TEST___cplusplus _MSVC_LANG
 #else
-#    if _MSVC_LANG > __cplusplus
-#        define _ONEDPL_TEST___cplusplus _MSVC_LANG
-#    else
-#        define _ONEDPL_TEST___cplusplus __cplusplus
-#    endif
+#    error "oneDPL requires the C++ language version not less than C++17"
 #endif
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
