@@ -679,44 +679,42 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     sycl::buffer<::std::uint32_t, 1> __tmp_buf(sycl::range<1>(0));
     sycl::buffer<_T, 1> __val_buf(sycl::range<1>(0));
     sycl::event __event{};
-    
-    constexpr auto __wg_size = 256;
-    const auto __max_wg_size = __exec.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
-    assert(__wg_size*2 <= __max_wg_size);
 
-    if(__n <= 32768)
+    constexpr auto __wg_size = 64;
+
+    if(__n <= 32768 && __wg_size*8 <= oneapi::dpl::__internal::__max_work_group_size(__exec))
     {
-        if (__n <= 64)                                                                       //v--- block size
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 9>,        64,   1, __radix_bits,
+        if (__n <= 64)                                                                         //v--- block size
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 9>, __wg_size,   1, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 128)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 8>,       128,   1, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 8>, __wg_size*2,   1, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 256)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 0>,       128,   2, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, __wg_size*2,   2, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 512)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 1>,       128,   4, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 1>, __wg_size*2,   4, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 1024)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 2>,       128,   8, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 2>, __wg_size*2,   8, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 2048)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 3>, __wg_size,   8, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 3>, __wg_size*4,   8, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 4096)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 4>, __wg_size,   16, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 4>, __wg_size*4,   16, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 8192)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 5>, __wg_size*2, 16, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 5>, __wg_size*8, 16, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 16384)
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 6>, __wg_size*2, 32, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 6>, __wg_size*8, 32, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else
         {
             assert(__n <= 32768);
-            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 7>, __wg_size*2, 64, __radix_bits,
+            __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 7>, __wg_size*8, 64, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         }
     }
