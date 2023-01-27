@@ -16,14 +16,6 @@
 #ifndef _TEST_config_H
 #define _TEST_config_H
 
-#if __cplusplus >= 201703L
-#    define _ONEDPL_TEST___cplusplus __cplusplus
-#elif defined(_MSVC_LANG) && _MSVC_LANG >= 201703L
-#    define _ONEDPL_TEST___cplusplus _MSVC_LANG
-#else
-#    error "oneDPL requires the C++ language version not less than C++17"
-#endif
-
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>
@@ -88,7 +80,7 @@
 
 // Check for C++ standard and standard library for the use of ranges API
 #if !defined(_ENABLE_RANGES_TESTING)
-#define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY (_ONEDPL_TEST___cplusplus >= 201703L && TEST_DPCPP_BACKEND_PRESENT)
+#define _TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY TEST_DPCPP_BACKEND_PRESENT
 #if defined(_GLIBCXX_RELEASE)
 #    define _ENABLE_RANGES_TESTING (_TEST_RANGES_FOR_CPP_17_DPCPP_BE_ONLY && _GLIBCXX_RELEASE >= 8 && __GLIBCXX__ >= 20180502)
 #elif defined(_LIBCPP_VERSION)
@@ -108,7 +100,7 @@
 #define _PSTL_GLIBCXX_TEST_COMPLEX_PLUS_EQ_BROKEN _PSTL_GLIBCXX_TEST_COMPLEX_BROKEN
 #define _PSTL_GLIBCXX_TEST_COMPLEX_TIMES_EQ_BROKEN _PSTL_GLIBCXX_TEST_COMPLEX_BROKEN
 
-#define _PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN (_MSC_VER && _ONEDPL_TEST___cplusplus <= 201703L)
+#define _PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN (_MSC_VER && !(__cplusplus > 201703L || _MSVC_LANG > 201703L))
 
 #define _PSTL_ICC_TEST_COMPLEX_ASIN_MINUS_INF_NAN_BROKEN_SIGNBIT __INTEL_LLVM_COMPILER
 #define _PSTL_ICC_TEST_COMPLEX_COSH_MINUS_INF_MINUS_ZERO_BROKEN_SIGNBIT __INTEL_LLVM_COMPILER
