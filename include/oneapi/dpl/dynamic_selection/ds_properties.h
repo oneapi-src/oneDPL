@@ -19,13 +19,14 @@
 */
 
 #pragma once
-
+/*
 namespace oneapi
 {
 namespace dpl
 {
 namespace experimental
 {
+*/
 namespace ds {
   namespace property {
     struct universe_t {
@@ -91,7 +92,8 @@ namespace ds {
     }
   }
 }  //namespace ds
+/*
 }  //namespace experimental
 }  //namespace dpl
 }  //namespace oneapi
-
+*/
