@@ -20,7 +20,9 @@
 
 #pragma once
 
-namespace ds {
+namespace oneapi {
+namespace dpl {
+namespace experimental {
   namespace property {
     struct universe_t {
       static constexpr bool is_property_v = true;
@@ -39,7 +41,7 @@ namespace ds {
       static constexpr bool can_report_v = false;
     };
     inline constexpr dynamic_load_t dynamic_load;
-  
+
     struct is_device_available_t {
       static constexpr bool is_property_v = true;
       static constexpr bool can_report_v = false;
@@ -84,5 +86,6 @@ namespace ds {
       return std::forward<Handle>(h).report(prop, v);
     }
   }
-}
-
+} //namespace experimental
+} //namespace dpl
+} //namespace oneapi
