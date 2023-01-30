@@ -23,64 +23,6 @@
 //namespace __par_backend_hetero
 //{
 
-template<typename _KeyT, typename>
-class _TempBuf;
-
-template<typename _KeyT>
-class _TempBuf<_KeyT, std::true_type /*shared local memory buffer*/>
-{
-    uint16_t __buf_size;
-public:
-    _TempBuf(uint16_t __n): __buf_size(__n) {}
-    auto get_acc(sycl::handler& __cgh)
-    {
-        return sycl::local_accessor<_KeyT, 1>(__buf_size, __cgh);
-    }
-};
-
-template<typename _KeyT>
-class _TempBuf<_KeyT, std::false_type /*global memory buffer*/>
-{
-    sycl::buffer<_KeyT> __buf;
-
-public:
-    _TempBuf(uint16_t __n): __buf(__n) {}
-    auto get_acc(sycl::handler& __cgh)
-    {
-        return sycl::accessor(__buf, __cgh, sycl::read_write, sycl::no_init);
-    }
-};
-
-template <uint16_t __block_size, typename _KeyT, typename _Wi, typename _Src, typename _Keys>
-void
-__block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n, const _KeyT& __default_key)
-{
-    #pragma unroll
-    for (uint16_t __i = 0; __i < __block_size; ++__i)
-    {
-        const uint16_t __offset = __wi*__block_size + __i;
-        if (__offset < __n)
-            __keys[__i] = __src[__offset];
-        else
-            __keys[__i] = __default_key;
-    }
-}
-
-template <uint16_t __block_size, typename _Item, typename _Wi, typename _Lacc, typename _Keys, typename _Indices>
-void
-__to_blocked(_Item __it, const _Wi __wi, _Lacc& __exchange_lacc, _Keys& __keys, const _Indices& __indices)
-{
-    #pragma unroll
-    for (uint16_t __i = 0; __i < __block_size; ++__i)
-        __exchange_lacc[__indices[__i]] = __keys[__i];
-
-    __dpl_sycl::__group_barrier(__it);
-
-    #pragma unroll
-    for (uint16_t __i = 0; __i < __block_size; ++__i)
-        __keys[__i] = __exchange_lacc[__wi*__block_size + __i];
-}
-
 template<typename _KernelNameBase, uint16_t __wg_size = 256/*work group size*/, uint16_t __block_size = 16,
          ::std::uint32_t __radix = 4, bool __is_asc = true,
          uint16_t __req_sub_group_size = (__block_size < 4 ? 32 : 16)>
@@ -98,6 +40,65 @@ struct __subgroup_radix_sort
     }
 
 private:
+
+    template<typename _KeyT, typename>
+    class _TempBuf;
+
+    template<typename _KeyT>
+    class _TempBuf<_KeyT, std::true_type /*shared local memory buffer*/>
+    {
+        uint16_t __buf_size;
+    public:
+        _TempBuf(uint16_t __n): __buf_size(__n) {}
+        auto get_acc(sycl::handler& __cgh)
+        {
+            return sycl::local_accessor<_KeyT, 1>(__buf_size, __cgh);
+        }
+    };
+
+    template<typename _KeyT>
+    class _TempBuf<_KeyT, std::false_type /*global memory buffer*/>
+    {
+        sycl::buffer<_KeyT> __buf;
+
+    public:
+        _TempBuf(uint16_t __n): __buf(__n) {}
+        auto get_acc(sycl::handler& __cgh)
+        {
+            return sycl::accessor(__buf, __cgh, sycl::read_write, sycl::no_init);
+        }
+    };
+
+    template <typename _KeyT, typename _Wi, typename _Src, typename _Keys>
+    static void
+    __block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n, const _KeyT& __default_key)
+    {
+        #pragma unroll
+        for (uint16_t __i = 0; __i < __block_size; ++__i)
+        {
+            const uint16_t __offset = __wi*__block_size + __i;
+            if (__offset < __n)
+                __keys[__i] = __src[__offset];
+            else
+                __keys[__i] = __default_key;
+        }
+    }
+
+    template <typename _Item, typename _Wi, typename _Lacc, typename _Keys, typename _Indices>
+    static void
+    __to_blocked(_Item __it, const _Wi __wi, _Lacc& __exchange_lacc, _Keys& __keys, const _Indices& __indices)
+    {
+        #pragma unroll
+        for (uint16_t __i = 0; __i < __block_size; ++__i)
+            __exchange_lacc[__indices[__i]] = __keys[__i];
+    
+        __dpl_sycl::__group_barrier(__it);
+    
+        #pragma unroll
+        for (uint16_t __i = 0; __i < __block_size; ++__i)
+            __keys[__i] = __exchange_lacc[__wi*__block_size + __i];
+    }
+
     static constexpr uint16_t __bin_count = 1 << __radix;
     static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1;
 
@@ -149,7 +150,7 @@ private:
                 //due to numeric_limits::min gets the minimum positive normalized value
                 const _KeyT __default_key = 
                     __is_asc ? std::numeric_limits<_KeyT>::max() : std::numeric_limits<_KeyT>::lowest();
-                __block_load<__block_size, _KeyT>(__wi, __src, __keys, __n, __default_key);
+                __block_load<_KeyT>(__wi, __src, __keys, __n, __default_key);
     
                 __dpl_sycl::__group_barrier(__it);
                 while (true)
@@ -226,7 +227,7 @@ private:
                         }
                         return;
                     }
-                    __to_blocked<__block_size>(__it, __wi, __exchange_lacc, __keys, __indices);
+                    __to_blocked(__it, __wi, __exchange_lacc, __keys, __indices);
                     __dpl_sycl::__group_barrier(__it);
                 }
             }));
