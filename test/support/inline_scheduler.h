@@ -16,11 +16,13 @@
 #pragma once
 
 #include "support/concurrent_queue.h"
-#include "internal/ds_properties.h"
-#include "internal/dynamic_selection/scoring_policy_defs.h"
-#include "internal/dynamic_selection/scheduler_defs.h"
+#include "oneapi/dpl/dynamic_selection/ds_properties.h"
+#include "oneapi/dpl/internal/dynamic_selection/scoring_policy_defs.h"
+#include "oneapi/dpl/internal/dynamic_selection/scheduler_defs.h"
 
+#include <ostream>
 #include <vector>
+#include <atomic>
 
 struct int_inline_scheduler_t {
   using native_resource_t = int;
@@ -89,10 +91,10 @@ struct int_inline_scheduler_t {
 
   void wait_for_all() {
     async_wait_t *w;
-    while (waiters_.try_pop(w)) {
-      w->wait_for_all();
-      delete w;
-    }
+    waiters_.try_pop(w);
+    w->wait_for_all();
+    delete w;
+
   }
 
   //
@@ -126,5 +128,8 @@ std::ostream& operator<<(std::ostream &os, const int_inline_scheduler_t&) {
   return os << "int_inline_scheduler";
 }
 
+std::ostream& operator<<(std::ostream &os, const int_inline_scheduler_t::execution_resource_t &e) {
+  return os << e.get_native();
+}
 inline int_inline_scheduler_t int_inline_scheduler;
 

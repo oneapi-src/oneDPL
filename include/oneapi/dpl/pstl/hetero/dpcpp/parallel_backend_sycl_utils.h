@@ -62,9 +62,9 @@ __enable_if_t<
 __dpl_bit_cast(const _Src& __src) noexcept
 {
 #if SYCL_LANGUAGE_VERSION >= 2020
-    return sycl::bit_cast<_Dst>(__src);
+    return sycl::detail::bit_cast<_Dst>(__src);
 #elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
-    return ::std::bit_cast<_Dst>(__src);
+    return ::std::detail::bit_cast<_Dst>(__src);
 #elif defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
     return __builtin_bit_cast(_Dst, __src);
 #else

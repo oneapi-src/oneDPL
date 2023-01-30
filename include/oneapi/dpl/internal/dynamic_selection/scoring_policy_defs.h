@@ -37,13 +37,13 @@ namespace experimental {
   class nop_selection_handle_t {
     ExecutionContext e_;
   public:
-    using property_handle_t = ds::nop_property_handle_t;
+    using property_handle_t = oneapi::dpl::experimental::nop_property_handle_t;
     using execution_resource_t = ExecutionContext;
     using native_resource_t = typename execution_resource_t::native_resource_t;
 
     nop_selection_handle_t(execution_resource_t e = execution_resource_t{}) : e_(e) {}
     native_resource_t get_native() { return e_.get_native(); }
-    property_handle_t get_property_handle() { return ds::nop_property_handle; }
+    property_handle_t get_property_handle() { return oneapi::dpl::experimental::nop_property_handle; }
   };
 
 } // namespace experimental
