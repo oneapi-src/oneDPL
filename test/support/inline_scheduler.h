@@ -91,7 +91,7 @@ struct int_inline_scheduler_t {
 
   void wait_for_all() {
     async_wait_t *w;
-    waiters_.try_pop(w);
+    waiters_.pop(w);
     w->wait_for_all();
     delete w;
 
