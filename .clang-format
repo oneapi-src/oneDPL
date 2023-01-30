@@ -1,7 +1,49 @@
 BasedOnStyle: LLVM
 
-Language: Cpp
-Standard: Cpp11
+---
+Language: Cpp 
+Standard: c++17
+
+IndentWidth: 4
+ColumnLimit: 120
+
+AlwaysBreakTemplateDeclarations: true
+AlwaysBreakAfterReturnType: All
+PointerAlignment: Left
+AllowShortIfStatementsOnASingleLine: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      true
+  AfterControlStatement: Always
+  AfterEnum:       true
+  AfterFunction:   true
+  AfterNamespace:  true
+  AfterObjCDeclaration: true
+  AfterStruct:     true
+  AfterUnion:      false
+  AfterExternBlock: true
+  BeforeCatch:     true
+  BeforeElse:      true
+  BeforeLambdaBody: false
+  IndentBraces:    true
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+# Disable formatting options which may break tests.
+SortIncludes: false
+ReflowComments: false
+
+# Indent preprocessor directives
+IndentPPDirectives: AfterHash
+
+#The following section is to properly format the onedpl_config.h file which is
+# falsely detected as Objective-C
+---
+Language: ObjC 
+Standard: c++17
 
 IndentWidth: 4
 ColumnLimit: 120
