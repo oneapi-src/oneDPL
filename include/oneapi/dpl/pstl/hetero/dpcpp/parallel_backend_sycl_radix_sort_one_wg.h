@@ -115,124 +115,122 @@ private:
     template<typename _KernelName, typename _SLM_tag, typename _RangeIn>
     auto __submit(sycl::queue __q, _RangeIn&& __src)
     {
-
-    uint16_t __n = __src.size();
-    assert(__n <= __block_size*__wg_size);
-
-    using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
-
-# if _ONEDPL_KERNEL_BUNDLE_PRESENT
-    auto __kernel_id = sycl::get_kernel_id<_KernelName>();
-    auto __bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__q.get_context(), {__kernel_id});
-# endif
-
-    _TempBuf<_KeyT, _SLM_tag> __buf_val(__block_size*__wg_size);
-    _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
-
-    sycl::nd_range __range {sycl::range{__wg_size}, sycl::range{__wg_size}};
-    return __q.submit([&](sycl::handler& __cgh) {
-        oneapi::dpl::__ranges::__require_access(__cgh, __src);
-
-        auto __exchange_lacc = __buf_val.get_acc(__cgh);
-        auto __counter_lacc = __buf_count.get_acc(__cgh);
-  
-# if _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __cgh.use_kernel_bundle(__bundle);
-# endif
-        __cgh.parallel_for<_KernelName>(
-            __range, ([=](sycl::nd_item<1> __it) [[sycl::reqd_sub_group_size(__req_sub_group_size)]]
-        {
-            _KeyT __keys[__block_size];
-            uint16_t __wi = __it.get_local_linear_id();
-            uint16_t __begin_bit = 0;
-            constexpr uint16_t __end_bit = sizeof(_KeyT) * 8; 
-
-            //we use numeric_limits::lowest for floating-point types with denormalization,
-            //due to numeric_limits::min gets the minimum positive normalized value
-            const _KeyT __default_key = 
-                __is_asc ? std::numeric_limits<_KeyT>::max() : std::numeric_limits<_KeyT>::lowest();
-            __block_load<__block_size, _KeyT>(__wi, __src, __keys, __n, __default_key);
-  
-            __dpl_sycl::__group_barrier(__it);
-            while (true)
+        uint16_t __n = __src.size();
+        assert(__n <= __block_size*__wg_size);
+    
+        using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
+    
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+        auto __kernel_id = sycl::get_kernel_id<_KernelName>();
+        auto __bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__q.get_context(), {__kernel_id});
+#endif
+        _TempBuf<_KeyT, _SLM_tag> __buf_val(__block_size*__wg_size);
+        _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
+    
+        sycl::nd_range __range {sycl::range{__wg_size}, sycl::range{__wg_size}};
+        return __q.submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __src);
+    
+            auto __exchange_lacc = __buf_val.get_acc(__cgh);
+            auto __counter_lacc = __buf_count.get_acc(__cgh);
+    
+#if _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__bundle);
+#endif
+            __cgh.parallel_for<_KernelName>(
+                __range, ([=](sycl::nd_item<1> __it) [[sycl::reqd_sub_group_size(__req_sub_group_size)]]
             {
-                uint16_t __indices[__block_size]; //indices for inderect access in the "re-order" phase
+                _KeyT __keys[__block_size];
+                uint16_t __wi = __it.get_local_linear_id();
+                uint16_t __begin_bit = 0;
+                constexpr uint16_t __end_bit = sizeof(_KeyT) * 8; 
+    
+                //we use numeric_limits::lowest for floating-point types with denormalization,
+                //due to numeric_limits::min gets the minimum positive normalized value
+                const _KeyT __default_key = 
+                    __is_asc ? std::numeric_limits<_KeyT>::max() : std::numeric_limits<_KeyT>::lowest();
+                __block_load<__block_size, _KeyT>(__wi, __src, __keys, __n, __default_key);
+    
+                __dpl_sycl::__group_barrier(__it);
+                while (true)
                 {
-                    uint32_t* __counters[__block_size]; //pointers(by perfomance reasons) to bucket's counters
-
-                    //1. "counting" phase
-                    //counter initialization
-                    auto __pcounter = __counter_lacc.get_pointer()+__wi;
-                    #pragma unroll
-                    for (uint16_t __i = 0; __i < __bin_count; ++__i)
-                        __pcounter[__i * __wg_size] = 0;
-
-                    #pragma unroll
-                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                    uint16_t __indices[__block_size]; //indices for inderect access in the "re-order" phase
                     {
-                        const int __bin =
-                            __get_bucket</*mask*/__bin_count - 1>(__order_preserving_cast<__is_asc>(__keys[__i]), __begin_bit);
-
-                        //"counting" and local offset calculation
-                        __counters[__i] = &__pcounter[__bin*__wg_size];
-                        __indices[__i] = *__counters[__i];
-                        *__counters[__i] = __indices[__i] + 1;
-                    }
-                    __dpl_sycl::__group_barrier(__it);
-  
-                    //2. scan phase
-                    {
-                        //TODO: probably can be futher optimized
-  
-                        //scan contiguous numbers
-                        uint16_t __bin_sum[__bin_count];
-                        __bin_sum[0] = __counter_lacc[__wi * __bin_count];
-                        #pragma unroll
-                        for (uint16_t __i = 1; __i < __bin_count; ++__i)
-                            __bin_sum[__i] = __bin_sum[__i-1] + __counter_lacc[__wi * __bin_count + __i];
-  
-                        __dpl_sycl::__group_barrier(__it);
-                        //exclusive scan local sum
-                        uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(__it.get_group(), __bin_sum[__bin_count-1], sycl::plus<uint16_t>());
-                        //add to local sum, generate exclusive scan result
+                        uint32_t* __counters[__block_size]; //pointers(by perfomance reasons) to bucket's counters
+    
+                        //1. "counting" phase
+                        //counter initialization
+                        auto __pcounter = __counter_lacc.get_pointer()+__wi;
                         #pragma unroll
                         for (uint16_t __i = 0; __i < __bin_count; ++__i)
-                            __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
-  
-                        if (__wi == 0)
-                            __counter_lacc[0] = 0;
+                            __pcounter[__i * __wg_size] = 0;
+    
+                        #pragma unroll
+                        for (uint16_t __i = 0; __i < __block_size; ++__i)
+                        {
+                            const int __bin =
+                                __get_bucket</*mask*/__bin_count - 1>(__order_preserving_cast<__is_asc>(__keys[__i]), __begin_bit);
+    
+                            //"counting" and local offset calculation
+                            __counters[__i] = &__pcounter[__bin*__wg_size];
+                            __indices[__i] = *__counters[__i];
+                            *__counters[__i] = __indices[__i] + 1;
+                        }
                         __dpl_sycl::__group_barrier(__it);
+    
+                        //2. scan phase
+                        {
+                            //TODO: probably can be futher optimized
+    
+                            //scan contiguous numbers
+                            uint16_t __bin_sum[__bin_count];
+                            __bin_sum[0] = __counter_lacc[__wi * __bin_count];
+                            #pragma unroll
+                            for (uint16_t __i = 1; __i < __bin_count; ++__i)
+                                __bin_sum[__i] = __bin_sum[__i-1] + __counter_lacc[__wi * __bin_count + __i];
+    
+                            __dpl_sycl::__group_barrier(__it);
+                            //exclusive scan local sum
+                            uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(__it.get_group(), __bin_sum[__bin_count-1], sycl::plus<uint16_t>());
+                            //add to local sum, generate exclusive scan result
+                            #pragma unroll
+                            for (uint16_t __i = 0; __i < __bin_count; ++__i)
+                                __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
+    
+                            if (__wi == 0)
+                                __counter_lacc[0] = 0;
+                            __dpl_sycl::__group_barrier(__it);
+                        }
+    
+                        #pragma unroll
+                        for (uint16_t __i = 0; __i < __block_size; ++__i)
+                        {
+                            // a global index is a local offset plus a global base index
+                            __indices[__i] += *__counters[__i];
+                        }
                     }
-  
-                    #pragma unroll
-                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+    
+                    __begin_bit += __radix;
+    
+                    //3. "re-order" phase
+                    __dpl_sycl::__group_barrier(__it);
+                    if (__begin_bit >= __end_bit)
                     {
-                        // a global index is a local offset plus a global base index
-                        __indices[__i] += *__counters[__i];
+                        // the last iteration - writing out the result
+                        #pragma unroll
+                        for (uint16_t __i = 0; __i < __block_size; ++__i)
+                        {
+                            const uint16_t __r = __indices[__i];
+                            if (__r < __n)
+                                __src[__r] = __keys[__i];
+                        }
+                        return;
                     }
+                    __to_blocked<__block_size>(__it, __wi, __exchange_lacc, __keys, __indices);
+                    __dpl_sycl::__group_barrier(__it);
                 }
-  
-                __begin_bit += __radix;
-
-                //3. "re-order" phase
-                __dpl_sycl::__group_barrier(__it);
-                if (__begin_bit >= __end_bit)
-                {
-                    // the last iteration - writing out the result
-                    #pragma unroll
-                    for (uint16_t __i = 0; __i < __block_size; ++__i)
-                    {
-                        const uint16_t __r = __indices[__i];
-                        if (__r < __n)
-                            __src[__r] = __keys[__i];
-                    }
-                    return;
-                }
-                __to_blocked<__block_size>(__it, __wi, __exchange_lacc, __keys, __indices);
-                __dpl_sycl::__group_barrier(__it);
-            }
-        }));
-    });
+            }));
+        });
     }
 };
 
