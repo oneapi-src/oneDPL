@@ -81,31 +81,60 @@ __to_blocked(_Item __it, const _Wi __wi, _Lacc& __exchange_lacc, _Keys& __keys, 
         __keys[__i] = __exchange_lacc[__wi*__block_size + __i];
 }
 
-template<typename _KernelName, uint16_t __wg_size = 256/*work group size*/, uint16_t __block_size = 16,
-         ::std::uint32_t __radix = 4, bool __is_asc = true, typename _SLM_tag = std::true_type,
-         typename _RangeIn, uint16_t __req_sub_group_size = (__block_size < 4 ? 32 : 16)>
-auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
+template<typename _KernelNameBase, uint16_t __wg_size = 256/*work group size*/, uint16_t __block_size = 16,
+         ::std::uint32_t __radix = 4, bool __is_asc = true,
+         uint16_t __req_sub_group_size = (__block_size < 4 ? 32 : 16)>
+struct __subgroup_radix_sort
 {
-    constexpr uint16_t __bin_count = 1 << __radix;
+    template<typename _RangeIn>
+    auto operator()(sycl::queue __q, _RangeIn&& __src)
+    {
+        using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
+        //check SLM size
+        if(__ckeck_slm_size<_KeyT>(__q, __src.size()))
+            return __submit<__i_kernel_name<_KernelNameBase, 0>, std::true_type/*SLM*/>(__q, ::std::forward<_RangeIn>(__src));
+        else
+            return __submit<__i_kernel_name<_KernelNameBase, 1>, std::false_type/*global memory*/>(__q, ::std::forward<_RangeIn>(__src));
+    }
+
+private:
+    static constexpr uint16_t __bin_count = 1 << __radix;
+    static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1;
+
+    template<typename _T, typename _Size>
+    bool __ckeck_slm_size(sycl::queue __q, _Size __n)
+    {
+        assert(__n <= 1 << (sizeof(uint16_t)*8));
+
+        const auto __max_slm_size = __q.get_device().template get_info<sycl::info::device::local_mem_size>();
+        const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
+        const auto __req_slm_size = __counter_buf_sz * sizeof(uint32_t) + sizeof(_T)*__n_uniform;
+        return __req_slm_size <= __max_slm_size;
+    }
+
+    template<typename _KernelName, typename _SLM_tag, typename _RangeIn>
+    auto __submit(sycl::queue __q, _RangeIn&& __src)
+    {
 
     uint16_t __n = __src.size();
     assert(__n <= __block_size*__wg_size);
-  
+
+    using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
+
 # if _ONEDPL_KERNEL_BUNDLE_PRESENT
     auto __kernel_id = sycl::get_kernel_id<_KernelName>();
     auto __bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__q.get_context(), {__kernel_id});
 # endif
-  
-    using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
 
-    _TempBuf<_KeyT, _SLM_tag> __buf(__block_size*__wg_size);
+    _TempBuf<_KeyT, _SLM_tag> __buf_val(__block_size*__wg_size);
+    _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
 
     sycl::nd_range __range {sycl::range{__wg_size}, sycl::range{__wg_size}};
-    auto __event = __q.submit([&](sycl::handler& __cgh) {
+    return __q.submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __src);
 
-        auto __exchange_lacc = __buf.get_acc(__cgh); //exchange key, size is __block_size*__wg_size
-        auto __counter_lacc = sycl::local_accessor<uint32_t, 1>(__wg_size * __bin_count + 1, __cgh);//counter, could be private but use slm here
+        auto __exchange_lacc = __buf_val.get_acc(__cgh);
+        auto __counter_lacc = __buf_count.get_acc(__cgh);
   
 # if _ONEDPL_KERNEL_BUNDLE_PRESENT
         __cgh.use_kernel_bundle(__bundle);
@@ -200,10 +229,9 @@ auto __subgroup_radix_sort(sycl::queue __q, _RangeIn&& __src)
                 __dpl_sycl::__group_barrier(__it);
             }
         }));
-     });
-   return __event;
-}
-
+    });
+    }
+};
 
 //} // namespace __par_backend_hetero
 //} // namespace dpl
