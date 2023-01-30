@@ -175,7 +175,6 @@ class forward_iterator
     reference operator*() const { return *it_; }
     pointer operator->() const { return it_; }
 
-
     forward_iterator&
     operator++()
     {
@@ -249,7 +248,6 @@ class bidirectional_iterator
 
     reference operator*() const { return *it_; }
     pointer operator->() const { return it_; }
-
 
     bidirectional_iterator&
     operator++()
@@ -327,7 +325,6 @@ class random_access_iterator
 
     reference operator*() const { return *it_; }
     pointer operator->() const { return it_; }
-
 
     random_access_iterator&
     operator++()
