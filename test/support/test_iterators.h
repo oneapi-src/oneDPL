@@ -30,11 +30,11 @@ class output_iterator
     friend class output_iterator;
 
   public:
-    typedef std::output_iterator_tag iterator_category;
+    typedef ::std::output_iterator_tag iterator_category;
     typedef void value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
     typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -152,11 +152,11 @@ class forward_iterator
     friend class forward_iterator;
 
   public:
-    typedef std::forward_iterator_tag iterator_category;
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
+    typedef ::std::forward_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<It>::value_type value_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
     typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -227,11 +227,11 @@ class bidirectional_iterator
     friend class bidirectional_iterator;
 
   public:
-    typedef std::bidirectional_iterator_tag iterator_category;
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
+    typedef ::std::bidirectional_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<It>::value_type value_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
     typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -305,11 +305,11 @@ class random_access_iterator
     friend class random_access_iterator;
 
   public:
-    typedef std::random_access_iterator_tag iterator_category;
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<It>::value_type value_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
     typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -437,7 +437,7 @@ operator>=(const random_access_iterator<T>& x, const random_access_iterator<U>& 
 }
 
 template <class T, class U>
-inline typename std::iterator_traits<T>::difference_type
+inline typename ::std::iterator_traits<T>::difference_type
 operator-(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return x.base() - y.base();
