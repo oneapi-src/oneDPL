@@ -52,7 +52,7 @@ private:
         _TempBuf(uint16_t __n): __buf_size(__n) {}
         auto get_acc(sycl::handler& __cgh)
         {
-            return sycl::local_accessor<_KeyT, 1>(__buf_size, __cgh);
+            return __dpl_sycl::__local_accessor<_KeyT>(__buf_size, __cgh);
         }
     };
 
