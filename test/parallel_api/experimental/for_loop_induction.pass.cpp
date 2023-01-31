@@ -31,8 +31,6 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
     using T = typename ::std::iterator_traits<Iterator>::value_type;
     static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
 
-    using TRef = T&;
-
     // Init with different arbitrary values on each iteration
     const T ind_init = n % 97;
     const size_t stride = n % 97;
@@ -48,9 +46,9 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
 
     ::std::experimental::for_loop(
         ::std::forward<Policy>(exec), Size(0), n, ::std::experimental::induction(lval_ind),
-        ::std::experimental::induction(clval_ind), ::std::experimental::induction(TRef(rval_ind)),
+        ::std::experimental::induction(clval_ind), ::std::experimental::induction(::std::move(rval_ind)),
         ::std::experimental::induction(lval_sind, stride), ::std::experimental::induction(clval_sind, stride),
-        ::std::experimental::induction(TRef(rval_sind), stride),
+        ::std::experimental::induction(::std::move(rval_sind), stride),
         [ind_init, stride](Size idx, T ind1, T ind2, T ind3, T sind1, T sind2, T sind3) {
             EXPECT_TRUE(ind1 == ind2, "wrong induction value");
             EXPECT_TRUE(ind1 == ind3, "wrong induction value");
