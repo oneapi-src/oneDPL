@@ -33,7 +33,7 @@ class output_iterator
     typedef ::std::output_iterator_tag iterator_category;
     typedef void value_type;
     typedef typename ::std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
@@ -81,7 +81,7 @@ class input_iterator
     typedef ::std::input_iterator_tag iterator_category;
     typedef typename ::std::iterator_traits<It>::value_type value_type;
     typedef typename ::std::iterator_traits<It>::difference_type difference_type;
-    typedef ::std::iterator_traits<It>::pointer pointer;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
@@ -98,7 +98,17 @@ class input_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     input_iterator&
     operator++()
@@ -155,7 +165,7 @@ class forward_iterator
     typedef ::std::forward_iterator_tag iterator_category;
     typedef typename ::std::iterator_traits<It>::value_type value_type;
     typedef typename ::std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
@@ -172,8 +182,17 @@ class forward_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
-
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     forward_iterator&
     operator++()
@@ -230,7 +249,7 @@ class bidirectional_iterator
     typedef ::std::bidirectional_iterator_tag iterator_category;
     typedef typename ::std::iterator_traits<It>::value_type value_type;
     typedef typename ::std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
@@ -247,8 +266,17 @@ class bidirectional_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
-
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     bidirectional_iterator&
     operator++()
@@ -308,7 +336,7 @@ class random_access_iterator
     typedef ::std::random_access_iterator_tag iterator_category;
     typedef typename ::std::iterator_traits<It>::value_type value_type;
     typedef typename ::std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
@@ -325,8 +353,17 @@ class random_access_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
-
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     random_access_iterator&
     operator++()
