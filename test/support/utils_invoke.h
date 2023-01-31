@@ -162,10 +162,12 @@ struct invoke_on_all_policies
     void
     operator()(Op op, T&&... rest)
     {
-        invoke_on_all_host_policies()(op, rest...);
 #if TEST_DPCPP_BACKEND_PRESENT
+        invoke_on_all_host_policies()(op, rest...);
         invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
-#endif
+#else
+        invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
+#endif // TEST_DPCPP_BACKEND_PRESENT
     }
 };
 
