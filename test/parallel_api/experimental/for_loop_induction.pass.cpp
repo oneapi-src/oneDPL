@@ -31,26 +31,26 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
     using T = typename ::std::iterator_traits<Iterator>::value_type;
     static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
 
+    using TRef = T&;
+
     // Init with different arbitrary values on each iteration
     const T ind_init = n % 97;
     const size_t stride = n % 97;
 
     T lval_ind = ind_init;
     const T clval_ind = ind_init;
-    T val_ind_src = ind_init;
-    T& lval_ind_ref = val_ind_src;
+    T rval_ind = ind_init;
 
     // Values for induction with stride
     T lval_sind = ind_init;
     const T clval_sind = ind_init;
-    T val_sind_src = ind_init;
-    T& lval_sind_ref = val_sind_src;
+    T rval_sind = ind_init;
 
     ::std::experimental::for_loop(
         ::std::forward<Policy>(exec), Size(0), n, ::std::experimental::induction(lval_ind),
-        ::std::experimental::induction(clval_ind), ::std::experimental::induction(lval_ind_ref),
+        ::std::experimental::induction(clval_ind), ::std::experimental::induction(TRef(rval_ind)),
         ::std::experimental::induction(lval_sind, stride), ::std::experimental::induction(clval_sind, stride),
-        ::std::experimental::induction(lval_sind_ref, stride),
+        ::std::experimental::induction(TRef(rval_sind), stride),
         [ind_init, stride](Size idx, T ind1, T ind2, T ind3, T sind1, T sind2, T sind3) {
             EXPECT_TRUE(ind1 == ind2, "wrong induction value");
             EXPECT_TRUE(ind1 == ind3, "wrong induction value");
@@ -62,11 +62,11 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
         });
 
     EXPECT_TRUE(lval_ind == n, "wrong result of induction");
-    EXPECT_TRUE(lval_ind_ref == n, "wrong result of induction");
+    EXPECT_TRUE(rval_ind == n, "wrong result of induction");
     EXPECT_TRUE(clval_ind == ind_init, "wrong result of induction");
 
     EXPECT_TRUE(lval_sind == n * stride, "wrong result of induction");
-    EXPECT_TRUE(lval_sind_ref == n * stride, "wrong result of induction");
+    EXPECT_TRUE(rval_sind == n * stride, "wrong result of induction");
     EXPECT_TRUE(clval_sind == ind_init, "wrong result of induction");
 }
 
