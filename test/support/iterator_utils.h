@@ -42,7 +42,17 @@ class ForwardIterator
     ForwardIterator() = default;
     explicit ForwardIterator(Iterator i) : my_iterator(i) {}
     reference operator*() const { return *my_iterator; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
+    pointer operator->() const
+    {
+        if constexpr (::std::is_pointer<Iterator>::value)
+        {
+            return my_iterator;
+        }
+        else
+        {
+            return my_iterator.operator->();
+        }
+    }
     
     ForwardIterator&
     operator++()
