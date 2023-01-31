@@ -62,11 +62,11 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
         });
 
     EXPECT_TRUE(lval_ind == n, "wrong result of induction");
-    EXPECT_TRUE(rval_ind == ind_init, "wrong result of induction");
+    EXPECT_TRUE(rval_ind == n, "wrong result of induction");
     EXPECT_TRUE(clval_ind == ind_init, "wrong result of induction");
 
     EXPECT_TRUE(lval_sind == n * stride, "wrong result of induction");
-    EXPECT_TRUE(rval_sind == ind_init, "wrong result of induction");
+    EXPECT_TRUE(rval_sind == n * stride, "wrong result of induction");
     EXPECT_TRUE(clval_sind == ind_init, "wrong result of induction");
 }
 
