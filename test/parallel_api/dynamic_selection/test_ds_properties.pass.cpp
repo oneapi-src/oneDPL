@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include "ds_properties.h"
+#include "oneapi/dpl/dynamic_selection/ds_properties.h"
 
 using str_to_any_map = std::map<std::string, std::any>;
 

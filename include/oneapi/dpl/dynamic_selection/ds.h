@@ -30,35 +30,36 @@
 #    endif // CL_SYCL_LANGUAGE_VERSION
 #endif
 
-#include "ds_policy.h"
-#include "ds_scoring_policy.h"
+#include "oneapi/dpl/dynamic_selection/ds_policy.h"
+#include "oneapi/dpl/dynamic_selection/ds_scoring_policy.h"
 #if _DS_BACKEND_SYCL
  // defines default_scheduler_t
- #include "ds_scheduler.h"
+ #include "oneapi/dpl/dynamic_selection/ds_scheduler.h"
 #endif
-#include "ds_properties.h"
-#include "ds_algorithms.h"
 
+#include "oneapi/dpl/dynamic_selection/ds_properties.h"
+#include "oneapi/dpl/dynamic_selection/ds_algorithms.h"
 namespace oneapi {
 namespace dpl {
 namespace experimental {
 
 #if _DS_BACKEND_SYCL
   using static_policy = policy<static_policy_impl<default_scheduler_t>>;
+
+  #if 0
   using round_robin_policy = policy<round_robin_policy_impl<default_scheduler_t>>;
   using dynamic_load_policy = policy<dynamic_load_policy_impl<default_scheduler_t>>;
   template<typename... KeyArgs> using auto_tune_policy = policy<auto_tune_policy_impl<default_scheduler_t, KeyArgs...>>;
-  #if 0
     using static_per_task_policy_t = policy<static_per_task<default_scheduler_t>>;
   #endif
   inline static_policy default_policy;
 #endif
 
   template<typename S> using static_policy_t = policy<static_policy_impl<S>>;
+#if 0
   template<typename S> using round_robin_policy_t = policy<round_robin_policy_impl<S>>;
   template<typename S> using dynamic_load_policy_t = policy<dynamic_load_policy_impl<S>>;
   template<typename... Args> using auto_tune_policy_t = policy<auto_tune_policy_impl<Args...>>;
-#if 0
   template<typename S> using static_per_task_policy_t = policy<static_per_task<S>>;
 #endif
 } //namespace experimental
