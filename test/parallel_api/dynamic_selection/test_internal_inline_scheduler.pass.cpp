@@ -14,9 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 
-//#include "oneapi/dpl/internal/dynamic_selection/sycl_scheduler.h"
 #include "oneapi/dpl/internal/dynamic_selection/scoring_policy_defs.h"
-//#include "support/concurrent_queue.h"
 #include "support/inline_scheduler.h"
 
 #include <iostream>
