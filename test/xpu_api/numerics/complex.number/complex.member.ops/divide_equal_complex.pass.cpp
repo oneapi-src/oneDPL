@@ -10,6 +10,13 @@
 
 // complex& operator/=(const complex& rhs);
 
+// Warning	G2904547A	'complex' is deprecated: warning STL4037:
+// The effect of instantiating the template std::complex for any type other than float, double, or long double is unspecified.
+// You can define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING to suppress this warning. [-Wdeprecated-declarations]
+#if defined(_MSC_VER)
+#    define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING
+#endif
+
 #include "support/test_complex.h"
 #include "./../cases.h"
 
