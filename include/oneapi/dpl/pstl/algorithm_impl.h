@@ -1456,15 +1456,15 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
             },
             ::std::plus<_DifferenceType>(),
             [=](_DifferenceType __i, _DifferenceType __len, _DifferenceType __initial) {
-                __internal::__brick_copy_by_mask(
-                    __first + __i, __first + __i + __len, __result + __initial, __mask + __i,
-                    [](_ForwardIterator __x, _Tp* __z) {
-                        if constexpr (::std::is_trivial_v<_Tp>)
-                            *__z = ::std::move(*__x);
-                        else
-                            ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
-                    },
-                    __is_vector);
+                __internal::__brick_copy_by_mask(__first + __i, __first + __i + __len, __result + __initial,
+                                                 __mask + __i,
+                                                 [](_ForwardIterator __x, _Tp* __z) {
+                                                     if constexpr (::std::is_trivial_v<_Tp>)
+                                                         *__z = ::std::move(*__x);
+                                                     else
+                                                         ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
+                                                 },
+                                                 __is_vector);
             },
             [&__m](_DifferenceType __total) { __m = __total; });
 
