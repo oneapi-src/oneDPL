@@ -4112,7 +4112,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
         {
             auto __end = ::std::min(__k + __n, __size);
             __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __k, __end,
-                                          [__first, __k, __n, __is_vector](_DiffType __i, _DiffType __j) {
+                                          [__first, __n, __is_vector](_DiffType __i, _DiffType __j) {
                                               __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
                                                                                __first + __i - __n, __is_vector);
                                           });
