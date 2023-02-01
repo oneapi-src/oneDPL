@@ -122,7 +122,7 @@ test(Pred pred)
     Sequence<T2> expected(max_len);
     Sequence<T2> actual(max_len);
 
-    Sequence<T2> data(max_len, [&value](::std::size_t i) {
+    Sequence<T2> data(max_len, [&](::std::size_t i) {
         if (i % 3 == 2)
         {
             return T1(i);
