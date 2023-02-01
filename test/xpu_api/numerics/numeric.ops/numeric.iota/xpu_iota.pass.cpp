@@ -21,7 +21,6 @@
 #include "support/utils_sycl.h"
 #include "support/test_iterators.h"
 
-constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class T> class KernelTest;
