@@ -24,9 +24,11 @@
 #include "common_for_device_tests.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 constexpr auto a = 40014u;
 constexpr auto c = 200u;
 constexpr auto m = 2147483563u;
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
 
 int
 main()
