@@ -661,7 +661,6 @@ struct __scan
               _InitType __init, std::true_type /*has_known_identity*/) const
     {
         auto __group_id = __item.get_group(0);
-        auto __global_id = __item.get_global_id(0);
         auto __local_id = __item.get_local_id(0);
         auto __use_init = __init_processing<_Tp>{};
 
