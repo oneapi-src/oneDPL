@@ -99,18 +99,22 @@ private:
             __keys[__i] = __exchange_lacc[__wi*__block_size + __i];
     }
 
+    static_assert(__wg_size <= 512);
     static constexpr uint16_t __bin_count = 1 << __radix;
     static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1;
 
     template<typename _T, typename _Size>
     bool __ckeck_slm_size(sycl::queue __q, _Size __n)
     {
-        assert(__n <= 1 << (sizeof(uint16_t)*8));
+        assert(__n <= 1 << (sizeof(uint16_t)*8)); //the kernel is designed for data size <= 64K
 
         const auto __max_slm_size = __q.get_device().template get_info<sycl::info::device::local_mem_size>();
+
         const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
-        const auto __req_slm_size = __counter_buf_sz * sizeof(uint32_t) + sizeof(_T)*__n_uniform;
-        return __req_slm_size <= __max_slm_size;
+        const auto __req_slm_size_val = sizeof(_T)*__n_uniform;
+        const auto __req_slm_size_counters = __counter_buf_sz * sizeof(uint32_t);
+
+        return __req_slm_size_val <= __max_slm_size - __req_slm_size_counters; //counters should be placed in SLM
     }
 
     template<typename _KernelName, typename _SLM_tag, typename _RangeIn>
