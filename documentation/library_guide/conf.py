@@ -50,7 +50,7 @@ rst_epilog = """
 # ones.
 extensions = [
     'sphinx-prompt',
-    'sphinx_substitution_extensions'
+    'sphinx_substitution_extensions',
     'sphinx.ext.githubpages'
 	]
 
