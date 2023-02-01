@@ -21,7 +21,7 @@
 #include <cassert>
 #include <iostream>
 
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+[[maybe_unused]] constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <typename T1, typename T2>
 class KernelName;
