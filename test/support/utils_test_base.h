@@ -319,6 +319,7 @@ struct test_base
 
 namespace
 {
+[[maybe_unused]]
 void retrieve_data()
 {
 }
