@@ -13,7 +13,8 @@ New in 2022.0.0
 
 New Features
 ------------
-- Added the functionality from ``<complex>`` and more APIs from ``<cmath>`` and ``<limits>`` standard headers to `Tested Standard C++ API`_.
+- Added the functionality from ``<complex>`` and more APIs from ``<cmath>`` and ``<limits>``
+  standard headers to `Tested Standard C++ API`_.
 - Improved performance of ``sort`` and ``stable_sort``  algorithms on GPU devices when using Radix sort [#fnote1]_.
 
 Fixed Issues
@@ -38,7 +39,7 @@ New Features
 - Added possibility to construct a zip_iterator out of a std::tuple of iterators.
 - Added 9 more serial-based versions of algorithms: ``is_heap``, ``is_heap_until``, ``make_heap``, ``push_heap``,
   ``pop_heap``, ``is_sorted``, ``is_sorted_until``, ``partial_sort``, ``partial_sort_copy``.
-  Please refer to `Tested Standard C++ API Reference https://github.com/oneapi-src/oneDPL/blob/main/documentation/library_guide/tested_standard_cpp_api.rst#tested-standard-c-api-reference`.
+  Please refer to `Tested Standard C++ API`_.
   
 Fixed Issues
 ------------
@@ -128,7 +129,8 @@ New in 2021.5
 New Features
 ------------
 - Added new random number distributions: ``exponential_distribution``, ``bernoulli_distribution``,
-  ``geometric_distribution``, ``lognormal_distribution``, ``weibull_distribution``, ``cachy_distribution``, ``extreme_value_distribution``.
+  ``geometric_distribution``, ``lognormal_distribution``, ``weibull_distribution``, ``cachy_distribution``,
+  ``extreme_value_distribution``.
 - Added the following algorithms (serial versions) to `Tested Standard C++ API`_: ``all_of``, ``any_of``, 
   ``none_of``, ``count``, ``count_if``, ``for_each``, ``find``, ``find_if``, ``find_if_not``.
 - Improved performance of ``search`` and ``find_end`` algorithms on GPU devices.
@@ -390,5 +392,5 @@ Known Issues and Limitations
 .. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
-.. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.rst
+.. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.html
 
