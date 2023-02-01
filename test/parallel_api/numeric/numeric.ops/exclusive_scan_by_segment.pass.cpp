@@ -168,25 +168,29 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res1 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
+        [[maybe_unused]] auto res1 =
+            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
         check_values(keys_first, val_res_first, zero, n);
 
         // call algorithm with initial value
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res2 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
+        [[maybe_unused]] auto res2 =
+            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
         check_values(keys_first, val_res_first, init, n);
 
         // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res3 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, zero,
-                                                           [](KeyT first, KeyT second) { return first == second; });
+        [[maybe_unused]] auto res3 =
+            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, zero,
+                                                   [](KeyT first, KeyT second) { return first == second; });
         check_values(keys_first, val_res_first, zero, n);
 
         // call algorithm with addition operator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res4 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
-                                                           init, [](KeyT first, KeyT second) { return first == second; },
-                                                           [](ValT first, ValT second) { return first + second; });
+        [[maybe_unused]] auto res4 = oneapi::dpl::exclusive_scan_by_segment(
+            exec, keys_first, keys_last, vals_first, val_res_first, init,
+            [](KeyT first, KeyT second) { return first == second; },
+            [](ValT first, ValT second) { return first + second; });
         check_values(keys_first, val_res_first, init, n);
     }
 
