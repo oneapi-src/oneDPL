@@ -36,7 +36,7 @@ main()
     using namespace oneapi::dpl::experimental::ranges;
 
     //the name nano::ranges::views::all is not injected into oneapi::dpl::experimental::ranges namespace
-    auto view = __nanorange::nano::views::all(data);
+    [[maybe_unused]] auto view = __nanorange::nano::views::all(data);
     auto z = zip_view(__nanorange::nano::views::all(data), __nanorange::nano::views::all(key));
 
     //check access
