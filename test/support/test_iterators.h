@@ -30,11 +30,11 @@ class output_iterator
     friend class output_iterator;
 
   public:
-    typedef std::output_iterator_tag iterator_category;
+    typedef ::std::output_iterator_tag iterator_category;
     typedef void value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -69,21 +69,20 @@ class output_iterator
     void operator,(T const &) DELETE_FUNCTION;
 };
 
-template <class It, class ItTraits = It>
+template <class It>
 class input_iterator
 {
-    typedef std::iterator_traits<ItTraits> Traits;
     It it_;
 
-    template <class U, class T>
+    template <class U>
     friend class input_iterator;
 
   public:
-    typedef std::input_iterator_tag iterator_category;
-    typedef typename Traits::value_type value_type;
-    typedef typename Traits::difference_type difference_type;
-    typedef It pointer;
-    typedef typename Traits::reference reference;
+    typedef ::std::input_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<It>::value_type value_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -93,13 +92,23 @@ class input_iterator
 
     input_iterator() : it_() {}
     explicit input_iterator(It it) : it_(it) {}
-    template <class U, class T>
-    input_iterator(const input_iterator<U, T>& u) : it_(u.it_)
+    template <class U>
+    input_iterator(const input_iterator<U>& u) : it_(u.it_)
     {
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     input_iterator&
     operator++()
@@ -130,16 +139,16 @@ class input_iterator
     void operator,(T const &) DELETE_FUNCTION;
 };
 
-template <class T, class TV, class U, class UV>
+template <class T, class U>
 inline bool
-operator==(const input_iterator<T, TV>& x, const input_iterator<U, UV>& y)
+operator==(const input_iterator<T>& x, const input_iterator<U>& y)
 {
     return x.base() == y.base();
 }
 
-template <class T, class TV, class U, class UV>
+template <class T, class U>
 inline bool
-operator!=(const input_iterator<T, TV>& x, const input_iterator<U, UV>& y)
+operator!=(const input_iterator<T>& x, const input_iterator<U>& y)
 {
     return !(x == y);
 }
@@ -153,11 +162,11 @@ class forward_iterator
     friend class forward_iterator;
 
   public:
-    typedef std::forward_iterator_tag iterator_category;
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef ::std::forward_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<It>::value_type value_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -173,8 +182,17 @@ class forward_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
-
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     forward_iterator&
     operator++()
@@ -228,11 +246,11 @@ class bidirectional_iterator
     friend class bidirectional_iterator;
 
   public:
-    typedef std::bidirectional_iterator_tag iterator_category;
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef ::std::bidirectional_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<It>::value_type value_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -248,8 +266,17 @@ class bidirectional_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
-
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     bidirectional_iterator&
     operator++()
@@ -306,11 +333,11 @@ class random_access_iterator
     friend class random_access_iterator;
 
   public:
-    typedef std::random_access_iterator_tag iterator_category;
-    typedef typename std::iterator_traits<It>::value_type value_type;
-    typedef typename std::iterator_traits<It>::difference_type difference_type;
-    typedef It pointer;
-    typedef typename std::iterator_traits<It>::reference reference;
+    typedef ::std::random_access_iterator_tag iterator_category;
+    typedef typename ::std::iterator_traits<It>::value_type value_type;
+    typedef typename ::std::iterator_traits<It>::difference_type difference_type;
+    typedef typename ::std::iterator_traits<It>::pointer pointer;
+    typedef typename ::std::iterator_traits<It>::reference reference;
 
     It
     base() const
@@ -326,8 +353,17 @@ class random_access_iterator
     }
 
     reference operator*() const { return *it_; }
-    pointer operator->() const { return ::std::addressof(this->operator*()); }
-
+    pointer operator->() const 
+    {
+        if constexpr (::std::is_pointer<It>::value)
+        {
+            return it_;
+        }
+        else
+        {
+            return it_.operator->();
+        }
+    }
 
     random_access_iterator&
     operator++()
@@ -438,7 +474,7 @@ operator>=(const random_access_iterator<T>& x, const random_access_iterator<U>& 
 }
 
 template <class T, class U>
-inline typename std::iterator_traits<T>::difference_type
+inline typename ::std::iterator_traits<T>::difference_type
 operator-(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return x.base() - y.base();
