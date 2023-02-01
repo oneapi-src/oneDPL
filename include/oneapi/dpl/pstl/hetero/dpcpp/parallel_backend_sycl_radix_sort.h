@@ -665,25 +665,24 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
 
     // radix bits represent number of processed bits in each value during one iteration
     constexpr ::std::uint32_t __radix_bits = 4;
-    constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
-    const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
     // Injecting ascending / descending status into custom name to prevent clashing kernel names
     using _RadixBitsType = ::std::integral_constant<::std::uint32_t, __radix_bits>;
     using _AscendingType = ::std::bool_constant<__is_ascending>;
     using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
 
-    using _RadixSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-        __radix_sort_one_group, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_Range>>;
-
     sycl::buffer<::std::uint32_t, 1> __tmp_buf(sycl::range<1>(0));
     sycl::buffer<_T, 1> __val_buf(sycl::range<1>(0));
     sycl::event __event{};
 
-    constexpr auto __wg_size = 64;
+    const auto __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-    if(__n <= 32768 && __wg_size*8 <= oneapi::dpl::__internal::__max_work_group_size(__exec))
+    constexpr auto __wg_size = 64;
+    if(__n <= 32768 && __wg_size*8 <= __max_wg_size)
     {
+        using _RadixSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            __radix_sort_one_group, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_Range>>;
+
         if (__n <= 64)                                                                         //v--- block size
             __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 9>, __wg_size,   1, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
@@ -720,7 +719,10 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     }
     else
     {
-        const ::std::size_t __wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+        constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_T>(__radix_bits);
+        const ::std::uint32_t __radix_states = 1 << __radix_bits;
+
+        const ::std::size_t __wg_size = __max_wg_size;
         const ::std::size_t __segments = __ceiling_div(__n, __wg_size);
 
         // additional __radix_states elements are used for getting local offsets from count values

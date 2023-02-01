@@ -173,7 +173,7 @@ private:
                         #pragma unroll
                         for (uint16_t __i = 0; __i < __block_size; ++__i)
                         {
-                            const int __bin =
+                            const uint16_t __bin =
                                 __get_bucket</*mask*/__bin_count - 1>(__order_preserving_cast<__is_asc>(__keys[__i]), __begin_bit);
     
                             //"counting" and local offset calculation
