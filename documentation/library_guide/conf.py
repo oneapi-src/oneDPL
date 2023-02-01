@@ -51,7 +51,7 @@ rst_epilog = """
 extensions = [
     'sphinx-prompt',
     'sphinx_substitution_extensions'
-	'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages'
 	]
 
 docbundle_settings = {
