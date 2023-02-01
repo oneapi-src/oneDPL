@@ -182,7 +182,7 @@ struct __single_group_scan
                     {
                        auto idx = i*wgsize + subgroup_idx*subgroup_size;
                        auto x = subgroup.load(in.begin() + idx);
-                       lacc[idx + id_in_subgroup] = x;
+                       subgroup.store(lacc.get_pointer() + idx, x);
                     }
                 }
                 else
@@ -205,7 +205,7 @@ struct __single_group_scan
                     for (uint16_t i = 0; i < elems_per_item; ++i)
                     {
                        auto idx = i*wgsize + subgroup_idx*subgroup_size;
-                       auto x = lacc[idx+id_in_subgroup];
+                       auto x = subgroup.load(lacc.get_pointer() + idx);
                        subgroup.store(out.begin() + idx, x);
                     }
                 }
