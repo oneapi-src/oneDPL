@@ -76,7 +76,9 @@
 #endif
 
 // Enable test when the TBB backend is available
-#define TEST_TBB_BACKEND_PRESENT (!defined(ONEDPL_USE_TBB_BACKEND) || ONEDPL_USE_TBB_BACKEND != 0)
+#if !defined(ONEDPL_USE_TBB_BACKEND) || ONEDPL_USE_TBB_BACKEND
+#define TEST_TBB_BACKEND_PRESENT 1
+#endif
 
 // Check for C++ standard and standard library for the use of ranges API
 #if !defined(_ENABLE_RANGES_TESTING)
