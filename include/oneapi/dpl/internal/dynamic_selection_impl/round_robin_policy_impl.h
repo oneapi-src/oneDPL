@@ -20,7 +20,7 @@
 #include <atomic>
 #include <ostream>
 #include "oneapi/dpl/dynamic_selection/ds_properties.h"
-#include "oneapi/dpl/internal/dynamic_selection/scoring_policy_defs.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 
 namespace oneapi {
 namespace dpl{
@@ -33,7 +33,7 @@ namespace experimental{
     using execution_resource_t = typename scheduler_t::execution_resource_t;
     using native_sync_t = typename scheduler_t::native_sync_t;
     using universe_container_t = typename scheduler_t::universe_container_t;
-    using selection_handle_t = ds::nop_selection_handle_t<execution_resource_t>;
+    using selection_handle_t = oneapi::dpl::experimental::nop_selection_handle_t<execution_resource_t>;
     using universe_container_size_t = typename universe_container_t::size_type;
 
     std::shared_ptr<scheduler_t> sched_;

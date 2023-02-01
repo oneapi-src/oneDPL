@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 
-#include "oneapi/dpl/internal/dynamic_selection/scoring_policy_defs.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "support/inline_scheduler.h"
 
 #include <iostream>

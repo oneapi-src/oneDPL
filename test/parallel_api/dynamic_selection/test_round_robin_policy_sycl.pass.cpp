@@ -13,16 +13,19 @@
 //
 //===----------------------------------------------------------------------===//
 
+
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection/ds.h"
 #include "support/inline_scheduler.h"
 #include "support/test_ds_utils.h"
+#include "support/sycl_sanity.h"
 
 int main() {
-  using policy_t = oneapi::dpl::experimental::static_policy_t<int_inline_scheduler_t>;
-  std::vector<int> u{4, 5, 6, 7};
-  int test_resource = 4;
-  auto f = [test_resource](int i) { return test_resource; };
+  using policy_t = oneapi::dpl::experimental::round_robin_policy;
+  std::vector<sycl::queue> u;
+  sycl::queue test_resource = build_universe(u);
+  auto n = u.size();
+  auto f = [test_resource, u, n](int i) { return u[(i-1)%n]; };
 
   if (test_cout<policy_t>()
       || test_properties<policy_t>(u, test_resource)

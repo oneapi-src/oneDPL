@@ -19,7 +19,7 @@
 #include "support/test_ds_utils.h"
 
 int main() {
-  using policy_t = ds::round_robin_policy_t<int_inline_scheduler_t>;
+  using policy_t = oneapi::dpl::experimental::round_robin_policy_t<int_inline_scheduler_t>;
   std::vector<int> u{4, 5, 6, 7};
   int test_resource = 5;
   auto f = [test_resource, u](int i) { return u[(i-1)%4]; };

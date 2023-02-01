@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#pragma once
+
 #include <queue>
 #include <thread>
 #include <mutex>
@@ -42,8 +44,8 @@ public:
         cond_.notify_one();
     }
     Queue() = default;
-    Queue(const Queue&) = delete;            // disable copying
-    Queue& operator=(const Queue&) = delete; // disable assignment
+    Queue(const Queue& q) : queue_(q.queue_) {};
+    Queue& operator=(const Queue& q) {q=q.queue_; return *this;}
 
 private:
     std::queue<T> queue_;
