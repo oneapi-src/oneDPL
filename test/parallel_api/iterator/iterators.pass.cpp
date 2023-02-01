@@ -36,10 +36,10 @@ template <typename RandomIt>
 void test_random_iterator(const RandomIt& it) {
     // check that RandomIt has all necessary publicly accessible member types
     {
-        auto t1 = typename RandomIt::difference_type{};
-        auto t2 = typename RandomIt::value_type{};
-        auto t3 = typename RandomIt::pointer{};
-        typename RandomIt::reference ref = *it;
+        [[maybe_unused]] auto t1 = typename RandomIt::difference_type{};
+        [[maybe_unused]] auto t2 = typename RandomIt::value_type{};
+        [[maybe_unused]] auto t3 = typename RandomIt::pointer{};
+        [[maybe_unused]] typename RandomIt::reference ref = *it;
         (void) typename RandomIt::iterator_category{};
     }
 
