@@ -35,7 +35,6 @@ test(sycl::queue& deviceQueue)
                 {
                     T a[] = {0, 2, 33, 52, 8, 9};
                     T b[] = {-1, -1};
-                    unsigned sa = sizeof(a) / sizeof(a[0]);
                     unsigned sb = sizeof(b) / sizeof(b[0]);
                     dpl::partial_sort_copy(Iter(a), Iter(a + 2), Iter(b), Iter(b + sb));
                     ret_acc[0] &= (b[0] == 0 && b[1] == 2);
@@ -43,7 +42,6 @@ test(sycl::queue& deviceQueue)
                 {
                     T a[] = {1, 0, 34, 2, 8, 7};
                     T b[] = {-1, -1, -1, -1};
-                    unsigned sa = sizeof(a) / sizeof(a[0]);
                     unsigned sb = sizeof(b) / sizeof(b[0]);
                     dpl::partial_sort_copy(Iter(a), Iter(a + 3), Iter(b), Iter(b + sb));
                     ret_acc[0] &= (b[0] == 0 && b[1] == 1 && b[2] == 34 && b[3] == -1);
