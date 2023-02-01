@@ -324,6 +324,7 @@ void retrieve_data()
 {
 }
 
+[[maybe_unused]]
 void update_data()
 {
 }
