@@ -21,7 +21,7 @@
 #include <cassert>
 #include <iostream>
 
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+[[maybe_unused]] constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 using oneapi::dpl::is_same;
 using oneapi::dpl::lcm;
