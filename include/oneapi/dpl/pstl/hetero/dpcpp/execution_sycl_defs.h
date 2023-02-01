@@ -384,7 +384,8 @@ template <typename _ExecutionPolicy>
 __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
-    const ::std::size_t __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
+    [[maybe_unused]] const ::std::size_t __wg_size =
+        __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
     const ::std::uint32_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
