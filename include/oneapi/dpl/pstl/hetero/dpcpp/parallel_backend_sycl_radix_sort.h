@@ -255,7 +255,6 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
 
     auto __count_rng =
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
-    using __count_rng_type = decltype(__count_rng);
 
     // Scan produces local offsets using count values.
     // There are no local offsets for the first segment, but the rest segments should be scanned
