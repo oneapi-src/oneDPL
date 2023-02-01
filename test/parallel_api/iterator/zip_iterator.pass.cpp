@@ -614,7 +614,7 @@ DEFINE_TEST(test_merge)
         retrieve_data(host_keys, host_vals, host_res_merge);
 
         auto host_first1 = host_keys.get();
-        auto host_first2 = host_vals.get();
+        [[maybe_unused]] auto host_first2 = host_vals.get();
         auto host_first3 = host_res_merge.get();
 
         for (size_t i = 0; i < ::std::min(res_size, exp_size) && is_correct; ++i)
