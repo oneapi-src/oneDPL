@@ -101,7 +101,7 @@ private:
 
     static_assert(__wg_size <= 512);
     static constexpr uint16_t __bin_count = 1 << __radix;
-    static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1;
+    static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1;//+1(init value) for exclusive scan result
 
     template<typename _T, typename _Size>
     bool __ckeck_slm_size(sycl::queue __q, _Size __n)
