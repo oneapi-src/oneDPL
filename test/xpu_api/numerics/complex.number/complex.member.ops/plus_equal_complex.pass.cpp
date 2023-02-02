@@ -35,7 +35,7 @@ test()
     c3 += ic;
     assert(c3.real() == 4);
     assert(c3.imag() == 6);
-#endif // !_PSTL_GLIBCXX_TEST_COMPLEX_PLUS_EQ_BROKEN
+#endif // !_PSTL_GLIBCXX_TEST_COMPLEX_PLUS_EQ_BROKEN && !_PSTL_ICC_TEST_COMPLEX_NON_FLOAT_COMPLEX_DEPRECATED
 
     c3 = c;
     dpl::complex<float> fc (1,1);

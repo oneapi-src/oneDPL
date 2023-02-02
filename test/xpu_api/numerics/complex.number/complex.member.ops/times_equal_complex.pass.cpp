@@ -35,7 +35,7 @@ test()
     c3 *= ic;
     assert(c3.real() == -11.5f);
     assert(c3.imag() ==   3.5f);
-#endif // !_PSTL_GLIBCXX_TEST_COMPLEX_TIMES_EQ_BROKEN
+#endif // !_PSTL_GLIBCXX_TEST_COMPLEX_TIMES_EQ_BROKEN && !_PSTL_ICC_TEST_COMPLEX_NON_FLOAT_COMPLEX_DEPRECATED
 
     c3 = c;
     dpl::complex<float> fc (1,1);
