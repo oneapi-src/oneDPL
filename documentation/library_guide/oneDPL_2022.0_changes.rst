@@ -1,6 +1,7 @@
 oneDPL 2022 Breaking Changes
 ############################
-.. note::
+
+.. Note::
     
     You may need to modify and/or rebuild your code when switching to oneDPL 2022.
 
