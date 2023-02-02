@@ -248,8 +248,6 @@ test
 public:
     bool run(sycl::queue& queue)
     {
-        //using result_type = typename Engine::scalar_type;
-
         int sum = 0;
 
         // Memory allocation
@@ -317,8 +315,6 @@ test<oneapi::dpl::ranlux24>
 public:
     bool run(sycl::queue& queue)
     {
-        //using result_type = typename oneapi::dpl::ranlux24::scalar_type;
-
         int sum = 0;
 
         // Memory allocation
