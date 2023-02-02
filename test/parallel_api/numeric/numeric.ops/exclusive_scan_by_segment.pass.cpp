@@ -312,13 +312,11 @@ main()
                      test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-#    if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
         test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
+#else
         test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#endif // TEST_DPCPP_BACKEND_PRESENT
     }
 
     {
@@ -335,13 +333,11 @@ main()
                      test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-#    if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
         test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
+#else
         test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#endif // TEST_DPCPP_BACKEND_PRESENT
     }
 
     return TestUtils::done();
