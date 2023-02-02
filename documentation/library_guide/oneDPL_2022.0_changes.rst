@@ -1,6 +1,7 @@
 oneDPL 2022 Breaking Changes
 ############################
 .. note::
+    
     You may need to modify and/or rebuild your code when switching to oneDPL 2022.
 
 This page lists the incompatible changes that occurred between the 2021.7.1 and 2022.0 releases.
