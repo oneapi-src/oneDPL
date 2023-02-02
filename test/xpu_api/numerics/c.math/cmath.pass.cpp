@@ -256,11 +256,13 @@ void test_isinf()
 
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::isinf((long double)0)), bool>::value), ""))
     IF_DOUBLE_SUPPORT(assert(dpl::isinf(-1.0) == false))
+#if !_PSTL_ICC_TEST_COMPLEX_ISINF_BROKEN
     assert(dpl::isinf(0) == false);
     assert(dpl::isinf(1) == false);
     assert(dpl::isinf(-1) == false);
     assert(dpl::isinf(std::numeric_limits<int>::max()) == false);
     assert(dpl::isinf(std::numeric_limits<int>::min()) == false);
+#endif // !_PSTL_ICC_TEST_COMPLEX_ISINF_BROKEN
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -342,11 +344,13 @@ void test_isnan()
     static_assert((std::is_same<decltype(dpl::isnan(0)), bool>::value), "");
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same<decltype(dpl::isnan((long double)0)), bool>::value), ""))
     IF_DOUBLE_SUPPORT(assert(dpl::isnan(-1.0) == false))
+#if !_PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN
     assert(dpl::isnan(0) == false);
     assert(dpl::isnan(1) == false);
     assert(dpl::isnan(-1) == false);
     assert(dpl::isnan(std::numeric_limits<int>::max()) == false);
     assert(dpl::isnan(std::numeric_limits<int>::min()) == false);
+#endif // !_PSTL_ICC_TEST_COMPLEX_ISNAN_BROKEN
 
 #ifdef __clang__
 #pragma clang diagnostic pop
