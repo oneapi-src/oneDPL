@@ -19,7 +19,6 @@
 
 #include <atomic>
 #include <ostream>
-#include "oneapi/dpl/dynamic_selection/ds_properties.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 
 namespace oneapi {

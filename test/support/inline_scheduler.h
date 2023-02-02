@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
-#include "oneapi/dpl/dynamic_selection/ds_properties.h"
+#include "oneapi/dpl/dynamic_selection"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
 
 #include <ostream>
 #include <vector>

@@ -15,7 +15,7 @@
 
 
 #include <iostream>
-#include "oneapi/dpl/dynamic_selection/ds.h"
+#include "oneapi/dpl/dynamic_selection"
 #include "support/inline_scheduler.h"
 #include "support/test_ds_utils.h"
 #include "support/sycl_sanity.h"

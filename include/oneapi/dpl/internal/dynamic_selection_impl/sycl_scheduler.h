@@ -19,7 +19,6 @@
 #pragma once
 
 #include <CL/sycl.hpp>
-#include "oneapi/dpl/dynamic_selection/ds_properties.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
