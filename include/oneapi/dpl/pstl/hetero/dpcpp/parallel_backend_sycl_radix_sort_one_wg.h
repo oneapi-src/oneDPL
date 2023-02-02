@@ -159,9 +159,9 @@ private:
                 __dpl_sycl::__group_barrier(__it);
                 while (true)
                 {
-                    uint16_t __indices[__block_size]; //indices for inderect access in the "re-order" phase
+                    uint16_t __indices[__block_size]; //indices for indirect access in the "re-order" phase
                     {
-                        uint32_t* __counters[__block_size]; //pointers(by perfomance reasons) to bucket's counters
+                        uint32_t* __counters[__block_size]; //pointers(by performance reasons) to bucket's counters
     
                         //1. "counting" phase
                         //counter initialization
@@ -185,7 +185,7 @@ private:
     
                         //2. scan phase
                         {
-                            //TODO: probably can be futher optimized
+                            //TODO: probably can be further optimized
     
                             //scan contiguous numbers
                             uint16_t __bin_sum[__bin_count];
