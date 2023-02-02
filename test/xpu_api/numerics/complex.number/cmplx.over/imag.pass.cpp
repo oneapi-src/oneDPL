@@ -12,11 +12,6 @@
 //   T
 //   imag(const T& x);
 
-// Warning	G2904547A	'complex' is deprecated: warning STL4037:
-// The effect of instantiating the template std::complex for any type other than float, double, or long double is unspecified.
-// You can define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING to suppress this warning. [-Wdeprecated-declarations]
-#define _SILENCE_NONFLOATING_COMPLEX_DEPRECATION_WARNING
-
 #include "support/test_complex.h"
 
 #include "../cases.h"
@@ -61,9 +56,11 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
+#if !_PSTL_ICC_TEST_COMPLEX_NON_FLOAT_COMPLEX_DEPRECATED
     test<int>();
     test<unsigned>();
     test<long long>();
+#endif // !_PSTL_ICC_TEST_COMPLEX_NON_FLOAT_COMPLEX_DEPRECATED
 
   return 0;
 }
