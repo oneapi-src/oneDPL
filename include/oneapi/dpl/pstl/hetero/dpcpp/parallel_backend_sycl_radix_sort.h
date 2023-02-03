@@ -685,7 +685,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         using _RadixSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
             __radix_sort_one_group, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_Range>>;
 
-        if (__n <= 64) //v--- block size
+        if (__n <= 64)
             __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 9>, __wg_size, 1, __radix_bits,
                                             __is_ascending>{}(__exec.queue(), __in_rng);
         else if (__n <= 128)
