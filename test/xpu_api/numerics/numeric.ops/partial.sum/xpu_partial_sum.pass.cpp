@@ -42,11 +42,10 @@ template <class InIter, class OutIter, class Test> void test() {
     deviceQueue.submit([&](sycl::handler &cgh) {
       auto in = buffer1.get_access<sycl_read>(cgh);
       auto out = buffer2.get_access<sycl_write>(cgh);
-            cgh.single_task<Test>(
-                [=]() {
-                    [[maybe_unused]] OutIter r =
-                        oneapi::dpl::partial_sum(InIter(&in[0]), InIter(&in[0] + 5), OutIter(&out[0]));
-                });
+      cgh.single_task<Test>([=]() {
+        OutIter r = oneapi::dpl::partial_sum(InIter(&in[0]), InIter(&in[0] + 5),
+                                             OutIter(&out[0]));
+      });
     });
   }
   int ref[5] = {1, 3, 6, 10, 15};
