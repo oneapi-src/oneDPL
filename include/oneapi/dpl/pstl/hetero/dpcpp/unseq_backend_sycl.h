@@ -185,6 +185,24 @@ struct __init_processing
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
+struct transform_init_seq
+{
+    _Operation1 __binary_op;
+    _Operation2 __unary_op;
+
+    template <typename _Size, typename _AccLocal, typename... _Acc>
+    void
+    operator()(_Size __n, _AccLocal& __local_mem, const _Acc&... __acc) const
+    {
+        auto __res = __unary_op(0, __acc...);
+        // Add neighbour to the current __local_mem
+        for (::std::size_t __i = 1; __i < __n; ++__i)
+            __res = __binary_op(__res, __unary_op(__i, __acc...));
+        __local_mem = __res;
+    }
+};
+
+template <typename _ExecutionPolicy, ::std::size_t __iters_per_work_item, typename _Operation1, typename _Operation2>
 struct transform_init
 {
     _Operation1 __binary_op;
@@ -192,21 +210,49 @@ struct transform_init
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id,
+    operator()(const _NDItemId __item, _Size __n, ::std::size_t __items_to_process, ::std::size_t __global_id,
                ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
-        ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
-        _Size __adjusted_n = __global_offset + __n;
-        if (__adjusted_global_id < __adjusted_n)
+        if (__items_to_process > 0)
         {
+            ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
+                typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+                // Add neighbour to the current __local_mem
+            if (__items_to_process == __iters_per_work_item)
+            {
+                #pragma unroll __iters_per_work_item
+                for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
+                    __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            }
+            else
+            {
+                for (::std::size_t __i = 1; __i < __items_to_process; ++__i)
+                    __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            }
+            __local_mem[__item.get_local_id(0)] = __res;
+        }
+    }
+};
+
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
+struct transform_init_cpu
+{
+    _Operation1 __binary_op;
+    _Operation2 __unary_op;
+
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
+    void
+    operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __items_to_process,
+               ::std::size_t __global_id, _AccLocal& __local_mem,
+               const _Acc&... __acc) const
+    {
+        if (__items_to_process > 0)
+        {
+            ::std::size_t __adjusted_global_id = __iters_per_work_item * __global_id;
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
-            for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
-            {
-                ::std::size_t __shifted_id = __adjusted_global_id + __i;
-                if (__shifted_id < __adjusted_n)
-                    __res = __binary_op(__res, __unary_op(__shifted_id, __acc...));
-            }
+            for (::std::size_t __i = 1; __i < __items_to_process; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__item.get_local_id(0)] = __res;
         }
     }

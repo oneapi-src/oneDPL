@@ -19,6 +19,7 @@
 #include "../algorithm_fwd.h"
 #include "../parallel_backend.h"
 #include "utils_hetero.h"
+#include <type_traits>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/utils_ranges_sycl.h"
@@ -316,15 +317,10 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
     auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-               ::std::forward<_ExecutionPolicy>(__exec),
-               unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
-                                             decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-               unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), _NoOpFunctor>{
-                   __identity_reduce_fn, _NoOpFunctor{}},
-               unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
-                   __identity_reduce_fn},
-               unseq_backend::__no_init_value{}, //no initial value
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
+               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_init_fn), _NoOpFunctor>(
+               ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
+               unseq_backend::__no_init_value{}, // no initial value
                ::std::forward<_Range>(__rng))
         .get();
 }
@@ -561,15 +557,10 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
     };
 
     auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-            ::std::forward<_ExecutionPolicy>(__exec),
-            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
-                                          decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), _NoOpFunctor>{
-                __identity_reduce_fn, _NoOpFunctor{}},
-            unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
-                __identity_reduce_fn},
-            unseq_backend::__no_init_value{}, //no initial value
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
+                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
+            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
+            unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
             .get();
 
@@ -600,16 +591,10 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
     auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
 
     _ReduceValueType __ret =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-            ::std::forward<_ExecutionPolicy>(__exec),
-            unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>,
-                                          decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
-                                                                        __identity_init_fn},
-            unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _NoOpFunctor>{
-                __identity_reduce_fn<_Compare>{__comp}, _NoOpFunctor{}},
-            unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
-                __identity_reduce_fn<_Compare>{__comp}},
-            unseq_backend::__no_init_value{}, //no initial value
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, __identity_reduce_fn<_Compare>,
+                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
+            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn<_Compare>{__comp}, __identity_init_fn,
+            unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
             .get();
 
