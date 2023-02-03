@@ -60,9 +60,9 @@ struct run_unique_copy
         ::std::fill_n(out_first, n, trash);
 
         // Run unique_copy
-        [[maybe_unused]] auto i = unique_copy(first, last, expected_first);
         auto k = unique_copy(exec, first, last, out_first);
 #if !TEST_DPCPP_BACKEND_PRESENT
+        unique_copy(first, last, expected_first);
         EXPECT_EQ_N(expected_first, out_first, n, "wrong unique_copy effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -70,6 +70,7 @@ struct run_unique_copy
         }
         EXPECT_TRUE(out_last == k, "wrong return value from unique_copy");
 #else
+        auto i = unique_copy(first, last, expected_first);
         auto expected_count = ::std::distance(expected_first, i);
         auto out_count = ::std::distance(out_first, k);
 
@@ -119,9 +120,9 @@ struct run_unique_copy_predicate
         ::std::fill_n(out_first, n, trash);
 
         // Run unique_copy with predicate
-        [[maybe_unused]] auto i = unique_copy(first, last, expected_first, pred);
         auto k = unique_copy(exec, first, last, out_first, pred);
 #if !TEST_DPCPP_BACKEND_PRESENT
+        unique_copy(first, last, expected_first, pred);
         EXPECT_EQ_N(expected_first, out_first, n, "wrong unique_copy with predicate effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -129,6 +130,7 @@ struct run_unique_copy_predicate
         }
         EXPECT_TRUE(out_last == k, "wrong return value from unique_copy with predicate");
 #else
+        auto i = unique_copy(first, last, expected_first, pred);
         auto expected_count = ::std::distance(expected_first, i);
         auto out_count = ::std::distance(out_first, k);
 
