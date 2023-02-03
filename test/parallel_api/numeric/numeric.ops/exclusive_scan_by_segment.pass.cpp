@@ -108,8 +108,7 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        [[maybe_unused]] auto res1 =
-            oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
+        auto res1 = oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
@@ -120,9 +119,8 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        [[maybe_unused]] auto res2 =
-            oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first, init,
-                                                   [](KeyT first, KeyT second) { return first == second; });
+        auto res2 = oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first,
+                                                           init, [](KeyT first, KeyT second) { return first == second; });
         exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
@@ -133,18 +131,16 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
-        [[maybe_unused]] auto res3 = oneapi::dpl::exclusive_scan_by_segment(
-            new_policy3, keys_first, keys_last, vals_first, val_res_first, init,
-            [](KeyT first, KeyT second) { return first == second; },
-            [](ValT first, ValT second) { return first + second; });
+        auto res3 = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first, val_res_first,
+                                                           init, [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_val_res);
         check_values(host_keys.get(), host_val_res.get(), init, n);
 
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
-        [[maybe_unused]] auto res4 =
-            oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first, val_res_first);
+        auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_val_res);
@@ -171,29 +167,25 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
-        [[maybe_unused]] auto res1 =
-            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
+        auto res1 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
         check_values(keys_first, val_res_first, zero, n);
 
         // call algorithm with initial value
         initialize_data(keys_first, vals_first, val_res_first, n);
-        [[maybe_unused]] auto res2 =
-            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
+        auto res2 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
         check_values(keys_first, val_res_first, init, n);
 
         // call algorithm with equality comparator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        [[maybe_unused]] auto res3 =
-            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, zero,
-                                                   [](KeyT first, KeyT second) { return first == second; });
+        auto res3 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, zero,
+                                                           [](KeyT first, KeyT second) { return first == second; });
         check_values(keys_first, val_res_first, zero, n);
 
         // call algorithm with addition operator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        [[maybe_unused]] auto res4 = oneapi::dpl::exclusive_scan_by_segment(
-            exec, keys_first, keys_last, vals_first, val_res_first, init,
-            [](KeyT first, KeyT second) { return first == second; },
-            [](ValT first, ValT second) { return first + second; });
+        auto res4 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
+                                                           init, [](KeyT first, KeyT second) { return first == second; },
+                                                           [](ValT first, ValT second) { return first + second; });
         check_values(keys_first, val_res_first, init, n);
     }
 
