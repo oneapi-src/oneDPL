@@ -202,6 +202,7 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res0;
                         oneapi::dpl::ranlux24_vec<N> engine(engine1);
+                        [[maybe_unused]] auto eng = engine.base();
                         res0 = engine();
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res1 = engine1();
                         std::int32_t is_inequal = 0;
@@ -337,6 +338,7 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24::result_type res0;
                         oneapi::dpl::ranlux24 engine(engine1);
+                        [[maybe_unused]] auto eng = engine.base();
                         res0 = engine();
                         typename oneapi::dpl::ranlux24::result_type res1 = engine1();
                         if (res0 != res1)
