@@ -133,10 +133,6 @@ struct __subgroup_radix_sort
 
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
 
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
-        auto __kernel_id = sycl::get_kernel_id<_KernelName>();
-        auto __bundle = sycl::get_kernel_bundle<sycl::bundle_state::executable>(__q.get_context(), {__kernel_id});
-#endif
         _TempBuf<_KeyT, _SLM_tag> __buf_val(__block_size * __wg_size);
         _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
 
@@ -147,9 +143,6 @@ struct __subgroup_radix_sort
             auto __exchange_lacc = __buf_val.get_acc(__cgh);
             auto __counter_lacc = __buf_count.get_acc(__cgh);
 
-#if _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__bundle);
-#endif
             __cgh.parallel_for<_KernelName>(
                 __range, ([=](sycl::nd_item<1> __it)[[sycl::reqd_sub_group_size(__req_sub_group_size)]] {
                     _KeyT __keys[__block_size];
