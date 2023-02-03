@@ -326,11 +326,13 @@ retrieve_data(TTestDataTransfer& helper)
     helper.retrieve_data();
 }
 
-[[maybe_unused]]
-void update_data()
+template <typename TTestDataTransfer>
+void
+update_data(TTestDataTransfer& helper)
 {
+    helper.update_data();
 }
-};
+}; // namespace
 
 /// Copy data from source test data storage into local buffers
 template <typename TTestDataTransfer, typename... Args>
