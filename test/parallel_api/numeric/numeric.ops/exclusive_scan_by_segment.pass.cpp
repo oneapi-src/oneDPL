@@ -291,7 +291,7 @@ struct UserBinaryOperation<::std::complex<_Tp>>
     ::std::complex<_Tp>
     operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
     {
-        return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
+        return (complex_abs(__x) < complex_abs(__y)) ? __y : __x;
     }
 };
 
