@@ -362,9 +362,6 @@ __parallel_transform_reduce_gpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__reduce_gpu_kernel, _CustomName,
                                                                                _ReduceOp, _TransformOp, _Ranges...>;
 
-    // __iters_per_work_item shows number of elements to reduce on global memory
-    // __work_group_size shows number of elements to reduce on local memory
-
 #if _ONEDPL_COMPILE_KERNEL
     auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
     __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
@@ -377,13 +374,20 @@ __parallel_transform_reduce_gpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
         unseq_backend::transform_init_gpu<_ExecutionPolicy, _ReduceOp, _Functor>{__reduce_op, _Functor{}};
     auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size);
-
+    // __iters_per_work_item shows number of elements to reduce on global memory
+    // __work_group_size shows number of elements to reduce on local memory
+    // Limit the work-group size to multiples of 32 up to 256, empirically tested
+    ::std::size_t __n_wg = (__n - 1) / 32 + 1;
+    __work_group_size = ::std::min(__work_group_size, __n_wg * 32);
+    __work_group_size = ::std::min(__work_group_size, (::std::size_t)256);
     const ::std::size_t __iters_per_work_item = 32;
+    
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
     ::std::size_t __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
     ::std::size_t __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of work items
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size);
 
     // Create temporary global buffers to store temporary values
     sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
