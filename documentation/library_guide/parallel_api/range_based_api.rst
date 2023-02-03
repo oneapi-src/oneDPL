@@ -97,7 +97,7 @@ Only the ranges shown below and ``sycl::buffer`` are available as ranges for ran
 * ``views::all_read``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading on a device.
 * ``views::all_write``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for writing on a device.
 * ``views::host_all``: A custom utility that represents a view of all or a part of ``sycl::buffer`` underlying elements for reading and writing on the host.
-* ``views::subrange``: A utility that represents a view of united shared memory (USM) data range defined by a two USM pointers.
+* ``views::subrange``: A utility that represents a view of unified shared memory (USM) data range defined by a two USM pointers.
 * ``views::zip``: A custom range adapter that produces one ``zip_view`` from other several views.
 * ``views::transform``: A range adapter that represents a view of a underlying sequence after applying a transformation to each element.
 * ``views::reverse``: A range adapter that produces a reversed sequence of elements provided by another view.
