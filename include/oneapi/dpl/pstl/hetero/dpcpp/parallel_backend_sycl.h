@@ -331,7 +331,7 @@ __parallel_transform_reduce_single_wg(_ExecutionPolicy&& __exec, ::std::size_t _
                     __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
                     __items_to_transform =
                         (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item : __items_to_transform;
-                    __transform_pattern(__item_id, __n, __items_to_transform, __global_idx, /*global_offset*/ 0,
+                    __transform_pattern(__local_idx, __n, __items_to_transform, __global_idx, /*global_offset*/ 0,
                                         __temp_local, __rngs...);
                     __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory
@@ -348,7 +348,7 @@ __parallel_transform_reduce_single_wg(_ExecutionPolicy&& __exec, ::std::size_t _
 }
 
 // GPU parallel_transform_reduce - uses an iterative tree-based approach
-template <::std::size_t __iters_per_work_item, typename _Tp, typename _ReduceOp, typename _TransformOp,
+template <typename _Tp, typename _ReduceOp, typename _TransformOp,
           typename _Functor, typename _ExecutionPolicy, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
@@ -371,16 +371,15 @@ __parallel_transform_reduce_gpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
                                                           ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
 
-    auto __transform_pattern1 =
-        unseq_backend::transform_init<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
-            __reduce_op, _TransformOp{__transform_op}};
+    auto __transform_pattern1 = unseq_backend::transform_init_gpu<_ExecutionPolicy, _ReduceOp, _TransformOp>{
+        __reduce_op, _TransformOp{__transform_op}};
     auto __transform_pattern2 =
-        unseq_backend::transform_init<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _Functor>{__reduce_op,
-                                                                                                    _Functor{}};
+        unseq_backend::transform_init_gpu<_ExecutionPolicy, _ReduceOp, _Functor>{__reduce_op, _Functor{}};
     auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size);
 
+    const ::std::size_t __iters_per_work_item = 32;
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
     ::std::size_t __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
@@ -429,12 +428,12 @@ __parallel_transform_reduce_gpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
                                                                                               : __items_to_transform;
                         if (__is_first)
                         {
-                            __transform_pattern1(__item_id, __n, __items_to_transform, __global_idx,
+                            __transform_pattern1(__local_idx, __n, __items_to_transform, __global_idx,
                                                  /*global_offset*/ 0, __temp_local, __rngs...);
                         }
                         else
                         {
-                            __transform_pattern2(__item_id, __n, __items_to_transform, __global_idx, __offset_2,
+                            __transform_pattern2(__local_idx, __n, __items_to_transform, __global_idx, __offset_2,
                                                  __temp_local, __temp_acc);
                         }
                         __dpl_sycl::__group_barrier(__item_id);
@@ -525,7 +524,7 @@ __parallel_transform_reduce_cpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
                     __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
                     __items_to_transform =
                         (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item : __items_to_transform;
-                    __transform_pattern(__item_id, __n, __items_to_transform, __global_idx, /*global_offset*/ 0,
+                    __transform_pattern(__local_idx, __n, __items_to_transform, __global_idx, /*global_offset*/ 0,
                                         __temp_local, __rngs...);
                     __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory
@@ -621,7 +620,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
             if (__exec.queue().get_device().is_gpu())
             {
                 // 32 elements per work items was emperically tested
-                return __parallel_transform_reduce_gpu<32, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_gpu<_Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_op, __transform_op,
                     __init, ::std::forward<_Ranges>(__rngs)...);
             }
