@@ -16,6 +16,7 @@
 #ifndef _ONEDPL_parallel_backend_sycl_radix_sort_one_wg_H
 #define _ONEDPL_parallel_backend_sycl_radix_sort_one_wg_H
 
+//The file is an internal file and the code of that file is included by a major file into the following namespaces:
 //namespace oneapi
 //{
 //namespace dpl
