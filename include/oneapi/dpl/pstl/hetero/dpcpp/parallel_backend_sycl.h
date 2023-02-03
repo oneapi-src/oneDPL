@@ -583,7 +583,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
         // change __work_group_size according to local memory limit
         __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(
             ::std::forward<_ExecutionPolicy>(__exec), sizeof(_Tp), __work_group_size);
-        if (__n <= 16384 && __work_group_size >= 512)
+        if (__n <= 65536 && __work_group_size >= 512)
         {
             if (__n <= 128)
                 return __parallel_transform_reduce_single_wg<128, 1, _Tp, _ReduceOp, _TransformOp, _Functor>(
@@ -613,8 +613,16 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                 return __parallel_transform_reduce_single_wg<512, 16, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
-            else
+            else if (__n <= 16384)
                 return __parallel_transform_reduce_single_wg<512, 32, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                    ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
+                    ::std::forward<_Ranges>(__rngs)...);
+            else if (__n <= 32768)
+                return __parallel_transform_reduce_single_wg<512, 64, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                    ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
+                    ::std::forward<_Ranges>(__rngs)...);
+            else
+                return __parallel_transform_reduce_single_wg<512, 128, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
         }
