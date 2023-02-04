@@ -186,14 +186,15 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 // item info
                 const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                 const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
+                const ::std::size_t __seg_start = __blocks_per_segment * __block_size * __wgroup_idx;
 
                 // 1.1. count per witem: create a private array for storing count values
                 _CountT __count_arr[__radix_states] = {0};
                 // 1.2. count per witem: count values and write result to private count array
-                const ::std::size_t __outside_of_segment =
-                    sycl::min(__start_idx + __block_size * __blocks_per_segment, __val_buf_size);
-                for (::std::size_t __val_idx = __start_idx; __val_idx < __outside_of_segment; __val_idx += __block_size)
+                const ::std::size_t __seg_end =
+                    sycl::min(__seg_start + __block_size * __blocks_per_segment, __val_buf_size);
+                for (::std::size_t __val_idx = __seg_start + __self_lidx; __val_idx < __seg_end;
+                     __val_idx += __block_size)
                 {
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                     auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
