@@ -17,8 +17,8 @@
 //
 // Common functionality for device tests
 
-#ifndef _ONEDPL_RANDOM_DEVICE_TESTS_COMMON
-#define _ONEDPL_RANDOM_DEVICE_TESTS_COMMON
+#ifndef _ONEDPL_RANDOM_DEVICE_TESTS_COMMON_H
+#define _ONEDPL_RANDOM_DEVICE_TESTS_COMMON_H
 
 #include <oneapi/dpl/random>
 #include <limits>
@@ -104,4 +104,4 @@ int device_copyable_test(sycl::queue& queue) {
     return comparison(r_dev, r_host, N);
 }
 
-#endif // ifndef _ONEDPL_RANDOM_DEVICE_TESTS_COMMON
+#endif // _ONEDPL_RANDOM_DEVICE_TESTS_COMMON_H
