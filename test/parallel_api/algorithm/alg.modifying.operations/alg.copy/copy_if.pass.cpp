@@ -66,9 +66,9 @@ struct run_copy_if
         ::std::fill_n(out_first, n, trash);
 
         // Run copy_if
+        auto i = copy_if(first, last, expected_first, pred);
         auto k = copy_if(exec, first, last, out_first, pred);
 #if !TEST_DPCPP_BACKEND_PRESENT
-        copy_if(first, last, expected_first, pred);
         EXPECT_EQ_N(expected_first, out_first, n, "wrong copy_if effect");
         for (size_t j = 0; j < GuardSize; ++j)
         {
@@ -76,7 +76,6 @@ struct run_copy_if
         }
         EXPECT_TRUE(out_last == k, "wrong return value from copy_if");
 #else
-        auto i = copy_if(first, last, expected_first, pred);
         auto expected_count = ::std::distance(expected_first, i);
         auto out_count = ::std::distance(out_first, k);
         EXPECT_TRUE(expected_count == out_count, "wrong return value from copy_if");
