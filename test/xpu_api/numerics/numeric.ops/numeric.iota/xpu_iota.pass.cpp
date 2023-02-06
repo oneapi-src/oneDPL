@@ -21,8 +21,6 @@
 #include "support/utils_sycl.h"
 #include "support/test_iterators.h"
 
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
-
 template <class T> class KernelTest;
 
 template <typename _T1, typename _T2> void ASSERT_EQUAL(_T1 &&X, _T2 &&Y) {
@@ -39,7 +37,7 @@ template <class InIter> void test() {
   {
     sycl::buffer<int, 1> buffer1(output, numOfItems1);
     deviceQueue.submit([&](sycl::handler &cgh) {
-      auto out = buffer1.get_access<sycl_write>(cgh);
+      auto out = buffer1.get_access<sycl::access::mode::write>(cgh);
       cgh.single_task<class KernelTest<InIter>>([=]() {
         oneapi::dpl::iota(InIter(&out[0]), InIter(&out[0] + 5), 5);
       });
