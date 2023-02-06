@@ -182,4 +182,4 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
 
 } // namespace oneapi
 
-#endif /* _ONEDPL_ASYNC_EXTENSION_DEFS_H */
+#endif // _ONEDPL_ASYNC_EXTENSION_DEFS_H
