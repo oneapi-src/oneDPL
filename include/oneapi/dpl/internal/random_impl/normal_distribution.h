@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Normal Distribution
 
-#ifndef _ONEDPL_NORMAL_DISTRIBUTION
-#define _ONEDPL_NORMAL_DISTRIBUTION
+#ifndef _ONEDPL_NORMAL_DISTRIBUTION_H
+#define _ONEDPL_NORMAL_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -421,4 +421,4 @@ class normal_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_NORMAL_DISTRIBUTION
+#endif // _ONEDPL_NORMAL_DISTRIBUTION_H

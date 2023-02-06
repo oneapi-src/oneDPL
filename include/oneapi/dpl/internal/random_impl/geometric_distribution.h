@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Geometric Distribution
 
-#ifndef _ONEDPL_GEOMETRIC_DISTRIBUTION
-#define _ONEDPL_GEOMETRIC_DISTRIBUTION
+#ifndef _ONEDPL_GEOMETRIC_DISTRIBUTION_H
+#define _ONEDPL_GEOMETRIC_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -207,4 +207,4 @@ class geometric_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_GEOMETRIC_DISTRIBUTION
+#endif // _ONEDPL_GEOMETRIC_DISTRIBUTION_H

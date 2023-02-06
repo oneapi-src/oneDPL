@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Lognormal Distribution
 
-#ifndef _ONEDPL_LOGNORMAL_DISTRIBUTION
-#define _ONEDPL_LOGNORMAL_DISTRIBUTION
+#ifndef _ONEDPL_LOGNORMAL_DISTRIBUTION_H
+#define _ONEDPL_LOGNORMAL_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -233,4 +233,4 @@ class lognormal_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_LOGNORMAL_DISTRIBUTION
+#endif // _ONEDPL_LOGNORMAL_DISTRIBUTION_H
