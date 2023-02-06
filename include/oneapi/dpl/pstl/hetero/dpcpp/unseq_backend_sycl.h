@@ -210,16 +210,19 @@ struct transform_init
 
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __items_to_process,
-               const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
-               const _Acc&... __acc) const
+    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __global_id,
+               const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
-        if (__items_to_process > 0)
+        ::std::size_t __items_to_transform = __n - (__iters_per_work_item * __global_id);
+        __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
+        __items_to_transform =
+            (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item : __items_to_transform;
+        if (__items_to_transform > 0)
         {
             ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
-            if (__items_to_process == __iters_per_work_item)
+            if (__items_to_transform == __iters_per_work_item)
             {
 #pragma unroll __iters_per_work_item
                 for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
@@ -227,7 +230,7 @@ struct transform_init
             }
             else
             {
-                for (::std::size_t __i = 1; __i < __items_to_process; ++__i)
+                for (::std::size_t __i = 1; __i < __items_to_transform; ++__i)
                     __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             }
             __local_mem[__local_id] = __res;
@@ -244,15 +247,18 @@ struct transform_init_cpu
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
     operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item,
-               const ::std::size_t __items_to_process, const ::std::size_t __global_id, _AccLocal& __local_mem,
-               const _Acc&... __acc) const
+               const ::std::size_t __global_id, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
-        if (__items_to_process > 0)
+        ::std::size_t __items_to_transform = __n - (__iters_per_work_item * __global_id);
+        __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
+        __items_to_transform =
+            (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item : __items_to_transform;
+        if (__items_to_transform > 0)
         {
             ::std::size_t __adjusted_global_id = __iters_per_work_item * __global_id;
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
-            for (::std::size_t __i = 1; __i < __items_to_process; ++__i)
+            for (::std::size_t __i = 1; __i < __items_to_transform; ++__i)
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_id] = __res;
         }
@@ -267,10 +273,12 @@ struct transform_init_gpu
 
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __items_to_transform,
-               const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
-               const _Acc&... __acc) const
+    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __global_id,
+               const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
+        ::std::size_t __items_to_transform = __n - (32 * __global_id);
+        __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
+        __items_to_transform = (__items_to_transform > 32) ? 32 : __items_to_transform;
         ::std::size_t __adjusted_global_id = __global_offset + 32 * __global_id;
         if (__items_to_transform == 32)
         {

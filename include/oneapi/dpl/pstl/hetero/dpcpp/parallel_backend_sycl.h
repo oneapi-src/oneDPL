@@ -284,7 +284,6 @@ __parallel_transform_reduce_seq(_ExecutionPolicy&& __exec, ::std::size_t __n, _R
         __reduce_op, _TransformOp{__transform_op}};
     auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-    // Create temporary global buffers to store temporary values
     sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
     sycl::event __reduce_event = __exec.queue().submit(
@@ -323,9 +322,8 @@ __parallel_transform_reduce_single_wg(_ExecutionPolicy&& __exec, ::std::size_t _
             __reduce_op, _TransformOp{__transform_op}};
     auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-    ::std::size_t __n_items = (__n - 1) / __iters_per_work_item + 1; // number of work items
+    const ::std::size_t __n_items = __ceiling_div(__n, __iters_per_work_item); // number of work items
 
-    // Create temporary global buffers to store temporary values
     sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
     sycl::event __reduce_event = __exec.queue().submit(
@@ -341,12 +339,7 @@ __parallel_transform_reduce_single_wg(_ExecutionPolicy&& __exec, ::std::size_t _
                     ::std::size_t __global_idx = __item_id.get_global_id(0);
                     ::std::size_t __local_idx = __item_id.get_local_id(0);
                     // 1. Initialization (transform part). Fill local memory
-                    ::std::size_t __items_to_transform = __n - (__iters_per_work_item * __global_idx);
-                    __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
-                    __items_to_transform =
-                        (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item : __items_to_transform;
-                    __transform_pattern(__local_idx, __n, __items_to_transform, __global_idx, /*global_offset*/ 0,
-                                        __temp_local, __rngs...);
+                    __transform_pattern(__local_idx, __n, __global_idx, /*global_offset*/ 0, __temp_local, __rngs...);
                     __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory
                     _Tp __result = __reduce_pattern(__item_id, __global_idx, __n_items, __temp_local);
@@ -391,15 +384,15 @@ __parallel_transform_reduce_gpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
     // __iters_per_work_item shows number of elements to reduce on global memory
     // __work_group_size shows number of elements to reduce on local memory
     // Limit the work-group size to multiples of 32 up to 256, empirically tested
-    ::std::size_t __n_wg = (__n - 1) / 32 + 1;
+    ::std::size_t __n_wg = __ceiling_div(__n, 32);
     __work_group_size = ::std::min(__work_group_size, __n_wg * 32);
     __work_group_size = ::std::min(__work_group_size, (::std::size_t)256);
     const ::std::size_t __iters_per_work_item = 32;
 
     ::std::size_t __size_per_work_group =
         __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
-    ::std::size_t __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
-    ::std::size_t __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of work items
+    ::std::size_t __n_groups = __ceiling_div(__n, __size_per_work_group); // number of work groups
+    ::std::size_t __n_items = __ceiling_div(__n, __iters_per_work_item);  // number of work items
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size);
 
@@ -440,19 +433,14 @@ __parallel_transform_reduce_gpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
                         ::std::size_t __global_idx = __item_id.get_global_id(0);
                         ::std::size_t __local_idx = __item_id.get_local_id(0);
                         // 1. Initialization (transform part). Fill local memory
-                        ::std::size_t __items_to_transform = __n - (__iters_per_work_item * __global_idx);
-                        __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
-                        __items_to_transform = (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item
-                                                                                              : __items_to_transform;
                         if (__is_first)
                         {
-                            __transform_pattern1(__local_idx, __n, __items_to_transform, __global_idx,
+                            __transform_pattern1(__local_idx, __n, __global_idx,
                                                  /*global_offset*/ 0, __temp_local, __rngs...);
                         }
                         else
                         {
-                            __transform_pattern2(__local_idx, __n, __items_to_transform, __global_idx, __offset_2,
-                                                 __temp_local, __temp_acc);
+                            __transform_pattern2(__local_idx, __n, __global_idx, __offset_2, __temp_local, __temp_acc);
                         }
                         __dpl_sycl::__group_barrier(__item_id);
                         // 2. Reduce within work group using local memory
@@ -474,8 +462,8 @@ __parallel_transform_reduce_gpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
             __is_first = false;
         ::std::swap(__offset_1, __offset_2);
         __n = __n_groups;
-        __n_items = (__n - 1) / __iters_per_work_item + 1;
-        __n_groups = (__n - 1) / __size_per_work_group + 1;
+        __n_items = __ceiling_div(__n, __iters_per_work_item);
+        __n_groups = __ceiling_div(__n, __size_per_work_group);
     } while (__n > 1);
 
     return __future(__reduce_event, __res);
@@ -507,12 +495,12 @@ __parallel_transform_reduce_cpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
 
     // distribution is ~1 work groups per compute unit on CPU
     auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
-    const ::std::size_t __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
+    const ::std::size_t __iters_per_work_item = __ceiling_div(__n, (__max_compute_units * __work_group_size));
     auto __transform_pattern = unseq_backend::transform_init_cpu<_ExecutionPolicy, _ReduceOp, _TransformOp>{
         __reduce_op, _TransformOp{__transform_op}};
     auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-    ::std::size_t __n_items = (__n - 1) / __iters_per_work_item + 1; // number of work items
+    const ::std::size_t __n_items = __ceiling_div(__n, __iters_per_work_item); // number of work items
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
 
@@ -520,7 +508,7 @@ __parallel_transform_reduce_cpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
     sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
     sycl::event __reduce_event = __exec.queue().submit(
-        [&, __n, __n_items](sycl::handler& __cgh)
+        [&, __n, __n_items, __iters_per_work_item](sycl::handler& __cgh)
         {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
             auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
@@ -538,12 +526,7 @@ __parallel_transform_reduce_cpu(_ExecutionPolicy&& __exec, ::std::size_t __n, ::
                     ::std::size_t __global_idx = __item_id.get_global_id(0);
                     ::std::size_t __local_idx = __item_id.get_local_id(0);
                     // 1. Initialization (transform part). Fill local memory
-                    ::std::size_t __items_to_transform = __n - (__iters_per_work_item * __global_idx);
-                    __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
-                    __items_to_transform =
-                        (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item : __items_to_transform;
-                    __transform_pattern(__local_idx, __n, __items_to_transform, __global_idx, /*global_offset*/ 0,
-                                        __temp_local, __rngs...);
+                    __transform_pattern(__local_idx, __n, __iters_per_work_item, __global_idx, __temp_local, __rngs...);
                     __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory
                     _Tp __result = __reduce_pattern(__item_id, __global_idx, __n_items, __temp_local);
