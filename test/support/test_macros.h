@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SUPPORT_TEST_MACROS_HPP
-#define SUPPORT_TEST_MACROS_HPP
+#ifndef _SUPPORT_TEST_MACROS_H
+#define _SUPPORT_TEST_MACROS_H
 
 // Attempt to get STL specific macros like _LIBCPP_VERSION using the most
 // minimal header possible. If we're testing libc++, we should use `<__config>`.
@@ -420,4 +420,4 @@ inline void DoNotOptimize(Tp const& value) {
 #define TEST_NO_UNIQUE_ADDRESS
 #endif
 
-#endif // SUPPORT_TEST_MACROS_HPP
+#endif // _SUPPORT_TEST_MACROS_H

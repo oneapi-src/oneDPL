@@ -167,4 +167,4 @@ namespace TestUtils
 
 } /* namespace TestUtils */
 
-#endif /* _TEST_COMPLEX_H */
+#endif // _TEST_COMPLEX_H
