@@ -270,4 +270,4 @@ __pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _I
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_ASYNC_IMPL_HETERO_H */
+#endif // _ONEDPL_ASYNC_IMPL_HETERO_H
