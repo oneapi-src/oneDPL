@@ -571,4 +571,4 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_UTILS_H */
+#endif // _ONEDPL_UTILS_H

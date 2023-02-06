@@ -237,4 +237,4 @@ using __value_t = typename __range_traits<_R>::__value_t;
 #    include "hetero/dpcpp/execution_sycl_defs.h"
 #endif
 
-#endif /* _ONEDPL_EXECUTION_POLICY_DEFS_H */
+#endif // _ONEDPL_EXECUTION_POLICY_DEFS_H

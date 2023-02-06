@@ -466,4 +466,4 @@ struct __range_traits<oneapi::dpl::__ranges::zip_view<_Ranges...>>
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_UTILS_RANGES_H */
+#endif // _ONEDPL_UTILS_RANGES_H

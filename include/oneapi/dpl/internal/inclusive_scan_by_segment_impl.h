@@ -171,4 +171,4 @@ inclusive_scan_by_key(Policy&& policy, InputIter1 first1, InputIter1 last1, Inpu
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H

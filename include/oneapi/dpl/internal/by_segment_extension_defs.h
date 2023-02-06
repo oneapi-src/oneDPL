@@ -86,4 +86,4 @@ reduce_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, 
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_BY_SEGMENT_EXTENSION_DEFS_H

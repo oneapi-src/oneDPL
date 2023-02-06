@@ -236,4 +236,4 @@ exclusive_scan_by_key(Policy&& policy, InputIterator1 first1, InputIterator1 las
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_EXCLUSIVE_SCAN_BY_SEGMENT_IMPL_H

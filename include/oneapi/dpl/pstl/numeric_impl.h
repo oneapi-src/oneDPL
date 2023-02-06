@@ -396,4 +396,4 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _RandomAccessIterator1 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_NUMERIC_IMPL_H */
+#endif // _ONEDPL_NUMERIC_IMPL_H

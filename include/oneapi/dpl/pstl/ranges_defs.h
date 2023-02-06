@@ -70,4 +70,4 @@ using __nanorange::nano::subrange;
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_RANGES_DEFS_H */
+#endif // _ONEDPL_RANGES_DEFS_H

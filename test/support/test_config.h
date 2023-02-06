@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _TEST_config_H
-#define _TEST_config_H
+#ifndef _TEST_CONFIG_H
+#define _TEST_CONFIG_H
 
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
@@ -115,4 +115,4 @@
 #define _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_SIN_IS_CASE_BROKEN __clang__
 
-#endif /* _TEST_config_H */
+#endif // _TEST_CONFIG_H

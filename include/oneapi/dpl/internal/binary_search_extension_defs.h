@@ -62,4 +62,4 @@ binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIt
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_BINARY_SEARCH_EXTENSION_DEFS_H

@@ -146,4 +146,4 @@ __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterat
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_PARALLEL_BACKEND_SERIAL_H */
+#endif // _ONEDPL_PARALLEL_BACKEND_SERIAL_H

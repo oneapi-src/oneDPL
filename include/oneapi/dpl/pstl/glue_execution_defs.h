@@ -60,4 +60,4 @@ using oneapi::dpl::execution::unsequenced_policy;
 #include "numeric_impl.h"
 #include "parallel_backend.h"
 
-#endif /* _ONEDPL_GLUE_EXECUTION_DEFS_H */
+#endif // _ONEDPL_GLUE_EXECUTION_DEFS_H

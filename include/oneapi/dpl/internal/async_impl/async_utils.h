@@ -51,4 +51,4 @@ using __enable_if_device_execution_policy_double_no_default = typename ::std::en
 
 } // namespace oneapi
 
-#endif /* _ONEDPL_ASYNC_UTILS_H */
+#endif // _ONEDPL_ASYNC_UTILS_H

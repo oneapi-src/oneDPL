@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Cauchy Distribution
 
-#ifndef _ONEDPL_CAUCHY_DISTRIBUTION
-#define _ONEDPL_CAUCHY_DISTRIBUTION
+#ifndef _ONEDPL_CAUCHY_DISTRIBUTION_H
+#define _ONEDPL_CAUCHY_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -218,4 +218,4 @@ class cauchy_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_CAUCHY_DISTRIBUTION
+#endif // _ONEDPL_CAUCHY_DISTRIBUTION_H

@@ -1214,4 +1214,4 @@ shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bidirect
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_GLUE_ALGORITHM_IMPL_H */
+#endif // _ONEDPL_GLUE_ALGORITHM_IMPL_H

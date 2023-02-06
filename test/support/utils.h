@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __UTILS_H
-#define __UTILS_H
+#ifndef _UTILS_H
+#define _UTILS_H
 
 // File contains common utilities that tests rely on
 
@@ -697,4 +697,4 @@ struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::de
 
 } /* namespace TestUtils */
 
-#endif // __UTILS_H
+#endif // _UTILS_H

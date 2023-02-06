@@ -529,4 +529,4 @@ struct __get_sycl_range
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_UTILS_RANGES_SYCL_H */
+#endif // _ONEDPL_UTILS_RANGES_SYCL_H

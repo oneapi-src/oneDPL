@@ -244,4 +244,4 @@ reduce_by_key(Policy&& policy, InputIt1 first1, InputIt1 last1, InputIt2 first2,
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_REDUCE_BY_SEGMENT_IMPL_H

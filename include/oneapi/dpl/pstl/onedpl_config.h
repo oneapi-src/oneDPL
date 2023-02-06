@@ -283,4 +283,4 @@
 #    define _ONEDPL_SYCL_INTEL_COMPILER 1
 #endif
 
-#endif /* _ONEDPL_CONFIG_H */
+#endif // _ONEDPL_CONFIG_H

@@ -43,4 +43,4 @@
 #    endif
 #endif // __cplusplus >= 201703L
 
-#endif
+#endif // _ONEDPL_COMMON_CONFIG_H
