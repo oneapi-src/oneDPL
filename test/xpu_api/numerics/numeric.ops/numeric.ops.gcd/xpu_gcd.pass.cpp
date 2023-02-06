@@ -21,10 +21,6 @@
 #include <cassert>
 #include <iostream>
 
-#if !defined(_WIN32)
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
-#endif // !defined(_WIN32)
-
 template <typename T1, typename T2>
 class KernelName;
 
@@ -49,7 +45,7 @@ do_test(sycl::queue& deviceQueue)
     {
         sycl::buffer<bool, 1> buffer1(&res, numOfItems1);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto out = buffer1.get_access<sycl_write>(cgh);
+            auto out = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<KernelName<Input1, Input2>>([=]() {
                 using S1 = oneapi::dpl::make_signed_t<Input1>;
                 using S2 = oneapi::dpl::make_signed_t<Input2>;
