@@ -268,8 +268,8 @@ template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _Fun
           typename _InitType, oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
           typename... _Ranges>
 auto
-__parallel_transform_reduce_seq(_ExecutionPolicy&& __exec, ::std::size_t __n, _ReduceOp __reduce_op,
-                                _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
+__parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, ::std::size_t __n, _ReduceOp __reduce_op,
+                                          _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -306,8 +306,8 @@ template <::std::size_t __work_group_size, ::std::size_t __iters_per_work_item, 
           typename _TransformOp, typename _Functor, typename _ExecutionPolicy, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
-__parallel_transform_reduce_single_wg(_ExecutionPolicy&& __exec, ::std::size_t __n, _ReduceOp __reduce_op,
-                                      _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
+__parallel_transform_reduce_small_submitter(_ExecutionPolicy&& __exec, ::std::size_t __n, _ReduceOp __reduce_op,
+                                            _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -365,11 +365,9 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
         __reduce_kernel, _CustomName, _ReduceOp, _TransformOp1, _TransformOp2, _Ranges...>;
 
-    // __iters_per_work_item shows number of elements to reduce on global memory
-    // __work_group_size shows number of elements to reduce on local memory
-
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel = __internal::__kernel_compiler<__i_kernel_name<_ReduceKernel, _IsGPU{}>>::__compile(
+        ::std::forward<_ExecutionPolicy>(__exec));
     __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                           ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
@@ -425,7 +423,7 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-                __cgh.parallel_for<_ReduceKernel>(
+                __cgh.parallel_for<__i_kernel_name<_ReduceKernel, _IsGPU{}>>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                     __kernel,
 #endif
@@ -485,7 +483,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
     assert(__n > 0);
 
     if (__n <= 64)
-        return __parallel_transform_reduce_seq<_Tp, _ReduceOp, _TransformOp, _Functor>(
+        return __parallel_transform_reduce_seq_submitter<_Tp, _ReduceOp, _TransformOp, _Functor>(
             ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
             ::std::forward<_Ranges>(__rngs)...);
     else
@@ -501,43 +499,43 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
         if (__n <= 65536 && __work_group_size >= 512)
         {
             if (__n <= 128)
-                return __parallel_transform_reduce_single_wg<128, 1, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<128, 1, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 256)
-                return __parallel_transform_reduce_single_wg<256, 1, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<256, 1, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 512)
-                return __parallel_transform_reduce_single_wg<512, 1, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 1, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 1024)
-                return __parallel_transform_reduce_single_wg<512, 2, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 2, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 2048)
-                return __parallel_transform_reduce_single_wg<512, 4, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 4, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 4096)
-                return __parallel_transform_reduce_single_wg<512, 8, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 8, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 8192)
-                return __parallel_transform_reduce_single_wg<512, 16, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 16, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 16384)
-                return __parallel_transform_reduce_single_wg<512, 32, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 32, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else if (__n <= 32768)
-                return __parallel_transform_reduce_single_wg<512, 64, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 64, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
             else
-                return __parallel_transform_reduce_single_wg<512, 128, _Tp, _ReduceOp, _TransformOp, _Functor>(
+                return __parallel_transform_reduce_small_submitter<512, 128, _Tp, _ReduceOp, _TransformOp, _Functor>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                     ::std::forward<_Ranges>(__rngs)...);
         }
@@ -551,7 +549,6 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                 auto __transform_pattern2 =
                     unseq_backend::transform_init_gpu<_ExecutionPolicy, _ReduceOp, _Functor>{__reduce_op, _Functor{}};
                 auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
-                // 32 elements per work items was emperically tested
                 return __parallel_transform_reduce_submitter<_Tp, ::std::true_type>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
                     __transform_pattern1, __transform_pattern2, __init, ::std::forward<_Ranges>(__rngs)...);
