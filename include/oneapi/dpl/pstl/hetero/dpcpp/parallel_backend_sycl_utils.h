@@ -55,13 +55,18 @@ using __decay_t = typename ::std::decay<_T>::type;
 template <bool __flag, typename _T = void>
 using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
 
+//-----------------------------------------------------------------------
+// Generic bit- and number-manipulation routines
+// TODO: move to pstl/utils.h
+//-----------------------------------------------------------------------
+
 // Bitwise type casting, same as C++20 std::bit_cast
 template <typename _Dst, typename _Src>
 __enable_if_t<
     sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
-#if SYCL_LANGUAGE_VERSION >= 2020
+#if _ONEDPL_LIBSYCL_VERSION >= 50300
     return sycl::bit_cast<_Dst>(__src);
 #elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
     return ::std::bit_cast<_Dst>(__src);
@@ -80,7 +85,7 @@ __enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T
 __dpl_bit_floor(_T __x) noexcept
 {
     if (__x == 0) return 0;
-#if SYCL_LANGUAGE_VERSION >= 2020
+#if SYCL_LANGUAGE_VERSION
     // Use the count-leading-zeros function
     return 1 << (sycl::clz(_T{0}) - sycl::clz(__x) - 1);
 #elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
@@ -106,7 +111,9 @@ __ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __diviso
     return (__number - 1) / __divisor + 1;
 }
 
-// function to hide zip_iterator creation
+//-----------------------------------------------------------------------
+
+// function to simplify zip_iterator creation
 template <typename... T>
 oneapi::dpl::zip_iterator<T...>
 zip(T... args)
@@ -143,6 +150,10 @@ make_wrapped_policy(_Policy&& __policy)
 
 namespace __internal
 {
+
+//-----------------------------------------------------------------------
+// Kernel name generation helpers
+//-----------------------------------------------------------------------
 
 // extract the deepest kernel name when we have a policy wrapper that might hide the default name
 template <typename _CustomName>
