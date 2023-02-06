@@ -370,4 +370,4 @@ uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __fi
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_GLUE_MEMORY_IMPL_H */
+#endif // _ONEDPL_GLUE_MEMORY_IMPL_H

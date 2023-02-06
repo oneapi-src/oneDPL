@@ -4140,4 +4140,4 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_ALGORITHM_IMPL_H */
+#endif // _ONEDPL_ALGORITHM_IMPL_H

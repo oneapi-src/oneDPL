@@ -151,4 +151,4 @@ struct __prefer_parallel_tag
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_EXECUTION_IMPL_H */
+#endif // _ONEDPL_EXECUTION_IMPL_H

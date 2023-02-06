@@ -895,4 +895,4 @@ __simd_remove_if(_RandomAccessIterator __first, _DifferenceType __n, _UnaryPredi
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_UNSEQ_BACKEND_SIMD_H */
+#endif // _ONEDPL_UNSEQ_BACKEND_SIMD_H

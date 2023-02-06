@@ -264,4 +264,4 @@ __set_symmetric_difference_construct(_ForwardIterator1 __first1, _ForwardIterato
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_PARALLEL_BACKEND_UTILS_H */
+#endif // _ONEDPL_PARALLEL_BACKEND_UTILS_H
