@@ -202,6 +202,7 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res0;
                         oneapi::dpl::ranlux24_vec<N> engine(engine1);
+                        // Next line required: we want to control here that base() method exist and return some result.
                         [[maybe_unused]] auto eng = engine.base();
                         res0 = engine();
                         typename oneapi::dpl::ranlux24_vec<N>::result_type res1 = engine1();
@@ -344,6 +345,7 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24::result_type res0;
                         oneapi::dpl::ranlux24 engine(engine1);
+                        // Next line required: we want to control here that base() method exist and return some result.
                         [[maybe_unused]] auto eng = engine.base();
                         res0 = engine();
                         typename oneapi::dpl::ranlux24::result_type res1 = engine1();
