@@ -27,12 +27,6 @@
 #include <math.h>
 #include "statistics_common.h"
 
-// Engine parameters
-constexpr auto a = 40014u;
-constexpr auto c = 200u;
-constexpr auto m = 2147483563u;
-constexpr auto seed = 777;
-
 template <typename ScalarRealType>
 int
 statistics_check(int nsamples, ScalarRealType lambda, const std::vector<ScalarRealType>& samples)
@@ -65,7 +59,7 @@ test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> lambda,
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(seed, offset);
                 oneapi::dpl::exponential_distribution<RealType> distr(lambda);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
@@ -109,7 +103,7 @@ test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType>
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * n_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(seed, offset);
                 oneapi::dpl::exponential_distribution<RealType> distr(lambda);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);

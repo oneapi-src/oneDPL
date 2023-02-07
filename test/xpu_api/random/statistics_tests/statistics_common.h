@@ -16,6 +16,8 @@
 #include <iostream>
 #include <vector>
 
+#include "../default_engine_params.h"
+
 template <typename ScalarIntType>
 int
 compare_moments(int nsamples, const std::vector<ScalarIntType>& samples, double tM, double tD, double tQ)

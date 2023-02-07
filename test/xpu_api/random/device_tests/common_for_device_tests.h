@@ -27,7 +27,8 @@
 
 #include "support/utils.h"
 
-constexpr auto seed = 777;
+#include "../default_engine_params.h"
+
 constexpr int N = 96;
 
 template <typename Fp>
@@ -59,7 +60,7 @@ int device_copyable_test(sycl::queue& queue) {
     using result_type = typename Distr::result_type;
     using scalar_type = typename Distr::scalar_type;
     
-    Engine engine(seed);
+    Engine engine(DefaultEngineParams::seed);
     Distr distr;
 
     for (int i = 0; i < 99; i++)

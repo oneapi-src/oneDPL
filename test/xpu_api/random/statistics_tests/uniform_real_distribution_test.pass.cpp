@@ -26,12 +26,6 @@
 #include <oneapi/dpl/random>
 #include "statistics_common.h"
 
-// Engine parameters
-constexpr auto a = 40014u;
-constexpr auto c = 200u;
-constexpr auto m = 2147483563u;
-constexpr auto seed = 777;
-
 template<typename RealType>
 std::int32_t statistics_check(int nsamples, RealType left, RealType right,
     const std::vector<RealType>& samples)
@@ -62,7 +56,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> lef
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::uniform_real_distribution<RealType> distr(left, right);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
@@ -105,7 +99,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealT
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * n_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::uniform_real_distribution<RealType> distr(left, right);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);

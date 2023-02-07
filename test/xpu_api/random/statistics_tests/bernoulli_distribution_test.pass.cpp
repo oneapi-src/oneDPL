@@ -26,12 +26,6 @@
 #include <math.h>
 #include "statistics_common.h"
 
-// Engine parameters
-constexpr auto a = 40014u;
-constexpr auto c = 200u;
-constexpr auto m = 2147483563u;
-constexpr auto seed = 777;
-
 int
 statistics_check(int nsamples, double p, bool* samples)
 {
@@ -65,7 +59,7 @@ test(sycl::queue& queue, double p, int nsamples)
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / num_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::bernoulli_distribution<BoolType> distr(p);
 
                 sycl::vec<bool, num_elems> res = distr(engine);
@@ -111,7 +105,7 @@ test_portion(sycl::queue& queue, double p, int nsamples, unsigned int part)
 
             cgh.parallel_for<>(sycl::range<1>(nsamples / n_elems), [=](sycl::item<1> idx) {
                 unsigned long long offset = idx.get_linear_id() * n_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::bernoulli_distribution<BoolType> distr(p);
 
                 sycl::vec<bool, num_elems> res = distr(engine, part);

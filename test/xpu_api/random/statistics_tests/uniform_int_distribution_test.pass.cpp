@@ -27,10 +27,10 @@
 #include "statistics_common.h"
 
 // Engine parameters
-constexpr auto a = 40014u;
-constexpr auto c = 200u;
-constexpr auto m = 2147483647u;
-constexpr auto seed = 777;
+namespace UniformDistributionEngineParams
+{
+    constexpr auto m = 2147483647u;
+};
 
 template<typename IntType>
 std::int32_t statistics_check(int nsamples, IntType left, IntType right,
@@ -65,7 +65,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<IntType> left
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, UniformDistributionEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::uniform_int_distribution<IntType> distr(left, right);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<IntType>, num_elems> res = distr(engine);
@@ -108,7 +108,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<IntTy
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * n_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, UniformDistributionEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::uniform_int_distribution<IntType> distr(left, right);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<IntType>, num_elems> res = distr(engine, part);

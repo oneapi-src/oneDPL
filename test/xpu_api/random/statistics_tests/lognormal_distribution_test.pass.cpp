@@ -27,12 +27,6 @@
 #include <math.h>
 #include "statistics_common.h"
 
-// Engine parameters
-constexpr auto a = 40014u;
-constexpr auto c = 200u;
-constexpr auto m = 2147483563u;
-constexpr auto seed = 777;
-
 template<typename ScalarRealType>
 int statistics_check(int nsamples, ScalarRealType mean, ScalarRealType stddev,
     const std::vector<ScalarRealType>& samples) {
@@ -63,7 +57,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> mea
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::lognormal_distribution<RealType> distr(mean, stddev);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
@@ -106,7 +100,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealT
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(DefaultEngineParams::seed, offset);
                 oneapi::dpl::lognormal_distribution<RealType> distr(mean, stddev);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
