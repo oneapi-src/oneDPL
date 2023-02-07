@@ -283,20 +283,16 @@ __parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, ::std::size
 
     sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
-    sycl::event __reduce_event = __exec.queue().submit(
-        [&, __n](sycl::handler& __cgh)
-        {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-            auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
-            __cgh.single_task<_ReduceKernel>(
-                [=]
-                {
-                    _Tp __result;
-                    __transform_pattern(__n, __result, __rngs...);
-                    __reduce_pattern.apply_init(__init, __result);
-                    __res_acc[0] = __result;
-                });
+    sycl::event __reduce_event = __exec.queue().submit([&, __n](sycl::handler& __cgh) {
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+        auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
+        __cgh.single_task<_ReduceKernel>([=] {
+            _Tp __result;
+            __transform_pattern(__n, __result, __rngs...);
+            __reduce_pattern.apply_init(__init, __result);
+            __res_acc[0] = __result;
         });
+    });
 
     return __future(__reduce_event, __res);
 }
@@ -323,30 +319,27 @@ __parallel_transform_reduce_small_submitter(_ExecutionPolicy&& __exec, ::std::si
 
     sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
-    sycl::event __reduce_event = __exec.queue().submit(
-        [&, __n, __n_items](sycl::handler& __cgh)
-        {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-            auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
-            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
-            __cgh.parallel_for<__i_kernel_name<_ReduceKernel, __work_group_size + __iters_per_work_item>>(
-                sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
-                [=](sycl::nd_item<1> __item_id)
+    sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+        auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
+        __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
+        __cgh.parallel_for<__i_kernel_name<_ReduceKernel, __work_group_size + __iters_per_work_item>>(
+            sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
+            [=](sycl::nd_item<1> __item_id) {
+                ::std::size_t __global_idx = __item_id.get_global_id(0);
+                ::std::size_t __local_idx = __item_id.get_local_id(0);
+                // 1. Initialization (transform part). Fill local memory
+                __transform_pattern(__local_idx, __n, __global_idx, /*global_offset*/ 0, __temp_local, __rngs...);
+                __dpl_sycl::__group_barrier(__item_id);
+                // 2. Reduce within work group using local memory
+                _Tp __result = __reduce_pattern(__item_id, __global_idx, __n_items, __temp_local);
+                if (__local_idx == 0)
                 {
-                    ::std::size_t __global_idx = __item_id.get_global_id(0);
-                    ::std::size_t __local_idx = __item_id.get_local_id(0);
-                    // 1. Initialization (transform part). Fill local memory
-                    __transform_pattern(__local_idx, __n, __global_idx, /*global_offset*/ 0, __temp_local, __rngs...);
-                    __dpl_sycl::__group_barrier(__item_id);
-                    // 2. Reduce within work group using local memory
-                    _Tp __result = __reduce_pattern(__item_id, __global_idx, __n_items, __temp_local);
-                    if (__local_idx == 0)
-                    {
-                        __reduce_pattern.apply_init(__init, __result);
-                        __res_acc[0] = __result;
-                    }
-                });
-        });
+                    __reduce_pattern.apply_init(__init, __result);
+                    __res_acc[0] = __result;
+                }
+            });
+    });
 
     return __future(__reduce_event, __res);
 }
@@ -410,56 +403,52 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
     sycl::event __reduce_event;
     do
     {
-        __reduce_event = __exec.queue().submit(
-            [&, __is_first, __offset_1, __offset_2, __n, __n_items, __n_groups,
-             __iters_per_work_item](sycl::handler& __cgh)
-            {
-                __cgh.depends_on(__reduce_event);
+        __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n, __n_items, __n_groups,
+                                                __iters_per_work_item](sycl::handler& __cgh) {
+            __cgh.depends_on(__reduce_event);
 
-                oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-                auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-                auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
-                __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+            auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
+            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-                __cgh.parallel_for<__i_kernel_name<_ReduceKernel, _IsGPU{}>>(
+            __cgh.parallel_for<__i_kernel_name<_ReduceKernel, _IsGPU{}>>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                    __kernel,
+                __kernel,
 #endif
-                    sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size),
-                                      sycl::range<1>(__work_group_size)),
-                    [=](sycl::nd_item<1> __item_id)
+                sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
+                [=](sycl::nd_item<1> __item_id) {
+                    ::std::size_t __global_idx = __item_id.get_global_id(0);
+                    ::std::size_t __local_idx = __item_id.get_local_id(0);
+                    // 1. Initialization (transform part). Fill local memory
+                    if (__is_first)
                     {
-                        ::std::size_t __global_idx = __item_id.get_global_id(0);
-                        ::std::size_t __local_idx = __item_id.get_local_id(0);
-                        // 1. Initialization (transform part). Fill local memory
-                        if (__is_first)
+                        __transform_op1(__local_idx, __n, __iters_per_work_item, __global_idx,
+                                        /*global_offset*/ 0, __temp_local, __rngs...);
+                    }
+                    else
+                    {
+                        __transform_op2(__local_idx, __n, __iters_per_work_item, __global_idx, __offset_2, __temp_local,
+                                        __temp_acc);
+                    }
+                    __dpl_sycl::__group_barrier(__item_id);
+                    // 2. Reduce within work group using local memory
+                    _Tp __result = __reduce_op(__item_id, __global_idx, __n_items, __temp_local);
+                    if (__local_idx == 0)
+                    {
+                        //final reduction
+                        if (__n_groups == 1)
                         {
-                            __transform_op1(__local_idx, __n, __iters_per_work_item, __global_idx,
-                                            /*global_offset*/ 0, __temp_local, __rngs...);
+                            __reduce_op.apply_init(__init, __result);
+                            __res_acc[0] = __result;
                         }
-                        else
-                        {
-                            __transform_op2(__local_idx, __n, __iters_per_work_item, __global_idx, __offset_2,
-                                            __temp_local, __temp_acc);
-                        }
-                        __dpl_sycl::__group_barrier(__item_id);
-                        // 2. Reduce within work group using local memory
-                        _Tp __result = __reduce_op(__item_id, __global_idx, __n_items, __temp_local);
-                        if (__local_idx == 0)
-                        {
-                            //final reduction
-                            if (__n_groups == 1)
-                            {
-                                __reduce_op.apply_init(__init, __result);
-                                __res_acc[0] = __result;
-                            }
 
-                            __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
-                        }
-                    });
-            });
+                        __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
+                    }
+                });
+        });
         if (__is_first)
             __is_first = false;
         ::std::swap(__offset_1, __offset_2);
@@ -844,8 +833,7 @@ struct __early_exit_find_or
                     __found_local.store(1);
                 else
                 {
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
-                         __old = __found_local.load())
+                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
                         __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
