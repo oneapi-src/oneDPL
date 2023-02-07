@@ -194,11 +194,10 @@ struct transform_init_seq
     void
     operator()(const _Size __n, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
-        auto __res = __unary_op(0, __acc...);
+        __local_mem = __unary_op(0, __acc...);
         // Add neighbour to the current __local_mem
         for (::std::size_t __i = 1; __i < __n; ++__i)
-            __res = __binary_op(__res, __unary_op(__i, __acc...));
-        __local_mem = __res;
+            __local_mem = __binary_op(__local_mem, __unary_op(__i, __acc...));
     }
 };
 
