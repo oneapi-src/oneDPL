@@ -174,6 +174,18 @@ Equal(std::int32_t x, std::int32_t y)
     return x == y;
 }
 
+template <typename T, typename Compare>
+bool check_by_predicate(T t1, T t2, Compare c)
+{
+    return !c(t2, t1);
+}
+
+template <typename T>
+bool check_by_predicate(T t1, T t2)
+{
+    return !(t2 < t1);
+}
+
 template <typename InputIterator, typename OutputIterator1, typename OutputIterator2, typename Size>
 void
 copy_data(InputIterator first, OutputIterator1 expected_first, OutputIterator1 expected_last, OutputIterator2 tmp_first,
@@ -193,14 +205,21 @@ sort_data(Params&& ...params)
         ::std::sort(::std::forward<Params>(params)...);
 }
 
-template <typename OutputIterator1, typename OutputIterator2, typename Size>
+template <typename OutputIterator1, typename OutputIterator2, typename Size, typename... Compare>
 void
-check_results(OutputIterator1 expected_first, OutputIterator2 tmp_first, Size n, const char* error_msg)
+check_results(OutputIterator1 expected_first, OutputIterator2 tmp_first, Size n, const char* error_msg, Compare... compare)
 {
+    auto pred = *tmp_first;
     for (size_t i = 0; i < n; ++i, ++expected_first, ++tmp_first)
     {
         // Check that expected[i] is equal to tmp[i]
         EXPECT_TRUE(Equal(*expected_first, *tmp_first), error_msg);
+        // Compare with the previous element using the predicate
+        if (i > 1 && i < n-1) // first and last were not sorted
+        {
+            EXPECT_TRUE(check_by_predicate(pred, *tmp_first, compare...), error_msg);
+        }
+        pred = *tmp_first;
     }
 }
 
@@ -235,7 +254,7 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
     // check result
     dt_helper.retrieve_data(_it_from);
 
-    check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #2");
+    check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #2", compare...);
 
     const std::int32_t count1 = KeyCount;
     EXPECT_EQ(count0, count1, "key cleanup error");
@@ -257,7 +276,7 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
     const std::int32_t count0 = KeyCount;
     sort_data(::std::forward<Policy>(exec), tmp_first + 1, tmp_last - 1, compare...);
 
-    check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #1");
+    check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #1", compare...);
 
     const std::int32_t count1 = KeyCount;
     EXPECT_EQ(count0, count1, "key cleanup error");
