@@ -124,8 +124,8 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 template< bool _Inclusive>
 struct __single_group_scan
 {
-    template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation>
-    static void apply(_Policy const & __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, ::std::uint32_t __wg_size)
+    template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
+    static void apply(_Policy const & __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op, ::std::uint32_t __wg_size)
     {
         using _RangeValueType = decltype(*__in.begin());
         using _ValueType = decltype(__bin_op(std::declval<_RangeValueType>(), std::declval<_RangeValueType>()));
@@ -134,7 +134,6 @@ struct __single_group_scan
         using _GroupScanKernel =
                      oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_dynamic_kernel, _CustomName, _BinaryOperation, _InRng, _OutRng>;
 
-        //::uint32_t elems_per_item = (__n+__wg_size-1)/__wg_size;
         ::uint32_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
         ::uint32_t __elems_per_wg = __elems_per_item * __wg_size;
 
@@ -147,7 +146,7 @@ struct __single_group_scan
                 for (uint16_t __i = 0; __i < __elems_per_item; ++__i)
                 {
                    auto __global_idx = __i * __wg_size + __item_id;
-                   __lacc[__global_idx] = __global_idx < __n ? __in[__global_idx] : _ValueType{};
+                   __lacc[__global_idx] = __global_idx < __n ? __unary_op(__in[__global_idx]) : _ValueType{};
                 }
 
                 __group_scan<_ValueType>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
@@ -163,77 +162,75 @@ struct __single_group_scan
         __event.wait();
     }
 
-    template<::uint32_t ElemsPerItem, ::uint32_t WGSize, bool _IsFullGroup, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation>
-    static void apply(_Policy const & policy, _InRng in, _OutRng out, std::size_t N, _InitType __init, _BinaryOperation __bin_op)
+    template<::uint32_t _ElemsPerItem, ::uint32_t _WGSize, bool _IsFullGroup, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
+    static void apply(_Policy const & __policy, _InRng __in, _OutRng __out, std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op)
     {
-        using _RangeValueType = decltype(*in.begin());
+        using _RangeValueType = decltype(*__in.begin());
         using _ValueType = decltype(__bin_op(std::declval<_RangeValueType>(), std::declval<_RangeValueType>()));
         using _CustomName = typename _Policy::kernel_name;
         using _GroupScanKernel =
-                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_kernel, _CustomName, _BinaryOperation, std::integral_constant<bool, _Inclusive>, std::integral_constant<bool, _IsFullGroup>, _InRng, _OutRng, std::integral_constant<::std::size_t, ElemsPerItem>, std::integral_constant<std::size_t, WGSize>>;
+                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_kernel, _CustomName, _BinaryOperation, std::integral_constant<bool, _Inclusive>, std::integral_constant<bool, _IsFullGroup>, _InRng, _OutRng, std::integral_constant<::std::size_t, _ElemsPerItem>, std::integral_constant<std::size_t, _WGSize>>;
 
-        constexpr ::uint32_t elems_per_item = ElemsPerItem;
-        constexpr ::uint32_t wgsize = WGSize;
-        constexpr ::uint32_t elems_per_wg = elems_per_item*wgsize;
+        constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
-        auto event = policy.queue().submit([&](sycl::handler& hdl) {
-            auto lacc = sycl::accessor<_ValueType, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{elems_per_wg}, hdl);
-            hdl.parallel_for<__par_backend_hetero::__tunable_kernel_name<_GroupScanKernel, ElemsPerItem*WGSize, _IsFullGroup, _Inclusive>>(sycl::nd_range<1>(wgsize, wgsize), [=](sycl::nd_item<1> __self_item) {
-                const auto& group = __self_item.get_group();
-                const auto& subgroup = __self_item.get_sub_group();
-                const auto id = __self_item.get_local_linear_id();
-                int subgroup_idx = subgroup.get_group_id();
-                int id_in_subgroup = subgroup.get_local_id();
-                int subgroup_size = subgroup.get_local_linear_range();
+        auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+            auto __lacc = sycl::accessor<_ValueType, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{__elems_per_wg}, __hdl);
+            __hdl.parallel_for<__par_backend_hetero::__tunable_kernel_name<_GroupScanKernel, __elems_per_wg, _IsFullGroup, _Inclusive>>(sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
+                const auto& __group = __self_item.get_group();
+                const auto& __subgroup = __self_item.get_sub_group();
+                const auto __item_id = __self_item.get_local_linear_id();
+                int __subgroup_id = __subgroup.get_group_id();
+                int __id_in_subgroup = __subgroup.get_local_id();
+                int __subgroup_size = __subgroup.get_local_linear_range();
 
                 if constexpr (_IsFullGroup)
                 {
                     #pragma unroll
-                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    for (uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                     {
-                       auto idx = i*wgsize + subgroup_idx*subgroup_size;
-                       auto x = subgroup.load(in.begin() + idx);
-                       subgroup.store(lacc.get_pointer() + idx, x);
+                       auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                       auto __val = __unary_op(__subgroup.load(__in.begin() + __idx));
+                       __subgroup.store(__lacc.get_pointer() + __idx, __val);
                     }
                 }
                 else
                 {
                     #pragma unroll
-                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    for (uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                     {
-                       auto idx = i*wgsize + id;
-                       auto x = idx < N ? in[idx] : _ValueType{};
-                       lacc[idx] = x;
+                       auto __idx = __i * _WGSize + __item_id;
+                       auto __val = __idx < __n ? __in[__idx] : _ValueType{};
+                       __lacc[__idx] = __val;
                     }
 
                 }
 
-                __group_scan<_ValueType>(group, lacc.get_pointer(), lacc.get_pointer()+N, __bin_op, __init);
+                __group_scan<_ValueType>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
 
                 if constexpr (_IsFullGroup)
                 {
                     #pragma unroll
-                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    for (uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                     {
-                       auto idx = i*wgsize + subgroup_idx*subgroup_size;
-                       auto x = subgroup.load(lacc.get_pointer() + idx);
-                       subgroup.store(out.begin() + idx, x);
+                       auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                       auto __val = __subgroup.load(__lacc.get_pointer() + __idx);
+                       __subgroup.store(__out.begin() + __idx, __val);
                     }
                 }
                 else
                 {
                     #pragma unroll
-                    for (uint16_t i = 0; i < elems_per_item; ++i)
+                    for (uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                     {
-                       auto idx = i*wgsize + id;
-                       if (idx < N)
-                           out[idx] = lacc[idx];
+                       auto __idx = __i * _WGSize + __item_id;
+                       if (__idx < __n)
+                           __out[__idx] = __lacc[__idx];
                     }
 
                 }
             });
         });
-        event.wait();
+        __event.wait();
     }
 
     template<typename _ValueType, typename _Group, typename _Begin, typename _End, typename _BinaryOperation>
@@ -294,7 +291,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                                  sizeof(_Type), __work_group_size);
         // Specialization for devices that have a max work-group szie of 1024
-        constexpr int __max_wg_size = 1024999999;
+        constexpr int __max_wg_size = 1024;
 
         if (__work_group_size == __max_wg_size)
         {
@@ -305,9 +302,9 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
                 const bool __is_full_group = __n == __wg_size;
 
                 if (__is_full_group)
-                    __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, true>(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+                    __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, true>(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op, __unary_op);
                 else
-                    __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, false>(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op);
+                    __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, false>(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op, __unary_op);
             };
             if (__n <= 16)
                 __single_group_scan_f(std::integral_constant<int, 16>{});
@@ -334,7 +331,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         }
         else
         {
-            __single_group_scan<_Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op, __work_group_size);
+            __single_group_scan<_Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op, __unary_op, __work_group_size);
         }
     }
     else
