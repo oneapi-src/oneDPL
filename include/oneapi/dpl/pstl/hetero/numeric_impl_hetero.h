@@ -112,14 +112,18 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 // transform_scan
 //------------------------------------------------------------------------
 
+template <typename T>
+struct ExecutionPolicyWrapper;
+
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
           typename _InitType, typename _BinaryOperation, typename _Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
-__pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
-                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+void
+__pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+                                   _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
+                                   _BinaryOperation __binary_op, _Inclusive)
 {
-    if (__first == __last)
-        return __result;
+    const auto __n = __last - __first;
+    assert(__n > 0);
 
     using _Type = typename _InitType::__value_type;
     using _Assigner = unseq_backend::__scan_assigner;
@@ -131,7 +135,6 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     _NoAssign __no_assign_op;
     _NoOpFunctor __get_data_op;
 
-    auto __n = __last - __first;
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
@@ -150,6 +153,54 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         // global scan
         unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
         .wait();
+}
+
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
+          typename _InitType, typename _BinaryOperation, typename _Inclusive>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
+__pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
+                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+{
+    if (__first == __last)
+        return __result;
+
+    const auto __n = __last - __first;
+
+    // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
+    const bool bInplaceExclusiveScan = __n > 1 && !_Inclusive{} && __first == __result;
+    if (!bInplaceExclusiveScan)
+    {
+        __pattern_transform_scan_base_impl(__exec, __first, __last, __result, __unary_op, __init, __binary_op,
+                                           _Inclusive{});
+    }
+    else
+    {
+        assert(__n > 1);
+        assert(!_Inclusive{});
+        assert(__result == __first);
+
+        using _Type = typename _InitType::__value_type;
+
+        auto __policy =
+            __par_backend_hetero::make_wrapped_policy<ExecutionPolicyWrapper>(::std::forward<_ExecutionPolicy>(__exec));
+        using _NewExecutionPolicy = decltype(__policy);
+
+        // Create temporary buffer
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_NewExecutionPolicy, _Type> __tmp_buf(__policy, __n);
+        auto __first_tmp = __tmp_buf.get();
+        auto __last_tmp = __first_tmp + __n;
+
+        // Run main algorithm and save data into temporary buffer
+        __pattern_transform_scan_base_impl(__policy, __first, __last, __first_tmp, __unary_op, __init, __binary_op,
+                                           _Inclusive{});
+
+        // Move data from temporary buffer into results
+        oneapi::dpl::__internal::__pattern_walk2_brick(
+            ::std::forward<_NewExecutionPolicy>(__policy), __first_tmp, __last_tmp, __result,
+            oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{}, ::std::true_type{});
+
+        //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
+    }
 
     return __result + __n;
 }
