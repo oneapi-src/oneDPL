@@ -122,16 +122,7 @@ test(Pred pred)
     Sequence<T2> expected(max_len);
     Sequence<T2> actual(max_len);
 
-    Sequence<T2> data(max_len, [=](::std::size_t i) {
-        if (i % 3 == 2)
-        {
-            return T1(i);
-        }
-        else
-        {
-            return value;
-        }
-    });
+    Sequence<T2> data(max_len, [=](::std::size_t i) { return i % 3 == 2 ? T1(i) : value; });
 
     for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
     {
