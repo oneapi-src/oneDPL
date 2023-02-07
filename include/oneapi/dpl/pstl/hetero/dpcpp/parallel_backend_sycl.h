@@ -328,7 +328,7 @@ __parallel_transform_reduce_small_submitter(_ExecutionPolicy&& __exec, ::std::si
         {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
             auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
-            sycl::local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
+            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<__i_kernel_name<_ReduceKernel, __work_group_size + __iters_per_work_item>>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id)
@@ -419,7 +419,7 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
                 auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
                 auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
-                sycl::local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
+                __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
