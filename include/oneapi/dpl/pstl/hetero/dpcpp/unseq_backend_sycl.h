@@ -35,8 +35,7 @@ using void_type = typename ::std::enable_if<::std::is_void<_Tp>::value, _Tp>::ty
 template <typename _Tp>
 using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp>::type;
 
-
-#if 1
+#if _USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
 //We need to use _ONEDPL_SYCL_INTEL_COMPILER macro as a guard.
 
