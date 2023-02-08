@@ -155,6 +155,20 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
         .wait();
 }
 
+template <typename _Iterator1, typename _Iterator2>
+constexpr bool
+__check_equal_iterators(_Iterator1 __it1, _Iterator2 __it2)
+{
+    // In-place exclusive scan works correctly only if an input and an output iterators are the same type.
+    // Otherwise, there is no way to check an in-place case and a workaround below is not applied.
+    if constexpr (::std::is_same_v<::std::decay_t<_Iterator1>, ::std::decay_t<_Iterator2>>)
+    {
+        return __it1 == __it2;
+    }
+
+    return false;
+}
+
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
           typename _InitType, typename _BinaryOperation, typename _Inclusive>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
@@ -167,8 +181,8 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     const auto __n = __last - __first;
 
     // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
-    const bool bInplaceExclusiveScan = __n > 1 && !_Inclusive{} && __first == __result;
-    if (!bInplaceExclusiveScan)
+    const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __check_equal_iterators(__first, __result);
+    if (!__is_scan_inplace_exclusive)
     {
         __pattern_transform_scan_base_impl(__exec, __first, __last, __result, __unary_op, __init, __binary_op,
                                            _Inclusive{});
@@ -177,7 +191,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     {
         assert(__n > 1);
         assert(!_Inclusive{});
-        assert(__result == __first);
+        assert(__check_equal_iterators(__first, __result));
 
         using _Type = typename _InitType::__value_type;
 
