@@ -56,11 +56,11 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
-#if !_PSTL_ICC_TEST_COMPLEX_NON_FLOAT_COMPLEX_DEPRECATED
+#if _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE
     test<int>();
     test<unsigned>();
     test<long long>();
-#endif // !_PSTL_ICC_TEST_COMPLEX_NON_FLOAT_COMPLEX_DEPRECATED
+#endif // _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE
 
   return 0;
 }
