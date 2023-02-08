@@ -157,7 +157,7 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
 
 template <typename _Iterator1, typename _Iterator2>
 constexpr bool
-__check_equal_iterators(_Iterator1 it1, _Iterator2 it2)
+__check_equal_iterators(_Iterator1 __it1, _Iterator2 __it2)
 {
     using _Decay_Iterator1 = std::decay_t<_Iterator1>;
     using _Decay_Iterator2 = std::decay_t<_Iterator2>;
@@ -166,7 +166,7 @@ __check_equal_iterators(_Iterator1 it1, _Iterator2 it2)
     // Otherwise, there is no way to check an in-place case and a workaround below is not applied.
     if constexpr (std::is_same_v<_Decay_Iterator1, _Decay_Iterator2>)
     {
-        return it1 == it2;
+        return __it1 == __it2;
     }
 
     return false;
