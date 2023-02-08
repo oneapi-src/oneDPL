@@ -183,8 +183,8 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     const auto __n = __last - __first;
 
     // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
-    const bool bInplaceExclusiveScan = __n > 1 && !_Inclusive{} && __is_equal_iterators(__first, __result);
-    if (!bInplaceExclusiveScan)
+    const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __is_equal_iterators(__first, __result);
+    if (!__is_scan_inplace_exclusive)
     {
         __pattern_transform_scan_base_impl(__exec, __first, __last, __result, __unary_op, __init, __binary_op,
                                            _Inclusive{});
