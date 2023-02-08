@@ -190,6 +190,17 @@ __joint_exclusive_scan(_Args... __args)
 #endif
 }
 
+template <typename... _Args>
+constexpr auto
+__joint_inclusive_scan(_Args... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_inclusive_scan(__args...);
+#else
+    return sycl::ONEAPI::inclusive_scan(__args...);
+#endif
+}
+
 #if _ONEDPL_FPGA_DEVICE
 #    if _ONEDPL_LIBSYCL_VERSION >= 50300
 using __fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;

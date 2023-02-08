@@ -243,18 +243,18 @@ struct __single_group_scan
     static void __group_scan(const _Group& __group, _Begin __begin, _End __end, const _BinaryOperation& __bin_op, unseq_backend::__no_init_value<_ValueType>)
     {
         if constexpr (_Inclusive)
-            sycl::joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op);
+            __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op);
         else
-            sycl::joint_exclusive_scan(__group, __begin, __end, __begin, __bin_op);
+            __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __begin, __bin_op);
     }
 
     template<typename _ValueType, typename _Group, typename _Begin, typename _End, typename _BinaryOperation>
     static void __group_scan(const _Group& __group, _Begin __begin, _End __end, const _BinaryOperation& __bin_op, unseq_backend::__init_value<_ValueType> __init)
     {
         if constexpr (_Inclusive)
-            sycl::joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op, __init.__value);
+            __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op, __init.__value);
         else
-            sycl::joint_exclusive_scan(__group, __begin, __end, __begin, __init.__value, __bin_op);
+            __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __begin, __init.__value, __bin_op);
     }
 };
 
@@ -291,7 +291,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
     constexpr int __single_group_upper_limit = 16384;
 
-    if (__can_use_group_scan && __n <= __single_group_upper_limit)
+    if constexpr (__can_use_group_scan) /* TODO && __n <= __single_group_upper_limit */
     {
         ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
         __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
