@@ -155,14 +155,14 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
         .wait();
 }
 
-template <typename Iterator1, typename Iterator2>
+template <typename _Iterator1, typename _Iterator2>
 constexpr bool
-__is_equal_iterators(Iterator1 it1, Iterator2 it2)
+__is_equal_iterators(_Iterator1 it1, _Iterator2 it2)
 {
-    using DecayIt1 = std::decay_t<Iterator1>;
-    using DecayIt2 = std::decay_t<Iterator2>;
+    using _Decay_Iterator1 = std::decay_t<_Iterator1>;
+    using _Decay_Iterator2 = std::decay_t<_Iterator2>;
 
-    if constexpr (std::is_same_v<DecayIt1, DecayIt2>)
+    if constexpr (std::is_same_v<_Decay_Iterator1, _Decay_Iterator2>)
     {
         return it1 == it2;
     }
