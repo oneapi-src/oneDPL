@@ -166,7 +166,7 @@ template <typename Iterator1, typename Iterator2>
 bool
 __is_equal_iterators_impl(Iterator1 it1, Iterator2 it2)
 {
-    static_assert("Unable to compare the iterators of different types");
+    static_assert("In-place exclusive scan works correctly only if an input and an output iterators are the same type.");
     return false;
 }
 
