@@ -166,7 +166,7 @@ template <typename Iterator1, typename Iterator2, std::enable_if_t<!std::is_same
 constexpr bool
 __is_equal_iterators(Iterator1 it1, Iterator2 it2)
 {
-    static_assert("In-place exclusive scan works correctly only if an input and an output iterators are the same type.");
+    // In-place exclusive scan works correctly only if an input and an output iterators are the same type.
     return false;
 }
 
