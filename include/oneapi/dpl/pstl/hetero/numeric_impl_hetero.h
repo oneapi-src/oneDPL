@@ -162,12 +162,13 @@ __check_equal_iterators(_Iterator1 it1, _Iterator2 it2)
     using _Decay_Iterator1 = std::decay_t<_Iterator1>;
     using _Decay_Iterator2 = std::decay_t<_Iterator2>;
 
+    // In-place exclusive scan works correctly only if an input and an output iterators are the same type.
+    // Otherwise, there is no way to check an in-place case and a workaround below is not applied.
     if constexpr (std::is_same_v<_Decay_Iterator1, _Decay_Iterator2>)
     {
         return it1 == it2;
     }
 
-    // In-place exclusive scan works correctly only if an input and an output iterators are the same type.
     return false;
 }
 
