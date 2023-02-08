@@ -155,17 +155,18 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
         .wait();
 }
 
-template <typename Iterator1, typename Iterator2, std::enable_if_t<std::is_same_v<Iterator1, Iterator2>, int> = 0>
+template <typename Iterator1, typename Iterator2>
 constexpr bool
 __is_equal_iterators(Iterator1 it1, Iterator2 it2)
 {
-    return it1 == it2;
-}
+    using DecayIt1 = std::decay_t<Iterator1>;
+    using DecayIt2 = std::decay_t<Iterator2>;
 
-template <typename Iterator1, typename Iterator2, std::enable_if_t<!std::is_same_v<Iterator1, Iterator2>, int> = 0>
-constexpr bool
-__is_equal_iterators(Iterator1 it1, Iterator2 it2)
-{
+    if constexpr (std::is_same_v<DecayIt1, DecayIt2>)
+    {
+        return it1 == it2;
+    }
+
     // In-place exclusive scan works correctly only if an input and an output iterators are the same type.
     return false;
 }
