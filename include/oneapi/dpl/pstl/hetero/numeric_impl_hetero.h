@@ -170,13 +170,6 @@ __is_equal_iterators_impl(Iterator1 it1, Iterator2 it2)
     return false;
 }
 
-template <typename Iterator>
-bool
-__is_equal_iterators(Iterator it1, Iterator it2)
-{
-    return __is_equal_iterators_impl(it1, it2);
-}
-
 template <typename Iterator1, typename Iterator2>
 bool
 __is_equal_iterators(Iterator1 it1, Iterator2 it2)
