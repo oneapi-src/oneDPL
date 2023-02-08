@@ -202,43 +202,41 @@ struct transform_init_seq
 };
 
 template <typename _ExecutionPolicy, ::std::size_t __iters_per_work_item, typename _Operation1, typename _Operation2>
-struct transform_init
+struct transform_init_known
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
+    // __iters_per_work_item2 is only needed to unify the interface for when __iters_per_work_item is unknown
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __global_id,
-               const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
+    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item2,
+               const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
+               const _Acc&... __acc) const
     {
-        ::std::size_t __items_to_transform = __n - (__iters_per_work_item * __global_id);
-        __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
-        __items_to_transform =
-            (__items_to_transform > __iters_per_work_item) ? __iters_per_work_item : __items_to_transform;
-        if (__items_to_transform > 0)
+        const ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
+        const ::std::size_t __items_to_process = __n - (__iters_per_work_item * __global_id);
+        if (__items_to_process >= __iters_per_work_item)
         {
-            ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+#pragma unroll
+            for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            __local_mem[__local_id] = __res;
+        }
+        else if (__items_to_process > 0)
+        {
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
-            if (__items_to_transform == __iters_per_work_item)
-            {
-#pragma unroll __iters_per_work_item
-                for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
-                    __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-            }
-            else
-            {
-                for (::std::size_t __i = 1; __i < __items_to_transform; ++__i)
-                    __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-            }
+            for (::std::size_t __i = 1; __i < __items_to_process; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_id] = __res;
         }
     }
 };
 
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
-struct transform_init_cpu
+struct transform_init_unknown
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
@@ -262,72 +260,6 @@ struct transform_init_cpu
                     __res = __binary_op(__res, __unary_op(__shifted_id, __acc...));
             }
             __local_mem[__local_id] = __res;
-        }
-    }
-};
-
-template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
-struct transform_init_gpu
-{
-    _Operation1 __binary_op;
-    _Operation2 __unary_op;
-
-    template <typename _Size, typename _AccLocal, typename... _Acc>
-    void
-    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item,
-               const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
-               const _Acc&... __acc) const
-    {
-        ::std::size_t __items_to_transform = __n - (32 * __global_id);
-        __items_to_transform = (__items_to_transform > 0) ? __items_to_transform : 0;
-        __items_to_transform = (__items_to_transform > 32) ? 32 : __items_to_transform;
-        ::std::size_t __adjusted_global_id = __global_offset + 32 * __global_id;
-        if (__items_to_transform == 32)
-        {
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 3, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 4, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 5, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 6, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 7, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 8, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 9, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 10, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 11, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 12, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 13, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 14, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 15, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 16, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 17, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 18, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 19, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 20, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 21, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 22, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 23, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 24, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 25, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 26, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 27, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 28, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 29, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 30, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 31, __acc...));
-            __local_mem[__local_id] = __res;
-        }
-        else
-        {
-            if (__items_to_transform > 0)
-            {
-                typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-                // Add neighbour to the current __local_mem
-                for (::std::size_t __i = 1; __i < __items_to_transform; ++__i)
-                    __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-                __local_mem[__local_id] = __res;
-            }
         }
     }
 };

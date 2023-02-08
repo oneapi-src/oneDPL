@@ -284,7 +284,7 @@ __parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, ::std::size
     sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
     sycl::event __reduce_event = __exec.queue().submit([&, __n](sycl::handler& __cgh) {
-        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
         auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
         __cgh.single_task<_ReduceKernel>([=] {
             _Tp __result;
@@ -311,7 +311,7 @@ __parallel_transform_reduce_small_submitter(_ExecutionPolicy&& __exec, ::std::si
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__reduce_small_kernel, _CustomName,
                                                                                _ReduceOp, _TransformOp, _Ranges...>;
     auto __transform_pattern =
-        unseq_backend::transform_init<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
+        unseq_backend::transform_init_known<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
             __reduce_op, _TransformOp{__transform_op}};
     auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
@@ -320,7 +320,7 @@ __parallel_transform_reduce_small_submitter(_ExecutionPolicy&& __exec, ::std::si
     sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
     sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
-        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
         auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
         __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
         __cgh.parallel_for<__i_kernel_name<_ReduceKernel, __work_group_size + __iters_per_work_item>>(
@@ -329,7 +329,8 @@ __parallel_transform_reduce_small_submitter(_ExecutionPolicy&& __exec, ::std::si
                 ::std::size_t __global_idx = __item_id.get_global_id(0);
                 ::std::size_t __local_idx = __item_id.get_local_id(0);
                 // 1. Initialization (transform part). Fill local memory
-                __transform_pattern(__local_idx, __n, __global_idx, /*global_offset*/ 0, __temp_local, __rngs...);
+                __transform_pattern(__local_idx, __n, __iters_per_work_item, __global_idx, /*global_offset*/ 0,
+                                    __temp_local, __rngs...);
                 __dpl_sycl::__group_barrier(__item_id);
                 // 2. Reduce within work group using local memory
                 _Tp __result = __reduce_pattern(__item_id, __global_idx, __n_items, __temp_local);
@@ -380,7 +381,7 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
     {
         // distribution is ~1 work groups per compute unit on CPU
         auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
-        ::std::size_t __iters_per_work_item = __ceiling_div(__n, (__max_compute_units * __work_group_size));
+        __iters_per_work_item = __ceiling_div(__n, (__max_compute_units * __work_group_size));
         _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
     }
 
@@ -396,7 +397,8 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
     // __is_first == false. Reduce between work groups
     bool __is_first = true;
 
-    // For memory utilization it's better to use one big buffer instead of two small because size of the buffer is close to a few MB
+    // For memory utilization it's better to use one big buffer instead of two small because size of the buffer is close
+    // to a few MB
     ::std::size_t __offset_1 = 0;
     ::std::size_t __offset_2 = __n_groups;
 
@@ -407,7 +409,7 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
                                                 __iters_per_work_item](sycl::handler& __cgh) {
             __cgh.depends_on(__reduce_event);
 
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
             auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
@@ -438,7 +440,7 @@ __parallel_transform_reduce_submitter(_ExecutionPolicy&& __exec, ::std::size_t _
                     _Tp __result = __reduce_op(__item_id, __global_idx, __n_items, __temp_local);
                     if (__local_idx == 0)
                     {
-                        //final reduction
+                        // final reduction
                         if (__n_groups == 1)
                         {
                             __reduce_op.apply_init(__init, __result);
@@ -533,10 +535,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
             if (__exec.queue().get_device().is_gpu())
             {
                 auto __transform_pattern1 =
-                    unseq_backend::transform_init_gpu<_ExecutionPolicy, _ReduceOp, _TransformOp>{
+                    unseq_backend::transform_init_known<_ExecutionPolicy, 32, _ReduceOp, _TransformOp>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_init_gpu<_ExecutionPolicy, _ReduceOp, _Functor>{__reduce_op, _Functor{}};
+                    unseq_backend::transform_init_known<_ExecutionPolicy, 32, _ReduceOp, _Functor>{__reduce_op,
+                                                                                                   _Functor{}};
                 auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::true_type>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
@@ -545,10 +548,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
             else
             {
                 auto __transform_pattern1 =
-                    unseq_backend::transform_init_cpu<_ExecutionPolicy, _ReduceOp, _TransformOp>{
+                    unseq_backend::transform_init_unknown<_ExecutionPolicy, _ReduceOp, _TransformOp>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_init_cpu<_ExecutionPolicy, _ReduceOp, _Functor>{__reduce_op, _Functor{}};
+                    unseq_backend::transform_init_unknown<_ExecutionPolicy, _ReduceOp, _Functor>{__reduce_op,
+                                                                                                 _Functor{}};
                 auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::false_type>(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
