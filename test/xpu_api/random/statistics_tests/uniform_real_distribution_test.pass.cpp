@@ -31,6 +31,7 @@ constexpr auto a = 40014u;
 constexpr auto c = 200u;
 constexpr auto m = 2147483563u;
 constexpr auto seed = 777;
+constexpr auto eps = 0.00001;
 
 template<typename RealType>
 std::int32_t statistics_check(int nsamples, RealType left, RealType right,
