@@ -248,7 +248,6 @@ test
 public:
     bool run(sycl::queue& queue)
     {
-        // Next line required: we want to control here that type Engine::scalar_type exist
         [[maybe_unused]] using result_type = typename Engine::scalar_type;
 
         int sum = 0;
@@ -318,7 +317,6 @@ test<oneapi::dpl::ranlux24>
 public:
     bool run(sycl::queue& queue)
     {
-        // Next line required: we want to control here that type oneapi::dpl::ranlux24::scalar_type exist
         [[maybe_unused]] using result_type = typename oneapi::dpl::ranlux24::scalar_type;
 
         int sum = 0;
