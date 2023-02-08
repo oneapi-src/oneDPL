@@ -24,7 +24,6 @@
 #include <vector>
 #include <random>
 #include <oneapi/dpl/random>
-#include "../default_engine_params.h"
 
 template<class UIntType, oneapi::dpl::internal::element_type_t<UIntType> a,
                          oneapi::dpl::internal::element_type_t<UIntType> c,
@@ -47,7 +46,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<UIntType> see
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * num_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<UIntType>, num_elems> res = engine();
                 res.store(idx.get_linear_id(), dpstd_acc.get_pointer());
@@ -57,7 +56,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<UIntType> see
     }
 
     // std generation
-    std::linear_congruential_engine<oneapi::dpl::internal::element_type_t<UIntType>, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> std_engine(seed);
+    std::linear_congruential_engine<oneapi::dpl::internal::element_type_t<UIntType>, a, c, m> std_engine(seed);
     for(int i = 0; i < nsamples; ++i)
         std_samples[i] = std_engine();
 
@@ -102,7 +101,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<UIntT
                     [=](sycl::item<1> idx) {
 
                 unsigned long long offset = idx.get_linear_id() * n_elems;
-                oneapi::dpl::linear_congruential_engine<UIntType, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> engine(seed, offset);
+                oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
 
                 auto res = engine(part);
                 for(int i = 0; i < n_elems; ++i)
@@ -113,7 +112,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<UIntT
     }
 
     // std generation
-    std::linear_congruential_engine<oneapi::dpl::internal::element_type_t<UIntType>, DefaultEngineParams::a, DefaultEngineParams::c, DefaultEngineParams::m> std_engine(seed);
+    std::linear_congruential_engine<oneapi::dpl::internal::element_type_t<UIntType>, a, c, m> std_engine(seed);
     for(int i = 0; i < nsamples; ++i)
         std_samples[i] = std_engine();
 
