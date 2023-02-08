@@ -56,7 +56,9 @@ ONEDPL_TEST_NUM_MAIN
     test<float>();
     IF_DOUBLE_SUPPORT(test<double>())
     IF_LONG_DOUBLE_SUPPORT(test<long double>())
+#if _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE
     test_constexpr<int>();
+#endif // _PSTL_TEST_COMPLEX_NON_FLOAT_AVAILABLE
 
   return 0;
 }
