@@ -677,10 +677,9 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     constexpr auto __wg_size = 64;
     if (__n <= 32768 && __wg_size * 8 <= __max_wg_size)
     {
+        // Injecting ascending / descending status into a kernel name to prevent clashing kernel names
         using _RadixBitsType = ::std::integral_constant<::std::uint32_t, __radix_bits>;
-        using _AscendingType = ::std::bool_constant<__is_ascending>;
-        
-        // Injecting ascending / descending status into custom name to prevent clashing kernel names
+        using _AscendingType = ::std::bool_constant<__is_ascending>;        
         using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
         using _RadixSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
             __radix_sort_one_group, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_Range>>;
