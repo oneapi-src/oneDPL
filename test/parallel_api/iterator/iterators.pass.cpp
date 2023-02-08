@@ -40,7 +40,7 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] auto t2 = typename RandomIt::value_type{};
         [[maybe_unused]] auto t3 = typename RandomIt::pointer{};
         [[maybe_unused]] typename RandomIt::reference ref = *it;
-        (void) typename RandomIt::iterator_category{};
+        [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
 
     static_assert(::std::is_default_constructible<RandomIt>::value, "iterator is not default constructible");
