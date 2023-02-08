@@ -138,7 +138,10 @@ struct __single_group_scan
         ::uint32_t __elems_per_wg = __elems_per_item * __wg_size;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+            oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
+
             auto __lacc = sycl::accessor<_ValueType, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{__elems_per_wg}, __hdl);
+
             __hdl.parallel_for<_GroupScanKernel>(sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 const auto __item_id = __self_item.get_local_linear_id();
@@ -174,7 +177,10 @@ struct __single_group_scan
         constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+            oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
+
             auto __lacc = sycl::accessor<_ValueType, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{__elems_per_wg}, __hdl);
+
             __hdl.parallel_for<__par_backend_hetero::__tunable_kernel_name<_GroupScanKernel, __elems_per_wg, _IsFullGroup, _Inclusive>>(sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 const auto& __subgroup = __self_item.get_sub_group();
