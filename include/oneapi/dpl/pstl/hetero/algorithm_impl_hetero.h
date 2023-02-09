@@ -382,7 +382,6 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _IndexValueType =
         typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = __acc_handler_minelement<_ReduceValueType>{};
     auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
@@ -399,7 +398,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 
     auto __ret_idx =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
+                                                                       decltype(__identity_init_fn)>(
             ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
             unseq_backend::__no_init_value{}, // no initial value
             __buf.all_view())
@@ -439,20 +438,18 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
     using _ReduceValueType = ::std::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
     using _ReduceFnType = __identity_reduce_fn<_Compare>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    auto __ret =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, _ReduceFnType,
-                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
-            ::std::forward<_ExecutionPolicy>(__exec), _ReduceFnType{__comp}, __identity_init_fn,
-            unseq_backend::__no_init_value{}, // no initial value
-            __buf.all_view())
-            .get();
+    auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, _ReduceFnType,
+                                                                                decltype(__identity_init_fn)>(
+                     ::std::forward<_ExecutionPolicy>(__exec), _ReduceFnType{__comp}, __identity_init_fn,
+                     unseq_backend::__no_init_value{}, // no initial value
+                     __buf.all_view())
+                     .get();
 
     return ::std::make_pair<_Iterator, _Iterator>(__first + ::std::get<0>(__ret), __first + ::std::get<1>(__ret));
 }
@@ -533,7 +530,6 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
         return 0;
 
     using _ReduceValueType = typename ::std::iterator_traits<_Iterator>::difference_type;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
@@ -542,7 +538,7 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
-               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_init_fn), _NoOpFunctor>(
+               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>(
                ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
                unseq_backend::__no_init_value{}, // no initial value
                __buf.all_view())
@@ -1019,7 +1015,6 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         return true;
 
     using _ReduceValueType = _IsPartitionedReduceType;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = acc_handler_is_partitioned<_Predicate>{__predicate};
     auto __identity_reduce_fn = [](_ReduceValueType __val1, _ReduceValueType __val2) -> _ReduceValueType {
@@ -1034,7 +1029,7 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
 
     auto __res =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
+                                                                       decltype(__identity_init_fn)>(
             ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
             unseq_backend::__no_init_value{}, // no initial value
             __buf.all_view())
@@ -1299,7 +1294,6 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
 
     using _Iterator1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     using _ReduceValueType = int32_t;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = acc_handler_lexicographical_compare<_Compare, _ReduceValueType>{__comp};
     auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
@@ -1317,7 +1311,7 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
 
     auto __ret_idx =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
+                                                                       decltype(__identity_init_fn)>(
             ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
             unseq_backend::__no_init_value{}, // no initial value
             __buf1.all_view(), __buf2.all_view())

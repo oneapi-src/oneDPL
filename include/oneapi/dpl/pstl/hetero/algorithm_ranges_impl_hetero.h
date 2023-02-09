@@ -311,13 +311,12 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
         return 0;
 
     using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
-               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_init_fn), _NoOpFunctor>(
+               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>(
                ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
                unseq_backend::__no_init_value{}, // no initial value
                ::std::forward<_Range>(__rng))
@@ -547,7 +546,6 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
     using _IteratorValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
     using _IndexValueType = oneapi::dpl::__internal::__difference_t<_Range>;
     using _ReduceValueType = oneapi::dpl::__internal::tuple<_IndexValueType, _IteratorValueType>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = __acc_handler_minelement<_ReduceValueType>{};
     auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
@@ -557,7 +555,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
 
     auto __ret_idx =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
+                                                                       decltype(__identity_init_fn)>(
             ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
             unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
@@ -585,13 +583,12 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
     using _IndexValueType = oneapi::dpl::__internal::__difference_t<_Range>;
     using _ReduceValueType =
         oneapi::dpl::__internal::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
 
     _ReduceValueType __ret =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, __identity_reduce_fn<_Compare>,
-                                                                       decltype(__identity_init_fn), _NoOpFunctor>(
+                                                                       decltype(__identity_init_fn)>(
             ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn<_Compare>{__comp}, __identity_init_fn,
             unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))

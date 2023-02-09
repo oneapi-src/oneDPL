@@ -475,8 +475,7 @@ struct __parallel_transform_reduce_submitter
 }; // struct __parallel_transform_reduce_submitter
 
 // General version of parallel_transform_reduce. Calls optimized kernels.
-template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _Transform2ndPassOp,
-          typename _ExecutionPolicy, typename _InitType,
+template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _TransformOp __transform_op,
@@ -564,14 +563,15 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
         }
         else
         {
+            using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
             if (__exec.queue().get_device().is_gpu())
             {
                 auto __transform_pattern1 =
                     unseq_backend::transform_init_known<_ExecutionPolicy, 32, _ReduceOp, _TransformOp>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_init_known<_ExecutionPolicy, 32, _ReduceOp, _Transform2ndPassOp>{
-                        __reduce_op, _Transform2ndPassOp{}};
+                    unseq_backend::transform_init_known<_ExecutionPolicy, 32, _ReduceOp, _NoOpFunctor>{__reduce_op,
+                                                                                                       _NoOpFunctor{}};
                 auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::true_type>::submit(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
@@ -583,8 +583,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                     unseq_backend::transform_init_unknown<_ExecutionPolicy, _ReduceOp, _TransformOp>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_init_unknown<_ExecutionPolicy, _ReduceOp, _Transform2ndPassOp>{
-                        __reduce_op, _Transform2ndPassOp{}};
+                    unseq_backend::transform_init_unknown<_ExecutionPolicy, _ReduceOp, _NoOpFunctor>{__reduce_op,
+                                                                                                     _NoOpFunctor{}};
                 auto __reduce_pattern = unseq_backend::reduce<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::false_type>::submit(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
