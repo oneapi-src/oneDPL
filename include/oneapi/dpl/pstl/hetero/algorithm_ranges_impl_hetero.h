@@ -19,7 +19,6 @@
 #include "../algorithm_fwd.h"
 #include "../parallel_backend.h"
 #include "utils_hetero.h"
-#include <type_traits>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/utils_ranges_sycl.h"

@@ -196,7 +196,7 @@ struct transform_init_seq
     {
         __local_mem = __unary_op(0, __acc...);
         // Add neighbour to the current __local_mem
-        for (::std::size_t __i = 1; __i < __n; ++__i)
+        for (_Size __i = 1; __i < __n; ++__i)
             __local_mem = __binary_op(__local_mem, __unary_op(__i, __acc...));
     }
 };
@@ -210,9 +210,9 @@ struct transform_init_known
     // __iters_per_work_item2 is only needed to unify the interface for when __iters_per_work_item is unknown
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item2,
-               const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
-               const _Acc&... __acc) const
+    operator()(const ::std::uint16_t __local_id, const _Size __n,
+               const ::std::size_t /* unused __iters_per_work_item */, const ::std::size_t __global_id,
+               const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         const ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
         const ::std::size_t __items_to_process = __n - (__iters_per_work_item * __global_id);
@@ -220,7 +220,7 @@ struct transform_init_known
         {
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
 #pragma unroll
-            for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
+            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_id] = __res;
         }
@@ -228,7 +228,7 @@ struct transform_init_known
         {
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
-            for (::std::size_t __i = 1; __i < __items_to_process; ++__i)
+            for (_Size __i = 1; __i < __items_to_process; ++__i)
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_id] = __res;
         }
@@ -243,7 +243,7 @@ struct transform_init_unknown
 
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const ::std::size_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item,
+    operator()(const ::std::uint16_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item,
                const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
@@ -253,7 +253,7 @@ struct transform_init_unknown
         {
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
-            for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
+            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
             {
                 ::std::size_t __shifted_id = __adjusted_global_id + __i;
                 if (__shifted_id < __adjusted_n)
