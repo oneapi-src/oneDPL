@@ -36,8 +36,7 @@ enum class UDTKind
 {
     eKeys = 0,  // ID for the first input data
     eVals,      // ID for the second input data (if applicable)
-    eRes,       // ID for the output data (result)
-    eRes2       // ID for the second output data (if applicable)
+    eRes        // ID for the output data (result)
 };
 
 template <typename TEnum>
@@ -144,7 +143,6 @@ struct test_base_data_usm : test_base_data<TestValueType>
                                 //  - 1 item for test1buffer;
                                 //  - 2 items for test2buffers;
                                 //  - 3 items for test3buffers
-                                //  - 4 items for test4buffers
 
     test_base_data_usm(sycl::queue __q, InitParams init);
 
@@ -190,7 +188,6 @@ struct test_base_data_buffer : test_base_data<TestValueType>
                                 //  - 1 item for test1buffer;
                                 //  - 2 items for test2buffers;
                                 //  - 3 items for test3buffers
-                                //  - 4 items for test4buffers
 
     test_base_data_buffer(InitParams init);
 
@@ -236,7 +233,6 @@ struct test_base_data_sequence : test_base_data<TestValueType>
     };
     ::std::vector<Data> data;   // Vector of source test data:
                                 //  - 3 items for test_algo_three_sequences
-                                //  - 4 items for test_algo_four_sequences
 
     test_base_data_sequence(InitParams init);
 
@@ -454,48 +450,6 @@ typename ::std::enable_if<
 test_algo_three_sequences()
 {
     test_algo_three_sequences<typename TestName::UsedValueType, TestName>();
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-// Used with algorithms that have two input sequences and two output sequencess
-template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
-void
-test_algo_four_sequences()
-{
-    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
-    {
-        //TODO: consider to use class TestUtils::Sequence directly. Actually, we don't need any special action for input/output data here.
-        using TestBaseData = test_base_data_sequence<T>;
-
-        TestBaseData test_base_data({ { max_n, inout1_offset },
-                                      { max_n, inout2_offset },
-                                      { max_n, inout3_offset },
-                                      { max_n, inout4_offset } });
-
-        // create iterators
-        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
-        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
-        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
-        auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes2);
-
-        invoke_on_all_host_policies()(create_test_obj<T, TestName>(test_base_data),
-                                      inout1_offset_first, inout1_offset_first + n,
-                                      inout2_offset_first, inout2_offset_first + n,
-                                      inout3_offset_first, inout3_offset_first + n,
-                                      inout4_offset_first, inout4_offset_first + n,
-                                      n);
-    }
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
-test_algo_four_sequences()
-{
-    test_algo_four_sequences<typename TestName::UsedValueType, TestName>();
 }
 
 }; // namespace TestUtils

@@ -111,8 +111,7 @@ struct sycl_scan_by_segment_impl
 
             oneapi::dpl::__ranges::__require_access(__cgh, __keys, __values, __out_values);
 
-            auto __loc_acc = sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
-                2 * __wgroup_size, __cgh};
+            __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
 
             __cgh.parallel_for(
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
@@ -210,13 +209,9 @@ struct sycl_scan_by_segment_impl
 
                 __cgh.depends_on(__wg_scan);
 
-                auto __loc_partials_acc =
-                    sycl::accessor<__val_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
-                        __wgroup_size, __cgh};
+                __dpl_sycl::__local_accessor<__val_type> __loc_partials_acc(__wgroup_size, __cgh);
 
-                auto __loc_seg_ends_acc =
-                    sycl::accessor<__flag_type, 1, sycl::access::mode::read_write, sycl::access::target::local>{
-                        __wgroup_size, __cgh};
+                __dpl_sycl::__local_accessor<__flag_type> __loc_seg_ends_acc(__wgroup_size, __cgh);
 
                 __cgh.parallel_for(
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {

@@ -305,73 +305,6 @@ test3buffers(int mult = kDefaultMultValue)
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
-void
-test4buffers(int mult = kDefaultMultValue)
-{
-    sycl::queue queue = get_test_queue(); // usm requires queue
-
-#if _PSTL_SYCL_TEST_USM
-    { // USM
-
-        // 1. allocate usm memory
-        using TestBaseData = test_base_data_usm<alloc_type, TestValueType>;
-        TestBaseData test_base_data(queue, { { max_n,        inout1_offset },
-                                             { max_n,        inout2_offset },
-                                             { max_n * mult, inout3_offset },
-                                             { max_n * mult, inout4_offset } });
-
-        // 2. create pointers at first+offset
-        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
-        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
-        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
-        auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes2);
-
-        // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
-        {
-#    if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
-#    endif
-            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
-                                               inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
-                                               inout4_offset_first, inout4_offset_first + n,
-                                               n);
-        }
-    }
-#endif
-    { // sycl::buffer
-        // 1. create buffers
-        using TestBaseData = test_base_data_buffer<TestValueType>;
-        TestBaseData test_base_data({ { max_n,        inout1_offset },
-                                      { max_n,        inout2_offset },
-                                      { max_n * mult, inout3_offset },
-                                      { max_n * mult, inout4_offset } });
-
-        // 2. create iterators over buffers
-        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
-        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
-        auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
-        auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes2);
-
-        // 3. run algorithms
-        for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
-        {
-#if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
-#endif
-            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
-                                               inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
-                                               inout4_offset_first, inout4_offset_first + n,
-                                               n);
-        }
-    }
-}
-
 template <sycl::usm::alloc alloc_type, typename TestName>
 typename ::std::enable_if<
     ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
@@ -397,15 +330,6 @@ typename ::std::enable_if<
 test3buffers(int mult = kDefaultMultValue)
 {
     test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
-}
-
-template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
-test4buffers(int mult = kDefaultMultValue)
-{
-    test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
 } /* namespace TestUtils */
 

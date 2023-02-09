@@ -31,7 +31,7 @@ using namespace TestUtils;
 
 // This macro may be used to analyze source data and test results in test_inclusive_scan_by_segment
 // WARNING: in the case of using this macro debug output is very large.
-// #define DUMP_CHECK_RESULTS
+//#define DUMP_CHECK_RESULTS
 
 DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 {
