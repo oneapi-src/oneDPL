@@ -174,6 +174,7 @@ struct __single_group_scan
         using _GroupScanKernel =
                      oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_kernel, _CustomName, _BinaryOperation, std::integral_constant<bool, _Inclusive>, std::integral_constant<bool, _IsFullGroup>, _InRng, _OutRng, std::integral_constant<::std::size_t, _ElemsPerItem>, std::integral_constant<std::size_t, _WGSize>>;
 
+
         constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
@@ -263,15 +264,67 @@ struct __single_group_scan
 // transform_scan
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation,
           typename _InitType, typename _BinaryOperation, typename _Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
-__pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
+void
+__pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng, ::std::size_t __n,
                               _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
-    if (__first == __last)
-        return __result;
+    using _Type = typename _InitType::__value_type;
 
+    ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+    // Specialization for devices that have a max work-group szie of 1024
+    constexpr int __targeted_wg_size = 1024;
+
+    if (__max_wg_size >= __targeted_wg_size)
+    {
+        auto __single_group_scan_f = [&](auto __size_constant) {
+            constexpr int __size = decltype(__size_constant)::value;
+            constexpr int __wg_size = std::min(__size, __targeted_wg_size);
+            constexpr int __num_elems_per_item = __par_backend_hetero::__ceiling_div(__size, __wg_size);
+            const bool __is_full_group = __n == __wg_size;
+
+            if (__is_full_group)
+                __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, true>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
+            else
+                __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, false>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
+        };
+        if (__n <= 16)
+            __single_group_scan_f(std::integral_constant<int, 16>{});
+        else if (__n <= 32)
+            __single_group_scan_f(std::integral_constant<int, 32>{});
+        else if (__n <= 64)
+            __single_group_scan_f(std::integral_constant<int, 64>{});
+        else if (__n <= 128)
+            __single_group_scan_f(std::integral_constant<int, 128>{});
+        else if (__n <= 256)
+            __single_group_scan_f(std::integral_constant<int, 256>{});
+        else if (__n <= 512)
+            __single_group_scan_f(std::integral_constant<int, 512>{});
+        else if (__n <= 1024)
+            __single_group_scan_f(std::integral_constant<int, 1024>{});
+        else if (__n <= 2048)
+            __single_group_scan_f(std::integral_constant<int, 2048>{});
+        else if (__n <= 4096)
+            __single_group_scan_f(std::integral_constant<int, 4096>{});
+        else if (__n <= 8192)
+            __single_group_scan_f(std::integral_constant<int, 8192>{});
+        else
+            __single_group_scan_f(std::integral_constant<int, 16384>{});
+    }
+    else
+    {
+        __single_group_scan<_Inclusive::value>::apply(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op, __max_wg_size);
+    }
+}
+
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation,
+          typename _InitType, typename _BinaryOperation, typename _Inclusive>
+void
+__pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng,
+                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+{
     using _Type = typename _InitType::__value_type;
     using _Assigner = unseq_backend::__scan_assigner;
     using _NoAssign = unseq_backend::__scan_no_assign;
@@ -282,79 +335,59 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     _NoAssign __no_assign_op;
     _NoOpFunctor __get_data_op;
 
+    oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec), __in_rng.all_view(), __out_rng.all_view(), __binary_op, __init,
+        // local scan
+        unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
+                              _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
+                                                       __get_data_op},
+        // scan between groups
+        unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+            __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+        // global scan
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
+        .wait();
+}
+
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
+          typename _InitType, typename _BinaryOperation, typename _Inclusive>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
+__pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
+                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+{
+    if (__first == __last)
+        return __result;
+
+    using _Type = typename _InitType::__value_type;
+
     auto __n = __last - __first;
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result, __result + __n);
 
-    constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
     constexpr int __single_group_upper_limit = 16384;
 
-    if constexpr (__can_use_group_scan) /* TODO && __n <= __single_group_upper_limit */
+	const auto __max_slm_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
+	const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
+	const auto __req_slm_size = sizeof(_Type) * __n_uniform;
+
+    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
     {
-        ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                                 sizeof(_Type), __work_group_size);
-        // Specialization for devices that have a max work-group szie of 1024
-        constexpr int __max_wg_size = 1024;
-
-        if (__work_group_size == __max_wg_size)
+        constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
+        if constexpr (__can_use_group_scan)
         {
-            auto __single_group_scan_f = [&](auto __size_constant) {
-                constexpr int __size = decltype(__size_constant)::value;
-                constexpr int __wg_size = std::min(__size, __max_wg_size);
-                constexpr int __num_elems_per_item = (__size + __max_wg_size - 1)/__max_wg_size;
-                const bool __is_full_group = __n == __wg_size;
-
-                if (__is_full_group)
-                    __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, true>(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op, __unary_op);
-                else
-                    __single_group_scan<_Inclusive::value>::template apply<__num_elems_per_item, __wg_size, false>(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op, __unary_op);
-            };
-            if (__n <= 16)
-                __single_group_scan_f(std::integral_constant<int, 16>{});
-            else if (__n <= 32)
-                __single_group_scan_f(std::integral_constant<int, 32>{});
-            else if (__n <= 64)
-                __single_group_scan_f(std::integral_constant<int, 64>{});
-            else if (__n <= 128)
-                __single_group_scan_f(std::integral_constant<int, 128>{});
-            else if (__n <= 256)
-                __single_group_scan_f(std::integral_constant<int, 256>{});
-            else if (__n <= 512)
-                __single_group_scan_f(std::integral_constant<int, 512>{});
-            else if (__n <= 1024)
-                __single_group_scan_f(std::integral_constant<int, 1024>{});
-            else if (__n <= 2048)
-                __single_group_scan_f(std::integral_constant<int, 2048>{});
-            else if (__n <= 4096)
-                __single_group_scan_f(std::integral_constant<int, 4096>{});
-            else if (__n <= 8192)
-                __single_group_scan_f(std::integral_constant<int, 8192>{});
-            else
-                __single_group_scan_f(std::integral_constant<int, 16384>{});
+            __pattern_transform_scan_single_group(std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __n, __unary_op, __init, __binary_op, _Inclusive{});
         }
         else
         {
-            __single_group_scan<_Inclusive::value>::apply(__exec, __buf1.all_view(), __buf2.all_view(), __n, __init, __binary_op, __unary_op, __work_group_size);
+            __pattern_transform_scan_multi_group(std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init, __binary_op, _Inclusive{});
         }
     }
     else
     {
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-            ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __binary_op, __init,
-            // local scan
-            unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
-                                  _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
-                                                           __get_data_op},
-            // scan between groups
-            unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
-                                  _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
-                __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
-            // global scan
-            unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
-            .wait();
+        __pattern_transform_scan_multi_group(std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init, __binary_op, _Inclusive{});
     }
 
     return __result + __n;
