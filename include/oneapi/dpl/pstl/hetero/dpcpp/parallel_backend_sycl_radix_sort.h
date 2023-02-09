@@ -171,8 +171,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
     sycl::event __count_levent = __exec.queue().submit([&](sycl::handler& __hdl) {
         __hdl.depends_on(__dependency_event);
 
-        oneapi::dpl::__ranges::__require_access(__hdl, __val_rng,
-                                                __count_rng); //get an access to data under SYCL buffer
+        // ensure the input data and the space for counters are accessible
+        oneapi::dpl::__ranges::__require_access(__hdl, __val_rng, __count_rng);
         // an accessor per work-group with value counters from each work-item
         auto __count_lacc = __dpl_sycl::__local_accessor<_CountT>(__block_size * __radix_states, __hdl);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -186,14 +186,15 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 // item info
                 const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                 const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
+                const ::std::size_t __seg_start = __blocks_per_segment * __block_size * __wgroup_idx;
 
                 // 1.1. count per witem: create a private array for storing count values
                 _CountT __count_arr[__radix_states] = {0};
                 // 1.2. count per witem: count values and write result to private count array
-                const ::std::size_t __outside_of_segment =
-                    sycl::min(__start_idx + __block_size * __blocks_per_segment, __val_buf_size);
-                for (::std::size_t __val_idx = __start_idx; __val_idx < __outside_of_segment; __val_idx += __block_size)
+                const ::std::size_t __seg_end =
+                    sycl::min(__seg_start + __block_size * __blocks_per_segment, __val_buf_size);
+                for (::std::size_t __val_idx = __seg_start + __self_lidx; __val_idx < __seg_end;
+                     __val_idx += __block_size)
                 {
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                     auto __val = __order_preserving_cast<__is_ascending>(__val_rng[__val_idx]);
@@ -268,8 +269,8 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
     // collective algorithms such as joint_exclusive_scan even if local memory is not explicitly requested
     sycl::event __scan_event = __exec.queue().submit([&](sycl::handler& __hdl) {
         __hdl.depends_on(__dependency_event);
-        // an accessor with value counter from each work_group
-        oneapi::dpl::__ranges::__require_access(__hdl, __count_rng); //get an access to data under SYCL buffer
+        // access the counters for all work groups
+        oneapi::dpl::__ranges::__require_access(__hdl, __count_rng);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
@@ -287,6 +288,10 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
     });
     return __scan_event;
 }
+
+//-----------------------------------------------------------------------
+// radix sort: group level reorder algorithms
+//-----------------------------------------------------------------------
 
 struct __empty_peer_temp_storage
 {
@@ -337,8 +342,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
         ::std::uint32_t __peer_mask_bits = __atomic_peer_mask.load();
         ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
 
-        // get the local offset index from the bits set in the peer mask with index less than the work
-        // items's ID
+        // get the local offset index from the bits set in the peer mask with index less than the work item ID
         __peer_mask_bits &= __item_mask;
         __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
         return __sg_total_offset;
@@ -402,8 +406,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
         __peer_mask.extract_bits(__peer_mask_bits);
         ::std::uint32_t __sg_total_offset = sycl::popcount(__peer_mask_bits);
 
-        // get the local offset index from the bits set in the peer mask with index less than the work
-        // items's ID
+        // get the local offset index from the bits set in the peer mask with index less than the work item ID
         __peer_mask &= __item_sg_mask;
         __peer_mask.extract_bits(__peer_mask_bits);
         __new_offset_idx |= __is_current_bucket * (__offset_prefix + sycl::popcount(__peer_mask_bits));
@@ -414,7 +417,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 #endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
 
 //-----------------------------------------------------------------------
-// radix sort: a function for reorder phase of one iteration
+// radix sort: reorder kernel (per iteration)
 //-----------------------------------------------------------------------
 template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascending, __peer_prefix_algo _PeerAlgo,
           typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf
@@ -451,10 +454,10 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
     sycl::event __reorder_event = __exec.queue().submit([&](sycl::handler& __hdl) {
         __hdl.depends_on(__dependency_event);
 
-        // access with offsets from each work group
+        // access the offsets for all work groups
         oneapi::dpl::__ranges::__require_access(__hdl, __offset_rng);
 
-        // access with values to reorder and reordered values
+        // access the input and output data
         oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
 
         typename _PeerHelper::_TempStorageT __peer_temp(1, __hdl);
@@ -470,7 +473,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 // item info
                 const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                 const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                const ::std::size_t __start_idx = __blocks_per_segment * __block_size * __wgroup_idx + __self_lidx;
+                const ::std::size_t __seg_start = __blocks_per_segment * __block_size * __wgroup_idx;
 
                 _PeerHelper __peer_prefix_hlp(__self_item, __peer_temp);
 
@@ -491,25 +494,51 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     __offset_arr[__radix_state_idx] = __scanned_bin + __offset_rng[__local_offset_idx];
                 }
 
-                const ::std::size_t __outside_of_segment =
-                    sycl::min(__start_idx + __block_size * __blocks_per_segment, __inout_buf_size);
+                ::std::size_t __seg_end =
+                    sycl::min(__seg_start + __block_size * __blocks_per_segment, __inout_buf_size);
+                // ensure that each work item in a subgroup does the same number of loop iterations
+                const ::std::uint16_t __residual = (__seg_end - __seg_start) % __sg_size;
+                __seg_end -= __residual;
+
                 // find offsets for the same values within a segment and fill the resulting buffer
-                for (::std::size_t __val_idx = __start_idx; __val_idx < __outside_of_segment; __val_idx += __sg_size)
+                for (::std::size_t __val_idx = __seg_start + __self_lidx; __val_idx < __seg_end; __val_idx += __sg_size)
                 {
                     _InputT __in_val = __input_rng[__val_idx];
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                     ::std::uint32_t __bucket = __get_bucket<(1 << __radix_bits) - 1>(
                         __order_preserving_cast<__is_ascending>(__in_val), __radix_offset);
 
+                    // TODO: move the whole loop to be a part of peer algorithms
                     _OffsetT __new_offset_idx = 0;
                     for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
                     {
                         ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
                         ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
                             __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
-                        __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
+                        __offset_arr[__radix_state_idx] += __sg_total_offset;
                     }
                     __output_rng[__new_offset_idx] = __in_val;
+                }
+                if (__residual > 0)
+                {
+                    _InputT __in_val{};
+                    ::std::uint32_t __bucket = __radix_states; // greater than any actual radix state
+                    if (__self_lidx < __residual)
+                    {
+                        __in_val = __input_rng[__seg_end + __self_lidx];
+                        __bucket = __get_bucket<(1 << __radix_bits) - 1>(
+                            __order_preserving_cast<__is_ascending>(__in_val), __radix_offset);
+                    }
+                    _OffsetT __new_offset_idx = 0;
+                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
+                    {
+                        ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
+                        ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
+                            __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
+                        __offset_arr[__radix_state_idx] += __sg_total_offset;
+                    }
+                    if (__self_lidx < __residual)
+                        __output_rng[__new_offset_idx] = __in_val;
                 }
             });
     });
