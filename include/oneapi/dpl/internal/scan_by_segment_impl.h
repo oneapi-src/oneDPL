@@ -162,12 +162,12 @@ struct sycl_scan_by_segment_impl
                     }
 
                     // 1b. Perform a work group scan to find the carry in value to apply to each item.
-                    int64_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
+                    ::std::int64_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                         __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
                     __flag_type __group_has_segment_break = (__closest_seg_id != NO_SEGMENT_BREAK);
 
-                    __closest_seg_id = ::std::max(0L, __closest_seg_id); //get rid of no segment end found flag
+                    __closest_seg_id = ::std::max(::std::int64_t(0), __closest_seg_id); //get rid of no segment end found flag
                     __val_type __carry_in = wg_segmented_scan(__item, __loc_acc, __local_id,
                                                               __local_id - __closest_seg_id, __accumulator, __binary_op,
                                                               __wgroup_size); // need to use exclusive scan delta
