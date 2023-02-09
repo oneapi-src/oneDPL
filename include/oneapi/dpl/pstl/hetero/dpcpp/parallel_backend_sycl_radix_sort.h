@@ -497,7 +497,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                 ::std::size_t __seg_end =
                     sycl::min(__seg_start + __block_size * __blocks_per_segment, __inout_buf_size);
                 // ensure that each work item in a subgroup does the same number of loop iterations
-                const ::std::uint32_t __residual = (__seg_end - __seg_start) % __sg_size;
+                const ::std::uint16_t __residual = (__seg_end - __seg_start) % __sg_size;
                 __seg_end -= __residual;
 
                 // find offsets for the same values within a segment and fill the resulting buffer
@@ -515,7 +515,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                         ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
                         ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
                             __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
-                        __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
+                        __offset_arr[__radix_state_idx] += __sg_total_offset;
                     }
                     __output_rng[__new_offset_idx] = __in_val;
                 }
@@ -535,7 +535,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                         ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
                         ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
                             __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
-                        __offset_arr[__radix_state_idx] = __offset_arr[__radix_state_idx] + __sg_total_offset;
+                        __offset_arr[__radix_state_idx] += __sg_total_offset;
                     }
                     if (__self_lidx < __residual)
                         __output_rng[__new_offset_idx] = __in_val;
