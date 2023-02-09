@@ -123,7 +123,7 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     auto buf_view = key_buf.all_view();
     using iter_value_t = typename ::std::iterator_traits<InputIterator2>::value_type;
 
-    iter_value_t identity = __dpl_sycl::__known_identity<Operator, iter_value_t>::value;
+    iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
     sycl_scan_by_segment_impl<scan_type::exclusive> scan;
 
@@ -198,7 +198,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 {
     return internal::exclusive_scan_by_segment_impl_helper(
         ::std::forward<Policy>(policy), first1, last1, first2, result, init, binary_pred, binary_op,
-        typename __dpl_sycl::__has_known_identity<Operator,
+        typename unseq_backend::__has_known_identity<Operator,
                                                   typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
 }
 
