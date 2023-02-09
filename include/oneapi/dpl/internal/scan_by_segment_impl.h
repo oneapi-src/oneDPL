@@ -167,7 +167,8 @@ struct sycl_scan_by_segment_impl
 
                     __flag_type __group_has_segment_break = (__closest_seg_id != NO_SEGMENT_BREAK);
 
-                    __closest_seg_id = ::std::max(::std::int64_t(0), __closest_seg_id); //get rid of no segment end found flag
+                    //get rid of no segment end found flag
+                    __closest_seg_id = ::std::max(::std::int64_t(0), __closest_seg_id);
                     __val_type __carry_in = wg_segmented_scan(__item, __loc_acc, __local_id,
                                                               __local_id - __closest_seg_id, __accumulator, __binary_op,
                                                               __wgroup_size); // need to use exclusive scan delta
