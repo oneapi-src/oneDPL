@@ -78,7 +78,7 @@ void test1_with_buffers()
         const int expected1 = (n * (n + 1) / 2) * ((n + 3) * (n + 4) / 2 - 6);
         const int expected2 = (n * (n + 1) / 2) * 10;
         auto result1 = beta.get();
-        auto result2 = y.get_access<sycl::access::mode::read>()[0];
+        auto result2 = y.get_host_access()[0];
 
         EXPECT_TRUE(result1 == expected1 && result2 == expected2, "wrong effect from async test (I) with sycl buffer");
     }
@@ -108,8 +108,8 @@ void test2_with_buffers()
         auto my_policy7 = oneapi::dpl::execution::make_device_policy<class Scan2b>(my_policy);
         auto gamma = oneapi::dpl::experimental::inclusive_scan_async(my_policy7, input1, input1 + n, oneapi::dpl::begin(z), std::plus<float>(), 0.0f);
 
-        auto result1 = gamma.get().get_buffer().get_access<sycl::access::mode::read>()[n-1];
-        auto result2 = beta.get().get_buffer().get_access<sycl::access::mode::read>()[n-1];
+        auto result1 = gamma.get().get_buffer().get_host_access()[n-1];
+        auto result2 = beta.get().get_buffer().get_host_access()[n-1];
 
         const float expected1 = static_cast<float>(n * (n - 1) / 2);
         EXPECT_TRUE(fabs(result1-expected1) <= 0.001f && fabs(result2-expected1) <= 0.001f, "wrong effect from async test (II) with sycl buffer");
