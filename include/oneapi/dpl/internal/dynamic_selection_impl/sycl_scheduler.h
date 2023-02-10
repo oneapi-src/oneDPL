@@ -19,6 +19,7 @@
 #pragma once
 
 #include <CL/sycl.hpp>
+#include "oneapi/dpl/internal/dynamic_selection.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
@@ -164,6 +165,8 @@ namespace experimental {
 } //namespace experimental
 } //namespace dpl
 } //namespace oneapi
+
+using default_scheduler_t = oneapi::dpl::experimental::sycl_scheduler;
 
 namespace sycl {
   std::ostream& operator<<(std::ostream &os, const sycl::queue& q) {

@@ -201,6 +201,5 @@ namespace experimental {
 #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_scheduler.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/static_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy_impl.h"
-//ds_scheduler
-    using default_scheduler_t = oneapi::dpl::experimental::sycl_scheduler;
+
 #endif /*_ONEDPL_DYNAMIC_SELECTION_DEFS_H*/
