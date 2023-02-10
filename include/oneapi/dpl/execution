@@ -67,16 +67,6 @@ _PSTL_PRAGMA_MESSAGE_POLICIES(
     "The <Parallel STL> execution policies are injected into the standard namespace std::execution")
 #endif // _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 
-namespace oneapi
-{
-namespace dpl
-{
-namespace execution
-{
-} // end namespace execution
-} // end namespace dpl
-} // end namespace oneapi
-
 namespace dpl = oneapi::dpl;
 
 #endif // _ONEDPL_EXECUTION
