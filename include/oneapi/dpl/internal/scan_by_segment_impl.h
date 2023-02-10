@@ -68,15 +68,35 @@ enum class scan_type
     exclusive
 };
 
+template <scan_type __scan_type, typename... Name>
+class __sycl_segmented_scan_kernel1;
+
+template <scan_type __scan_type, typename... Name>
+class __sycl_segmented_scan_kernel2;
+
 template <scan_type __scan_type>
 struct sycl_scan_by_segment_impl
 {
+    template <typename... _Name>
+    using _KernelName1 = __sycl_segmented_scan_kernel1<__scan_type, _Name...>;
+
+    template <typename... _Name>
+    using _KernelName2 = __sycl_segmented_scan_kernel2<__scan_type, _Name...>;
+
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename _T>
     void
     sycl_scan_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
                          _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
+        using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+        using _CustomName = typename _Policy::kernel_name;
+
+        using _SegScanKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            _KernelName1, _CustomName, _Range1, _Range2, _Range3,  _BinaryPredicate, _BinaryOperator>;
+        using _SegScanKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            _KernelName2, _CustomName, _Range1, _Range2, _Range3,  _BinaryPredicate, _BinaryOperator>;
+
         using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
         using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
         using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
@@ -92,6 +112,16 @@ struct sycl_scan_by_segment_impl
         // change __wgroup_size according to local memory limit
         __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
                                                                              2 * sizeof(__val_type), __wgroup_size);
+
+#if _ONEDPL_COMPILE_KERNEL
+        auto __kernel1 =  __par_backend_hetero::__internal::__kernel_compiler<_SegScanKernel1>::__compile(
+            ::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernel2 = __par_backend_hetero::__internal::__kernel_compiler<_SegScanKernel2>::__compile(
+            ::std::forward<_ExecutionPolicy>(__exec));
+        __wgroup_size = ::std::min({ __wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
+            ::std::forward<_ExecutionPolicy>(__exec), __kernel1), oneapi::dpl::__internal::__kernel_work_group_size(
+            ::std::forward<_ExecutionPolicy>(__exec), __kernel2) });
+#endif
 
         ::std::size_t __n_groups = 1 + ((__n - 1) / (__wgroup_size * __vals_per_item));
 
@@ -113,7 +143,13 @@ struct sycl_scan_by_segment_impl
 
             __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
 
-            __cgh.parallel_for(
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel1.get_kernel_bundle());
+#endif
+            __cgh.parallel_for<_SegScanKernel1>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel1,
+#endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     __val_type __accumulator = __identity;
 
@@ -212,8 +248,13 @@ struct sycl_scan_by_segment_impl
                 __dpl_sycl::__local_accessor<__val_type> __loc_partials_acc(__wgroup_size, __cgh);
 
                 __dpl_sycl::__local_accessor<__flag_type> __loc_seg_ends_acc(__wgroup_size, __cgh);
-
-                __cgh.parallel_for(
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+                __cgh.use_kernel_bundle(__kernel2.get_kernel_bundle());
+#endif
+                __cgh.parallel_for<_SegScanKernel2>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                    __kernel2,
+#endif
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                         auto __group = __item.get_group();
                         ::std::size_t __group_id = __group.get_group_id(0);
