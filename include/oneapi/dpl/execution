@@ -73,7 +73,6 @@ namespace dpl
 {
 namespace execution
 {
-using namespace oneapi::dpl::execution;
 } // end namespace execution
 } // end namespace dpl
 } // end namespace oneapi
