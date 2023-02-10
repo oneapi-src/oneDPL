@@ -216,8 +216,10 @@ struct transform_init_known
     {
         const ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
         const ::std::size_t __items_to_process = __n - (__iters_per_work_item * __global_id);
+        // Add neighbour to the current __local_mem
         if (__items_to_process >= __iters_per_work_item)
         {
+            // Keep these statements in the same scope to allow for better memory alignment
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
 #pragma unroll
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
@@ -226,8 +228,8 @@ struct transform_init_known
         }
         else if (__items_to_process > 0)
         {
+            // Keep these statements in the same scope to allow for better memory alignment
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            // Add neighbour to the current __local_mem
             for (_Size __i = 1; __i < __items_to_process; ++__i)
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_id] = __res;
