@@ -125,17 +125,15 @@ template< bool _Inclusive>
 struct __single_group_scan
 {
     template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
-    static void __launch_dynamic_bounds_scan(_Policy const & __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op, ::std::uint32_t __wg_size)
+    static void __launch_dynamic_bounds_scan(_Policy const & __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op, ::uint16_t __wg_size)
     {
-        using _RangeValueType = decltype(*__in.begin());
-        using _ValueType = decltype(__bin_op(std::declval<_RangeValueType>(), std::declval<_RangeValueType>()));
-
+        using _ValueType = typename _InitType::__value_type;
         using _CustomName = typename _Policy::kernel_name;
         using _GroupScanKernel =
                      oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_dynamic_kernel, _CustomName, _BinaryOperation, _InRng, _OutRng>;
 
-        ::uint32_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
-        ::uint32_t __elems_per_wg = __elems_per_item * __wg_size;
+        ::uint16_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
+        ::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
@@ -144,7 +142,8 @@ struct __single_group_scan
 
             __hdl.parallel_for<_GroupScanKernel>(sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
-                const auto __item_id = __self_item.get_local_linear_id();
+                // This kernel is only launched for sizes less than 2^16
+                const ::uint16_t __item_id = __self_item.get_local_linear_id();
 
                 for (uint16_t __i = 0; __i < __elems_per_item; ++__i)
                 {
@@ -168,8 +167,7 @@ struct __single_group_scan
     template<::uint16_t _ElemsPerItem, ::uint16_t _WGSize, bool _IsFullGroup, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
     static void __launch_static_bounds_scan(_Policy const & __policy, _InRng __in, _OutRng __out, std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op)
     {
-        using _RangeValueType = oneapi::dpl::__internal::__value_t<_InRng>;
-        using _ValueType = decltype(__bin_op(std::declval<_RangeValueType>(), std::declval<_RangeValueType>()));
+        using _ValueType = typename _InitType::__value_type;
         using _CustomName = typename _Policy::kernel_name;
         using _GroupScanKernel =
                      oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_kernel, _CustomName, _BinaryOperation, std::integral_constant<bool, _Inclusive>, std::integral_constant<bool, _IsFullGroup>, _InRng, _OutRng, std::integral_constant<::std::size_t, _ElemsPerItem>, std::integral_constant<std::size_t, _WGSize>>;
@@ -185,10 +183,11 @@ struct __single_group_scan
             __hdl.parallel_for<__par_backend_hetero::__tunable_kernel_name<_GroupScanKernel, __elems_per_wg, _IsFullGroup, _Inclusive>>(sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 const auto& __subgroup = __self_item.get_sub_group();
-                const auto __item_id = __self_item.get_local_linear_id();
-                int __subgroup_id = __subgroup.get_group_id();
-                int __id_in_subgroup = __subgroup.get_local_id();
-                int __subgroup_size = __subgroup.get_local_linear_range();
+                // This kernel is only launched for sizes less than 2^16
+                const ::uint16_t __item_id = __self_item.get_local_linear_id();
+                ::uint16_t __subgroup_id = __subgroup.get_group_id();
+                ::uint16_t __id_in_subgroup = __subgroup.get_local_id();
+                ::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
                 if constexpr (_IsFullGroup)
                 {
