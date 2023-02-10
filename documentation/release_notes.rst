@@ -8,6 +8,29 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.0.0
+===============
+
+New Features
+------------
+- Added the functionality from ``<complex>`` and more APIs from ``<cmath>`` and ``<limits>``
+  standard headers to `Tested Standard C++ API`_.
+- Improved performance of ``sort`` and ``stable_sort``  algorithms on GPU devices when using Radix sort [#fnote1]_.
+
+Fixed Issues
+------------
+- Fixed permutation_iterator to work with C++ lambda functions for index permutation
+- Fixed an error in ``oneapi::dpl::experimental::ranges::guard_view`` and ``oneapi::dpl::experimental::ranges::zip_view``
+  when using ``operator[]`` with an index exceeding the limits of a 32 bit integer type.
+- Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
+
+Changes affecting backward compatibility
+----------------------------------------
+- Removed support of C++11 and C++14.
+- Changed the size and the layout of the ``discard_block_engine`` class template.
+  
+  For further details, please refer to `2022.0 Changes`_.
+
 New in 2021.7.1
 ===============
 
@@ -367,3 +390,4 @@ Known Issues and Limitations
 .. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
+.. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.html
