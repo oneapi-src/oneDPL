@@ -207,7 +207,6 @@ struct transform_init_known
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    // __iters_per_work_item2 is only needed to unify the interface for when __iters_per_work_item is unknown
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
     operator()(const ::std::uint16_t __local_id, const _Size __n,
