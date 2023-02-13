@@ -27,6 +27,24 @@ namespace oneapi
 {
 namespace dpl
 {
+
+namespace __internal
+{
+
+template <typename _R>
+auto
+get_value_type(int) -> typename std::decay_t<_R>::value_type;
+
+template <typename _R>
+auto
+get_value_type(...) ->
+    typename ::std::iterator_traits<std::decay_t<decltype(::std::declval<_R&>().begin())>>::value_type;
+
+template <typename _R>
+using __value_t = decltype(oneapi::dpl::__internal::get_value_type<_R>(0));
+
+} //namespace __internal
+
 namespace __ranges
 {
 
@@ -111,7 +129,7 @@ class zip_view
     }
 
   public:
-    using __value_t = oneapi::dpl::__internal::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>;
+    using value_type = oneapi::dpl::__internal::tuple<oneapi::dpl::__internal::__value_t<_Ranges>...>;
     static constexpr ::std::size_t __num_ranges = sizeof...(_Ranges);
 
     explicit zip_view(_Ranges... __args) : __m_ranges(oneapi::dpl::__internal::make_tuple(__args...)) {}
@@ -162,11 +180,11 @@ make_zip_view(_Ranges&&... args) -> decltype(zip_view<_Ranges...>(::std::forward
 template <typename _Iterator>
 class guard_view
 {
-    using value_type = typename ::std::iterator_traits<_Iterator>::value_type;
-    using reference = typename ::std::iterator_traits<_Iterator>::reference;
     using diff_type = typename ::std::iterator_traits<_Iterator>::difference_type;
 
   public:
+    using value_type = typename ::std::iterator_traits<_Iterator>::value_type;
+
     guard_view(_Iterator __first = _Iterator(), diff_type __n = 0) : m_p(__first), m_count(__n) {}
     guard_view(_Iterator __first, _Iterator __last) : m_p(__first), m_count(__last - __first) {}
 
@@ -209,6 +227,8 @@ class guard_view
 template <typename _R>
 struct reverse_view_simple
 {
+    using value_type = typename ::std::decay_t<_R>::value_type;
+
     _R __r;
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
@@ -241,6 +261,8 @@ struct reverse_view_simple
 template <typename _R, typename _Size>
 struct take_view_simple
 {
+    using value_type = typename ::std::decay_t<_R>::value_type;
+
     _R __r;
     _Size __n;
 
@@ -276,6 +298,8 @@ struct take_view_simple
 template <typename _R, typename _Size>
 struct drop_view_simple
 {
+    using value_type = typename ::std::decay_t<_R>::value_type;
+
     _R __r;
     _Size __n;
 
@@ -311,6 +335,8 @@ struct drop_view_simple
 template <typename _R, typename _F>
 struct transform_view_simple
 {
+    using value_type = ::std::decay_t<::std::invoke_result_t<_F&, decltype(::std::declval<_R&>()[0])>>;
+
     _R __r;
     _F __f;
 
@@ -362,6 +388,7 @@ struct permutation_view_simple;
 template <typename _R, typename _M>
 struct permutation_view_simple<_R, _M, typename ::std::enable_if<oneapi::dpl::__internal::__is_functor<_M>>::type>
 {
+    using value_type = typename ::std::decay_t<_R>::value_type;
     using _Size = oneapi::dpl::__internal::__difference_t<_R>;
 
     _R __r;
@@ -400,6 +427,8 @@ struct permutation_view_simple<_R, _M, typename ::std::enable_if<oneapi::dpl::__
 template <typename _R, typename _M>
 struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_view<_M>::value>::type>
 {
+    using value_type = typename ::std::decay_t<_R>::value_type;
+
     zip_view<_R, _M> __data;
 
     permutation_view_simple(_R __r, _M __m) : __data(__r, __m) {}
@@ -433,6 +462,7 @@ struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_view<_M>
 //permutation discard view:
 struct permutation_discard_view
 {
+    using value_type = oneapi::dpl::internal::ignore_copyable;
     using difference_type = ::std::ptrdiff_t;
     difference_type m_count;
 
@@ -454,15 +484,6 @@ struct permutation_discard_view
 };
 
 } // namespace __ranges
-
-namespace __internal
-{
-template <typename... _Ranges>
-struct __range_traits<oneapi::dpl::__ranges::zip_view<_Ranges...>>
-{
-    using __value_t = typename oneapi::dpl::__ranges::zip_view<_Ranges...>::__value_t;
-};
-} // namespace __internal
 } // namespace dpl
 } // namespace oneapi
 
