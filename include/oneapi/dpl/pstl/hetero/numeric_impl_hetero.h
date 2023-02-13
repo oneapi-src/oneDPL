@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_numeric_impl_hetero_H
-#define _ONEDPL_numeric_impl_hetero_H
+#ifndef _ONEDPL_NUMERIC_IMPL_HETERO_H
+#define _ONEDPL_NUMERIC_IMPL_HETERO_H
 
 #include <iterator>
 #include "../parallel_backend.h"
@@ -262,6 +262,8 @@ struct __single_group_scan
 //------------------------------------------------------------------------
 // transform_scan
 //------------------------------------------------------------------------
+template <typename T>
+struct ExecutionPolicyWrapper;
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation,
           typename _InitType, typename _BinaryOperation, typename _Inclusive>
@@ -269,7 +271,6 @@ void
 __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng, ::std::size_t __n,
                               _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
-    using _Type = typename _InitType::__value_type;
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
@@ -351,16 +352,16 @@ __pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rn
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
           typename _InitType, typename _BinaryOperation, typename _Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
-__pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
-                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+void
+__pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+                                   _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
+                                   _BinaryOperation __binary_op, _Inclusive)
 {
-    if (__first == __last)
-        return __result;
+    const auto __n = __last - __first;
+    assert(__n > 0);
 
     using _Type = typename _InitType::__value_type;
 
-    auto __n = __last - __first;
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
@@ -387,6 +388,68 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     else
     {
         __pattern_transform_scan_multi_group(std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init, __binary_op, _Inclusive{});
+    }
+}
+
+template <typename _Iterator1, typename _Iterator2>
+constexpr bool
+__check_equal_iterators(_Iterator1 __it1, _Iterator2 __it2)
+{
+    // In-place exclusive scan works correctly only if an input and an output iterators are the same type.
+    // Otherwise, there is no way to check an in-place case and a workaround below is not applied.
+    if constexpr (::std::is_same_v<::std::decay_t<_Iterator1>, ::std::decay_t<_Iterator2>>)
+    {
+        return __it1 == __it2;
+    }
+
+    return false;
+}
+
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
+          typename _InitType, typename _BinaryOperation, typename _Inclusive>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
+__pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
+                              _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+{
+    if (__first == __last)
+        return __result;
+
+    const auto __n = __last - __first;
+
+    // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
+    const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __check_equal_iterators(__first, __result);
+    if (!__is_scan_inplace_exclusive)
+    {
+        __pattern_transform_scan_base_impl(__exec, __first, __last, __result, __unary_op, __init, __binary_op,
+                                           _Inclusive{});
+    }
+    else
+    {
+        assert(__n > 1);
+        assert(!_Inclusive{});
+        assert(__check_equal_iterators(__first, __result));
+
+        using _Type = typename _InitType::__value_type;
+
+        auto __policy =
+            __par_backend_hetero::make_wrapped_policy<ExecutionPolicyWrapper>(::std::forward<_ExecutionPolicy>(__exec));
+        using _NewExecutionPolicy = decltype(__policy);
+
+        // Create temporary buffer
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_NewExecutionPolicy, _Type> __tmp_buf(__policy, __n);
+        auto __first_tmp = __tmp_buf.get();
+        auto __last_tmp = __first_tmp + __n;
+
+        // Run main algorithm and save data into temporary buffer
+        __pattern_transform_scan_base_impl(__policy, __first, __last, __first_tmp, __unary_op, __init, __binary_op,
+                                           _Inclusive{});
+
+        // Move data from temporary buffer into results
+        oneapi::dpl::__internal::__pattern_walk2_brick(
+            ::std::forward<_NewExecutionPolicy>(__policy), __first_tmp, __last_tmp, __result,
+            oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{}, ::std::true_type{});
+
+        //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     }
 
     return __result + __n;
@@ -492,4 +555,4 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_numeric_impl_hetero_H */
+#endif // _ONEDPL_NUMERIC_IMPL_HETERO_H

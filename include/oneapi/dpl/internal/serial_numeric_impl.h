@@ -54,4 +54,4 @@ using ::std::reduce;
 } // namespace dpl
 } // namespace oneapi
 #endif // _ONEDPL___cplusplus >= 201703L
-#endif /* _ONEDPL_SERIAL_NUMERIC_IMPL_H */
+#endif // _ONEDPL_SERIAL_NUMERIC_IMPL_H

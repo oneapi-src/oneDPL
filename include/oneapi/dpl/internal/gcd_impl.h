@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-#ifndef _ONEDPL_GCD_IMPL
-#define _ONEDPL_GCD_IMPL
+#ifndef _ONEDPL_GCD_IMPL_H
+#define _ONEDPL_GCD_IMPL_H
 
 #include <limits>
 #include <type_traits>
@@ -101,4 +101,4 @@ lcm(_Mn __m, _Nn __n)
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_GCD_IMPL_H

@@ -115,4 +115,4 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_GLUE_NUMERIC_RANGES_DEFS_H */
+#endif // _ONEDPL_GLUE_NUMERIC_RANGES_DEFS_H

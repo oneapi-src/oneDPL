@@ -299,4 +299,4 @@ adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Forwa
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_GLUE_NUMERIC_IMPL_H */
+#endif // _ONEDPL_GLUE_NUMERIC_IMPL_H

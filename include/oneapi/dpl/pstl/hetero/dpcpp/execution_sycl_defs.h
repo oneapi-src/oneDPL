@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_execution_sycl_defs_H
-#define _ONEDPL_execution_sycl_defs_H
+#ifndef _ONEDPL_EXECUTION_SYCL_DEFS_H
+#define _ONEDPL_EXECUTION_SYCL_DEFS_H
 
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
@@ -384,7 +384,8 @@ template <typename _ExecutionPolicy>
 __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
-    const ::std::size_t __wg_size = __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
+    [[maybe_unused]] const ::std::size_t __wg_size =
+        __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
     const ::std::uint32_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
@@ -406,4 +407,4 @@ __kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kerne
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_execution_sycl_defs_H */
+#endif // _ONEDPL_EXECUTION_SYCL_DEFS_H

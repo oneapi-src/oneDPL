@@ -18,8 +18,8 @@
 //
 // Include this header instead of sycl.hpp throughout the project
 
-#ifndef _ONEDPL_sycl_defs_H
-#define _ONEDPL_sycl_defs_H
+#ifndef _ONEDPL_SYCL_DEFS_H
+#define _ONEDPL_SYCL_DEFS_H
 
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
@@ -254,4 +254,4 @@ using __local_accessor =
 
 } // namespace __dpl_sycl
 
-#endif /* _ONEDPL_sycl_defs_H */
+#endif // _ONEDPL_SYCL_DEFS_H

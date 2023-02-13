@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_algorithm_ranges_impl_hetero_H
-#define _ONEDPL_algorithm_ranges_impl_hetero_H
+#ifndef _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H
+#define _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H
 
 #include "../algorithm_fwd.h"
 #include "../parallel_backend.h"
@@ -769,7 +769,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         __pattern_copy_if(oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key2_wrapper>(
                               ::std::forward<_ExecutionPolicy>(__exec)),
                           __view3, __view4,
-                          [__m, __result_end, __binary_pred](const auto& __a) {
+                          [__m, __binary_pred](const auto& __a) {
                               // The size of key ranges is one less, so for the last index we do not check the keys,
                               // and we need the index itself as the boundaries of the last subrange.
                               const auto index = ::std::get<0>(__a);
@@ -797,4 +797,4 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_algorithm_ranges_impl_hetero_H */
+#endif // _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H

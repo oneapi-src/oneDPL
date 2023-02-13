@@ -317,16 +317,21 @@ struct test_base
     };
 };
 
-namespace
+/// Copy data from source test data storage into local buffers
+template <typename TTestDataTransfer>
+void
+retrieve_data(TTestDataTransfer& helper)
 {
-void retrieve_data()
-{
+    helper.retrieve_data();
 }
 
-void update_data()
+/// Copy data from local buffers into source test data storage
+template <typename TTestDataTransfer>
+void
+update_data(TTestDataTransfer& helper)
 {
+    helper.update_data();
 }
-};
 
 /// Copy data from source test data storage into local buffers
 template <typename TTestDataTransfer, typename... Args>

@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __TEST_SYCL_ALLOC_UTILS_H
-#define __TEST_SYCL_ALLOC_UTILS_H
+#ifndef _TEST_SYCL_ALLOC_UTILS_H
+#define _TEST_SYCL_ALLOC_UTILS_H
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
@@ -220,4 +220,4 @@ private:
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#endif // __TEST_SYCL_ALLOC_UTILS_H
+#endif // _TEST_SYCL_ALLOC_UTILS_H

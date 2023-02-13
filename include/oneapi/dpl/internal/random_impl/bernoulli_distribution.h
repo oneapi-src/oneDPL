@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Bernoulli Distribution
 
-#ifndef _ONEDPL_BERNOULLI_DISTRIBUTION
-#define _ONEDPL_BERNOULLI_DISTRIBUTION
+#ifndef _ONEDPL_BERNOULLI_DISTRIBUTION_H
+#define _ONEDPL_BERNOULLI_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -208,4 +208,4 @@ class bernoulli_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_BERNOULLI_DISTRIBUTION
+#endif // _ONEDPL_BERNOULLI_DISTRIBUTION_H

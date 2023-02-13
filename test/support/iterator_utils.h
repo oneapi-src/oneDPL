@@ -42,7 +42,18 @@ class ForwardIterator
     ForwardIterator() = default;
     explicit ForwardIterator(Iterator i) : my_iterator(i) {}
     reference operator*() const { return *my_iterator; }
-    Iterator operator->() const { return my_iterator; }
+    pointer operator->() const
+    {
+        if constexpr (::std::is_pointer<Iterator>::value)
+        {
+            return my_iterator;
+        }
+        else
+        {
+            return my_iterator.operator->();
+        }
+    }
+    
     ForwardIterator&
     operator++()
     {
@@ -539,10 +550,10 @@ struct reverse_invoker
     operator()(Rest&&... rest)
     {
         // Random-access iterator
-        iterator_invoker<::std::random_access_iterator_tag, IsReverse>()(::std::forward<Rest>(rest)...);
+        iterator_invoker<::std::random_access_iterator_tag, IsReverse>()(rest...);
 
         // Forward iterator
-        iterator_invoker<::std::forward_iterator_tag, IsReverse>()(::std::forward<Rest>(rest)...);
+        iterator_invoker<::std::forward_iterator_tag, IsReverse>()(rest...);
 
         // Bidirectional iterator
         iterator_invoker<::std::bidirectional_iterator_tag, IsReverse>()(::std::forward<Rest>(rest)...);
@@ -555,7 +566,7 @@ struct invoke_on_all_iterator_types
     void
     operator()(Rest&&... rest)
     {
-        reverse_invoker</* IsReverse = */ ::std::false_type>()(::std::forward<Rest>(rest)...);
+        reverse_invoker</* IsReverse = */ ::std::false_type>()(rest...);
         reverse_invoker</* IsReverse = */ ::std::true_type>()(::std::forward<Rest>(rest)...);
     }
 };
