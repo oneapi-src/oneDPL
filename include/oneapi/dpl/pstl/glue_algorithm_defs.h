@@ -369,9 +369,9 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
 
 // [partial.sort]
-// The order of these functions should be equal to the order
-// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
-// Otherwise, we have compile errors in clang < 13.0
+// To workaround the Clang compiler (< 13.0) bug the order of these overload declarations
+// should be in the reversed order comparing with glue_algorithm_impl.h corresponding
+// definitions
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
@@ -384,9 +384,9 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
              _RandomAccessIterator __last, _Compare __comp);
 
 // [partial.sort.copy]
-// The order of these functions should be equal to the order
-// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
-// Otherwise, we have compile errors in clang < 13.0
+// To workaround the Clang compiler (< 13.0) bug the order of these overload declarations
+// should be in the reversed order comparing with glue_algorithm_impl.h corresponding
+// definitions
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
@@ -399,9 +399,9 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
                   _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp);
 
 // [is.sorted]
-// The order of these functions should be equal to the order
-// described at https://gcc.gnu.org/onlinedocs/gcc-4.8.5/libstdc++/api/a01378.html
-// Otherwise, we have compile errors in clang < 13.0
+// To workaround the Clang compiler (< 13.0) bug the order of these overload declarations
+// should be in the reversed order comparing with glue_algorithm_impl.h corresponding
+// definitions
 
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
@@ -519,9 +519,9 @@ set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _ForwardIterator __result);
 
 // [is.heap]
-// The order of these functions should be equal to the order
-// described at https://gcc.gnu.org/onlinedocs/gcc-4.6.2/libstdc++/api/a01200.html
-// Otherwise, we have compile errors in clang < 13.0
+// To workaround the Clang compiler (< 13.0) bug the order of these overload declarations
+// should be in the reversed order comparing with glue_algorithm_impl.h corresponding
+// definitions
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
