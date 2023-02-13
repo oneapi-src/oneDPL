@@ -38,9 +38,6 @@ class __scan_single_wg_kernel;
 template <typename... _Name>
 class __scan_single_wg_dynamic_kernel;
 
-template <typename KernelName, ::std::size_t CallNumber, bool X, bool Y>
-struct __tunable_kernel_name;
-
 } // namespace __par_backend_hetero
 namespace __internal
 {
@@ -172,7 +169,6 @@ struct __single_group_scan
         using _GroupScanKernel =
                      oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_kernel, _CustomName, _BinaryOperation, std::integral_constant<bool, _Inclusive>, std::integral_constant<bool, _IsFullGroup>, _InRng, _OutRng, std::integral_constant<::std::size_t, _ElemsPerItem>, std::integral_constant<std::size_t, _WGSize>>;
 
-
         constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
@@ -180,7 +176,7 @@ struct __single_group_scan
 
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
 
-            __hdl.parallel_for<__par_backend_hetero::__tunable_kernel_name<_GroupScanKernel, __elems_per_wg, _IsFullGroup, _Inclusive>>(sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
+            __hdl.parallel_for<__par_backend_hetero::__i_kernel_name<_GroupScanKernel, __elems_per_wg, _IsFullGroup, _Inclusive>>(sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 const auto& __subgroup = __self_item.get_sub_group();
                 // This kernel is only launched for sizes less than 2^16

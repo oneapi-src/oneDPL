@@ -533,6 +533,10 @@ public:
     }
 };
 
+
+template <typename KernelName, ::std::size_t... StaticParams>
+struct __i_kernel_name;
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
