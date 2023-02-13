@@ -206,7 +206,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
         # settings for the specific compilation type
         if (NOT ONEDPL_USE_AOT_COMPILATION)
-            message(STATUS "Use just-in-Time compilation")
+            message(STATUS "Use just-in-time compilation")
         else()
             if (NOT ONEDPL_AOT_ARCH)
                 if (ONEDPL_USE_DEVICE_GPU)
