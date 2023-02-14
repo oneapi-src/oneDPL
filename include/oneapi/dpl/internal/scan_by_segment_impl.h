@@ -123,7 +123,7 @@ struct sycl_scan_by_segment_impl
             ::std::forward<_ExecutionPolicy>(__exec), __kernel2) });
 #endif
 
-        ::std::size_t __n_groups = 1 + ((__n - 1) / (__wgroup_size * __vals_per_item));
+        ::std::size_t __n_groups = __par_backend_hetero::__ceiling_div(__n, __wgroup_size * __vals_per_item);
 
         auto __partials =
             oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
