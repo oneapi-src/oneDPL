@@ -152,8 +152,8 @@ struct __parallel_transform_reduce_submitter
             _KernelName, _CustomName, _ReduceOp, _TransformOp1, _TransformOp2, _Ranges...>;
 
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(
-            ::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernel =
+            __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
         __work_group_size =
             ::std::min(__work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(
                                               ::std::forward<_ExecutionPolicy>(__exec), __kernel));
@@ -205,14 +205,15 @@ struct __parallel_transform_reduce_submitter
                 auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
                 auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
-    #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-    #endif
+#endif
                 __cgh.parallel_for<_ReduceKernel>(
-    #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                     __kernel,
-    #endif
-                    sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
+#endif
+                    sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size),
+                                      sycl::range<1>(__work_group_size)),
                     [=](sycl::nd_item<1> __item_id) {
                         ::std::size_t __global_idx = __item_id.get_global_id(0);
                         ::std::uint16_t __local_idx = __item_id.get_local_id(0);
@@ -351,8 +352,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                     unseq_backend::transform_reduce_known<_ExecutionPolicy, 32, _ReduceOp, _TransformOp>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_reduce_known<_ExecutionPolicy, 32, _ReduceOp, _NoOpFunctor>{__reduce_op,
-                                                                                                       _NoOpFunctor{}};
+                    unseq_backend::transform_reduce_known<_ExecutionPolicy, 32, _ReduceOp, _NoOpFunctor>{
+                        __reduce_op, _NoOpFunctor{}};
                 auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::true_type>::submit(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
@@ -365,7 +366,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
                     unseq_backend::transform_reduce_unknown<_ExecutionPolicy, _ReduceOp, _NoOpFunctor>{__reduce_op,
-                                                                                                     _NoOpFunctor{}};
+                                                                                                       _NoOpFunctor{}};
                 auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::false_type>::submit(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
