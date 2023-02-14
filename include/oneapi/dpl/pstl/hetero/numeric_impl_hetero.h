@@ -142,19 +142,24 @@ struct __single_group_scan
                 // This kernel is only launched for sizes less than 2^16
                 const ::uint16_t __item_id = __self_item.get_local_linear_id();
 
-                for (uint16_t __i = 0; __i < __elems_per_item; ++__i)
+                for (::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                 {
-                   auto __global_idx = __i * __wg_size + __item_id;
-                   __lacc[__global_idx] = __unary_op(__global_idx < __n ? __in[__global_idx] : unseq_backend::__known_identity<_BinaryOperation, _ValueType>);
+                   __lacc[__idx] = __unary_op(__in[__idx]);
                 }
 
                 __group_scan<_ValueType>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
 
-                for (uint16_t __i = 0; __i < __elems_per_item; ++__i)
+                for (::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                 {
-                   auto __global_idx = __i * __wg_size + __item_id;
-                   if (__global_idx < __n)
-                       __out[__global_idx] = __lacc[__global_idx];
+                   __out[__idx] = __lacc[__idx];
+                }
+
+                const ::std::uint16_t __residual = __n % __wg_size;
+                const ::std::uint16_t __residual_start = __n - __residual;
+                if (__residual > 0 && __item_id < __residual)
+                {
+                    auto __idx = __residual_start + __item_id;
+                   __out[__idx] = __lacc[__idx];
                 }
             });
         });
@@ -162,7 +167,7 @@ struct __single_group_scan
     }
 
     template<::uint16_t _ElemsPerItem, ::uint16_t _WGSize, bool _IsFullGroup, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
-    static void __launch_static_bounds_scan(_Policy const & __policy, _InRng __in, _OutRng __out, std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op)
+    static void __launch_static_bounds_scan(_Policy const & __policy, _InRng&& __in, _OutRng&& __out, std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op)
     {
         using _ValueType = typename _InitType::__value_type;
         using _CustomName = typename _Policy::kernel_name;
@@ -198,13 +203,10 @@ struct __single_group_scan
                 else
                 {
                     #pragma unroll
-                    for (::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                    for (::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
-                       auto __idx = __i * _WGSize + __item_id;
-                       auto __val = __unary_op(__idx < __n ? __in[__idx] : unseq_backend::__known_identity<_BinaryOperation, _ValueType>);
-                       __lacc[__idx] = __val;
+                       __lacc[__idx] = __unary_op(__in[__idx]);
                     }
-
                 }
 
                 __group_scan<_ValueType>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
@@ -222,13 +224,18 @@ struct __single_group_scan
                 else
                 {
                     #pragma unroll
-                    for (::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                    for (::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
-                       auto __idx = __i * _WGSize + __item_id;
-                       if (__idx < __n)
-                           __out[__idx] = __lacc[__idx];
+                       __out[__idx] = __lacc[__idx];
                     }
 
+                    const ::std::uint16_t __residual = __n % _WGSize;
+                    const ::std::uint16_t __residual_start = __n - __residual;
+                    if (__item_id < __residual)
+                    {
+                        auto __idx = __residual_start + __item_id;
+                       __out[__idx] = __lacc[__idx];
+                    }
                 }
             });
         });
