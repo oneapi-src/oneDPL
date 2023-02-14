@@ -74,7 +74,7 @@ jobs:
             path: html
 
   linux-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: os=${{ matrix.os }},compiler=${{ matrix.cxx_compiler }},backend=${{ matrix.backend }},device=${{ matrix.device_type }},cxx=${{ matrix.std }},build_type=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -180,7 +180,7 @@ jobs:
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
   windows-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: os=${{ matrix.os }},compiler=${{ matrix.cxx_compiler }},backend=${{ matrix.backend }},device=${{ matrix.device_type }},cxx=${{ matrix.std }},build_type=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -251,7 +251,7 @@ jobs:
           ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags%
 
   macos-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: os=${{ matrix.os }},compiler=${{ matrix.cxx_compiler }},backend=${{ matrix.backend }},cxx=${{ matrix.std }},build_type=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
