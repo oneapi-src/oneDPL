@@ -185,7 +185,7 @@ struct __init_processing
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
-struct transform_init_seq
+struct transform_reduce_seq
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
@@ -202,7 +202,7 @@ struct transform_init_seq
 };
 
 template <typename _ExecutionPolicy, ::std::size_t __iters_per_work_item, typename _Operation1, typename _Operation2>
-struct transform_init_known
+struct transform_reduce_known
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
@@ -237,7 +237,7 @@ struct transform_init_known
 };
 
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
-struct transform_init_unknown
+struct transform_reduce_unknown
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
@@ -267,7 +267,7 @@ struct transform_init_unknown
 
 // Reduce on local memory
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
-struct reduce
+struct reduce_over_group
 {
     _BinaryOperation1 __bin_op1;
 
