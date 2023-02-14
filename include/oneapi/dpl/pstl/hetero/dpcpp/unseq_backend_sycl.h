@@ -184,20 +184,21 @@ struct __init_processing
 // transform_reduce
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp>
 struct transform_reduce_seq
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    template <typename _Size, typename _AccLocal, typename... _Acc>
-    void
-    operator()(const _Size __n, _AccLocal& __local_mem, const _Acc&... __acc) const
+    template <typename _Size, typename... _Acc>
+    _Tp
+    operator()(const _Size __n, const _Acc&... __acc) const
     {
-        __local_mem = __unary_op(0, __acc...);
-        // Add neighbour to the current __local_mem
+        _Tp __result = __unary_op(0, __acc...);
+        // Add neighbour to the current __result
         for (_Size __i = 1; __i < __n; ++__i)
-            __local_mem = __binary_op(__local_mem, __unary_op(__i, __acc...));
+            __result = __binary_op(__result, __unary_op(__i, __acc...));
+        return __result;
     }
 };
 

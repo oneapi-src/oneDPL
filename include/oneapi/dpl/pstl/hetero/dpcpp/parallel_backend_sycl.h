@@ -274,7 +274,7 @@ __parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, _Size __n, 
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__reduce_seq_kernel, _CustomName,
                                                                                _ReduceOp, _TransformOp, _Ranges...>;
 
-    auto __transform_pattern = unseq_backend::transform_reduce_seq<_ExecutionPolicy, _ReduceOp, _TransformOp>{
+    auto __transform_pattern = unseq_backend::transform_reduce_seq<_ExecutionPolicy, _ReduceOp, _TransformOp, _Tp>{
         __reduce_op, _TransformOp{__transform_op}};
     auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
@@ -284,8 +284,7 @@ __parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, _Size __n, 
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
         auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
         __cgh.single_task<_ReduceKernel>([=] {
-            _Tp __result;
-            __transform_pattern(__n, __result, __rngs...);
+            _Tp __result = __transform_pattern(__n, __rngs...);
             __reduce_pattern.apply_init(__init, __result);
             __res_acc[0] = __result;
         });
