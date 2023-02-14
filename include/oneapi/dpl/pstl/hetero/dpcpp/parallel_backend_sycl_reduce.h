@@ -32,10 +32,10 @@ namespace __par_backend_hetero
 template <typename... _Name>
 class __reduce_seq_kernel;
 
-template <::std::uint16_t /* __work_grou_size */, ::std::uint16_t /* __iters_per_work_item */, typename... _Name>
+template <::std::uint16_t _WorkGroupSize, ::std::uint16_t _ItersPerWorkItem, typename... _Name>
 class __reduce_small_kernel;
 
-template <bool /* isGPU */, typename... _Name>
+template <bool _IsGPU, typename... _Name>
 class __reduce_kernel;
 
 //------------------------------------------------------------------------
