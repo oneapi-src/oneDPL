@@ -56,7 +56,7 @@ __parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, _Size __n, 
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__reduce_seq_kernel, _CustomName,
                                                                                _ReduceOp, _TransformOp, _Ranges...>;
 
-    auto __transform_pattern = unseq_backend::transform_reduce_seq<_ExecutionPolicy, _ReduceOp, _TransformOp, _Tp>{
+    auto __transform_pattern = unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp>{
         __reduce_op, _TransformOp{__transform_op}};
     auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
@@ -66,7 +66,7 @@ __parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, _Size __n, 
         oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
         auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
         __cgh.single_task<_ReduceKernel>([=] {
-            _Tp __result = __transform_pattern(__n, __rngs...);
+            _Tp __result = __transform_pattern.seq(__n, __rngs...);
             __reduce_pattern.apply_init(__init, __result);
             __res_acc[0] = __result;
         });
@@ -96,8 +96,8 @@ struct __parallel_transform_reduce_small_submitter
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<_KernelName, _CustomName, _ReduceOp,
                                                                                    _TransformOp, _Ranges...>;
         auto __transform_pattern =
-            unseq_backend::transform_reduce_known<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
-                __reduce_op, _TransformOp{__transform_op}};
+            unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp,
+                                                  __iters_per_work_item>{__reduce_op, _TransformOp{__transform_op}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
         const _Size __n_items = __ceiling_div(__n, __iters_per_work_item); // number of work items
@@ -114,8 +114,8 @@ struct __parallel_transform_reduce_small_submitter
                     ::std::size_t __global_idx = __item_id.get_global_id(0);
                     ::std::uint16_t __local_idx = __item_id.get_local_id(0);
                     // 1. Initialization (transform part). Fill local memory
-                    __transform_pattern(__local_idx, __n, __iters_per_work_item, __global_idx, /*global_offset*/ 0,
-                                        __temp_local, __rngs...);
+                    __transform_pattern.parallel(__local_idx, __n, __iters_per_work_item, __global_idx,
+                                                 /*global_offset*/ 0, __temp_local, __rngs...);
                     __dpl_sycl::__group_barrier(__item_id);
                     // 2. Reduce within work group using local memory
                     _Tp __result = __reduce_pattern(__item_id, __global_idx, __n_items, __temp_local);
@@ -220,13 +220,13 @@ struct __parallel_transform_reduce_submitter
                         // 1. Initialization (transform part). Fill local memory
                         if (__is_first)
                         {
-                            __transform_op1(__local_idx, __n, __iters_per_work_item, __global_idx,
-                                            /*global_offset*/ 0, __temp_local, __rngs...);
+                            __transform_op1.parallel(__local_idx, __n, __iters_per_work_item, __global_idx,
+                                                     /*global_offset*/ 0, __temp_local, __rngs...);
                         }
                         else
                         {
-                            __transform_op2(__local_idx, __n, __iters_per_work_item, __global_idx, __offset_2,
-                                            __temp_local, __temp_acc);
+                            __transform_op2.parallel(__local_idx, __n, __iters_per_work_item, __global_idx, __offset_2,
+                                                     __temp_local, __temp_acc);
                         }
                         __dpl_sycl::__group_barrier(__item_id);
                         // 2. Reduce within work group using local memory
@@ -349,10 +349,10 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
             if (__exec.queue().get_device().is_gpu())
             {
                 auto __transform_pattern1 =
-                    unseq_backend::transform_reduce_known<_ExecutionPolicy, 32, _ReduceOp, _TransformOp>{
+                    unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp, 32>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_reduce_known<_ExecutionPolicy, 32, _ReduceOp, _NoOpFunctor>{
+                    unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _NoOpFunctor, 32>{
                         __reduce_op, _NoOpFunctor{}};
                 auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::true_type>::submit(
