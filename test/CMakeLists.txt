@@ -69,14 +69,9 @@ macro(onedpl_add_test test_source_file)
     endif()
 
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
-    if (ONEDPL_DEVICE_TYPE)
-        if (ONEDPL_DEVICE_TYPE MATCHES "FPGA")
-            set(SYCL_DEVICE_FILTER *:acc)
-        else()
-            string(TOLOWER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
-            set(SYCL_DEVICE_FILTER ${ONEDPL_DEVICE_BACKEND}:${ONEDPL_DEVICE_TYPE})
-        endif()
-        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT SYCL_DEVICE_FILTER=${SYCL_DEVICE_FILTER})
+
+    if (DEFINED DEVICE_SELECTION_LINE)
+        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
     endif()
 
     add_custom_target(run-${_test_name}

@@ -105,6 +105,14 @@ string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
 string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
+# CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
+# CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
+if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx)(.exe)?$")
+    set(DPCPP_COMPLER TRUE)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE DPCPP_COMPILER_VERSION_RAW)
+    string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" DPCPP_COMPILER_VERSION ${DPCPP_COMPILER_VERSION_RAW})
+endif()
+
 if (ONEDPL_ENABLE_SIMD)
     if (NOT INTEL_LLVM_COMPILER OR NOT INTEL_LLVM_COMPILER_VERSION VERSION_LESS 2021.4)
         foreach(_simd_flag -fopenmp-simd /Qopenmp-simd -qopenmp-simd -openmp-simd)
@@ -168,31 +176,61 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             set(USE_FSYCL_OPTION TRUE)
         endif()
 
-
-        # check device type
-        if (NOT ONEDPL_DEVICE_TYPE)
-            set(ONEDPL_DEVICE_TYPE "GPU")
-            message(STATUS "Use GPU as default device")
+        # settings for the specific compilation type
+        if (NOT ONEDPL_USE_AOT_COMPILATION)
+            message(STATUS "Use the ahead of time compilation. No additional parameters needed")
+        else()
+            if (NOT ONEDPL_AOT_ARCH)
+                set(ONEDPL_AOT_ARCH "*")
+                message(STATUS "Ahead of time compilation for all available architectures")
+            else()
+                string(TOLOWER ${ONEDPL_AOT_ARCH} ONEDPL_AOT_ARCH)
+                message(STATUS "Ahead of time compilation for ${ONEDPL_AOT_ARCH} architecture")
+            endif()
+            set(ONEDPL_AOT_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_AOT_ARCH}\"")
+            set(ONEDPL_AOT_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
+            set(ONEDPL_AOT_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable\"")
         endif()
 
+        # check device type
         string(TOUPPER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
-        if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW?)$")
-            message(STATUS "Compilation for ${ONEDPL_DEVICE_TYPE}")
+        if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW)$")
+            message(STATUS "Using ${ONEDPL_DEVICE_TYPE} device type")
             set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
-        else()
+        elseif(DEFINED ONEDPL_DEVICE_BACKEND)
             message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
                 "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
+        else()
+            set(ONEDPL_DEVICE_TYPE "GPU")
+            message(STATUS "Using a default device type (GPU)")
         endif()
 
         # check device backend
-        if (ONEDPL_DEVICE_BACKEND MATCHES "^(opencl|level_zero)$")
-            message(STATUS "Compilation using ${ONEDPL_DEVICE_BACKEND} device backend")
+        if (ONEDPL_DEVICE_BACKEND MATCHES "^(opencl|level_zero|cuda|hip|\\*)$")
+            message(STATUS "Using ${ONEDPL_DEVICE_BACKEND} device backend")
         elseif (DEFINED ONEDPL_DEVICE_BACKEND)
             message(FATAL_ERROR "Unsupported device backend: ${ONEDPL_DEVICE_BACKEND}.\n"
-                "Select one of the following device backends: opencl or level_zero")
+                "Select one of the following device backends: opencl, level_zero, cuda, hip or *")
         else()
             set(ONEDPL_DEVICE_BACKEND "*")
-            message(STATUS "Use a default device backend")
+            message(STATUS "Using a default device backend (*)")
+        endif()
+
+        # set up device selection line basing on ONEDPL_DEVICE_BACKEND and ONEDPL_DEVICE_TYPE values
+        if (DEFINED ONEDPL_DEVICE_BACKEND AND DEFINED ONEDPL_DEVICE_TYPE)
+            if (DPCPP_COMPLER AND DPCPP_COMPILER_VERSION VERSION_LESS 2023.1)
+                set(DEVICE_SELECTION_VARIABLE "SYCL_DEVICE_FILTER")
+                set(FPGA_DEVICE_TYPE "acc")
+            else()
+                set(DEVICE_SELECTION_VARIABLE "ONEAPI_DEVICE_FILTER")
+                set(FPGA_DEVICE_TYPE "fpga")
+            endif()
+            if (ONEDPL_DEVICE_TYPE MATCHES "FPGA")
+                set(DEVICE_SELECTION_LINE "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${FPGA_DEVICE_TYPE}")
+            else()
+                string(TOLOWER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
+                set(DEVICE_SELECTION_LINE "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${ONEDPL_DEVICE_TYPE}")
+            endif()
         endif()
 
         # Check correctness of STATIC_REPORT
