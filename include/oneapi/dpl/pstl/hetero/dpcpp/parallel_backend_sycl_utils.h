@@ -480,7 +480,7 @@ class __future : private std::tuple<_Args...>
     __wait_and_get_value(sycl::buffer<_T>& __buf)
     {
         //according to a contract, returned value is one-element sycl::buffer
-        return __buf.get_host_access()[0];
+        return __buf.get_host_access(sycl::read_only)[0];
     }
 
     template <typename _T>

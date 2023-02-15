@@ -44,10 +44,10 @@ void test_with_buffers()
     sycl::buffer<T, 1> val_res_buf{ sycl::range<1>(13) };
 
     {
-        auto keys    = key_buf.get_host_access();
-        auto vals    = val_buf.get_host_access();
-        auto keys_res    = key_res_buf.get_host_access();
-        auto vals_res    = val_res_buf.get_host_access();
+        auto keys    = key_buf.get_host_access(sycl::read_write);
+        auto vals    = val_buf.get_host_access(sycl::read_write);
+        auto keys_res    = key_res_buf.get_host_access(sycl::read_write);
+        auto vals_res    = val_res_buf.get_host_access(sycl::read_write);
 
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
         //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
@@ -88,8 +88,8 @@ void test_with_buffers()
 
     {
         // check values
-        auto keys_res    = key_res_buf.get_host_access();
-        auto vals_res    = val_res_buf.get_host_access();
+        auto keys_res    = key_res_buf.get_host_access(sycl::read_write);
+        auto vals_res    = val_res_buf.get_host_access(sycl::read_write);
         int n = std::distance(key_res_beg, res1.first);
         for (auto i = 0; i != n; ++i) {
             if (i < 4) {
