@@ -63,7 +63,7 @@ using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
 // Bitwise type casting, same as C++20 std::bit_cast
 template <typename _Dst, typename _Src>
 __enable_if_t<
-    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
+    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst>&& ::std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
 #if _ONEDPL_LIBSYCL_VERSION >= 50300
@@ -81,10 +81,11 @@ __dpl_bit_cast(const _Src& __src) noexcept
 
 // The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
 template <typename _T>
-__enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
+__enable_if_t<::std::is_integral<_T>::value&& ::std::is_unsigned<_T>::value, _T>
 __dpl_bit_floor(_T __x) noexcept
 {
-    if (__x == 0) return 0;
+    if (__x == 0)
+        return 0;
 #if SYCL_LANGUAGE_VERSION
     // Use the count-leading-zeros function
     return 1 << (sycl::clz(_T{0}) - sycl::clz(__x) - 1);
@@ -95,9 +96,12 @@ __dpl_bit_floor(_T __x) noexcept
     __x |= (__x >> 1);
     __x |= (__x >> 2);
     __x |= (__x >> 4);
-    if constexpr (sizeof(_T) > 1) __x |= (__x >> 8);
-    if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
-    if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
+    if constexpr (sizeof(_T) > 1)
+        __x |= (__x >> 8);
+    if constexpr (sizeof(_T) > 2)
+        __x |= (__x >> 16);
+    if constexpr (sizeof(_T) > 4)
+        __x |= (__x >> 32);
     __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
     return (__x == 0) ? 1 << (sizeof(_T) * 8 - 1) : __x >> 1;
 #endif
@@ -491,7 +495,7 @@ class __future : private std::tuple<_Args...>
         return __val;
     }
 
-public:
+  public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
 
