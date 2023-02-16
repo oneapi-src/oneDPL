@@ -122,15 +122,15 @@ template< bool _Inclusive>
 struct __single_group_scan
 {
     template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
-    static void __launch_dynamic_bounds_scan(_Policy const & __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op, ::uint16_t __wg_size)
+    static void __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size)
     {
         using _ValueType = typename _InitType::__value_type;
         using _CustomName = typename _Policy::kernel_name;
         using _GroupScanKernel =
                      oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_dynamic_kernel, _CustomName, _BinaryOperation, _InRng, _OutRng>;
 
-        ::uint16_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
-        ::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
+        const ::std::uint16_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
+        const ::std::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
@@ -140,16 +140,16 @@ struct __single_group_scan
             __hdl.parallel_for<_GroupScanKernel>(sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 // This kernel is only launched for sizes less than 2^16
-                const ::uint16_t __item_id = __self_item.get_local_linear_id();
+                const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
 
-                for (::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
+                for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                 {
                    __lacc[__idx] = __unary_op(__in[__idx]);
                 }
 
                 __group_scan<_ValueType>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
 
-                for (::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
+                for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                 {
                    __out[__idx] = __lacc[__idx];
                 }
@@ -166,8 +166,8 @@ struct __single_group_scan
         __event.wait();
     }
 
-    template<::uint16_t _ElemsPerItem, ::uint16_t _WGSize, bool _IsFullGroup, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
-    static void __launch_static_bounds_scan(_Policy const & __policy, _InRng&& __in, _OutRng&& __out, std::size_t __n, _InitType __init, const _BinaryOperation& __bin_op, const _UnaryOp& __unary_op)
+    template<::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize, bool _IsFullGroup, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
+    static void __launch_static_bounds_scan(_Policy const & __policy, _InRng&& __in, _OutRng&& __out, std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
         using _ValueType = typename _InitType::__value_type;
         using _CustomName = typename _Policy::kernel_name;
@@ -243,7 +243,7 @@ struct __single_group_scan
     }
 
     template<typename _ValueType, typename _Group, typename _Begin, typename _End, typename _BinaryOperation>
-    static void __group_scan(const _Group& __group, _Begin __begin, _End __end, const _BinaryOperation& __bin_op, unseq_backend::__no_init_value<_ValueType>)
+    static void __group_scan(const _Group& __group, _Begin __begin, _End __end, _BinaryOperation __bin_op, unseq_backend::__no_init_value<_ValueType>)
     {
         if constexpr (_Inclusive)
             __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op);
@@ -252,7 +252,7 @@ struct __single_group_scan
     }
 
     template<typename _ValueType, typename _Group, typename _Begin, typename _End, typename _BinaryOperation>
-    static void __group_scan(const _Group& __group, _Begin __begin, _End __end, const _BinaryOperation& __bin_op, unseq_backend::__init_value<_ValueType> __init)
+    static void __group_scan(const _Group& __group, _Begin __begin, _End __end, _BinaryOperation __bin_op, unseq_backend::__init_value<_ValueType> __init)
     {
         if constexpr (_Inclusive)
             __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op, __init.__value);
@@ -278,14 +278,14 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
     // Specialization for devices that have a max work-group size of 1024
-    constexpr ::uint16_t __targeted_wg_size = 1024;
+    constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
     if (__max_wg_size >= __targeted_wg_size)
     {
         auto __single_group_scan_f = [&](auto __size_constant) {
-            constexpr ::uint16_t __size = decltype(__size_constant)::value;
-            constexpr ::uint16_t __wg_size = std::min(__size, __targeted_wg_size);
-            constexpr ::uint16_t __num_elems_per_item = __par_backend_hetero::__ceiling_div(__size, __wg_size);
+            constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
+            constexpr ::std::uint16_t __wg_size = std::min(__size, __targeted_wg_size);
+            constexpr ::std::uint16_t __num_elems_per_item = __par_backend_hetero::__ceiling_div(__size, __wg_size);
             const bool __is_full_group = __n == __wg_size;
 
             if (__is_full_group)
@@ -294,27 +294,27 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
                 __single_group_scan<_Inclusive::value>::template __launch_static_bounds_scan<__num_elems_per_item, __wg_size, false>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
         };
         if (__n <= 16)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 16>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
         else if (__n <= 32)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 32>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 32>{});
         else if (__n <= 64)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 64>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 64>{});
         else if (__n <= 128)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 128>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 128>{});
         else if (__n <= 256)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 256>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 256>{});
         else if (__n <= 512)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 512>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 512>{});
         else if (__n <= 1024)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 1024>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 1024>{});
         else if (__n <= 2048)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 2048>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 2048>{});
         else if (__n <= 4096)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 4096>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 4096>{});
         else if (__n <= 8192)
-            __single_group_scan_f(std::integral_constant<::uint16_t, 8192>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 8192>{});
         else
-            __single_group_scan_f(std::integral_constant<::uint16_t, 16384>{});
+            __single_group_scan_f(std::integral_constant<::std::uint16_t, 16384>{});
     }
     else
     {
