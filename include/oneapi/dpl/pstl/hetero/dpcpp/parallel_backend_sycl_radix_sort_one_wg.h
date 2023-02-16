@@ -105,7 +105,7 @@ struct __subgroup_radix_sort
             __keys[__i] = __exchange_lacc[__wi * __block_size + __i];
     }
 
-    static_assert(__wg_size <= 512);
+    static_assert(__wg_size <= 1024);
     static constexpr uint16_t __bin_count = 1 << __radix;
     static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1; //+1(init value) for exclusive scan result
 
