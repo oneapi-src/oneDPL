@@ -79,7 +79,7 @@ struct __subgroup_radix_sort
     static void
     __block_load(const _Wi __wi, const _Src& __src, _Keys& __keys, const uint32_t __n, const _KeyT& __default_key)
     {
-#pragma unroll
+        _ONEDPL_PRAGMA_UNROLL
         for (uint16_t __i = 0; __i < __block_size; ++__i)
         {
             const uint16_t __offset = __wi * __block_size + __i;
@@ -94,13 +94,13 @@ struct __subgroup_radix_sort
     static void
     __to_blocked(_Item __it, const _Wi __wi, _Lacc& __exchange_lacc, _Keys& __keys, const _Indices& __indices)
     {
-#pragma unroll
+        _ONEDPL_PRAGMA_UNROLL
         for (uint16_t __i = 0; __i < __block_size; ++__i)
             __exchange_lacc[__indices[__i]] = __keys[__i];
 
         __dpl_sycl::__group_barrier(__it);
 
-#pragma unroll
+        _ONEDPL_PRAGMA_UNROLL
         for (uint16_t __i = 0; __i < __block_size; ++__i)
             __keys[__i] = __exchange_lacc[__wi * __block_size + __i];
     }
@@ -166,11 +166,12 @@ struct __subgroup_radix_sort
                             //1. "counting" phase
                             //counter initialization
                             auto __pcounter = __counter_lacc.get_pointer() + __wi;
-#pragma unroll
+
+                            _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __bin_count; ++__i)
                                 __pcounter[__i * __wg_size] = 0;
 
-#pragma unroll
+                            _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
                             {
                                 const uint16_t __bin = __get_bucket</*mask*/ __bin_count - 1>(
@@ -190,7 +191,8 @@ struct __subgroup_radix_sort
                                 //scan contiguous numbers
                                 uint16_t __bin_sum[__bin_count];
                                 __bin_sum[0] = __counter_lacc[__wi * __bin_count];
-#pragma unroll
+
+                                _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 1; __i < __bin_count; ++__i)
                                     __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
 
@@ -199,7 +201,7 @@ struct __subgroup_radix_sort
                                 uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
                                     __it.get_group(), __bin_sum[__bin_count - 1], sycl::plus<uint16_t>());
 //add to local sum, generate exclusive scan result
-#pragma unroll
+                                _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __bin_count; ++__i)
                                     __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
 
@@ -208,7 +210,7 @@ struct __subgroup_radix_sort
                                 __dpl_sycl::__group_barrier(__it);
                             }
 
-#pragma unroll
+                            _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
                             {
                                 // a global index is a local offset plus a global base index
@@ -223,7 +225,7 @@ struct __subgroup_radix_sort
                         if (__begin_bit >= __end_bit)
                         {
 // the last iteration - writing out the result
-#pragma unroll
+                            _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
                             {
                                 const uint16_t __r = __indices[__i];

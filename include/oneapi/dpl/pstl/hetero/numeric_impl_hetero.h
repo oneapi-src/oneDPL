@@ -185,15 +185,15 @@ struct __single_group_scan
                 const auto& __group = __self_item.get_group();
                 const auto& __subgroup = __self_item.get_sub_group();
                 // This kernel is only launched for sizes less than 2^16
-                const ::uint16_t __item_id = __self_item.get_local_linear_id();
-                ::uint16_t __subgroup_id = __subgroup.get_group_id();
-                ::uint16_t __id_in_subgroup = __subgroup.get_local_id();
-                ::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
+                const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
+                const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
+                const ::std::uint16_t __id_in_subgroup = __subgroup.get_local_id();
+                const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
                 if constexpr (_IsFullGroup)
                 {
-                    #pragma unroll
-                    for (::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                     {
                        auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
                        auto __val = __unary_op(__subgroup.load(__in.begin() + __idx));
@@ -202,8 +202,8 @@ struct __single_group_scan
                 }
                 else
                 {
-                    #pragma unroll
-                    for (::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                        __lacc[__idx] = __unary_op(__in[__idx]);
                     }
@@ -213,8 +213,8 @@ struct __single_group_scan
 
                 if constexpr (_IsFullGroup)
                 {
-                    #pragma unroll
-                    for (::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                     {
                        auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
                        auto __val = __subgroup.load(__lacc.get_pointer() + __idx);
@@ -223,8 +223,8 @@ struct __single_group_scan
                 }
                 else
                 {
-                    #pragma unroll
-                    for (::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                        __out[__idx] = __lacc[__idx];
                     }
