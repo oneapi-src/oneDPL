@@ -705,9 +705,10 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     using _RadixSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
         __radix_sort_one_group, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_Range>>;
 
-    if (__n <= 64 && __wg_size * 1 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, __wg_size, 1, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+    if (__n <= 64 && __wg_size <= __max_wg_size)
+        __event = 
+            __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, __wg_size, 1, __radix_bits, __is_ascending>{}(
+                __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 128 && __wg_size * 2 <= __max_wg_size)
         __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 1>, __wg_size * 2, 1, __radix_bits,
                                         __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
