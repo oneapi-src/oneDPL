@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- parallel_backend_sycl_radix_sort.h --------------------------------===//
+//===-- parallel_backend_sycl_reduce.h --------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -15,6 +15,10 @@
 
 #ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_REDUCE_H
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_REDUCE_H
+
+#include <algorithm>
+#include <cstdint>
+#include <type_traits>
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
