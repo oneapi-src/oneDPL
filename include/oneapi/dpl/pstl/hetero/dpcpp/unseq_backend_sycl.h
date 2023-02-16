@@ -188,9 +188,9 @@ template <typename _ExecutionPolicy, typename _Tp, typename _Operation1, typenam
 struct transform_reduce
 {
   private:
-    // Apply unary and binary operations __n values and return result.
+    // Apply unary and binary operations to __items_to_process values and return result.
     template <typename _BinaryOp, typename _UnaryOp, typename... _Acc>
-    static _Tp
+    static constexpr _Tp
     apply_unary_binary(const ::std::size_t __items_to_process, const ::std::size_t __adjusted_global_id,
                        _BinaryOp __binary_op, _UnaryOp __unary_op, const _Acc&... __acc)
     {
@@ -238,7 +238,7 @@ struct transform_reduce
                     apply_unary_binary(__items_to_process, __adjusted_global_id, __binary_op, __unary_op, __acc...);
             }
         }
-        else
+        else if (__dynamic_iters_per_work_item * __global_id < __n)
         {
             __adjusted_global_id += (__dynamic_iters_per_work_item * __global_id);
             __items_to_process -= (__dynamic_iters_per_work_item * __global_id);
