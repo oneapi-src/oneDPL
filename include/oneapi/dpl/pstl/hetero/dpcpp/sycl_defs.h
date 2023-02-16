@@ -56,7 +56,7 @@
 #if _ONEDPL_LIBSYCL_VERSION >= 50300
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
 #else
-#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE)
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
 namespace __dpl_sycl
