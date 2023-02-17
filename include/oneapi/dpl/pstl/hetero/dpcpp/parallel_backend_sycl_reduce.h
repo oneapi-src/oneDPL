@@ -60,7 +60,7 @@ __parallel_transform_reduce_seq_submitter(_ExecutionPolicy&& __exec, _Size __n, 
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__reduce_seq_kernel, _CustomName,
                                                                                _ReduceOp, _TransformOp, _Ranges...>;
 
-    auto __transform_pattern = unseq_backend::transform_reduce<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp>{
+    auto __transform_pattern = unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp>{
         __reduce_op, _TransformOp{__transform_op}};
     auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
@@ -100,8 +100,8 @@ struct __parallel_transform_reduce_small_submitter
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<_KernelName, _CustomName, _ReduceOp,
                                                                                    _TransformOp, _Ranges...>;
         auto __transform_pattern =
-            unseq_backend::transform_reduce<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp, __iters_per_work_item>{
-                __reduce_op, _TransformOp{__transform_op}};
+            unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp,
+                                                  __iters_per_work_item>{__reduce_op, _TransformOp{__transform_op}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
         const _Size __n_items = __ceiling_div(__n, __iters_per_work_item); // number of work items
@@ -353,11 +353,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
             if (__exec.queue().get_device().is_gpu())
             {
                 auto __transform_pattern1 =
-                    unseq_backend::transform_reduce<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp, 32>{
+                    unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp, 32>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_reduce<_ExecutionPolicy, _Tp, _ReduceOp, _NoOpFunctor, 32>{__reduce_op,
-                                                                                                        _NoOpFunctor{}};
+                    unseq_backend::transform_reduce_known<_ExecutionPolicy, _Tp, _ReduceOp, _NoOpFunctor, 32>{
+                        __reduce_op, _NoOpFunctor{}};
                 auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::true_type>::submit(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
@@ -366,11 +366,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
             else
             {
                 auto __transform_pattern1 =
-                    unseq_backend::transform_reduce<_ExecutionPolicy, _Tp, _ReduceOp, _TransformOp>{
+                    unseq_backend::transform_reduce_unknown<_ExecutionPolicy, _ReduceOp, _TransformOp>{
                         __reduce_op, _TransformOp{__transform_op}};
                 auto __transform_pattern2 =
-                    unseq_backend::transform_reduce<_ExecutionPolicy, _Tp, _ReduceOp, _NoOpFunctor>{__reduce_op,
-                                                                                                    _NoOpFunctor{}};
+                    unseq_backend::transform_reduce_unknown<_ExecutionPolicy, _ReduceOp, _NoOpFunctor>{__reduce_op,
+                                                                                                       _NoOpFunctor{}};
                 auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
                 return __parallel_transform_reduce_submitter<_Tp, ::std::false_type>::submit(
                     ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern,
