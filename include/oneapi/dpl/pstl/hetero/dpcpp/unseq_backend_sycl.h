@@ -184,6 +184,7 @@ struct __init_processing
 // transform_reduce
 //------------------------------------------------------------------------
 
+// TODO: Think about unifying "transform_reduce" structures since their code is very similar.
 template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp>
 struct transform_reduce_seq
 {
