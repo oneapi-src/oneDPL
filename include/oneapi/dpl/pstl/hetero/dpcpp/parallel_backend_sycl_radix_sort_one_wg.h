@@ -71,7 +71,7 @@ struct __subgroup_radix_sort
         auto
         get_acc(sycl::handler& __cgh)
         {
-            return sycl::accessor(__buf, __cgh, sycl::read_write, sycl::no_init);
+            return sycl::accessor(__buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
         }
     };
 
@@ -105,7 +105,7 @@ struct __subgroup_radix_sort
             __keys[__i] = __exchange_lacc[__wi * __block_size + __i];
     }
 
-    static_assert(__wg_size <= 512);
+    static_assert(__wg_size <= 1024);
     static constexpr uint16_t __bin_count = 1 << __radix;
     static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1; //+1(init value) for exclusive scan result
 
@@ -144,7 +144,7 @@ struct __subgroup_radix_sort
             auto __counter_lacc = __buf_count.get_acc(__cgh);
 
             __cgh.parallel_for<_KernelName>(
-                __range, ([=](sycl::nd_item<1> __it)[[sycl::reqd_sub_group_size(__req_sub_group_size)]] {
+                __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
                     _KeyT __keys[__block_size];
                     uint16_t __wi = __it.get_local_linear_id();
                     uint16_t __begin_bit = 0;
@@ -197,7 +197,7 @@ struct __subgroup_radix_sort
                                 __dpl_sycl::__group_barrier(__it);
                                 //exclusive scan local sum
                                 uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
-                                    __it.get_group(), __bin_sum[__bin_count - 1], sycl::plus<uint16_t>());
+                                    __it.get_group(), __bin_sum[__bin_count - 1], __dpl_sycl::__plus<uint16_t>());
 //add to local sum, generate exclusive scan result
 #pragma unroll
                                 for (uint16_t __i = 0; __i < __bin_count; ++__i)
