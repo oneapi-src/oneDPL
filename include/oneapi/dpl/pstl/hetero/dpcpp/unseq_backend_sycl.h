@@ -184,51 +184,56 @@ struct __init_processing
 // transform_reduce
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Tp, typename _Operation1, typename _Operation2,
-          ::std::size_t __iters_per_work_item = 0>
-struct transform_reduce_known
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp>
+struct transform_reduce_seq
 {
-  private:
-    // Apply unary and binary operations __n values and return result.
-    template <typename _BinaryOp, typename _UnaryOp, typename... _Acc>
-    static _Tp
-    apply_unary_binary(const ::std::size_t __items_to_process, const ::std::size_t __adjusted_global_id,
-                       _BinaryOp __binary_op, _UnaryOp __unary_op, const _Acc&... __acc)
-    {
-        // Keep these statements in the same scope to allow for better memory alignment.
-        // Vectorized access if __items_to_process is known at compile time.
-        _Tp __res = __unary_op(__adjusted_global_id, __acc...);
-        for (::std::size_t __i = 1; __i < __items_to_process; ++__i)
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-        return __res;
-    }
-
-  public:
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
     template <typename _Size, typename... _Acc>
     _Tp
-    seq(const _Size __n, const _Acc&... __acc) const
+    operator()(const _Size __n, const _Acc&... __acc) const
     {
-        return apply_unary_binary(__n, 0, __binary_op, __unary_op, __acc...);
+        _Tp __result = __unary_op(0, __acc...);
+        // Add neighbour to the current __result
+        for (_Size __i = 1; __i < __n; ++__i)
+            __result = __binary_op(__result, __unary_op(__i, __acc...));
+        return __result;
     }
+};
+
+template <typename _ExecutionPolicy, ::std::size_t __iters_per_work_item, typename _Operation1, typename _Operation2>
+struct transform_reduce_known
+{
+    _Operation1 __binary_op;
+    _Operation2 __unary_op;
 
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    parallel(const ::std::uint16_t __local_id, const _Size __n, const ::std::size_t /* unused __iters_per_work_item */,
-             const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
-             const _Acc&... __acc) const
+    operator()(const ::std::uint16_t __local_id, const _Size __n,
+               const ::std::size_t /* unused __iters_per_work_item */, const ::std::size_t __global_id,
+               const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         const ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
         const ::std::size_t __items_to_process = __n - (__iters_per_work_item * __global_id);
         // Add neighbour to the current __local_mem
         if (__items_to_process >= __iters_per_work_item)
-            __local_mem[__local_id] =
-                apply_unary_binary(__iters_per_work_item, __adjusted_global_id, __binary_op, __unary_op, __acc...);
+        {
+            // Keep these statements in the same scope to allow for better memory alignment
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+#pragma unroll
+            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            __local_mem[__local_id] = __res;
+        }
         else if (__items_to_process > 0)
-            __local_mem[__local_id] =
-                apply_unary_binary(__items_to_process, __adjusted_global_id, __binary_op, __unary_op, __acc...);
+        {
+            // Keep these statements in the same scope to allow for better memory alignment
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            for (_Size __i = 1; __i < __items_to_process; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            __local_mem[__local_id] = __res;
+        }
     }
 };
 
@@ -240,9 +245,9 @@ struct transform_reduce_unknown
 
     template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    parallel(const ::std::uint16_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item,
-             const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
-             const _Acc&... __acc) const
+    operator()(const ::std::uint16_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item,
+               const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
+               const _Acc&... __acc) const
     {
         ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
         _Size __adjusted_n = __global_offset + __n;
