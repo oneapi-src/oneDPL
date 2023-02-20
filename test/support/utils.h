@@ -523,23 +523,23 @@ class Wrapper
 {
   public:
     Wrapper()
+        : my_field(::std::make_shared<T>())
     {
-        my_field = ::std::make_shared<T>();
         ++my_count;
     }
     Wrapper(const T& input)
+        : my_field(::std::make_shared<T>(input))
     {
-        my_field = ::std::make_shared<T>(input);
         ++my_count;
     }
     Wrapper(const Wrapper& input)
+        : my_field(input.my_field)
     {
-        my_field = input.my_field;
         ++my_count;
     }
     Wrapper(Wrapper&& input)
+        : my_field(::std::move(input.my_field))
     {
-        my_field = ::std::move(input.my_field);
         ++move_count;
     }
     Wrapper&
