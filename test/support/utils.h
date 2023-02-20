@@ -524,12 +524,12 @@ class Wrapper
   public:
     Wrapper()
     {
-        my_field = ::std::shared_ptr<T>(new T());
+        my_field = ::std::make_shared<T>();
         ++my_count;
     }
     Wrapper(const T& input)
     {
-        my_field = ::std::shared_ptr<T>(new T(input));
+        my_field = ::std::make_shared<T>(input);
         ++my_count;
     }
     Wrapper(const Wrapper& input)
@@ -539,8 +539,7 @@ class Wrapper
     }
     Wrapper(Wrapper&& input)
     {
-        my_field = input.my_field;
-        input.my_field = nullptr;
+        my_field = ::std::move(input.my_field);
         ++move_count;
     }
     Wrapper&
@@ -552,8 +551,7 @@ class Wrapper
     Wrapper&
     operator=(Wrapper&& input)
     {
-        my_field = input.my_field;
-        input.my_field = nullptr;
+        my_field = ::std::move(input.my_field);
         ++move_count;
         return *this;
     }
