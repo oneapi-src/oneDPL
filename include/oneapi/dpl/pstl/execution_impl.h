@@ -66,33 +66,33 @@ struct __policy_traits
 template <>
 struct __policy_traits<oneapi::dpl::execution::sequenced_policy>
 {
-    typedef ::std::false_type __allow_parallel;
-    typedef ::std::false_type __allow_unsequenced;
-    typedef ::std::false_type __allow_vector;
+    using __allow_parallel = ::std::false_type;
+    using __allow_unsequenced = ::std::false_type;
+    using __allow_vector = ::std::false_type;
 };
 
 template <>
 struct __policy_traits<oneapi::dpl::execution::unsequenced_policy>
 {
-    typedef ::std::false_type __allow_parallel;
-    typedef ::std::true_type __allow_unsequenced;
-    typedef ::std::true_type __allow_vector;
+    using __allow_parallel = ::std::false_type;
+    using __allow_unsequenced = ::std::true_type;
+    using __allow_vector = ::std::true_type;
 };
 
 template <>
 struct __policy_traits<oneapi::dpl::execution::parallel_policy>
 {
-    typedef ::std::true_type __allow_parallel;
-    typedef ::std::false_type __allow_unsequenced;
-    typedef ::std::false_type __allow_vector;
+    using __allow_parallel = ::std::true_type;
+    using __allow_unsequenced = ::std::false_type;
+    using __allow_vector = ::std::false_type;
 };
 
 template <>
 struct __policy_traits<oneapi::dpl::execution::parallel_unsequenced_policy>
 {
-    typedef ::std::true_type __allow_parallel;
-    typedef ::std::true_type __allow_unsequenced;
-    typedef ::std::true_type __allow_vector;
+    using __allow_parallel = ::std::true_type;
+    using __allow_unsequenced = ::std::true_type;
+    using __allow_vector = ::std::true_type;
 };
 
 template <typename _ExecutionPolicy>
@@ -114,20 +114,20 @@ using __allow_parallel =
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
 auto
 __is_vectorization_preferred(_ExecutionPolicy& __exec)
-    -> decltype(__internal::__lazy_and(__exec.__allow_vector(),
+    -> decltype(__internal::__lazy_and(__internal::__allow_vector<_ExecutionPolicy>(),
                                        typename __internal::__is_random_access_iterator<_IteratorTypes...>::type()))
 {
-    return __internal::__lazy_and(__exec.__allow_vector(),
+    return __internal::__lazy_and(__internal::__allow_vector<_ExecutionPolicy>(),
                                   typename __internal::__is_random_access_iterator<_IteratorTypes...>::type());
 }
 
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
 auto
 __is_parallelization_preferred(_ExecutionPolicy& __exec)
-    -> decltype(__internal::__lazy_and(__exec.__allow_parallel(),
+    -> decltype(__internal::__lazy_and(__internal::__allow_parallel<_ExecutionPolicy>(),
                                        typename __internal::__is_random_access_iterator<_IteratorTypes...>::type()))
 {
-    return __internal::__lazy_and(__exec.__allow_parallel(),
+    return __internal::__lazy_and(__internal::__allow_parallel<_ExecutionPolicy>(),
                                   typename __internal::__is_random_access_iterator<_IteratorTypes...>::type());
 }
 

@@ -78,7 +78,7 @@ for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator _
     oneapi::dpl::__internal::__pattern_walk1(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        __exec.__allow_parallel());
+        oneapi::dpl::__internal::__allow_parallel<_ExecutionPolicy>());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Function>
@@ -335,9 +335,8 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator
     return oneapi::dpl::__internal::__pattern_walk2(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
         oneapi::dpl::__internal::__invoke_unary_op<_UnaryOperation>{::std::move(__op)},
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
-        __exec.__allow_parallel());
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(__exec),
+        oneapi::dpl::__internal::__allow_parallel<_ExecutionPolicy>());
 }
 
 // we can't use non-const __op here
@@ -353,7 +352,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
             oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _BinaryOperation>>(__op),
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                               _ForwardIterator>(__exec),
-        __exec.__allow_parallel());
+        oneapi::dpl::__internal::__allow_parallel<_ExecutionPolicy>());
 }
 
 // [alg.replace]

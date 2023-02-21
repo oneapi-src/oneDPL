@@ -19,6 +19,15 @@
 #include <type_traits>
 #include <iterator>
 
+#include "oneapi/dpl/internal/common_config.h"
+
+// ATTENTION!!! Include the header from the C++ standard library before the oneDPL config header to see whether the _PSTL_VERSION macro is defined
+#if _ONEDPL___cplusplus >= 201703L
+#    if __has_include(<execution>)
+#        include <execution>
+#    endif // __has_include(<execution>)
+#endif     // _ONEDPL___cplusplus >= 201703L
+
 namespace oneapi
 {
 namespace dpl
@@ -28,92 +37,25 @@ namespace execution
 inline namespace v1
 {
 
-// 2.4, Sequential execution policy
-class sequenced_policy
-{
-  public:
-    // For internal use only
-    static constexpr ::std::false_type
-    __allow_unsequenced()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_vector()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_parallel()
-    {
-        return ::std::false_type{};
-    }
-};
+// https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag
+// Defined in header<execution>
 
+// 2.4, Sequential execution policy
+using sequenced_policy = std::execution::sequenced_policy;
+;
 // 2.5, Parallel execution policy
-class parallel_policy
-{
-  public:
-    // For internal use only
-    static constexpr ::std::false_type
-    __allow_unsequenced()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_vector()
-    {
-        return ::std::false_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
-};
+using parallel_policy = std::execution::parallel_policy;
 
 // 2.6, Parallel+Vector execution policy
-class parallel_unsequenced_policy
-{
-  public:
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
-};
+using parallel_unsequenced_policy = std::execution::parallel_unsequenced_policy;
 
+#if _ONEDPL___cplusplus >= 202002L
+using unsequenced_policy = std::execution::unsequenced_policy;
+#else
 class unsequenced_policy
 {
-  public:
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::false_type
-    __allow_parallel()
-    {
-        return ::std::false_type{};
-    }
 };
+#endif
 
 // 2.8, Execution policy objects
 inline constexpr sequenced_policy seq{};

@@ -479,16 +479,16 @@ struct __use_par_vec_helper<_Ip, typename ::std::enable_if<::std::is_integral<_I
 {
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_vector(_ExecutionPolicy&& __exec) -> decltype(__exec.__allow_vector())
+    __use_vector(_ExecutionPolicy&&) -> decltype(__allow_vector<_ExecutionPolicy>())
     {
-        return __exec.__allow_vector();
+        return __allow_vector<_ExecutionPolicy>()();
     }
 
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_parallel(_ExecutionPolicy&& __exec) -> decltype(__exec.__allow_parallel())
+    __use_parallel(_ExecutionPolicy&&) -> decltype(__allow_parallel<_ExecutionPolicy>())
     {
-        return __exec.__allow_parallel();
+        return __allow_parallel<_ExecutionPolicy>();
     }
 };
 
