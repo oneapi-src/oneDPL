@@ -2087,22 +2087,6 @@ DEFINE_TEST(test_rotate_copy)
     }
 };
 
-int a[] = {0, 0, 1, 1, 2, 6, 6, 9, 9};
-int b[] = {0, 1, 1, 6, 6, 9};
-int c[] = {0, 1, 6, 6, 6, 9, 9};
-int d[] = {7, 7, 7, 8};
-int e[] = {11, 11, 12, 16, 19};
-constexpr auto na = sizeof(a) / sizeof(a[0]);
-constexpr auto nb = sizeof(b) / sizeof(b[0]);
-constexpr auto nc = sizeof(c) / sizeof(c[0]);
-constexpr auto nd = sizeof(d) / sizeof(d[0]);
-
-template <typename Size>
-Size get_size(Size n)
-{
-    return n + na + nb + nc + nd;
-}
-
 DEFINE_TEST(test_includes)
 {
     DEFINE_TEST_CONSTRUCTOR(test_includes)
