@@ -23,6 +23,7 @@
 #    include "algorithm_impl_hetero.h" // to use __pattern_walk2_brick
 #    include "dpcpp/parallel_backend_sycl_utils.h"
 #    include "dpcpp/unseq_backend_sycl.h"
+#    include "dpcpp/parallel_backend_sycl_utils.h"
 #endif
 
 namespace oneapi
@@ -122,16 +123,8 @@ template<bool _Inclusive, ::std::uint16_t _ElemsPerItem = 0, ::std::uint16_t _WG
 struct __single_group_scan
 {
     template<
-        typename _KernelName, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp
-#if _ONEDPL_COMPILE_KERNEL
-        , typename _Kernel
-#endif
-    >
-    static void __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size
-#if _ONEDPL_COMPILE_KERNEL
-            , _Kernel&& __kernel
-#endif
-            )
+        typename _KernelName, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
+    static void __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size)
     {
         using _ValueType = typename _InitType::__value_type;
 
@@ -142,13 +135,7 @@ struct __single_group_scan
             oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
 
             auto __lacc =  __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
             __hdl.parallel_for<_KernelName>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
-#endif
                 sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 // This kernel is only launched for sizes less than 2^16
@@ -295,12 +282,6 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-#if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __par_backend_hetero::__internal::__kernel_compiler<_DynamicGroupScanKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
-    __max_wg_size = ::std::min(__max_wg_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                          ::std::forward<_ExecutionPolicy>(__exec), __kernel));
-#endif
-
     // Specialization for devices that have a max work-group size of 1024
     constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
@@ -342,11 +323,7 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
     }
     else
     {
-        __single_group_scan<_Inclusive::value>::template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op, __max_wg_size
-#if _ONEDPL_COMPILE_KERNEL
-                , __kernel
-#endif
-                );
+        __single_group_scan<_Inclusive::value>::template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op, __max_wg_size);
     }
 }
 
@@ -388,8 +365,9 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
                                    _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
                                    _BinaryOperation __binary_op, _Inclusive)
 {
-    const auto __n = __last - __first;
-    assert(__n > 0);
+    const auto __size = __last - __first;
+    assert(__size > 0);
+    const ::std::size_t __n = __last - __first;
 
     using _Type = typename _InitType::__value_type;
 
@@ -398,11 +376,15 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result, __result + __n);
 
-    constexpr int __single_group_upper_limit = 16384;
+    // Next power of 2 greater than or equal to __n
+    auto __n_uniform = __n;
+    if ((__n_uniform & (__n_uniform - 1)) != 0)
+        __n_uniform = __par_backend_hetero::__dpl_bit_floor(__n) << 1;
 
     const auto __max_slm_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
-    const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
     const auto __req_slm_size = sizeof(_Type) * __n_uniform;
+
+    constexpr int __single_group_upper_limit = 16384;
 
     if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
     {
