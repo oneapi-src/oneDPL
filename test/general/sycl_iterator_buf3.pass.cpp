@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- sycl_iterator.pass.cpp --------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -33,64 +33,6 @@ using namespace TestUtils;
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/utils_sycl.h"
 
-template <class KernelName1, typename KernelName2>
-class ForComplexName
-{
-};
-
-struct Flip
-{
-    std::int32_t val;
-    Flip(std::int32_t y) : val(y) {}
-    template <typename T>
-    T
-    operator()(const T& x) const
-    {
-        return val - x;
-    }
-};
-struct Plus
-{
-    template <typename T, typename U>
-    T
-    operator()(const T x, const U y) const
-    {
-        return x + y;
-    }
-};
-
-struct Inc
-{
-    template <typename T>
-    void
-    operator()(T& x) const
-    {
-        ++x;
-    }
-};
-
-template <typename T>
-struct Generator_count
-{
-    T def_val;
-    Generator_count(const T& val) : def_val(val) {}
-    T
-    operator()() const
-    {
-        return def_val;
-    }
-    T
-    default_value() const
-    {
-        return def_val;
-    }
-};
-
-// this wrapper is needed to take into account not only kernel name,
-// but also other types (for example, iterator's value type)
-template<typename... T>
-struct policy_name_wrapper{};
-
 using namespace oneapi::dpl::execution;
 
 DEFINE_TEST(test_uninitialized_fill)
@@ -111,7 +53,7 @@ DEFINE_TEST(test_uninitialized_fill)
 
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2),
                                  value),
@@ -135,7 +77,7 @@ DEFINE_TEST(test_uninitialized_fill_n)
         ::std::uninitialized_fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, value + 1),
                     "wrong effect from uninitialized_fill_n");
@@ -163,7 +105,7 @@ DEFINE_TEST(test_uninitialized_default_construct)
                                              first1 + (n / 3), first1 + (n / 2));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), exp_value),
                     "wrong effect from uninitialized_default_construct");
@@ -190,7 +132,7 @@ DEFINE_TEST(test_uninitialized_default_construct_n)
         ::std::uninitialized_default_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, exp_value),
                     "wrong effect from uninitialized_default_construct_n");
@@ -216,7 +158,7 @@ DEFINE_TEST(test_uninitialized_value_construct)
                                            first1 + (n / 3), first1 + (n / 2));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get() + (n / 3), host_keys.get() + (n / 2), T1{}),
                     "wrong effect from uninitialized_value_construct");
@@ -242,7 +184,7 @@ DEFINE_TEST(test_uninitialized_value_construct_n)
         ::std::uninitialized_value_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_keys.retrieve_data();
         EXPECT_TRUE(check_values(host_keys.get(), host_keys.get() + n, T1{}),
                     "wrong effect from uninitialized_value_construct_n");
@@ -273,7 +215,7 @@ DEFINE_TEST(test_adjacent_find)
         Iterator expected = last;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #1 no elements)");
 #    if _ONEDPL_DEBUG_SYCL
         ::std::cout << "got: [" << ::std::distance(first, result) << "], "
@@ -291,7 +233,7 @@ DEFINE_TEST(test_adjacent_find)
         expected = max_dis > 1 ? last - 2 : last;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #2 the last element)");
 #    if _ONEDPL_DEBUG_SYCL
         ::std::cout << "got: [" << ::std::distance(first, result) << "], "
@@ -311,7 +253,7 @@ DEFINE_TEST(test_adjacent_find)
         expected = max_dis > 1 ? it - 1 : last;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #3 middle element)");
 #    if _ONEDPL_DEBUG_SYCL
         ::std::cout << "got: [" << ::std::distance(first, result) << "], "
@@ -321,7 +263,7 @@ DEFINE_TEST(test_adjacent_find)
         result = ::std::adjacent_find(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #4 middle element (no predicate))");
 #    if _ONEDPL_DEBUG_SYCL
         ::std::cout << "got: [" << ::std::distance(first, result) << "], "
@@ -339,7 +281,7 @@ DEFINE_TEST(test_adjacent_find)
         expected = max_dis > 1 ? first : last;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected, "wrong effect from adjacent_find (Test #5 the first element)");
 #    if _ONEDPL_DEBUG_SYCL
         ::std::cout << "got: [" << ::std::distance(first, result) << "], "
@@ -372,7 +314,7 @@ DEFINE_TEST(test_is_sorted_until)
         Iterator expected = last;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected, "wrong effect from is_sorted_until (Test #1 sorted sequence)");
 #    if _ONEDPL_DEBUG_SYCL
         ::std::cout << "got: [" << ::std::distance(first, result) << "], "
@@ -390,7 +332,7 @@ DEFINE_TEST(test_is_sorted_until)
         expected = max_dis > 1 ? last - 1 : last;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #2 unsorted sequence - the last element)");
 #    if _ONEDPL_DEBUG_SYCL
@@ -411,7 +353,7 @@ DEFINE_TEST(test_is_sorted_until)
         expected = it;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #3 unsorted sequence - the middle element)");
 #    if _ONEDPL_DEBUG_SYCL
@@ -422,7 +364,7 @@ DEFINE_TEST(test_is_sorted_until)
         result = ::std::is_sorted_until(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(
             result == expected,
             "wrong effect from is_sorted_until (Test #4 unsorted sequence - the middle element (no predicate))");
@@ -441,7 +383,7 @@ DEFINE_TEST(test_is_sorted_until)
         expected = n > 1 ? first + 1 : last;
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result == expected,
                     "wrong effect from is_sorted_until (Test #5 unsorted sequence - the first element)");
 #    if _ONEDPL_DEBUG_SYCL
@@ -473,12 +415,12 @@ DEFINE_TEST(test_find_if)
                                        [n](T1 x) { return x == n - 1; });
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res0 == first1, "wrong effect from find_if_0");
             res0 = ::std::find(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, first1, T1(1));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res0 == first1, "wrong effect from find_0");
         }
         // find_if
@@ -486,28 +428,28 @@ DEFINE_TEST(test_find_if)
                                    [n](T1 x) { return x == n - 1; });
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE((res1 - first1) == n - 1, "wrong effect from find_if_1");
 
         auto res2 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 3>>(exec), first1, last1,
                                    [](T1 x) { return x == -1; });
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(res2 == last1, "wrong effect from find_if_2");
 
         auto res3 = ::std::find_if(make_new_policy<new_kernel_name<Policy, 4>>(exec), first1, last1,
                                    [](T1 x) { return x % 2 == 0; });
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(res3 == first1, "wrong effect from find_if_3");
 
         //find
         auto res4 = ::std::find(make_new_policy<new_kernel_name<Policy, 5>>(exec), first1, last1, T1(-1));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(res4 == last1, "wrong effect from find");
     }
 };
@@ -536,7 +478,7 @@ DEFINE_TEST(test_search_n)
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, n - start, T(11));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res - first == start, "wrong effect from search_1");
         }
         // Search for sequence in the middle
@@ -550,7 +492,7 @@ DEFINE_TEST(test_search_n)
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 1>>(exec), first, last, end - start, T(22));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res - first == start, "wrong effect from search_20");
 
             // Search for sequence of lesser size
@@ -558,7 +500,7 @@ DEFINE_TEST(test_search_n)
                                 ::std::max(end - start - 1, (size_t)1), T(22));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res - first == start, "wrong effect from search_21");
         }
         // Search for sequence at the beginning
@@ -571,7 +513,7 @@ DEFINE_TEST(test_search_n)
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last, end, T(33));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res == first, "wrong effect from search_3");
         }
         // Search for sequence that covers the whole range
@@ -582,7 +524,7 @@ DEFINE_TEST(test_search_n)
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 4>>(exec), first, last, n, T(44));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res == first, "wrong effect from search_4");
         }
         // Search for sequence which is not there
@@ -590,14 +532,14 @@ DEFINE_TEST(test_search_n)
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 5>>(exec), first, last, 2, T(55));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res == last, "wrong effect from search_50");
 
             // Sequence is there but of lesser size(see search_n_3)
             res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 6>>(exec), first, last, (n / 3 + 1), T(33));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res == last, "wrong effect from search_51");
         }
 
@@ -606,7 +548,7 @@ DEFINE_TEST(test_search_n)
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 7>>(exec), first, first, 1, T(5 + n - 1));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res == first, "wrong effect from search_6");
         }
         // 2 distinct sequences, must find the first one
@@ -626,7 +568,7 @@ DEFINE_TEST(test_search_n)
                                      ::std::min(end1 - start1, end2 - start2), T(66));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res - first == start1, "wrong effect from search_7");
         }
 
@@ -641,7 +583,7 @@ DEFINE_TEST(test_search_n)
             auto res = ::std::search_n(make_new_policy<new_kernel_name<Policy, 9>>(exec), first + 1, last, seq_len, T(77));
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             EXPECT_TRUE(res == last, "wrong effect from search_8");
         }
     }
@@ -665,7 +607,7 @@ DEFINE_TEST(test_remove)
         auto res1 = ::std::remove(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, T1(222 + pos));
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(res1 == last - 1, "wrong result from remove");
 
         host_keys.retrieve_data();
@@ -702,7 +644,7 @@ DEFINE_TEST(test_remove_if)
                                    [=](T1 x) { return x == T1(222 + pos); });
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(res1 == last - 1, "wrong result from remove_if");
 
         host_keys.retrieve_data();
@@ -743,7 +685,7 @@ DEFINE_TEST(test_unique)
         auto result_last = ::std::unique(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, f);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         auto result_size = result_last - first;
 
         std::int64_t expected_size = (n - 1) / 4 + 1;
@@ -801,7 +743,7 @@ DEFINE_TEST(test_partition_copy)
             ::std::partition_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, first3, f);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         retrieve_data(host_keys, host_vals, host_res);
 
         // init for expected
@@ -870,7 +812,7 @@ DEFINE_TEST(test_is_heap_until)
         auto actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         // first element is always a heap
         EXPECT_TRUE(actual == first + 1, "wrong result of is_heap_until_1");
 
@@ -884,7 +826,7 @@ DEFINE_TEST(test_is_heap_until)
         actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 2>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(actual == (first + n / 2), "wrong result of is_heap_until_2");
 
         host_keys.retrieve_data();
@@ -894,7 +836,7 @@ DEFINE_TEST(test_is_heap_until)
         actual = ::std::is_heap_until(make_new_policy<new_kernel_name<Policy, 3>>(exec), first, last);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(actual == last, "wrong result of is_heap_until_3");
     }
 };
@@ -927,7 +869,7 @@ DEFINE_TEST(test_merge)
         TestDataTransfer<UDTKind::eRes, Size> host_res(*this, res1 - first3);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         // Special case, because we have more results then source data
         host_res.retrieve_data();
         auto host_first3 = host_res.get();
@@ -964,7 +906,7 @@ DEFINE_TEST(test_stable_sort)
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         {
             host_keys.retrieve_data();
             auto host_first1 = host_keys.get();
@@ -985,7 +927,7 @@ DEFINE_TEST(test_stable_sort)
         ::std::stable_sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, ::std::greater<T1>());
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_keys.retrieve_data();
         auto host_first1 = host_keys.get();
 #       if _ONEDPL_DEBUG_SYCL
@@ -1042,7 +984,7 @@ DEFINE_TEST(test_includes)
         auto result = ::std::includes(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result, "wrong effect from includes a, b");
 
         host_vals.retrieve_data();
@@ -1052,7 +994,7 @@ DEFINE_TEST(test_includes)
         result = ::std::includes(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
 
         EXPECT_TRUE(!result, "wrong effect from includes a, c");
     }
@@ -1083,7 +1025,7 @@ DEFINE_TEST(test_set_intersection)
                                       first3);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         host_res.retrieve_data();
         auto nres = last3 - first3;
 
@@ -1093,7 +1035,7 @@ DEFINE_TEST(test_set_intersection)
                       ::std::includes(host_vals.get(), host_vals.get() + nb, host_res.get(), host_res.get() + nres);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         EXPECT_TRUE(result, "wrong effect from set_intersection a, b");
 
         { //second test case
@@ -1108,7 +1050,7 @@ DEFINE_TEST(test_set_intersection)
                                           last2, first3);
 #if _PSTL_SYCL_TEST_USM
             exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
             auto nres = last3 - first3;
             EXPECT_TRUE(nres == 0, "wrong size of intersection of a, d");
         }
@@ -1139,7 +1081,7 @@ DEFINE_TEST(test_set_difference)
         last3 = ::std::set_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2, first3);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         int res_expect[na];
         host_res.retrieve_data();
         auto nres_expect = ::std::set_difference(host_keys.get(), host_keys.get() + na, host_vals.get(), host_vals.get() + nb, res_expect) - res_expect;
@@ -1171,7 +1113,7 @@ DEFINE_TEST(test_set_union)
         last3 = ::std::set_union(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2, first3);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         int res_expect[na + nb];
         host_res.retrieve_data();
         auto nres_expect =
@@ -1205,7 +1147,7 @@ DEFINE_TEST(test_set_symmetric_difference)
                                                 first2, last2, first3);
 #if _PSTL_SYCL_TEST_USM
         exec.queue().wait_and_throw();
-#endif
+#endif // _PSTL_SYCL_TEST_USM
         int res_expect[na + nb];
         retrieve_data(host_keys, host_vals, host_res);
         auto nres_expect = ::std::set_symmetric_difference(host_keys.get(), host_keys.get() + na, host_vals.get(),
@@ -1214,7 +1156,7 @@ DEFINE_TEST(test_set_symmetric_difference)
         EXPECT_EQ_N(host_res.get(), res_expect, nres_expect, "wrong effect from set_symmetric_difference a, b");
     }
 };
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <sycl::usm::alloc alloc_type>
@@ -1237,7 +1179,7 @@ test_usm_and_buffer()
     PRINT_DEBUG("test_merge");
     test3buffers<alloc_type, test_merge<ValueType>>(2);
 }
-#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 std::int32_t
 main()
