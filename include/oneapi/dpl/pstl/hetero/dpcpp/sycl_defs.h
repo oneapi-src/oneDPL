@@ -54,6 +54,12 @@
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK == 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT __INTEL_LLVM_COMPILER
 
+#if _ONEDPL_LIBSYCL_VERSION >= 50300
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
+#else
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
+#endif
+
 namespace __dpl_sycl
 {
 

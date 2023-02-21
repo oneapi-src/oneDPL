@@ -100,7 +100,7 @@ endif()
 
 if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
-    set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
+    set(SET_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
     if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
         find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
@@ -124,8 +124,8 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     target_compile_definitions(oneDPL INTERFACE
         $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
         $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
-        $<$<BOOL:${ONEDPL_USE_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
-        $<$<BOOL:${ONEDPL_USE_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
+        $<$<BOOL:${SET_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
+        $<$<BOOL:${SET_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
         )
 
     if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
@@ -210,7 +210,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
             $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
-            $<$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
+            $<$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>:-fsycl-targets=spir64_gen>
             $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_REL}>
             $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_DEB}>
             $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_RELDEB}>

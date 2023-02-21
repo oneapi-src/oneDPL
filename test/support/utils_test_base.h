@@ -550,7 +550,7 @@ void
 TestUtils::test_base_data_buffer<TestValueType>::retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to)
 {
     auto& data_item = data.at(enum_val_to_index(kind));
-    auto acc = data_item.src_data_buf.template get_access<sycl::access::mode::read_write>();
+    auto acc = data_item.src_data_buf.get_host_access(sycl::read_write);
 
     auto __index = data_item.offset;
     for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)
@@ -565,7 +565,7 @@ void
 TestUtils::test_base_data_buffer<TestValueType>::update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to)
 {
     auto& data_item = data.at(enum_val_to_index(kind));
-    auto acc = data_item.src_data_buf.template get_access<sycl::access::mode::read_write>();
+    auto acc = data_item.src_data_buf.get_host_access(sycl::read_write);
 
     auto __index = data_item.offset;
     for (auto __it = __it_from; __it != __it_to; ++__it, ++__index)

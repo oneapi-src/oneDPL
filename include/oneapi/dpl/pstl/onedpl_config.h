@@ -104,7 +104,6 @@
 #    define _ONEDPL_PRAGMA_SIMD_REDUCTION(PRM)
 #endif //Enable SIMD
 
-
 // Enable loop unrolling pragmas where supported
 #if (__INTEL_COMPILER || (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
 #    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
