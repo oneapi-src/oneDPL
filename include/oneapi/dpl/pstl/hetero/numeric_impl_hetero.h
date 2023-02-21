@@ -32,7 +32,7 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
-template <typename... _Name>
+template <::std::uint16_t _ElemsPerWG, bool _IsFullGroup, bool _Inclusive, typename... _Name>
 class __scan_single_wg_kernel;
 
 template <typename... _Name>
@@ -118,16 +118,22 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
     return __res;
 }
 
-template< bool _Inclusive>
+template<bool _Inclusive, ::std::uint16_t _ElemsPerItem = 0, ::std::uint16_t _WGSize = 0, bool _IsFullGroup = false>
 struct __single_group_scan
 {
-    template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
-    static void __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size)
+    template<
+        typename _KernelName, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp
+#if _ONEDPL_COMPILE_KERNEL
+        , typename _Kernel
+#endif
+    >
+    static void __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in, _OutRng __out, ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size
+#if _ONEDPL_COMPILE_KERNEL
+            , _Kernel&& __kernel
+#endif
+            )
     {
         using _ValueType = typename _InitType::__value_type;
-        using _CustomName = typename _Policy::kernel_name;
-        using _GroupScanKernel =
-                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_dynamic_kernel, _CustomName, _BinaryOperation, _InRng, _OutRng>;
 
         const ::std::uint16_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
         const ::std::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
@@ -136,8 +142,14 @@ struct __single_group_scan
             oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
 
             auto __lacc =  __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
-
-            __hdl.parallel_for<_GroupScanKernel>(sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+            __hdl.parallel_for<_KernelName>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel,
+#endif
+                sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 // This kernel is only launched for sizes less than 2^16
                 const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
@@ -166,22 +178,25 @@ struct __single_group_scan
         __event.wait();
     }
 
-    template<::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize, bool _IsFullGroup, typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
+    static constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
+
+    template <typename... _Name>
+    using _GroupScanKernelBase = __par_backend_hetero::__scan_single_wg_kernel<__elems_per_wg, _IsFullGroup, _Inclusive, _Name...>;
+
+    template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
     static void __launch_static_bounds_scan(_Policy const & __policy, _InRng&& __in, _OutRng&& __out, std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
         using _ValueType = typename _InitType::__value_type;
         using _CustomName = typename _Policy::kernel_name;
         using _GroupScanKernel =
-                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_kernel, _CustomName, _BinaryOperation, std::integral_constant<bool, _Inclusive>, std::integral_constant<bool, _IsFullGroup>, _InRng, _OutRng, std::integral_constant<::std::size_t, _ElemsPerItem>, std::integral_constant<std::size_t, _WGSize>>;
-
-        constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
+                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<_GroupScanKernelBase, _CustomName, _BinaryOperation, _InRng, _OutRng>;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
 
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
 
-            __hdl.parallel_for<__par_backend_hetero::__i_kernel_name<_GroupScanKernel, __elems_per_wg, _IsFullGroup, _Inclusive>>(sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
+            __hdl.parallel_for<_GroupScanKernel>(sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
                 const auto& __group = __self_item.get_group();
                 const auto& __subgroup = __self_item.get_sub_group();
                 // This kernel is only launched for sizes less than 2^16
@@ -274,8 +289,17 @@ void
 __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng, ::std::size_t __n,
                               _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
+    using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _DynamicGroupScanKernel =
+                 oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__par_backend_hetero::__scan_single_wg_dynamic_kernel, _CustomName, _BinaryOperation, _InRng, _OutRng>;
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+#if _ONEDPL_COMPILE_KERNEL
+    auto __kernel = __par_backend_hetero::__internal::__kernel_compiler<_DynamicGroupScanKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
+    __max_wg_size = ::std::min(__max_wg_size, oneapi::dpl::__internal::__kernel_work_group_size(
+                                                          ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+#endif
 
     // Specialization for devices that have a max work-group size of 1024
     constexpr ::std::uint16_t __targeted_wg_size = 1024;
@@ -289,9 +313,9 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
             const bool __is_full_group = __n == __wg_size;
 
             if (__is_full_group)
-                __single_group_scan<_Inclusive::value>::template __launch_static_bounds_scan<__num_elems_per_item, __wg_size, true>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
+                __single_group_scan<_Inclusive::value, __num_elems_per_item, __wg_size, /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
             else
-                __single_group_scan<_Inclusive::value>::template __launch_static_bounds_scan<__num_elems_per_item, __wg_size, false>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
+                __single_group_scan<_Inclusive::value, __num_elems_per_item, __wg_size, /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
         };
         if (__n <= 16)
             __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
@@ -318,7 +342,11 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
     }
     else
     {
-        __single_group_scan<_Inclusive::value>::__launch_dynamic_bounds_scan(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op, __max_wg_size);
+        __single_group_scan<_Inclusive::value>::template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(__exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op, __max_wg_size
+#if _ONEDPL_COMPILE_KERNEL
+                , __kernel
+#endif
+                );
     }
 }
 
