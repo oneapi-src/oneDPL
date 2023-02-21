@@ -1779,13 +1779,13 @@ DEFINE_TEST(test_includes)
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, get_size(n));
 
         //first test case
-        last1 = first1 + na;
-        last2 = first2 + nb;
+        last1 = first1 + a_size;
+        last2 = first2 + b_size;
 
-        ::std::copy(a, a + na, host_keys.get());
-        ::std::copy(b, b + nb, host_vals.get());
-        host_keys.update_data(na);
-        host_vals.update_data(nb);
+        ::std::copy(a, a + a_size, host_keys.get());
+        ::std::copy(b, b + b_size, host_vals.get());
+        host_keys.update_data(a_size);
+        host_vals.update_data(b_size);
 
         auto result = ::std::includes(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2);
         wait_and_throw(exec);
@@ -1793,8 +1793,8 @@ DEFINE_TEST(test_includes)
         EXPECT_TRUE(result, "wrong effect from includes a, b");
 
         host_vals.retrieve_data();
-        ::std::copy(c, c + nc, host_vals.get());
-        host_vals.update_data(nc);
+        ::std::copy(c, c + c_size, host_vals.get());
+        host_vals.update_data(c_size);
 
         result = ::std::includes(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
         wait_and_throw(exec);

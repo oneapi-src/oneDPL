@@ -901,13 +901,13 @@ DEFINE_TEST(test_includes)
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, get_size(n));
 
         //first test case
-        last1 = first1 + na;
-        last2 = first2 + nb;
+        last1 = first1 + a_size;
+        last2 = first2 + b_size;
 
-        ::std::copy(a, a + na, host_keys.get());
-        ::std::copy(b, b + nb, host_vals.get());
-        host_keys.update_data(na);
-        host_vals.update_data(nb);
+        ::std::copy(a, a + a_size, host_keys.get());
+        ::std::copy(b, b + b_size, host_vals.get());
+        host_keys.update_data(a_size);
+        host_vals.update_data(b_size);
 
         auto result = ::std::includes(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2);
         wait_and_throw(exec);
@@ -915,8 +915,8 @@ DEFINE_TEST(test_includes)
         EXPECT_TRUE(result, "wrong effect from includes a, b");
 
         host_vals.retrieve_data();
-        ::std::copy(c, c + nc, host_vals.get());
-        host_vals.update_data(nc);
+        ::std::copy(c, c + c_size, host_vals.get());
+        host_vals.update_data(c_size);
 
         result = ::std::includes(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
         wait_and_throw(exec);
@@ -939,12 +939,12 @@ DEFINE_TEST(test_set_intersection)
         TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, get_size(n));
 
         //first test case
-        last1 = first1 + na;
-        last2 = first2 + nb;
-        ::std::copy(a, a + na, host_keys.get());
-        ::std::copy(b, b + nb, host_vals.get());
-        host_keys.update_data(na);
-        host_vals.update_data(nb);
+        last1 = first1 + a_size;
+        last2 = first2 + b_size;
+        ::std::copy(a, a + a_size, host_keys.get());
+        ::std::copy(b, b + b_size, host_vals.get());
+        host_keys.update_data(a_size);
+        host_vals.update_data(b_size);
 
         last3 = ::std::set_intersection(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2,
                                       first3);
@@ -955,19 +955,19 @@ DEFINE_TEST(test_set_intersection)
 
         EXPECT_TRUE(nres == 6, "wrong size of intersection of a, b");
 
-        auto result = ::std::includes(host_keys.get(), host_keys.get() + na, host_res.get(), host_res.get() + nres) &&
-                      ::std::includes(host_vals.get(), host_vals.get() + nb, host_res.get(), host_res.get() + nres);
+        auto result = ::std::includes(host_keys.get(), host_keys.get() + a_size, host_res.get(), host_res.get() + nres) &&
+                      ::std::includes(host_vals.get(), host_vals.get() + b_size, host_res.get(), host_res.get() + nres);
         wait_and_throw(exec);
 
         EXPECT_TRUE(result, "wrong effect from set_intersection a, b");
 
         { //second test case
 
-            last2 = first2 + nd;
-            ::std::copy(a, a + na, host_keys.get());
-            ::std::copy(d, d + nd, host_vals.get());
-            host_keys.update_data(na);
-            host_vals.update_data(nb);
+            last2 = first2 + d_size;
+            ::std::copy(a, a + a_size, host_keys.get());
+            ::std::copy(d, d + d_size, host_vals.get());
+            host_keys.update_data(a_size);
+            host_vals.update_data(b_size);
 
             last3 = ::std::set_intersection(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2,
                                           last2, first3);
@@ -992,20 +992,20 @@ DEFINE_TEST(test_set_difference)
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, get_size(n));
         TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, get_size(n));
 
-        last1 = first1 + na;
-        last2 = first2 + nb;
+        last1 = first1 + a_size;
+        last2 = first2 + b_size;
 
-        ::std::copy(a, a + na, host_keys.get());
-        ::std::copy(b, b + nb, host_vals.get());
-        host_keys.update_data(na);
-        host_vals.update_data(nb);
+        ::std::copy(a, a + a_size, host_keys.get());
+        ::std::copy(b, b + b_size, host_vals.get());
+        host_keys.update_data(a_size);
+        host_vals.update_data(b_size);
 
         last3 = ::std::set_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2, first3);
         wait_and_throw(exec);
 
-        int res_expect[na];
+        int res_expect[a_size];
         host_res.retrieve_data();
-        auto nres_expect = ::std::set_difference(host_keys.get(), host_keys.get() + na, host_vals.get(), host_vals.get() + nb, res_expect) - res_expect;
+        auto nres_expect = ::std::set_difference(host_keys.get(), host_keys.get() + a_size, host_vals.get(), host_vals.get() + b_size, res_expect) - res_expect;
         EXPECT_EQ_N(host_res.get(), res_expect, nres_expect, "wrong effect from set_difference a, b");
     }
 };
@@ -1023,21 +1023,21 @@ DEFINE_TEST(test_set_union)
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, get_size(n));
         TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, get_size(n));
 
-        last1 = first1 + na;
-        last2 = first2 + nb;
+        last1 = first1 + a_size;
+        last2 = first2 + b_size;
 
-        ::std::copy(a, a + na, host_keys.get());
-        ::std::copy(b, b + nb, host_vals.get());
-        host_keys.update_data(na);
-        host_vals.update_data(nb);
+        ::std::copy(a, a + a_size, host_keys.get());
+        ::std::copy(b, b + b_size, host_vals.get());
+        host_keys.update_data(a_size);
+        host_vals.update_data(b_size);
 
         last3 = ::std::set_union(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2, first3);
         wait_and_throw(exec);
 
-        int res_expect[na + nb];
+        int res_expect[a_size + b_size];
         host_res.retrieve_data();
         auto nres_expect =
-            ::std::set_union(host_keys.get(), host_keys.get() + na, host_vals.get(), host_vals.get() + nb, res_expect) - res_expect;
+            ::std::set_union(host_keys.get(), host_keys.get() + a_size, host_vals.get(), host_vals.get() + b_size, res_expect) - res_expect;
         EXPECT_EQ_N(host_res.get(), res_expect, nres_expect, "wrong effect from set_union a, b");
     }
 };
@@ -1055,22 +1055,22 @@ DEFINE_TEST(test_set_symmetric_difference)
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, get_size(n));
         TestDataTransfer<UDTKind::eRes, Size>  host_res (*this, get_size(n));
 
-        last1 = first1 + na;
-        last2 = first2 + nb;
+        last1 = first1 + a_size;
+        last2 = first2 + b_size;
 
-        ::std::copy(a, a + na, host_keys.get());
-        ::std::copy(b, b + nb, host_vals.get());
-        host_keys.update_data(na);
-        host_vals.update_data(nb);
+        ::std::copy(a, a + a_size, host_keys.get());
+        ::std::copy(b, b + b_size, host_vals.get());
+        host_keys.update_data(a_size);
+        host_vals.update_data(b_size);
 
         last3 = ::std::set_symmetric_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
                                                 first2, last2, first3);
         wait_and_throw(exec);
 
-        int res_expect[na + nb];
+        int res_expect[a_size + b_size];
         retrieve_data(host_keys, host_vals, host_res);
-        auto nres_expect = ::std::set_symmetric_difference(host_keys.get(), host_keys.get() + na, host_vals.get(),
-                                                           host_vals.get() + nb, res_expect) -
+        auto nres_expect = ::std::set_symmetric_difference(host_keys.get(), host_keys.get() + a_size, host_vals.get(),
+                                                           host_vals.get() + b_size, res_expect) -
                            res_expect;
         EXPECT_EQ_N(host_res.get(), res_expect, nres_expect, "wrong effect from set_symmetric_difference a, b");
     }
