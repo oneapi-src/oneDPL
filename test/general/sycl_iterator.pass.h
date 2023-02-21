@@ -119,16 +119,16 @@ inline constexpr int b[] = {0, 1, 1, 6, 6, 9};
 inline constexpr int c[] = {0, 1, 6, 6, 6, 9, 9};
 inline constexpr int d[] = {7, 7, 7, 8};
 inline constexpr int e[] = {11, 11, 12, 16, 19};
-constexpr auto na = sizeof(a) / sizeof(a[0]);
-constexpr auto nb = sizeof(b) / sizeof(b[0]);
-constexpr auto nc = sizeof(c) / sizeof(c[0]);
-constexpr auto nd = sizeof(d) / sizeof(d[0]);
+constexpr auto a_size = sizeof(a) / sizeof(a[0]);
+constexpr auto b_size = sizeof(b) / sizeof(b[0]);
+constexpr auto c_size = sizeof(c) / sizeof(c[0]);
+constexpr auto d_size = sizeof(d) / sizeof(d[0]);
 
 template <typename Size>
 constexpr
 Size get_size(Size n)
 {
-    return n + na + nb + nc + nd;
+    return n + a_size + b_size + c_size + d_size;
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
