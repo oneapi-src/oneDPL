@@ -184,7 +184,7 @@ struct __single_group_scan
     using _GroupScanKernelBase = __par_backend_hetero::__scan_single_wg_kernel<__elems_per_wg, _IsFullGroup, _Inclusive, _Name...>;
 
     template<typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation, typename _UnaryOp>
-    static void __launch_static_bounds_scan(_Policy const & __policy, _InRng&& __in, _OutRng&& __out, std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op)
+    static void __launch_static_bounds_scan(const _Policy & __policy, _InRng&& __in, _OutRng&& __out, ::std::size_t __n, _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
         using _ValueType = typename _InitType::__value_type;
         using _CustomName = typename _Policy::kernel_name;
@@ -308,7 +308,7 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
     {
         auto __single_group_scan_f = [&](auto __size_constant) {
             constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
-            constexpr ::std::uint16_t __wg_size = std::min(__size, __targeted_wg_size);
+            constexpr ::std::uint16_t __wg_size = ::std::min(__size, __targeted_wg_size);
             constexpr ::std::uint16_t __num_elems_per_item = __par_backend_hetero::__ceiling_div(__size, __wg_size);
             const bool __is_full_group = __n == __wg_size;
 
