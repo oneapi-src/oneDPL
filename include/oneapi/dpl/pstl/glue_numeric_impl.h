@@ -27,6 +27,7 @@
 
 #include "numeric_fwd.h"
 #include "execution_impl.h"
+#include "glue_numeric_defs.h"
 
 namespace oneapi
 {
