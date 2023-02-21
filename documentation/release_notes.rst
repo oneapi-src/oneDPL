@@ -19,7 +19,7 @@ New Features
 
 Fixed Issues
 ------------
-- Fixed permutation_iterator to work with C++ lambda functions for index permutation
+- Fixed permutation_iterator to work with C++ lambda functions for index permutation.
 - Fixed an error in ``oneapi::dpl::experimental::ranges::guard_view`` and ``oneapi::dpl::experimental::ranges::zip_view``
   when using ``operator[]`` with an index exceeding the limits of a 32 bit integer type.
 - Fixed errors when data size is 0 in ``upper_bound``, ``lower_bound`` and ``binary_search`` algorithms.
