@@ -200,7 +200,7 @@ struct __subgroup_radix_sort
                                 //exclusive scan local sum
                                 uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
                                     __it.get_group(), __bin_sum[__bin_count - 1], __dpl_sycl::__plus<uint16_t>());
-//add to local sum, generate exclusive scan result
+                                //add to local sum, generate exclusive scan result
                                 _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __bin_count; ++__i)
                                     __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
@@ -224,7 +224,7 @@ struct __subgroup_radix_sort
                         __dpl_sycl::__group_barrier(__it);
                         if (__begin_bit >= __end_bit)
                         {
-// the last iteration - writing out the result
+                            // the last iteration - writing out the result
                             _ONEDPL_PRAGMA_UNROLL
                             for (uint16_t __i = 0; __i < __block_size; ++__i)
                             {
