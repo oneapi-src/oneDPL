@@ -192,7 +192,13 @@ struct __single_group_scan
                 const ::std::uint16_t __id_in_subgroup = __subgroup.get_local_id();
                 const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
-                if constexpr (_IsFullGroup)
+#if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
+                constexpr bool __can_use_subgroup_load_store = _IsFullGroup;
+#else
+                constexpr bool __can_use_subgroup_load_store = false;
+#endif
+
+                if constexpr (__can_use_subgroup_load_store)
                 {
                     _ONEDPL_PRAGMA_UNROLL
                     for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
@@ -213,7 +219,7 @@ struct __single_group_scan
 
                 __group_scan<_ValueType>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
 
-                if constexpr (_IsFullGroup)
+                if constexpr (__can_use_subgroup_load_store)
                 {
                     _ONEDPL_PRAGMA_UNROLL
                     for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
