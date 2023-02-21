@@ -2122,7 +2122,7 @@ DEFINE_TEST(test_includes)
         EXPECT_TRUE(!result, "wrong effect from includes a, c");
     }
 };
-#endif // _PSTL_SYCL_TEST_USM
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <sycl::usm::alloc alloc_type>
