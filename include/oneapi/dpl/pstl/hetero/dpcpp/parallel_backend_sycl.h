@@ -408,7 +408,6 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
-
 template <bool _Inclusive, ::std::uint16_t _ElemsPerItem = 0, ::std::uint16_t _WGSize = 0, bool _IsFullGroup = false>
 struct __parallel_transform_scan_single_group_submitter
 {
@@ -597,17 +596,17 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
             const bool __is_full_group = __n == __wg_size;
 
             if (__is_full_group)
-                return __parallel_transform_scan_single_group_submitter<_Inclusive::value, __num_elems_per_item, __wg_size,
-                                    /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, __in_rng.all_view(),
-                                                                                           __out_rng.all_view(), __n,
-                                                                                           __init, __binary_op,
-                                                                                           __unary_op);
+                return __parallel_transform_scan_single_group_submitter<
+                    _Inclusive::value, __num_elems_per_item, __wg_size,
+                    /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, __in_rng.all_view(),
+                                                                           __out_rng.all_view(), __n, __init,
+                                                                           __binary_op, __unary_op);
             else
-                return __parallel_transform_scan_single_group_submitter<_Inclusive::value, __num_elems_per_item, __wg_size,
-                                    /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, __in_rng.all_view(),
-                                                                                            __out_rng.all_view(), __n,
-                                                                                            __init, __binary_op,
-                                                                                            __unary_op);
+                return __parallel_transform_scan_single_group_submitter<
+                    _Inclusive::value, __num_elems_per_item, __wg_size,
+                    /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, __in_rng.all_view(),
+                                                                            __out_rng.all_view(), __n, __init,
+                                                                            __binary_op, __unary_op);
         };
         if (__n <= 16)
             return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
@@ -634,8 +633,13 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
     }
     else
     {
-        return __parallel_transform_scan_single_group_submitter<_Inclusive::value>::template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(
-            __exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op, __max_wg_size);
+        return __parallel_transform_scan_single_group_submitter<
+            _Inclusive::value>::template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(__exec,
+                                                                                               __in_rng.all_view(),
+                                                                                               __out_rng.all_view(),
+                                                                                               __n, __init, __binary_op,
+                                                                                               __unary_op,
+                                                                                               __max_wg_size);
     }
 }
 
@@ -791,8 +795,7 @@ struct __early_exit_find_or
                     __found_local.store(1);
                 else
                 {
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
-                         __old = __found_local.load())
+                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
                         __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }

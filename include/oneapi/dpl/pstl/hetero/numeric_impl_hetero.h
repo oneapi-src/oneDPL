@@ -130,19 +130,23 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
         constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
         if constexpr (__can_use_group_scan)
         {
-            oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_single_group(std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __n,
-                                                  __unary_op, __init, __binary_op, _Inclusive{}).wait();
+            oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_single_group(
+                std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __n, __unary_op, __init, __binary_op,
+                _Inclusive{})
+                .wait();
         }
         else
         {
-            oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op,
-                                                 __init, __binary_op, _Inclusive{}).wait();
+            oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(
+                std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init, __binary_op, _Inclusive{})
+                .wait();
         }
     }
     else
     {
-        oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init,
-                                             __binary_op, _Inclusive{}).wait();
+        oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(
+            std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init, __binary_op, _Inclusive{})
+            .wait();
     }
 }
 
