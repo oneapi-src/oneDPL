@@ -571,12 +571,42 @@ struct __parallel_transform_scan_single_group_submitter
     }
 };
 
+struct __invoke_single_group_scan
+{
+    // Specialization for devices that have a max work-group size of 1024
+    static constexpr ::std::uint16_t __targeted_wg_size = 1024;
+
+    template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _InitType,
+              typename _BinaryOperation, typename _UnaryOperation, typename _Inclusive>
+    auto
+    operator()(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
+               _BinaryOperation __binary_op, _UnaryOperation __unary_op, _Inclusive)
+    {
+        constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
+        constexpr ::std::uint16_t __num_elems_per_item = __par_backend_hetero::__ceiling_div(_Size, __wg_size);
+        const bool __is_full_group = __n == __wg_size;
+
+        if (__is_full_group)
+            return __parallel_transform_scan_single_group_submitter<
+                _Inclusive::value, __num_elems_per_item, __wg_size,
+                /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, ::std::forward<_InRng>(__in_rng),
+                                                                       ::std::forward<_OutRng>(__out_rng), __n, __init,
+                                                                       __binary_op, __unary_op);
+        else
+            return __parallel_transform_scan_single_group_submitter<
+                _Inclusive::value, __num_elems_per_item, __wg_size,
+                /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, ::std::forward<_InRng>(__in_rng),
+                                                                        ::std::forward<_OutRng>(__out_rng), __n, __init,
+                                                                        __binary_op, __unary_op);
+    }
+};
+
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
 __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng,
                                       ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
-                                      _BinaryOperation __binary_op, _Inclusive)
+                                      _BinaryOperation __binary_op, _Inclusive __inclusive)
 {
     using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
     using _DynamicGroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
@@ -584,59 +614,22 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-    // Specialization for devices that have a max work-group size of 1024
-    constexpr ::std::uint16_t __targeted_wg_size = 1024;
-
-    if (__max_wg_size >= __targeted_wg_size)
+    if (__max_wg_size >= __invoke_single_group_scan::__targeted_wg_size)
     {
-        auto __single_group_scan_f = [&](auto __size_constant) {
-            constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
-            constexpr ::std::uint16_t __wg_size = ::std::min(__size, __targeted_wg_size);
-            constexpr ::std::uint16_t __num_elems_per_item = __par_backend_hetero::__ceiling_div(__size, __wg_size);
-            const bool __is_full_group = __n == __wg_size;
+        using _SizeBreakpoints =
+            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
 
-            if (__is_full_group)
-                return __parallel_transform_scan_single_group_submitter<
-                    _Inclusive::value, __num_elems_per_item, __wg_size,
-                    /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, ::std::forward<_InRng>(__in_rng),
-                                                                           ::std::forward<_OutRng>(__out_rng), __n,
-                                                                           __init, __binary_op, __unary_op);
-            else
-                return __parallel_transform_scan_single_group_submitter<
-                    _Inclusive::value, __num_elems_per_item, __wg_size,
-                    /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, ::std::forward<_InRng>(__in_rng),
-                                                                            ::std::forward<_OutRng>(__out_rng), __n,
-                                                                            __init, __binary_op, __unary_op);
-        };
-        if (__n <= 16)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
-        else if (__n <= 32)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 32>{});
-        else if (__n <= 64)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 64>{});
-        else if (__n <= 128)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 128>{});
-        else if (__n <= 256)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 256>{});
-        else if (__n <= 512)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 512>{});
-        else if (__n <= 1024)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 1024>{});
-        else if (__n <= 2048)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 2048>{});
-        else if (__n <= 4096)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 4096>{});
-        else if (__n <= 8192)
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 8192>{});
-        else
-            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16384>{});
+        return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
+            __invoke_single_group_scan{}, __n, ::std::forward<_ExecutionPolicy>(__exec),
+            ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op,
+            __inclusive);
     }
     else
     {
         return __parallel_transform_scan_single_group_submitter<_Inclusive::value>::
             template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(
-                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, __init, __binary_op,
-                __unary_op, __max_wg_size);
+                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
+                ::std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op, __max_wg_size);
     }
 }
 
