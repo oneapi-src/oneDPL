@@ -52,6 +52,7 @@
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK == 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
+#define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT __INTEL_LLVM_COMPILER
 
 #if _ONEDPL_LIBSYCL_VERSION >= 50300
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
@@ -187,12 +188,23 @@ __reduce_over_group(_Args... __args)
 
 template <typename... _Args>
 constexpr auto
-__joint_exclusive_scan(_Args... __args)
+__joint_exclusive_scan(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_exclusive_scan(__args...);
+    return sycl::joint_exclusive_scan(::std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::exclusive_scan(__args...);
+    return sycl::ONEAPI::exclusive_scan(::std::forward<Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_inclusive_scan(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_inclusive_scan(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::inclusive_scan(::std::forward<_Args>(__args)...);
 #endif
 }
 
