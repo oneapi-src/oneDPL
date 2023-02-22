@@ -188,11 +188,9 @@ struct __parallel_transform_reduce_impl
             _KernelName, _CustomName, _ReduceOp, _TransformOp1, _TransformOp2, _Ranges...>;
 
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel =
-            __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
-        __work_group_size =
-            ::std::min(__work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(
-                                              ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+        auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(__exec);
+        __work_group_size = ::std::min(
+            __work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
 
         _Size __iters_per_work_item = 1;
@@ -206,9 +204,9 @@ struct __parallel_transform_reduce_impl
         else
         {
             // distribution is ~1 work group per compute unit on CPU
-            auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
-            __iters_per_work_item = __ceiling_div(__n, (__max_compute_units * __work_group_size));
-            _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
+            auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+            __iters_per_work_item = __ceiling_div(__n, (__max_cu * __work_group_size));
+            _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_cu);
         }
 
         _Size __size_per_work_group =
@@ -315,8 +313,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
     ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
     // change __work_group_size according to local memory limit
     // Pessimistically double the memory requirement to take into account memory used by compiled kernel
-    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Tp) * 2, __work_group_size);
+    __work_group_size = oneapi::dpl::__internal::__adjust_to_local_mem_size(__exec, sizeof(_Tp) * 2, __work_group_size);
     if (__n <= 65536 && __work_group_size >= 512)
     {
         if (__n <= 128)
