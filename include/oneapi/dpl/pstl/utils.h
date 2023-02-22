@@ -32,6 +32,9 @@
 #if _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
 #    include <bit>
 #else
+#    ifndef __has_builtin
+#    define __has_builtin(__x) 0
+#    endif
 #    include <cstring> // memcpy
 #endif
 
@@ -587,7 +590,7 @@ __dpl_bit_cast(const _Src& __src) noexcept
     return ::std::bit_cast<_Dst>(__src);
 #elif _ONEDPL_BACKEND_SYCL && _ONEDPL_LIBSYCL_VERSION >= 50300
     return sycl::bit_cast<_Dst>(__src);
-#elif defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
+#elif __has_builtin(__builtin_bit_cast)
     return __builtin_bit_cast(_Dst, __src);
 #else
     _Dst __result;
