@@ -598,14 +598,14 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
             if (__is_full_group)
                 return __parallel_transform_scan_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
-                    /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, std::forward<_InRng>(__in_rng),
-                                                                           std::forward<_OutRng>(__out_rng), __n,
+                    /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, ::std::forward<_InRng>(__in_rng),
+                                                                           ::std::forward<_OutRng>(__out_rng), __n,
                                                                            __init, __binary_op, __unary_op);
             else
                 return __parallel_transform_scan_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
-                    /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, std::forward<_InRng>(__in_rng),
-                                                                            std::forward<_OutRng>(__out_rng), __n,
+                    /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, ::std::forward<_InRng>(__in_rng),
+                                                                            ::std::forward<_OutRng>(__out_rng), __n,
                                                                             __init, __binary_op, __unary_op);
         };
         if (__n <= 16)
@@ -635,7 +635,7 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
     {
         return __parallel_transform_scan_single_group_submitter<_Inclusive::value>::
             template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(
-                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op,
+                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, __init, __binary_op,
                 __unary_op, __max_wg_size);
     }
 }
@@ -658,7 +658,7 @@ __pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rn
     _NoOpFunctor __get_data_op;
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng),
         __binary_op, __init,
         // local scan
         unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
