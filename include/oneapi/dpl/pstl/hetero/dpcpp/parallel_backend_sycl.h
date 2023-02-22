@@ -414,7 +414,7 @@ struct __parallel_transform_scan_single_group_submitter
     template <typename _KernelName, typename _Policy, typename _InRng, typename _OutRng, typename _InitType,
               typename _BinaryOperation, typename _UnaryOp>
     static auto
-    __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in, _OutRng __out, ::std::size_t __n,
+    __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in_rng, _OutRng __out_rng, ::std::size_t __n,
                                  _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op,
                                  ::std::uint16_t __wg_size)
     {
@@ -424,7 +424,7 @@ struct __parallel_transform_scan_single_group_submitter
         const ::std::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
-            oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
 
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
             __hdl.parallel_for<_KernelName>(sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
@@ -434,14 +434,14 @@ struct __parallel_transform_scan_single_group_submitter
 
                 for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                 {
-                    __lacc[__idx] = __unary_op(__in[__idx]);
+                    __lacc[__idx] = __unary_op(__in_rng[__idx]);
                 }
 
                 __group_scan<_ValueType>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
 
                 for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                 {
-                    __out[__idx] = __lacc[__idx];
+                    __out_rng[__idx] = __lacc[__idx];
                 }
 
                 const ::std::uint16_t __residual = __n % __wg_size;
@@ -449,7 +449,7 @@ struct __parallel_transform_scan_single_group_submitter
                 if (__residual > 0 && __item_id < __residual)
                 {
                     auto __idx = __residual_start + __item_id;
-                    __out[__idx] = __lacc[__idx];
+                    __out_rng[__idx] = __lacc[__idx];
                 }
             });
         });
@@ -465,7 +465,7 @@ struct __parallel_transform_scan_single_group_submitter
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
               typename _UnaryOp>
     static auto
-    __launch_static_bounds_scan(const _Policy& __policy, _InRng&& __in, _OutRng&& __out, ::std::size_t __n,
+    __launch_static_bounds_scan(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n,
                                 _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
         using _ValueType = typename _InitType::__value_type;
@@ -475,7 +475,7 @@ struct __parallel_transform_scan_single_group_submitter
                                                                                    _BinaryOperation, _InRng, _OutRng>;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
-            oneapi::dpl::__ranges::__require_access(__hdl, __in, __out);
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
 
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
 
@@ -492,7 +492,7 @@ struct __parallel_transform_scan_single_group_submitter
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store = _IsFullGroup;
 #else
-                constexpr bool __can_use_subgroup_load_store = false;
+                    constexpr bool __can_use_subgroup_load_store = false;
 #endif
 
                     if constexpr (__can_use_subgroup_load_store)
@@ -501,7 +501,7 @@ struct __parallel_transform_scan_single_group_submitter
                         for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                         {
                             auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            auto __val = __unary_op(__subgroup.load(__in.begin() + __idx));
+                            auto __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
                             __subgroup.store(__lacc.get_pointer() + __idx, __val);
                         }
                     }
@@ -510,7 +510,7 @@ struct __parallel_transform_scan_single_group_submitter
                         _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
-                            __lacc[__idx] = __unary_op(__in[__idx]);
+                            __lacc[__idx] = __unary_op(__in_rng[__idx]);
                         }
                     }
 
@@ -524,7 +524,7 @@ struct __parallel_transform_scan_single_group_submitter
                         {
                             auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
                             auto __val = __subgroup.load(__lacc.get_pointer() + __idx);
-                            __subgroup.store(__out.begin() + __idx, __val);
+                            __subgroup.store(__out_rng.begin() + __idx, __val);
                         }
                     }
                     else
@@ -532,7 +532,7 @@ struct __parallel_transform_scan_single_group_submitter
                         _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
-                            __out[__idx] = __lacc[__idx];
+                            __out_rng[__idx] = __lacc[__idx];
                         }
 
                         const ::std::uint16_t __residual = __n % _WGSize;
@@ -540,7 +540,7 @@ struct __parallel_transform_scan_single_group_submitter
                         if (__item_id < __residual)
                         {
                             auto __idx = __residual_start + __item_id;
-                            __out[__idx] = __lacc[__idx];
+                            __out_rng[__idx] = __lacc[__idx];
                         }
                     }
                 });
