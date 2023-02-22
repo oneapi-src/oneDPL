@@ -567,6 +567,62 @@ struct __lifetime_keeper : public __lifetime_keeper_base
     __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
 };
 
+//-----------------------------------------------------------------------
+// Generic bit- and number-manipulation routines
+//-----------------------------------------------------------------------
+
+// Bitwise type casting, same as C++20 std::bit_cast
+template <typename _Dst, typename _Src>
+::std::enable_if_t<
+    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
+__dpl_bit_cast(const _Src& __src) noexcept
+{
+#if __cpp_lib_bit_cast >= 201806L || _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+    return ::std::bit_cast<_Dst>(__src);
+#elif _ONEDPL_BACKEND_SYCL && _ONEDPL_LIBSYCL_VERSION >= 50300
+    return sycl::bit_cast<_Dst>(__src);
+#elif defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
+    return __builtin_bit_cast(_Dst, __src);
+#else
+    _Dst __result;
+    ::std::memcpy(&__result, &__src, sizeof(_Dst));
+    return __result;
+#endif
+}
+
+// The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
+template <typename _T>
+::std::enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
+__dpl_bit_floor(_T __x) noexcept
+{
+    if (__x == 0)
+        return 0;
+#if __cpp_lib_int_pow2 >= 202002L || _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+    return ::std::bit_floor(__x);
+#elif _ONEDPL_BACKEND_SYCL
+    // Use the count-leading-zeros function
+    return 1 << (sycl::clz(_T{0}) - sycl::clz(__x) - 1);
+#else
+    // Fill all the lower bits with 1s
+    __x |= (__x >> 1);
+    __x |= (__x >> 2);
+    __x |= (__x >> 4);
+    if constexpr (sizeof(_T) > 1) __x |= (__x >> 8);
+    if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
+    if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
+    __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
+    return (__x == 0) ? 1 << (sizeof(_T) * 8 - 1) : __x >> 1;
+#endif
+}
+
+// rounded up result of (__number / __divisor)
+template <typename _T1, typename _T2>
+constexpr auto
+__dpl_ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
+{
+    return (__number - 1) / __divisor + 1;
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

@@ -118,7 +118,7 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
                 __reduce_op, _TransformOp{__transform_op}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-        const _Size __n_items = __ceiling_div(__n, __iters_per_work_item); // number of work items
+        const _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
         sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
@@ -205,14 +205,14 @@ struct __parallel_transform_reduce_impl
         {
             // distribution is ~1 work group per compute unit on CPU
             auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
-            __iters_per_work_item = __ceiling_div(__n, (__max_cu * __work_group_size));
+            __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, (__max_cu * __work_group_size));
             _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_cu);
         }
 
         _Size __size_per_work_group =
             __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
-        _Size __n_groups = __ceiling_div(__n, __size_per_work_group); // number of work groups
-        _Size __n_items = __ceiling_div(__n, __iters_per_work_item);  // number of work items
+        _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
+        _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
         // Create temporary global buffers to store temporary values
         sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
@@ -280,8 +280,8 @@ struct __parallel_transform_reduce_impl
                 __is_first = false;
             ::std::swap(__offset_1, __offset_2);
             __n = __n_groups;
-            __n_items = __ceiling_div(__n, __iters_per_work_item);
-            __n_groups = __ceiling_div(__n, __size_per_work_group);
+            __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
+            __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         } while (__n > 1);
 
         return __future(__reduce_event, __res);

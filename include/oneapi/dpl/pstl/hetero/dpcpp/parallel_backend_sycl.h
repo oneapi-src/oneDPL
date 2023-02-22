@@ -447,7 +447,7 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
     {
         using _ValueType = typename _InitType::__value_type;
 
-        const ::std::uint16_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
+        const ::std::uint16_t __elems_per_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_size);
         const ::std::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
@@ -598,7 +598,7 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
         auto __single_group_scan_f = [&](auto __size_constant) {
             constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
             constexpr ::std::uint16_t __wg_size = ::std::min(__size, __targeted_wg_size);
-            constexpr ::std::uint16_t __num_elems_per_item = __par_backend_hetero::__ceiling_div(__size, __wg_size);
+            constexpr ::std::uint16_t __num_elems_per_item = oneapi::dpl::__internal::__ceiling_div(__size, __wg_size);
             const bool __is_full_group = __n == __wg_size;
 
             if (__is_full_group)
