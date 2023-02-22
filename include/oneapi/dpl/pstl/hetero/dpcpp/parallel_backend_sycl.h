@@ -414,7 +414,7 @@ struct __parallel_transform_scan_single_group_submitter
     template <typename _KernelName, typename _Policy, typename _InRng, typename _OutRng, typename _InitType,
               typename _BinaryOperation, typename _UnaryOp>
     static auto
-    __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng __in_rng, _OutRng __out_rng, ::std::size_t __n,
+    __launch_dynamic_bounds_scan(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n,
                                  _InitType __init, _BinaryOperation __bin_op, _UnaryOp __unary_op,
                                  ::std::uint16_t __wg_size)
     {
@@ -574,7 +574,7 @@ struct __parallel_transform_scan_single_group_submitter
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
-__pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng,
+__pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng,
                                       ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
                                       _BinaryOperation __binary_op, _Inclusive)
 {
@@ -598,15 +598,15 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
             if (__is_full_group)
                 return __parallel_transform_scan_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
-                    /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, __in_rng.all_view(),
-                                                                           __out_rng.all_view(), __n, __init,
-                                                                           __binary_op, __unary_op);
+                    /* _IsFullGroup= */ true>::__launch_static_bounds_scan(__exec, std::forward<_InRng>(__in_rng),
+                                                                           std::forward<_OutRng>(__out_rng), __n,
+                                                                           __init, __binary_op, __unary_op);
             else
                 return __parallel_transform_scan_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
-                    /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, __in_rng.all_view(),
-                                                                            __out_rng.all_view(), __n, __init,
-                                                                            __binary_op, __unary_op);
+                    /* _IsFullGroup= */ false>::__launch_static_bounds_scan(__exec, std::forward<_InRng>(__in_rng),
+                                                                            std::forward<_OutRng>(__out_rng), __n,
+                                                                            __init, __binary_op, __unary_op);
         };
         if (__n <= 16)
             return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
@@ -633,20 +633,17 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
     }
     else
     {
-        return __parallel_transform_scan_single_group_submitter<
-            _Inclusive::value>::template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(__exec,
-                                                                                               __in_rng.all_view(),
-                                                                                               __out_rng.all_view(),
-                                                                                               __n, __init, __binary_op,
-                                                                                               __unary_op,
-                                                                                               __max_wg_size);
+        return __parallel_transform_scan_single_group_submitter<_Inclusive::value>::
+            template __launch_dynamic_bounds_scan<_DynamicGroupScanKernel>(
+                __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op,
+                __unary_op, __max_wg_size);
     }
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
-__pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng,
+__pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng,
                                      _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op,
                                      _Inclusive)
 {
@@ -661,7 +658,8 @@ __pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rn
     _NoOpFunctor __get_data_op;
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), __in_rng.all_view(), __out_rng.all_view(), __binary_op, __init,
+        ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng),
+        __binary_op, __init,
         // local scan
         unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
                               _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,

@@ -131,21 +131,23 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
         if constexpr (__can_use_group_scan)
         {
             oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_single_group(
-                std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __n, __unary_op, __init, __binary_op,
-                _Inclusive{})
+                std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
+                __binary_op, _Inclusive{})
                 .wait();
         }
         else
         {
             oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(
-                std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init, __binary_op, _Inclusive{})
+                std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __unary_op, __init,
+                __binary_op, _Inclusive{})
                 .wait();
         }
     }
     else
     {
         oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(
-            std::forward<_ExecutionPolicy>(__exec), __buf1, __buf2, __unary_op, __init, __binary_op, _Inclusive{})
+            std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __unary_op, __init,
+            __binary_op, _Inclusive{})
             .wait();
     }
 }
