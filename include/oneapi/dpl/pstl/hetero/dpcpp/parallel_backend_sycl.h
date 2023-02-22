@@ -598,7 +598,8 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
         auto __single_group_scan_f = [&](auto __size_constant) {
             constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
             constexpr ::std::uint16_t __wg_size = ::std::min(__size, __targeted_wg_size);
-            constexpr ::std::uint16_t __num_elems_per_item = oneapi::dpl::__internal::__ceiling_div(__size, __wg_size);
+            constexpr ::std::uint16_t __num_elems_per_item =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__size, __wg_size);
             const bool __is_full_group = __n == __wg_size;
 
             if (__is_full_group)
