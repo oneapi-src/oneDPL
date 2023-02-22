@@ -29,6 +29,12 @@
 #    include "hetero/dpcpp/sycl_iterator.h"
 #endif
 
+#if _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+#    include <bit>
+#else
+#    include <cstring> // memcpy
+#endif
+
 namespace oneapi
 {
 namespace dpl

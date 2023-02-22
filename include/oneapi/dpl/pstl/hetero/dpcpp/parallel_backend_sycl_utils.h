@@ -20,12 +20,6 @@
 #include <type_traits>
 #include <tuple>
 
-#if _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
-#    include <bit>
-#else
-#    include <cstring> // memcpy
-#endif
-
 #include "../../iterator_impl.h"
 
 #include "sycl_defs.h"
