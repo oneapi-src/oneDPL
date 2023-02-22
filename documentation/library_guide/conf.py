@@ -37,7 +37,7 @@ copyright = 'Intel Corporation'
 author = 'Intel'
 
 # The full version, including alpha/beta/rc tags
-release = '2022.0.0'
+release = '2023.0'
 
 rst_epilog = """
 .. include:: /variables.txt
@@ -84,6 +84,7 @@ html_css_files = [
 ]
 html_logo = '_static/oneAPI-rgb-rev-100.png'
 html_favicon = '_static/favicons.png'
+html_title = '%s %s' % (project, release) 
 #latex_logo = '_static/oneAPI-rgb-3000.png'
 html_show_sourcelink = False
 #html_js_files = ['custom.js']

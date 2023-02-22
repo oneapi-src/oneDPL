@@ -16,7 +16,7 @@ efforts across devices for high performance parallel applications.
    :maxdepth: 2
    :caption: Library Guide
 
-   overview
+   introduction
    parallel_api_main
    api_for_sycl_kernels_main
    macros
