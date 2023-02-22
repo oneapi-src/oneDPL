@@ -33,7 +33,7 @@
 #    include <bit>
 #else
 #    ifndef __has_builtin
-#    define __has_builtin(__x) 0
+#        define __has_builtin(__x) 0
 #    endif
 #    include <cstring> // memcpy
 #endif
