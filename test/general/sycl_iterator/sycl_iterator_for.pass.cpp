@@ -17,6 +17,67 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
+struct Inc
+{
+    template <typename T>
+    void
+    operator()(T& x) const
+    {
+        ++x;
+    }
+};
+
+struct Flip
+{
+    std::int32_t val;
+    Flip(std::int32_t y) : val(y) {}
+    template <typename T>
+    T
+    operator()(const T& x) const
+    {
+        return val - x;
+    }
+};
+
+template <typename T>
+struct Generator_count
+{
+    T def_val;
+    Generator_count(const T& val) : def_val(val) {}
+    T
+    operator()() const
+    {
+        return def_val;
+    }
+    T
+    default_value() const
+    {
+        return def_val;
+    }
+};
+
+// created just to check destroy and destroy_n correctness
+template <typename T>
+struct SyclTypeWrapper
+{
+    T __value;
+
+    explicit SyclTypeWrapper(const T& value = T{4}) : __value(value) {}
+    ~SyclTypeWrapper() { __value = -2; }
+    bool
+    operator==(const SyclTypeWrapper& other) const
+    {
+        return __value == other.__value;
+    }
+};
+
+// this wrapper is needed to take into account not only kernel name,
+// but also other types (for example, iterator's value type)
+template <typename... T>
+struct policy_name_wrapper
+{
+};
+
 DEFINE_TEST(test_uninitialized_fill)
 {
     DEFINE_TEST_CONSTRUCTOR(test_uninitialized_fill)
