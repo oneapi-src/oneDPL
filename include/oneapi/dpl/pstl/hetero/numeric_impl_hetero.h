@@ -125,31 +125,24 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
 
     constexpr int __single_group_upper_limit = 16384;
 
-    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
+    constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
+    if constexpr (__can_use_group_scan)
     {
-        constexpr bool __can_use_group_scan = unseq_backend::__has_known_identity<_BinaryOperation, _Type>::value;
-        if constexpr (__can_use_group_scan)
+        if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
         {
             oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_single_group(
                 ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
                 __binary_op, _Inclusive{})
                 .wait();
-        }
-        else
-        {
-            oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(
-                ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __unary_op, __init,
-                __binary_op, _Inclusive{})
-                .wait();
+            return;
         }
     }
-    else
-    {
-        oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(
-            ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __unary_op, __init,
-            __binary_op, _Inclusive{})
-            .wait();
-    }
+
+    // Either we can't use group scan or this input is too big for one workgroup
+    oneapi::dpl::__par_backend_hetero::__pattern_transform_scan_multi_group(
+        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __unary_op, __init, __binary_op,
+        _Inclusive{})
+        .wait();
 }
 
 template <typename _Iterator1, typename _Iterator2>
