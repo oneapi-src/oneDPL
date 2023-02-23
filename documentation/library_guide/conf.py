@@ -37,7 +37,7 @@ copyright = 'Intel Corporation'
 author = 'Intel'
 
 # The full version, including alpha/beta/rc tags
-release = '2023.0'
+release = '2022.0'
 
 rst_epilog = """
 .. include:: /variables.txt
