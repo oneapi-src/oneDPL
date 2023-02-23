@@ -66,7 +66,7 @@ _Size
 __adjust_to_local_mem_size(_ExecutionPolicy&& __policy, _Size __local_mem_per_wi, _Size __wg_size)
 {
     auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
-    return ::std::min(__local_mem_size / __local_mem_per_wi, __wg_size);
+    return sycl::min(__local_mem_size / __local_mem_per_wi, __wg_size);
 }
 
 #if _USE_SUB_GROUPS
@@ -97,7 +97,7 @@ __max_compute_units(_ExecutionPolicy&& __policy)
 
 template <typename _ExecutionPolicy>
 ::std::size_t
-__kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
+__kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
     const ::std::size_t __max_wg_size =
@@ -109,7 +109,7 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
-    ::std::size_t __cpu_divisor = 1;
+    unsigned __cpu_divisor = 1;
     if (__device.is_cpu() && __max_wg_size >= 4)
         __cpu_divisor = 4;
 
@@ -118,11 +118,10 @@ __kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kern
 
 template <typename _ExecutionPolicy>
 ::std::uint32_t
-__kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
+__kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
 {
     const sycl::device& __device = __policy.queue().get_device();
-    [[maybe_unused]] const ::std::size_t __wg_size =
-        __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
+    [[maybe_unused]] const ::std::size_t __wg_size = __kernel_work_group_size(__policy, __kernel);
     const ::std::uint32_t __sg_size =
 #if _USE_KERNEL_DEVICE_SPECIFIC_API
         __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(

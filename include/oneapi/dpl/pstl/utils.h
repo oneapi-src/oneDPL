@@ -601,7 +601,7 @@ __dpl_bit_cast(const _Src& __src) noexcept
 
 // The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
 template <typename _T>
-::std::enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
+::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
 __dpl_bit_floor(_T __x) noexcept
 {
     if (__x == 0)
@@ -627,7 +627,7 @@ __dpl_bit_floor(_T __x) noexcept
 // rounded up result of (__number / __divisor)
 template <typename _T1, typename _T2>
 constexpr auto
-__dpl_ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
+__dpl_ceiling_div(_T1 __number, _T2 __divisor)
 {
     return (__number - 1) / __divisor + 1;
 }
