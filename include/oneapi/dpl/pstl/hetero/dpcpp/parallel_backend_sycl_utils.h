@@ -75,8 +75,7 @@ template <typename _ExecutionPolicy>
 __max_sub_group_size(_ExecutionPolicy&& __policy)
 {
     auto __supported_sg_sizes = __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-
-    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty - the function returns 0;
+    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty; if so, return 0
     return __supported_sg_sizes.empty() ? 0 : __supported_sg_sizes.back();
 }
 #endif
@@ -109,11 +108,10 @@ __kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& _
     // The variable below is needed to achieve better performance on CPU devices.
     // Experimentally it was found that the most common divisor is 4 with all patterns.
     // TODO: choose the divisor according to specific pattern.
-    unsigned __cpu_divisor = 1;
     if (__device.is_cpu() && __max_wg_size >= 4)
-        __cpu_divisor = 4;
+        __max_wg_size /= 4;
 
-    return __max_wg_size / __cpu_divisor;
+    return __max_wg_size;
 }
 
 template <typename _ExecutionPolicy>
@@ -137,6 +135,7 @@ __kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __
 #endif
     return __sg_size;
 }
+//-----------------------------------------------------------------------------
 
 } // namespace __internal
 
