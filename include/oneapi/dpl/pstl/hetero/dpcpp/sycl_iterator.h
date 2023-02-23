@@ -57,7 +57,7 @@ struct sycl_iterator
     }
     // required for iter_mode
     template <access_mode inMode>
-    sycl_iterator(const sycl_iterator<inMode, T, Allocator>& in) : buffer(in.get_buffer())
+    sycl_iterator(sycl_iterator<inMode, T, Allocator>& in) : buffer(in.get_buffer())
     {
         auto old_iter = sycl_iterator<inMode, T, Allocator>{in.get_buffer(), 0};
         idx = in - old_iter;
@@ -110,8 +110,8 @@ struct sycl_iterator
         return *this - it < 0;
     }
 
-    sycl::buffer<T, dim, Allocator>
-    get_buffer() const
+    sycl::buffer<T, dim, Allocator>&
+    get_buffer()
     {
         return buffer;
     }
