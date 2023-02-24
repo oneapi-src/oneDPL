@@ -277,6 +277,9 @@
 #    endif
 #endif
 
+// Define oneDPL deprecation macro
+#define _ONEDPL_DEPRECATED(message) [[deprecated(message)]]
+
 #if !defined(ONEDPL_ALLOW_DEFERRED_WAITING)
 #    define ONEDPL_ALLOW_DEFERRED_WAITING 0
 #endif
