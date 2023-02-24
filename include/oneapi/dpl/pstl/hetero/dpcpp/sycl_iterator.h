@@ -133,7 +133,7 @@ end(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 }
 
 // Old variants of begin/end for compatibility with old code
-inline namespace depreated
+inline namespace deprecated
 {
     using access_mode = sycl::access::mode;
 
