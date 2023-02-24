@@ -13,8 +13,8 @@ using namespace TestUtils;
 #if TEST_DPCPP_BACKEND_PRESENT
 struct test_buffer_wrapper
 {
-    template <typename Iterator, typename T>
-    void operator()(Iterator begin, Iterator end, T* expected_data, std::size_t size)
+    template <typename ItBegin, typename ItEnd, typename T>
+    void operator()(ItBegin begin, ItEnd end, T* expected_data, std::size_t size)
     {
         EXPECT_TRUE(begin == begin, "operator == returned false negative");
         EXPECT_TRUE(!(begin == begin + 1), "operator == returned false positive");
@@ -54,6 +54,7 @@ main()
     auto data_ptr = buf_accessor.get_pointer();
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
+    test(oneapi::dpl::cbegin(buf), oneapi::dpl::cend(buf), data_ptr, size);
 
 #if TEST_DEPRECATED_BEGIN_END
     // Old deprecated oneapi::dpl::begin(...) / oneapi::dpl::end(...) functions format
