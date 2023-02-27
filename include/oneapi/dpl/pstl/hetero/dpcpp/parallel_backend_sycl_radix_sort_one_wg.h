@@ -24,7 +24,7 @@
 //namespace __par_backend_hetero
 //{
 
-template <typename _KernelNameBase, uint16_t __wg_size = 256 /*work group size*/, uint16_t __block_size = 16,
+template <typename _KernelNameBase, uint16_t CallNumber, uint16_t __wg_size = 256 /*work group size*/, uint16_t __block_size = 16,
           ::std::uint32_t __radix = 4, bool __is_asc = true,
           uint16_t __req_sub_group_size = (__block_size < 4 ? 32 : 16)>
 struct __subgroup_radix_sort
@@ -33,14 +33,17 @@ struct __subgroup_radix_sort
     auto
     operator()(sycl::queue __q, _RangeIn&& __src)
     {
+        using _SortKernel_1 =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_KernelNameBase, CallNumber>;
+        using _SortKernel_2 =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_KernelNameBase, -CallNumber>;
+
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
         //check SLM size
         if (__ckeck_slm_size<_KeyT>(__q, __src.size()))
-            return __submit<__i_kernel_name<_KernelNameBase, 0>, std::true_type /*SLM*/>(
-                __q, ::std::forward<_RangeIn>(__src));
+            return __submit<std::true_type /*SLM*/>(_SortKernel_1{}, __q, ::std::forward<_RangeIn>(__src));
         else
-            return __submit<__i_kernel_name<_KernelNameBase, 1>, std::false_type /*global memory*/>(
-                __q, ::std::forward<_RangeIn>(__src));
+            return __submit<std::false_type /*global memory*/>(_SortKernel_2{}, __q, ::std::forward<_RangeIn>(__src));
     }
 
   private:
@@ -124,9 +127,9 @@ struct __subgroup_radix_sort
         return __req_slm_size_val <= __max_slm_size - __req_slm_size_counters; //counters should be placed in SLM
     }
 
-    template <typename _KernelName, typename _SLM_tag, typename _RangeIn>
+    template <typename... _Name, typename _SLM_tag, typename _RangeIn>
     auto
-    __submit(sycl::queue __q, _RangeIn&& __src)
+    __submit(__internal::__optional_kernel_name<_Name...>, sycl::queue __q, _RangeIn&& __src)
     {
         uint16_t __n = __src.size();
         assert(__n <= __block_size * __wg_size);
@@ -143,7 +146,7 @@ struct __subgroup_radix_sort
             auto __exchange_lacc = __buf_val.get_acc(__cgh);
             auto __counter_lacc = __buf_count.get_acc(__cgh);
 
-            __cgh.parallel_for<_KernelName>(
+            __cgh.parallel_for<_Name...>(
                 __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
                     _KeyT __keys[__block_size];
                     uint16_t __wi = __it.get_local_linear_id();
