@@ -610,7 +610,7 @@ __dpl_bit_floor(_T __x) noexcept
     return ::std::bit_floor(__x);
 #elif _ONEDPL_BACKEND_SYCL
     // Use the count-leading-zeros function
-    return 1 << ((sizeof(_T) * 8 - sycl::clz(__x) - 1);
+    return 1 << (sizeof(_T) * 8 - sycl::clz(__x) - 1);
 #else
     // Fill all the lower bits with 1s
     __x |= (__x >> 1);

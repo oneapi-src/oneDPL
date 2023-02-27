@@ -694,8 +694,8 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
                                                   experimental::ranges::views::all_write(__idx));
 
     // use work group size adjusted to shared local memory as the maximum segment size.
-    ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
-        __exec, sizeof(__key_type) + sizeof(__val_type));
+    ::std::size_t __wgroup_size =
+        oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(__key_type) + sizeof(__val_type));
 
     // element is copied if it is the last element (marks end of final segment), is in an index
     // evenly divisible by wg size (ensures segments are not long), or has a key not equal to the
