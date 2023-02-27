@@ -54,9 +54,13 @@ main()
     auto data_ptr = buf_accessor.get_pointer();
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
+
+#if TEST_DEPRECATED_BEGIN_END
+    // Old deprecated oneapi::dpl::begin(...) / oneapi::dpl::end(...) functions format
     test(oneapi::dpl::begin(buf, sycl::write_only), oneapi::dpl::end(buf, sycl::write_only), data_ptr, size);
     test(oneapi::dpl::begin(buf, sycl::write_only, __dpl_sycl::__no_init{}), oneapi::dpl::end(buf, sycl::write_only, __dpl_sycl::__no_init{}), data_ptr, size);
     test(oneapi::dpl::begin(buf, __dpl_sycl::__no_init{}), oneapi::dpl::end(buf, __dpl_sycl::__no_init{}), data_ptr, size);
+#endif // TEST_DEPRECATED_BEGIN_END
 
 #endif
     return done(TEST_DPCPP_BACKEND_PRESENT);

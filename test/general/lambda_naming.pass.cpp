@@ -34,7 +34,11 @@ int main() {
     auto buf_end = buf_begin + n;
 
     const auto policy = TestUtils::default_dpcpp_policy;
+#if TEST_DEPRECATED_BEGIN_END
     auto buf_begin_discard_write = oneapi::dpl::begin(buf, sycl::write_only, __dpl_sycl::__no_init{});
+#else
+    auto buf_begin_discard_write = oneapi::dpl::begin(buf);
+#endif
 
     ::std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
 #if __SYCL_UNNAMED_LAMBDA__
