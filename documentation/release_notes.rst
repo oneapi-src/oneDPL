@@ -8,6 +8,44 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.1.0
+===============
+
+New Features
+------------
+- Improved performance of the `reduce`, `max_element`, `count`, `is_partitioned`,
+  `lexicographical_compare` and similar related algorithms on heterogeneous devices.
+- Improved performance of `sort` and `stable_sort` APIs for arithmetic data types
+  used with DPC++ execution policies.
+
+Fixed Issues
+------------
+- Fixed “TBB headers not found” issue occurring with libstdc++ version 9 when
+  TBB headers are not present in the environment. The fix requires inclusion of
+  the oneDPL headers before the libstdc++ headers.
+- C++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake. 
+-	Fixed an error in in-place `exclusive_scan` algorithm when output iterator is equal to input iterator.
+
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+-	Input and output iterators should have the same type for in-place `exclusive_scan` algorithm. 
+- Undefined behaviour in in-place `exclusive_scan` algorithm when output iterator is not equal to input iterator.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
+
 New in 2022.0.0
 ===============
 
