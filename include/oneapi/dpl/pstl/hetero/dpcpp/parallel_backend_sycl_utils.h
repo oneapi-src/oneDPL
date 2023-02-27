@@ -63,8 +63,10 @@ __max_work_group_size(_ExecutionPolicy&& __policy)
 
 template <typename _ExecutionPolicy, typename _Size>
 _Size
-__adjust_to_local_mem_size(_ExecutionPolicy&& __policy, _Size __local_mem_per_wi, _Size __wg_size)
+__slm_adjusted_work_group_size(_ExecutionPolicy&& __policy, _Size __local_mem_per_wi, _Size __wg_size = 0)
 {
+    if (__wg_size == 0)
+        __wg_size = __max_work_group_size(__policy);
     auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
     return sycl::min(__local_mem_size / __local_mem_per_wi, __wg_size);
 }

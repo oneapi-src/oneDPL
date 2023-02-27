@@ -309,11 +309,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
     // __iters_per_work_item shows number of elements to reduce on global memory.
     // __work_group_size shows number of elements to reduce on local memory.
 
-    // TODO: find a way to generalize getting of reliable work-group size
-    ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __work_group_size according to local memory limit
+    // get the work group size adjusted to the local memory limit
     // Pessimistically double the memory requirement to take into account memory used by compiled kernel
-    __work_group_size = oneapi::dpl::__internal::__adjust_to_local_mem_size(__exec, sizeof(_Tp) * 2, __work_group_size);
+    // TODO: find a way to generalize getting of reliable work-group size
+    ::std::size_t __work_group_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Tp) * 2);
+
     if (__n <= 65536 && __work_group_size >= 512)
     {
         if (__n <= 128)

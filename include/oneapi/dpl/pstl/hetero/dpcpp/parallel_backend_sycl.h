@@ -305,11 +305,9 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         assert(__n > 0);
 
         auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        // get the work group size adjusted to the local memory limit
         // TODO: find a way to generalize getting of reliable work-group sizes
-        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        // change __wgroup_size according to local memory limit
-        __wgroup_size = oneapi::dpl::__internal::__adjust_to_local_mem_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                            sizeof(_Type), __wgroup_size);
+        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Type));
 
 #if _ONEDPL_COMPILE_KERNEL
         //Actually there is one kernel_bundle for the all kernels of the pattern.
