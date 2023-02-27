@@ -167,22 +167,28 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, _Size __n, _Re
 }
 
 // General parallel_transform_reduce - uses a tree-based reduction
-template <typename _Tp, typename _IsGPU, typename _KernelName>
-struct __parallel_transform_reduce_submitter;
-
-template <typename _Tp, typename _IsGPU, typename... _Name>
-struct __parallel_transform_reduce_submitter<_Tp, _IsGPU, __internal::__optional_kernel_name<_Name...>>
+template <typename _Tp, typename _IsGPU>
+struct __parallel_transform_reduce_impl
 {
-    template <typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp1, typename _TransformOp2,
-              typename _Size, typename _InitType,
+    template <typename... _Name>
+    using _KernelName = __reduce_kernel<_IsGPU{}, _Name...>;
+
+    template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp1,
+              typename _TransformOp2, typename _InitType,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
-    auto
-    operator()(_ExecutionPolicy&& __exec, _Size __n, ::std::uint16_t __work_group_size, _ReduceOp __reduce_op,
-               _TransformOp1 __transform_op1, _TransformOp2 __transform_op2, _InitType __init, _Ranges&&... __rngs)
+    static auto
+    submit(_ExecutionPolicy&& __exec, _Size __n, ::std::uint16_t __work_group_size, _ReduceOp __reduce_op,
+           _TransformOp1 __transform_op1, _TransformOp2 __transform_op2, _InitType __init, _Ranges&&... __rngs)
     {
+        using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+        using _CustomName = typename _Policy::kernel_name;
+        using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            _KernelName, _CustomName, _ReduceOp, _TransformOp1, _TransformOp2, _Ranges...>;
+
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel = __internal::__kernel_compiler<_Name...>::__compile(::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernel =
+            __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
         __work_group_size =
             ::std::min(__work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(
                                               ::std::forward<_ExecutionPolicy>(__exec), __kernel));
@@ -235,7 +241,7 @@ struct __parallel_transform_reduce_submitter<_Tp, _IsGPU, __internal::__optional
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
-                __cgh.parallel_for<_Name...>(
+                __cgh.parallel_for<_ReduceKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                     __kernel,
 #endif
@@ -281,24 +287,7 @@ struct __parallel_transform_reduce_submitter<_Tp, _IsGPU, __internal::__optional
 
         return __future(__reduce_event, __res);
     }
-}; // struct __parallel_transform_reduce_submitter
-
-template <typename _Tp, typename _IsGPU, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy,
-          typename _Size, typename _InitType,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
-auto
-__parallel_transform_reduce_impl(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op,
-                                 _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
-{
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using _CustomName = typename _Policy::kernel_name;
-    using _ReduceKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_kernel<_IsGPU{}, _CustomName>>;
-
-    return __parallel_transform_reduce_submitter<_Tp, _IsGPU, _ReduceKernel>()(::std::forward<_ExecutionPolicy>(__exec),
-                                                                               __n, __reduce_op, __transform_op, __init,
-                                                                               ::std::forward<_Ranges>(__rngs)...);
-}
+}; // struct __parallel_transform_reduce_impl
 
 // General version of parallel_transform_reduce. Calls optimized kernels.
 template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _InitType,
@@ -403,7 +392,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
             unseq_backend::transform_reduce_known<_ExecutionPolicy, 32, _ReduceOp, _NoOpFunctor>{__reduce_op,
                                                                                                  _NoOpFunctor{}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
-        return __parallel_transform_reduce_impl<_Tp, ::std::true_type>(
+        return __parallel_transform_reduce_impl<_Tp, ::std::true_type>::submit(
             ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern, __transform_pattern1,
             __transform_pattern2, __init, ::std::forward<_Ranges>(__rngs)...);
     }
@@ -414,7 +403,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
         auto __transform_pattern2 = unseq_backend::transform_reduce_unknown<_ExecutionPolicy, _ReduceOp, _NoOpFunctor>{
             __reduce_op, _NoOpFunctor{}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
-        return __parallel_transform_reduce_impl<_Tp, ::std::false_type>(
+        return __parallel_transform_reduce_impl<_Tp, ::std::false_type>::submit(
             ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_pattern, __transform_pattern1,
             __transform_pattern2, __init, ::std::forward<_Ranges>(__rngs)...);
     }
