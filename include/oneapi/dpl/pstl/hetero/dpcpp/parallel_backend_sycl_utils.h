@@ -48,7 +48,7 @@ namespace __internal
 #if _ONEDPL_DEBUG_SYCL
 template <typename _ExecutionPolicy>
 ::std::string
-__device_info(_ExecutionPolicy&& __policy)
+__device_info(const _ExecutionPolicy& __policy)
 {
     return __policy.queue().get_device().template get_info<sycl::info::device::name>();
 }
@@ -56,14 +56,14 @@ __device_info(_ExecutionPolicy&& __policy)
 
 template <typename _ExecutionPolicy>
 ::std::size_t
-__max_work_group_size(_ExecutionPolicy&& __policy)
+__max_work_group_size(const _ExecutionPolicy& __policy)
 {
     return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
 }
 
 template <typename _ExecutionPolicy, typename _Size>
 _Size
-__slm_adjusted_work_group_size(_ExecutionPolicy&& __policy, _Size __local_mem_per_wi, _Size __wg_size = 0)
+__slm_adjusted_work_group_size(const _ExecutionPolicy& __policy, _Size __local_mem_per_wi, _Size __wg_size = 0)
 {
     if (__wg_size == 0)
         __wg_size = __max_work_group_size(__policy);
@@ -74,7 +74,7 @@ __slm_adjusted_work_group_size(_ExecutionPolicy&& __policy, _Size __local_mem_pe
 #if _USE_SUB_GROUPS
 template <typename _ExecutionPolicy>
 ::std::size_t
-__max_sub_group_size(_ExecutionPolicy&& __policy)
+__max_sub_group_size(const _ExecutionPolicy& __policy)
 {
     auto __supported_sg_sizes = __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
     //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty; if so, return 0
@@ -84,7 +84,7 @@ __max_sub_group_size(_ExecutionPolicy&& __policy)
 
 template <typename _ExecutionPolicy>
 ::std::uint32_t
-__max_compute_units(_ExecutionPolicy&& __policy)
+__max_compute_units(const _ExecutionPolicy& __policy)
 {
     return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
 }
