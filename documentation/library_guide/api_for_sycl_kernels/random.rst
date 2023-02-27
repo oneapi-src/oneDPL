@@ -88,10 +88,10 @@ Random number generation is available for SYCL* device-side and host-side code. 
 
 .. code:: cpp
 
+    #include <oneapi/dpl/random>
+    #include <sycl/sycl.hpp>
     #include <iostream>
     #include <vector>
-    #include <sycl/sycl.hpp>
-    #include <oneapi/dpl/random>
 
     int main() {
         sycl::queue queue(sycl::default_selector_v);
