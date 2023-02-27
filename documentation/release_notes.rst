@@ -13,26 +13,27 @@ New in 2022.1.0
 
 New Features
 ------------
-- Improved performance of the `reduce`, `max_element`, `count`, `is_partitioned`,
-  `lexicographical_compare` and similar related algorithms on heterogeneous devices.
-- Improved performance of `sort` and `stable_sort` APIs for arithmetic data types
+- Added ``generate``, ``generate_n``, ``transform`` algorithms to `Tested Standard C++ API`_.
+- Improved performance of the ``reduce``, ``max_element``, ``count``, ``is_partitioned``,
+  ``lexicographical_compare`` and similar related algorithms on heterogeneous devices.
+- Improved performance of ``sort`` and ``stable_sort`` APIs for arithmetic data types
   used with DPC++ execution policies.
 
 Fixed Issues
 ------------
-- Fixed “TBB headers not found” issue occurring with libstdc++ version 9 when
-  TBB headers are not present in the environment. The fix requires inclusion of
+- Fixed ``TBB headers not found`` issue occurring with libstdc++ version 9 when
+  oneTBB headers are not present in the environment. The fix requires inclusion of
   the oneDPL headers before the libstdc++ headers.
 - C++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake. 
--	Fixed an error in in-place `exclusive_scan` algorithm when output iterator is equal to input iterator.
+-	Fixed an error in in-place ``exclusive_scan`` algorithm when output iterator is equal to input iterator.
 
 
 Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
--	Input and output iterators should have the same type for in-place `exclusive_scan` algorithm. 
-- Undefined behaviour in in-place `exclusive_scan` algorithm when output iterator is not equal to input iterator.
+-	Input and output iterators should have the same type for in-place ``exclusive_scan`` algorithm. 
+- Undefined behaviour in in-place ``exclusive_scan`` algorithm when output iterator is not equal to input iterator.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
