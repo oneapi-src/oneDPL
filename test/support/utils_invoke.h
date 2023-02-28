@@ -43,6 +43,12 @@ using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, 
 #    define TEST_MAKE_DEVICE_POLICY(...) oneapi::dpl::execution::make_device_policy<__VA_ARGS__>
 #endif // TEST_UNNAMED_LAMBDAS
 
+#if TEST_UNNAMED_LAMBDAS
+#    define TEST_MAKE_FPGA_POLICY(...) oneapi::dpl::execution::make_fpga_policy
+#else
+#    define TEST_MAKE_FPGA_POLICY(...) oneapi::dpl::execution::make_fpga_policy<__VA_ARGS__>
+#endif // TEST_UNNAMED_LAMBDAS
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 ////////////////////////////////////////////////////////////////////////////////
