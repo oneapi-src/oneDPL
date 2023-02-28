@@ -668,11 +668,6 @@ struct __parallel_radix_sort_iteration
     }
 }; // struct __parallel_radix_sort_iteration
 
-template <typename... _Name>
-class __radix_sort_one_group;
-template <typename KernelName, ::std::size_t CallNumber>
-struct __i_kernel_name;
-
 // sorting by just one work group
 #include "parallel_backend_sycl_radix_sort_one_wg.h"
 
@@ -703,44 +698,39 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
     //TODO: 1.to reduce number of the kernels; 2.to define work group size in runtime, depending on number of elements
     constexpr auto __wg_size = 64;
 
-    // Injecting ascending / descending status into a kernel name to prevent clashing kernel names
-    using _RadixBitsType = ::std::integral_constant<::std::uint32_t, __radix_bits>;
-    using _AscendingType = ::std::bool_constant<__is_ascending>;
-    using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-    using _RadixSortKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-        __radix_sort_one_group, _CustomName, _RadixBitsType, _AscendingType, __decay_t<_Range>>;
+    //TODO: with _RadixSortKernel also the following a couple of compile time constants is used for unique kernel name
+    using _RadixSortKernel = typename __decay_t<_ExecutionPolicy>::kernel_name;
 
     if (__n <= 64 && __wg_size <= __max_wg_size)
-        __event =
-            __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 0>, __wg_size, 1, __radix_bits, __is_ascending>{}(
-                __exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 128 && __wg_size * 2 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 1>, __wg_size * 2, 1, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 1, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 256 && __wg_size * 2 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 2>, __wg_size * 2, 2, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 2, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 512 && __wg_size * 2 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 3>, __wg_size * 2, 4, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 4, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 1024 && __wg_size * 2 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 4>, __wg_size * 2, 8, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 8, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 2048 && __wg_size * 4 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 5>, __wg_size * 4, 8, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 4, 8, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 4096 && __wg_size * 4 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 6>, __wg_size * 4, 16, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 4, 16, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 8192 && __wg_size * 8 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 7>, __wg_size * 8, 16, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 16, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 16384 && __wg_size * 8 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 8>, __wg_size * 8, 32, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 32, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else if (__n <= 32768 && __wg_size * 16 <= __max_wg_size)
-        __event = __subgroup_radix_sort<__i_kernel_name<_RadixSortKernel, 9>, __wg_size * 16, 32, __radix_bits,
-                                        __is_ascending>{}(__exec.queue(), ::std::forward<_Range>(__in_rng));
+        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 16, 32, __radix_bits, __is_ascending>{}(
+            __exec.queue(), ::std::forward<_Range>(__in_rng));
     else
 #endif
     {
