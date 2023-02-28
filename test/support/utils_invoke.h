@@ -151,7 +151,7 @@ struct invoke_on_all_hetero_policies
             using kernel_name = unique_kernel_name<Op, CallNumber>;
             auto my_policy =
 #if ONEDPL_FPGA_DEVICE
-                oneapi::dpl::execution::make_fpga_policy(queue);
+                TEST_MAKE_FPGA_POLICY(/*unroll_factor = */ 1, kernel_name)(queue);
 #else
                 TEST_MAKE_DEVICE_POLICY(kernel_name)(queue);
 #endif

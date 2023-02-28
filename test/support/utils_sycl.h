@@ -92,14 +92,14 @@ make_new_policy(_Policy&& __policy)
 }
 
 #if ONEDPL_FPGA_DEVICE
-template <typename _Policy,
+template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_fpga_policy(
+    -> decltype(TEST_MAKE_FPGA_POLICY(::std::decay<_Policy>::type::unroll_factor, _NewKernelName)(
         ::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_fpga_policy(
+    return TEST_MAKE_FPGA_POLICY(::std::decay<_Policy>::type::unroll_factor, _NewKernelName)(
         ::std::forward<_Policy>(__policy));
 }
 #endif
