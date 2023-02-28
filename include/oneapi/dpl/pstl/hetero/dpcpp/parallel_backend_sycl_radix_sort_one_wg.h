@@ -24,7 +24,7 @@
 //namespace __par_backend_hetero
 //{
 
-template <typename _Name, uint16_t...>
+template <typename... _Name>
 class __radix_sort_one_wg_kernel;
 
 template <typename _KernelNameBase, uint16_t __wg_size = 256 /*work group size*/, uint16_t __block_size = 16,
@@ -36,10 +36,15 @@ struct __subgroup_radix_sort
     auto
     operator()(sycl::queue __q, _RangeIn&& __src)
     {
+        using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
+        using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
+        using __call_0_t = ::std::integral_constant<::std::uint16_t, 0>;
+        using __call_1_t = ::std::integral_constant<::std::uint16_t, 1>;
+
         using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size, __block_size, 0>>;
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t>>;
         using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size, __block_size, 1>>;
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t>>;
 
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
         //check SLM size
