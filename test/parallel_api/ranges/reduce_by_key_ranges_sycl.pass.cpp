@@ -68,10 +68,10 @@ main()
     EXPECT_EQ_N(value_exp, views::host_all(D).begin(), n_res, "wrong values from reduce_by_segment");
 
 // Check if a kernel name can be omitted when a compiler supports implicit names
-#if __SYCL_UNNAMED_LAMBDA__
+#if TEST_UNNAMED_LAMBDAS
     sycl::buffer<::std::uint64_t> E(n);
     reduce_by_segment(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(E));
-#endif
+#endif // TEST_UNNAMED_LAMBDAS
 
 #endif //_ENABLE_RANGES_TESTING
 
