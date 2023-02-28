@@ -180,8 +180,8 @@ struct __subgroup_radix_sort
                         {
                             uint16_t __indices[__block_size]; //indices for indirect access in the "re-order" phase
                             {
-                                uint32_t*
-                                    __counters[__block_size]; //pointers(by performance reasons) to bucket's counters
+                                //pointers(by performance reasons) to bucket's counters
+                                uint32_t* __counters[__block_size];
 
                                 //1. "counting" phase
                                 //counter initialization
