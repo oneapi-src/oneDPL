@@ -50,10 +50,10 @@ struct __subgroup_radix_sort
         //check SLM size
         if (__ckeck_slm_size<_KeyT>(__q, __src.size()))
             return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src),
-                std::true_type{} /*SLM*/);
+                                                           std::true_type{} /*SLM*/);
         else
             return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src),
-                std::false_type{} /*No SLM*/);
+                                                            std::false_type{} /*No SLM*/);
     }
 
   private:
@@ -149,72 +149,73 @@ struct __subgroup_radix_sort
         {
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
-    
+
             using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
-    
+
             _TempBuf<_KeyT, _SLM_tag> __buf_val(__block_size * __wg_size);
             _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
-    
+
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
             return __q.submit([&](sycl::handler& __cgh) {
                 oneapi::dpl::__ranges::__require_access(__cgh, __src);
-    
+
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
-    
+
                 __cgh.parallel_for<_Name...>(
                     __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
                         _KeyT __keys[__block_size];
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = 0;
                         constexpr uint16_t __end_bit = sizeof(_KeyT) * 8;
-    
+
                         //we use numeric_limits::lowest for floating-point types with denormalization,
                         //due to numeric_limits::min gets the minimum positive normalized value
                         const _KeyT __default_key =
                             __is_asc ? std::numeric_limits<_KeyT>::max() : std::numeric_limits<_KeyT>::lowest();
                         __block_load<_KeyT>(__wi, __src, __keys, __n, __default_key);
-    
+
                         __dpl_sycl::__group_barrier(__it);
                         while (true)
                         {
                             uint16_t __indices[__block_size]; //indices for indirect access in the "re-order" phase
                             {
-                                uint32_t* __counters[__block_size]; //pointers(by performance reasons) to bucket's counters
-    
+                                uint32_t*
+                                    __counters[__block_size]; //pointers(by performance reasons) to bucket's counters
+
                                 //1. "counting" phase
                                 //counter initialization
                                 auto __pcounter = __counter_lacc.get_pointer() + __wi;
-    
+
                                 _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __bin_count; ++__i)
                                     __pcounter[__i * __wg_size] = 0;
-    
+
                                 _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __block_size; ++__i)
                                 {
                                     const uint16_t __bin = __get_bucket</*mask*/ __bin_count - 1>(
                                         __order_preserving_cast<__is_asc>(__keys[__i]), __begin_bit);
-    
+
                                     //"counting" and local offset calculation
                                     __counters[__i] = &__pcounter[__bin * __wg_size];
                                     __indices[__i] = *__counters[__i];
                                     *__counters[__i] = __indices[__i] + 1;
                                 }
                                 __dpl_sycl::__group_barrier(__it);
-    
+
                                 //2. scan phase
                                 {
                                     //TODO: probably can be further optimized
-    
+
                                     //scan contiguous numbers
                                     uint16_t __bin_sum[__bin_count];
                                     __bin_sum[0] = __counter_lacc[__wi * __bin_count];
-    
+
                                     _ONEDPL_PRAGMA_UNROLL
                                     for (uint16_t __i = 1; __i < __bin_count; ++__i)
                                         __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
-    
+
                                     __dpl_sycl::__group_barrier(__it);
                                     //exclusive scan local sum
                                     uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
@@ -223,12 +224,12 @@ struct __subgroup_radix_sort
                                     _ONEDPL_PRAGMA_UNROLL
                                     for (uint16_t __i = 0; __i < __bin_count; ++__i)
                                         __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
-    
+
                                     if (__wi == 0)
                                         __counter_lacc[0] = 0;
                                     __dpl_sycl::__group_barrier(__it);
                                 }
-    
+
                                 _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __block_size; ++__i)
                                 {
@@ -236,9 +237,9 @@ struct __subgroup_radix_sort
                                     __indices[__i] += *__counters[__i];
                                 }
                             }
-    
+
                             __begin_bit += __radix;
-    
+
                             //3. "re-order" phase
                             __dpl_sycl::__group_barrier(__it);
                             if (__begin_bit >= __end_bit)
