@@ -37,6 +37,12 @@ struct unique_kernel_name;
 template <typename Policy, int idx>
 using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
 
+#if TEST_UNNAMED_LAMBDAS
+#    define TEST_MAKE_DEVICE_POLICY(...) oneapi::dpl::execution::make_device_policy
+#else
+#    define TEST_MAKE_DEVICE_POLICY(...) oneapi::dpl::execution::make_device_policy<__VA_ARGS__>
+#endif // TEST_UNNAMED_LAMBDAS
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 ////////////////////////////////////////////////////////////////////////////////
