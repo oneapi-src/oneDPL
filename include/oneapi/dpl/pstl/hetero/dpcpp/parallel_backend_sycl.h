@@ -201,7 +201,7 @@ class __sort_global_kernel;
 template <typename... _Name>
 class __sort_copy_back_kernel;
 
-template <::std::uint16_t _ElemsPerWG, bool _IsFullGroup, bool _Inclusive, typename... _Name>
+template <typename... _Name>
 class __scan_single_wg_kernel;
 
 template <typename... _Name>
@@ -606,16 +606,19 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
                 return __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ true,
-                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_single_wg_kernel<
-                        __wg_size * __num_elems_per_item, /* _IsFullGroup= */ true, _Inclusive::value, _CustomName>>>()(
+                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                        __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
+                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
                     __exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
             else
                 return __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
                     /* _IsFullGroup= */ false,
                     oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-                        __scan_single_wg_kernel<__wg_size * __num_elems_per_item, /* _IsFullGroup= */ false,
-                                                _Inclusive::value, _CustomName>>>()(
+                        __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
+                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
                     __exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
         };
         if (__n <= 16)

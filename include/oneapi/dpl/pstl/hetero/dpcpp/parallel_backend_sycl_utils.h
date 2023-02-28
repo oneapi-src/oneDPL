@@ -170,10 +170,10 @@ struct _HasDefaultName
         ;
 };
 
-template <template <typename...> class _ExternalName, typename _InternalName>
-struct _HasDefaultName<_ExternalName<_InternalName>>
+template <template <typename...> class _ExternalName, typename... _InternalName>
+struct _HasDefaultName<_ExternalName<_InternalName...>>
 {
-    static constexpr bool value = _HasDefaultName<_InternalName>::value;
+    static constexpr bool value = (... || _HasDefaultName<_InternalName>::value);
 };
 
 template <typename... _Name>
