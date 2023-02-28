@@ -465,8 +465,8 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
                         __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(
-                        __group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                                                              __bin_op, __init);
 
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                     {
@@ -545,8 +545,8 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         }
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(
-                        __group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __bin_op, __init);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                                                              __bin_op, __init);
 
                     if constexpr (__can_use_subgroup_load_store)
                     {
