@@ -145,9 +145,9 @@ struct invoke_on_all_hetero_policies
             using kernel_name = unique_kernel_name<Op, CallNumber>;
             auto my_policy =
 #if ONEDPL_FPGA_DEVICE
-                oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(queue);
+                oneapi::dpl::execution::make_fpga_policy(queue);
 #else
-                oneapi::dpl::execution::make_device_policy<kernel_name>(queue);
+                TEST_MAKE_DEVICE_POLICY(kernel_name)(queue);
 #endif
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, op, ::std::forward<Args>(rest)...);

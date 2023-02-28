@@ -123,7 +123,7 @@ int main() {
         auto result_it = oneapi::dpl::begin(dst_buf);
 
         // create named policy from existing one
-        auto new_policy = oneapi::dpl::execution::make_device_policy<class IdentX>(oneapi::dpl::execution::dpcpp_default);
+        auto new_policy = TEST_MAKE_DEVICE_POLICY(class IdentX)(oneapi::dpl::execution::dpcpp_default);
 
         auto t = std::copy_if( new_policy, data_it, data_end_it, result_it, oneapi::dpl::identity() );
 
@@ -152,7 +152,7 @@ int main() {
         auto src_end_it = oneapi::dpl::end(src_buf);
         
         // create named policy from existing one
-        auto new_policy = oneapi::dpl::execution::make_device_policy<class MaxX>(oneapi::dpl::execution::dpcpp_default);
+        auto new_policy = TEST_MAKE_DEVICE_POLICY(class MaxX)(oneapi::dpl::execution::dpcpp_default);
         // call algorithm:
         std::exclusive_scan(new_policy, src_it, src_end_it, dst_it, T(0), oneapi::dpl::maximum<T>());
         
@@ -188,7 +188,7 @@ int main() {
         auto src_end_it = oneapi::dpl::end(src_buf);
 
         // create named policy from existing one
-        auto new_policy = oneapi::dpl::execution::make_device_policy<class MinX>(oneapi::dpl::execution::dpcpp_default);
+        auto new_policy = TEST_MAKE_DEVICE_POLICY(class MinX)(oneapi::dpl::execution::dpcpp_default);
         // call algorithm:
         std::exclusive_scan(new_policy, src_it, src_end_it, dst_it, T(0), oneapi::dpl::minimum<T>());
     

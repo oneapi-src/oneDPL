@@ -47,8 +47,8 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
     auto d_val = dt_helper_h_val.get_data();
 
     // Run dpl::exclusive_scan algorithm on USM shared-device memory
-    auto myPolicy = oneapi::dpl::execution::make_device_policy<
-        TestUtils::unique_kernel_name<class copy, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
+    auto myPolicy = TEST_MAKE_DEVICE_POLICY(
+        TestUtils::unique_kernel_name<class copy, TestUtils::uniq_kernel_index<alloc_type>()>)(q);
     oneapi::dpl::exclusive_scan(myPolicy, d_idx, d_idx + count, d_val, 0);
 
     // Copy results from USM shared/device memory to host
