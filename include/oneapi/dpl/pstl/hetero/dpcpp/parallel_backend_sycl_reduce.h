@@ -36,7 +36,7 @@ namespace __par_backend_hetero
 template <typename... _Name>
 class __reduce_seq_kernel;
 
-template <::std::uint16_t _WorkGroupSize, ::std::uint16_t _ItersPerWorkItem, typename... _Name>
+template <typename... _Name>
 class __reduce_small_kernel;
 
 template <bool _IsGPU, typename... _Name>
@@ -159,7 +159,8 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, _Size __n, _Re
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_small_kernel<__work_group_size, __iters_per_work_item, _CustomName>>;
+        __reduce_small_kernel<::std::integral_constant<::std::uint16_t, __work_group_size>,
+                              ::std::integral_constant<::std::size_t, __iters_per_work_item>, _CustomName>>;
 
     return __parallel_transform_reduce_small_submitter<__work_group_size, __iters_per_work_item, _Tp, _ReduceKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
