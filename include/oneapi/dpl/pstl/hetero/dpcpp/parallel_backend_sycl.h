@@ -40,6 +40,10 @@
 #    include "parallel_backend_sycl_radix_sort.h"
 #endif
 
+#if USE_ESIMD_SORT
+#   include "parallel_backend_esimd_radix_sort.h"
+#endif
+
 namespace oneapi
 {
 namespace dpl
