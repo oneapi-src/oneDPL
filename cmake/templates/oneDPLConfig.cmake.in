@@ -25,9 +25,9 @@ if (EXISTS "${_onedpl_headers}")
         
         #A compiler id workaround on Windows for specific cmake versions makes this check fail to 
         # function properly
-        #if(NOT _cmake_windows_compid_workaround)
-        #    target_compile_features(oneDPL INTERFACE cxx_std_17)
-        #endif()
+        if(NOT _cmake_windows_compid_workaround)
+            target_compile_features(oneDPL INTERFACE cxx_std_17)
+        endif()
 
         if (ONEDPL_PAR_BACKEND AND NOT ONEDPL_PAR_BACKEND MATCHES "^(tbb|openmp|serial)$")
             message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND} is requested, but not supported, available backends: tbb, openmp, serial")
