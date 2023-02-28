@@ -54,6 +54,8 @@ endif()
 # Setup the oneDPL library target
 ###############################################################################
 add_library(oneDPL INTERFACE)
+
+#A compiler id workaround on Windows for specific cmake versions makes this check fail to function properly
 if(NOT _cmake_windows_compid_workaround)
     target_compile_features(oneDPL INTERFACE cxx_std_17)
 endif()
