@@ -91,7 +91,7 @@ class all_view
         return {__buf, sycl::range<1>(__n_acc), __offset};
     }
 
-  private:
+  public:
     __accessor_t __m_acc;
 };
 
