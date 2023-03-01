@@ -64,7 +64,7 @@ add_library(oneDPL INTERFACE)
 if (NOT (WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM Workaround"))
     target_compile_features(oneDPL INTERFACE cxx_std_17)
 else()
-    target_compile_options(oneDPL INTERFACE -std=17)
+    target_compile_options(oneDPL INTERFACE -std=c++17)
 endif()
 
 if (CMAKE_BUILD_TYPE)
