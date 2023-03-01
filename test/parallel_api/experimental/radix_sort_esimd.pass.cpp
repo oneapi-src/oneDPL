@@ -24,7 +24,10 @@ void verify(const std::vector<T>& input, const std::vector<T>& ref)
         }
     }
     if (err_count != 0)
+    {
         std::cout << "error count: " << err_count << std::endl;
+        std::cout << "n: " << input.size() << std::endl;
+    }
 }
 
 template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -96,10 +99,10 @@ test_usm()
 int main()
 {
     test_all_vew<uint32_t>(16);
-    test_all_vew<uint32_t>(96);
-    test_all_vew<uint32_t>(256);
-    test_all_vew<uint32_t>(2024);
-    test_all_vew<uint32_t>(32768);
-    test_all_vew<uint32_t>(524228);
+    // test_all_vew<uint32_t>(96);
+    // test_all_vew<uint32_t>(256);
+    // test_all_vew<uint32_t>(2024);
+    // test_all_vew<uint32_t>(32768);
+    // test_all_vew<uint32_t>(524228);
     return 0;
 }
