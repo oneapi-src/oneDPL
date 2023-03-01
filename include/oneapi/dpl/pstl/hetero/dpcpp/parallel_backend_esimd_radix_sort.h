@@ -835,20 +835,14 @@ void onesweep(sycl::queue &q, _Range&& rng, size_t n) {
                         global_histogram<InT, KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG> (idx, n, acc, p_global_offset, p_sync_buffer);
                     });
         });
-    }
-#if DEBUG_SORT
-    q.wait();
-    auto p_debug_histogram = sycl::malloc_host<KeyT>(temp_buffer_size/4, q);
-    q.submit([&](handler &cgh)
-    {
-        cgh.copy(p_global_offset, p_debug_histogram, n);
-    });
-    for(uint32_t i = 0; i < temp_buffer_size/4; ++i)
-    {
-        std::cout << *(p_debug_histogram + i) << ' ';
-    }
-    std::cout << std::endl;
+#if PRINT_HISTOGRAM
+        auto p_debug_histogram = sycl::malloc_host<uint32_t>(temp_buffer_size/sizeof(uint32_t), q);
+        q.copy<uint32_t>(p_global_offset, p_debug_histogram, temp_buffer_size/sizeof(uint32_t)).wait();
+        for(uint32_t i = 0; i < temp_buffer_size/sizeof(uint32_t); ++i)
+            std::cout << p_debug_histogram[i] << ' ';
+        std::cout << std::endl;
 #endif
+    }
     {
         auto e = q.submit([&](handler &cgh) {
             cgh.parallel_for<class kernel_global_scan>(
