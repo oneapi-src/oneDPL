@@ -53,6 +53,11 @@ endif()
 ###############################################################################
 # Setup the oneDPL library target
 ###############################################################################
+#On windows with intel compilers not including icpx
+if (WIN32 AND NOT CMAKE_CXX_COMPILER MATCHES "^(dpcpp|icx)-cl$") 
+    set(MSVC TRUE)
+endif()
+
 add_library(oneDPL INTERFACE)
 # This compiler check/requirement does not work on Windows with dpcpp and dpcpp-cl compiler drivers
 # icx-cl and icpx are not affected

@@ -186,7 +186,7 @@ jobs:
       matrix:
         include:
           - os: windows-2019
-            cxx_compiler: dpcpp
+            cxx_compiler: dpcpp-cl
             std: 17
             build_type: release
             backend: tbb
@@ -198,7 +198,7 @@ jobs:
             backend: tbb
             device_type: HOST
           - os: windows-2019
-            cxx_compiler: dpcpp
+            cxx_compiler: icpx
             std: 17
             build_type: release
             backend: dpcpp
@@ -212,7 +212,7 @@ jobs:
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
-        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icx'
+        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'dpcpp-cl'
         shell: cmd
         run: | 
           call %CONDA%/condabin/conda.bat activate base
@@ -229,6 +229,12 @@ jobs:
             set ninja_targets=build-onedpl-tests
           )
           if "${{ matrix.cxx_compiler }}" == "dpcpp" (
+            set INTEL_GNU_WORKAROUND=TRUE
+          )
+          if "${{ matrix.cxx_compiler }}" == "icpx" (
+            set INTEL_GNU_WORKAROUND=TRUE
+          )
+          if "%INTEL_GNU_WORKAROUND%" == "TRUE" (
             powershell $output = ${{ matrix.cxx_compiler}} --version; Write-Host ::warning::Compiler: $output
             set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
             powershell -command "(Get-Content %CONDA_PREFIX%\Library\lib\cl.cfg) -replace 'CL_CONFIG_TBB_DLL_PATH =', 'CL_CONFIG_TBB_DLL_PATH = %CONDA_PREFIX%\Library\bin' | Out-File -encoding ASCII %CONDA_PREFIX%\Library\lib\cl.cfg"

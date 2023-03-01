@@ -33,4 +33,4 @@ endif()
 
 include(Platform/Windows-Clang)
 set(CMAKE_LINKER ${CMAKE_CXX_COMPILER})
-set(MSVC TRUE)
+
