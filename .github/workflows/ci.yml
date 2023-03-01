@@ -227,13 +227,13 @@ jobs:
           ) else (
             set ninja_targets=build-onedpl-tests
           )
-          if "${{ matrix.cxx_compiler }}" == "dpcpp"(
+          if "${{ matrix.cxx_compiler }}" == "dpcpp" (
             set TOOLCHAIN_FILE_ENABLED=TRUE
           )
-          if "${{ matrix.cxx_compiler }}" == "icpx"(
+          if "${{ matrix.cxx_compiler }}" == "icpx" (
             set TOOLCHAIN_FILE_ENABLED=TRUE
           )
-          if defined TOOLCHAIN_FILE_ENABLED(
+          if %TOOLCHAIN_FILE_ENABLED% == TRUE (
             powershell $output = ${{ matrix.cxx_compiler}} --version; Write-Host ::warning::Compiler: $output
             set toolchain_option=-DCMAKE_TOOLCHAIN_FILE=../cmake/windows-dpcpp-toolchain.cmake
             powershell -command "(Get-Content %CONDA_PREFIX%\Library\lib\cl.cfg) -replace 'CL_CONFIG_TBB_DLL_PATH =', 'CL_CONFIG_TBB_DLL_PATH = %CONDA_PREFIX%\Library\bin' | Out-File -encoding ASCII %CONDA_PREFIX%\Library\lib\cl.cfg"
