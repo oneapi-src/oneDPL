@@ -56,7 +56,7 @@ endif()
 add_library(oneDPL INTERFACE)
 # This compiler check/requirement does not work on Windows with dpcpp and dpcpp-cl compiler drivers
 # icx-cl and icpx are not affected
-if (NOT (WIN32 AND CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$"))
+if (NOT (WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM Workaround"))
     target_compile_features(oneDPL INTERFACE cxx_std_17)
 endif()
 

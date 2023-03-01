@@ -23,9 +23,10 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
 set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/debug")
 
 if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
-	execute_process(COMMAND ${CMAKE_CXX_COMPILER} /clang:-dumpversion OUTPUT_VARIABLE COMPILER_VERSION)
-	string(REGEX REPLACE "\n" "" COMPILER_VERSION "${COMPILER_VERSION}")
-	set(CMAKE_CXX_COMPILER_ID "Clang ${COMPILER_VERSION}" CACHE STRING "Switch compiler identification" FORCE)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE VER)
+    string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" DPCPP_VER ${VER})
+	set(CMAKE_CXX_COMPILER_ID "IntelLLVM Workaround" CACHE STRING "Switch compiler identification" FORCE)
+	set(CMAKE_CXX_COMPILER_VERSION "${DPCPP_VER}" CACHE STRING "Switch compiler identification" FORCE)
 endif()
 
 include(Platform/Windows-Clang)
