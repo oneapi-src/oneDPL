@@ -17,7 +17,7 @@ set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
 # disable fast math for ALL TESTS
 
-foreach(_fno_fast_math_flag -fno-fast-math /clang:fno-fast-math)
+foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
     string(MAKE_C_IDENTIFIER ${_fno_fast_math_flag} FLAG_DISPLAY_NAME)
     check_cxx_compiler_flag(${_fno_fast_math_flag} ${FLAG_DISPLAY_NAME}_option)
     if (${FLAG_DISPLAY_NAME}_option)
