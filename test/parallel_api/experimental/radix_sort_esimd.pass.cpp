@@ -36,8 +36,12 @@ void generate_data(std::vector<T>& in)
     std::default_random_engine gen{std::random_device{}()};
     if constexpr (std::is_integral_v<T>)
     {
-        std::uniform_int_distribution<T> dist(0, in.size());
-        std::generate(in.begin(), in.end(), [&]{ return dist(gen); });
+        // std::uniform_int_distribution<T> dist(0, in.size());
+        // std::generate(in.begin(), in.end(), [&]{ return dist(gen); });
+        for(uint32_t i = 0; i < in.size(); ++i)
+        {
+            in[i] = i % 256;
+        }
     }
     else
     {
@@ -47,7 +51,7 @@ void generate_data(std::vector<T>& in)
 }
 
 template<typename T>
-void test_all_vew(uint32_t n)
+void test_all_view(uint32_t n)
 {
     namespace dpl = oneapi::dpl;
     namespace dpl_ranges = dpl::experimental::ranges;
@@ -98,11 +102,12 @@ test_usm()
 
 int main()
 {
-    test_all_vew<uint32_t>(16);
-    // test_all_vew<uint32_t>(96);
-    // test_all_vew<uint32_t>(256);
-    // test_all_vew<uint32_t>(2024);
-    // test_all_vew<uint32_t>(32768);
-    // test_all_vew<uint32_t>(524228);
+    // test_all_view<uint32_t>(16);
+    // test_all_view<uint32_t>(96);
+    // test_all_view<uint32_t>(256);
+    test_all_view<uint32_t>(512);
+    // test_all_view<uint32_t>(2024);
+    // test_all_view<uint32_t>(32768);
+    // test_all_view<uint32_t>(524228);
     return 0;
 }
