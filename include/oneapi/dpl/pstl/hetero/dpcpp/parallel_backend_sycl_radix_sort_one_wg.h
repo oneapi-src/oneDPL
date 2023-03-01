@@ -24,6 +24,9 @@
 //namespace __par_backend_hetero
 //{
 
+template <typename... _Name>
+class __radix_sort_one_wg_kernel;
+
 template <typename _KernelNameBase, uint16_t __wg_size = 256 /*work group size*/, uint16_t __block_size = 16,
           ::std::uint32_t __radix = 4, bool __is_asc = true,
           uint16_t __req_sub_group_size = (__block_size < 4 ? 32 : 16)>
@@ -33,14 +36,24 @@ struct __subgroup_radix_sort
     auto
     operator()(sycl::queue __q, _RangeIn&& __src)
     {
+        using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
+        using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
+        using __call_0_t = ::std::integral_constant<::std::uint16_t, 0>;
+        using __call_1_t = ::std::integral_constant<::std::uint16_t, 1>;
+
+        using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t>>;
+        using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t>>;
+
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
         //check SLM size
         if (__ckeck_slm_size<_KeyT>(__q, __src.size()))
-            return __submit<__i_kernel_name<_KernelNameBase, 0>, std::true_type /*SLM*/>(
-                __q, ::std::forward<_RangeIn>(__src));
+            return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src),
+                                                           std::true_type{} /*SLM*/);
         else
-            return __submit<__i_kernel_name<_KernelNameBase, 1>, std::false_type /*global memory*/>(
-                __q, ::std::forward<_RangeIn>(__src));
+            return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src),
+                                                            std::false_type{} /*No SLM*/);
     }
 
   private:
@@ -124,122 +137,130 @@ struct __subgroup_radix_sort
         return __req_slm_size_val <= __max_slm_size - __req_slm_size_counters; //counters should be placed in SLM
     }
 
-    template <typename _KernelName, typename _SLM_tag, typename _RangeIn>
-    auto
-    __submit(sycl::queue __q, _RangeIn&& __src)
+    template <typename _KernelName>
+    struct __one_group_submitter;
+
+    template <typename... _Name>
+    struct __one_group_submitter<__internal::__optional_kernel_name<_Name...>>
     {
-        uint16_t __n = __src.size();
-        assert(__n <= __block_size * __wg_size);
+        template <typename _RangeIn, typename _SLM_tag>
+        auto
+        operator()(sycl::queue __q, _RangeIn&& __src, _SLM_tag)
+        {
+            uint16_t __n = __src.size();
+            assert(__n <= __block_size * __wg_size);
 
-        using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
+            using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
 
-        _TempBuf<_KeyT, _SLM_tag> __buf_val(__block_size * __wg_size);
-        _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
+            _TempBuf<_KeyT, _SLM_tag> __buf_val(__block_size * __wg_size);
+            _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
 
-        sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
-        return __q.submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __src);
+            sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
+            return __q.submit([&](sycl::handler& __cgh) {
+                oneapi::dpl::__ranges::__require_access(__cgh, __src);
 
-            auto __exchange_lacc = __buf_val.get_acc(__cgh);
-            auto __counter_lacc = __buf_count.get_acc(__cgh);
+                auto __exchange_lacc = __buf_val.get_acc(__cgh);
+                auto __counter_lacc = __buf_count.get_acc(__cgh);
 
-            __cgh.parallel_for<_KernelName>(
-                __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
-                    _KeyT __keys[__block_size];
-                    uint16_t __wi = __it.get_local_linear_id();
-                    uint16_t __begin_bit = 0;
-                    constexpr uint16_t __end_bit = sizeof(_KeyT) * 8;
+                __cgh.parallel_for<_Name...>(
+                    __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
+                        _KeyT __keys[__block_size];
+                        uint16_t __wi = __it.get_local_linear_id();
+                        uint16_t __begin_bit = 0;
+                        constexpr uint16_t __end_bit = sizeof(_KeyT) * 8;
 
-                    //we use numeric_limits::lowest for floating-point types with denormalization,
-                    //due to numeric_limits::min gets the minimum positive normalized value
-                    const _KeyT __default_key =
-                        __is_asc ? std::numeric_limits<_KeyT>::max() : std::numeric_limits<_KeyT>::lowest();
-                    __block_load<_KeyT>(__wi, __src, __keys, __n, __default_key);
+                        //we use numeric_limits::lowest for floating-point types with denormalization,
+                        //due to numeric_limits::min gets the minimum positive normalized value
+                        const _KeyT __default_key =
+                            __is_asc ? std::numeric_limits<_KeyT>::max() : std::numeric_limits<_KeyT>::lowest();
+                        __block_load<_KeyT>(__wi, __src, __keys, __n, __default_key);
 
-                    __dpl_sycl::__group_barrier(__it);
-                    while (true)
-                    {
-                        uint16_t __indices[__block_size]; //indices for indirect access in the "re-order" phase
+                        __dpl_sycl::__group_barrier(__it);
+                        while (true)
                         {
-                            uint32_t* __counters[__block_size]; //pointers(by performance reasons) to bucket's counters
-
-                            //1. "counting" phase
-                            //counter initialization
-                            auto __pcounter = __counter_lacc.get_pointer() + __wi;
-
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (uint16_t __i = 0; __i < __bin_count; ++__i)
-                                __pcounter[__i * __wg_size] = 0;
-
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (uint16_t __i = 0; __i < __block_size; ++__i)
+                            uint16_t __indices[__block_size]; //indices for indirect access in the "re-order" phase
                             {
-                                const uint16_t __bin = __get_bucket</*mask*/ __bin_count - 1>(
-                                    __order_preserving_cast<__is_asc>(__keys[__i]), __begin_bit);
+                                //pointers(by performance reasons) to bucket's counters
+                                uint32_t* __counters[__block_size];
 
-                                //"counting" and local offset calculation
-                                __counters[__i] = &__pcounter[__bin * __wg_size];
-                                __indices[__i] = *__counters[__i];
-                                *__counters[__i] = __indices[__i] + 1;
-                            }
-                            __dpl_sycl::__group_barrier(__it);
+                                //1. "counting" phase
+                                //counter initialization
+                                auto __pcounter = __counter_lacc.get_pointer() + __wi;
 
-                            //2. scan phase
-                            {
-                                //TODO: probably can be further optimized
-
-                                //scan contiguous numbers
-                                uint16_t __bin_sum[__bin_count];
-                                __bin_sum[0] = __counter_lacc[__wi * __bin_count];
-
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 1; __i < __bin_count; ++__i)
-                                    __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
-
-                                __dpl_sycl::__group_barrier(__it);
-                                //exclusive scan local sum
-                                uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
-                                    __it.get_group(), __bin_sum[__bin_count - 1], __dpl_sycl::__plus<uint16_t>());
-                                //add to local sum, generate exclusive scan result
                                 _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __bin_count; ++__i)
-                                    __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
+                                    __pcounter[__i * __wg_size] = 0;
 
-                                if (__wi == 0)
-                                    __counter_lacc[0] = 0;
+                                _ONEDPL_PRAGMA_UNROLL
+                                for (uint16_t __i = 0; __i < __block_size; ++__i)
+                                {
+                                    const uint16_t __bin = __get_bucket</*mask*/ __bin_count - 1>(
+                                        __order_preserving_cast<__is_asc>(__keys[__i]), __begin_bit);
+
+                                    //"counting" and local offset calculation
+                                    __counters[__i] = &__pcounter[__bin * __wg_size];
+                                    __indices[__i] = *__counters[__i];
+                                    *__counters[__i] = __indices[__i] + 1;
+                                }
                                 __dpl_sycl::__group_barrier(__it);
+
+                                //2. scan phase
+                                {
+                                    //TODO: probably can be further optimized
+
+                                    //scan contiguous numbers
+                                    uint16_t __bin_sum[__bin_count];
+                                    __bin_sum[0] = __counter_lacc[__wi * __bin_count];
+
+                                    _ONEDPL_PRAGMA_UNROLL
+                                    for (uint16_t __i = 1; __i < __bin_count; ++__i)
+                                        __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
+
+                                    __dpl_sycl::__group_barrier(__it);
+                                    //exclusive scan local sum
+                                    uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
+                                        __it.get_group(), __bin_sum[__bin_count - 1], __dpl_sycl::__plus<uint16_t>());
+                                    //add to local sum, generate exclusive scan result
+                                    _ONEDPL_PRAGMA_UNROLL
+                                    for (uint16_t __i = 0; __i < __bin_count; ++__i)
+                                        __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
+
+                                    if (__wi == 0)
+                                        __counter_lacc[0] = 0;
+                                    __dpl_sycl::__group_barrier(__it);
+                                }
+
+                                _ONEDPL_PRAGMA_UNROLL
+                                for (uint16_t __i = 0; __i < __block_size; ++__i)
+                                {
+                                    // a global index is a local offset plus a global base index
+                                    __indices[__i] += *__counters[__i];
+                                }
                             }
 
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (uint16_t __i = 0; __i < __block_size; ++__i)
+                            __begin_bit += __radix;
+
+                            //3. "re-order" phase
+                            __dpl_sycl::__group_barrier(__it);
+                            if (__begin_bit >= __end_bit)
                             {
-                                // a global index is a local offset plus a global base index
-                                __indices[__i] += *__counters[__i];
+                                // the last iteration - writing out the result
+                                _ONEDPL_PRAGMA_UNROLL
+                                for (uint16_t __i = 0; __i < __block_size; ++__i)
+                                {
+                                    const uint16_t __r = __indices[__i];
+                                    if (__r < __n)
+                                        __src[__r] = __keys[__i];
+                                }
+                                return;
                             }
+                            __to_blocked(__it, __wi, __exchange_lacc, __keys, __indices);
+                            __dpl_sycl::__group_barrier(__it);
                         }
-
-                        __begin_bit += __radix;
-
-                        //3. "re-order" phase
-                        __dpl_sycl::__group_barrier(__it);
-                        if (__begin_bit >= __end_bit)
-                        {
-                            // the last iteration - writing out the result
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (uint16_t __i = 0; __i < __block_size; ++__i)
-                            {
-                                const uint16_t __r = __indices[__i];
-                                if (__r < __n)
-                                    __src[__r] = __keys[__i];
-                            }
-                            return;
-                        }
-                        __to_blocked(__it, __wi, __exchange_lacc, __keys, __indices);
-                        __dpl_sycl::__group_barrier(__it);
-                    }
-                }));
-        });
-    }
+                    }));
+            });
+        }
+    };
 };
 
 //} // namespace __par_backend_hetero
