@@ -41,36 +41,6 @@ namespace experimental {
     };
     inline constexpr universe_size_t universe_size;
 
-    struct dynamic_load_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = false;
-    };
-    inline constexpr dynamic_load_t dynamic_load;
-
-    struct is_device_available_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = false;
-    };
-    inline constexpr is_device_available_t is_device_available;
-
-    struct task_execution_time_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = true;
-    };
-    inline constexpr task_execution_time_t task_execution_time;
-
-    struct task_submission_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = true;
-    };
-    inline constexpr task_submission_t task_submission;
-
-    struct task_completion_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = true;
-    };
-    inline constexpr task_completion_t task_completion;
-
     template<typename T, typename Property>
     inline auto query(T& t, const Property& prop) {
       return t.query(prop);

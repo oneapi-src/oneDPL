@@ -38,10 +38,6 @@ int test_properties(UniverseContainer u, typename UniverseContainer::value_type 
     std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
     return 1;
   }
-  if (!oneapi::dpl::experimental::property::query(p, oneapi::dpl::experimental::property::is_device_available, test_resource)) {
-    std::cout << "ERROR: cpu queried as not available\n";
-    return 1;
-  }
   std::cout << "properties: OK\n";
   return 0;
 }

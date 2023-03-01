@@ -65,14 +65,6 @@ namespace experimental {
 
       void wait_for_all() override {
         w_.wait();
-        if (wait_reported_->exchange(true) == false) {
-          if constexpr (PropertyHandle::should_report_task_completion) {
-            oneapi::dpl::experimental::property::report(p_, oneapi::dpl::experimental::property::task_completion);
-          }
-          if constexpr (PropertyHandle::should_report_task_execution_time) {
-            oneapi::dpl::experimental::property::report(p_, oneapi::dpl::experimental::property::task_execution_time, (std::chrono::high_resolution_clock::now()-t0_).count());
-          }
-        }
       }
     };
 
@@ -94,9 +86,6 @@ namespace experimental {
     template<typename SelectionHandle, typename Function, typename ...Args>
     auto submit(SelectionHandle h, Function&& f, Args&&... args) {
       using PropertyHandle = typename SelectionHandle::property_handle_t;
-      if constexpr (PropertyHandle::should_report_task_submission) {
-        oneapi::dpl::experimental::property::report(h.get_property_handle(), oneapi::dpl::experimental::property::task_submission);
-      }
       auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
       waiters_.push(w);
       return *w;
@@ -132,11 +121,6 @@ namespace experimental {
         std::unique_lock<std::mutex> l(global_rank_mutex_);
         return global_rank_.size();
       }
-    }
-
-    auto  query(oneapi::dpl::experimental::property::is_device_available_t, execution_resource_t e) const noexcept {
-      auto device_=e.get_native().get_device();
-      return device_.get_info<sycl::info::device::is_available>();
     }
 
     auto report(oneapi::dpl::experimental::property::universe_t, const universe_container_t &gr) noexcept {

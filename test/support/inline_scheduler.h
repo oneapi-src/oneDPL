@@ -52,15 +52,8 @@ struct int_inline_scheduler_t {
     native_sync_t get_native() const override {
       return w_;
     }
-
     void wait_for_all() override {
       if (wait_reported_->exchange(true) == false) {
-        if constexpr (PropertyHandle::should_report_task_completion) {
-          oneapi::dpl::experimental::property::report(p_, oneapi::dpl::experimental::property::task_completion);
-        }
-        if constexpr (PropertyHandle::should_report_task_execution_time) {
-          oneapi::dpl::experimental::property::report(p_, oneapi::dpl::experimental::property::task_execution_time, w_);
-        }
       }
     }
   };
@@ -81,9 +74,6 @@ struct int_inline_scheduler_t {
   template<typename SelectionHandle, typename Function, typename ...Args>
   auto submit(SelectionHandle h, Function&& f, Args&&... args) {
     using PropertyHandle = typename SelectionHandle::property_handle_t;
-    if constexpr (PropertyHandle::should_report_task_submission) {
-      oneapi::dpl::experimental::property::report(h.get_property_handle(), oneapi::dpl::experimental::property::task_submission);
-    }
     auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), std::forward<Function>(f)(h.get_native(), std::forward<Args>(args)...));
     waiters_.push(w);
     return *w;
@@ -107,14 +97,6 @@ struct int_inline_scheduler_t {
 
   auto query(oneapi::dpl::experimental::property::universe_size_t)  const noexcept {
      return universe_.size();
-  }
-
-  auto  query(oneapi::dpl::experimental::property::is_device_available_t, execution_resource_t e) const noexcept {
-    native_resource_t i = e.get_native();
-    for (auto j : universe_) {
-      if (j == i) return true;
-    }
-    return false;
   }
 
   auto report(oneapi::dpl::experimental::property::universe_t, const universe_container_t &u) noexcept {

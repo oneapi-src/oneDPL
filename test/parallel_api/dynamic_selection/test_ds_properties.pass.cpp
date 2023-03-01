@@ -55,10 +55,7 @@ int test_simple_query(const Handle &h, const std::string& property_name, const P
 template<typename Handle, typename Resource>
 int test_queries(const Handle &h, Resource rs1, Resource rs2, str_to_any_map &erm) {
   return    test_simple_query(h, "universe_size", oneapi::dpl::experimental::property::universe_size, erm)
-         || test_simple_query(h, "universe", oneapi::dpl::experimental::property::universe, erm)
-         || test_query_with_resources(h, "dynamic_load", oneapi::dpl::experimental::property::dynamic_load, rs1, rs2, erm)
-         || test_query_with_resources(h, "is_device_available", oneapi::dpl::experimental::property::is_device_available, rs1, rs2, erm)
-         || test_query_with_resources(h, "task_execution_time", oneapi::dpl::experimental::property::task_execution_time, rs1, rs2, erm);
+         || test_simple_query(h, "universe", oneapi::dpl::experimental::property::universe, erm);
 }
 
 struct fake_handle_t {
@@ -70,24 +67,6 @@ struct fake_handle_t {
   auto query(oneapi::dpl::experimental::property::universe_t) const noexcept {
     return std::vector<std::string>{"cpu", "gpu"};
   }
-  auto query(oneapi::dpl::experimental::property::dynamic_load_t, resource_t r) const noexcept {
-    if (r == "cpu") return int(4);
-    else if (r == "gpu") return int(5);
-    else return -1;
-  }
-  auto query(oneapi::dpl::experimental::property::is_device_available_t, resource_t r) const noexcept {
-    if (r == "cpu") return true;
-    else return false;
-  }
-  auto query(oneapi::dpl::experimental::property::task_execution_time_t, resource_t r) const noexcept {
-    if (r == "cpu") return e1;
-    else if (r == "gpu") return e2;
-    else return uint64_t(0);
-  }
-  auto report(oneapi::dpl::experimental::property::task_execution_time_t, uint64_t v) noexcept {
-    e1 = e2 = v;
-    return v;
-  }
 };
 
 int test_queries_fake() {
@@ -95,38 +74,12 @@ int test_queries_fake() {
   str_to_any_map erm;
   erm["universe_size"] = int(2);
   erm["universe"] = std::vector<std::string>{"cpu", "gpu"};
-  erm["dynamic_load_1"] = int(4);
-  erm["dynamic_load_2"] = int(5);
-  erm["is_device_available_1"] = true;
-  erm["is_device_available_2"] = false;
-  erm["task_execution_time_1"] = uint64_t(123);
-  erm["task_execution_time_2"] = uint64_t(456);
   return test_queries(fh, "cpu", "gpu", erm);
 }
 
 int test_report_fake() {
   fake_handle_t fh;
   str_to_any_map erm;
-  if (oneapi::dpl::experimental::property::query(fh, oneapi::dpl::experimental::property::task_execution_time, "cpu") != 123) {
-    std::cout << "ERROR: initial query of cpu task_execution_time has unexpected result\n";
-    return 1;
-  }
-  if (oneapi::dpl::experimental::property::query(fh, oneapi::dpl::experimental::property::task_execution_time, "gpu") != 456) {
-    std::cout << "ERROR: initial query of gpu task_execution_time has unexpected result\n";
-    return 1;
-  }
-  if (oneapi::dpl::experimental::property::report(fh, oneapi::dpl::experimental::property::task_execution_time, 789) != 789) {
-    std::cout << "ERROR: result of report of cpu task_execution_time not 789\n";
-    return 1;
-  }
-  if (oneapi::dpl::experimental::property::query(fh, oneapi::dpl::experimental::property::task_execution_time, "cpu") != 789) {
-    std::cout << "ERROR: final query of cpu task_execution_time has unexpected result\n";
-    return 1;
-  }
-  if (oneapi::dpl::experimental::property::query(fh, oneapi::dpl::experimental::property::task_execution_time, "gpu") != 789) {
-    std::cout << "ERROR: final query of gpu task_execution_time has unexpected result\n";
-    return 1;
-  }
   return 0;
 }
 

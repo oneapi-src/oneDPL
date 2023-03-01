@@ -63,20 +63,10 @@ namespace experimental {
       return oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::universe_size);
     }
 
-    auto query(oneapi::dpl::experimental::property::dynamic_load_t, typename scheduler_t::native_resource_t e) const noexcept {
-      return -1;
-    }
-
-    auto query(oneapi::dpl::experimental::property::is_device_available_t, typename scheduler_t::native_resource_t e) const noexcept {
-      return oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::is_device_available, e);
-    }
-
     template<typename ...Args>
     selection_handle_t select(Args&&...) {
       for(auto& e : universe_) {
-        if(oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::is_device_available, e)) {
           return selection_handle_t{e};
-        }
       }
       return {};
     }

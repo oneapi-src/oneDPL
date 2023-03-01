@@ -102,10 +102,6 @@ int test_properties() {
     std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
     return 1;
   }
-  if (!oneapi::dpl::experimental::property::query(s, oneapi::dpl::experimental::property::is_device_available,1 )){
-    std::cout << "ERROR: Inline device not available\n";
-    return 1;
-  }
   std::cout << "properties: OK\n";
   return 0;
 }
