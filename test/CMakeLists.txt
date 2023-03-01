@@ -16,7 +16,6 @@ set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
 # disable fast math for ALL TESTS
-
 foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
     string(MAKE_C_IDENTIFIER ${_fno_fast_math_flag} FLAG_DISPLAY_NAME)
     check_cxx_compiler_flag(${_fno_fast_math_flag} ${FLAG_DISPLAY_NAME}_option)
@@ -26,7 +25,6 @@ foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
         break()
     endif()
 endforeach()
-
 if (_fno_fast_math_option)
     add_compile_options("-fno-fast-math")
 else()
