@@ -54,7 +54,7 @@ endif()
 # Setup the oneDPL library target
 ###############################################################################
 #On windows with intel compilers not including icpx
-if (WIN32 AND NOT CMAKE_CXX_COMPILER MATCHES "^(dpcpp|icx)-cl$") 
+if (WIN32 AND CMAKE_CXX_COMPILER MATCHES "^(dpcpp|icx)-cl$") 
     set(MSVC TRUE)
 endif()
 
