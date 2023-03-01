@@ -227,10 +227,10 @@ jobs:
           ) else (
             set ninja_targets=build-onedpl-tests
           )
-          if ["${{ matrix.cxx_compiler }}" == "dpcpp"](
+          if "${{ matrix.cxx_compiler }}" == "dpcpp"(
             set TOOLCHAIN_FILE_ENABLED=TRUE
           )
-          if ["${{ matrix.cxx_compiler }}" == "icpx"](
+          if "${{ matrix.cxx_compiler }}" == "icpx"(
             set TOOLCHAIN_FILE_ENABLED=TRUE
           )
           if defined TOOLCHAIN_FILE_ENABLED(
