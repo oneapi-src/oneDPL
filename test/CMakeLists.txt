@@ -38,7 +38,7 @@ macro(onedpl_add_test test_source_file)
 
     add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
-    if (MSVC)
+    if (INTEL_LLVM_COMPILER_MSVC_LIKE)
         target_compile_options(${_test_name} PRIVATE /bigobj)
     endif()
 
