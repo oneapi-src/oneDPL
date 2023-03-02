@@ -62,6 +62,7 @@ add_library(oneDPL INTERFACE)
 
 if (_fsycl_option)
     target_compile_options(oneDPL INTERFACE -fsycl)
+    target_link_libraries(oneDPL INTERFACE -fsycl)
 endif()
 
 # This compiler check/requirement does not work on Windows with dpcpp and dpcpp-cl compiler drivers
