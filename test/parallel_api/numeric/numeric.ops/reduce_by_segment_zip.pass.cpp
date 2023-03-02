@@ -29,7 +29,7 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/sycl_alloc_utils.h"
 
-template <sycl::usm::alloc alloc_type>
+template <sycl::usm::alloc alloc_type, typename KernelName>
 void
 test_with_usm()
 {
@@ -64,11 +64,10 @@ test_with_usm()
     auto end_keys_in   = oneapi::dpl::make_zip_iterator(d_keys1 + n, d_keys2 + n);
     auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1, d_output_keys2);
 
-    //run reduce_by_segment algorithm 
-    auto new_last = oneapi::dpl::reduce_by_segment(
-        oneapi::dpl::execution::make_device_policy(q), begin_keys_in,
-        end_keys_in, d_values, begin_keys_out, d_output_values);
-
+    //run reduce_by_segment algorithm
+    auto policy = TEST_MAKE_DEVICE_POLICY(KernelName)(q);
+    auto new_last =
+        oneapi::dpl::reduce_by_segment(policy, begin_keys_in, end_keys_in, d_values, begin_keys_out, d_output_values);
     q.wait();
 
     //retrieve result on the host and check the result
@@ -104,9 +103,9 @@ int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run tests for USM shared memory
-    test_with_usm<sycl::usm::alloc::shared>();
+    test_with_usm<sycl::usm::alloc::shared, class KernelName1>();
     // Run tests for USM device memory
-    test_with_usm<sycl::usm::alloc::device>();
+    test_with_usm<sycl::usm::alloc::device, class KernelName2>();
 #endif
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
