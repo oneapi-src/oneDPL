@@ -12,7 +12,7 @@
 #
 ##===----------------------------------------------------------------------===##
 
-# This toolchain file should ONLY be included on Windows for CMAKE_CXX_COMPILER=dpcpp
+# This toolchain file should ONLY be included on Windows for CMAKE_CXX_COMPILER=dpcpp, icpx
 
 if (NOT CMAKE_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER "dpcpp")

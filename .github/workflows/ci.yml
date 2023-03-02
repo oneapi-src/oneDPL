@@ -203,7 +203,6 @@ jobs:
             build_type: release
             backend: dpcpp
             device_type: CPU
-    # TODO enable icpx to work on windows
     steps:
       - uses: actions/checkout@v2
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
