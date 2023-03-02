@@ -40,10 +40,6 @@ include(GNUInstallDirs)
 
 # Set default back-end in according with compiler (DPC++ or others)
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
-if (_fsycl_option)
-    target_compile_options(oneDPL INTERFACE -fsycl)
-endif()
-
 if (NOT ONEDPL_BACKEND)
     if (_fsycl_option)
         set(ONEDPL_BACKEND "dpcpp" CACHE STRING "Threading backend")
@@ -63,6 +59,11 @@ if (WIN32 AND CMAKE_CXX_COMPILER MATCHES "^(dpcpp|icx)-cl$")
 endif()
 
 add_library(oneDPL INTERFACE)
+
+if (_fsycl_option)
+    target_compile_options(oneDPL INTERFACE -fsycl)
+endif()
+
 # This compiler check/requirement does not work on Windows with dpcpp and dpcpp-cl compiler drivers
 # icx-cl and icpx are not affected
 if (NOT (WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM Workaround"))
