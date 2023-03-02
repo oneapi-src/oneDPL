@@ -15,6 +15,8 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
+option(TEST_USE_KERNEL_NAMES "Use kernel names in tests")
+
 # disable fast math for ALL TESTS 
 # icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
 foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
