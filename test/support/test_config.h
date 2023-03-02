@@ -70,13 +70,13 @@
 #define TEST_UNNAMED_LAMBDAS 0
 #endif
 
-#ifndef TEST_USE_KERNEL_NAMES_IN_TESTS
+#ifndef TEST_USE_KERNEL_NAMES
 #    if __SYCL_UNNAMED_LAMBDA__
-#        define TEST_USE_KERNEL_NAMES_IN_TESTS 0
+#        define TEST_USE_KERNEL_NAMES 0
 #    else
-#        define TEST_USE_KERNEL_NAMES_IN_TESTS 1
+#        define TEST_USE_KERNEL_NAMES 1
 #    endif // __SYCL_UNNAMED_LAMBDA__
-#endif // !TEST_USE_KERNEL_NAMES_IN_TESTS
+#endif // !TEST_USE_KERNEL_NAMES
 
 // Enables full scope of testing
 #ifndef TEST_LONG_RUN

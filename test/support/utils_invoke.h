@@ -37,17 +37,17 @@ struct unique_kernel_name;
 template <typename Policy, int idx>
 using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
 
-#    if TEST_USE_KERNEL_NAMES_IN_TESTS
+#    if TEST_USE_KERNEL_NAMES
 #        define TEST_MAKE_DEVICE_POLICY(...) oneapi::dpl::execution::make_device_policy<__VA_ARGS__>
 #    else
 #        define TEST_MAKE_DEVICE_POLICY(...) oneapi::dpl::execution::make_device_policy
-#    endif // TEST_USE_KERNEL_NAMES_IN_TESTS
+#    endif // TEST_USE_KERNEL_NAMES
 
-#    if TEST_USE_KERNEL_NAMES_IN_TESTS
+#    if TEST_USE_KERNEL_NAMES
 #        define TEST_MAKE_FPGA_POLICY(...) oneapi::dpl::execution::make_fpga_policy<__VA_ARGS__>
 #    else
 #        define TEST_MAKE_FPGA_POLICY(...) oneapi::dpl::execution::make_fpga_policy
-#    endif // TEST_USE_KERNEL_NAMES_IN_TESTS
+#    endif // TEST_USE_KERNEL_NAMES
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
