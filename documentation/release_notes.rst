@@ -14,8 +14,8 @@ New in 2022.1.0
 New Features
 ------------
 - Added ``generate``, ``generate_n``, ``transform`` algorithms to `Tested Standard C++ API`_.
-- Improved performance of the ``reduce``, ``max_element``, ``count``, ``is_partitioned``,
-  ``lexicographical_compare`` and similar related algorithms on heterogeneous devices.
+- Improved performance of the ``inclusive_scan``, ``exclusive_scan``, ``reduce`` and
+  ``max_element`` algorithms on heterogeneous devices.
 - Improved performance of ``sort`` and ``stable_sort`` APIs for arithmetic data types
   used with DPC++ execution policies.
 
