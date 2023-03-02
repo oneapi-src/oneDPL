@@ -40,6 +40,10 @@ include(GNUInstallDirs)
 
 # Set default back-end in according with compiler (DPC++ or others)
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
+if (_fsycl_option)
+    target_compile_options(oneDPL INTERFACE -fsycl)
+endif()
+
 if (NOT ONEDPL_BACKEND)
     if (_fsycl_option)
         set(ONEDPL_BACKEND "dpcpp" CACHE STRING "Threading backend")
