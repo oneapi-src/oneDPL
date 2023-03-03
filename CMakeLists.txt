@@ -43,8 +43,6 @@ set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
 
 
 if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
-
-    #TODO check if these are required...
     set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O2 -DNDEBUG")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
@@ -55,10 +53,10 @@ if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
         set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
         set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
         # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
+        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_17 )
+        set(CMAKE_CXX17_COMPILE_FEATURES cxx_std_17)
         set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
-        set(CMAKE_CXX17_EXTENSION_COMPILE_OPTION "-std=gnu++17")
     endif()
-
 endif()
 
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
