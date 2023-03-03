@@ -13,10 +13,7 @@
 ##===----------------------------------------------------------------------===##
 
 cmake_minimum_required(VERSION 3.4.3)
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
     _onedpl_version_info
@@ -54,7 +51,7 @@ if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
         set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
         set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
         # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
-        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_17 )
+        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_17)
         set(CMAKE_CXX17_COMPILE_FEATURES cxx_std_17)
         set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
     endif()
@@ -62,7 +59,6 @@ endif()
 
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
-
 
 find_program(FIND_GXX_EXE g++)
 if (FIND_GXX_EXE)
@@ -73,13 +69,9 @@ option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FP
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
 option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 
-
-
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
 include(GNUInstallDirs)
-
-
 
 # Set default back-end in according with compiler (DPC++ or others)
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
@@ -98,7 +90,6 @@ endif()
 ###############################################################################
 
 add_library(oneDPL INTERFACE)
-
 target_compile_features(oneDPL INTERFACE cxx_std_17)
 
 if (CMAKE_BUILD_TYPE)
