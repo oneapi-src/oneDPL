@@ -89,7 +89,6 @@ endif()
 ###############################################################################
 # Setup the oneDPL library target
 ###############################################################################
-
 add_library(oneDPL INTERFACE)
 target_compile_features(oneDPL INTERFACE cxx_std_17)
 
