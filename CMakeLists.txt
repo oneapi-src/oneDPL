@@ -36,11 +36,8 @@ if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx)(.exe)?$")
     endif()
 endif()
 
-#Always turn off optimization in debug mode
-set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
-
-
 if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
+    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
     set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O2 -DNDEBUG")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
@@ -100,6 +97,8 @@ endif()
 
 if (MSVC)
     target_compile_options(oneDPL INTERFACE /Zc:__cplusplus /EHsc)
+else()
+    set(CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}")
 endif()
 
 string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
