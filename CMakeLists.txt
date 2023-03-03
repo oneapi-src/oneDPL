@@ -22,6 +22,39 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
+# CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
+# CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
+if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
+    set(INTEL_LLVM_COMPILER TRUE)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE INTEL_LLVM_COMPILER_VERSION_RAW)
+    string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" INTEL_LLVM_COMPILER_VERSION ${INTEL_LLVM_COMPILER_VERSION_RAW})
+    if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
+        set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
+        set(MSVC TRUE)
+    else()
+        set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
+    endif()
+endif()
+
+if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
+    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
+    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O2 -DNDEBUG")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
+    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/debug")
+
+    #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19, 
+    if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
+        message(WARNING "${CMAKE_CXX_COMPILER} requires a workaround to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
+        set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
+        set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
+        # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
+        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_17)
+        set(CMAKE_CXX17_COMPILE_FEATURES cxx_std_17)
+        set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
+    endif()
+endif()
+
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 
@@ -54,11 +87,7 @@ endif()
 # Setup the oneDPL library target
 ###############################################################################
 add_library(oneDPL INTERFACE)
-# This compiler check/requirement does not work on Windows with dpcpp and dpcpp-cl compiler drivers
-# icx-cl and icpx are not affected
-if (NOT (WIN32 AND CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$"))
-    target_compile_features(oneDPL INTERFACE cxx_std_17)
-endif()
+target_compile_features(oneDPL INTERFACE cxx_std_17)
 
 if (CMAKE_BUILD_TYPE)
     message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
@@ -77,11 +106,7 @@ message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
 string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
 if (ONEDPL_ENABLE_SIMD)
-    if (CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
-        execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE VER)
-        string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" DPCPP_VER ${VER})
-    endif()
-    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$" OR NOT DPCPP_VER VERSION_LESS 2021.4)
+    if (NOT INTEL_LLVM_COMPILER OR NOT INTEL_LLVM_COMPILER_VERSION VERSION_LESS 2021.4)
         foreach(_simd_flag -fopenmp-simd /Qopenmp-simd -qopenmp-simd -openmp-simd)
             string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
             check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
@@ -137,6 +162,12 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
             "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
         endif()
+        # Enable SYCL* with compilers/compiler drivers not passing -fsycl by default
+        if (_fsycl_option AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
+            message(STATUS "Adding -fsycl compiler option")
+            set(USE_FSYCL_OPTION TRUE)
+        endif()
+
 
         # settings for the specific compilation type
         if (NOT ONEDPL_USE_AOT_COMPILATION)
@@ -191,6 +222,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
         # DPC++ specific compiler options
         target_compile_options(oneDPL INTERFACE
+            $<$<BOOL:${USE_FSYCL_OPTION}>:-fsycl>
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             )
         if (DEFINED ONEDPL_USE_UNNAMED_LAMBDA)
@@ -211,6 +243,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
         # DPC++ specific link options
         target_link_libraries(oneDPL INTERFACE
+            $<$<BOOL:${USE_FSYCL_OPTION}>:-fsycl>
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
             $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>

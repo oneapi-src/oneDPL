@@ -23,11 +23,7 @@ if (EXISTS "${_onedpl_headers}")
         add_library(oneDPL INTERFACE IMPORTED)
         set_target_properties(oneDPL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${_onedpl_headers}")
 
-        # This compiler check/requirement does not work on Windows with dpcpp and dpcpp-cl compiler drivers
-        # icx-cl and icpx are not affected
-        if (NOT (WIN32 AND CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$"))
-            target_compile_features(oneDPL INTERFACE cxx_std_17)
-        endif()
+        target_compile_features(oneDPL INTERFACE cxx_std_17)
 
         if (ONEDPL_PAR_BACKEND AND NOT ONEDPL_PAR_BACKEND MATCHES "^(tbb|openmp|serial)$")
             message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND} is requested, but not supported, available backends: tbb, openmp, serial")
@@ -83,7 +79,14 @@ if (EXISTS "${_onedpl_headers}")
         endif()
 
         check_cxx_compiler_flag("-fsycl" _fsycl_option)
-        if (NOT _fsycl_option)
+        if (_fsycl_option)
+            # Enable SYCL* with compilers/compiler drivers not passing -fsycl by default
+            if (NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
+                message(STATUS "Adding -fsycl compiler option")
+                target_compile_options(oneDPL INTERFACE -fsycl)
+                target_link_libraries(oneDPL INTERFACE -fsycl)
+            endif()
+        else()
             message(STATUS "oneDPL: -fsycl is not supported by current compiler, set ONEDPL_USE_DPCPP_BACKEND=0")
             set_property(TARGET oneDPL APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS ONEDPL_USE_DPCPP_BACKEND=0)
         endif()
