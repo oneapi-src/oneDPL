@@ -212,7 +212,7 @@ jobs:
           conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'
-                shell: cmd
+        shell: cmd
         run: | 
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel dpcpp_win-64
