@@ -24,14 +24,20 @@ Fixed Issues
 - Fixed ``TBB headers not found`` issue occurring with libstdc++ version 9 when
   oneTBB headers are not present in the environment. The fix requires inclusion of
   the oneDPL headers before the libstdc++ headers.
-- C++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake. 
+- С++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake
+  on Linux and Windows with some exceptions, see `New in This Release`_
 -	Fixed an error in in-place ``exclusive_scan`` algorithm when output iterator is equal to input iterator.
 
 
 Known Issues and Limitations
 ----------------------------
-New in This Release
+.. _New in This Release:
+
+New in This Release:
 ^^^^^^^^^^^^^^^^^^^
+- Intel® oneAPI DPC++/C++ Compiler drivers with Linux-style options (``dpcpp`` and ``icpx``) may not work properly on
+  Windows due to some limitations of CMake 3.20 and newer. It may result, for example, in not recognized compiler features.
+  We recommend using ``icx`` or ``icx-cl`` on Windows while integrating oneDPL through CMake.
 -	Input and output iterators should have the same type for in-place ``exclusive_scan`` algorithm. 
 - Undefined behaviour in in-place ``exclusive_scan`` algorithm when output iterator is not equal to input iterator.
 
