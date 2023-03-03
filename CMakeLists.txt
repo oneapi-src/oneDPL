@@ -98,8 +98,7 @@ endif()
 
 add_library(oneDPL INTERFACE)
 
-#target_compile_features(oneDPL INTERFACE cxx_std_17)
-target_compile_options(oneDPL INTERFACE "-std=c++17")
+target_compile_features(oneDPL INTERFACE cxx_std_17)
 
 if (CMAKE_BUILD_TYPE)
     message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
