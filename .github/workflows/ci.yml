@@ -80,19 +80,19 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-            cxx_compiler: dpcpp
+            cxx_compiler: icpx
             std: 17
             build_type: release
             backend: dpcpp
             device_type: CPU
           - os: ubuntu-20.04
-            cxx_compiler: dpcpp
+            cxx_compiler: icpx
             std: 17
             build_type: release
             backend: tbb
             device_type: HOST
           - os: ubuntu-20.04
-            cxx_compiler: dpcpp
+            cxx_compiler: icpx
             std: 17
             build_type: release
             backend: omp
@@ -150,7 +150,7 @@ jobs:
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
         run: $CONDA/bin/conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
-        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icpx'
+        if: matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'
         run: $CONDA/bin/conda install -c intel dpcpp_linux-64
       - name: Run testing
         shell: bash
@@ -160,8 +160,8 @@ jobs:
           export PATH=$CONDA/lib:$PATH
           export CPATH=$CONDA/include:$CPATH
           export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
-          if [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]]; then
-            echo "::warning::Compiler: $(dpcpp --version)"
+          if [[ "${{ matrix.cxx_compiler }}" == "icpx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx-cl" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp-cl" ]]; then
+            echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
           fi
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
             make_targets="sycl_iterator.pass"
@@ -211,8 +211,8 @@ jobs:
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
-        if: matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'dpcpp-cl' || matrix.cxx_compiler == 'icx-cl'
-        shell: cmd
+        if: matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'
+                shell: cmd
         run: | 
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel dpcpp_win-64
@@ -227,11 +227,11 @@ jobs:
           ) else (
             set ninja_targets=build-onedpl-tests
           )
-          if "${{ matrix.cxx_compiler }}" == "dpcpp" set TMP_INTEL_LLVM_COMPILER=TRUE
-          if "${{ matrix.cxx_compiler }}" == "dpcpp-cl" set TMP_INTEL_LLVM_COMPILER=TRUE
           if "${{ matrix.cxx_compiler }}" == "icpx" set TMP_INTEL_LLVM_COMPILER=TRUE
           if "${{ matrix.cxx_compiler }}" == "icx" set TMP_INTEL_LLVM_COMPILER=TRUE
           if "${{ matrix.cxx_compiler }}" == "icx-cl" set TMP_INTEL_LLVM_COMPILER=TRUE
+          if "${{ matrix.cxx_compiler }}" == "dpcpp" set TMP_INTEL_LLVM_COMPILER=TRUE
+          if "${{ matrix.cxx_compiler }}" == "dpcpp-cl" set TMP_INTEL_LLVM_COMPILER=TRUE
           if "%TMP_INTEL_LLVM_COMPILER%" == "TRUE" (
             powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
             powershell -command "(Get-Content %CONDA_PREFIX%\Library\lib\cl.cfg) -replace 'CL_CONFIG_TBB_DLL_PATH =', 'CL_CONFIG_TBB_DLL_PATH = %CONDA_PREFIX%\Library\bin' | Out-File -encoding ASCII %CONDA_PREFIX%\Library\lib\cl.cfg"
