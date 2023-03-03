@@ -48,6 +48,7 @@ if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
 
     #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19, 
     if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
+        message(WARNING "${CMAKE_CXX_COMPILER} requires a workaround to allow proper usage with CMake ${CMAKE_VERSION} on Windows.  We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
         set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
         set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
         # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
