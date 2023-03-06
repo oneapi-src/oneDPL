@@ -64,10 +64,9 @@ Difference with C++ parallel algorithms
 ***************************************
 
 * oneDPL execution policies only result in parallel execution if random access iterators are provided,
-  while for other iterator types the execution will remain serial.
-* Semantics of the following algorithms does not allow unsequenced execution:
-  ``includes``, ``inplace_merge``, ``merge``, ``set_difference``, ``set_intersection``,
-  ``set_symmetric_difference``, ``set_union``, ``stable_partition``, ``unique``.
+  the execution will remain serial for other iterator types.
+* "For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:   ``includes``, ``inplace_merge``, ``merge``, ``set_difference``, ``set_intersection``,
+  ``set_symmetric_difference``, ``set_union``, ``stable_partition``, ``unique``."
 * The following algorithms require additional O(n) memory space for parallel
   execution: ``copy_if``, ``inplace_merge``, ``partial_sort``, ``partial_sort_copy``,
   ``partition_copy``, ``remove``, ``remove_if``, ``rotate``, ``sort``, ``stable_sort``, ``unique``,
