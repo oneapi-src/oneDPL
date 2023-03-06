@@ -128,13 +128,15 @@ struct __subgroup_radix_sort
     {
         assert(__n <= 1 << (sizeof(uint16_t) * 8)); //the kernel is designed for data size <= 64K
 
-        const auto __max_slm_size = __q.get_device().template get_info<sycl::info::device::local_mem_size>();
+        // Pessimistically only use half of the memory to take into account memory used by compiled kernel
+        const ::std::size_t __max_slm_size =
+            __q.get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
 
         const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
         const auto __req_slm_size_val = sizeof(_T) * __n_uniform;
         const auto __req_slm_size_counters = __counter_buf_sz * sizeof(uint32_t);
 
-        return __req_slm_size_val <= __max_slm_size - __req_slm_size_counters; //counters should be placed in SLM
+        return __req_slm_size_val + __req_slm_size_counters <= __max_slm_size; //counters should be placed in SLM
     }
 
     template <typename _KernelName>

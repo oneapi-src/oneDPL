@@ -62,6 +62,9 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
+// TODO: re-enable when sort test passes for all devices of interest
+#define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT 0
+
 namespace __dpl_sycl
 {
 
