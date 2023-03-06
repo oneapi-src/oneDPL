@@ -122,7 +122,7 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
 
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
-        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() * 0.5;
+        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
     const auto __req_slm_size = sizeof(_Type) * __n_uniform;
 
     constexpr int __single_group_upper_limit = 16384;

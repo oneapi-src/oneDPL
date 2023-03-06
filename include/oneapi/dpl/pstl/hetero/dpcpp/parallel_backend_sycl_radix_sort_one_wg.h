@@ -130,7 +130,7 @@ struct __subgroup_radix_sort
 
         // Pessimistically only use half of the memory to take into account memory used by compiled kernel
         const ::std::size_t __max_slm_size =
-            __q.get_device().template get_info<sycl::info::device::local_mem_size>() * 0.5;
+            __q.get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
 
         const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
         const auto __req_slm_size_val = sizeof(_T) * __n_uniform;
