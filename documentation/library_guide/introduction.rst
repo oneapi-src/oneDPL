@@ -60,7 +60,7 @@ To use Parallel API with the device execution policies, you need to install the 
 
 * A C++ compiler with support for SYCL 2020
 
-Difference with C++ parallel algorithms
+Difference with C++ Parallel Algorithms
 ***************************************
 
 * oneDPL execution policies only result in parallel execution if random access iterators are provided,
@@ -112,18 +112,18 @@ Known Limitations
   (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision. 
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
-  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan`` shall satisfy
+  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan`` satisfies
   the ``DefaultConstructible`` requirements. A default constructed-instance
-  of the initial value type shall be the identity element for binary_op. 
+  of the initial value type becomes the identity element for ``binary_op``. 
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``reduce``, ``reduce_by_segment``, ``transform_reduce``, ``transform_exclusive_scan``,
-  ``transform_inclusive_scan`` shall additionally satisfy the ``MoveAssignable`` and the ``CopyConstructible``
+  ``transform_inclusive_scan`` satisfies the ``MoveAssignable`` and the ``CopyConstructible``
   requirements.
 * For ``max_element``, ``min_element``, ``minmax_element``, ``partial_sort``,
   ``partial_sort_copy``, ``sort``, ``stable_sort`` the dereferenced value type of
-  the provided iterators shall be ``DefaultConstructible``.
+  the provided iterators is ``DefaultConstructible``.
 * For ``remove``, ``remove_if``, ``unique`` the dereferenced value type of the provided
-  iterators shall be ``MoveConstructible``.
+  iterators is ``MoveConstructible``.
         
 
 Build Your Code with |onedpl_short|
