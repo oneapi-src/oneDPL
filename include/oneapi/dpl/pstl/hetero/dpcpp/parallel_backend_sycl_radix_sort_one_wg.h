@@ -136,7 +136,7 @@ struct __subgroup_radix_sort
         const auto __req_slm_size_val = sizeof(_T) * __n_uniform;
         const auto __req_slm_size_counters = __counter_buf_sz * sizeof(uint32_t);
 
-        return __req_slm_size_val <= __max_slm_size - __req_slm_size_counters; //counters should be placed in SLM
+        return __req_slm_size_val + __req_slm_size_counters <= __max_slm_size; //counters should be placed in SLM
     }
 
     template <typename _KernelName>
