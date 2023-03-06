@@ -17,6 +17,22 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
+constexpr int a[] = {0, 0, 1, 1, 2, 6, 6, 9, 9};
+constexpr int b[] = {0, 1, 1, 6, 6, 9};
+constexpr int c[] = {0, 1, 6, 6, 6, 9, 9};
+constexpr int d[] = {7, 7, 7, 8};
+constexpr auto a_size = sizeof(a) / sizeof(a[0]);
+constexpr auto b_size = sizeof(b) / sizeof(b[0]);
+constexpr auto c_size = sizeof(c) / sizeof(c[0]);
+constexpr auto d_size = sizeof(d) / sizeof(d[0]);
+
+template <typename Size>
+Size
+get_size(Size n)
+{
+    return n + a_size + b_size + c_size + d_size;
+}
+
 DEFINE_TEST(test_remove)
 {
     DEFINE_TEST_CONSTRUCTOR(test_remove)

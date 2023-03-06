@@ -56,22 +56,6 @@ wait_and_throw(Policy&& exec)
 #endif // _PSTL_SYCL_TEST_USM
 }
 
-inline constexpr int a[] = {0, 0, 1, 1, 2, 6, 6, 9, 9};
-inline constexpr int b[] = {0, 1, 1, 6, 6, 9};
-inline constexpr int c[] = {0, 1, 6, 6, 6, 9, 9};
-inline constexpr int d[] = {7, 7, 7, 8};
-inline constexpr int e[] = {11, 11, 12, 16, 19};
-inline constexpr auto a_size = sizeof(a) / sizeof(a[0]);
-inline constexpr auto b_size = sizeof(b) / sizeof(b[0]);
-inline constexpr auto c_size = sizeof(c) / sizeof(c[0]);
-inline constexpr auto d_size = sizeof(d) / sizeof(d[0]);
-
-template <typename Size>
-Size get_size(Size n)
-{
-    return n + a_size + b_size + c_size + d_size;
-}
-
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #endif // _TEST_SYCL_ITERATOR_PASS_H
