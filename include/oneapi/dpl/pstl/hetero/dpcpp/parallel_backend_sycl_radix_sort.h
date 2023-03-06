@@ -694,7 +694,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
 
     const auto __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-#if __SYCL_COMPILER_VERSION >= 20230101 //for Intel(R) oneAPI C++ Compiler Classic 2023 and later
+#if _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT
     //TODO: 1.to reduce number of the kernels; 2.to define work group size in runtime, depending on number of elements
     constexpr auto __wg_size = 64;
 
