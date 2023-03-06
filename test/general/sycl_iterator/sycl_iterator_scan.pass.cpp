@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "sycl_iterator.pass.h"
+#include "sycl_iterator_test.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
