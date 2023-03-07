@@ -48,12 +48,17 @@ configure_file("${ONEDPL_ROOT}/cmake/templates/oneDPLConfigVersion.cmake.in"
                "${OUTPUT_DIR}/oneDPLConfigVersion.cmake"
                @ONLY)
 
-set(_onedpl_headers_subdir windows)
+set(_onedpl_pkgconfig_header_suffix include)
+if (NOT SKIP_HEADERS_SUBDIR)
+    set(_onedpl_pkgconfig_header_suffix windows/include)
+endif()
 configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in"
                "${OUTPUT_DIR}/pkgconfig-win/dpl.pc"
                @ONLY)
 
-set(_onedpl_headers_subdir linux)
+if (NOT SKIP_HEADERS_SUBDIR)
+    set(_onedpl_pkgconfig_header_suffix linux/include)
+endif()
 configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in"
                "${OUTPUT_DIR}/pkgconfig-lin/dpl.pc"
                @ONLY)
