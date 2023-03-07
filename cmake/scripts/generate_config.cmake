@@ -48,19 +48,14 @@ configure_file("${ONEDPL_ROOT}/cmake/templates/oneDPLConfigVersion.cmake.in"
                "${OUTPUT_DIR}/oneDPLConfigVersion.cmake"
                @ONLY)
 
-set(_onedpl_pkgconfig_header_suffix include)
-if (NOT SKIP_HEADERS_SUBDIR)
+if (SKIP_HEADERS_SUBDIR)
+    set(_onedpl_pkgconfig_header_suffix include)
+    configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in" "${OUTPUT_DIR}/dpl.pc" @ONLY)
+else()
     set(_onedpl_pkgconfig_header_suffix windows/include)
-endif()
-configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in"
-               "${OUTPUT_DIR}/pkgconfig-win/dpl.pc"
-               @ONLY)
-
-if (NOT SKIP_HEADERS_SUBDIR)
+    configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in" "${OUTPUT_DIR}/pkgconfig-win/dpl.pc" @ONLY)
     set(_onedpl_pkgconfig_header_suffix linux/include)
+    configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in" "${OUTPUT_DIR}/pkgconfig-lin/dpl.pc" @ONLY)
 endif()
-configure_file("${ONEDPL_ROOT}/integration/pkgconfig/dpl.pc.in"
-               "${OUTPUT_DIR}/pkgconfig-lin/dpl.pc"
-               @ONLY)
 
 message(STATUS "oneDPL ${PROJECT_VERSION} configuration files were created in '${OUTPUT_DIR}'")
