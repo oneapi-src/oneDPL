@@ -164,9 +164,9 @@ jobs:
             echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
           fi
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
-            make_targets="sycl_iterator.pass"
-            ctest_flags="-R sycl_iterator.pass"
-            echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass"
+            make_targets="build-onedpl-sycl_iterator-tests"
+            ctest_flags="-R sycl_iterator_.*\.pass"
+            echo "::warning::dpcpp backend is set. Compile and run only sycl_iterator tests"
           else
             make_targets="build-onedpl-tests"
           fi
@@ -221,9 +221,9 @@ jobs:
         run: |
           call %CONDA%/condabin/conda.bat activate base
           if "${{ matrix.backend }}" == "dpcpp" (
-            set ninja_targets=sycl_iterator.pass
-            set ctest_flags=-R sycl_iterator.pass
-            echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator.pass
+            set ninja_targets="build-onedpl-sycl_iterator-tests"
+            set ctest_flags=-R sycl_iterator_.*\.pass
+            echo ::warning::dpcpp backend is set. Compile and run only sycl_iterator tests
           ) else (
             set ninja_targets=build-onedpl-tests
           )
