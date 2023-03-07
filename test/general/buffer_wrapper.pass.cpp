@@ -34,7 +34,7 @@ struct test_buffer_wrapper
         EXPECT_TRUE(end - begin == size, "wrong effect of iterator's operator - iterator");
 
         auto buf = begin.get_buffer();
-        sycl::host_accessor buf_accessor(buf);
+        sycl::host_accessor buf_accessor(buf, sycl::read_only);
         auto actual_data = buf_accessor.get_pointer();
 
         EXPECT_TRUE(actual_data == expected_data, "wrong effect of iterator's method get_buffer");
@@ -50,7 +50,7 @@ main()
     std::size_t size = 1000;
     sycl::buffer<std::uint32_t> buf{size};
     test_buffer_wrapper test{};
-    sycl::host_accessor buf_accessor(buf);
+    sycl::host_accessor buf_accessor(buf, sycl::read_only);
     auto data_ptr = buf_accessor.get_pointer();
 
     test(oneapi::dpl::begin(buf), oneapi::dpl::end(buf), data_ptr, size);
