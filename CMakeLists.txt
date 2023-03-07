@@ -43,7 +43,7 @@ if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
     set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/debug")
 
-    #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19, 
+    #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19,
     if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
         message(WARNING "${CMAKE_CXX_COMPILER} requires a workaround to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
         set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
@@ -169,22 +169,6 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         endif()
 
 
-        # settings for the specific compilation type
-        if (NOT ONEDPL_USE_AOT_COMPILATION)
-            message(STATUS "Use the ahead of time compilation. No additional parameters needed")
-        else()
-            if (NOT ONEDPL_AOT_ARCH)
-                set(ONEDPL_AOT_ARCH "*")
-                message(STATUS "Ahead of time compilation for all available architectures")
-            else()
-                string(TOLOWER ${ONEDPL_AOT_ARCH} ONEDPL_AOT_ARCH)
-                message(STATUS "Ahead of time compilation for ${ONEDPL_AOT_ARCH} architecture")
-            endif()
-            set(ONEDPL_AOT_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_AOT_ARCH}\"")
-            set(ONEDPL_AOT_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
-            set(ONEDPL_AOT_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable\"")
-        endif()
-
         # check device type
         if (NOT ONEDPL_DEVICE_TYPE)
             set(ONEDPL_DEVICE_TYPE "GPU")
@@ -220,6 +204,31 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             endif()
         endif()
 
+        # settings for the specific compilation type
+        if (NOT ONEDPL_USE_AOT_COMPILATION)
+            message(STATUS "Use just-in-time compilation")
+        else()
+            if (NOT ONEDPL_AOT_ARCH)
+                if (ONEDPL_USE_DEVICE_GPU)
+                    set(ONEDPL_AOT_ARCH "*")
+                endif()
+                if (ONEDPL_USE_DEVICE_CPU)
+                    set(ONEDPL_AOT_ARCH "avx")
+                endif()
+            endif()
+            message(STATUS "Use ahead-of-time compilation for \"${ONEDPL_AOT_ARCH}\" architecture(s)")
+
+            if (ONEDPL_USE_DEVICE_GPU)
+                # -cl-kernel-debug-enable is not needed since https://github.com/intel/compute-runtime/commit/9c237d99ec49ceb3678c815314bc7c745226e4a2
+                # TODO: remove that option when older driver versions are not expected to be used
+                set(ONEDPL_AOT_EXTRA_BACKEND_OPTIONS "$<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-internal_options -cl-kernel-debug-enable>")
+                set(ONEDPL_AOT_OPTIONS "-fsycl-targets=spir64_gen -Xs \"-device ${ONEDPL_AOT_ARCH} ${ONEDPL_AOT_EXTRA_BACKEND_OPTIONS}\"")
+            endif()
+            if (ONEDPL_USE_DEVICE_CPU)
+                set(ONEDPL_AOT_OPTIONS "-fsycl-targets=spir64_x86_64 -Xs \"-march=${ONEDPL_AOT_ARCH}\"")
+            endif()
+        endif()
+
         # DPC++ specific compiler options
         target_compile_options(oneDPL INTERFACE
             $<$<BOOL:${USE_FSYCL_OPTION}>:-fsycl>
@@ -247,10 +256,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
             $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
-            $<$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>:-fsycl-targets=spir64_gen>
-            $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_REL}>
-            $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_DEB}>
-            $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_RELDEB}>
+            ${ONEDPL_AOT_OPTIONS}
             )
     endif()
 
