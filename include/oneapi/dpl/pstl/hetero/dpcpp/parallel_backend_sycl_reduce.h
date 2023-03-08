@@ -118,7 +118,7 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
                 __reduce_op, _TransformOp{__transform_op}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-        const _Size __n_items = __ceiling_div(__n, __iters_per_work_item); // number of work items
+        const _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
         sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
@@ -188,11 +188,9 @@ struct __parallel_transform_reduce_impl
             _KernelName, _CustomName, _ReduceOp, _TransformOp1, _TransformOp2, _Ranges...>;
 
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel =
-            __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
-        __work_group_size =
-            ::std::min(__work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(
-                                              ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+        auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(__exec);
+        __work_group_size = ::std::min(
+            __work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
 
         _Size __iters_per_work_item = 1;
@@ -206,15 +204,15 @@ struct __parallel_transform_reduce_impl
         else
         {
             // distribution is ~1 work group per compute unit on CPU
-            auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
-            __iters_per_work_item = __ceiling_div(__n, (__max_compute_units * __work_group_size));
-            _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
+            auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+            __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, (__max_cu * __work_group_size));
+            _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_cu);
         }
 
         _Size __size_per_work_group =
             __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
-        _Size __n_groups = __ceiling_div(__n, __size_per_work_group); // number of work groups
-        _Size __n_items = __ceiling_div(__n, __iters_per_work_item);  // number of work items
+        _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
+        _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
         // Create temporary global buffers to store temporary values
         sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
@@ -282,8 +280,8 @@ struct __parallel_transform_reduce_impl
                 __is_first = false;
             ::std::swap(__offset_1, __offset_2);
             __n = __n_groups;
-            __n_items = __ceiling_div(__n, __iters_per_work_item);
-            __n_groups = __ceiling_div(__n, __size_per_work_group);
+            __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
+            __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         } while (__n > 1);
 
         return __future(__reduce_event, __res);
@@ -311,12 +309,11 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
     // __iters_per_work_item shows number of elements to reduce on global memory.
     // __work_group_size shows number of elements to reduce on local memory.
 
-    // TODO: find a way to generalize getting of reliable work-group size
-    ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __work_group_size according to local memory limit
+    // get the work group size adjusted to the local memory limit
     // Pessimistically double the memory requirement to take into account memory used by compiled kernel
-    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Tp) * 2, __work_group_size);
+    // TODO: find a way to generalize getting of reliable work-group size
+    ::std::size_t __work_group_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Tp) * 2);
+
     if (__n <= 65536 && __work_group_size >= 512)
     {
         if (__n <= 128)

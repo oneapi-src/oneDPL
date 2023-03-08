@@ -56,7 +56,7 @@ __order_preserving_cast(_UInt __val)
 }
 
 template <bool __is_ascending, typename _Int,
-          __enable_if_t<::std::is_integral_v<_Int>&& ::std::is_signed_v<_Int>, int> = 0>
+          __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
 ::std::make_unsigned_t<_Int>
 __order_preserving_cast(_Int __val)
 {
@@ -71,7 +71,7 @@ template <bool __is_ascending, typename _Float,
 ::std::uint32_t
 __order_preserving_cast(_Float __val)
 {
-    ::std::uint32_t __uint32_val = __dpl_bit_cast<::std::uint32_t>(__val);
+    ::std::uint32_t __uint32_val = oneapi::dpl::__internal::__dpl_bit_cast<::std::uint32_t>(__val);
     ::std::uint32_t __mask;
     // __uint32_val >> 31 takes the sign bit of the original value
     if constexpr (__is_ascending)
@@ -86,7 +86,7 @@ template <bool __is_ascending, typename _Float,
 ::std::uint64_t
 __order_preserving_cast(_Float __val)
 {
-    ::std::uint64_t __uint64_val = __dpl_bit_cast<::std::uint64_t>(__val);
+    ::std::uint64_t __uint64_val = oneapi::dpl::__internal::__dpl_bit_cast<::std::uint64_t>(__val);
     ::std::uint64_t __mask;
     // __uint64_val >> 63 takes the sign bit of the original value
     if constexpr (__is_ascending)
@@ -105,7 +105,8 @@ template <typename _T>
 constexpr ::std::uint32_t
 __get_buckets_in_type(::std::uint32_t __radix_bits)
 {
-    return __ceiling_div(sizeof(_T) * ::std::numeric_limits<unsigned char>::digits, __radix_bits);
+    return oneapi::dpl::__internal::__dpl_ceiling_div(sizeof(_T) * ::std::numeric_limits<unsigned char>::digits,
+                                                      __radix_bits);
 }
 
 // get bits value (bucket) in a certain radix position
@@ -161,8 +162,8 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 
     const ::std::size_t __val_buf_size = __val_rng.size();
     // iteration space info
-    const ::std::size_t __blocks_total = __ceiling_div(__val_buf_size, __block_size);
-    const ::std::size_t __blocks_per_segment = __ceiling_div(__blocks_total, __segments);
+    const ::std::size_t __blocks_total = oneapi::dpl::__internal::__dpl_ceiling_div(__val_buf_size, __block_size);
+    const ::std::size_t __blocks_per_segment = oneapi::dpl::__internal::__dpl_ceiling_div(__blocks_total, __segments);
 
     auto __count_rng =
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
@@ -444,8 +445,8 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
     // iteration space info
     const ::std::size_t __inout_buf_size = __output_rng.size();
     constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
-    const ::std::size_t __blocks_total = __ceiling_div(__inout_buf_size, __block_size);
-    const ::std::size_t __blocks_per_segment = __ceiling_div(__blocks_total, __segments);
+    const ::std::size_t __blocks_total = oneapi::dpl::__internal::__dpl_ceiling_div(__inout_buf_size, __block_size);
+    const ::std::size_t __blocks_per_segment = oneapi::dpl::__internal::__dpl_ceiling_div(__blocks_total, __segments);
 
     auto __offset_rng =
         oneapi::dpl::__ranges::all_view<::std::uint32_t, __par_backend_hetero::access_mode::read>(__offset_buf);
@@ -599,13 +600,13 @@ struct __parallel_radix_sort_iteration
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
         // correct __block_size according to local memory limit in count phase
-        const auto __max_allocation_size = oneapi::dpl::__internal::__max_local_allocation_size(
-            __exec, sizeof(typename __decay_t<_TmpBuf>::value_type), __block_size * __radix_states);
-        __block_size = __ceiling_div(__max_allocation_size, __radix_states);
+        const auto __max_count_wg_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
+            __exec, sizeof(typename __decay_t<_TmpBuf>::value_type) * __radix_states, __block_size);
+        __block_size = oneapi::dpl::__internal::__dpl_ceiling_div(__max_count_wg_size, __radix_states);
 
         // block size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
-        __block_size = sycl::max(__dpl_bit_floor(__block_size), ::std::size_t(__radix_states));
+        __block_size = sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__block_size), ::std::size_t(__radix_states));
 
         // Compute the radix position for the given iteration
         ::std::uint32_t __radix_offset = __radix_iter * __radix_bits;
@@ -738,7 +739,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng)
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
         const ::std::size_t __wg_size = __max_wg_size;
-        const ::std::size_t __segments = __ceiling_div(__n, __wg_size);
+        const ::std::size_t __segments = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_size);
 
         // additional __radix_states elements are used for getting local offsets from count values
         const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states;

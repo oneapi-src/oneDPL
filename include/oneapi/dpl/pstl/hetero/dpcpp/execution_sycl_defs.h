@@ -271,136 +271,25 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 };
 
 // Extension: check if parameter pack is convertible to events
-template <bool...>
-struct __is_true_helper
-{
-};
-
-template <bool... _Ts>
-using __is_all_true = ::std::is_same<__is_true_helper<_Ts..., true>, __is_true_helper<true, _Ts...>>;
-
 template <class... _Ts>
-using __is_convertible_to_event =
-    __is_all_true<::std::is_convertible<typename ::std::decay<_Ts>::type, sycl::event>::value...>;
+inline constexpr bool __is_convertible_to_event = (::std::is_convertible_v<::std::decay_t<_Ts>, sycl::event> && ...);
 
-template <typename _T, typename... _Events>
-using __enable_if_convertible_to_events =
-    typename ::std::enable_if<oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value, _T>::type;
+template <typename _T, typename... _Ts>
+using __enable_if_convertible_to_events = ::std::enable_if_t<__is_convertible_to_event<_Ts...>, _T>;
 
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T, typename... _Events>
-using __enable_if_device_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_device_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value &&
-        oneapi::dpl::__internal::__is_convertible_to_event<_Events...>::value,
-    _T>::type;
+using __enable_if_device_execution_policy = ::std::enable_if_t<
+    oneapi::dpl::__internal::__is_device_execution_policy<::std::decay_t<_ExecPolicy>>::value &&
+    oneapi::dpl::__internal::__is_convertible_to_event<_Events...>, _T>;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_hetero_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
+using __enable_if_hetero_execution_policy = ::std::enable_if_t<
+    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_fpga_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_fpga_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
-
-//-----------------------------------------------------------------------------
-// Device run-time information helpers
-//-----------------------------------------------------------------------------
-
-#if _ONEDPL_DEBUG_SYCL
-template <typename _ExecutionPolicy>
-::std::string
-__device_info(_ExecutionPolicy&& __policy)
-{
-    return __policy.queue().get_device().template get_info<sycl::info::device::name>();
-}
-#endif
-
-template <typename _ExecutionPolicy>
-::std::size_t
-__max_work_group_size(_ExecutionPolicy&& __policy)
-{
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
-}
-
-template <typename _ExecutionPolicy, typename _Size>
-_Size
-__max_local_allocation_size(_ExecutionPolicy&& __policy, _Size __type_size, _Size __local_allocation_size)
-{
-    return ::std::min(__policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>() /
-                          __type_size,
-                      __local_allocation_size);
-}
-
-#if _USE_SUB_GROUPS
-template <typename _ExecutionPolicy>
-::std::size_t
-__max_sub_group_size(_ExecutionPolicy&& __policy)
-{
-    auto __supported_sg_sizes = __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-
-    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty - the function returns 0;
-    return __supported_sg_sizes.empty() ? 0 : __supported_sg_sizes.back();
-}
-#endif
-
-template <typename _ExecutionPolicy>
-auto
-__max_compute_units(_ExecutionPolicy&& __policy)
-    -> decltype(__policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>())
-{
-    return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
-}
-
-//-----------------------------------------------------------------------------
-// Kernel run-time information helpers
-//-----------------------------------------------------------------------------
-
-// 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
-#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (_ONEDPL_LIBSYCL_VERSION >= 50700)
-
-template <typename _ExecutionPolicy>
-::std::size_t
-__kernel_work_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
-{
-    const sycl::device& __device = __policy.queue().get_device();
-    const ::std::size_t __max_wg_size =
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
-        __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
-#else
-        __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
-#endif
-    // The variable below is needed to achieve better performance on CPU devices.
-    // Experimentally it was found that the most common divisor is 4 with all patterns.
-    // TODO: choose the divisor according to specific pattern.
-    ::std::size_t __cpu_divisor = 1;
-    if (__device.is_cpu() && __max_wg_size >= 4)
-        __cpu_divisor = 4;
-
-    return __max_wg_size / __cpu_divisor;
-}
-
-template <typename _ExecutionPolicy>
-::std::uint32_t
-__kernel_sub_group_size(_ExecutionPolicy&& __policy, const sycl::kernel& __kernel)
-{
-    const sycl::device& __device = __policy.queue().get_device();
-    [[maybe_unused]] const ::std::size_t __wg_size =
-        __kernel_work_group_size(::std::forward<_ExecutionPolicy>(__policy), __kernel);
-    const ::std::uint32_t __sg_size =
-#if _USE_KERNEL_DEVICE_SPECIFIC_API
-        __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
-            __device
-#    if _ONEDPL_LIBSYCL_VERSION < 60000
-            ,
-            sycl::range<3> { __wg_size, 1, 1 }
-#    endif
-        );
-#else
-        __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
-            __device, sycl::range<3>{__wg_size, 1, 1});
-#endif
-    return __sg_size;
-}
+using __enable_if_fpga_execution_policy = ::std::enable_if_t<
+    oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 } // namespace __internal
 

@@ -304,12 +304,10 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __n = __rng1.size();
         assert(__n > 0);
 
-        auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        // get the work group size adjusted to the local memory limit
         // TODO: find a way to generalize getting of reliable work-group sizes
-        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        // change __wgroup_size according to local memory limit
-        __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Type), __wgroup_size);
+        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Type));
 
 #if _ONEDPL_COMPILE_KERNEL
         //Actually there is one kernel_bundle for the all kernels of the pattern.
@@ -331,7 +329,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // Storage for the results of scan for each workgroup
         sycl::buffer<_Type> __wg_sums(__n_groups);
 
-        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
         // 1. Local scan on each workgroup
         auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -447,7 +445,7 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
     {
         using _ValueType = typename _InitType::__value_type;
 
-        const ::std::uint16_t __elems_per_item = __par_backend_hetero::__ceiling_div(__n, __wg_size);
+        const ::std::uint16_t __elems_per_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_size);
         const ::std::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
 
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
@@ -598,7 +596,8 @@ __pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_r
         auto __single_group_scan_f = [&](auto __size_constant) {
             constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
             constexpr ::std::uint16_t __wg_size = ::std::min(__size, __targeted_wg_size);
-            constexpr ::std::uint16_t __num_elems_per_item = __par_backend_hetero::__ceiling_div(__size, __wg_size);
+            constexpr ::std::uint16_t __num_elems_per_item =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__size, __wg_size);
             const bool __is_full_group = __n == __wg_size;
 
             if (__is_full_group)
@@ -846,15 +845,15 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-    auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
     // TODO: try to change __n_groups with another formula for more perfect load balancing
-    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__mcu));
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
     auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;

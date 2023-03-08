@@ -118,7 +118,7 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = __n;
     if ((__n_uniform & (__n_uniform - 1)) != 0)
-        __n_uniform = __par_backend_hetero::__dpl_bit_floor(__n) << 1;
+        __n_uniform = __dpl_bit_floor(__n) << 1;
 
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
