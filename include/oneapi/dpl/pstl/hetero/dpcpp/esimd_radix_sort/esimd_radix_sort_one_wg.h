@@ -70,7 +70,7 @@ void one_wg_kernel(auto idx, uint32_t n, uint32_t THREAD_PER_TG, const InputT& i
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
-        keys.template select<16, 1>(s) = merge(gather(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT))), simd<KeyT, 16>(-1), m);
+        keys.template select<16, 1>(s) = merge(utils::gather(input, lane_id, io_offset + s), simd<KeyT, 16>(-1), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
@@ -114,7 +114,7 @@ void one_wg_kernel(auto idx, uint32_t n, uint32_t THREAD_PER_TG, const InputT& i
                 }
                 tmp = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                 thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
-                thread_grf_hist_summary = scan<hist_t, hist_t>(thread_grf_hist_summary);
+                thread_grf_hist_summary = utils::scan<hist_t, hist_t>(thread_grf_hist_summary);
                 lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
             }
             barrier();
@@ -176,12 +176,14 @@ void one_wg_kernel(auto idx, uint32_t n, uint32_t THREAD_PER_TG, const InputT& i
     }
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-        scatter<KeyT, 16>(input, write_addr.template select<16, 1>(s)*sizeof(KeyT), keys.template select<16, 1>(s), (local_tid*PROCESS_SIZE+lane_id+s)<n);
+        utils::scatter<KeyT, 16>(input, write_addr.template select<16, 1>(s) * sizeof(KeyT),
+                                 keys.template select<16, 1>(s),
+                                 (local_tid * PROCESS_SIZE + lane_id + s) < n);
     }
 }
 
-template <typename KeyT, typename InputT, std::uint32_t RadixBits>
-void one_wg(sycl::queue &q, const InputT& input, size_t n) {
+template <typename KeyT, typename _Range, std::uint32_t RadixBits>
+void one_wg(sycl::queue &q, _Range&& __rng, size_t n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
@@ -206,23 +208,29 @@ void one_wg(sycl::queue &q, const InputT& input, size_t n) {
         nd_range<1> Range( (range<1>(TG_COUNT)), (range<1>(TG_COUNT)) );
         if (PROCESS_SIZE==64) {
             e = q.submit([&](handler &cgh) {
+                oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                auto __data = __rng.data();
                 cgh.parallel_for<class kernel_radix_sort_one_tg_64>(
                         Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            one_wg_kernel<KeyT, InputT, RADIX_BITS, 64> (idx, n, TG_COUNT, input);
+                            one_wg_kernel<KeyT,  decltype(__data), RADIX_BITS, 64> (idx, n, TG_COUNT, __data);
                         });
             });
         } else if (PROCESS_SIZE==128) {
             e = q.submit([&](handler &cgh) {
+                oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                auto __data = __rng.data();
                 cgh.parallel_for<class kernel_radix_sort_one_tg_128>(
                         Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            one_wg_kernel<KeyT, InputT, RADIX_BITS, 128> (idx, n, TG_COUNT, input);
+                            one_wg_kernel<KeyT, decltype(__data), RADIX_BITS, 128> (idx, n, TG_COUNT, __data);
                         });
             });
         } else if (PROCESS_SIZE==256) {
             e = q.submit([&](handler &cgh) {
+                oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                auto __data = __rng.data();
                 cgh.parallel_for<class kernel_radix_sort_one_tg_256>(
                         Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            one_wg_kernel<KeyT, InputT, RADIX_BITS, 256> (idx, n, TG_COUNT, input);
+                            one_wg_kernel<KeyT,  decltype(__data), RADIX_BITS, 256> (idx, n, TG_COUNT, __data);
                         });
             });
         }

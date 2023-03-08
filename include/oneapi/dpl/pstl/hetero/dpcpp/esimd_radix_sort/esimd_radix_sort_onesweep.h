@@ -75,7 +75,7 @@ void global_histogram(auto idx, size_t n, const InputT& input, uint32_t *p_globa
     device_addr_t read_addr;
     for (read_addr = tid * PROCESS_SIZE; read_addr < n; read_addr += addr_step) {
         if (read_addr+PROCESS_SIZE < n) {
-           keys.copy_from(input+read_addr);
+            utils::copy_from(keys, input, read_addr);
         }
         else
         {
@@ -83,8 +83,11 @@ void global_histogram(auto idx, size_t n, const InputT& input, uint32_t *p_globa
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
                 simd_mask<16> m = (s+lane_id)<(n-read_addr);
+                // simd<KeyT, 16> source = lsc_gather<KeyT, 1,
+                //         lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+read_addr+s, lane_id*sizeof(KeyT), m);
+                sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
                 simd<KeyT, 16> source = lsc_gather<KeyT, 1,
-                        lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+read_addr+s, lane_id*sizeof(KeyT), m);
+                    lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
                 keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
             }
         }
@@ -191,7 +194,7 @@ void onesweep_kernel(auto idx, uint32_t n, uint32_t stage, const InputT& input, 
         simd<KeyT, PROCESS_SIZE> keys;
         simd<bin_t, PROCESS_SIZE> bins;
         if (io_offset+PROCESS_SIZE < n) {
-            keys.copy_from(input + io_offset);
+            utils::copy_from(keys, input, io_offset);
         }
         else if (io_offset >= n) {
             keys = -1;
@@ -237,7 +240,7 @@ void onesweep_kernel(auto idx, uint32_t n, uint32_t stage, const InputT& input, 
             uint32_t THREAD_LTID = local_tid % THREAD_PER_BIN_GROUP;
             {
                 uint32_t slm_bin_hist_ingroup_offset = slm_bin_hist_start + THREAD_GID * BIN_WIDTH * sizeof(hist_t) + THREAD_LTID * BIN_HEIGHT * HIST_STRIDE;
-                simd2d<hist_t, BIN_HEIGHT, BIN_WIDTH> thread_grf_hist;
+                utils::simd2d<hist_t, BIN_HEIGHT, BIN_WIDTH> thread_grf_hist;
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_HEIGHT; s++) {
                     thread_grf_hist.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE);
@@ -257,7 +260,7 @@ void onesweep_kernel(auto idx, uint32_t n, uint32_t stage, const InputT& input, 
             simd<global_hist_t, BIN_WIDTH> group_hist_sum;
             if (THREAD_LTID == 0) {
                 uint32_t slm_bin_hist_group_summary_offset = slm_bin_hist_start + THREAD_GID * BIN_WIDTH * sizeof(hist_t) +  (BIN_HEIGHT-1) * HIST_STRIDE;
-                simd2d<hist_t, THREAD_PER_BIN_GROUP, BIN_WIDTH> thread_grf_hist_summary;
+                utils::simd2d<hist_t, THREAD_PER_BIN_GROUP, BIN_WIDTH> thread_grf_hist_summary;
                 #pragma unroll
                 for (uint32_t s = 0; s<THREAD_PER_BIN_GROUP; s++) {
                     thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE);
