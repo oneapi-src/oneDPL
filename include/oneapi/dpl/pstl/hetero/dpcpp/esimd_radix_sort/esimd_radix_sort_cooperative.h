@@ -60,7 +60,7 @@ void inline global_sync(uint32_t *psync, uint32_t sync_id, uint32_t count, uint3
 }
 
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG, uint32_t PROCESS_SIZE>
-void cooperative_kernel(auto idx, size_t n, const InputT& input, uint32_t *p_global_buffer) {
+void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uint32_t *p_global_buffer) {
     using namespace sycl;
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
