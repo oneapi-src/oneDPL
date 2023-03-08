@@ -157,7 +157,7 @@ void cooperative_kernel(auto idx, size_t n, const InputT& input, uint32_t *p_glo
             uint32_t THREAD_LTID = local_tid % THREAD_PER_BIN_GROUP;
             {
                 uint32_t slm_bin_hist_ingroup_offset = slm_bin_hist_start + THREAD_GID * BIN_WIDTH * sizeof(hist_t) + THREAD_LTID * BIN_HEIGHT * HIST_STRIDE;
-                simd2d<hist_t, BIN_HEIGHT, BIN_WIDTH> thread_grf_hist;
+                utils::simd2d<hist_t, BIN_HEIGHT, BIN_WIDTH> thread_grf_hist;
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_HEIGHT; s++) {
                     thread_grf_hist.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE);
@@ -176,7 +176,7 @@ void cooperative_kernel(auto idx, size_t n, const InputT& input, uint32_t *p_glo
             // thread group sum for groups
             if (THREAD_LTID == 0) {
                 uint32_t slm_bin_hist_group_summary_offset = slm_bin_hist_start + THREAD_GID * BIN_WIDTH * sizeof(hist_t) +  (BIN_HEIGHT-1) * HIST_STRIDE;
-                simd2d<hist_t, THREAD_PER_BIN_GROUP, BIN_WIDTH> thread_grf_hist_summary;
+                utils::simd2d<hist_t, THREAD_PER_BIN_GROUP, BIN_WIDTH> thread_grf_hist_summary;
                 #pragma unroll
                 for (uint32_t s = 0; s<THREAD_PER_BIN_GROUP; s++) {
                     thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE);
