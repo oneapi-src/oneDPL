@@ -76,7 +76,6 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     }
     else
     {
-        // TODO: allow passing accessor
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
         // TODO: support c++17 (c++20 and newer are currently supported)
