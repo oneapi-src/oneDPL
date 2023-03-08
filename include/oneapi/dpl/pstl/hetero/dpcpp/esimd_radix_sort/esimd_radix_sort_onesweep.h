@@ -25,7 +25,7 @@ namespace oneapi::dpl::experimental::esimd::impl
 {
 
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG>
-void global_histogram(auto idx, size_t n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
+void global_histogram(sycl::nd_item<1> idx, size_t n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
     using bin_t = uint16_t;
     using hist_t = uint32_t;
     using global_hist_t = uint32_t;
@@ -137,7 +137,7 @@ void inline global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint3
 }
 
 template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG, uint32_t PROCESS_SIZE>
-void onesweep_kernel(auto idx, uint32_t n, uint32_t stage, const InputT& input, const OutputT& output, uint8_t *p_global_buffer) {
+void onesweep_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t stage, const InputT& input, const OutputT& output, uint8_t *p_global_buffer) {
     using namespace sycl;
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
