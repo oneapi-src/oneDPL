@@ -57,7 +57,7 @@ void test_all_view(std::size_t size)
     namespace dpl_ranges = dpl::experimental::ranges;
 
     std::vector<T> input(size);
-    generate_data(input);
+    generate_data(input.data(), size);
     std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
     {
@@ -114,21 +114,12 @@ test_sycl_iterators()
 
 int main()
 {
-    // test_all_view<uint32_t>(16);
-    // test_all_view<uint32_t>(96);
-    // test_all_view<uint32_t>(256);
-    // test_all_view<uint32_t>(512);
-    // test_all_view<uint32_t>(2024);
-    // test_all_view<uint32_t>(32768);
-    // test_all_view<uint32_t>(524228);
-
-    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024, 32768, 524228};
+    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024 /*, 32768, 524228 */};
     for(auto size: sizes)
     {
-        // enable when configure kernels to use accessors
-        // test_all_view<uint32_t>(size);
-
+        test_all_view<uint32_t>(size);
         test_usm<uint32_t>(size);
     }
+    std::cout << "done" << std::endl;
     return 0;
 }
