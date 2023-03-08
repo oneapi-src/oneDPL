@@ -9,10 +9,10 @@
 #include <random>
 
 template<typename T>
-void verify(const std::vector<T>& input, const std::vector<T>& ref)
+void verify(const T* input, const T* ref, std::size_t size)
 {
     uint32_t err_count = 0;
-    for(uint32_t i = 0; i < input.size(); ++i)
+    for(uint32_t i = 0; i < size; ++i)
     {
         if(input[i] != ref[i])
         {
@@ -26,46 +26,63 @@ void verify(const std::vector<T>& input, const std::vector<T>& ref)
     if (err_count != 0)
     {
         std::cout << "error count: " << err_count << std::endl;
-        std::cout << "n: " << input.size() << std::endl;
+        std::cout << "n: " << size << std::endl;
     }
 }
 
 template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-void generate_data(std::vector<T>& in)
+void generate_data(T* input, std::size_t size)
 {
     std::default_random_engine gen{std::random_device{}()};
     if constexpr (std::is_integral_v<T>)
     {
-        // std::uniform_int_distribution<T> dist(0, in.size());
-        // std::generate(in.begin(), in.end(), [&]{ return dist(gen); });
-        for(uint32_t i = 0; i < in.size(); ++i)
-        {
-            in[i] = i % 256;
-        }
+        std::uniform_int_distribution<T> dist(0, size);
+        std::generate(input, input + size, [&]{ return dist(gen); });
+        // for(uint32_t i = 0; i < size; ++i)
+        // {
+        //     input[i] = i % 256;
+        // }
     }
     else
     {
         std::uniform_real_distribution<T> dist(0.0, 100.0);
-        std::generate(in.begin(), in.end(), [&]{ return dist(gen); });
+        std::generate(input, input + size, [&]{ return dist(gen); });
     }
 }
 
 template<typename T>
-void test_all_view(uint32_t n)
+void test_all_view(std::size_t size)
 {
     namespace dpl = oneapi::dpl;
     namespace dpl_ranges = dpl::experimental::ranges;
 
-    std::vector<T> in(n);
-    generate_data(in);
-    std::vector<T> ref(in);
+    std::vector<T> input(size);
+    generate_data(input);
+    std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
     {
-        sycl::buffer<T> buf(in.data(), in.size());
+        sycl::buffer<T> buf(input.data(), input.size());
         dpl_ranges::all_view<T, sycl::access::mode::read_write> view(buf);
         oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default, view);
     }
-    verify(in, ref);
+    verify(input.data(), ref.data(), size);
+}
+
+template<typename T>
+void test_usm(std::size_t size)
+{
+    namespace dpl = oneapi::dpl;
+    sycl::queue q = dpl::execution::dpcpp_default.queue();
+    T* input = sycl::malloc_shared<T>(size, q);
+    T* ref = sycl::malloc_host<T>(size, q);
+    generate_data(ref, size);
+    q.copy(ref, input, size).wait();
+    std::sort(ref, ref + size);
+    oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default, input, input + size);
+
+    T* host_input = sycl::malloc_host<T>(size, q);
+    q.copy(input, host_input, size).wait();
+    verify(host_input, ref, size);
 }
 
 /*
@@ -83,31 +100,35 @@ void test_subrange_view(uint32_t n, sycl::queue& q)
         dpl_ranges::views::subrange<T, sycl::access::mode::read_write> view(p_in, p_in + n);
         oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default, view);
     }
-    verify(in, ref);
+    verify(input, ref);
 }
 
 
 template<typename T>
 test_sycl_iterators()
 {
-
 }
 
-template<typename T>
-test_usm()
-{
-
-}
 */
+
 
 int main()
 {
     // test_all_view<uint32_t>(16);
     // test_all_view<uint32_t>(96);
     // test_all_view<uint32_t>(256);
-    test_all_view<uint32_t>(512);
+    // test_all_view<uint32_t>(512);
     // test_all_view<uint32_t>(2024);
     // test_all_view<uint32_t>(32768);
     // test_all_view<uint32_t>(524228);
+
+    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024, 32768, 524228};
+    for(auto size: sizes)
+    {
+        // enable when configure kernels to use accessors
+        // test_all_view<uint32_t>(size);
+
+        test_usm<uint32_t>(size);
+    }
     return 0;
 }
