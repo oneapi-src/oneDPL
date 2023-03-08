@@ -114,7 +114,7 @@ test_sycl_iterators()
 
 int main()
 {
-    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024 /*, 32768, 524228 */};
+    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024, 32768, /* 524228 */};
     for(auto size: sizes)
     {
         test_all_view<uint32_t>(size);
