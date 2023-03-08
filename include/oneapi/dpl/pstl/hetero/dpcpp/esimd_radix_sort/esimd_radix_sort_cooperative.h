@@ -121,7 +121,8 @@ void cooperative_kernel(auto idx, size_t n, const InputT& input, uint32_t *p_glo
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
         simd<KeyT, 16> source = lsc_gather<KeyT, 1,
-                lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+                // lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+                lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(input, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))), m);
         keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
     }
 
@@ -218,7 +219,7 @@ void cooperative_kernel(auto idx, size_t n, const InputT& input, uint32_t *p_glo
                             global_hist_sum += global_hist;
                             global_hist_sum.copy_to(p_global_hist_sum_per_thread + i * BIN_COUNT * sizeof(global_hist_t)/sizeof(uint32_t));
                         }
-                        global_hist_sum = scan<global_hist_t, global_hist_t>(global_hist_sum);
+                        global_hist_sum = utils::scan<global_hist_t, global_hist_t>(global_hist_sum);
                         lsc_slm_block_store<global_hist_t, 16>(slm_global_scan_start + local_tid * (BIN_COUNT/16)* sizeof(global_hist_t), global_hist_sum);
                     }
                     barrier();//TODO: change to smaller named barrier
@@ -302,15 +303,16 @@ void cooperative_kernel(auto idx, size_t n, const InputT& input, uint32_t *p_glo
                 simd_mask<16> m = (io_offset+lane_id+s)<n;
                 simd<KeyT, 16> reordered = lsc_gather<KeyT, 1,
                         lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(
-                            input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+                            // input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+                            input, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))), m);
                 keys.template select<16, 1>(s) = merge(reordered, simd<KeyT, 16>(-1), m);
             }
         }
     }
 }
 
-template <typename KeyT, typename InputT, std::uint32_t RadixBits>
-void cooperative(sycl::queue &q, const InputT& input, size_t n) {
+template <typename KeyT, typename _Range, std::uint32_t RadixBits>
+void cooperative(sycl::queue &q, _Range&& __rng, size_t n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
@@ -326,18 +328,22 @@ void cooperative(sycl::queue &q, const InputT& input, size_t n) {
             uint32_t groups = oneapi::dpl::__internal::__dpl_ceiling_div(n, 128 * THREAD_PER_TG);
             nd_range<1> Range( (range<1>(THREAD_PER_TG * groups)), (range<1>(THREAD_PER_TG)));
             e = q.submit([&](handler &cgh) {
+                oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                auto __data = __rng.data();
                 cgh.parallel_for<class kernel_radix_sort_cooperative_128>(
                         Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            cooperative_kernel<KeyT, InputT, RADIX_BITS, THREAD_PER_TG, 128> (idx, n, input, p_sync);
+                            cooperative_kernel<KeyT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 128> (idx, n, __data, p_sync);
                         });
             });
         } else if (n<=256 * THREAD_PER_TG * MAX_GROUPS) {
             uint32_t groups = oneapi::dpl::__internal::__dpl_ceiling_div(n, 256 * THREAD_PER_TG);
             nd_range<1> Range( (range<1>(THREAD_PER_TG * groups)), (range<1>(THREAD_PER_TG)));
             e = q.submit([&](handler &cgh) {
+                oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                auto __data = __rng.data();
                 cgh.parallel_for<class kernel_radix_sort_cooperative_256>(
                         Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            cooperative_kernel<KeyT, InputT, RADIX_BITS, THREAD_PER_TG, 256> (idx, n, input, p_sync);
+                            cooperative_kernel<KeyT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 256> (idx, n, __data, p_sync);
                         });
             });
         }
