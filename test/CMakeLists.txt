@@ -15,10 +15,19 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-# disable fast math for ALL TESTS
-check_cxx_compiler_flag("-fno-fast-math" _fno_fast_math_option)
+# disable fast math for ALL TESTS 
+# icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
+foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
+    string(MAKE_C_IDENTIFIER ${_fno_fast_math_flag} FLAG_DISPLAY_NAME)
+    check_cxx_compiler_flag(${_fno_fast_math_flag} ${FLAG_DISPLAY_NAME}_option)
+    if (${FLAG_DISPLAY_NAME}_option)
+        target_compile_options(oneDPL INTERFACE ${_fno_fast_math_flag})
+        set(_fno_fast_math_option ${_fno_fast_math_flag})
+        break()
+    endif()
+endforeach()
 if (_fno_fast_math_option)
-    add_compile_options("-fno-fast-math")
+    add_compile_options(${_fno_fast_math_option})
 else()
     message(STATUS "oneDPL: -fno-fast-math is not supported by current compiler")
 endif()
