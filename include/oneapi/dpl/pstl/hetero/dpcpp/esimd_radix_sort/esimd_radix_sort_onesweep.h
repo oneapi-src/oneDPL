@@ -83,11 +83,11 @@ void global_histogram(auto idx, size_t n, const InputT& input, uint32_t *p_globa
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
                 simd_mask<16> m = (s+lane_id)<(n-read_addr);
-                // simd<KeyT, 16> source = lsc_gather<KeyT, 1,
-                //         lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+read_addr+s, lane_id*sizeof(KeyT), m);
+
+                // simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+read_addr+s, lane_id*sizeof(KeyT), m);
                 sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
-                simd<KeyT, 16> source = lsc_gather<KeyT, 1,
-                    lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
+                simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
+
                 keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
             }
         }
@@ -203,8 +203,11 @@ void onesweep_kernel(auto idx, uint32_t n, uint32_t stage, const InputT& input, 
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
                 simd_mask<16> m = (io_offset+lane_id+s)<n;
-                simd<KeyT, 16> source = lsc_gather<KeyT, 1,
-                        lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+
+                // simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id)*sizeof(KeyT));
+                simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
+
                 keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
             }
         }
@@ -331,13 +334,18 @@ void onesweep_kernel(auto idx, uint32_t n, uint32_t stage, const InputT& input, 
         simd<device_addr_t, BLOCK_SIZE> write_addr;
         simd<KeyT, BLOCK_SIZE> keys;
         simd<bin_t, BLOCK_SIZE> bins;
-        auto p_read = input + io_offset;
+        // auto p_read = input + io_offset;
         if (io_offset < n) {
             for (uint32_t i=0; i<PROCESS_SIZE; i+=BLOCK_SIZE) {
                 simd<device_addr_t, BLOCK_SIZE> lane_id_block(0, 1);
                 simd_mask<BLOCK_SIZE> m = (io_offset+lane_id_block+i)<n;
+
+                // simd<KeyT, BLOCK_SIZE> source = lsc_gather<KeyT, 1,
+                //         lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, BLOCK_SIZE>(p_read+i, lane_id_block*uint32_t(sizeof(KeyT)), m);
+                sycl::ext::intel::esimd::simd offset((io_offset + i + lane_id_block)*uint32_t(sizeof(KeyT)));
                 simd<KeyT, BLOCK_SIZE> source = lsc_gather<KeyT, 1,
-                        lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, BLOCK_SIZE>(p_read+i, lane_id_block*uint32_t(sizeof(KeyT)), m);
+                        lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, BLOCK_SIZE>(input, offset, m);
+
                 keys = merge(source, simd<KeyT, BLOCK_SIZE>(-1), m);
 
                 bins = (keys >> (stage * RADIX_BITS)) & MASK;
@@ -355,8 +363,8 @@ void onesweep_kernel(auto idx, uint32_t n, uint32_t stage, const InputT& input, 
     }
 }
 
-template<typename KeyT, typename InputT, std::uint32_t RadixBits /* not used*/>
-void onesweep(sycl::queue &q, const InputT& input, size_t n, uint32_t process_size) {
+template<typename KeyT, typename _Range, std::uint32_t RadixBits /* not used*/>
+void onesweep(sycl::queue &q, _Range&& __rng, size_t n, uint32_t process_size) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
@@ -389,9 +397,11 @@ void onesweep(sycl::queue &q, const InputT& input, size_t n, uint32_t process_si
     {
         nd_range<1> Range( (range<1>( HW_TG_COUNT * THREAD_PER_TG)), (range<1>(THREAD_PER_TG)) );
         auto e = q.submit([&](handler &cgh) {
+            oneapi::dpl::__ranges::__require_access(cgh, __rng);
+            auto __data = __rng.data();
             cgh.parallel_for<class kernel_global_histogram>(
                     Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                        global_histogram<KeyT, InputT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG> (idx, n, input, p_global_offset, p_sync_buffer);
+                        global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG> (idx, n, __data, p_global_offset, p_sync_buffer);
                     });
         });
     }
@@ -452,30 +462,38 @@ void onesweep(sycl::queue &q, const InputT& input, size_t n, uint32_t process_si
             {
                 if (SWEEP_PROCESSING_SIZE == 256) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_256>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, InputT, OutputT, RADIX_BITS, THREAD_PER_TG, 256> (idx, n, stage, input, output, tmp_buffer);
+                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 256> (idx, n, stage, __data, output, tmp_buffer);
                                 });
                     });
                 } else if (SWEEP_PROCESSING_SIZE == 512) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_512>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, InputT, OutputT, RADIX_BITS, THREAD_PER_TG, 512> (idx, n, stage, input, output, tmp_buffer);
+                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 512> (idx, n, stage, __data, output, tmp_buffer);
                                 });
                     });
                 } else if (SWEEP_PROCESSING_SIZE == 1024) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_1024>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, InputT, OutputT, RADIX_BITS, THREAD_PER_TG, 1024> (idx, n, stage, input, output, tmp_buffer);
+                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 1024> (idx, n, stage, __data, output, tmp_buffer);
                                 });
                     });
                 } else if (SWEEP_PROCESSING_SIZE == 1536) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_1536>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, InputT, OutputT, RADIX_BITS, THREAD_PER_TG, 1536> (idx, n, stage, input, output, tmp_buffer);
+                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 1536> (idx, n, stage, __data, output, tmp_buffer);
                                 });
                     });
                 }
@@ -484,30 +502,38 @@ void onesweep(sycl::queue &q, const InputT& input, size_t n, uint32_t process_si
             {
                 if (SWEEP_PROCESSING_SIZE == 256) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_256_odd>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, InputT, RADIX_BITS, THREAD_PER_TG, 256> (idx, n, stage, output, input, tmp_buffer);
+                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 256> (idx, n, stage, output, __data, tmp_buffer);
                                 });
                     });
                 } else if (SWEEP_PROCESSING_SIZE == 512) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_512_odd>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, InputT, RADIX_BITS, THREAD_PER_TG, 512> (idx, n, stage, output, input, tmp_buffer);
+                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 512> (idx, n, stage, output, __data, tmp_buffer);
                                 });
                     });
                 } else if (SWEEP_PROCESSING_SIZE == 1024) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_1024_odd>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, InputT, RADIX_BITS, THREAD_PER_TG, 1024> (idx, n, stage, output, input, tmp_buffer);
+                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 1024> (idx, n, stage, output, __data, tmp_buffer);
                                 });
                     });
                 } else if (SWEEP_PROCESSING_SIZE == 1536) {
                     e = q.submit([&](handler &cgh) {
+                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
+                        auto __data = __rng.data();
                         cgh.parallel_for<class kernel_radix_sort_onesweep_1536_odd>(
                                 Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, InputT, RADIX_BITS, THREAD_PER_TG, 1536> (idx, n, stage, output, input, tmp_buffer);
+                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 1536> (idx, n, stage, output, __data, tmp_buffer);
                                 });
                     });
                 }
