@@ -79,6 +79,12 @@ class all_view
         __cgh.require(__m_acc);
     }
 
+    // Unified funciton to get pointer or accessor to use inside ESIMD kernels
+    __accessor_t data()
+    {
+        return __m_acc;
+    }
+
   private:
     static __accessor_t __create_accessor(sycl::buffer<_T, 1>& __buf, __diff_type __offset, __diff_type __n)
     {
@@ -91,7 +97,7 @@ class all_view
         return {__buf, sycl::range<1>(__n_acc), __offset};
     }
 
-  public:
+  private:
     __accessor_t __m_acc;
 };
 
