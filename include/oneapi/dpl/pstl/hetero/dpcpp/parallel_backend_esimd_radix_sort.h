@@ -56,17 +56,15 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 
     auto __q = __exec.queue();
     const ::std::size_t __n = __rng.size();
-    auto __data = __rng.data();
 
     if (__n <= 16384)
     {
-        // TODO: allow passing accessor
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
         // TODO: support c++17 (c++20 and newer are currently supported)
         // TODO: generate unique kernel names
         // TODO: allow all RadixBits values (only 7 or 8 are currently supported)
-        oneapi::dpl::experimental::esimd::impl::one_wg<_KeyT, decltype(__data), RadixBits>(__q, __data, __n);
+        oneapi::dpl::experimental::esimd::impl::one_wg<_KeyT, _Range, RadixBits>(__q, ::std::forward<_Range>(__rng), __n);
     }
     else if (__n <= 262144)
     {
@@ -75,7 +73,7 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: allow diferent types
         // TODO: support c++17 (c++20 and newer are currently supported)
         // TODO: generate unique kernel names
-        oneapi::dpl::experimental::esimd::impl::cooperative<_KeyT, decltype(__data), RadixBits>(__q, __data, __n);
+        oneapi::dpl::experimental::esimd::impl::cooperative<_KeyT, ::std::forward<_Range>(__rng), RadixBits>(__q, __rng, __n);
     }
     else
     {
@@ -87,7 +85,7 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: avoid kernel duplication (generate the output storate with the same type as __data and use swap)
         // TODO: allow different RadixBits, make sure the data is in __data after the last stage
         // TODO: pass process_size according to __n
-        oneapi::dpl::experimental::esimd::impl::onesweep<_KeyT, decltype(__data), RadixBits>(__q, __data, __n, /*process_size*/ 512);
+        oneapi::dpl::experimental::esimd::impl::onesweep<_KeyT, ::std::forward<_Range>(__rng), RadixBits>(__q, __rng, __n, /*process_size*/ 512);
     }
 }
 
