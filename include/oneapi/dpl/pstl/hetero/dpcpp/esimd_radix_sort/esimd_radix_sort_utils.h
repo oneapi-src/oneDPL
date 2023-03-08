@@ -5,8 +5,69 @@
 #include "../sycl_defs.h"
 #include <cstdint>
 
-namespace oneapi::dpl::experimental::esimd::impl
+namespace oneapi::dpl::experimental::esimd::impl::utils
 {
+
+template<typename SIMD, typename Input, std::enable_if_t<std::is_pointer_v<Input>, bool> = true>
+inline void
+copy_from(SIMD& simd, const Input& input, uint32_t offset)
+{
+    simd.copy_from(input + offset);
+}
+
+template<typename SIMD, typename Input, std::enable_if_t<!std::is_pointer_v<Input>, bool> = true>
+inline void
+copy_from(SIMD& simd, const Input& input, uint32_t offset)
+{
+    simd.copy_from(input, offset);
+}
+
+template<typename SIMD, typename Output, std::enable_if_t<std::is_pointer_v<Output>, bool> = true>
+inline void
+copy_to(const SIMD& simd, Output& output, uint32_t offset)
+{
+    simd.copy_to(output + offset);
+}
+
+template<typename SIMD, typename Output, std::enable_if_t<!std::is_pointer_v<Output>, bool> = true>
+inline void
+copy_to(const SIMD& simd, Output& output, uint32_t offset)
+{
+    simd.copy_to(output, offset);
+}
+
+template<typename T, int N, typename InputT, std::enable_if_t<std::is_pointer_v<InputT>, bool> = true>
+inline sycl::ext::intel::esimd::simd<T, N>
+gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
+{
+    return sycl::ext::intel::esimd::gather(input + base_offset, offsets*static_cast<uint32_t>(sizeof(T)));
+}
+
+template<typename T, int N, typename InputT, std::enable_if_t<!std::is_pointer_v<InputT>, bool> = true>
+inline sycl::ext::intel::esimd::simd<T, N>
+gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
+{
+    return sycl::ext::intel::esimd::gather<T>(input, offsets*static_cast<uint32_t>(sizeof(T)),
+                                              base_offset*static_cast<uint32_t>(sizeof(T)));
+}
+
+template<typename T, int N, typename InputT,
+         std::enable_if_t<std::is_pointer_v<InputT>, bool> = true>
+inline void
+scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
+        sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+{
+    return sycl::ext::intel::esimd::scatter(input, offsets, vals, mask);
+}
+
+template<typename T, int N, typename InputT,
+         std::enable_if_t<!std::is_pointer_v<InputT>, bool> = true>
+inline void
+scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
+        sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+{
+    sycl::ext::intel::esimd::scatter(input, offsets, vals, /*global_offset*/ 0, mask);
+}
 
 template <typename T, uint32_t R, uint32_t C>
 class simd2d:public sycl::ext::intel::esimd::simd<T, R*C> {
