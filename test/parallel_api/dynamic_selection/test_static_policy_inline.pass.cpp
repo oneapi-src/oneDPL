@@ -15,11 +15,11 @@
 
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
-#include "support/inline_scheduler.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/inline_scheduler.h"
 #include "support/test_ds_utils.h"
 
 int main() {
-  using policy_t = oneapi::dpl::experimental::static_policy_t<int_inline_scheduler_t>;
+  using policy_t = oneapi::dpl::experimental::static_policy_t<oneapi::dpl::experimental::int_inline_scheduler_t>;
   std::vector<int> u{4, 5, 6, 7};
   int test_resource = 4;
   auto f = [test_resource](int i) { return test_resource; };

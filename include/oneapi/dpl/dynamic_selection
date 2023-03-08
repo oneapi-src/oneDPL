@@ -33,8 +33,8 @@ namespace dpl {
 namespace experimental {
 
 #if _DS_BACKEND_SYCL
-  using static_policy = policy<static_policy_impl<default_scheduler_t>>;
-  using round_robin_policy = policy<round_robin_policy_impl<default_scheduler_t>>;
+  using static_policy = policy<static_policy_impl<sycl_scheduler>>;
+  using round_robin_policy = policy<round_robin_policy_impl<sycl_scheduler>>;
   inline static_policy default_policy;
 #endif
   template<typename S> using static_policy_t = policy<static_policy_impl<S>>;

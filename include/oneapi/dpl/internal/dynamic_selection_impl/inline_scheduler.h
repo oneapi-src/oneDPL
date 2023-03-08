@@ -24,6 +24,9 @@
 #include <vector>
 #include <atomic>
 
+namespace oneapi {
+namespace dpl {
+namespace experimental {
 struct int_inline_scheduler_t {
   using native_resource_t = int;
   using native_sync_t = int;
@@ -115,3 +118,8 @@ std::ostream& operator<<(std::ostream &os, const int_inline_scheduler_t::executi
 }
 inline int_inline_scheduler_t int_inline_scheduler;
 
+} //namespace experimental
+} //namespace dpl
+} //namespace oneapi
+
+using default_scheduler_t = oneapi::dpl::experimental::int_inline_scheduler_t;

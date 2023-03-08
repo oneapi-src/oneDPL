@@ -150,8 +150,6 @@ namespace experimental {
 } //namespace dpl
 } //namespace oneapi
 
-using default_scheduler_t = oneapi::dpl::experimental::sycl_scheduler;
-
 namespace sycl {
   std::ostream& operator<<(std::ostream &os, const sycl::queue& q) {
     auto device = q.get_info<sycl::info::queue::device>();

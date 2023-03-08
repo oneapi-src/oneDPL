@@ -15,7 +15,7 @@
 
 
 #include "oneapi/dpl/dynamic_selection"
-#include "support/inline_scheduler.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/inline_scheduler.h"
 
 #include <iostream>
 #include <sstream>
@@ -32,15 +32,15 @@ public:
 };
 
 int test_cout() {
-  int_inline_scheduler_t s;
-  int_inline_scheduler_t::execution_resource_t e;
+  oneapi::dpl::experimental::int_inline_scheduler_t s;
+  oneapi::dpl::experimental::int_inline_scheduler_t::execution_resource_t e;
   std::cout << e;
   return 0;
 }
 
 int test_submit_and_wait_on_scheduler() {
   const int N = 100;
-  int_inline_scheduler_t s;
+  oneapi::dpl::experimental::int_inline_scheduler_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -64,7 +64,7 @@ int test_submit_and_wait_on_scheduler() {
 
 int test_submit_and_wait_on_sync() {
   const int N = 100;
-  int_inline_scheduler_t s;
+  oneapi::dpl::experimental::int_inline_scheduler_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -88,8 +88,8 @@ int test_submit_and_wait_on_sync() {
 }
 
 int test_properties() {
-  int_inline_scheduler_t s;
-  int_inline_scheduler_t::universe_container_t v = { 1,2};
+  oneapi::dpl::experimental::int_inline_scheduler_t s;
+  oneapi::dpl::experimental::int_inline_scheduler_t::universe_container_t v = { 1,2};
   oneapi::dpl::experimental::property::report(s, oneapi::dpl::experimental::property::universe, v);
   auto v2 = oneapi::dpl::experimental::property::query(s, oneapi::dpl::experimental::property::universe);
   auto v2s = v2.size();
