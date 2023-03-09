@@ -21,7 +21,7 @@ New Features
 
 Fixed Issues
 ------------
-- Added a workaroung for the ``TBB headers not found`` issue occurring with libstdc++ version 9 when
+- Added a workaround for the ``TBB headers not found`` issue occurring with libstdc++ version 9 when
   oneTBB headers are not present in the environment. The workaround requires inclusion of
   the oneDPL headers before the libstdc++ headers.
 - С++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake
