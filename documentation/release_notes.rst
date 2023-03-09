@@ -21,13 +21,13 @@ New Features
 
 Fixed Issues
 ------------
-- Fixed ``TBB headers not found`` issue occurring with libstdc++ version 9 when
-  oneTBB headers are not present in the environment. The fix requires inclusion of
+- Added a workaroung for the ``TBB headers not found`` issue occurring with libstdc++ version 9 when
+  oneTBB headers are not present in the environment. The workaround requires inclusion of
   the oneDPL headers before the libstdc++ headers.
 - С++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake
-  on Linux and Windows with some exceptions, see `New in This Release`_
--	Fixed an error in in-place ``exclusive_scan`` algorithm when output iterator is equal to input iterator.
-
+  on Linux and Windows with some exceptions, see `New in This Release`_.
+-	Fixed an error in the ``exclusive_scan`` algorithm when the output iterator is equal to
+  the input iterator (in-place scan).
 
 Known Issues and Limitations
 ----------------------------
