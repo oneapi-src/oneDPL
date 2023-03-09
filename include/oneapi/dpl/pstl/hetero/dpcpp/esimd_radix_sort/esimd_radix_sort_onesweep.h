@@ -25,7 +25,7 @@ namespace oneapi::dpl::experimental::esimd::impl
 {
 
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG>
-void global_histogram(sycl::nd_item<1> idx, size_t n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
+void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
     using bin_t = uint16_t;
     using hist_t = uint32_t;
     using global_hist_t = uint32_t;
@@ -53,12 +53,12 @@ void global_histogram(sycl::nd_item<1> idx, size_t n, const InputT& input, uint3
         sync_init.copy_to(p_sync_buffer + SYNC_SEGMENT_SIZE_DW * tid);
     }
 
-    if ((tid - local_tid) * PROCESS_SIZE > n) {
+    if ((tid - local_tid) * PROCESS_SIZE > __n) {
         //no work for this tg;
         return;
     }
 
-    // cooperative fill 0
+    // onesweep fill 0
     {
         constexpr uint32_t BUFFER_SIZE = STAGES * BINCOUNT;
         constexpr uint32_t THREAD_SIZE = BUFFER_SIZE / THREAD_PER_TG;
@@ -73,8 +73,8 @@ void global_histogram(sycl::nd_item<1> idx, size_t n, const InputT& input, uint3
     bin_t MASK = BINCOUNT-1;
 
     device_addr_t read_addr;
-    for (read_addr = tid * PROCESS_SIZE; read_addr < n; read_addr += addr_step) {
-        if (read_addr+PROCESS_SIZE < n) {
+    for (read_addr = tid * PROCESS_SIZE; read_addr < __n; read_addr += addr_step) {
+        if (read_addr+PROCESS_SIZE < __n) {
             utils::copy_from(keys, input, read_addr);
         }
         else
@@ -82,7 +82,7 @@ void global_histogram(sycl::nd_item<1> idx, size_t n, const InputT& input, uint3
             simd<uint32_t, 16> lane_id(0, 1);
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                simd_mask<16> m = (s+lane_id)<(n-read_addr);
+                simd_mask<16> m = (s+lane_id)<(__n-read_addr);
 
                 // simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+read_addr+s, lane_id*sizeof(KeyT), m);
                 sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
@@ -137,7 +137,7 @@ void inline global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint3
 }
 
 template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG, uint32_t PROCESS_SIZE>
-void onesweep_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t stage, const InputT& input, const OutputT& output, uint8_t *p_global_buffer) {
+void onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const InputT& input, const OutputT& __output, uint8_t *p_global_buffer) {
     using namespace sycl;
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
@@ -169,7 +169,7 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t stage, const Inp
 
     uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
 
-    size_t temp_io_size = n * sizeof(KeyT);
+    size_t temp_io_size = __n * sizeof(KeyT);
 
     global_hist_t *p_global_bin_start_buffer_allstages = reinterpret_cast<global_hist_t*>(p_global_buffer);
     global_hist_t *p_global_bin_start_buffer = p_global_bin_start_buffer_allstages + BIN_COUNT * stage;
@@ -193,16 +193,16 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t stage, const Inp
     {
         simd<KeyT, PROCESS_SIZE> keys;
         simd<bin_t, PROCESS_SIZE> bins;
-        if (io_offset+PROCESS_SIZE < n) {
+        if (io_offset+PROCESS_SIZE < __n) {
             utils::copy_from(keys, input, io_offset);
         }
-        else if (io_offset >= n) {
+        else if (io_offset >= __n) {
             keys = -1;
         }
         else {
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                simd_mask<16> m = (io_offset+lane_id+s)<n;
+                simd_mask<16> m = (io_offset+lane_id+s)<__n;
 
                 // simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id)*sizeof(KeyT));
@@ -335,10 +335,10 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t stage, const Inp
         simd<KeyT, BLOCK_SIZE> keys;
         simd<bin_t, BLOCK_SIZE> bins;
         // auto p_read = input + io_offset;
-        if (io_offset < n) {
+        if (io_offset < __n) {
             for (uint32_t i=0; i<PROCESS_SIZE; i+=BLOCK_SIZE) {
                 simd<device_addr_t, BLOCK_SIZE> lane_id_block(0, 1);
-                simd_mask<BLOCK_SIZE> m = (io_offset+lane_id_block+i)<n;
+                simd_mask<BLOCK_SIZE> m = (io_offset+lane_id_block+i)<__n;
 
                 // simd<KeyT, BLOCK_SIZE> source = lsc_gather<KeyT, 1,
                 //         lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, BLOCK_SIZE>(p_read+i, lane_id_block*uint32_t(sizeof(KeyT)), m);
@@ -355,26 +355,150 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t stage, const Inp
                     bin_offset[bins[s]] += 1;
                 }
                 lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::write_back, cache_hint::write_back, BLOCK_SIZE>(
-                    output,
+                    __output,
                     write_addr*sizeof(KeyT),
-                    keys, write_addr<n);
+                    keys, write_addr<__n);
             }
         }
     }
 }
 
-template<typename KeyT, typename _Range, std::uint32_t RadixBits /* not used*/>
-void onesweep(sycl::queue &q, _Range&& __rng, size_t n, uint32_t process_size) {
+//------------------------------------------------------------------------
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
+//------------------------------------------------------------------------
+template <typename... _Name>
+class __esimd_radix_sort_onesweep_histogram;
+
+template <typename... _Name>
+class __esimd_radix_sort_onesweep_scan;
+
+template <typename... _Name>
+class __esimd_radix_sort_onesweep;
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t HW_TG_COUNT, ::std::uint32_t THREAD_PER_TG,
+          typename _KernelName>
+struct __radix_sort_onesweep_histogram_submitter;
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t HW_TG_COUNT, ::std::uint32_t THREAD_PER_TG,
+          typename... _Name>
+struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG,
+                                                 __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _ExecutionPolicy, typename _Range, typename _GlobalOffsetData, typename _SyncData,
+              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    sycl::event
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, const _GlobalOffsetData& __global_offset_data, const _SyncData& __sync_data,
+               ::std::size_t __n) const
+    {
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        sycl::nd_range<1> __nd_range(HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG);
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            auto __data = __rng.data();
+            __cgh.parallel_for<_Name...>(
+                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                        global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG>(
+                            __nd_item, __n, __data, __global_offset_data, __sync_data);
+                    });
+        });
+    }
+};
+
+template <::std::uint32_t STAGES, ::std::uint32_t BINCOUNT, typename _KernelName>
+struct __radix_sort_onesweep_scan_submitter;
+
+template <::std::uint32_t STAGES, ::std::uint32_t BINCOUNT, typename... _Name>
+struct __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT,
+                                            __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _ExecutionPolicy, typename _GlobalOffsetData,
+              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    sycl::event
+    operator()(_ExecutionPolicy&& __exec, _GlobalOffsetData& __global_offset_data, ::std::size_t __n) const
+    {
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        sycl::nd_range<1> __nd_range(STAGES * BINCOUNT, BINCOUNT);
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
+            __cgh.parallel_for<_Name...>(
+                    __nd_range, [=](sycl::nd_item<1> __nd_item) {
+                        uint32_t __offset = __nd_item.get_global_id(0);
+                        auto __g = __nd_item.get_group();
+                        uint32_t __count = __global_offset_data[__offset];
+                        uint32_t __presum = sycl::exclusive_scan_over_group(__g, __count, sycl::plus<::std::uint32_t>());
+                        __global_offset_data[__offset] = __presum;
+                    });
+        });
+    }
+};
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
+          typename _KernelName>
+struct __radix_sort_onesweep_submitter;
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
+          typename... _Name>
+struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE,
+                                          __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _ExecutionPolicy, typename _Range, typename _Output, typename _TmpData,
+              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    sycl::event
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, const _Output& __output, const _TmpData& __tmp_data,
+               ::std::uint32_t __sweep_tg_count, ::std::size_t __n, ::std::uint32_t __stage) const
+    {
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
+        sycl::nd_range<1> __nd_range(__sweep_tg_count * THREAD_PER_TG, THREAD_PER_TG);
+
+        if((__stage & 1) == 0)
+        {
+            return __exec.queue().submit([&](sycl::handler& __cgh) {
+                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+                auto __data = __rng.data();
+                __cgh.parallel_for<_Name...>(
+                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                            onesweep_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>(
+                                __nd_item, __n, __stage, __data, __output, __tmp_data);
+                        });
+            });
+        }
+        else
+        {
+            return __exec.queue().submit([&](sycl::handler& __cgh) {
+                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+                auto __data = __rng.data();
+                __cgh.parallel_for<_Name...>(
+                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                            onesweep_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>(
+                                __nd_item, __n, __stage, __output, __data, __tmp_data);
+                        });
+            });
+        }
+    }
+};
+
+template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
+          ::std::uint32_t PROCESS_SIZE>
+void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
+{
     using namespace sycl;
     using namespace __ESIMD_NS;
 
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _CustomName = typename _Policy::kernel_name;
+    using _EsimRadixSortHistogram = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __esimd_radix_sort_onesweep_histogram<_CustomName>>;
+    using _EsimRadixSortScan = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __esimd_radix_sort_onesweep_scan<_CustomName>>;
+    using _EsimRadixSort = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __esimd_radix_sort_onesweep<_CustomName>>;
+
     using global_hist_t = uint32_t;
-    constexpr uint32_t RADIX_BITS = 8;
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
     const uint32_t HW_TG_COUNT = 64;
     constexpr uint32_t THREAD_PER_TG = 64;
-    uint32_t SWEEP_PROCESSING_SIZE = process_size;
-    const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
+    uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
+    const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
     const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
@@ -388,161 +512,56 @@ void onesweep(sycl::queue &q, _Range&& __rng, size_t n, uint32_t process_size) {
     size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
                               SYNC_BUFFER_SIZE;  // sync buffer
 
-    uint8_t *tmp_buffer = reinterpret_cast<uint8_t*>(sycl::malloc_device(temp_buffer_size, q));
+    uint8_t *tmp_buffer = reinterpret_cast<uint8_t*>(sycl::malloc_device(temp_buffer_size, __exec.queue()));
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
-    auto output = sycl::malloc_device<uint32_t>(n, q);
-    using OutputT = decltype(output);
+    auto __output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
+    using OutputT = decltype(__output);
 
-    {
-        nd_range<1> Range( (range<1>( HW_TG_COUNT * THREAD_PER_TG)), (range<1>(THREAD_PER_TG)) );
-        auto e = q.submit([&](handler &cgh) {
-            oneapi::dpl::__ranges::__require_access(cgh, __rng);
-            auto __data = __rng.data();
-            cgh.parallel_for<class kernel_global_histogram>(
-                    Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                        global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG> (idx, n, __data, p_global_offset, p_sync_buffer);
-                    });
-        });
-    }
-    {
-        auto e = q.submit([&](handler &cgh) {
-            cgh.parallel_for<class kernel_global_scan>(
-                nd_range<1>({STAGES * BINCOUNT}, {BINCOUNT}), [=](nd_item<1> idx) {
-                    uint32_t offset = idx.get_global_id(0);
-                    auto g = idx.get_group();
-                    uint32_t count = p_global_offset[offset];
-                    uint32_t presum = sycl::exclusive_scan_over_group(g, count, sycl::plus<uint32_t>());
-                    p_global_offset[offset] = presum;
-                });
-            });
-    }
-    {
-        /*
-        sycl::event e;
-        for (uint32_t stage = 0; stage < STAGES; stage++) {
-            nd_range<1> Range( (range<1>( sweep_tg_count * THREAD_PER_TG)), (range<1>(THREAD_PER_TG)) );
-            if (SWEEP_PROCESSING_SIZE == 256) {
-                e = q.submit([&](handler &cgh) {
-                    cgh.parallel_for<class kernel_radix_sort_onesweep_256>(
-                            Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                onesweep_kernel<KeyT, InputT, RADIX_BITS, THREAD_PER_TG, 256> (idx, n, stage, input, output, tmp_buffer);
-                            });
-                });
-            } else if (SWEEP_PROCESSING_SIZE == 512) {
-                e = q.submit([&](handler &cgh) {
-                    cgh.parallel_for<class kernel_radix_sort_onesweep_512>(
-                            Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                onesweep_kernel<KeyT, InputT, RADIX_BITS, THREAD_PER_TG, 512> (idx, n, stage, input, output, tmp_buffer);
-                            });
-                });
-            } else if (SWEEP_PROCESSING_SIZE == 1024) {
-                e = q.submit([&](handler &cgh) {
-                    cgh.parallel_for<class kernel_radix_sort_onesweep_1024>(
-                            Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                onesweep_kernel<KeyT, InputT, RADIX_BITS, THREAD_PER_TG, 1024> (idx, n, stage, input, output, tmp_buffer);
-                            });
-                });
-            } else if (SWEEP_PROCESSING_SIZE == 1536) {
-                e = q.submit([&](handler &cgh) {
-                    cgh.parallel_for<class kernel_radix_sort_onesweep_1536>(
-                            Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                onesweep_kernel<KeyT, InputT, RADIX_BITS, THREAD_PER_TG, 1536> (idx, n, stage, input, output, tmp_buffer);
-                            });
-                });
-            }
-            std::swap(input, output);
+    sycl::event __e = __radix_sort_onesweep_histogram_submitter<
+        KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, _EsimRadixSortHistogram>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), p_global_offset, p_sync_buffer, __n);
+    __e.wait();
 
+    __e = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimRadixSortScan>()(
+        ::std::forward<_ExecutionPolicy>(__exec), p_global_offset, __n);
+    __e.wait();
+
+    for (::std::uint32_t __stage = 0; __stage < STAGES; __stage++)
+    {
+        if (SWEEP_PROCESSING_SIZE == 256)
+        {
+            __e = __radix_sort_onesweep_submitter<
+                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, _EsimRadixSort>()(
+                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                    __output, tmp_buffer, sweep_tg_count, __n, __stage);
         }
-        */
-        sycl::event e;
-        for (uint32_t stage = 0; stage < STAGES; stage++) {
-            nd_range<1> Range( (range<1>( sweep_tg_count * THREAD_PER_TG)), (range<1>(THREAD_PER_TG)) );
-            if((stage & 1) == 0)
-            {
-                if (SWEEP_PROCESSING_SIZE == 256) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_256>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 256> (idx, n, stage, __data, output, tmp_buffer);
-                                });
-                    });
-                } else if (SWEEP_PROCESSING_SIZE == 512) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_512>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 512> (idx, n, stage, __data, output, tmp_buffer);
-                                });
-                    });
-                } else if (SWEEP_PROCESSING_SIZE == 1024) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_1024>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 1024> (idx, n, stage, __data, output, tmp_buffer);
-                                });
-                    });
-                } else if (SWEEP_PROCESSING_SIZE == 1536) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_1536>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, decltype(__data), OutputT, RADIX_BITS, THREAD_PER_TG, 1536> (idx, n, stage, __data, output, tmp_buffer);
-                                });
-                    });
-                }
-            }
-            else
-            {
-                if (SWEEP_PROCESSING_SIZE == 256) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_256_odd>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 256> (idx, n, stage, output, __data, tmp_buffer);
-                                });
-                    });
-                } else if (SWEEP_PROCESSING_SIZE == 512) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_512_odd>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 512> (idx, n, stage, output, __data, tmp_buffer);
-                                });
-                    });
-                } else if (SWEEP_PROCESSING_SIZE == 1024) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_1024_odd>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 1024> (idx, n, stage, output, __data, tmp_buffer);
-                                });
-                    });
-                } else if (SWEEP_PROCESSING_SIZE == 1536) {
-                    e = q.submit([&](handler &cgh) {
-                        oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                        auto __data = __rng.data();
-                        cgh.parallel_for<class kernel_radix_sort_onesweep_1536_odd>(
-                                Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                                    onesweep_kernel<KeyT, OutputT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 1536> (idx, n, stage, output, __data, tmp_buffer);
-                                });
-                    });
-                }
-            }
+        else if (SWEEP_PROCESSING_SIZE == 512)
+        {
+            __e = __radix_sort_onesweep_submitter<
+                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 512, _EsimRadixSort>()(
+                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                    __output, tmp_buffer, sweep_tg_count, __n, __stage);
         }
-        e.wait();
+        else if (SWEEP_PROCESSING_SIZE == 1024)
+        {
+            __e = __radix_sort_onesweep_submitter<
+                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 1024, _EsimRadixSort>()(
+                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                    __output, tmp_buffer, sweep_tg_count, __n, __stage);
+        }
+        else if (SWEEP_PROCESSING_SIZE == 1536)
+        {
+            __e = __radix_sort_onesweep_submitter<
+                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 1536, _EsimRadixSort>()(
+                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                    __output, tmp_buffer, sweep_tg_count, __n, __stage);
+        }
+        __e.wait();
     }
-    sycl::free(tmp_buffer, q);
-    sycl::free(output, q);
+
+    sycl::free(tmp_buffer, __exec.queue());
+    sycl::free(__output, __exec.queue());
 }
 
 } // oneapi::dpl::experimental::esimd::impl
