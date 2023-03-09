@@ -311,45 +311,73 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
     }
 }
 
-template <typename KeyT, typename _Range, std::uint32_t RadixBits>
-void cooperative(sycl::queue &q, _Range&& __rng, size_t n) {
+//------------------------------------------------------------------------
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
+//------------------------------------------------------------------------
+template <typename... _Name>
+class __esimd_radix_sort_cooperative;
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
+          typename _KernelName>
+struct __radix_sort_cooperative_submitter;
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
+          typename... _Name>
+struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE,
+                                          __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _ExecutionPolicy, typename _Range, typename _SyncData,
+              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    sycl::event
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, const _SyncData& __sync_data) const
+    {
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
+        sycl::nd_range<1> __nd_range{THREAD_PER_TG * __groups, THREAD_PER_TG};
+
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            auto __data = __rng.data();
+            __cgh.parallel_for<_Name...>(
+                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                        cooperative_kernel<KeyT, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE> (
+                            __nd_item, __n, __data, __sync_data);
+                    });
+        });
+    }
+};
+
+template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS>
+void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
-    constexpr uint32_t RADIX_BITS = 8;
     constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
     constexpr uint32_t THREAD_PER_TG = 64;
     uint32_t MAX_GROUPS = 56; //TODO: get from sycl api
 
-    auto p_sync = static_cast<uint32_t*>(sycl::malloc_device(1024 + (MAX_GROUPS+2) * BIN_COUNT * sizeof(uint32_t), q));
-    sycl::event e;
+    auto p_sync = static_cast<uint32_t*>(sycl::malloc_device(1024 + (MAX_GROUPS+2) * BIN_COUNT * sizeof(uint32_t), __exec.queue()));
+
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _CustomName = typename _Policy::kernel_name;
+    using _EsimRadixSort = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __esimd_radix_sort_cooperative<_CustomName>>;
+
+    sycl::event __e;
+    if (__n <= 128 * THREAD_PER_TG * MAX_GROUPS)
     {
-        if (n<=128 * THREAD_PER_TG * MAX_GROUPS) {
-            uint32_t groups = oneapi::dpl::__internal::__dpl_ceiling_div(n, 128 * THREAD_PER_TG);
-            nd_range<1> Range( (range<1>(THREAD_PER_TG * groups)), (range<1>(THREAD_PER_TG)));
-            e = q.submit([&](handler &cgh) {
-                oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                auto __data = __rng.data();
-                cgh.parallel_for<class kernel_radix_sort_cooperative_128>(
-                        Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            cooperative_kernel<KeyT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 128> (idx, n, __data, p_sync);
-                        });
-            });
-        } else if (n<=256 * THREAD_PER_TG * MAX_GROUPS) {
-            uint32_t groups = oneapi::dpl::__internal::__dpl_ceiling_div(n, 256 * THREAD_PER_TG);
-            nd_range<1> Range( (range<1>(THREAD_PER_TG * groups)), (range<1>(THREAD_PER_TG)));
-            e = q.submit([&](handler &cgh) {
-                oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                auto __data = __rng.data();
-                cgh.parallel_for<class kernel_radix_sort_cooperative_256>(
-                        Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            cooperative_kernel<KeyT, decltype(__data), RADIX_BITS, THREAD_PER_TG, 256> (idx, n, __data, p_sync);
-                        });
-            });
-        }
+        __e = __radix_sort_cooperative_submitter<
+            KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 128, _EsimRadixSort>()(
+                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, p_sync);
     }
-    e.wait();
-    sycl::free(p_sync, q);
+    else if (__n <= 256 * THREAD_PER_TG * MAX_GROUPS)
+    {
+        __e = __radix_sort_cooperative_submitter<
+            KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, _EsimRadixSort>()(
+                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, p_sync);
+    }
+    __e.wait();
+    sycl::free(p_sync, __exec.queue());
 }
 
 } // oneapi::dpl::experimental::esimd::impl
