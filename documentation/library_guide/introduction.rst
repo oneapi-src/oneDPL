@@ -96,6 +96,8 @@ Known Limitations
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   vector execution policies when building a program with GCC 10 and using ``-O0`` option.
+* For ``reduce`` and ``transform_reduce`` algorithms compilation with Intel DPC++ Compiler 2021 and older may result in a
+  runtime error.  To overcome this issue use a Intel DPC++ Compiler 2022 or newer.
 * The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
