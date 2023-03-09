@@ -70,6 +70,8 @@
 #define TEST_UNNAMED_LAMBDAS 0
 #endif
 
+// The TEST_USE_KERNEL_NAMES macro may be defined on CMake level in CMakeLists.txt
+// so we should check here is it defined or no
 #ifndef TEST_USE_KERNEL_NAMES
 #    if __SYCL_UNNAMED_LAMBDA__
 #        define TEST_USE_KERNEL_NAMES 0
