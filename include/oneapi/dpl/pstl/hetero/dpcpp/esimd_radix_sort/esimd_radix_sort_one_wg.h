@@ -182,60 +182,88 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     }
 }
 
-template <typename KeyT, typename _Range, std::uint32_t RadixBits>
-void one_wg(sycl::queue &q, _Range&& __rng, size_t n) {
+//------------------------------------------------------------------------
+// Please see the comment for __parallel_for_submitter for optional kernel name explanation
+//------------------------------------------------------------------------
+template <typename... _Name>
+class __esimd_radix_sort_one_wg;
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t PROCESS_SIZE, typename _KernelName>
+struct __radix_sort_one_wg_submitter;
+
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t PROCESS_SIZE, typename... _Name>
+struct __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE,
+                                     __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _ExecutionPolicy, typename _Range,
+              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    sycl::event
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __tg_count) const
+    {
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        sycl::nd_range<1> __nd_range{__tg_count, __tg_count};
+
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            auto __data = __rng.data();
+            __cgh.parallel_for<_Name...>(
+                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                        one_wg_kernel<KeyT,  decltype(__data), RADIX_BITS, PROCESS_SIZE> (
+                            __nd_item, __n, __tg_count, __data);
+                    });
+        });
+    }
+};
+
+template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS>
+void one_wg(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
-    constexpr uint32_t RADIX_BITS = 8;
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
     constexpr uint32_t MAX_TG_COUNT = 64;
     constexpr uint32_t MIN_TG_COUNT = 8;
     uint32_t PROCESS_SIZE = 64;
-    if (n<MIN_TG_COUNT*64) {
-    PROCESS_SIZE = 64;
-    } else if (n<MIN_TG_COUNT*128) {
-        PROCESS_SIZE = 128;
-    } else {
-    PROCESS_SIZE = 256;
-    };
 
-    uint32_t TG_COUNT = oneapi::dpl::__internal::__dpl_ceiling_div(n, PROCESS_SIZE);
+    if (__n < MIN_TG_COUNT*64)
+    {
+        PROCESS_SIZE = 64;
+    }
+    else if (__n < MIN_TG_COUNT*128)
+    {
+        PROCESS_SIZE = 128;
+    }
+    else
+    {
+        PROCESS_SIZE = 256;
+    }
+
+    uint32_t TG_COUNT = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE);
     TG_COUNT = std::max(TG_COUNT, MIN_TG_COUNT);
 
-    sycl::event e;
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _CustomName = typename _Policy::kernel_name;
+    using _EsimRadixSortKernel =
+    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_CustomName>>;
+
+    sycl::event __e;
+    if (PROCESS_SIZE == 64)
     {
-        nd_range<1> Range( (range<1>(TG_COUNT)), (range<1>(TG_COUNT)) );
-        if (PROCESS_SIZE==64) {
-            e = q.submit([&](handler &cgh) {
-                oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                auto __data = __rng.data();
-                cgh.parallel_for<class kernel_radix_sort_one_tg_64>(
-                        Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            one_wg_kernel<KeyT,  decltype(__data), RADIX_BITS, 64> (idx, n, TG_COUNT, __data);
-                        });
-            });
-        } else if (PROCESS_SIZE==128) {
-            e = q.submit([&](handler &cgh) {
-                oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                auto __data = __rng.data();
-                cgh.parallel_for<class kernel_radix_sort_one_tg_128>(
-                        Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            one_wg_kernel<KeyT, decltype(__data), RADIX_BITS, 128> (idx, n, TG_COUNT, __data);
-                        });
-            });
-        } else if (PROCESS_SIZE==256) {
-            e = q.submit([&](handler &cgh) {
-                oneapi::dpl::__ranges::__require_access(cgh, __rng);
-                auto __data = __rng.data();
-                cgh.parallel_for<class kernel_radix_sort_one_tg_256>(
-                        Range, [=](nd_item<1> idx) [[intel::sycl_explicit_simd]] {
-                            one_wg_kernel<KeyT,  decltype(__data), RADIX_BITS, 256> (idx, n, TG_COUNT, __data);
-                        });
-            });
-        }
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 64, _EsimRadixSortKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
-    e.wait();
+
+    else if (PROCESS_SIZE == 128)
+    {
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 128, _EsimRadixSortKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, TG_COUNT);
+    }
+    else
+    {
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 256, _EsimRadixSortKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, TG_COUNT);
+    }
+    __e.wait();
 }
 
 } // oneapi::dpl::experimental::esimd::impl
