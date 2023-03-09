@@ -52,35 +52,34 @@ template <typename _ExecutionPolicy, typename _Range, bool IsAscending = true, s
 void
 radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
+    // TODO: check cases with n == 0 or 1;
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
 
-    auto __q = __exec.queue();
     const ::std::size_t __n = __rng.size();
-
     if (__n <= 16384)
     {
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
-        // TODO: generate unique kernel names
         // TODO: allow all RadixBits values (only 7 or 8 are currently supported)
-        oneapi::dpl::experimental::esimd::impl::one_wg<_KeyT, _Range, RadixBits>(__q, ::std::forward<_Range>(__rng), __n);
+        oneapi::dpl::experimental::esimd::impl::one_wg<_ExecutionPolicy, _KeyT, _Range, RadixBits>(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
     else if (__n <= 262144)
     {
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
-        // TODO: generate unique kernel names
-        oneapi::dpl::experimental::esimd::impl::cooperative<_KeyT, _Range, RadixBits>(__q, ::std::forward<_Range>(__rng), __n);
+        oneapi::dpl::experimental::esimd::impl::cooperative<_ExecutionPolicy, _KeyT, _Range, RadixBits>(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
     else
     {
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
-        // TODO: generate unique kernel names
-        // TODO: avoid kernel duplication (generate the output storate with the same type as __data and use swap)
-        // TODO: allow different RadixBits, make sure the data is in __data after the last stage
-        // TODO: pass process_size according to __n
-        oneapi::dpl::experimental::esimd::impl::onesweep<_KeyT, _Range, RadixBits>(__q, ::std::forward<_Range>(__rng), __n, /*process_size*/ 512);
+        // TODO: avoid kernel duplication (generate the output storate with the same type as input storatge and use swap)
+        // TODO: allow different RadixBits, make sure the data is in the input storage after the last stage
+        // TODO: pass _ProcessSize according to __n
+        oneapi::dpl::experimental::esimd::impl::onesweep<_ExecutionPolicy, _KeyT, _Range, RadixBits, /*_ProcessSize*/ 512>(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
 }
 
