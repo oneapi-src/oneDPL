@@ -26,8 +26,8 @@ Fixed Issues
   the oneDPL headers before the libstdc++ headers.
 - С++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake
   on Linux and Windows with some exceptions, see `New in This Release`_.
--	Fixed an error in the ``exclusive_scan`` algorithm when the output iterator is equal to
-  the input iterator (in-place scan).
+- Fixed an error in the ``exclusive_scan`` algorithm when the output iterator is equal to the
+  input iterator (in-place scan).
 
 Known Issues and Limitations
 ----------------------------
