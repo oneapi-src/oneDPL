@@ -103,7 +103,6 @@ void test_subrange_view(uint32_t n, sycl::queue& q)
     verify(input, ref);
 }
 
-
 template<typename T>
 test_sycl_iterators()
 {
@@ -111,10 +110,13 @@ test_sycl_iterators()
 
 */
 
-
 int main()
 {
-    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024, 32768, 524228};
+    // std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024}; // only one_wg
+    // std::vector<std::size_t> sizes = {32'768, 50'000, 100'000}; // only cooperative
+    // std::vector<std::size_t> sizes = {524228, 1'000'000}; // only onesweep
+    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024, 32768, 50000, 524228, 1'000'000};
+
     for(auto size: sizes)
     {
         test_all_view<uint32_t>(size);
