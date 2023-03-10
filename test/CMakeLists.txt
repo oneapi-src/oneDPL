@@ -33,19 +33,19 @@ else()
 endif()
 
 # usage of Kernel names in tests
-option(TEST_USE_KERNEL_NAMES "Use kernel names in tests" AUTO)
-set(TEST_USE_KERNEL_NAMES "AUTO" CACHE STRING "BY default, we use TEST_USE_KERNEL_NAMES=AUTO : usage of Kernel names in tests depends on unnamed lambda option" FORCE)
-set_property(CACHE TEST_USE_KERNEL_NAMES PROPERTY STRINGS AUTO ALWAYS)
-message(STATUS "Usage of Kernel names in tests: TEST_USE_KERNEL_NAMES=${TEST_USE_KERNEL_NAMES}")
-if (${TEST_USE_KERNEL_NAMES} STREQUAL "AUTO")
+option(TEST_EXPLICIT_KERNEL_NAMES "Use kernel names in tests" AUTO)
+set(TEST_EXPLICIT_KERNEL_NAMES "AUTO" CACHE STRING "BY default, we use TEST_EXPLICIT_KERNEL_NAMES=AUTO : usage of Kernel names in tests depends on unnamed lambda option" FORCE)
+set_property(CACHE TEST_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS AUTO ALWAYS)
+message(STATUS "Usage of Kernel names in tests: TEST_EXPLICIT_KERNEL_NAMES=${TEST_EXPLICIT_KERNEL_NAMES}")
+if (${TEST_EXPLICIT_KERNEL_NAMES} STREQUAL "AUTO")
     message(STATUS "    Usage of Kernel names in tests depends on unnamed lambda option")
-    #stay TEST_USE_KERNEL_NAMES as undefined in C++ code
-elseif(${TEST_USE_KERNEL_NAMES} STREQUAL "ALWAYS")
+    #stay TEST_EXPLICIT_KERNEL_NAMES as undefined in C++ code
+elseif(${TEST_EXPLICIT_KERNEL_NAMES} STREQUAL "ALWAYS")
     add_compile_definitions(TEST_EXPLICIT_KERNEL_NAMES=1)
     message(STATUS "    Use Kernel names in tests :")
     message(STATUS "        #define TEST_EXPLICIT_KERNEL_NAMES 1")
 else()
-    message(FATAL_ERROR "Invalid value of property TEST_USE_KERNEL_NAMES (AUTO, ALWAYS) : '${TEST_USE_KERNEL_NAMES}'")
+    message(FATAL_ERROR "Invalid value of property TEST_EXPLICIT_KERNEL_NAMES (AUTO, ALWAYS) : '${TEST_EXPLICIT_KERNEL_NAMES}'")
 endif()
 
 add_custom_target(build-onedpl-tests
