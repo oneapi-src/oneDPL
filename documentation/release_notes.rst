@@ -15,8 +15,8 @@ New Features
 ------------
 - Added ``generate``, ``generate_n``, ``transform`` algorithms to `Tested Standard C++ API`_.
 - Improved performance of the ``inclusive_scan``, ``exclusive_scan``, ``reduce`` and
-  ``max_element`` algorithms on heterogeneous devices.
-- Improved performance of ``sort`` and ``stable_sort`` APIs for arithmetic data types
+  ``max_element`` algorithms with DPC++ execution policies.
+- Improved performance of the ``sort`` and ``stable_sort`` algorithms for arithmetic data types
   used with DPC++ execution policies.
 
 Fixed Issues
@@ -24,23 +24,12 @@ Fixed Issues
 - Added a workaround for the ``TBB headers not found`` issue occurring with libstdc++ version 9 when
   oneTBB headers are not present in the environment. The workaround requires inclusion of
   the oneDPL headers before the libstdc++ headers.
-- С++ 17 is now required as a minimal standard version when oneDPL is integrated through CMake
-  on Linux and Windows with some exceptions, see `New in This Release`_.
+- When possible, oneDPL CMake scripts now enforce C++17 as the minimally required language version.
 - Fixed an error in the ``exclusive_scan`` algorithm when the output iterator is equal to the
   input iterator (in-place scan).
 
 Known Issues and Limitations
 ----------------------------
-.. _New in This Release:
-
-New in This Release:
-^^^^^^^^^^^^^^^^^^^
-- Intel® oneAPI DPC++/C++ Compiler drivers with Linux-style options (``dpcpp`` and ``icpx``) may not work properly on
-  Windows due to some limitations of CMake 3.20 and newer. It may result, for example, in not recognized compiler features.
-  We recommend using ``icx`` or ``icx-cl`` on Windows while integrating oneDPL through CMake.
--	Input and output iterators should have the same type for in-place ``exclusive_scan`` algorithm. 
-- Undefined behaviour in in-place ``exclusive_scan`` algorithm when output iterator is not equal to input iterator.
-
 Existing Issues
 ^^^^^^^^^^^^^^^
 See oneDPL Guide for other `restrictions and known limitations`_.
@@ -471,4 +460,3 @@ Known Issues and Limitations
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
 .. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.html
-
