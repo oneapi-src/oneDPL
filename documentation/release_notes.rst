@@ -16,8 +16,6 @@ New Features
 - Added ``generate``, ``generate_n``, ``transform`` algorithms to `Tested Standard C++ API`_.
 - Improved performance of the ``inclusive_scan``, ``exclusive_scan``, ``reduce`` and
   ``max_element`` algorithms with DPC++ execution policies.
-- Improved performance of the ``sort`` and ``stable_sort`` algorithms for arithmetic data types
-  used with DPC++ execution policies.
 
 Fixed Issues
 ------------
