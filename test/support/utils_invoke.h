@@ -40,7 +40,7 @@ using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, 
 /**
  * make_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on TEST_USE_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
  */
@@ -48,17 +48,17 @@ template <typename... Types>
 oneapi::dpl::execution::device_policy<Types...>
 make_device_policy(sycl::queue q)
 {
-#if TEST_USE_KERNEL_NAMES
+#if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_device_policy<Types...>(q);
 #else
     return oneapi::dpl::execution::make_device_policy<>(q);
-#endif // TEST_USE_KERNEL_NAMES
+#endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 
 /**
  * make_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on TEST_USE_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
  */
@@ -66,18 +66,18 @@ template <typename... Types>
 oneapi::dpl::execution::device_policy<Types...>
 make_device_policy(sycl::device d)
 {
-#if TEST_USE_KERNEL_NAMES
+#if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_device_policy<Types...>(d);
 #else
     return oneapi::dpl::execution::make_device_policy<>(d);
-#endif // if TEST_USE_KERNEL_NAMES
+#endif // if TEST_EXPLICIT_KERNEL_NAMES
 }
 
 #   if _ONEDPL_FPGA_DEVICE
 /**
  * make_fpga_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on TEST_USE_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
@@ -85,17 +85,17 @@ template <typename... Types>
 oneapi::dpl::execution::fpga_policy<Types...>
 make_fpga_policy(sycl::queue q)
 {
-#if TEST_USE_KERNEL_NAMES
+#if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_fpga_policy<Types...>(q);
 #else
     return oneapi::dpl::execution::make_fpga_policy<>(q);
-#endif // TEST_USE_KERNEL_NAMES
+#endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 
 /**
  * make_fpga_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on TEST_USE_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
@@ -103,11 +103,11 @@ template <typename... Types>
 oneapi::dpl::execution::fpga_policy<Types...>
 make_fpga_policy(sycl::device d)
 {
-#if TEST_USE_KERNEL_NAMES
+#if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_fpga_policy<Types...>(d);
 #else
     return oneapi::dpl::execution::make_fpga_policy<>(d);
-#endif // TEST_USE_KERNEL_NAMES
+#endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 #   endif // _ONEDPL_FPGA_DEVICE
 
