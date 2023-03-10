@@ -51,7 +51,7 @@ make_device_policy(sycl::queue q)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_device_policy<Types...>(q);
 #else
-    return oneapi::dpl::execution::make_device_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(q);
+    return oneapi::dpl::execution::make_device_policy(q);
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 
@@ -69,7 +69,7 @@ make_device_policy(sycl::device d)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_device_policy<Types...>(d);
 #else
-    return oneapi::dpl::execution::make_device_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(d);
+    return oneapi::dpl::execution::make_device_policy(d);
 #endif // if TEST_EXPLICIT_KERNEL_NAMES
 }
 
@@ -88,7 +88,7 @@ make_fpga_policy(sycl::queue q)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_fpga_policy<Types...>(q);
 #else
-    return oneapi::dpl::execution::make_fpga_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(q);
+    return oneapi::dpl::execution::make_fpga_policy(q);
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 
@@ -106,7 +106,7 @@ make_fpga_policy(sycl::device d)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_fpga_policy<Types...>(d);
 #else
-    return oneapi::dpl::execution::make_fpga_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(d);
+    return oneapi::dpl::execution::make_fpga_policy(d);
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 #endif // _ONEDPL_FPGA_DEVICE
