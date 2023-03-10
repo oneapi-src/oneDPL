@@ -51,7 +51,7 @@ make_device_policy(sycl::queue q)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_device_policy<Types...>(q);
 #else
-    return oneapi::dpl::execution::make_device_policy<>(q);
+    return oneapi::dpl::execution::make_device_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(q);
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 
@@ -69,11 +69,11 @@ make_device_policy(sycl::device d)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_device_policy<Types...>(d);
 #else
-    return oneapi::dpl::execution::make_device_policy<>(d);
+    return oneapi::dpl::execution::make_device_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(d);
 #endif // if TEST_EXPLICIT_KERNEL_NAMES
 }
 
-#   if _ONEDPL_FPGA_DEVICE
+#if _ONEDPL_FPGA_DEVICE
 /**
  * make_fpga_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
@@ -88,7 +88,7 @@ make_fpga_policy(sycl::queue q)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_fpga_policy<Types...>(q);
 #else
-    return oneapi::dpl::execution::make_fpga_policy<>(q);
+    return oneapi::dpl::execution::make_fpga_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(q);
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 
@@ -106,10 +106,10 @@ make_fpga_policy(sycl::device d)
 #if TEST_EXPLICIT_KERNEL_NAMES
     return oneapi::dpl::execution::make_fpga_policy<Types...>(d);
 #else
-    return oneapi::dpl::execution::make_fpga_policy<>(d);
+    return oneapi::dpl::execution::make_fpga_policy</* DO NOT PASS TEMPLATE PARAMS HERE */>(d);
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
-#   endif // _ONEDPL_FPGA_DEVICE
+#endif // _ONEDPL_FPGA_DEVICE
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
