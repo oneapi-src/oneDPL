@@ -23,6 +23,7 @@
 #include <type_traits>
 #include <tuple>
 #include <utility>
+#include <climits>
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/sycl_defs.h"
@@ -610,7 +611,7 @@ __dpl_bit_floor(_T __x) noexcept
     return ::std::bit_floor(__x);
 #elif _ONEDPL_BACKEND_SYCL
     // Use the count-leading-zeros function
-    return 1 << (sizeof(_T) * 8 - sycl::clz(__x) - 1);
+    return 1 << (sizeof(_T) * CHAR_BIT - sycl::clz(__x) - 1);
 #else
     // Fill all the lower bits with 1s
     __x |= (__x >> 1);
@@ -620,7 +621,7 @@ __dpl_bit_floor(_T __x) noexcept
     if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
     if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
     __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
-    return (__x == 0) ? 1 << (sizeof(_T) * 8 - 1) : __x >> 1;
+    return (__x == 0) ? 1 << (sizeof(_T) * CHAR_BIT - 1) : __x >> 1;
 #endif
 }
 
