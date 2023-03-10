@@ -99,7 +99,7 @@ make_new_policy(_Policy&& __policy)
     -> decltype(TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy)))
 {
-    return make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
+    return TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy));
 }
 #endif
@@ -116,7 +116,7 @@ make_new_policy(_Policy&& __policy)
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_fpga;
 #    else
-        oneapi::dpl::execution::make_fpga_policy(sycl::queue{default_selector});
+        TestUtils::make_fpga_policy(sycl::queue{default_selector});
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
 #else
     auto default_selector =

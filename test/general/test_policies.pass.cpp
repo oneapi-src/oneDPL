@@ -96,11 +96,11 @@ main()
     test_policy_instance(dpcpp_fpga);
 
     // make_fpga_policy
-    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 1, class Kernel_31>(sycl::queue{TestUtils::default_selector}));
-    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 2, class Kernel_32>(sycl::device{TestUtils::default_selector}));
-    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 4, class Kernel_33>(dpcpp_fpga));
-    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 8, class Kernel_34>());
-    test_policy_instance(make_fpga_policy</*unroll_factor =*/ 16, class Kernel_35>(sycl::queue{TestUtils::default_selector}));
+    test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 1, class Kernel_31>(sycl::queue{TestUtils::default_selector}));
+    test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 2, class Kernel_32>(sycl::device{TestUtils::default_selector}));
+    test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 4, class Kernel_33>(dpcpp_fpga));
+    test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 8, class Kernel_34>());
+    test_policy_instance(TestUtils::make_fpga_policy</*unroll_factor =*/ 16, class Kernel_35>(sycl::queue{TestUtils::default_selector}));
 
     // fpga_policy
     test_policy_instance(fpga_policy</*unroll_factor =*/ 1, class Kernel_41>(sycl::queue{TestUtils::default_selector}));
