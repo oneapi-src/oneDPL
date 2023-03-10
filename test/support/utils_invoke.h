@@ -38,16 +38,46 @@ template <typename Policy, int idx>
 using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
 
 #    if TEST_USE_KERNEL_NAMES
-#        define TEST_MAKE_DEVICE_POLICY(...) oneapi::dpl::execution::make_device_policy<__VA_ARGS__>
-#    else
-#        define TEST_MAKE_DEVICE_POLICY(...) oneapi::dpl::execution::make_device_policy
-#    endif // TEST_USE_KERNEL_NAMES
-
-#    if TEST_USE_KERNEL_NAMES
 #        define TEST_MAKE_FPGA_POLICY(...) oneapi::dpl::execution::make_fpga_policy<__VA_ARGS__>
 #    else
 #        define TEST_MAKE_FPGA_POLICY(...) oneapi::dpl::execution::make_fpga_policy
 #    endif // TEST_USE_KERNEL_NAMES
+
+/**
+ * make_policy functions test wrappers
+ * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_USE_KERNEL_NAMES macro state.
+ * 
+ * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
+ */
+template <typename... Types>
+oneapi::dpl::execution::device_policy<Types...>
+make_device_policy(sycl::queue q)
+{
+#if TEST_USE_KERNEL_NAMES
+    return oneapi::dpl::execution::make_device_policy<Types...>(q);
+#else
+    return oneapi::dpl::execution::make_device_policy<>(q);
+#endif // TEST_USE_KERNEL_NAMES
+}
+
+/**
+ * make_policy functions test wrappers
+ * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_USE_KERNEL_NAMES macro state.
+ * 
+ * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
+ */
+template <typename... Types>
+oneapi::dpl::execution::device_policy<Types...>
+make_device_policy(sycl::device d)
+{
+#if TEST_USE_KERNEL_NAMES
+    return oneapi::dpl::execution::make_device_policy<Types...>(d);
+#else
+    return oneapi::dpl::execution::make_device_policy<>(d);
+#endif // if TEST_USE_KERNEL_NAMES
+}
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -153,7 +183,7 @@ struct invoke_on_all_hetero_policies
 #if ONEDPL_FPGA_DEVICE
                 TEST_MAKE_FPGA_POLICY(/*unroll_factor = */ 1, kernel_name)(queue);
 #else
-                TEST_MAKE_DEVICE_POLICY(kernel_name)(queue);
+                TestUtils::make_device_policy<kernel_name>(queue);
 #endif
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, op, ::std::forward<Args>(rest)...);

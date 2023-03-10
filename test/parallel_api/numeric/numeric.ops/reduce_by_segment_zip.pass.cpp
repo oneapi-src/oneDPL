@@ -65,7 +65,7 @@ test_with_usm()
     auto begin_keys_out= oneapi::dpl::make_zip_iterator(d_output_keys1, d_output_keys2);
 
     //run reduce_by_segment algorithm
-    auto policy = TEST_MAKE_DEVICE_POLICY(KernelName)(q);
+    auto policy = TestUtils::make_device_policy<KernelName>(q);
     auto new_last =
         oneapi::dpl::reduce_by_segment(policy, begin_keys_in, end_keys_in, d_values, begin_keys_out, d_output_values);
     q.wait();

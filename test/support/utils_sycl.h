@@ -86,9 +86,9 @@ template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(TEST_MAKE_DEVICE_POLICY(_NewKernelName)(::std::forward<_Policy>(__policy)))
+    -> decltype(TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
 {
-    return TEST_MAKE_DEVICE_POLICY(_NewKernelName)(::std::forward<_Policy>(__policy));
+    return TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
 }
 
 #if ONEDPL_FPGA_DEVICE

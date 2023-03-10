@@ -38,7 +38,7 @@ test_exclusive_scan(sycl::queue q,
 
     using KernelClassName1 = TestUtils::unique_kernel_name<TestUtils::unique_kernel_name<class KernelName, 1>,
                                                            TestUtils::uniq_kernel_index<alloc_type>()>;
-    auto policy = TEST_MAKE_DEVICE_POLICY(KernelClassName1)(q);
+    auto policy = TestUtils::make_device_policy<KernelClassName1>(q);
 
     oneapi::dpl::exclusive_scan_by_segment(
         policy,
@@ -73,7 +73,7 @@ test_exclusive_scan(sycl::queue q,
 
     using KernelClassName2 = TestUtils::unique_kernel_name<TestUtils::unique_kernel_name<class KernelName, 2>,
                                                            TestUtils::uniq_kernel_index<alloc_type>()>;
-    auto policy = TEST_MAKE_DEVICE_POLICY(KernelClassName2)(q);
+    auto policy = TestUtils::make_device_policy<KernelClassName2>(q);
 
     oneapi::dpl::exclusive_scan_by_segment(
         policy,

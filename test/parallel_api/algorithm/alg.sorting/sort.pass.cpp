@@ -338,7 +338,7 @@ test_default_name_gen(Convert convert, size_t n)
     TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
     TestUtils::Sequence<T> expected(in);
     TestUtils::Sequence<T> tmp(in);
-    auto my_policy = TEST_MAKE_DEVICE_POLICY(class KernelName)(TestUtils::get_test_queue());
+    auto my_policy = TestUtils::make_device_policy<class KernelName>(TestUtils::get_test_queue());
     
     TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
