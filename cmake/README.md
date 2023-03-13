@@ -108,4 +108,8 @@ This section is applicable for oneDPL packaging creation process, but not for us
 
 How to use:
 
-`cmake [-DOUTPUT_DIR=<output_dir>] -P cmake/scripts/generate_config.cmake`
+`cmake [-DSKIP_HEADERS_SUBDIR=<TRUE|FALSE>] [-DOUTPUT_DIR=<output_dir>] -P cmake/scripts/generate_config.cmake`
+
+When `SKIP_HEADERS_SUBDIR` is set to false or not defined (by default), the script adds the subdirectories:
+- `windows` and `linux` for headers in `<prefix></subdirectory>/include` pattern.
+- `pkgconfig-win` and `pkgconfig-lin` for pkg-config files in `<prefix></subdirectory>/dpl.pc` pattern.
