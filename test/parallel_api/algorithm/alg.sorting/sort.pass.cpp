@@ -328,6 +328,7 @@ struct test_sort_op
 };
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#    if __SYCL_UNNAMED_LAMBDA__
 template <typename T, typename Convert>
 void
 test_default_name_gen(Convert convert, size_t n)
@@ -338,7 +339,7 @@ test_default_name_gen(Convert convert, size_t n)
     TestUtils::Sequence<T> in(n + 2, [=](size_t k) { return convert(k, rand() % (2 * n + 1)); });
     TestUtils::Sequence<T> expected(in);
     TestUtils::Sequence<T> tmp(in);
-    auto my_policy = TestUtils::make_device_policy<class KernelName>(TestUtils::get_test_queue());
+    auto my_policy = oneapi::dpl::execution::make_device_policy(TestUtils::get_test_queue());
     
     TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
@@ -348,7 +349,8 @@ test_default_name_gen(Convert convert, size_t n)
                     in.size(), ::std::less<void>());
                     
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#    endif //__SYCL_UNNAMED_LAMBDA__
+#endif //TEST_DPCPP_BACKEND_PRESENT
 
 
 template <typename T, typename Compare, typename Convert>
@@ -428,8 +430,10 @@ main()
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    ifdef _PSTL_TEST_WITH_PREDICATE
+#        if __SYCL_UNNAMED_LAMBDA__
     // testing potentially clashing naming for radix sort descending / ascending with minimal timing impact
     test_default_name_gen<std::int32_t>([](size_t, size_t val) { return std::int32_t(val); }, 10);
+#        endif //__SYCL_UNNAMED_LAMBDA__
 #    endif     //_PSTL_TEST_WITH_PREDICATE
 #endif         //TEST_DPCPP_BACKEND_PRESENT
 
