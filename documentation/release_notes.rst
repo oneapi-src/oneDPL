@@ -8,6 +8,38 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.1.0
+===============
+
+New Features
+------------
+- Added ``generate``, ``generate_n``, ``transform`` algorithms to `Tested Standard C++ API`_.
+- Improved performance of the ``inclusive_scan``, ``exclusive_scan``, ``reduce`` and
+  ``max_element`` algorithms with DPC++ execution policies.
+
+Fixed Issues
+------------
+- Added a workaround for the ``TBB headers not found`` issue occurring with libstdc++ version 9 when
+  oneTBB headers are not present in the environment. The workaround requires inclusion of
+  the oneDPL headers before the libstdc++ headers.
+- When possible, oneDPL CMake scripts now enforce C++17 as the minimally required language version.
+- Fixed an error in the ``exclusive_scan`` algorithm when the output iterator is equal to the
+  input iterator (in-place scan).
+
+Known Issues and Limitations
+----------------------------
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
+
 New in 2022.0.0
 ===============
 
@@ -426,4 +458,3 @@ Known Issues and Limitations
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
 .. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.html
-
