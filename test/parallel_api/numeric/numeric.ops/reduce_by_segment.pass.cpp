@@ -170,9 +170,8 @@ test_with_usm()
     auto val_res_head = dt_helper4.get_data();
 
     // call algorithm
-    using KernelName1 = TestUtils::unique_kernel_name<TestUtils::unique_kernel_name<KernelName, 1>,
-                                                      TestUtils::uniq_kernel_index<alloc_type>()>;
-    auto new_policy = TestUtils::make_device_policy<KernelName1>(q);
+    auto new_policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<
+        TestUtils::unique_kernel_name<KernelName, 1>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
     auto res1 =
         oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
 
@@ -204,9 +203,8 @@ test_with_usm()
     key_res_head_on_host[0] = T(9);
     val_res_head_on_host[0] = T(9);
 
-    using KernelName2 = TestUtils::unique_kernel_name<TestUtils::unique_kernel_name<KernelName, 2>,
-                                                      TestUtils::uniq_kernel_index<alloc_type>()>;
-    auto new_policy2 = TestUtils::make_device_policy<KernelName2>(q);
+    auto new_policy2 = TestUtils::make_device_policy<TestUtils::unique_kernel_name<
+        TestUtils::unique_kernel_name<KernelName, 2>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
     auto res2 =
         oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);
 
