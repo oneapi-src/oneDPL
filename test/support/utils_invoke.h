@@ -37,6 +37,16 @@ struct unique_kernel_name;
 template <typename Policy, int idx>
 using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
 
+constexpr bool
+explicit_use_kernel_names()
+{
+#ifndef TEST_EXPLICIT_KERNEL_NAMES
+    static_assert(false, "The state of TEST_EXPLICIT_KERNEL_NAMES is not defined");
+#endif
+
+    return TEST_EXPLICIT_KERNEL_NAMES ? true : false;
+}
+
 /**
  * make_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
@@ -48,11 +58,10 @@ template <typename... Types>
 inline auto
 make_device_policy(sycl::queue q)
 {
-#if TEST_EXPLICIT_KERNEL_NAMES
-    return oneapi::dpl::execution::make_device_policy<Types...>(q);
-#else
-    return oneapi::dpl::execution::make_device_policy(q);
-#endif // TEST_EXPLICIT_KERNEL_NAMES
+    if constexpr (explicit_use_kernel_names())
+        return oneapi::dpl::execution::make_device_policy<Types...>(q);
+    else
+        return oneapi::dpl::execution::make_device_policy(q);
 }
 
 /**
@@ -66,11 +75,10 @@ template <typename... Types>
 inline auto
 make_device_policy(sycl::device d)
 {
-#if TEST_EXPLICIT_KERNEL_NAMES
-    return oneapi::dpl::execution::make_device_policy<Types...>(d);
-#else
-    return oneapi::dpl::execution::make_device_policy(d);
-#endif // if TEST_EXPLICIT_KERNEL_NAMES
+    if constexpr (explicit_use_kernel_names())
+        return oneapi::dpl::execution::make_device_policy<Types...>(d);
+    else
+        return oneapi::dpl::execution::make_device_policy(d);
 }
 
 /**
@@ -84,11 +92,10 @@ template <typename NewKernelName, typename OldKernelName = oneapi::dpl::executio
 inline auto
 make_device_policy(const oneapi::dpl::execution::device_policy<OldKernelName>& policy)
 {
-#if TEST_EXPLICIT_KERNEL_NAMES
-    return oneapi::dpl::execution::device_policy<NewKernelName>(policy);
-#else
-    return oneapi::dpl::execution::device_policy(policy);
-#endif // if TEST_EXPLICIT_KERNEL_NAMES
+    if constexpr (explicit_use_kernel_names())
+        return oneapi::dpl::execution::device_policy<NewKernelName>(policy);
+    else
+        return oneapi::dpl::execution::device_policy(policy);
 }
 
 #if _ONEDPL_FPGA_DEVICE
@@ -103,11 +110,10 @@ template <typename... Types>
 inline auto
 make_fpga_policy(sycl::queue q)
 {
-#if TEST_EXPLICIT_KERNEL_NAMES
-    return oneapi::dpl::execution::make_fpga_policy<Types...>(q);
-#else
-    return oneapi::dpl::execution::make_fpga_policy(q);
-#endif // TEST_EXPLICIT_KERNEL_NAMES
+    if constexpr (explicit_use_kernel_names())
+        return oneapi::dpl::execution::make_fpga_policy<Types...>(q);
+    else
+        return oneapi::dpl::execution::make_fpga_policy(q);
 }
 
 /**
@@ -121,11 +127,10 @@ template <typename... Types>
 inline auto
 make_fpga_policy(sycl::device d)
 {
-#if TEST_EXPLICIT_KERNEL_NAMES
-    return oneapi::dpl::execution::make_fpga_policy<Types...>(d);
-#else
-    return oneapi::dpl::execution::make_fpga_policy(d);
-#endif // TEST_EXPLICIT_KERNEL_NAMES
+    if constexpr (explicit_use_kernel_names())
+        return oneapi::dpl::execution::make_fpga_policy<Types...>(d);
+    else
+        return oneapi::dpl::execution::make_fpga_policy(d);
 }
 #endif // _ONEDPL_FPGA_DEVICE
 
