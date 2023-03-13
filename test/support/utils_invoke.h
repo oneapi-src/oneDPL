@@ -45,7 +45,7 @@ using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
  */
 template <typename... Types>
-inline oneapi::dpl::execution::device_policy<Types...>
+inline auto
 make_device_policy(sycl::queue q)
 {
 #if TEST_EXPLICIT_KERNEL_NAMES
@@ -63,7 +63,7 @@ make_device_policy(sycl::queue q)
  * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
  */
 template <typename... Types>
-inline oneapi::dpl::execution::device_policy<Types...>
+inline auto
 make_device_policy(sycl::device d)
 {
 #if TEST_EXPLICIT_KERNEL_NAMES
@@ -81,7 +81,7 @@ make_device_policy(sycl::device d)
  * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
  */
 template <typename NewKernelName, typename OldKernelName = oneapi::dpl::execution::DefaultKernelName>
-inline oneapi::dpl::execution::device_policy<NewKernelName>
+inline auto
 make_device_policy(const oneapi::dpl::execution::device_policy<OldKernelName>& policy)
 {
 #if TEST_EXPLICIT_KERNEL_NAMES
@@ -100,7 +100,7 @@ make_device_policy(const oneapi::dpl::execution::device_policy<OldKernelName>& p
  * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
 template <typename... Types>
-inline oneapi::dpl::execution::fpga_policy<Types...>
+inline auto
 make_fpga_policy(sycl::queue q)
 {
 #if TEST_EXPLICIT_KERNEL_NAMES
@@ -118,7 +118,7 @@ make_fpga_policy(sycl::queue q)
  * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
 template <typename... Types>
-inline oneapi::dpl::execution::fpga_policy<Types...>
+inline auto
 make_fpga_policy(sycl::device d)
 {
 #if TEST_EXPLICIT_KERNEL_NAMES
