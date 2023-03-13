@@ -66,7 +66,7 @@ jobs:
           mkdir html
           sphinx-build -b html documentation/library_guide/ html/
       - name: Archive build directory
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v1
         with:
             name: onedpl-html-docs-${{ env.GITHUB_SHA_SHORT }}
             path: html
