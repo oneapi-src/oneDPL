@@ -34,8 +34,8 @@ endif()
 
 # usage of Kernel names in tests
 set(TestExplicitKernelNameVariants AUTO ALWAYS)
+set(TEST_EXPLICIT_KERNEL_NAMES AUTO CACHE STRING "Use Kernel names in tests")
 set_property(CACHE TEST_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS ${TestExplicitKernelNameVariants})
-option(TEST_EXPLICIT_KERNEL_NAMES "Use Kernel names in tests" AUTO)
 message(STATUS "Usage of Kernel names in tests: TEST_EXPLICIT_KERNEL_NAMES=${TEST_EXPLICIT_KERNEL_NAMES}")
 if (${TEST_EXPLICIT_KERNEL_NAMES} STREQUAL AUTO)
     message(STATUS "    Usage of Kernel names in tests depends on unnamed lambda option")
