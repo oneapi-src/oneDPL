@@ -216,7 +216,7 @@ struct transform_reduce_known
                const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         const ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
-        const ::std::int64_t __items_to_process = 
+        const ::std::int64_t __items_to_process =
             static_cast<std::int64_t>(__n) - static_cast<std::int64_t>(__iters_per_work_item * __global_id);
         // Add neighbour to the current __local_mem
         if (__items_to_process >= __iters_per_work_item)
