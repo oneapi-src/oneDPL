@@ -90,7 +90,11 @@ make_device_policy(sycl::device d)
  */
 template <typename NewKernelName, typename OldKernelName = oneapi::dpl::execution::DefaultKernelName>
 inline auto
-make_device_policy(const oneapi::dpl::execution::device_policy<OldKernelName>& policy)
+make_device_policy(const oneapi::dpl::execution::device_policy<OldKernelName>& policy
+#    if _ONEDPL_PREDEFINED_POLICIES
+                   = oneapi::dpl::execution::dpcpp_default
+#    endif // _ONEDPL_PREDEFINED_POLICIES
+)
 {
     if constexpr (explicit_use_kernel_names())
         return oneapi::dpl::execution::device_policy<NewKernelName>(policy);
