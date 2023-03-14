@@ -41,7 +41,7 @@ if (${ONEDPL_EXPLICIT_KERNEL_NAMES} STREQUAL AUTO)
     message(STATUS "    Usage of Kernel names in tests depends on unnamed lambda option")
     # State of ONEDPL_EXPLICIT_KERNEL_NAMES will be definel later in C++ code
 elseif(${ONEDPL_EXPLICIT_KERNEL_NAMES} STREQUAL ALWAYS)
-    add_compile_definitions(ONEDPL_EXPLICIT_KERNEL_NAMES=1)
+    add_definitions(-DONEDPL_EXPLICIT_KERNEL_NAMES=1)
     message(STATUS "    Use Kernel names in tests :")
     message(STATUS "        #define ONEDPL_EXPLICIT_KERNEL_NAMES 1")
 else()
