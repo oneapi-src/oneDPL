@@ -229,7 +229,7 @@ struct transform_reduce_known
         }
         else if (__adjusted_global_id < __adjusted_n)
         {
-            const _Size __items_to_process =__adjusted_n - __adjusted_global_id;
+            const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
             // Keep these statements in the same scope to allow for better memory alignment
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             for (_Size __i = 1; __i < __items_to_process; ++__i)
