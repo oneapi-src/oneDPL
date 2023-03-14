@@ -45,7 +45,8 @@ elseif(${ONEDPL_EXPLICIT_KERNEL_NAMES} STREQUAL ALWAYS)
     message(STATUS "    Use Kernel names in tests :")
     message(STATUS "        #define ONEDPL_EXPLICIT_KERNEL_NAMES 1")
 else()
-    message(FATAL_ERROR "ONEDPL_EXPLICIT_KERNEL_NAMES must be one of : '${TestExplicitKernelNameVariants}'")
+    message(FATAL_ERROR "Unsupported explicit Kernel names usage in tests: ${ONEDPL_EXPLICIT_KERNEL_NAMES}.\n"
+            "Select one of the following values: ${TestExplicitKernelNameVariants}")
 endif()
 
 add_custom_target(build-onedpl-tests
