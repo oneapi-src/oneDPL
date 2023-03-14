@@ -215,10 +215,10 @@ struct transform_reduce_known
                const ::std::size_t /* unused __iters_per_work_item */, const ::std::size_t __global_id,
                const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
     {
-        const ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
-        const ::std::int64_t __items_to_process = __n - (__iters_per_work_item * __global_id);
+        const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
+        const _Size __adjusted_n = __global_offset + __n;
         // Add neighbour to the current __local_mem
-        if (__items_to_process >= __iters_per_work_item)
+        if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
         {
             // Keep these statements in the same scope to allow for better memory alignment
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
@@ -227,8 +227,9 @@ struct transform_reduce_known
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_id] = __res;
         }
-        else if (__items_to_process > 0)
+        else if (__adjusted_global_id < __adjusted_n)
         {
+            const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
             // Keep these statements in the same scope to allow for better memory alignment
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             for (_Size __i = 1; __i < __items_to_process; ++__i)
