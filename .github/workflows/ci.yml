@@ -19,7 +19,7 @@ jobs:
   clang-format:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Get clang-format
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install prerequisites
         run: |
           sudo apt update && sudo apt install -y codespell
@@ -55,8 +55,10 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
       - name: Install prerequisites
         run: |
           echo GITHUB_SHA_SHORT=${GITHUB_SHA::8} >> $GITHUB_ENV
@@ -146,7 +148,7 @@ jobs:
             backend: serial
             device_type: HOST
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
         run: $CONDA/bin/conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
@@ -204,7 +206,7 @@ jobs:
             backend: dpcpp
             device_type: CPU
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
         shell: cmd
         run: |
@@ -262,7 +264,7 @@ jobs:
             build_type: release
             backend: omp
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Intel® oneAPI C++ Compiler Classic and Intel® oneAPI Threading Building Blocks
         run: |
           wget ${MACOS_ONEAPI_DOWNLOAD_LINK}
