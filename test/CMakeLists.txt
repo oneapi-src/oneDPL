@@ -34,7 +34,6 @@ endif()
 
 # usage of Kernel names in tests
 set(TestExplicitKernelNameVariants AUTO ALWAYS)
-set(ONEDPL_EXPLICIT_KERNEL_NAMES AUTO CACHE STRING "Use Kernel names in tests")
 set_property(CACHE ONEDPL_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS ${TestExplicitKernelNameVariants})
 message(STATUS "Usage of Kernel names in tests: ONEDPL_EXPLICIT_KERNEL_NAMES=${ONEDPL_EXPLICIT_KERNEL_NAMES}")
 if (${ONEDPL_EXPLICIT_KERNEL_NAMES} STREQUAL AUTO)
