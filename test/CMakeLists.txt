@@ -33,6 +33,7 @@ else()
 endif()
 
 # usage of Kernel names in tests
+set(TEST_EXPLICIT_KERNEL_NAMES AUTO CACHE STRING "Use explicit Kernel names in tests")
 set_property(CACHE TEST_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS AUTO ALWAYS)
 message(STATUS "Usage of Kernel names in tests: TEST_EXPLICIT_KERNEL_NAMES=${TEST_EXPLICIT_KERNEL_NAMES}")
 if (${TEST_EXPLICIT_KERNEL_NAMES} STREQUAL AUTO)
