@@ -87,6 +87,17 @@ template <typename Iter> // for heterogeneous iterators
 struct is_hetero_iterator<Iter, typename ::std::enable_if<Iter::is_hetero::value, void>::type> : ::std::true_type
 {
 };
+
+template <typename Iter, typename Void = void> // for non-heterogeneous iterators
+struct is_hetero_const_iterator : ::std::false_type
+{
+};
+
+template <typename Iter> // for heterogeneous iterators
+struct is_hetero_const_iterator<Iter, typename ::std::enable_if<Iter::is_hetero::value && Iter::is_hetero_const::value, void>::type> : ::std::true_type
+{
+};
+
 // struct for checking if iterator should be passed directly to device or not
 template <typename Iter, typename Void = void> // for iterators that should not be passed directly
 struct is_passed_directly : ::std::false_type
