@@ -159,6 +159,9 @@ template <typename _Iter>
 using is_hetero_it = oneapi::dpl::__internal::is_hetero_iterator<_Iter>;
 
 template <typename _Iter>
+using is_hetero_const_it = oneapi::dpl::__internal::is_hetero_const_iterator<_Iter>;
+
+template <typename _Iter>
 using is_passed_directly_it = oneapi::dpl::__internal::is_passed_directly<_Iter>;
 
 //struct for checking if it needs to create a temporary SYCL buffer or not
