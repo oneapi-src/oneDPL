@@ -331,11 +331,11 @@ __pstl_next(_Iter __iter, typename ::std::iterator_traits<_Iter>::difference_typ
 }
 
 #if _ONEDPL_BACKEND_SYCL
-template <sycl::access::mode _Mode, typename... _Params>
-oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...>
+template <sycl::access::mode _Mode, typename T, typename Allocator = __dpl_sycl::__buffer_allocator<T>>
+oneapi::dpl::__internal::sycl_iterator<_Mode, T, Allocator>
 __pstl_next(
-    oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...> __iter,
-    typename ::std::iterator_traits<oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...>>::difference_type __n = 1)
+    oneapi::dpl::__internal::sycl_iterator<_Mode, T, Allocator> __iter,
+    typename ::std::iterator_traits<oneapi::dpl::__internal::sycl_iterator<_Mode, T, Allocator>>::difference_type __n = 1)
 {
     return __iter + __n;
 }
