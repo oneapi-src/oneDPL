@@ -70,15 +70,15 @@
 #define TEST_UNNAMED_LAMBDAS 0
 #endif
 
-// The ONEDPL_EXPLICIT_KERNEL_NAMES macro may be defined on CMake level in CMakeLists.txt
+// The TEST_EXPLICIT_KERNEL_NAMES macro may be defined on CMake level in CMakeLists.txt
 // so we should check here is it defined or no
-#ifndef ONEDPL_EXPLICIT_KERNEL_NAMES
+#ifndef TEST_EXPLICIT_KERNEL_NAMES
 #    if __SYCL_UNNAMED_LAMBDA__
-#        define ONEDPL_EXPLICIT_KERNEL_NAMES 0
+#        define TEST_EXPLICIT_KERNEL_NAMES 0
 #    else
-#        define ONEDPL_EXPLICIT_KERNEL_NAMES 1
+#        define TEST_EXPLICIT_KERNEL_NAMES 1
 #    endif // __SYCL_UNNAMED_LAMBDA__
-#endif // !ONEDPL_EXPLICIT_KERNEL_NAMES
+#endif // !TEST_EXPLICIT_KERNEL_NAMES
 
 // Enables full scope of testing
 #ifndef TEST_LONG_RUN

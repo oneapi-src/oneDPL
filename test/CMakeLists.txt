@@ -34,17 +34,17 @@ endif()
 
 # usage of Kernel names in tests
 set(TestExplicitKernelNameVariants AUTO ALWAYS)
-set_property(CACHE ONEDPL_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS ${TestExplicitKernelNameVariants})
-message(STATUS "Usage of Kernel names in tests: ONEDPL_EXPLICIT_KERNEL_NAMES=${ONEDPL_EXPLICIT_KERNEL_NAMES}")
-if (${ONEDPL_EXPLICIT_KERNEL_NAMES} STREQUAL AUTO)
+set_property(CACHE TEST_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS ${TestExplicitKernelNameVariants})
+message(STATUS "Usage of Kernel names in tests: TEST_EXPLICIT_KERNEL_NAMES=${TEST_EXPLICIT_KERNEL_NAMES}")
+if (${TEST_EXPLICIT_KERNEL_NAMES} STREQUAL AUTO)
     message(STATUS "    Usage of Kernel names in tests depends on unnamed lambda option")
-    # State of ONEDPL_EXPLICIT_KERNEL_NAMES will be definel later in C++ code
-elseif(${ONEDPL_EXPLICIT_KERNEL_NAMES} STREQUAL ALWAYS)
-    add_definitions(-DONEDPL_EXPLICIT_KERNEL_NAMES=1)
+    # State of TEST_EXPLICIT_KERNEL_NAMES will be definel later in C++ code
+elseif(${TEST_EXPLICIT_KERNEL_NAMES} STREQUAL ALWAYS)
+    add_definitions(-DTEST_EXPLICIT_KERNEL_NAMES=1)
     message(STATUS "    Use Kernel names in tests :")
-    message(STATUS "        #define ONEDPL_EXPLICIT_KERNEL_NAMES 1")
+    message(STATUS "        #define TEST_EXPLICIT_KERNEL_NAMES 1")
 else()
-    message(FATAL_ERROR "Unsupported explicit Kernel names usage in tests: ${ONEDPL_EXPLICIT_KERNEL_NAMES}.\n"
+    message(FATAL_ERROR "Unsupported explicit Kernel names usage in tests: ${TEST_EXPLICIT_KERNEL_NAMES}.\n"
             "Select one of the following values: ${TestExplicitKernelNameVariants}")
 endif()
 

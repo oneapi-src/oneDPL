@@ -40,17 +40,17 @@ using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, 
 constexpr bool
 use_explicit_kernel_names()
 {
-#ifndef ONEDPL_EXPLICIT_KERNEL_NAMES
-    static_assert(false, "The state of ONEDPL_EXPLICIT_KERNEL_NAMES is not defined");
+#ifndef TEST_EXPLICIT_KERNEL_NAMES
+    static_assert(false, "The state of TEST_EXPLICIT_KERNEL_NAMES is not defined");
 #endif
 
-    return ONEDPL_EXPLICIT_KERNEL_NAMES ? true : false;
+    return TEST_EXPLICIT_KERNEL_NAMES ? true : false;
 }
 
 /**
  * make_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on ONEDPL_EXPLICIT_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
  */
@@ -68,7 +68,7 @@ make_device_policy(Arg&& arg)
 /**
  * make_fpga_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on ONEDPL_EXPLICIT_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
