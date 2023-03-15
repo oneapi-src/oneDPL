@@ -67,7 +67,9 @@ test_with_usm()
     //run reduce_by_segment algorithm 
     auto new_last = oneapi::dpl::reduce_by_segment(
         TestUtils::make_device_policy<KernelName>(q), begin_keys_in,
-        end_keys_in, d_values, begin_keys_out, d_output_values);    q.wait();
+        end_keys_in, d_values, begin_keys_out, d_output_values);
+
+    q.wait();
 
     //retrieve result on the host and check the result
     dt_helper4.retrieve_data(output_keys1);
