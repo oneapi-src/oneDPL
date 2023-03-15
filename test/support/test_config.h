@@ -78,7 +78,7 @@
 #    else
 #        define ONEDPL_EXPLICIT_KERNEL_NAMES 1
 #    endif // __SYCL_UNNAMED_LAMBDA__
-#endif // !TEST_USE_KERNEL_NAMES
+#endif // !ONEDPL_EXPLICIT_KERNEL_NAMES
 
 // Enables full scope of testing
 #ifndef TEST_LONG_RUN
