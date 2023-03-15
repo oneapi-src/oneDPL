@@ -251,7 +251,7 @@ jobs:
           ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags%
 
   macos-testing:
-    name: be=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},os=${{ matrix.os }},std=${{ matrix.std }},cfg=${{ matrix.build_type }}
+    name: be=${{ matrix.backend }},device=HOST,cmplr=${{ matrix.cxx_compiler }},os=${{ matrix.os }},std=${{ matrix.std }},cfg=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
