@@ -38,7 +38,7 @@ template <typename Policy, int idx>
 using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
 
 constexpr bool
-explicit_use_kernel_names()
+use_explicit_kernel_names()
 {
 #ifndef ONEDPL_EXPLICIT_KERNEL_NAMES
     static_assert(false, "The state of ONEDPL_EXPLICIT_KERNEL_NAMES is not defined");
@@ -58,7 +58,7 @@ template <typename... Types>
 inline auto
 make_device_policy(sycl::queue q)
 {
-    if constexpr (explicit_use_kernel_names())
+    if constexpr (use_explicit_kernel_names())
         return oneapi::dpl::execution::make_device_policy<Types...>(q);
     else
         return oneapi::dpl::execution::make_device_policy(q);
@@ -75,7 +75,7 @@ template <typename... Types>
 inline auto
 make_device_policy(sycl::device d)
 {
-    if constexpr (explicit_use_kernel_names())
+    if constexpr (use_explicit_kernel_names())
         return oneapi::dpl::execution::make_device_policy<Types...>(d);
     else
         return oneapi::dpl::execution::make_device_policy(d);
@@ -96,7 +96,7 @@ make_device_policy(const oneapi::dpl::execution::device_policy<OldKernelName>& p
 #    endif // _ONEDPL_PREDEFINED_POLICIES
 )
 {
-    if constexpr (explicit_use_kernel_names())
+    if constexpr (use_explicit_kernel_names())
         return oneapi::dpl::execution::device_policy<NewKernelName>(policy);
     else
         return oneapi::dpl::execution::device_policy(policy);
@@ -114,7 +114,7 @@ template <typename... Types>
 inline auto
 make_fpga_policy(sycl::queue q)
 {
-    if constexpr (explicit_use_kernel_names())
+    if constexpr (use_explicit_kernel_names())
         return oneapi::dpl::execution::make_fpga_policy<Types...>(q);
     else
         return oneapi::dpl::execution::make_fpga_policy(q);
@@ -131,7 +131,7 @@ template <typename... Types>
 inline auto
 make_fpga_policy(sycl::device d)
 {
-    if constexpr (explicit_use_kernel_names())
+    if constexpr (use_explicit_kernel_names())
         return oneapi::dpl::execution::make_fpga_policy<Types...>(d);
     else
         return oneapi::dpl::execution::make_fpga_policy(d);
