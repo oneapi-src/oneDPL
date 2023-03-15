@@ -54,14 +54,14 @@ use_explicit_kernel_names()
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
  */
-template <typename KernelName = oneapi::dpl::execution::DefaultKernelName, typename... Args>
+template <typename KernelName = oneapi::dpl::execution::DefaultKernelName, typename Arg>
 inline auto
-make_device_policy(Args&&... args)
+make_device_policy(Arg&& arg)
 {
     if constexpr (use_explicit_kernel_names())
-        return oneapi::dpl::execution::make_device_policy<KernelName>(::std::forward<Args>(args)...);
+        return oneapi::dpl::execution::make_device_policy<KernelName>(::std::forward<Arg>(arg));
     else
-        return oneapi::dpl::execution::make_device_policy(::std::forward<Args>(args)...);
+        return oneapi::dpl::execution::make_device_policy(::std::forward<Arg>(arg));
 }
 
 #if _ONEDPL_FPGA_DEVICE
@@ -72,14 +72,14 @@ make_device_policy(Args&&... args)
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
-template <unsigned int new_unroll_factor, typename NewKernelName, typename... Args>
+template <unsigned int new_unroll_factor, typename NewKernelName, typename Arg>
 inline auto
-make_fpga_policy(Args&&... args)
+make_fpga_policy(Arg&& arg)
 {
     if constexpr (use_explicit_kernel_names())
-        return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor, NewKernelName>(::std::forward<Args>(args)...);
+        return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor, NewKernelName>(::std::forward<Arg>(arg));
     else
-        return oneapi::dpl::execution::make_fpga_policy(::std::forward<Args>(args)...);
+        return oneapi::dpl::execution::make_fpga_policy(::std::forward<Arg>(arg));
 }
 #endif // _ONEDPL_FPGA_DEVICE
 
