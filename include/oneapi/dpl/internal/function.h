@@ -55,6 +55,7 @@ struct rebind_policy<oneapi::dpl::execution::fpga_policy<factor, KernelName>, Ne
 #    endif
 
 using oneapi::dpl::__internal::is_hetero_iterator;
+using oneapi::dpl::__internal::is_hetero_const_iterator;
 using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
 #endif
 
@@ -63,10 +64,23 @@ using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
 // algorithm from either a SYCL iterator or a USM pointer.
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 auto
-get_access(Policy, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-    -> decltype(i.get_buffer().template get_access<Mode>())
+get_access(Policy, Iterator i,
+           typename ::std::enable_if<is_hetero_iterator<Iterator>::value && !is_hetero_const_iterator<Iterator>::value,
+                                     void>::type* = nullptr) -> decltype(i.get_buffer().template get_access<Mode>())
 {
     return i.get_buffer().template get_access<Mode>();
+}
+
+template <sycl::access::mode Mode, typename Policy, typename Iterator>
+auto
+get_access(Policy, Iterator i,
+           typename ::std::enable_if<is_hetero_iterator<Iterator>::value && is_hetero_const_iterator<Iterator>::value,
+                                     void>::type* = nullptr) -> decltype(i.get_buffer().template get_access<Mode>())
+{
+    // TODO is it not too much to use static_assert here ?
+    static_assert(Mode == sycl::access::mode::read);
+
+    return i.get_buffer().template get_access<sycl::access::mode::read>();
 }
 
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
