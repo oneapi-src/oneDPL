@@ -28,6 +28,10 @@
 #include "sycl_alloc_utils.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+using ConstType    = ::std::true_type;
+using NonConstType = ::std::false_type;
+constexpr ConstType kConstIterator;
+
 namespace TestUtils
 {
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +74,8 @@ struct test_base_data
      *      ATTENTION: return nullptr, if host buffering is required.
      * @see host_buffering_required
      */
-    virtual TestValueType* get_data(UDTKind kind) = 0;
+    virtual const TestValueType* get_data(UDTKind kind, ConstType) = 0;
+    virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) = 0;
 
     /// Retrieve data
     /**
@@ -110,9 +115,13 @@ struct test_base_data_usm : test_base_data<TestValueType>
             , offset(__offset)
         {
         }
-        
 
-        TestValueType* get_start_from()
+        const TestValueType* get_start_from(ConstType)
+        {
+            return src_data_usm.get_data() + offset;
+        }
+
+        TestValueType* get_start_from(NonConstType)
         {
             return src_data_usm.get_data() + offset;
         }
@@ -146,7 +155,8 @@ struct test_base_data_usm : test_base_data<TestValueType>
 
     test_base_data_usm(sycl::queue __q, InitParams init);
 
-    TestValueType* get_start_from(UDTKind kind);
+    const TestValueType* get_start_from(UDTKind kind, ConstType);
+    TestValueType*       get_start_from(UDTKind kind, NonConstType = NonConstType{});
 
 // test_base_data
 
@@ -154,7 +164,8 @@ struct test_base_data_usm : test_base_data<TestValueType>
     virtual bool host_buffering_required() const override;
 
     // Get test data
-    virtual TestValueType* get_data(UDTKind kind) override;
+    virtual const TestValueType* get_data(UDTKind kind, ConstType) override;
+    virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) override;
 
     // Retrieve data
     virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
@@ -193,7 +204,12 @@ struct test_base_data_buffer : test_base_data<TestValueType>
 
     sycl::buffer<TestValueType, 1>& get_buffer(UDTKind kind);
 
-    auto get_start_from(UDTKind kind)
+    // Get const iterator
+    auto get_start_from(UDTKind kind, ConstType)
+        -> decltype(oneapi::dpl::cbegin(data.at(enum_val_to_index(kind)).src_data_buf));
+
+    // Get iterator
+    auto get_start_from(UDTKind kind, NonConstType = NonConstType{})
         -> decltype(oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf));
 
 // test_base_data
@@ -202,7 +218,8 @@ struct test_base_data_buffer : test_base_data<TestValueType>
     virtual bool host_buffering_required() const override;
 
     // Get test data
-    virtual TestValueType* get_data(UDTKind kind) override;
+    virtual const TestValueType* get_data(UDTKind kind, ConstType) override;
+    virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) override;
 
     // Retrieve data
     virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
@@ -236,7 +253,12 @@ struct test_base_data_sequence : test_base_data<TestValueType>
 
     test_base_data_sequence(InitParams init);
 
-    auto get_start_from(UDTKind kind)
+    // Get const iterator
+    auto get_start_from(UDTKind kind, ConstType)
+        -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.cbegin());
+
+    // Get iterator
+    auto get_start_from(UDTKind kind, NonConstType = NonConstType{})
         -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.begin());
 
 // test_base_data
@@ -246,7 +268,8 @@ struct test_base_data_sequence : test_base_data<TestValueType>
     virtual bool host_buffering_required() const override;
 
     // Get test data
-    virtual TestValueType* get_data(UDTKind kind) override;
+    virtual const TestValueType* get_data(UDTKind kind, ConstType) override;
+    virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) override;
 
     // Retrieve data
     virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
@@ -292,6 +315,12 @@ struct test_base
          * @return TestValueType* - pointer to internal data buffer
          */
         TestValueType* get();
+
+        TestValueType* begin();
+        TestValueType* end();
+
+        const TestValueType* cbegin() const;
+        const TestValueType* cend() const;
 
         /// Retrieve data
         /**
@@ -455,11 +484,20 @@ TestUtils::test_base_data_usm<alloc_type, TestValueType>::test_base_data_usm(syc
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <sycl::usm::alloc alloc_type, typename TestValueType>
-TestValueType*
-TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_start_from(UDTKind kind)
+const TestValueType*
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_start_from(UDTKind kind, ConstType)
 {
     auto& data_item = data.at(enum_val_to_index(kind));
-    return data_item.get_start_from();
+    return data_item.get_start_from(ConstType{});
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <sycl::usm::alloc alloc_type, typename TestValueType>
+TestValueType*
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_start_from(UDTKind kind, NonConstType /*= NonConstType{}*/)
+{
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return data_item.get_start_from(NonConstType{});
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -472,13 +510,24 @@ TestUtils::test_base_data_usm<alloc_type, TestValueType>::host_buffering_require
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <sycl::usm::alloc alloc_type, typename TestValueType>
-TestValueType*
-TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_data(UDTKind kind)
+const TestValueType*
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_data(UDTKind kind, ConstType)
 {
     if (host_buffering_required())
         return nullptr;
 
-    return get_start_from(kind);
+    return get_start_from(kind, ConstType{});
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <sycl::usm::alloc alloc_type, typename TestValueType>
+TestValueType*
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_data(UDTKind kind, NonConstType /*= NonConstType{}*/)
+{
+    if (host_buffering_required())
+        return nullptr;
+
+    return get_start_from(kind, NonConstType{});
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -522,7 +571,16 @@ TestUtils::test_base_data_buffer<TestValueType>::get_buffer(UDTKind kind)
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 auto
-TestUtils::test_base_data_buffer<TestValueType>::get_start_from(UDTKind kind)
+TestUtils::test_base_data_buffer<TestValueType>::get_start_from(UDTKind kind, ConstType)
+    -> decltype(oneapi::dpl::cbegin(data.at(enum_val_to_index(kind)).src_data_buf))
+{
+    return oneapi::dpl::cbegin(data.at(enum_val_to_index(kind)).src_data_buf) + data.at(enum_val_to_index(kind)).offset;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+auto
+TestUtils::test_base_data_buffer<TestValueType>::get_start_from(UDTKind kind, NonConstType /*= NonConstType{}*/)
     -> decltype(oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf))
 {
     return oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf) + data.at(enum_val_to_index(kind)).offset;
@@ -538,8 +596,16 @@ TestUtils::test_base_data_buffer<TestValueType>::host_buffering_required() const
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
+const TestValueType*
+TestUtils::test_base_data_buffer<TestValueType>::get_data(UDTKind /*kind*/, ConstType)
+{
+    return nullptr;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
 TestValueType*
-TestUtils::test_base_data_buffer<TestValueType>::get_data(UDTKind /*kind*/)
+TestUtils::test_base_data_buffer<TestValueType>::get_data(UDTKind /*kind*/, NonConstType /*= NonConstType{}*/)
 {
     return nullptr;
 }
@@ -586,7 +652,16 @@ TestUtils::test_base_data_sequence<TestValueType>::test_base_data_sequence(InitP
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
 auto
-TestUtils::test_base_data_sequence<TestValueType>::get_start_from(UDTKind kind)
+TestUtils::test_base_data_sequence<TestValueType>::get_start_from(UDTKind kind, ConstType)
+    -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.cbegin())
+{
+    return data.at(enum_val_to_index(kind)).src_data_seq.cbegin() + data.at(enum_val_to_index(kind)).offset;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+auto
+TestUtils::test_base_data_sequence<TestValueType>::get_start_from(UDTKind kind, NonConstType /*= NonConstType{}*/)
     -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.begin())
 {
     return data.at(enum_val_to_index(kind)).src_data_seq.begin() + data.at(enum_val_to_index(kind)).offset;
@@ -602,8 +677,17 @@ TestUtils::test_base_data_sequence<TestValueType>::host_buffering_required() con
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestValueType>
+const TestValueType*
+TestUtils::test_base_data_sequence<TestValueType>::get_data(UDTKind kind, ConstType)
+{
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return data_item.src_data_seq.data();
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
 TestValueType*
-TestUtils::test_base_data_sequence<TestValueType>::get_data(UDTKind kind)
+TestUtils::test_base_data_sequence<TestValueType>::get_data(UDTKind kind, NonConstType /*= NonConstType{}*/)
 {
     auto& data_item = data.at(enum_val_to_index(kind));
     return data_item.src_data_seq.data();
@@ -662,7 +746,55 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::get()
     if (__host_buffering_required)
         return __host_buffer.data();
 
-    return __test_base.base_data_ref.get_data(kind);
+    return __test_base.base_data_ref.get_data(kind, NonConstType{});
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+TestValueType*
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::begin()
+{
+    if (__host_buffering_required)
+        return __host_buffer.data();
+
+    return __test_base.base_data_ref.get_data(kind, NonConstType{});
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+TestValueType*
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::end()
+{
+    if (__host_buffering_required)
+        return __host_buffer.data() + __count;
+
+    return __test_base.base_data_ref.get_data(kind, NonConstType{}) + __count;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+const TestValueType*
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::cbegin() const
+{
+    if (__host_buffering_required)
+        return __host_buffer.data() + __count;
+
+    return __test_base.base_data_ref.get_data(kind, ConstType{}) + __count;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+const TestValueType*
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::cend() const
+{
+    if (__host_buffering_required)
+        return __host_buffer.data() + __count;
+
+    return __test_base.base_data_ref.get_data(kind, ConstType{}) + __count;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
