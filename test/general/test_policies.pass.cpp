@@ -78,7 +78,8 @@ main()
     test_policy_instance(TestUtils::make_device_policy<class Kernel_13>(sycl::device{TestUtils::default_selector}));
     test_policy_instance(TestUtils::make_device_policy<class Kernel_14>(sycl::queue{TestUtils::default_selector, sycl::property::queue::in_order()}));
     test_policy_instance(TestUtils::make_device_policy<class Kernel_15>(dpcpp_default));
-    test_policy_instance(TestUtils::make_device_policy<class Kernel_16>());
+    // Special case: required to call make_device_policy directly from oneapi::dpl::execution namespace
+    test_policy_instance(oneapi::dpl::execution::make_device_policy<class Kernel_16>());
 
     // device_policy
     EXPECT_TRUE(device_policy<class Kernel_1>(q).queue() == q, "wrong result for queue()");
