@@ -68,9 +68,9 @@ inline auto
 make_fpga_policy(Arg&& arg)
 {
 #if TEST_EXPLICIT_KERNEL_NAMES
-    return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor, KernelName>(::std::forward<Arg>(arg));
+    return oneapi::dpl::execution::make_fpga_policy<unroll_factor, KernelName>(::std::forward<Arg>(arg));
 #else
-    return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor>(::std::forward<Arg>(arg));
+    return oneapi::dpl::execution::make_fpga_policy<unroll_factor>(::std::forward<Arg>(arg));
 #endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 #endif // _ONEDPL_FPGA_DEVICE
