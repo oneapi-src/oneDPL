@@ -29,7 +29,7 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/sycl_alloc_utils.h"
 
-template <sycl::usm::alloc alloc_type>
+template <sycl::usm::alloc alloc_type, typename KernelName>
 void
 test_with_usm()
 {
@@ -66,7 +66,7 @@ test_with_usm()
 
     //run reduce_by_segment algorithm 
     auto new_last = oneapi::dpl::reduce_by_segment(
-        oneapi::dpl::execution::make_device_policy(q), begin_keys_in,
+        TestUtils::make_device_policy<KernelName>(q), begin_keys_in,
         end_keys_in, d_values, begin_keys_out, d_output_values);
 
     q.wait();
@@ -104,9 +104,9 @@ int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run tests for USM shared memory
-    test_with_usm<sycl::usm::alloc::shared>();
+    test_with_usm<sycl::usm::alloc::shared, class KernelName1>();
     // Run tests for USM device memory
-    test_with_usm<sycl::usm::alloc::device>();
+    test_with_usm<sycl::usm::alloc::device, class KernelName2>();
 #endif
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
