@@ -50,9 +50,9 @@ use_explicit_kernel_names()
 /**
  * make_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depend on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
- * ATTENTION: Please avoid to use oneapi::dpl::execution::device_policy directly in tests.
+ * ATTENTION: Please avoid using oneapi::dpl::execution::device_policy directly in the tests.
  */
 template <typename KernelName = oneapi::dpl::execution::DefaultKernelName, typename Arg>
 inline auto
