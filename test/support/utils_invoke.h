@@ -63,12 +63,12 @@ make_device_policy(Arg&& arg)
  * 
  * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
-template <unsigned int new_unroll_factor, typename NewKernelName, typename Arg>
+template <unsigned int unroll_factor = 1, typename KernelName = oneapi::dpl::execution::DefaultKernelNameFPGA, typename Arg>
 inline auto
 make_fpga_policy(Arg&& arg)
 {
 #if TEST_EXPLICIT_KERNEL_NAMES
-    return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor, NewKernelName>(::std::forward<Arg>(arg));
+    return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor, KernelName>(::std::forward<Arg>(arg));
 #else
     return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor>(::std::forward<Arg>(arg));
 #endif // TEST_EXPLICIT_KERNEL_NAMES
