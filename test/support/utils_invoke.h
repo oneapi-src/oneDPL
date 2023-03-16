@@ -37,16 +37,6 @@ struct unique_kernel_name;
 template <typename Policy, int idx>
 using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
 
-constexpr bool
-use_explicit_kernel_names()
-{
-#ifndef TEST_EXPLICIT_KERNEL_NAMES
-    static_assert(false, "The state of TEST_EXPLICIT_KERNEL_NAMES is not defined");
-#endif
-
-    return TEST_EXPLICIT_KERNEL_NAMES ? true : false;
-}
-
 /**
  * make_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
@@ -58,10 +48,11 @@ template <typename KernelName = oneapi::dpl::execution::DefaultKernelName, typen
 inline auto
 make_device_policy(Arg&& arg)
 {
-    if constexpr (use_explicit_kernel_names())
-        return oneapi::dpl::execution::make_device_policy<KernelName>(::std::forward<Arg>(arg));
-    else
-        return oneapi::dpl::execution::make_device_policy(::std::forward<Arg>(arg));
+#if TEST_EXPLICIT_KERNEL_NAMES
+    return oneapi::dpl::execution::make_device_policy<KernelName>(::std::forward<Arg>(arg));
+#else
+    return oneapi::dpl::execution::make_device_policy(::std::forward<Arg>(arg));
+#endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 
 #if _ONEDPL_FPGA_DEVICE
@@ -76,10 +67,11 @@ template <unsigned int new_unroll_factor, typename NewKernelName, typename Arg>
 inline auto
 make_fpga_policy(Arg&& arg)
 {
-    if constexpr (use_explicit_kernel_names())
-        return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor, NewKernelName>(::std::forward<Arg>(arg));
-    else
-        return oneapi::dpl::execution::make_fpga_policy(::std::forward<Arg>(arg));
+#if TEST_EXPLICIT_KERNEL_NAMES
+    return oneapi::dpl::execution::make_fpga_policy<new_unroll_factor, NewKernelName>(::std::forward<Arg>(arg));
+#else
+    return oneapi::dpl::execution::make_fpga_policy(::std::forward<Arg>(arg));
+#endif // TEST_EXPLICIT_KERNEL_NAMES
 }
 #endif // _ONEDPL_FPGA_DEVICE
 
