@@ -59,9 +59,9 @@ make_device_policy(Arg&& arg)
 /**
  * make_fpga_policy functions test wrappers
  * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
- * oneapi::dpl::execution::device_policy function calls depends on TEST_EXPLICIT_KERNEL_NAMES macro state.
+ * oneapi::dpl::execution::device_policy function calls depend on TEST_EXPLICIT_KERNEL_NAMES macro state.
  * 
- * ATTENTION: Please avoid to use oneapi::dpl::execution::make_fpga_policy directly in tests.
+ * ATTENTION: Please avoid using oneapi::dpl::execution::make_fpga_policy directly in tests.
  */
 template <unsigned int unroll_factor = 1, typename KernelName = oneapi::dpl::execution::DefaultKernelNameFPGA, typename Arg>
 inline auto
