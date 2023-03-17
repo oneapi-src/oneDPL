@@ -227,6 +227,20 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
     }
 };
 
+namespace TestUtils
+{
+// struct for checking if iterator is heterogeneous or not
+template <typename Iter, typename Void = void> // for non-heterogeneous iterators
+struct is_hetero_iterator : ::std::false_type
+{
+};
+
+template <typename Iter> // for heterogeneous iterators
+struct is_hetero_iterator<Iter, typename ::std::enable_if<Iter::is_hetero::value, void>::type> : ::std::true_type
+{
+};
+} // namespace TestUtils
+
 DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 {
     DEFINE_TEST_CONSTRUCTOR(test_scan_inplace)
@@ -255,11 +269,12 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
         EXPECT_EQ_N(expected.cbegin(), keys_first, n, testingAlgo.getMsg(true));
     }
 
-    // specialization for hetero policy
+    // specialization for hetero policy and non-hetero iterators
     template <typename Policy, typename Iterator1, typename Size>
     typename ::std::enable_if<
         oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
-            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value,
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value &&
+            !TestUtils::is_hetero_iterator<Iterator1>::value,
         void>::type
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last,
                Size n)
@@ -285,6 +300,60 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
         std::vector<KeyT> expected(n);
         testingAlgo.call_serial(source_host_keys_state.cbegin(), source_host_keys_state.cend(), expected.data());
         EXPECT_EQ_N(expected.cbegin(), host_keys.get(), n, testingAlgo.getMsg(true));
+    }
+
+    template <bool UseCBeginCEnd, typename Policy, typename Iterator1, typename Size>
+    void
+    run_test_hetero_impl(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Size n)
+    {
+        using KeyT = typename ::std::iterator_traits<Iterator1>::value_type;
+
+        TestingAlgoritm testingAlgo;
+
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
+        // Initialize source data in the buffer [keys_first, keys_last)
+        initialize_data(host_keys.get(), n);
+        const std::vector<KeyT> source_host_keys_state(host_keys.get(), host_keys.get() + n);
+
+        // Copy data from the buffer [keys_first, keys_last) to a device.
+        update_data(host_keys);
+
+        // Now we are ready to call tested algorithm
+        if constexpr (UseCBeginCEnd)
+        {
+            using ItBegin = decltype(oneapi::dpl::cbegin(keys_first.get_buffer()));
+            using ItEnd   = decltype(oneapi::dpl::cend(keys_first.get_buffer()));
+            ItBegin itCBegin(keys_first.get_buffer(), keys_first.get_index());
+            ItEnd   itCEnd = itCBegin + (keys_last - keys_first);
+            testingAlgo.call_onedpl(make_new_policy<new_kernel_name<Policy, 0>>(exec), itCBegin, itCEnd, keys_first);
+        }
+        else
+        {
+            testingAlgo.call_onedpl(make_new_policy<new_kernel_name<Policy, 0>>(exec), keys_first, keys_last, keys_first);
+        }
+
+        retrieve_data(host_keys);
+
+        std::vector<KeyT> expected(n);
+        testingAlgo.call_serial(source_host_keys_state.cbegin(), source_host_keys_state.cend(), expected.data());
+        EXPECT_EQ_N(expected.cbegin(), host_keys.get(), n, testingAlgo.getMsg(true));
+    }
+
+    // specialization for hetero policy and hetero iterators
+    template <typename Policy, typename Iterator1, typename Size>
+    typename ::std::enable_if<
+        oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value &&
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value &&
+            TestUtils::is_hetero_iterator<Iterator1>::value,
+        void>::type
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last,
+               Size n)
+    {
+        // Pass iterators into algorithm as is
+        run_test_hetero_impl<false>(exec, keys_first, keys_last, n);
+        // Pass iterators into algorithm with transform (keys_first, keys_last) to sycl const iterators
+        run_test_hetero_impl<true>(exec, keys_first, keys_last, n);
     }
 
     // specialization for non-random_access iterators
