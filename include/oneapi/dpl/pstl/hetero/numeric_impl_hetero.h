@@ -159,8 +159,8 @@ struct is_equal_exist : std::false_type
 
 template <typename _Iterator1, typename _Iterator2>
 struct is_equal_exist<_Iterator1, _Iterator2,
-                      std::void_t<decltype(operator==(std::declval<_Iterator1>(), std::declval<_Iterator2&>()))>>
-    : std::true_type
+                      std::void_t<decltype(std::declval<::std::decay_t<_Iterator1>>().operator==(
+                          std::declval<::std::decay_t<_Iterator2>>()))>> : std::true_type
 {
 };
 
@@ -171,10 +171,20 @@ __check_equal_iterators(_Iterator1 __it1, _Iterator2 __it2)
     // In-place exclusive scan works correctly only if an input and an output iterators are the same type
     // of operator== exist for their type - so they are comparable
     // Otherwise, there is no way to check an in-place case and a workaround below is not applied.
-    if constexpr (::std::is_same_v<::std::decay_t<_Iterator1>, ::std::decay_t<_Iterator2>> ||
-                    is_equal_exist<_Iterator1, _Iterator2>::value)
+    if constexpr (::std::is_same_v<::std::decay_t<_Iterator1>, ::std::decay_t<_Iterator2>>)
     {
         return __it1 == __it2;
+    }
+
+    if constexpr (is_equal_exist<_Iterator1, _Iterator2>::value)
+    {
+        return __it1 == __it2;
+    }
+    else
+    {
+        static_assert(!oneapi::dpl::__internal::is_hetero_iterator<_Iterator1>::value &&
+                          !oneapi::dpl::__internal::is_hetero_iterator<_Iterator2>::value,
+                      "For hetero iterator we shouldn't be here");
     }
 
     return false;
