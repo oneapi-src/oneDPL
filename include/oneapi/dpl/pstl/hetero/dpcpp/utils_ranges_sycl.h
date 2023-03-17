@@ -484,7 +484,7 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last) ->
-        typename ::std::enable_if<is_hetero_it<_Iter>::value,
+        typename ::std::enable_if<is_hetero_it<_Iter>::value && !is_hetero_const_it<_Iter>::value,
                                   __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>::type
     {
         assert(__first < __last);
@@ -496,6 +496,28 @@ struct __get_sycl_range
         assert(__offset + __n <= __size);
 
         return __range_holder<oneapi::dpl::__ranges::all_view<value_type, AccMode>>{
+            oneapi::dpl::__ranges::all_view<value_type, AccMode>(__first.get_buffer() /* buffer */,
+                                                                 __offset /* offset*/, __n /* size*/)};
+    }
+
+    //specialization for hetero const iterator
+    template <typename _Iter>
+    auto
+    operator()(_Iter __first, _Iter __last) ->
+        typename ::std::enable_if<is_hetero_it<_Iter>::value && is_hetero_const_it<_Iter>::value,
+                                  __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>::type
+    {
+        static_assert(::std::is_same_v<decltype(AccMode), decltype(sycl::access::mode::read)>, "For const_iterator only sycl::access::mode::read is available");
+
+        assert(__first < __last);
+        using value_type = val_t<_Iter>;
+
+        const auto __offset = __first - oneapi::dpl::cbegin(__first.get_buffer());
+        const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
+        const auto __n = ::std::min(decltype(__size)(__last - __first), __size);
+        assert(__offset + __n <= __size);
+
+        return __range_holder<oneapi::dpl::__ranges::all_view<value_type, sycl::access::mode::read>>{
             oneapi::dpl::__ranges::all_view<value_type, AccMode>(__first.get_buffer() /* buffer */,
                                                                  __offset /* offset*/, __n /* size*/)};
     }
