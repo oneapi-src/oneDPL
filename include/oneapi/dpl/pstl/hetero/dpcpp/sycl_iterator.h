@@ -59,15 +59,15 @@ struct sycl_iterator_impl
     using Size = ::std::size_t;
 
     using iterator_category = ::std::random_access_iterator_tag;
-    using is_hetero         = typename sycl_iterator_trait<T, Allocator, IsConst>::is_hetero;
-    using is_hetero_const   = typename sycl_iterator_trait<T, Allocator, IsConst>::is_hetero_const;
-    using difference_type   = ::std::make_signed<Size>::type;
+    using is_hetero = typename sycl_iterator_trait<T, Allocator, IsConst>::is_hetero;
+    using is_hetero_const = typename sycl_iterator_trait<T, Allocator, IsConst>::is_hetero_const;
+    using difference_type = ::std::make_signed<Size>::type;
 
-    using value_type        = T;
-    using pointer           = T*;
-    using reference         = T&;
-    using Buffer            = typename sycl_iterator_trait<T, Allocator, IsConst>::Buffer;
-    using BufferReturnType  = typename sycl_iterator_trait<T, Allocator, IsConst>::BufferReturnType;
+    using value_type = T;
+    using pointer = T*;
+    using reference = T&;
+    using Buffer = typename sycl_iterator_trait<T, Allocator, IsConst>::Buffer;
+    using BufferReturnType = typename sycl_iterator_trait<T, Allocator, IsConst>::BufferReturnType;
 
   private:
     Buffer buffer;
