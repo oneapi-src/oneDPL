@@ -200,6 +200,22 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf,
                                                                                     __dpl_sycl::__get_buffer_size(buf)};
 }
+
+// cbegin / cend
+template <typename T, typename Allocator>
+__internal::sycl_const_iterator<T, Allocator>
+cbegin(sycl::buffer<T, /*dim=*/1, Allocator> buf)
+{
+    return __internal::sycl_const_iterator<T, Allocator>{buf, 0};
+}
+
+template <typename T, typename Allocator>
+__internal::sycl_const_iterator<T, Allocator>
+cend(sycl::buffer<T, /*dim=*/1, Allocator> buf)
+{
+    return __internal::sycl_const_iterator<T, Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
+}
+
 } // namespace dpl
 } // namespace oneapi
 
