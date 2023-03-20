@@ -121,6 +121,9 @@ struct sycl_iterator
     }
 };
 
+template <typename T, typename Allocator = __dpl_sycl::__buffer_allocator<T>>
+using sycl_const_iterator = sycl_iterator<access_mode::read, T, Allocator>;
+
 // mode converter when property::noinit present
 template <access_mode __mode>
 struct _ModeConverter
