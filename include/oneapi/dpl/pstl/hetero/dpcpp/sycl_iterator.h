@@ -154,8 +154,8 @@ struct sycl_iterator_impl
 template <access_mode Mode, typename T, typename Allocator = __dpl_sycl::__buffer_allocator<T>>
 using sycl_iterator = sycl_iterator_impl<Mode, T, Allocator, ::std::false_type>;
 
-template <access_mode Mode, typename T, typename Allocator = __dpl_sycl::__buffer_allocator<T>>
-using sycl_const_iterator = sycl_iterator_impl<Mode, T, Allocator, ::std::true_type>;
+template <typename T, typename Allocator = __dpl_sycl::__buffer_allocator<T>>
+using sycl_const_iterator = sycl_iterator_impl<sycl::access::mode::read, T, Allocator, ::std::true_type>;
 
 // mode converter when property::noinit present
 template <access_mode __mode>
@@ -236,18 +236,18 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
 
 // cbegin
 template <typename T, typename Allocator>
-__internal::sycl_const_iterator<access_mode::read, T, Allocator>
+__internal::sycl_const_iterator<T, Allocator>
 cbegin(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 {
-    return __internal::sycl_const_iterator<access_mode::read, T, Allocator>{buf, 0};
+    return __internal::sycl_const_iterator<T, Allocator>{buf, 0};
 }
 
 // cend
 template <typename T, typename Allocator>
-__internal::sycl_const_iterator<access_mode::read, T, Allocator>
+__internal::sycl_const_iterator<T, Allocator>
 cend(sycl::buffer<T, /*dim=*/1, Allocator> buf)
 {
-    return __internal::sycl_const_iterator<access_mode::read, T, Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
+    return __internal::sycl_const_iterator<T, Allocator>{buf, __dpl_sycl::__get_buffer_size(buf)};
 }
 
 } // namespace dpl
