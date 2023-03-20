@@ -45,7 +45,7 @@ struct extract_accessor<oneapi::dpl::__internal::sycl_iterator<Mode, T, Allocato
     static constexpr sycl::access::mode mode = Mode;
     static constexpr int dim = 1;
     using buffer_type = sycl::buffer<T, dim, Allocator>;
-    using accessor_type = sycl::accessor<T, dim, mode, sycl::access::target::host_task>;
+    using accessor_type = sycl::host_accessor<T, dim, mode>;
 
     static accessor_type
     get(oneapi::dpl::__internal::sycl_iterator<Mode, T, Allocator>& iter)
