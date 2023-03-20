@@ -198,7 +198,7 @@ __joint_exclusive_scan(_Args&&... __args)
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
     return sycl::joint_exclusive_scan(::std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::exclusive_scan(::std::forward<Args>(__args)...);
+    return sycl::ONEAPI::exclusive_scan(::std::forward<_Args>(__args)...);
 #endif
 }
 

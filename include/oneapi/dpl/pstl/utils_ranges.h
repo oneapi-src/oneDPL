@@ -342,7 +342,7 @@ struct transform_view_simple
 
 template <typename _Map>
 auto
-test_map_view(int) -> decltype(::std::declval<_Map>().begin(), ::std::true_type{});
+test_map_view(int) -> decltype(::std::declval<_Map>()[0], ::std::true_type{});
 
 template <typename _Map>
 auto
