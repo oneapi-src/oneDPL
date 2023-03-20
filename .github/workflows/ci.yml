@@ -74,7 +74,7 @@ jobs:
             path: html
 
   linux-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -180,7 +180,7 @@ jobs:
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
   windows-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_device=${{ matrix.device_type }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -215,7 +215,7 @@ jobs:
       - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'
         shell: cmd
-        run: | 
+        run: |
           call %CONDA%/condabin/conda.bat activate base
           conda install -c intel dpcpp_win-64
       - name: Run testing
@@ -251,7 +251,7 @@ jobs:
           ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags%
 
   macos-testing:
-    name: ${{ matrix.os }}_${{ matrix.cxx_compiler }}_backend=${{ matrix.backend }}_cxx${{ matrix.std }}_${{ matrix.build_type }}
+    name: HOST,bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
