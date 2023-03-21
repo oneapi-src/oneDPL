@@ -366,13 +366,6 @@ struct test_base
         HostData   __host_buffer;   // Local test data buffer
         const Size __count = 0;     // Count of items in test data
     };
-
-    template <typename Size>
-    auto
-    get_keys_data_transfer(Size n)
-    {
-        return TestDataTransfer<UDTKind::eKeys, Size>(*this, n);
-    }
 };
 
 template <typename Iterator>
