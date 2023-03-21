@@ -316,12 +316,6 @@ struct test_base
          */
         TestValueType* get();
 
-        TestValueType* begin();
-        TestValueType* end();
-
-        const TestValueType* cbegin() const;
-        const TestValueType* cend() const;
-
         /// Retrieve data
         /**
          * Method copy data from test source data storage (USM shared/device buffer, SYCL buffer)
@@ -747,54 +741,6 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::get()
         return __host_buffer.data();
 
     return __test_base.base_data_ref.get_data(kind, NonConstType{});
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
-TestValueType*
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::begin()
-{
-    if (__host_buffering_required)
-        return __host_buffer.data();
-
-    return __test_base.base_data_ref.get_data(kind, NonConstType{});
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
-TestValueType*
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::end()
-{
-    if (__host_buffering_required)
-        return __host_buffer.data() + __count;
-
-    return __test_base.base_data_ref.get_data(kind, NonConstType{}) + __count;
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
-const TestValueType*
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::cbegin() const
-{
-    if (__host_buffering_required)
-        return __host_buffer.data() + __count;
-
-    return __test_base.base_data_ref.get_data(kind, ConstType{}) + __count;
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
-const TestValueType*
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::cend() const
-{
-    if (__host_buffering_required)
-        return __host_buffer.data() + __count;
-
-    return __test_base.base_data_ref.get_data(kind, ConstType{}) + __count;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
