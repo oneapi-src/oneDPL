@@ -177,19 +177,21 @@ DEFINE_TEST_1(test_inclusive_scan_by_segment, BinaryOperation)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
 
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         // call algorithm with no optional arguments
-        initialize_data(keys_first, vals_first, val_res_first, n);
+        initialize_data(get_fill_keys(host_keys, keys_first, n), vals_first, val_res_first, n);
         auto res1 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
         check_values(keys_first, vals_first, val_res_first, n);
 
         // call algorithm with equality comparator
-        initialize_data(keys_first, vals_first, val_res_first, n);
+        initialize_data(get_fill_keys(host_keys, keys_first, n), vals_first, val_res_first, n);
         auto res2 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; });
         check_values(keys_first, vals_first, val_res_first, n);
 
         // call algorithm with addition operator
-        initialize_data(keys_first, vals_first, val_res_first, n);
+        initialize_data(get_fill_keys(host_keys, keys_first, n), vals_first, val_res_first, n);
         auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
                                                            [](KeyT first, KeyT second) { return first == second; },
                                                            BinaryOperation());

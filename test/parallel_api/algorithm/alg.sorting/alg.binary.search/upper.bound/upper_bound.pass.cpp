@@ -105,8 +105,11 @@ DEFINE_TEST(test_upper_bound)
                Iterator3 result_first, Iterator3 result_last, Size n)
     {
         typedef typename ::std::iterator_traits<Iterator1>::value_type ValueT;
+
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+
         // call algorithm with no optional arguments
-        initialize_data(first, value_first, result_first, n);
+        initialize_data(get_fill_keys(host_keys, first, n), value_first, result_first, n);
 
         auto res1 = oneapi::dpl::upper_bound(exec, first, last, value_first, value_last, result_first);
         check_and_clean(result_first, value_first, n);

@@ -31,6 +31,7 @@
 using ConstType    = ::std::true_type;
 using NonConstType = ::std::false_type;
 constexpr ConstType kConstIterator;
+constexpr NonConstType kNonConstIterator;
 
 namespace TestUtils
 {
@@ -76,6 +77,9 @@ struct test_base_data
      */
     virtual const TestValueType* get_data(UDTKind kind, ConstType) = 0;
     virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) = 0;
+
+    /// Get begin iterator
+    virtual typename std::vector<TestValueType>::iterator begin(UDTKind kind) = 0;
 
     /// Retrieve data
     /**
@@ -167,6 +171,9 @@ struct test_base_data_usm : test_base_data<TestValueType>
     virtual const TestValueType* get_data(UDTKind kind, ConstType) override;
     virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) override;
 
+    // Get begin iterator
+    virtual typename std::vector<TestValueType>::iterator begin(UDTKind kind) override;
+
     // Retrieve data
     virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
 
@@ -221,6 +228,9 @@ struct test_base_data_buffer : test_base_data<TestValueType>
     virtual const TestValueType* get_data(UDTKind kind, ConstType) override;
     virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) override;
 
+    // Get begin iterator
+    virtual typename std::vector<TestValueType>::iterator begin(UDTKind kind) override;
+
     // Retrieve data
     virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
 
@@ -247,6 +257,16 @@ struct test_base_data_sequence : test_base_data<TestValueType>
             , offset(__offset)
         {
         }
+
+        const auto get_start_from(ConstType)
+        {
+            return src_data_seq.cbegin() + offset;
+        }
+
+        auto get_start_from(NonConstType)
+        {
+            return src_data_seq.begin() + offset;
+        }
     };
     ::std::vector<Data> data;   // Vector of source test data:
                                 //  - 3 items for test_algo_three_sequences
@@ -271,6 +291,9 @@ struct test_base_data_sequence : test_base_data<TestValueType>
     virtual const TestValueType* get_data(UDTKind kind, ConstType) override;
     virtual TestValueType*       get_data(UDTKind kind, NonConstType = NonConstType{}) override;
 
+    // Get begin iterator
+    virtual typename std::vector<TestValueType>::iterator begin(UDTKind kind) override;
+
     // Retrieve data
     virtual void retrieve_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to) override;
 
@@ -283,6 +306,8 @@ struct test_base_data_sequence : test_base_data<TestValueType>
 template <typename TestValueType>
 struct test_base
 {
+    using value_type = TestValueType;
+
     test_base_data<TestValueType>& base_data_ref;
 
     test_base(test_base_data<TestValueType>& _base_data_ref);
@@ -316,6 +341,9 @@ struct test_base
          */
         TestValueType* get();
 
+        /// Get begin iterator
+        typename std::vector<TestValueType>::iterator begin();
+
         /// Retrieve data
         /**
          * Method copy data from test source data storage (USM shared/device buffer, SYCL buffer)
@@ -338,7 +366,68 @@ struct test_base
         HostData   __host_buffer;   // Local test data buffer
         const Size __count = 0;     // Count of items in test data
     };
+
+    template <typename Size>
+    auto
+    get_keys_data_transfer(Size n)
+    {
+        return TestDataTransfer<UDTKind::eKeys, Size>(*this, n);
+    }
 };
+
+template <typename Iterator>
+constexpr bool
+is_reverse_it(::std::reverse_iterator<Iterator>)
+{
+    return true;
+}
+
+template <typename Iterator>
+constexpr bool
+is_reverse_it(Iterator)
+{
+    return false;
+}
+
+template <typename T>
+struct is_const_reference : ::std::false_type
+{
+};
+
+template <typename T>
+struct is_const_reference<T const&> : ::std::true_type
+{
+};
+
+template <typename Iterator>
+constexpr bool
+is_const_it(Iterator)
+{
+    using ValueRef = typename ::std::iterator_traits<Iterator>::reference;
+    return is_const_reference<ValueRef>::value;
+}
+
+template <typename HostData, typename Iterator, typename Size>
+auto
+get_fill_keys(HostData& host_data, Iterator first, Size n)
+{
+    if constexpr (!is_const_it(Iterator{}))
+    {
+        return first;
+    }
+    else
+    {
+        // const iterator -> required to return non-const iterator
+        if constexpr (!is_reverse_it(Iterator{}))
+        {
+            return host_data.begin();
+        }
+        else
+        {
+            return ::std::make_reverse_iterator(host_data.begin() + n);
+        }
+    }
+}
 
 /// Copy data from source test data storage into local buffers
 template <typename TTestDataTransfer>
@@ -428,10 +517,9 @@ create_test_obj(TestBaseData&)
 
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
-template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
+template <typename T, typename TestName, typename KeysIsConst>
 void
-test_algo_three_sequences()
+test_algo_three_sequences(KeysIsConst keysIsConst)
 {
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
@@ -443,7 +531,7 @@ test_algo_three_sequences()
                                       { max_n, inout3_offset } });
 
         // create iterators
-        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys, keysIsConst);
         auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
         auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
 
@@ -453,6 +541,16 @@ test_algo_three_sequences()
                                       inout3_offset_first, inout3_offset_first + n,
                                       n);
     }
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+// Used with algorithms that have two input sequences and one output sequences
+template <typename T, typename TestName>
+void
+test_algo_three_sequences()
+{
+    test_algo_three_sequences<T, TestName>(kConstIterator);
+    test_algo_three_sequences<T, TestName>(kNonConstIterator);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -515,6 +613,15 @@ TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_data(UDTKind kind,
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <sycl::usm::alloc alloc_type, typename TestValueType>
+typename std::vector<TestValueType>::iterator
+TestUtils::test_base_data_usm<alloc_type, TestValueType>::begin(UDTKind /*kind*/)
+{
+    assert(false);
+    return {};
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <sycl::usm::alloc alloc_type, typename TestValueType>
 TestValueType*
 TestUtils::test_base_data_usm<alloc_type, TestValueType>::get_data(UDTKind kind, NonConstType /*= NonConstType{}*/)
 {
@@ -568,7 +675,8 @@ auto
 TestUtils::test_base_data_buffer<TestValueType>::get_start_from(UDTKind kind, ConstType)
     -> decltype(oneapi::dpl::cbegin(data.at(enum_val_to_index(kind)).src_data_buf))
 {
-    return oneapi::dpl::cbegin(data.at(enum_val_to_index(kind)).src_data_buf) + data.at(enum_val_to_index(kind)).offset;
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return oneapi::dpl::cbegin(data_item.src_data_buf) + data_item.offset;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -577,7 +685,8 @@ auto
 TestUtils::test_base_data_buffer<TestValueType>::get_start_from(UDTKind kind, NonConstType /*= NonConstType{}*/)
     -> decltype(oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf))
 {
-    return oneapi::dpl::begin(data.at(enum_val_to_index(kind)).src_data_buf) + data.at(enum_val_to_index(kind)).offset;
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return oneapi::dpl::begin(data_item.src_data_buf) + data_item.offset;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -602,6 +711,15 @@ TestValueType*
 TestUtils::test_base_data_buffer<TestValueType>::get_data(UDTKind /*kind*/, NonConstType /*= NonConstType{}*/)
 {
     return nullptr;
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+typename std::vector<TestValueType>::iterator
+TestUtils::test_base_data_buffer<TestValueType>::begin(UDTKind /*kind*/)
+{
+    assert(false);
+    return {};
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -649,7 +767,8 @@ auto
 TestUtils::test_base_data_sequence<TestValueType>::get_start_from(UDTKind kind, ConstType)
     -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.cbegin())
 {
-    return data.at(enum_val_to_index(kind)).src_data_seq.cbegin() + data.at(enum_val_to_index(kind)).offset;
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return data_item.get_start_from(ConstType{});
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -658,7 +777,8 @@ auto
 TestUtils::test_base_data_sequence<TestValueType>::get_start_from(UDTKind kind, NonConstType /*= NonConstType{}*/)
     -> decltype(data.at(enum_val_to_index(kind)).src_data_seq.begin())
 {
-    return data.at(enum_val_to_index(kind)).src_data_seq.begin() + data.at(enum_val_to_index(kind)).offset;
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return data_item.get_start_from(NonConstType{});
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -675,7 +795,7 @@ const TestValueType*
 TestUtils::test_base_data_sequence<TestValueType>::get_data(UDTKind kind, ConstType)
 {
     auto& data_item = data.at(enum_val_to_index(kind));
-    return data_item.src_data_seq.data();
+    return ::std::addressof(*data_item.get_start_from(ConstType{}));
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -684,7 +804,16 @@ TestValueType*
 TestUtils::test_base_data_sequence<TestValueType>::get_data(UDTKind kind, NonConstType /*= NonConstType{}*/)
 {
     auto& data_item = data.at(enum_val_to_index(kind));
-    return data_item.src_data_seq.data();
+    return ::std::addressof(*data_item.get_start_from(NonConstType{}));
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+typename std::vector<TestValueType>::iterator
+TestUtils::test_base_data_sequence<TestValueType>::begin(UDTKind kind)
+{
+    auto& data_item = data.at(enum_val_to_index(kind));
+    return data_item.src_data_seq.begin() + data_item.offset;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -741,6 +870,15 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::get()
         return __host_buffer.data();
 
     return __test_base.base_data_ref.get_data(kind, NonConstType{});
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType>
+template <TestUtils::UDTKind kind, typename Size>
+typename std::vector<TestValueType>::iterator
+TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::begin()
+{
+    return __test_base.base_data_ref.begin(kind);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
