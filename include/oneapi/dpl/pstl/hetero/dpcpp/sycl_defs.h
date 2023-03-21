@@ -64,7 +64,9 @@
 
 // There is a device driver (version 22.49.25018.24) issue for compiled code with NDEBUG flag for Intel® Data Center GPU Flex Series.
 // So, for it is recommended to define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT into 0 for such configuration.
-#define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT 1
+#if !defined(_ONEDPL_USE_SINGLE_GROUP_RADIX_SORT)
+#    define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT 1
+#endif
 
 namespace __dpl_sycl
 {
