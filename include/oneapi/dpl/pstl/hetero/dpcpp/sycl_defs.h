@@ -62,8 +62,9 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
-// TODO: re-enable when sort test passes for all devices of interest
-#define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT 0
+// There is oneAPI compiler (version 2023.1) issue with NDEBUG flag for ATSM device.
+// So, for  oneAPI compiler version 2023.1 it is recommended to define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT into 0
+#define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT 1
 
 namespace __dpl_sycl
 {
