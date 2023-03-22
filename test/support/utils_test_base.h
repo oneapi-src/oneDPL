@@ -337,6 +337,13 @@ public:
     template <typename TestBase>
     TestDataTransfer(TestBase& _test_base, Size _count);
 
+    /// Constructor
+    /**
+     * @param test_base_data<TestValueType>& _test_base_data - reference to test base data class
+     * @param Size _count - count of objects in source test storage
+     */
+    TestDataTransfer(test_base_data<TestValueType>& _test_base_data, Size _count);
+
     /// Get pointer to internal data buffer
     /**
      * @return TestValueType* - pointer to internal data buffer
@@ -854,6 +861,16 @@ template <typename TestBase>
 TestUtils::TestDataTransfer<TestValueType, kind, Size>::TestDataTransfer(TestBase& _test_base, Size _count)
     : __base_data_ref(_test_base.base_data_ref)
     , __host_buffering_required(_test_base.host_buffering_required())
+    , __host_buffer(__host_buffering_required ? _count : 0)
+    , __count(_count)
+{
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestValueType, TestUtils::UDTKind kind, typename Size>
+TestUtils::TestDataTransfer<TestValueType, kind, Size>::TestDataTransfer(test_base_data<TestValueType>& _test_base_data, Size _count)
+    : __base_data_ref(_test_base_data)
+    , __host_buffering_required(_test_base_data.host_buffering_required())
     , __host_buffer(__host_buffering_required ? _count : 0)
     , __count(_count)
 {
