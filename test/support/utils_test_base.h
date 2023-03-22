@@ -363,10 +363,10 @@ public:
 
 protected:
 
-    test_base_data<TestValueType>& __base_data_ref; // Test base data class ref
-    bool       __host_buffering_required = false;
-    HostData   __host_buffer;   // Local test data buffer
-    const Size __count = 0;     // Count of items in test data
+    test_base_data<TestValueType>& __base_data_ref;                     // Reference to source test data
+    bool                           __host_buffering_required = false;
+    HostData                       __host_buffer;                       // Local test data buffer
+    const Size                     __count = 0;                         // Count of items in test data
 };
 
 template <typename Iterator>
