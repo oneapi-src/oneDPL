@@ -522,23 +522,12 @@ test_algo_three_sequences(KeysIsConst keysIsConst)
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-// Used with algorithms that have two input sequences and one output sequences
-template <typename T, typename TestName>
+template <typename TestName>
 void
 test_algo_three_sequences()
 {
-    test_algo_three_sequences<T, TestName>(kConstIterator);
-    test_algo_three_sequences<T, TestName>(kNonConstIterator);
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-template <typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
-test_algo_three_sequences()
-{
-    test_algo_three_sequences<typename TestName::UsedValueType, TestName>();
+    test_algo_three_sequences<typename TestName::UsedValueType, TestName>(kNonConstIterator);
+    test_algo_three_sequences<typename TestName::UsedValueType, TestName>(kConstIterator);
 }
 
 }; // namespace TestUtils
