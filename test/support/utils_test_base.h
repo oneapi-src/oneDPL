@@ -404,21 +404,22 @@ template <typename HostData, typename Iterator, typename Size>
 auto
 get_non_const_it(HostData& host_data, Iterator first, Size n)
 {
+    // If the source iterator is non-const then return it
     if constexpr (!is_const_it(Iterator{}))
     {
         return first;
     }
+
+    // If the source iterator is not reverse (and it is const) return iterator for the source data
+    else if constexpr (!is_reverse_it(Iterator{}))
+    {
+        return host_data.begin();
+    }
+
+    // If the source iterator is const and reverse return reverse iterator for the source data
     else
     {
-        // const iterator -> required to return non-const iterator
-        if constexpr (!is_reverse_it(Iterator{}))
-        {
-            return host_data.begin();
-        }
-        else
-        {
-            return ::std::make_reverse_iterator(host_data.begin() + n);
-        }
+        return ::std::make_reverse_iterator(host_data.begin() + n);
     }
 }
 
