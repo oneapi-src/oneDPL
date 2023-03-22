@@ -361,7 +361,7 @@ struct test_base
 
     protected:
 
-        test_base& __test_base;     // Test base class ref
+        test_base_data<TestValueType>& __base_data_ref; // Test base data class ref
         bool       __host_buffering_required = false;
         HostData   __host_buffer;   // Local test data buffer
         const Size __count = 0;     // Count of items in test data
@@ -847,7 +847,7 @@ TestUtils::test_base<TestValueType>::host_buffering_required() const
 template <typename TestValueType>
 template <TestUtils::UDTKind kind, typename Size>
 TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::TestDataTransfer(test_base& _test_base, Size _count)
-    : __test_base(_test_base)
+    : __base_data_ref(_test_base.base_data_ref)
     , __host_buffering_required(_test_base.host_buffering_required())
     , __host_buffer(__host_buffering_required ? _count : 0)
     , __count(_count)
@@ -863,7 +863,7 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::get()
     if (__host_buffering_required)
         return __host_buffer.data();
 
-    return __test_base.base_data_ref.get_data(kind, NonConstType{});
+    return __base_data_ref.get_data(kind, NonConstType{});
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -872,7 +872,7 @@ template <TestUtils::UDTKind kind, typename Size>
 typename std::vector<TestValueType>::iterator
 TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::begin()
 {
-    return __test_base.base_data_ref.begin(kind);
+    return __base_data_ref.begin(kind);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -883,7 +883,7 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::retrieve_data
 {
     if (__host_buffering_required)
     {
-        __test_base.base_data_ref.retrieve_data(kind,
+        __base_data_ref.retrieve_data(kind,
             __host_buffer.data(),
             __host_buffer.data() + __host_buffer.size());
     }
@@ -902,7 +902,7 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::update_data(S
         if (count == 0)
             count = __count;
 
-        __test_base.base_data_ref.update_data(kind,
+        __base_data_ref.update_data(kind,
             __host_buffer.data(),
             __host_buffer.data() + count);
     }
