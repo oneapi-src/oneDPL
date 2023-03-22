@@ -152,15 +152,16 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
     }
 }
 
-template <sycl::access::mode Mode1, sycl::access::mode Mode2, typename T, typename Allocator>
+template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
 bool
-__check_equal_iterators(sycl_iterator<Mode1, T, Allocator> it1, sycl_iterator<Mode2, T, Allocator> it2)
+__check_equal_iterators(sycl_iterator<_Mode1, _T, _Allocator> __it1, sycl_iterator<_Mode2, _T, _Allocator> __it2)
 {
-    if (it1 != it2)
+    if (__it1 != __it2)
         return false;
 
-    const auto addr1 = ::std::addressof(it1.get_buffer().get_host_access(sycl::read_only)[0]);
-    const auto addr2 = ::std::addressof(it2.get_buffer().get_host_access(sycl::read_only)[0]);
+    // This code is required to check that two sycl_iterator describes two different sycl::buffers
+    const auto addr1 = ::std::addressof(__it1.get_buffer().get_host_access(sycl::read_only)[0]);
+    const auto addr2 = ::std::addressof(__it2.get_buffer().get_host_access(sycl::read_only)[0]);
     return addr1 == addr2;
 }
 
