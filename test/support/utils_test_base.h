@@ -402,7 +402,7 @@ is_const_it(Iterator)
 
 template <typename HostData, typename Iterator, typename Size>
 auto
-get_fill_keys(HostData& host_data, Iterator first, Size n)
+get_non_const_it(HostData& host_data, Iterator first, Size n)
 {
     if constexpr (!is_const_it(Iterator{}))
     {

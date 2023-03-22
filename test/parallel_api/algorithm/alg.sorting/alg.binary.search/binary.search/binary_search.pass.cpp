@@ -107,7 +107,7 @@ DEFINE_TEST(test_binary_search)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
         // call algorithm with no optional arguments
-        initialize_data(get_fill_keys(host_keys, first, n), value_first, result_first, n);
+        initialize_data(get_non_const_it(host_keys, first, n), value_first, result_first, n);
 
         auto res1 = oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first);
         check_and_clean(result_first, n);
