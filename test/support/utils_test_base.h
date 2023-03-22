@@ -463,48 +463,27 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
     update_data(::std::forward<Args>(args)...);
 }
 
-// 1) define class as
-//      template <typename TestValueType>
-//      struct TestClassName : TestUtils::test_base<TestValueType>
-// 2) define class as
-//      struct TestClassName
-#if TEST_DPCPP_BACKEND_PRESENT
-#define DEFINE_TEST(TestClassName)                                                  \
-    template <typename TestValueType>                                               \
-    struct TestClassName : TestUtils::test_base<TestValueType>
-#else
-#define DEFINE_TEST(TestClassName)                                                  \
-    struct TestClassName
-#endif // TEST_DPCPP_BACKEND_PRESENT
+// define class as
+//   template <typename TestValueType>
+//   struct TestClassName : TestUtils::test_base<TestValueType>
+#define DEFINE_TEST(TestClassName)                                                          \
+template <typename TestValueType>                                                           \
+struct TestClassName : TestUtils::test_base<TestValueType>
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#define DEFINE_TEST_1(TestClassName, TemplateParams)                                \
-    template <typename TestValueType, typename TemplateParams>                      \
-    struct TestClassName : TestUtils::test_base<TestValueType>
-#else
-#define DEFINE_TEST_1(TestClassName, TemplateParams)                                \
-    template <typename TemplateParams>                                              \
-    struct TestClassName
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#define DEFINE_TEST_1(TestClassName, TemplateParams)                                        \
+template <typename TestValueType, typename TemplateParams>                                  \
+struct TestClassName : TestUtils::test_base<TestValueType>
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#define DEFINE_TEST_CONSTRUCTOR(TestClassName)                                                                    \
-    TestClassName(test_base_data<TestValueType>& _test_base_data)                                                 \
-        : TestUtils::test_base<TestValueType>(_test_base_data)                                                    \
-    {                                                                                                             \
-    }                                                                                                             \
-                                                                                                                  \
-    template <UDTKind kind, typename Size>                                                                        \
-    using TestDataTransfer = TestUtils::template TestDataTransfer<TestValueType, kind, Size>;                     \
-                                                                                                                  \
-    using UsedValueType = TestValueType;
-#else
-#define DEFINE_TEST_CONSTRUCTOR()                                                                                 \
-    TestClassName() = default;                                                                                    \
-                                                                                                                  \
-    template <UDTKind kind, typename Size>                                                                        \
-    using TestDataTransfer = TestUtils::template TestDataTransfer<TestValueType, kind, Size>;
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#define DEFINE_TEST_CONSTRUCTOR(TestClassName)                                              \
+TestClassName(test_base_data<TestValueType>& _test_base_data)                               \
+    : TestUtils::test_base<TestValueType>(_test_base_data)                                  \
+{                                                                                           \
+}                                                                                           \
+                                                                                            \
+template <UDTKind kind, typename Size>                                                      \
+using TestDataTransfer = TestUtils::template TestDataTransfer<TestValueType, kind, Size>;   \
+                                                                                            \
+using UsedValueType = TestValueType;
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T, typename TestName, typename TestBaseData>
