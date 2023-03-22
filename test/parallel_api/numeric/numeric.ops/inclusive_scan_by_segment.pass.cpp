@@ -230,11 +230,7 @@ int main()
         test3buffers<sycl::usm::alloc::device, test_inclusive_scan_by_segment<ValueType, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if TEST_DPCPP_BACKEND_PRESENT
         test_algo_three_sequences<test_inclusive_scan_by_segment<ValueType, BinaryOperation>>();
-#else
-        test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
     }
 
     {
@@ -249,11 +245,7 @@ int main()
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
-#if TEST_DPCPP_BACKEND_PRESENT
         test_algo_three_sequences<test_inclusive_scan_by_segment<ValueType, BinaryOperation>>();
-#else
-        test_algo_three_sequences<ValueType, test_inclusive_scan_by_segment<BinaryOperation>>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 #endif // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
 
     }

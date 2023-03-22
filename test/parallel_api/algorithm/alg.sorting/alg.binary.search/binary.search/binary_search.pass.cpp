@@ -140,11 +140,7 @@ main()
     test3buffers<sycl::usm::alloc::device, test_binary_search<ValueType>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if TEST_DPCPP_BACKEND_PRESENT
     test_algo_three_sequences<test_binary_search<ValueType>>();
-#else
-    test_algo_three_sequences<ValueType, test_binary_search>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done();
 }

@@ -142,11 +142,7 @@ main()
     test3buffers<sycl::usm::alloc::device, test_upper_bound<ValueType>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if TEST_DPCPP_BACKEND_PRESENT
     test_algo_three_sequences<test_upper_bound<ValueType>>();
-#else
-    test_algo_three_sequences<ValueType, test_upper_bound>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done();
 }

@@ -212,11 +212,7 @@ int main()
     test3buffers<sycl::usm::alloc::device, test_exclusive_scan_by_segment<ValueType>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if TEST_DPCPP_BACKEND_PRESENT
     test_algo_three_sequences<test_exclusive_scan_by_segment<ValueType>>();
-#else
-    test_algo_three_sequences<ValueType, test_exclusive_scan_by_segment>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done();
 }
