@@ -108,7 +108,7 @@ macro(onedpl_add_test test_source_file)
     add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
-set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
+set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics|parallel_api/dynamic_selection/sycl)")
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
     if (_file MATCHES "${_skip_regex_for_not_dpcpp}" AND NOT ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
