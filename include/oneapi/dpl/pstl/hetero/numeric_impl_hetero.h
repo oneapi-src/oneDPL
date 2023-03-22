@@ -160,9 +160,14 @@ __check_equal_iterators(sycl_iterator<_Mode1, _T, _Allocator> __it1, sycl_iterat
         return false;
 
     // This code is required to check that two sycl_iterator describes two different sycl::buffers
-    const auto addr1 = ::std::addressof(__it1.get_buffer().get_host_access(sycl::read_only)[0]);
-    const auto addr2 = ::std::addressof(__it2.get_buffer().get_host_access(sycl::read_only)[0]);
-    return addr1 == addr2;
+    bool bResult = __it1.get_buffer() == __it2.get_buffer();
+    return bResult;
+    //const auto addr1 = __it1.get_buffer().get_host_access(sycl::read_only).get_pointer();
+    //const auto addr2 = __it2.get_buffer().get_host_access(sycl::read_only).get_pointer();
+    //if (addr1 != addr2)
+    //    return addr1 == addr2;
+
+    //return addr1 == addr2;
 }
 
 template <typename _Iterator1, typename _Iterator2>
