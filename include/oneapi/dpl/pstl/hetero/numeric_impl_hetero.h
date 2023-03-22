@@ -152,6 +152,18 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
     }
 }
 
+template <sycl::access::mode Mode1, sycl::access::mode Mode2, typename T, typename Allocator>
+bool
+__check_equal_iterators(sycl_iterator<Mode1, T, Allocator> it1, sycl_iterator<Mode2, T, Allocator> it2)
+{
+    if (it1 != it2)
+        return false;
+
+    const auto addr1 = ::std::addressof(it1.get_buffer().get_host_access(sycl::read_only)[0]);
+    const auto addr2 = ::std::addressof(it2.get_buffer().get_host_access(sycl::read_only)[0]);
+    return addr1 == addr2;
+}
+
 template <typename _Iterator1, typename _Iterator2>
 constexpr bool
 __check_equal_iterators(_Iterator1 __it1, _Iterator2 __it2)
