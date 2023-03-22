@@ -487,17 +487,10 @@ using UsedValueType = TestValueType;
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+TestName
 create_test_obj(TestBaseData& data)
 {
     return TestName(data);
-}
-
-template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<!::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
-create_test_obj(TestBaseData&)
-{
-    return TestName();
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
