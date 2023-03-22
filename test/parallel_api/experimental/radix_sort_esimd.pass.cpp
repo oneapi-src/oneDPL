@@ -71,18 +71,22 @@ void test_all_view(std::size_t size)
 template<typename T>
 void test_usm(std::size_t size)
 {
-    namespace dpl = oneapi::dpl;
-    sycl::queue q = dpl::execution::dpcpp_default.queue();
+    sycl::queue q{};
+    auto policy = oneapi::dpl::execution::make_device_policy(q);
     T* input = sycl::malloc_shared<T>(size, q);
     T* ref = sycl::malloc_host<T>(size, q);
     generate_data(ref, size);
     q.copy(ref, input, size).wait();
     std::sort(ref, ref + size);
-    oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default, input, input + size);
+    oneapi::dpl::experimental::esimd::radix_sort(policy, input, input + size);
 
     T* host_input = sycl::malloc_host<T>(size, q);
     q.copy(input, host_input, size).wait();
     verify(host_input, ref, size);
+
+    sycl::free(input, q);
+    sycl::free(ref, q);
+    sycl::free(host_input, q);
 }
 
 /*
