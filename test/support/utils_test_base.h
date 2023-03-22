@@ -317,55 +317,56 @@ struct test_base
      * @return bool - true, if host buffering of test data is required, false - otherwise
      */
     bool host_buffering_required() const;
+};
 
-    /// class TestDataTransfer - copy test data from/to source test data storage
-    /// to/from local buffer for modification processing.
-    template <UDTKind kind, typename Size>
-    class TestDataTransfer
-    {
-    public:
+/// class TestDataTransfer - copy test data from/to source test data storage
+/// to/from local buffer for modification processing.
+template <typename TestValueType, UDTKind kind, typename Size>
+class TestDataTransfer
+{
+public:
 
-        using HostData = std::vector<TestValueType>;
-        using Iterator = typename HostData::iterator;
+    using HostData = std::vector<TestValueType>;
+    using Iterator = typename HostData::iterator;
 
-        /// Constructor
-        /**
-         * @param test_base& _test_base - reference to test base class
-         * @param Size _count - count of objects in source test storage
-         */
-        TestDataTransfer(test_base& _test_base, Size _count);
+    /// Constructor
+    /**
+     * @param TestBase& _test_base - reference to test base class
+     * @param Size _count - count of objects in source test storage
+     */
+    template <typename TestBase>
+    TestDataTransfer(TestBase& _test_base, Size _count);
 
-        /// Get pointer to internal data buffer
-        /**
-         * @return TestValueType* - pointer to internal data buffer
-         */
-        TestValueType* get();
+    /// Get pointer to internal data buffer
+    /**
+     * @return TestValueType* - pointer to internal data buffer
+     */
+    TestValueType* get();
 
-        /// Get begin iterator
-        typename std::vector<TestValueType>::iterator begin();
+    /// Get begin iterator
+    typename std::vector<TestValueType>::iterator begin();
 
-        /// Retrieve data
-        /**
-         * Method copy data from test source data storage (USM shared/device buffer, SYCL buffer)
-         * to internal buffer.
-         */
-        void retrieve_data();
+    /// Retrieve data
+    /**
+     * Method copy data from test source data storage (USM shared/device buffer, SYCL buffer)
+     * to internal buffer.
+     */
+    void retrieve_data();
 
-        /// Update data
-        /**
-         * Method copy data from internal buffer to test source data storage.
-         * 
-         * @param Size count - count of items to copy, if 0 - copy all data.
-         */
-        void update_data(Size count = 0);
+    /// Update data
+    /**
+     * Method copy data from internal buffer to test source data storage.
+     * 
+     * @param Size count - count of items to copy, if 0 - copy all data.
+     */
+    void update_data(Size count = 0);
 
-    protected:
+protected:
 
-        test_base_data<TestValueType>& __base_data_ref; // Test base data class ref
-        bool       __host_buffering_required = false;
-        HostData   __host_buffer;   // Local test data buffer
-        const Size __count = 0;     // Count of items in test data
-    };
+    test_base_data<TestValueType>& __base_data_ref; // Test base data class ref
+    bool       __host_buffering_required = false;
+    HostData   __host_buffer;   // Local test data buffer
+    const Size __count = 0;     // Count of items in test data
 };
 
 template <typename Iterator>
@@ -487,11 +488,15 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
     }                                                                                                             \
                                                                                                                   \
     template <UDTKind kind, typename Size>                                                                        \
-    using TestDataTransfer = typename TestUtils::test_base<TestValueType>::template TestDataTransfer<kind, Size>; \
+    using TestDataTransfer = TestUtils::template TestDataTransfer<TestValueType, kind, Size>;                     \
                                                                                                                   \
     using UsedValueType = TestValueType;
 #else
-#define DEFINE_TEST_CONSTRUCTOR(TestClassName)
+#define DEFINE_TEST_CONSTRUCTOR()                                                                                 \
+    TestClassName() = default;                                                                                    \
+                                                                                                                  \
+    template <UDTKind kind, typename Size>                                                                        \
+    using TestDataTransfer = TestUtils::template TestDataTransfer<TestValueType, kind, Size>;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 //--------------------------------------------------------------------------------------------------------------------//
@@ -844,9 +849,9 @@ TestUtils::test_base<TestValueType>::host_buffering_required() const
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::TestDataTransfer(test_base& _test_base, Size _count)
+template <typename TestValueType, TestUtils::UDTKind kind, typename Size>
+template <typename TestBase>
+TestUtils::TestDataTransfer<TestValueType, kind, Size>::TestDataTransfer(TestBase& _test_base, Size _count)
     : __base_data_ref(_test_base.base_data_ref)
     , __host_buffering_required(_test_base.host_buffering_required())
     , __host_buffer(__host_buffering_required ? _count : 0)
@@ -855,10 +860,9 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::TestDataTrans
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
+template <typename TestValueType, TestUtils::UDTKind kind, typename Size>
 TestValueType*
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::get()
+TestUtils::TestDataTransfer<TestValueType, kind, Size>::get()
 {
     if (__host_buffering_required)
         return __host_buffer.data();
@@ -867,19 +871,17 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::get()
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
+template <typename TestValueType, TestUtils::UDTKind kind, typename Size>
 typename std::vector<TestValueType>::iterator
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::begin()
+TestUtils::TestDataTransfer<TestValueType, kind, Size>::begin()
 {
     return __base_data_ref.begin(kind);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
+template <typename TestValueType, TestUtils::UDTKind kind, typename Size>
 void
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::retrieve_data()
+TestUtils::TestDataTransfer<TestValueType, kind, Size>::retrieve_data()
 {
     if (__host_buffering_required)
     {
@@ -890,10 +892,9 @@ TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::retrieve_data
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename TestValueType>
-template <TestUtils::UDTKind kind, typename Size>
+template <typename TestValueType, TestUtils::UDTKind kind, typename Size>
 void
-TestUtils::test_base<TestValueType>::TestDataTransfer<kind, Size>::update_data(Size count /*= 0*/)
+TestUtils::TestDataTransfer<TestValueType, kind, Size>::update_data(Size count /*= 0*/)
 {
     assert(count <= __count);
 
