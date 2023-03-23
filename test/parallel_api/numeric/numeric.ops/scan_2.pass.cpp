@@ -336,8 +336,13 @@ test_equality_of_iterators()
     auto it2 = oneapi::dpl::begin(buf2);
 
     EXPECT_TRUE(__check_equal_iterators(it1, it1), "wrong __check_if_iterator_equality_is_possible result");
-
     EXPECT_FALSE(__check_equal_iterators(it1, it2), "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), it2),
+                 "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), oneapi::dpl::begin(buf2)),
+                 "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_FALSE(it1, oneapi::dpl::begin(buf2)),
+                 "wrong __check_if_iterator_equality_is_possible result");
 
     int srcIntData = 0;
     const auto& intConstData = srcIntData;
@@ -345,17 +350,13 @@ test_equality_of_iterators()
     float floatData = .0;
 
     EXPECT_TRUE(__check_equal_iterators(&intData, &intData), "wrong __check_if_iterator_equality_is_possible result");
-
     EXPECT_TRUE(__check_equal_iterators(&intConstData, &intData),
                 "wrong __check_if_iterator_equality_is_possible result");
-
     EXPECT_TRUE(__check_equal_iterators(&intData, &intConstData),
                 "wrong __check_if_iterator_equality_is_possible result");
-
     EXPECT_FALSE(__check_equal_iterators(&intData, &floatData),
                  "wrong __check_if_iterator_equality_is_possible result");
 }
-
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
