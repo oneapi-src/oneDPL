@@ -30,8 +30,9 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace oneapi::dpl::experimental::esimd
+namespace oneapi::dpl::experimental::esimd::impl
 {
+
 /*
     Interface:
         Provide a temporary buffer. May be not necessary for some implementations, e.g. one-work-group implementation.
@@ -46,16 +47,17 @@ namespace oneapi::dpl::experimental::esimd
             gather: Element type; can only be a 1,2,4-byte integer, sycl::half or float.
             lsc_gather: limited supported platforms: see https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#ga250b3c0085f39c236582352fb711aadb)
 */
-// TODO: call it only for all_view (accessor) and guard_view (USM) ranges and probably subrange (according to the documentation, not tested)
+// TODO: call it only for all_view (accessor) and guard_view (USM) ranges, views::ubrange and sycl_iterator
 template <typename _ExecutionPolicy, typename _Range, bool IsAscending = true, std::uint16_t WorkGroupSize = 256,
           std::uint16_t ItemsPerWorkItem = 16, std::uint32_t RadixBits = 8>
 void
 radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
-    // TODO: check cases with n == 0 or 1;
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
 
     const ::std::size_t __n = __rng.size();
+    assert(__n > 1);
+
     if (__n <= 16384)
     {
         // TODO: allow differnt sorting orders
@@ -78,9 +80,24 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: avoid kernel duplication (generate the output storate with the same type as input storatge and use swap)
         // TODO: allow different RadixBits, make sure the data is in the input storage after the last stage
         // TODO: pass _ProcessSize according to __n
+        // TODO: fix when compiled in-O0 mode: "esimd_radix_sort_one_wg.h : 54 : 5>: SLM init call is supported only in kernels"
         oneapi::dpl::experimental::esimd::impl::onesweep<_ExecutionPolicy, _KeyT, _Range, RadixBits, /*_ProcessSize*/ 512>(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
+}
+
+} // oneapi::dpl::experimental::esimd::impl
+
+namespace oneapi::dpl::experimental::esimd
+{
+template <typename _ExecutionPolicy, typename _Range, bool IsAscending = true, std::uint16_t WorkGroupSize = 256,
+          std::uint16_t ItemsPerWorkItem = 16, std::uint32_t RadixBits = 8>
+void
+radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
+{
+    if(__rng.size() < 2)
+        return;
+    oneapi::dpl::experimental::esimd::impl::radix_sort(::std::forward<_ExecutionPolicy>(__exec), __rng);
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, bool IsAscending = true, std::uint16_t WorkGroupSize = 256,
@@ -88,9 +105,11 @@ template <typename _ExecutionPolicy, typename _Iterator, bool IsAscending = true
 void
 radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
 {
+    if (__last - __first < 2)
+        return;
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __rng = __keep(__first, __last);
-    radix_sort(::std::forward<_ExecutionPolicy>(__exec), __rng.all_view());
+    oneapi::dpl::experimental::esimd::impl::radix_sort(::std::forward<_ExecutionPolicy>(__exec), __rng.all_view());
 }
 
 } // namespace oneapi::dpl::experimental::esimd
