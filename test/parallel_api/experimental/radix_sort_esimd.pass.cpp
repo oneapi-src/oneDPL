@@ -29,28 +29,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
-
-template<typename T>
-void verify(const T* input, const T* ref, std::size_t size)
-{
-    uint32_t err_count = 0;
-    for(uint32_t i = 0; i < size; ++i)
-    {
-        if(input[i] != ref[i])
-        {
-            ++err_count;
-            if(err_count <= 5)
-            {
-                std::cout << "input[" << i << "] = " << input[i] << ", expected: " << ref[i] << std::endl;
-            }
-        }
-    }
-    if (err_count != 0)
-    {
-        std::cout << "error count: " << err_count << std::endl;
-        std::cout << "n: " << size << std::endl;
-    }
-}
+#include <string>
 
 template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 void generate_data(T* input, std::size_t size)
@@ -85,7 +64,9 @@ void test_all_view(std::size_t size)
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
         oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default, view);
     }
-    verify(input.data(), ref.data(), size);
+
+    std::string msg = "wrong results with all_view, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(input, ref, msg.c_str());
 }
 
 template<typename T>
@@ -93,6 +74,7 @@ void test_subrange_view(std::size_t size)
 {
     sycl::queue q{};
     auto policy = oneapi::dpl::execution::make_device_policy(q);
+
     T* input = sycl::malloc_shared<T>(size, q);
     T* ref = sycl::malloc_host<T>(size, q);
     generate_data(ref, size);
@@ -104,7 +86,9 @@ void test_subrange_view(std::size_t size)
 
     T* host_input = sycl::malloc_host<T>(size, q);
     q.copy(input, host_input, size).wait();
-    verify(host_input, ref, size);
+
+    std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
+    EXPECT_EQ_N(input, ref, size, msg.c_str());
 
     sycl::free(input, q);
     sycl::free(ref, q);
@@ -126,7 +110,9 @@ void test_usm(std::size_t size)
 
     T* host_input = sycl::malloc_host<T>(size, q);
     q.copy(input, host_input, size).wait();
-    verify(host_input, ref, size);
+
+    std::string msg = "wrong results with USM, n: " + std::to_string(size);
+    EXPECT_EQ_N(input, ref, size, msg.c_str());
 
     sycl::free(input, q);
     sycl::free(ref, q);
@@ -136,22 +122,39 @@ void test_usm(std::size_t size)
 template<typename T>
 void test_sycl_iterators(std::size_t size)
 {
+    sycl::queue q{};
+    auto policy = oneapi::dpl::execution::make_device_policy(q);
+
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
-    {
-        sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default,
-            oneapi::dpl::begin(input), oneapi::dpl::end(input));
-    }
-    verify(input.data(), ref.data(), size);
+
+    oneapi::dpl::experimental::esimd::radix_sort(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
+
+    std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(input, ref, msg.c_str());
+}
+
+void test_small_sizes()
+{
+    sycl::queue q{};
+    auto policy = oneapi::dpl::execution::make_device_policy(q);
+
+    std::vector<uint32_t> input = {5, 11, 0, 17, 0};
+    generate_data(input.data(), input.size());
+    std::vector<uint32_t> ref(input);
+
+    oneapi::dpl::experimental::esimd::radix_sort(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 0");
+    oneapi::dpl::experimental::esimd::radix_sort(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 1");
 }
 
 // TODO: add ascending and descending sorting orders
 // TODO: provide exit code to indicate wrong results
 template<typename T>
-void test_all(std::size_t size)
+void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
     test_all_view<T>(size);
@@ -163,9 +166,7 @@ void test_all(std::size_t size)
 
 int main()
 {
-    // TODO enable the corner cases when handled
     std::vector<std::size_t> sizes = {
-        // 0, 1,                                                                // corner cases
         6, 16, 42, 256, 316, 2048, 5072, 8192, 14001,                        // one work-group
         2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000,               // cooperative
         2<<18, 500'000, 888'235, 1'000'000, 2<<20, 10'000'000                // onesweep
@@ -173,8 +174,9 @@ int main()
 
     for(auto size: sizes)
     {
-        test_all<uint32_t>(size);
+        test_general_cases<uint32_t>(size);
     }
+    test_small_sizes();
 
     return TestUtils::done();
 }
