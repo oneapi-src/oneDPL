@@ -334,10 +334,20 @@ test_equality_of_iterators()
 
     auto it1 = oneapi::dpl::begin(buf1);
     auto it2 = oneapi::dpl::begin(buf2);
+    auto& it1Ref = it2;
+    auto& it2Ref = it2;
 
     EXPECT_TRUE(__check_equal_iterators(it1, it1), "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_TRUE(__check_equal_iterators(it1, it1Ref), "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_TRUE(__check_equal_iterators(it1Ref, it1), "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_TRUE(__check_equal_iterators(it1Ref, it1Ref), "wrong __check_if_iterator_equality_is_possible result");
     EXPECT_FALSE(__check_equal_iterators(it1, it2), "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_FALSE(__check_equal_iterators(it1Ref, it2), "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_FALSE(__check_equal_iterators(it1, it2Ref), "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_FALSE(__check_equal_iterators(it1Ref, it2Ref), "wrong __check_if_iterator_equality_is_possible result");
     EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), it2),
+                 "wrong __check_if_iterator_equality_is_possible result");
+    EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), it2Ref),
                  "wrong __check_if_iterator_equality_is_possible result");
     EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), oneapi::dpl::begin(buf2)),
                  "wrong __check_if_iterator_equality_is_possible result");
