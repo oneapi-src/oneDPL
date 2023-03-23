@@ -1,7 +1,29 @@
+// -*- C++ -*-
+//===-- rasix_sort_esimd.pass.cpp -----------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 #define USE_ESIMD_SORT 1
+
+#include "support/test_config.h"
+
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
+#if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
+#endif
+
+#include "support/utils.h"
 
 #include <sycl/sycl.hpp>
 #include <vector>
@@ -50,23 +72,45 @@ void generate_data(T* input, std::size_t size)
     }
 }
 
+#if _ENABLE_RANGES_TESTING
 template<typename T>
 void test_all_view(std::size_t size)
 {
-    namespace dpl = oneapi::dpl;
-    namespace dpl_ranges = dpl::experimental::ranges;
-
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        dpl_ranges::all_view<T, sycl::access::mode::read_write> view(buf);
+        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
         oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default, view);
     }
     verify(input.data(), ref.data(), size);
 }
+
+template<typename T>
+void test_subrange_view(std::size_t size)
+{
+    sycl::queue q{};
+    auto policy = oneapi::dpl::execution::make_device_policy(q);
+    T* input = sycl::malloc_shared<T>(size, q);
+    T* ref = sycl::malloc_host<T>(size, q);
+    generate_data(ref, size);
+    q.copy(ref, input, size).wait();
+    std::sort(ref, ref + size);
+
+    oneapi::dpl::experimental::ranges::views::subrange view(input, input + size);
+    oneapi::dpl::experimental::esimd::radix_sort(policy, view);
+
+    T* host_input = sycl::malloc_host<T>(size, q);
+    q.copy(input, host_input, size).wait();
+    verify(host_input, ref, size);
+
+    sycl::free(input, q);
+    sycl::free(ref, q);
+    sycl::free(host_input, q);
+}
+#endif // _ENABLE_RANGES_TESTING
 
 template<typename T>
 void test_usm(std::size_t size)
@@ -89,43 +133,48 @@ void test_usm(std::size_t size)
     sycl::free(host_input, q);
 }
 
-/*
 template<typename T>
-void test_subrange_view(uint32_t n, sycl::queue& q)
+void test_sycl_iterators(std::size_t size)
 {
-    namespace dpl = oneapi::dpl;
-    namespace dpl_ranges = dpl::experimental::ranges;
-
-    T* p_in = sycl::malloc_shared<T>(n, q);
-    generate_data(p_in, n);
-    std::vector<T> ref(p_in, p_in + p);
-    std::sort(ref);
+    std::vector<T> input(size);
+    generate_data(input.data(), size);
+    std::vector<T> ref(input);
+    std::sort(std::begin(ref), std::end(ref));
     {
-        dpl_ranges::views::subrange<T, sycl::access::mode::read_write> view(p_in, p_in + n);
-        oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default, view);
+        sycl::buffer<T> buf(input.data(), input.size());
+        oneapi::dpl::experimental::esimd::radix_sort(dpl::execution::dpcpp_default,
+            oneapi::dpl::begin(input), oneapi::dpl::end(input));
     }
-    verify(input, ref);
+    verify(input.data(), ref.data(), size);
 }
 
+// TODO: add ascending and descending sorting orders
+// TODO: provide exit code to indicate wrong results
 template<typename T>
-test_sycl_iterators()
+void test_all(std::size_t size)
 {
+#if _ENABLE_RANGES_TESTING
+    test_all_view<T>(size);
+    test_subrange_view<T>(size);
+#endif // _ENABLE_RANGES_TESTING
+    test_usm<T>(size);
+    test_sycl_iterators<T>(size);
 }
-
-*/
 
 int main()
 {
-    // std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024}; // only one_wg
-    // std::vector<std::size_t> sizes = {32'768, 50'000, 100'000}; // only cooperative
-    // std::vector<std::size_t> sizes = {524228, 1'000'000}; // only onesweep
-    std::vector<std::size_t> sizes = {16, 96, 256, 512, 2024, 32768, 50000, 524228, 1'000'000};
+    // TODO enable the corner cases when handled
+    std::vector<std::size_t> sizes = {
+        // 0, 1,                                                                // corner cases
+        6, 16, 42, 256, 316, 2048, 5072, 8192, 14001,                        // one work-group
+        2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000,               // cooperative
+        2<<18, 500'000, 888'235, 1'000'000, 2<<20, 10'000'000                // onesweep
+    };
 
     for(auto size: sizes)
     {
-        test_all_view<uint32_t>(size);
-        test_usm<uint32_t>(size);
+        test_all<uint32_t>(size);
     }
-    std::cout << "done" << std::endl;
-    return 0;
+
+    return TestUtils::done();
 }
