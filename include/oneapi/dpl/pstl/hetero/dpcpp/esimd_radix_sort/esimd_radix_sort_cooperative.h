@@ -236,7 +236,6 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
                     }
                     lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
                 }
-                // if (stage == 0) return;
                 if (local_tid == 0)  {
                     global_sync(p_sync_buffer, stage*4+1, tg_count, tg_id, local_tid);
                     {
@@ -284,8 +283,6 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
             write_addr.template select<16, 1>(s) += bin_offset.template iselect(bins_uw);
         }
 
-        //bins.copy_to(input);
-        //return;
         #pragma unroll
         for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
             lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::write_back, 16>(
