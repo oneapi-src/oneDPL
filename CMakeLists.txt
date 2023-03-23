@@ -36,47 +36,15 @@ if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
     endif()
 endif()
 
-if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
-    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
-    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O2 -DNDEBUG")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "-debug")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "-debug")
-
-    #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19,
-    if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
-        message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} is not supported by CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/24314). A workaround is provided but may have limitations. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
-        set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
-        set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
-        # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
-        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_14 cxx_std_17 cxx_std_20)
-        set(CMAKE_CXX14_COMPILE_FEATURES cxx_std_14)
-        set(CMAKE_CXX17_COMPILE_FEATURES cxx_std_17)
-        set(CMAKE_CXX20_COMPILE_FEATURES cxx_std_20)
-        set(CMAKE_CXX14_STANDARD_COMPILE_OPTION "-std=c++14")
-        set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
-        set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std=c++20")
-        set(CMAKE_CXX_STANDARD_COMPUTED_DEFAULT 14)
-        set(SET_CXX_STANDARD_DEFAULT TRUE)
-    endif()
-endif()
-
-if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE AND (NOT ${CMAKE_VERSION} VERSION_LESS "3.20") AND (${CMAKE_VERSION} VERSION_LESS "3.23"))
-    message(WARNING "${CMAKE_CXX_COMPILER} requires changes to linker settings to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMake version 3.23.0 or newer on Windows")
-    # Fixing linker rules to provide the linker options to the linker despite being before "/link" (see below)
-    # Adapted from fix in CMake 3.23: https://github.com/Kitware/CMake/commit/5d5a7123034361b6cacff96d3ed20d2bb78c33cc
-    set(CMAKE_EXE_LINKER_FLAGS_INIT "/Qoption,link,/machine:x64")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE_INIT "/Qoption,link,/INCREMENTAL:NO")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/Qoption,link,/debug /Qoption,link,/INCREMENTAL:NO")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/Qoption,link,/debug /Qoption,link,/INCREMENTAL")
-    set(CMAKE_CXX_CREATE_CONSOLE_EXE "/Qoption,link,/subsystem:console")
-    set(CMAKE_CXX_CREATE_WINDOWS_EXE "/Qoption,link,/subsystem:windows") 
+if (NOT INTELLLVM_WIN_TOOLCHAIN_APPLIED AND CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE) )
+    message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} CMake requires some workarounds to function properly. We recommend using the provided toolchain file by adding '-DCMAKE_TOOLCHAIN_FILE=windows-IntelLLVM-toolchain.cmake' to your cmake call.")
 endif()
 
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 
-if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE)
+# The following fixes are requested by windows-IntelLLVM-toolchain.cmake
+if (INTELLLVM_MSVC_WIN_STDOPTION_FIX)
     # Fix std compiler options for icx, icx-cl (Adapted from https://github.com/Kitware/CMake/commit/42ca6416afeabd445bc6c19749e68604c9c2d733)
     set(CMAKE_CXX14_STANDARD_COMPILE_OPTION  "-Qstd:c++14")
     set(CMAKE_CXX14_EXTENSION_COMPILE_OPTION "-Qstd:c++14")
@@ -84,24 +52,20 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE)
     set(CMAKE_CXX17_EXTENSION_COMPILE_OPTION "-Qstd:c++17")
     set(CMAKE_CXX20_STANDARD_COMPILE_OPTION  "-Qstd:c++20")
     set(CMAKE_CXX20_EXTENSION_COMPILE_OPTION "-Qstd:c++20")
-
-    if ((NOT ${CMAKE_VERSION} VERSION_LESS "3.20") AND (${CMAKE_VERSION} VERSION_LESS "3.23"))
-        # Fixing linker rule to use the compiler for linking and moving link options before /link
-        # Adapted from fix in CMake 3.23: https://github.com/Kitware/CMake/commit/5d5a7123034361b6cacff96d3ed20d2bb78c33cc
-        set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_COMMAND> -E vs_link_exe --intdir=<OBJECT_DIR> --rc=<CMAKE_RC_COMPILER> --mt=<CMAKE_MT> --manifests <MANIFESTS> -- <CMAKE_CXX_COMPILER> /nologo <CMAKE_CXX_LINK_FLAGS> <OBJECTS> <LINK_FLAGS> <LINK_LIBRARIES> /link /out:<TARGET> /implib:<TARGET_IMPLIB> /pdb:<TARGET_PDB> /version:<TARGET_VERSION_MAJOR>.<TARGET_VERSION_MINOR>")
-
-        if (${CMAKE_VERSION} VERSION_LESS "3.21")
-            # Fixing issue with version CMAKE_CXX_STANDARD being ignored in CMake 3.20 https://github.com/Kitware/CMake/commit/84036d30d4bae01ed94602ebce7a404300fd7e5f
-            set(SET_CXX_STANDARD_DEFAULT TRUE)
-        endif()
-    elseif((NOT ${CMAKE_VERSION} VERSION_LESS "3.23") AND (${CMAKE_VERSION} VERSION_LESS "3.25"))
-        # Intel provided workaround for CMake version 3.23+
-        find_package(IntelDPCPP REQUIRED)
-    endif()
-    # No workaround required for CMake version 3.25+
 endif()
 
-if (SET_CXX_STANDARD_DEFAULT)
+if (INTELLLVM_MSVC_WIN_LINKORDER_FIX)
+    # Fixing linker rule to use the compiler for linking and moving link options before /link
+    # Adapted from fix in CMake 3.23: https://github.com/Kitware/CMake/commit/5d5a7123034361b6cacff96d3ed20d2bb78c33cc
+    set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_COMMAND> -E vs_link_exe --intdir=<OBJECT_DIR> --rc=<CMAKE_RC_COMPILER> --mt=<CMAKE_MT> --manifests <MANIFESTS> -- <CMAKE_CXX_COMPILER> /nologo <CMAKE_CXX_LINK_FLAGS> <OBJECTS> <LINK_FLAGS> <LINK_LIBRARIES> /link /out:<TARGET> /implib:<TARGET_IMPLIB> /pdb:<TARGET_PDB> /version:<TARGET_VERSION_MAJOR>.<TARGET_VERSION_MINOR>")
+endif()
+
+if (INTELLLVM_WIN_OFFICIAL_SUPPORT_FIX)
+    # Intel provided workaround for CMake version 3.23+
+    find_package(IntelDPCPP REQUIRED)
+endif()
+
+if (INTELLLVM_WIN_STD_IGNORE_FIX)
     include(Compiler/CMakeCommonCompilerMacros)
     # Setting c++ standard default to 14, and enabling usage of CMAKE_CXX_STANDARD
     __compiler_check_default_language_standard(CXX 2020 14)
