@@ -20,7 +20,7 @@
 // Check the user-defined macro for parallel policies
 // define _DS_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
 #if !defined(_DS_BACKEND_SYCL)
-#    if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#    if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
 #        define _DS_BACKEND_SYCL 1
 #    else
 #        define _DS_BACKEND_SYCL 0
