@@ -62,13 +62,6 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
-//It is recommended to update a graphic driver to one of the last versions, 23.05.25593.11 at least,
-//otherwise in case of Intel® Data Center GPU Flex Series and compiled code with NDEBUG flag
-//it is recommended to define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT to 0.
-#if !defined(_ONEDPL_USE_SINGLE_GROUP_RADIX_SORT)
-#    define _ONEDPL_USE_SINGLE_GROUP_RADIX_SORT 1
-#endif
-
 namespace __dpl_sycl
 {
 
