@@ -321,6 +321,41 @@ run_test()
         test1buffer<alloc_type, test_scan_inplace<ValueType, TestingAlgoritmExclusiveScanExt<2, BinaryOperation>>>();
     }
 }
+
+void
+test_equality_of_iterators()
+{
+    // Check some internals from oneapi::dpl::__internal
+    using namespace oneapi::dpl::__internal;
+
+    constexpr size_t count = 0;
+    sycl::buffer<int> buf1(count);
+    sycl::buffer<int> buf2(count);
+
+    auto it1 = oneapi::dpl::begin(buf1);
+    auto it2 = oneapi::dpl::begin(buf2);
+
+    EXPECT_TRUE(__check_equal_iterators(it1, it1), "wrong __check_if_iterator_equality_is_possible result");
+
+    EXPECT_FALSE(__check_equal_iterators(it1, it2), "wrong __check_if_iterator_equality_is_possible result");
+
+    int srcIntData = 0;
+    const auto& intConstData = srcIntData;
+    auto& intData = srcIntData;
+    float floatData = .0;
+
+    EXPECT_TRUE(__check_equal_iterators(&intData, &intData), "wrong __check_if_iterator_equality_is_possible result");
+
+    EXPECT_TRUE(__check_equal_iterators(&intConstData, &intData),
+                "wrong __check_if_iterator_equality_is_possible result");
+
+    EXPECT_TRUE(__check_equal_iterators(&intData, &intConstData),
+                "wrong __check_if_iterator_equality_is_possible result");
+
+    EXPECT_FALSE(__check_equal_iterators(&intData, &floatData),
+                 "wrong __check_if_iterator_equality_is_possible result");
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
@@ -330,6 +365,8 @@ main()
 
     using ValueType = int;
     using BinaryOperation = ::std::plus<ValueType>;
+
+    test_equality_of_iterators();
 
     // Run tests for USM shared memory
     run_test<sycl::usm::alloc::shared, ValueType, BinaryOperation>();
