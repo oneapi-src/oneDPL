@@ -152,36 +152,82 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
     }
 }
 
+// TODO In C++20 we may try to use std::equality_comparable
+template <typename _Iterator1, typename _Iterator2, typename = void>
+struct is_equality_comparable : std::false_type
+{
+};
+
+// Two sycl_iterator's (with different access modes)
+template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
+struct is_equality_comparable<
+        sycl_iterator<_Mode1, _T, _Allocator>,
+        sycl_iterator<_Mode2, _T, _Allocator>
+    > : std::true_type
+{
+};
+
+// All with implemented operator ==
+template <typename _Iterator1, typename _Iterator2>
+struct is_equality_comparable<
+        _Iterator1, _Iterator2,
+        std::void_t<
+            decltype(::std::decay_t<_Iterator1>() == ::std::decay_t<_Iterator2>())
+        >
+    > : std::true_type
+{
+};
+
+// Check the ability to compare two sycl_iterator's
+/*
+ * @return bool - true, if these iterators may be the same;
+ *         false - we know these iterators are different
+ */
 template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
 bool
-__check_equal_iterators(sycl_iterator<_Mode1, _T, _Allocator> __it1, sycl_iterator<_Mode2, _T, _Allocator> __it2)
+__check_if_iterator_equality_is_possible(sycl_iterator<_Mode1, _T, _Allocator> __it1,
+                                         sycl_iterator<_Mode2, _T, _Allocator> __it2)
 {
-    if (__it1 != __it2)
+    const auto buf1 = __it1.get_buffer();
+    const auto buf2 = __it2.get_buffer();
+
+    // We are unable to compare two sycl_iterator's from different buffers
+    if (buf1 != buf2)
         return false;
 
-    // This code is required to check that two sycl_iterator describes two different sycl::buffers
-    bool bResult = __it1.get_buffer() == __it2.get_buffer();
-    return bResult;
-    //const auto addr1 = __it1.get_buffer().get_host_access(sycl::read_only).get_pointer();
-    //const auto addr2 = __it2.get_buffer().get_host_access(sycl::read_only).get_pointer();
-    //if (addr1 != addr2)
-    //    return addr1 == addr2;
+    // We are unable to compare two sycl_iterator's if one of them is sub_buffer
+    if (buf1.is_sub_buffer() || buf2.is_sub_buffer())
+        return false;
 
-    //return addr1 == addr2;
+    return true;
 }
 
 template <typename _Iterator1, typename _Iterator2>
-constexpr bool
+bool
+__check_if_iterator_equality_is_possible(_Iterator1, _Iterator2)
+{
+    return true;
+}
+
+template <typename _Iterator1, typename _Iterator2>
+bool
 __check_equal_iterators(_Iterator1 __it1, _Iterator2 __it2)
 {
-    // In-place exclusive scan works correctly only if an input and an output iterators are the same type.
-    // Otherwise, there is no way to check an in-place case and a workaround below is not applied.
-    if constexpr (::std::is_same_v<::std::decay_t<_Iterator1>, ::std::decay_t<_Iterator2>>)
+    // 1. operator==(_Iterator1, _Iterator2) should be available in compile-time
+    if constexpr (!is_equality_comparable<_Iterator1, _Iterator2>::value)
     {
+        return false;
+    }
+    else
+    {
+        // 2. we should be able to compare two iterators in run-time:
+        //    for example they may have different types or iterate different contaqiners and so on.
+        if (!__check_if_iterator_equality_is_possible(__it1, __it2))
+            return false;
+
+        // 3. Now we are ready to compare two iterators
         return __it1 == __it2;
     }
-
-    return false;
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
