@@ -61,13 +61,7 @@ namespace experimental {
       return std::forward<Handle>(h).report(prop, v);
     }
   } //namespace property
-}
-}
-}
 
-namespace oneapi {
-namespace dpl {
-namespace experimental {
 //ds_algorithms
   template<typename Handle>
   inline auto wait_for_all(Handle&& h) {
@@ -169,7 +163,6 @@ namespace experimental {
 } // namespace dpl
 } // namespace oneapi
 #if !defined(_DS_BACKEND_SYCL)
-message("this");
 #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_scheduler.h"
 #endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/inline_scheduler.h"
